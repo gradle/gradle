@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
  * A library component that is built by a gradle project.
  */
 @Incubating
-public interface Library extends ProjectNativeComponent {
+public interface Library extends ProjectNativeComponent, TargetedNativeComponent {
     /**
      * Converts this library to a native library requirement that uses the shared library variant. This is the default.
      */

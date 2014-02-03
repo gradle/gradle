@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.test.internal;
+package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.test.TestSuite;
-import org.gradle.nativebinaries.internal.AbstractProjectNativeComponent;
-import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier;
+import org.gradle.nativebinaries.BuildType;
+import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.TargetedNativeComponent;
+import org.gradle.nativebinaries.platform.Platform;
 
-public class DefaultTestSuite extends AbstractProjectNativeComponent implements TestSuite {
-    public DefaultTestSuite(NativeProjectComponentIdentifier id) {
-        super(id);
-    }
+import java.util.Set;
 
-    public String getDisplayName() {
-        return String.format("unit tests '%s'", getName());
-    }
+public interface TargetedNativeComponentInternal extends TargetedNativeComponent {
+    Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates);
+    Set<Platform> choosePlatforms(Set<? extends Platform> candidates);
+    Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates);
 }

@@ -16,19 +16,12 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Named;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.util.GUtil;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractProjectNativeComponent implements ProjectNativeComponentInternal {
@@ -36,9 +29,7 @@ public abstract class AbstractProjectNativeComponent implements ProjectNativeCom
     private final NativeProjectComponentIdentifier id;
     private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
-    private final Set<String> targetPlatforms = new HashSet<String>();
-    private final Set<String> buildTypes = new HashSet<String>();
-    private final Set<String> flavors = new HashSet<String>();
+
     private String baseName;
 
     public AbstractProjectNativeComponent(NativeProjectComponentIdentifier id) {
@@ -78,61 +69,5 @@ public abstract class AbstractProjectNativeComponent implements ProjectNativeCom
 
     public void setBaseName(String baseName) {
         this.baseName = baseName;
-    }
-
-    public void targetFlavors(Object... flavorSelectors) {
-        for (Object flavorSelector : flavorSelectors) {
-            // TODO:DAZ Allow Flavor instance and selector
-            assert flavorSelector instanceof String;
-            flavors.add((String) flavorSelector);
-        }
-    }
-
-    public void targetPlatforms(Object... platformSelectors) {
-        for (Object platformSelector : platformSelectors) {
-            // TODO:DAZ Allow Platform instance and selector
-            assert platformSelector instanceof String;
-            targetPlatforms.add((String) platformSelector);
-        }
-    }
-
-    public void targetBuildTypes(Object... buildTypeSelectors) {
-        for (Object buildTypeSelector : buildTypeSelectors) {
-            // TODO:DAZ Allow BuildType instance and selector
-            assert buildTypeSelector instanceof String;
-            buildTypes.add((String) buildTypeSelector);
-        }
-    }
-
-    public Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates) {
-        return chooseElements(Flavor.class, candidates, flavors);
-    }
-
-    public Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates) {
-        return chooseElements(BuildType.class, candidates, buildTypes);
-    }
-
-    public Set<Platform> choosePlatforms(Set<? extends Platform> candidates) {
-        return chooseElements(Platform.class, candidates, targetPlatforms);
-    }
-
-    private <T extends Named> Set<T> chooseElements(Class<T> type, Set<? extends T> candidates, final Set<String> names) {
-        if (names.isEmpty()) {
-            return new LinkedHashSet<T>(candidates);
-        }
-
-        Set<String> unusedNames = new HashSet<String>(names);
-        Set<T> chosen = new LinkedHashSet<T>();
-        for (T candidate : candidates) {
-            if (unusedNames.remove(candidate.getName())) {
-                chosen.add(candidate);
-            }
-        }
-
-        if (!unusedNames.isEmpty()) {
-            throw new InvalidUserDataException(String.format("Invalid %s: '%s'", type.getSimpleName(), unusedNames.iterator().next()));
-        }
-
-        return chosen;
     }
 }

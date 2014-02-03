@@ -63,39 +63,4 @@ public interface ProjectNativeComponent extends Named {
      * Sets the name that is used to construct the output file names when building this component.
      */
     void setBaseName(String baseName);
-
-    // TODO:DAZ These are no longer honoured for TestSuite: need to split into a separate API
-    /**
-     * Specifies one or more {@link org.gradle.nativebinaries.Flavor}s that this component should be built for.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>The String name of the flavor to build.</li>
-     * </ul>
-     */
-    void targetFlavors(Object... flavorSelectors);
-
-    /**
-     * Specifies one or more {@link org.gradle.nativebinaries.platform.Platform}s that this component should be built for.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>The String name of the platform to target.</li>
-     * </ul>
-     */
-    void targetPlatforms(Object... platformSelectors);
-
-    /**
-     * Specifies one or more {@link org.gradle.nativebinaries.BuildType}s that this component should be built for.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>The String name of a build type.</li>
-     * </ul>
-     */
-    void targetBuildTypes(Object... platformSelectors);
-
 }

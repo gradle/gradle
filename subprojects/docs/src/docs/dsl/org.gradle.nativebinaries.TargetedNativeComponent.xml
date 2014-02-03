@@ -23,18 +23,7 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>binaries</td>
-            </tr>
-            <tr>
-                <td>baseName</td>
-            </tr>
-            <tr>
-                <td>source</td>
-            </tr>
-            <tr>
-                <td>displayName</td>
-            </tr>
+
         </table>
     </section>
     <section>
@@ -46,7 +35,13 @@
                 </tr>
             </thead>
             <tr>
-                <td>source</td>
+                <td>targetFlavors</td>
+            </tr>
+            <tr>
+                <td>targetBuildTypes</td>
+            </tr>
+            <tr>
+                <td>targetPlatforms</td>
             </tr>
         </table>
     </section>
