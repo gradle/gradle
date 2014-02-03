@@ -69,6 +69,10 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         return builder.toString();
     }
 
+    public List<String> getVariantDimensions() {
+        return dimensions;
+    }
+
     public String getTaskName(@Nullable String verb) {
         return getTaskName(verb, null);
     }

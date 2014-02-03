@@ -343,13 +343,13 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         final mainProjectFile = projectFile("mainExe.vcxproj")
         mainProjectFile.projectConfigurations.keySet() == projectConfigurations
         final mainReleaseProjectFile = projectFile("mainReleaseExe.vcxproj")
-        mainReleaseProjectFile.projectConfigurations.keySet() == ['win32Release', 'x64Release'] as Set
+        mainReleaseProjectFile.projectConfigurations.keySet() == ['win32', 'x64'] as Set
 
         and:
         final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertReferencesProject(helloProjectFile, projectConfigurations)
         final mainReleaseSolution = solutionFile("mainReleaseExe.sln")
-        mainReleaseSolution.assertReferencesProject(helloProjectFile, ['win32Release', 'x64Release'])
+        mainReleaseSolution.assertReferencesProject(helloProjectFile, [win32: 'win32Release', x64: 'x64Release'])
     }
 
     def "create visual studio project for executable that targets multiple platforms with the same architecture"() {
@@ -365,7 +365,6 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     }
     executables {
         main {
-            targetBuildTypes "debug"
             targetPlatforms "win32", "otherWin32"
         }
     }
@@ -375,7 +374,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         final mainProjectFile = projectFile("mainExe.vcxproj")
-        mainProjectFile.projectConfigurations.keySet() == ['win32Debug', 'otherWin32Debug'] as Set
+        mainProjectFile.projectConfigurations.keySet() == ['win32Debug', 'otherWin32Debug', 'win32Release', 'otherWin32Release'] as Set
     }
 
     def "create visual studio solution for executable that has diamond dependency"() {
