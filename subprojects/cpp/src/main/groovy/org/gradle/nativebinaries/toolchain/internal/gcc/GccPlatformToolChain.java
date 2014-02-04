@@ -17,6 +17,7 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain;
@@ -51,28 +52,28 @@ class GccPlatformToolChain implements PlatformToolChain {
         CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(CppCompileSpec.class, platformConfiguration.getCppCompilerArgs()));
         CppCompiler cppCompiler = new CppCompiler(commandLineTool, tools.getArgTransformer(ToolType.CPP_COMPILER), useCommandFile);
-        return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".o");
+        return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getOutputFileSuffix());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
         CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(CCompileSpec.class, platformConfiguration.getCCompilerArgs()));
         CCompiler cCompiler = new CCompiler(commandLineTool, tools.getArgTransformer(ToolType.C_COMPILER), useCommandFile);
-        return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".o");
+        return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, getOutputFileSuffix());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler() {
         CommandLineTool<ObjectiveCppCompileSpec> commandLineTool = commandLineTool(ToolType.OBJECTIVECPP_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(ObjectiveCppCompileSpec.class, platformConfiguration.getObjectiveCppCompilerArgs()));
         ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(commandLineTool, tools.getArgTransformer(ToolType.OBJECTIVECPP_COMPILER), useCommandFile);
-        return (Compiler<T>) new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, ".o");
+        return (Compiler<T>) new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, getOutputFileSuffix());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler() {
         CommandLineTool<ObjectiveCCompileSpec> commandLineTool = commandLineTool(ToolType.OBJECTIVEC_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(ObjectiveCCompileSpec.class, platformConfiguration.getObjectiveCCompilerArgs()));
         ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(commandLineTool, tools.getArgTransformer(ToolType.OBJECTIVEC_COMPILER), useCommandFile);
-        return (Compiler<T>) new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, ".o");
+        return (Compiler<T>) new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, getOutputFileSuffix());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
@@ -95,6 +96,11 @@ class GccPlatformToolChain implements PlatformToolChain {
         CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
         commandLineTool.withSpecTransformer(withSystemArgs(StaticLibraryArchiverSpec.class, platformConfiguration.getStaticLibraryArchiverArgs()));
         return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool, tools.getArgTransformer(ToolType.STATIC_LIB_ARCHIVER));
+    }
+
+
+    private String getOutputFileSuffix() {
+        return OperatingSystem.current().isWindows() ? ".obj" : ".o";
     }
 
     private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
