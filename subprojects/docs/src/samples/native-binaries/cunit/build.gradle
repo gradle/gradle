@@ -1,0 +1,39 @@
+apply plugin: "c"
+apply plugin: "cunit"
+
+model {
+    flavors {
+        passing
+        failing
+    }
+    repositories {
+        libs(PrebuiltLibraries) {
+            cunit {
+                headers.srcDir "lib/cunit/2.1-2/include"
+                binaries.withType(StaticLibraryBinary) {
+                    if (targetPlatform.operatingSystem.windows) {
+                        staticLibraryFile = file("lib/cunit/2.1-2/lib/vs2010/cunit.lib")
+//                        staticLibraryFile = file("lib/cunit/2.1-2/lib/vs2013/cunit.lib")
+//                        staticLibraryFile = file("lib/cunit/2.1-2/lib/cygwin/cunit.lib")
+//                        staticLibraryFile = file("lib/cunit/2.1-2/lib/mingw/cunit.lib")
+                    } else if (targetPlatform.operatingSystem.linux) {
+                        staticLibraryFile = file("lib/cunit/2.1-2/lib/linux/libcunit.a")
+                    } else {
+                        staticLibraryFile = file("lib/cunit/2.1-2/lib/osx/libcunit.a")
+                    }
+                }
+            }
+        }
+    }
+}
+
+libraries {
+    operators {}
+}
+binaries.withType(TestSuiteExecutableBinary) {
+    lib library: "cunit", linkage: "static"
+
+    if (flavor == flavors.failing) {
+        cCompiler.define "PLUS_BROKEN"
+    }
+}
