@@ -228,8 +228,10 @@ public class UserGuideTransformTask extends DefaultTask {
                     String outputFile = child.'@outputFile' ?: "${sampleId}.out"
                     boolean ignoreExtraLines = child.'@ignoreExtraLines' ?: false
                     boolean ignoreLineOrder = child.'@ignoreLineOrder' ?: false
+                    boolean expectFailure = child.'@expectFailure' ?: false
 
-                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile, ignoreExtraLines: ignoreExtraLines, ignoreLineOrder: ignoreLineOrder) }
+                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile,
+                                           ignoreExtraLines: ignoreExtraLines, ignoreLineOrder: ignoreLineOrder, expectFailure: expectFailure) }
 
                     Element outputTitle = doc.createElement("para")
                     outputTitle.appendChild(doc.createTextNode("Output of "))
