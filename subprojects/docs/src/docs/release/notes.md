@@ -49,7 +49,7 @@ component version whose group is `my.company` and whose version number ends in `
         }
     }
 
-This feature is especially useful when dealing with Ivy repositories.
+This feature is especially useful when dealing with Ivy repositories, as it is a generalized form of Ivy's `changingPattern` concept.
 
 ### Tooling API exposes information on a project's publications
 
