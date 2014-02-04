@@ -543,6 +543,9 @@
             <tr>
                 <td>org.gradle.ide.visualstudio.VisualStudioSolution</td>
             </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.test.cunit.CUnitTestSuite</td>
+            </tr>
         </table>
     </section>
     <section>
