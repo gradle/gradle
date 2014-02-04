@@ -32,6 +32,25 @@ Gradle will then generate the required boiler-plate CUnit code, build a test exe
 See the [user guide chapter](docs/userguide/nativeBinaries.html#native_binaries:cunit) and the cunit sample (`samples/native-binaries/cunit`)
 in the distribution to learn more. Expect deeper integration with CUnit (and other native testing tools) in the future.
 
+### Component metadata rules can control whether a component version is considered changing
+
+Component metadata rules can now control whether a component version is considered changing, or in other words, whether the contents
+of one and the same component version may change over time. (A common example for a changing component version is a Maven snapshot dependency.)
+This makes it possible to implement custom strategies for deciding if a component version is changing. In the following example, every
+component version whose group is `my.company` and whose version number ends in `-dev` will be considered changing:
+
+    dependencies {
+        components {
+            eachComponent { ComponentMetadataDetails details ->
+                details.changing =
+                    details.id.group == "my.company" &&
+                        details.id.version.endsWith("-dev")
+            }
+        }
+    }
+
+This feature is especially useful when dealing with Ivy repositories.
+
 ### Tooling API exposes information on a project's publications
 
 Tooling API clients can now get basic information on a project's publications:
