@@ -26,9 +26,15 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class RegexBackedIncludesParser implements IncludesParser {
-    private final Pattern includePattern  = Pattern.compile("#(include|import)\\s+((<[^>]+>)|(\"[^\"]+\"))", Pattern.CASE_INSENSITIVE);
+public class AbstractRegexBackedIncludesParser implements IncludesParser {
 
+    private final Pattern includePattern;
+    private final int matchingGroup;
+
+    public AbstractRegexBackedIncludesParser(String pattern, int matchingGroup){
+        this.includePattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+        this.matchingGroup = matchingGroup;
+    }
     public Includes parseIncludes(File sourceFile) {
         DefaultIncludes includes = new DefaultIncludes();
         parseFile(sourceFile, includes);
@@ -38,14 +44,14 @@ public class RegexBackedIncludesParser implements IncludesParser {
     private void parseFile(File file, DefaultIncludes includes) {
         try {
             BufferedReader bf = new BufferedReader(new FileReader(file));
+
             try {
                 String line;
-
                 while ((line = bf.readLine()) != null) {
                     Matcher m = includePattern.matcher(line);
 
                     while (m.find()) {
-                        String include = m.group(2);
+                        String include = m.group(matchingGroup);
                         if (include.startsWith("<")) {
                             includes.getSystemIncludes().add(strip(include));
                         } else {

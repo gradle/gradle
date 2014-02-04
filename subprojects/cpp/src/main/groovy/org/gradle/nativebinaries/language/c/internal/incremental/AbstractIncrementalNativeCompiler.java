@@ -36,14 +36,15 @@ import java.io.File;
 import java.util.List;
 
 abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
-    private final RegexBackedIncludesParser includesParser = new RegexBackedIncludesParser();
     private final TaskInternal task;
+    private final IncludesParser includesParser;
     private final CacheRepository cacheRepository;
     private Iterable<File> includes;
 
-    protected AbstractIncrementalNativeCompiler(TaskInternal task, Iterable<File> includes, CacheRepository cacheRepository) {
+    protected AbstractIncrementalNativeCompiler(TaskInternal task, IncludesParser includesParser, Iterable<File> includes, CacheRepository cacheRepository) {
         this.task = task;
         this.includes = includes;
+        this.includesParser = includesParser;
         this.cacheRepository = cacheRepository;
     }
 

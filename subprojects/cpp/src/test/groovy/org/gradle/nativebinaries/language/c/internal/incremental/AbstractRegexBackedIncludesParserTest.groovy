@@ -20,10 +20,10 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class RegexBackedIncludesParserTest extends Specification {
+abstract class AbstractRegexBackedIncludesParserTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    def parser = new RegexBackedIncludesParser()
+    abstract IncludesParser getParser()
 
     protected TestFile getSourceFile() {
         testDirectory.file('source.c')
