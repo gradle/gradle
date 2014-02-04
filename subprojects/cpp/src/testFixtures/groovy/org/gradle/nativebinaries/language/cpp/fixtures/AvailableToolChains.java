@@ -190,14 +190,11 @@ public class AvailableToolChains {
         protected final List<File> pathEntries = new ArrayList<File>();
         private final String displayName;
         protected final String pathVarName;
-        private final String objectFileNameSuffix;
-
         private String originalPath;
 
         public InstalledToolChain(String displayName) {
             this.displayName = displayName;
             this.pathVarName = OperatingSystem.current().getPathVar();
-            this.objectFileNameSuffix = OperatingSystem.current().isWindows() ? ".obj" : ".o";
         }
 
         InstalledToolChain inPath(File... pathEntries) {
@@ -226,7 +223,7 @@ public class AvailableToolChains {
         }
 
         public TestFile objectFile(Object path) {
-            return new TestFile(path.toString() + objectFileNameSuffix);
+            return new TestFile(path.toString() + ".o");
         }
 
         public SharedLibraryFixture sharedLibrary(Object path) {
