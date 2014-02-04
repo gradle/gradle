@@ -38,7 +38,7 @@ if (useIncomingDistributions) {
     intTestImage {
         with project(":distributions").binDistImage
         into "samples", {
-            from { project(":docs").samples }
+            from { project(":docs").outputs.samples }
         }
         doLast { task ->
             ant.chmod(dir: "$destinationDir/bin", perm: "ugo+rx", includes: "**/*")
