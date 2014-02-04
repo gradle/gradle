@@ -4,7 +4,33 @@ Here are the new features introduced in this Gradle release.
 
 ### CUnit integration (i)
 
-TODO
+The new Gradle `cunit` plugin provides support for compiling and executing CUnit tests in your native-binary project.
+
+You simply need to include your CUnit test sources, and provide a hook for Gradle to register the suites and tests defined.
+
+    #include <CUnit/Basic.h>
+    #include "gradle_cunit_register.h"
+    #include "operator_tests.h"
+
+    void gradle_cunit_register() {
+        CU_pSuite mySuite = CU_add_suite("operator tests", suite_init, suite_clean);
+        CU_add_test(mySuite, "test plus", test_plus);
+        CU_add_test(mySuite, "test minus", test_minus);
+    }
+
+Gradle will then generate the required boiler-plate CUnit code, build a test executable, and run your tests.
+
+    > gradle -q runFailingOperatorsTest
+
+    There were test failures:
+      1. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:6  - plus(0, -2) == -2
+      2. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:7  - plus(2, 2) == 4
+
+    BUILD FAILED
+
+
+See the [user guide chapter](docs/userguide/nativeBinaries.html#native_binaries:cunit) and the cunit sample (`samples/native-binaries/cunit`)
+in the distribution to learn more. Expect deeper integration with CUnit (and other native testing tools) in the future.
 
 ## Promoted features
 
