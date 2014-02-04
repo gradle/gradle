@@ -29,6 +29,7 @@ public abstract class OperatingSystem {
     public static final MacOs MAC_OS = new MacOs();
     public static final Solaris SOLARIS = new Solaris();
     public static final Linux LINUX = new Linux();
+    public static final FreeBSD FREE_BSD = new FreeBSD();
     public static final Unix UNIX = new Unix();
 
     public static OperatingSystem current() {
@@ -41,6 +42,8 @@ public abstract class OperatingSystem {
             return SOLARIS;
         } else if (osName.contains("linux")) {
             return LINUX;
+        } else if (osName.contains("freebsd")) {
+            return FREE_BSD;
         } else {
             // Not strictly true
             return UNIX;
@@ -73,10 +76,6 @@ public abstract class OperatingSystem {
     }
 
     public boolean isLinux() {
-        return false;
-    }
-
-    public boolean isSolaris() {
         return false;
     }
 
@@ -321,12 +320,10 @@ public abstract class OperatingSystem {
         }
     }
 
-    static class Solaris extends Unix {
-        @Override
-        public boolean isSolaris() {
-            return true;
-        }
+    static class FreeBSD extends Unix {
+    }
 
+    static class Solaris extends Unix {
         @Override
         public String getFamilyName() {
             return "solaris";

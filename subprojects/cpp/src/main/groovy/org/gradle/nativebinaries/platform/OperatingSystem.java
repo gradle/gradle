@@ -52,4 +52,9 @@ public interface OperatingSystem extends Named {
      * Is it Solaris?
      */
     boolean isSolaris();
+
+    /**
+     * Is it FreeBSD?
+     */
+    boolean isFreeBSD();
 }
