@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins;
 
+import org.apache.maven.project.MavenProject;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -130,9 +131,9 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
                     MavenPom pom = resolver.getPom();
                     ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(
-                            pom.getGroupId().equals("unknown") ? module.getGroup() : pom.getGroupId(),
-                            pom.getArtifactId().equals("empty-project") ? module.getName() : pom.getArtifactId(),
-                            pom.getVersion().equals("0") ? module.getVersion() : pom.getVersion()
+                            pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID) ? module.getGroup() : pom.getGroupId(),
+                            pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
+                            pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()
                     );
                     publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(publicationId));
                 }
