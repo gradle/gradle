@@ -164,8 +164,6 @@ TBD
 
 This story introduces an API which allows the source and Javadoc artifacts for a Java library to be queried
 
-TBD: provide some API to query the source and/or Javadoc artifacts associated for a given component instance in a resolution result:
-
 - Should be possible to query the artifacts as a single batch, so that, for example, we will be able to resolve and download artifacts
   in parallel.
 - The API should expose download failures.
@@ -181,6 +179,75 @@ TBD: provide some API to query the source and/or Javadoc artifacts associated fo
 - Query the Javadoc artifacts only
 - Query which artifacts could not be resolved or downloaded.
 - Caching is applied as appropriate.
+
+### API design proposals
+
+#### Resolve and iterate over all jvm libraries, without resolving artifacts
+
+```
+def result = configuration.incoming.getResolutionResult(JvmLibrary)
+for (jvmLibrary in result.getComponents(JvmLibrary.class)) { println component.id }
+
+// alternatively, ResolutionResult could be changed to have component type as a type parameter
+
+def result = configuration.incoming.getResolutionResult(JvmLibrary)
+for (jvmLibrary in result.getComponents()) { ... }
+```
+
+ResolutionResult#getComponents returns an `Iterable`. This is more flexible than providing an internal iterator,
+because it allows to filter, map, etc. the components.
+
+##### Alternative design
+
+Additionally or instead, we could make components available via ResolvedComponentResult, and could make it easy to iterate over the graph of results.
+For this, ResolvedComponentResult should be changed to have component type as a type parameter.
+
+```
+def resolutionResult = configuration.incoming.getResolutionResult(JvmLibrary, JvmLibraryMainArtifact, JvmLibrarySourceArtifact)
+for (componentResult in resolutionResult.getComponentResults(JvmLibrary.class)) {
+  def jvmLibrary = componentResult.component
+  ...
+}
+```
+
+#### Resolve jvm libraries together with their main and source artifacts, iterate over artifacts
+
+```
+def result = configuration.incoming.getResolutionResult(JvmLibrary, JvmLibraryMainArtifact, JvmLibrarySourceArtifact)
+for (jvmLibrary in result.getComponents(JvmLibrary.class)) {
+  for (artifact in jvmLibrary.artifacts) { println artifact.id }
+}
+```
+
+#### Resolve jvm libraries together with their main and source artifacts, inspect artifact resolution failures
+
+```
+def result = configuration.incoming.getResolutionResult(JvmLibrary, JvmLibraryMainArtifact, JvmLibrarySourceArtifact)
+for (failure in result.artifactResolutionFailures) {
+  println failure.componentId
+  println failure.artifactId
+  println failure.exception
+}
+
+// alternatively, artifact resolution failures could be handled at component level
+
+```
+def result = configuration.incoming.getResolutionResult(JvmLibrary, JvmLibraryMainArtifact, JvmLibrarySourceArtifact)
+for (jvmLibrary in result.getComponents(JvmLibrary.class)) {
+  // design 1, similar to ResolvedDependencyResult/UnresolvedDependencyResult
+  for (artifact in jvmLibrary.artifacts) {
+    if (artifact instanceof UnresolvedArtifact) { println artifact.failure }
+    else if (artifact instanceof ResolvedArtifact) { println artifact.file }
+  }
+  // or perhaps
+  for (artifact in jvmLibrary.resolvedArtifacts { ... }
+  for (artifact in jvmLibrary.unresolvedArtifacts { ... }
+  // design 2
+  for (failure in jvmLibrary.resolutionFailures) {
+    println failure.artifactId
+    println failure.exception
+  }
+}
 
 ## Story: IDE plugins use the resolution result to determine library source and Javadoc artifacts
 
