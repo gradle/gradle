@@ -32,6 +32,20 @@ Gradle will then generate the required boiler-plate CUnit code, build a test exe
 See the [user guide chapter](docs/userguide/nativeBinaries.html#native_binaries:cunit) and the cunit sample (`samples/native-binaries/cunit`)
 in the distribution to learn more. Expect deeper integration with CUnit (and other native testing tools) in the future.
 
+### Tooling API exposes information on a project's publications
+
+Tooling API clients can now get basic information on a project's publications:
+
+    def projectConnection = ...
+    def project = projectConnection.getModel(GradleProject)
+    for (publication in project.publications) {
+        println publication.id.group
+        println publication.id.name
+        println publication.id.version
+    }
+
+Both publications declared in the old (`artifacts` block, `Upload` task) and new (`publishing.publications` block) way are reflected in the result.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
