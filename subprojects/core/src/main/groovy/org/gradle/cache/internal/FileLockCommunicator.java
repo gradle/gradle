@@ -19,10 +19,7 @@ package org.gradle.cache.internal;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 
 import java.io.*;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
+import java.net.*;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
@@ -35,7 +32,8 @@ public class FileLockCommunicator {
     public FileLockCommunicator(InetAddressFactory addressFactory) {
         this.addressFactory = addressFactory;
         try {
-            socket = new DatagramSocket();
+            final InetSocketAddress addr = new InetSocketAddress(addressFactory.getBindAddress(), 0);
+            socket = new DatagramSocket(addr);
         } catch (SocketException e) {
             throw throwAsUncheckedException(e);
         }
