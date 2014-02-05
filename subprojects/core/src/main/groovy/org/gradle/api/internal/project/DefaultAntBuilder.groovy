@@ -17,14 +17,16 @@ package org.gradle.api.internal.project
 
 import org.apache.tools.ant.MagicNames
 import org.apache.tools.ant.ProjectHelper
+import org.apache.tools.ant.PropertyHelper
 import org.apache.tools.ant.Target
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ant.BasicAntBuilder
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.ant.AntTarget
-import java.beans.PropertyChangeListener
+
 import java.beans.PropertyChangeEvent
-import org.apache.tools.ant.PropertyHelper
+import java.beans.PropertyChangeListener
 
 public class DefaultAntBuilder extends BasicAntBuilder {
     private final Project gradleProject
@@ -91,6 +93,22 @@ public class DefaultAntBuilder extends BasicAntBuilder {
             AntTarget task = gradleProject.tasks.create(target.name, AntTarget)
             task.target = target
             task.baseDir = baseDir
+            addDependencyOrdering(target.dependencies)
+        }
+    }
+
+    private void addDependencyOrdering(Enumeration<String> dependencyEnumeration) {
+        List dependencies = dependencyEnumeration.toList()
+        if (dependencies.size() > 1) {
+            dependencies[1..-1].inject(dependencies.first()) { current, next ->
+                TaskContainer tasks = gradleProject.tasks
+                tasks.matching {
+                    tasks.namer.determineName(it) == next
+                }.all {
+                    it.shouldRunAfter { tasks.getByName(current) }
+                }
+                next
+            }
         }
     }
 }
