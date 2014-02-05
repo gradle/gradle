@@ -26,8 +26,8 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.SimpleScriptCompileScope;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -111,11 +111,7 @@ public class DefaultGradleTest {
             allowing(gradleServiceRegistryMock).get(BuildClassLoaderRegistry.class);
             will(returnValue(buildClassLoaderRegistry));
             allowing(buildClassLoaderRegistry).getRootCompileScope();
-            will(returnValue(new ScriptCompileScope() {
-                public ClassLoader getScriptCompileClassLoader() {
-                    return getClass().getClassLoader();
-                }
-            }));
+            will(returnValue(new SimpleScriptCompileScope(getClass().getClassLoader())));
             allowing(listenerManager).createAnonymousBroadcaster(BuildListener.class);
             will(returnValue(buildListenerBroadcast));
             allowing(listenerManager).createAnonymousBroadcaster(ProjectEvaluationListener.class);

@@ -24,6 +24,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.SimpleScriptCompileScope;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.PluginContainer;
@@ -72,11 +73,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         this.fileResolver = services.get(FileResolver.class);
         this.scriptPluginFactory = services.get(ScriptPluginFactory.class);
         this.scriptHandlerFactory = services.get(ScriptHandlerFactory.class);
-        this.scriptCompileScope = new ScriptCompileScope() {
-            public ClassLoader getScriptCompileClassLoader() {
-                return BaseSettings.this.classloader;
-            }
-        };
+        this.scriptCompileScope = new SimpleScriptCompileScope(BaseSettings.this.classloader);
         this.projectDescriptorRegistry = services.get(ProjectDescriptorRegistry.class);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }

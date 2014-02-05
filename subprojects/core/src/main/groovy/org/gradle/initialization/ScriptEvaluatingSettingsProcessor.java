@@ -22,6 +22,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.initialization.SimpleScriptCompileScope;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -65,15 +66,11 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     }
 
     private void applySettingsScript(SettingsLocation settingsLocation, final SettingsInternal settings) {
-        ScriptCompileScope scriptCompileScope = new ScriptCompileScope() {
-            public ClassLoader getScriptCompileClassLoader() {
-                return settings.getClassLoader();
-            }
-        };
-
+        ScriptCompileScope scriptCompileScope = new SimpleScriptCompileScope(settings.getClassLoader());
         ScriptSource settingsScriptSource = settingsLocation.getSettingsScriptSource();
         ScriptHandlerInternal scriptHandlerInternal = scriptHandlerFactory.create(settingsScriptSource, scriptCompileScope);
         ScriptPlugin configurer = configurerFactory.create(settingsScriptSource, scriptHandlerInternal, "buildscript", SettingsScript.class);
         configurer.apply(settings);
     }
+
 }
