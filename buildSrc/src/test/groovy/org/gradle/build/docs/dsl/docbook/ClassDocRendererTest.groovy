@@ -68,12 +68,12 @@ class ClassDocRendererTest extends XmlSpecification {
             <para>No properties</para>
         </section>
         <section>
-            <title>Script blocks</title>
-            <para>No script blocks</para>
-        </section>
-        <section>
             <title>Methods</title>
             <para>No methods</para>
+        </section>
+        <section>
+            <title>Script blocks</title>
+            <para>No script blocks</para>
         </section>
     </chapter>
 </root>'''
@@ -117,12 +117,12 @@ class ClassDocRendererTest extends XmlSpecification {
             <para>No properties</para>
         </section>
         <section>
-            <title>Script blocks</title>
-            <para>No script blocks</para>
-        </section>
-        <section>
             <title>Methods</title>
             <para>No methods</para>
+        </section>
+        <section>
+            <title>Script blocks</title>
+            <para>No script blocks</para>
         </section>
     </chapter>
 </root>'''
@@ -144,12 +144,14 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc classDoc = classDoc('Class', content: content)
         PropertyDoc propDoc = propertyDoc('propName', id: 'propId', description: 'prop description', comment: 'prop comment', type: 'org.gradle.Type', attributes: [extraAttribute])
         _ * classDoc.classProperties >> [propDoc]
+        _ * classDoc.classMethods >> []
+        _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeProperties(classDoc, result)
+            renderer.merge(classDoc, result)
         }
 
         then:
@@ -175,6 +177,14 @@ class ClassDocRendererTest extends XmlSpecification {
                 </td>
             </tr>
         </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <para>No methods</para>
+    </section>
+    <section>
+        <title>Script blocks</title>
+        <para>No script blocks</para>
     </section>
     <section>
         <title>Property details</title>
@@ -209,12 +219,14 @@ class ClassDocRendererTest extends XmlSpecification {
         PropertyDoc deprecatedProp = propertyDoc('deprecatedProperty', id: 'prop1', description: 'prop1 description', comment: 'prop1 comment', type: 'org.gradle.Type', deprecated: true)
         PropertyDoc incubatingProp = propertyDoc('incubatingProperty', id: 'prop2', description: 'prop2 description', comment: 'prop2 comment', type: 'org.gradle.Type', incubating: true)
         _ * classDoc.classProperties >> [deprecatedProp, incubatingProp]
+        _ * classDoc.classMethods >> []
+        _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeProperties(classDoc, result)
+            renderer.merge(classDoc, result)
         }
 
         then:
@@ -254,6 +266,14 @@ class ClassDocRendererTest extends XmlSpecification {
         </table>
     </section>
     <section>
+        <title>Methods</title>
+        <para>No methods</para>
+    </section>
+    <section>
+        <title>Script blocks</title>
+        <para>No script blocks</para>
+    </section>
+    <section>
         <title>Property details</title>
         <section id="prop1" role="detail">
             <title><classname>org.gradle.Type</classname> <literal>deprecatedProperty</literal> (read-only)</title>
@@ -288,13 +308,17 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassExtensionDoc extensionDoc = extensionDoc('thingo')
         PropertyDoc propertyDoc = propertyDoc('propName', id: 'propId')
         _ * targetClassDoc.classProperties >> []
+        _ * targetClassDoc.classMethods >> []
+        _ * targetClassDoc.classBlocks >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
         _ * extensionDoc.extensionProperties >> [propertyDoc]
+        _ * extensionDoc.extensionMethods >> []
+        _ * extensionDoc.extensionBlocks >> []
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeProperties(targetClassDoc, result)
+            renderer.merge(targetClassDoc, result)
         }
 
         then:
@@ -326,6 +350,14 @@ class ClassDocRendererTest extends XmlSpecification {
         </section>
     </section>
     <section>
+        <title>Methods</title>
+        <para>No methods</para>
+    </section>
+    <section>
+        <title>Script blocks</title>
+        <para>No script blocks</para>
+    </section>
+    <section>
         <title>Property details</title>
         <section id="propId" role="detail">
             <title><classname>SomeType</classname> <literal>propName</literal> (read-only)</title>
@@ -350,17 +382,23 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc classDoc = classDoc('Class', content: content)
         MethodDoc method1 = methodDoc('methodName', id: 'method1Id', returnType: 'ReturnType1', description: 'method description', comment: 'method comment')
         MethodDoc method2 = methodDoc('methodName', id: 'method2Id', returnType: 'ReturnType2', description: 'overloaded description', comment: 'overloaded comment', paramTypes: ['ParamType'])
+        _ * classDoc.classProperties >> []
         _ * classDoc.classMethods >> [method1, method2]
+        _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeMethods(classDoc, result)
+            renderer.merge(classDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
+    <section>
+        <title>Properties</title>
+        <para>No properties</para>
+    </section>
     <section>
         <title>Methods</title>
         <table>
@@ -388,6 +426,10 @@ class ClassDocRendererTest extends XmlSpecification {
                 </td>
             </tr>
         </table>
+    </section>
+    <section>
+        <title>Script blocks</title>
+        <para>No script blocks</para>
     </section>
     <section>
         <title>Method details</title>
@@ -419,17 +461,23 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc classDoc = classDoc('Class', content: content)
         MethodDoc method1 = methodDoc('deprecated', id: 'method1Id', returnType: 'ReturnType1', description: 'method description', comment: 'method comment', deprecated: true)
         MethodDoc method2 = methodDoc('incubating', id: 'method2Id', returnType: 'ReturnType2', description: 'overloaded description', comment: 'overloaded comment', paramTypes: ['ParamType'], incubating: true)
+        _ * classDoc.classProperties >> []
         _ * classDoc.classMethods >> [method1, method2]
+        _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeMethods(classDoc, result)
+            renderer.merge(classDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
+    <section>
+        <title>Properties</title>
+        <para>No properties</para>
+    </section>
     <section>
         <title>Methods</title>
         <table>
@@ -459,6 +507,10 @@ class ClassDocRendererTest extends XmlSpecification {
                 </td>
             </tr>
         </table>
+    </section>
+    <section>
+        <title>Script blocks</title>
+        <para>No script blocks</para>
     </section>
     <section>
         <title>Method details</title>
@@ -495,18 +547,26 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc targetClassDoc = classDoc('Class', content: content)
         ClassExtensionDoc extensionDoc = extensionDoc('thingo')
         MethodDoc methodDoc = methodDoc('methodName', id: 'methodId')
+        _ * targetClassDoc.classProperties >> []
         _ * targetClassDoc.classMethods >> []
+        _ * targetClassDoc.classBlocks >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
+        _ * extensionDoc.extensionProperties >> []
         _ * extensionDoc.extensionMethods >> [methodDoc]
+        _ * extensionDoc.extensionBlocks >> []
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeMethods(targetClassDoc, result)
+            renderer.merge(targetClassDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
+    <section>
+        <title>Properties</title>
+        <para>No properties</para>
+    </section>
     <section>
         <title>Methods</title>
         <section>
@@ -532,10 +592,145 @@ class ClassDocRendererTest extends XmlSpecification {
         </section>
     </section>
     <section>
+        <title>Script blocks</title>
+        <para>No script blocks</para>
+    </section>
+    <section>
         <title>Method details</title>
         <section id="methodId" role="detail">
             <title><classname>ReturnType</classname> <literal>methodName</literal>()</title>
             <para>comment</para>
+        </section>
+    </section>
+</chapter>'''
+    }
+
+
+    def mergesSummariesBeforeDetails() {
+        def content = parse('''
+            <chapter>
+                <section><title>Properties</title>
+                    <table>
+                        <thead><tr><td>Name</td><td>Extra column</td></tr></thead>
+                        <tr><td>propName</td><td>some value</td></tr>
+                    </table>
+                </section>
+                <section><title>Methods</title>
+                    <table>
+                        <thead><tr><td>Name</td></tr></thead>
+                        <tr><td>methodName</td></tr>
+                    </table>
+                </section>
+            </chapter>
+        ''')
+
+        ClassDoc classDoc = classDoc('Class', content: content)
+        PropertyDoc property1 = propertyDoc('propName', id: 'propId', type: 'org.gradle.Type', description: 'prop description', comment: 'prop comment')
+        MethodDoc method1 = methodDoc('methodName', id: 'methodId', returnType: 'ReturnType', description: 'method description', comment: 'method comment')
+        BlockDoc block1 = blockDoc('blockName', id: 'blockId', type: 'org.gradle.Type', description: 'block description', comment: 'block comment')
+        _ * classDoc.classProperties >> [property1]
+        _ * classDoc.classMethods >> [method1]
+        _ * classDoc.classBlocks >> [block1]
+        _ * classDoc.classExtensions >> []
+
+        when:
+        def result = parse('<chapter/>', document)
+        withCategories {
+            renderer.merge(classDoc, result)
+        }
+
+        then:
+        formatTree(result) == '''<chapter>
+    <section>
+        <title>Properties</title>
+        <table>
+            <title>Properties - Class</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend="propId">
+                        <literal>propName</literal>
+                    </link>
+                </td>
+                <td>
+                    <para>prop description</para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <title>Methods - Class</title>
+            <thead>
+                <tr>
+                    <td>Method</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal><link linkend="methodId">methodName</link>()</literal>
+                </td>
+                <td>
+                    <para>method description</para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Script blocks</title>
+        <table>
+            <title>Script blocks - Class</title>
+            <thead>
+                <tr>
+                    <td>Block</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend="blockId">
+                        <literal>blockName</literal>
+                    </link>
+                </td>
+                <td>
+                    <para>block description</para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Property details</title>
+        <section id="propId" role="detail">
+            <title><classname>org.gradle.Type</classname> <literal>propName</literal> (read-only)</title>
+            <para>prop comment</para>
+        </section>
+    </section>
+    <section>
+        <title>Method details</title>
+        <section id="methodId" role="detail">
+            <title><classname>ReturnType</classname> <literal>methodName</literal>()</title>
+            <para>method comment</para>
+        </section>
+    </section>
+    <section>
+        <title>Script block details</title>
+        <section id="blockId" role="detail">
+            <title><literal>blockName</literal> { }</title>
+            <para>block comment</para>
+            <segmentedlist>
+                <segtitle>Delegates to</segtitle>
+                <seglistitem>
+                    <seg><classname>org.gradle.Type</classname> from <link linkend="blockName">
+                            <literal>blockName</literal></link></seg>
+                </seglistitem>
+            </segmentedlist>
         </section>
     </section>
 </chapter>'''
@@ -552,17 +747,27 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc classDoc = classDoc('Class', content: content)
         BlockDoc block1 = blockDoc('block1', id: 'block1', description: 'block1 description', comment: 'block1 comment', type: 'org.gradle.Type')
         BlockDoc block2 = blockDoc('block2', id: 'block2', description: 'block2 description', comment: 'block2 comment', type: 'org.gradle.Type', multivalued: true)
+        _ * classDoc.classProperties >> []
+        _ * classDoc.classMethods >> []
         _ * classDoc.classBlocks >> [block1, block2]
         _ * classDoc.classExtensions >> []
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeBlocks(classDoc, result)
+            renderer.merge(classDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
+    <section>
+        <title>Properties</title>
+        <para>No properties</para>
+    </section>
+    <section>
+        <title>Methods</title>
+        <para>No methods</para>
+    </section>
     <section>
         <title>Script blocks</title>
         <table>
@@ -636,18 +841,30 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc targetClassDoc = classDoc('Class', content: content)
         ClassExtensionDoc extensionDoc = extensionDoc('thingo')
         BlockDoc blockDoc = blockDoc('blockName', id: 'blockId')
+        _ * targetClassDoc.classProperties >> []
+        _ * targetClassDoc.classMethods >> []
         _ * targetClassDoc.classBlocks >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
+        _ * extensionDoc.extensionProperties >> []
+        _ * extensionDoc.extensionMethods >> []
         _ * extensionDoc.extensionBlocks >> [blockDoc]
 
         when:
         def result = parse('<chapter/>', document)
         withCategories {
-            renderer.mergeBlocks(targetClassDoc, result)
+            renderer.merge(targetClassDoc, result)
         }
 
         then:
         formatTree(result) == '''<chapter>
+    <section>
+        <title>Properties</title>
+        <para>No properties</para>
+    </section>
+    <section>
+        <title>Methods</title>
+        <para>No methods</para>
+    </section>
     <section>
         <title>Script blocks</title>
         <section>
