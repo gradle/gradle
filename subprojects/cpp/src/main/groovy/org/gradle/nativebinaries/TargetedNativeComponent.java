@@ -25,36 +25,18 @@ import org.gradle.internal.HasInternalProtocol;
 public interface TargetedNativeComponent {
 
     /**
-     * Specifies one or more {@link Flavor}s that this component should be built for.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>The String name of the flavor to build.</li>
-     * </ul>
+     * Specifies the names of one or more {@link Flavor}s that this component should be built for.
      */
-    void targetFlavors(Object... flavorSelectors);
+    void targetFlavors(String... flavorSelectors);
 
     /**
-     * Specifies one or more {@link org.gradle.nativebinaries.platform.Platform}s that this component should be built for.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>The String name of the platform to target.</li>
-     * </ul>
+     * Specifies the names of one or more {@link org.gradle.nativebinaries.platform.Platform}s that this component should be built for.
      */
-    void targetPlatforms(Object... platformSelectors);
+    void targetPlatforms(String... platformSelectors);
 
     /**
-     * Specifies one or more {@link BuildType}s that this component should be built for.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>The String name of a build type.</li>
-     * </ul>
+     * Specifies the names of one or more {@link BuildType}s that this component should be built for.
      */
-    void targetBuildTypes(Object... platformSelectors);
+    void targetBuildTypes(String... platformSelectors);
 
 }

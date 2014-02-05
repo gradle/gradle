@@ -21,6 +21,7 @@ import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.platform.Platform;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -35,25 +36,16 @@ public abstract class AbstractTargetedProjectNativeComponent extends AbstractPro
         super(id);
     }
 
-    public void targetFlavors(Object... flavorSelectors) {
-        for (Object flavorSelector : flavorSelectors) {
-            assert flavorSelector instanceof String;
-            flavors.add((String) flavorSelector);
-        }
+    public void targetFlavors(String... flavorSelectors) {
+        Collections.addAll(flavors, flavorSelectors);
     }
 
-    public void targetPlatforms(Object... platformSelectors) {
-        for (Object platformSelector : platformSelectors) {
-            assert platformSelector instanceof String;
-            targetPlatforms.add((String) platformSelector);
-        }
+    public void targetPlatforms(String... platformSelectors) {
+        Collections.addAll(targetPlatforms, platformSelectors);
     }
 
-    public void targetBuildTypes(Object... buildTypeSelectors) {
-        for (Object buildTypeSelector : buildTypeSelectors) {
-            assert buildTypeSelector instanceof String;
-            buildTypes.add((String) buildTypeSelector);
-        }
+    public void targetBuildTypes(String... buildTypeSelectors) {
+        Collections.addAll(buildTypes, buildTypeSelectors);
     }
 
     public Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates) {
