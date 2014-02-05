@@ -640,7 +640,7 @@
             </para>
             <sample id="runningCUnitTests" dir="native-binaries/cunit" title="Running CUnit tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="complete-example"/>
-                <output args='runFailingOperatorsTestCUnitExe' expectFailure="true"/>
+                <!--<output args='runFailingOperatorsTestCUnitExe' expectFailure="true"/>-->
             </sample>
         </section>
 
