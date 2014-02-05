@@ -37,7 +37,6 @@ public abstract class AbstractTargetedProjectNativeComponent extends AbstractPro
 
     public void targetFlavors(Object... flavorSelectors) {
         for (Object flavorSelector : flavorSelectors) {
-            // TODO:DAZ Allow Flavor instance and selector
             assert flavorSelector instanceof String;
             flavors.add((String) flavorSelector);
         }
@@ -45,7 +44,6 @@ public abstract class AbstractTargetedProjectNativeComponent extends AbstractPro
 
     public void targetPlatforms(Object... platformSelectors) {
         for (Object platformSelector : platformSelectors) {
-            // TODO:DAZ Allow Platform instance and selector
             assert platformSelector instanceof String;
             targetPlatforms.add((String) platformSelector);
         }
@@ -53,7 +51,6 @@ public abstract class AbstractTargetedProjectNativeComponent extends AbstractPro
 
     public void targetBuildTypes(Object... buildTypeSelectors) {
         for (Object buildTypeSelector : buildTypeSelectors) {
-            // TODO:DAZ Allow BuildType instance and selector
             assert buildTypeSelector instanceof String;
             buildTypes.add((String) buildTypeSelector);
         }

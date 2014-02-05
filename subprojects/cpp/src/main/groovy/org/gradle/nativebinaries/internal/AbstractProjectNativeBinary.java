@@ -135,7 +135,6 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
         return namingScheme;
     }
 
-    // TODO:DAZ Dependency resolution shouldn't be done in the model
     public Collection<NativeDependencySet> getLibs() {
         return resolve(source.withType(DependentSourceSet.class)).getAllResults();
     }

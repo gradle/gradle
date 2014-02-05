@@ -29,7 +29,6 @@ public class DefaultProjectLocator implements ProjectLocator {
     }
 
     public ProjectInternal locateProject(String path) {
-        // TODO:DAZ Maybe don't permit this
         if (path == null || path.length() == 0) {
             return delegate.getProject(projectPath);
         }

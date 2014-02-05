@@ -85,7 +85,6 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         installation("build/install/mainExecutable").exec().out == app.alternateLibraryOutput
     }
 
-    // TODO:DAZ Make it much easier to define the file locations
     def "can link to a prebuilt library with static and shared linkage"() {
         given:
         preBuildLibrary()

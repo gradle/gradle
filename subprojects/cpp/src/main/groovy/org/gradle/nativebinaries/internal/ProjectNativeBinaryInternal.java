@@ -34,6 +34,5 @@ public interface ProjectNativeBinaryInternal extends ProjectNativeBinary, Binary
 
     void setBuildable(boolean buildable);
 
-    // TODO:DAZ Resolution should not happen inside the model
     Collection<LibraryBinary> getDependentBinaries();
 }

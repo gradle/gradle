@@ -215,9 +215,8 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.assertArtifactsPublished("ivy-2.4.xml", "no-extension-2.4")
         module.parsedIvy.expectArtifact("no-extension").hasAttributes("", "ext-less", null)
 
-        // TODO:DAZ Fix publication with empty extension so it can be resolved
-//        and:
-//        resolveArtifacts(module) == ["no-extension-2.4"]
+        and:
+        resolveArtifacts(module) == ["no-extension-2.4"]
     }
 
     def "can publish artifact with classifier"() {

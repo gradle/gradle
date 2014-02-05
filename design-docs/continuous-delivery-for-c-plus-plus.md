@@ -758,8 +758,6 @@ Here's an example:
 
 ### Open issues
 
-- Fix domain object container DSL so that creation on method missing only applies to the innermost container. For back-compatibility
-  may only do this for model {} block.
 - Provide instance instead of name to selector DSL: `platforms.win32`. This will require that executables are created in a model rule.
 - Selector DSL to choose all platforms with a particular operating system or architecture.
 - Accept a collection of values to make it easy to use flavors.matching({}) or buildTypes.matching({})
@@ -972,7 +970,6 @@ from the same sources that link against different implementation libraries.
 
 ### Open issues
 
-- Allow access to prebuilt libraries in another project?
 - Allow these to be set as toolchain specific linker args (ie -l and -L) as well.
 - Sources of prebuilt libs
 - Dependencies of prebuilt libs
@@ -980,6 +977,7 @@ from the same sources that link against different implementation libraries.
 - System libraries
 - Convert 'dependency' syntax to add to this container?
 - Fix paths in linker: don't link with absolute path
+- Make it easier to define a pattern for actual file locations
 
 ## Story: Allow source sets to be generated
 

@@ -65,7 +65,6 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
         NativeProjectComponentIdentifier id = new NativeProjectComponentIdentifier(path, suiteName);
         CUnitTestSuite cUnitTestSuite = instantiator.newInstance(DefaultCUnitTestSuite, id, testedComponent);
 
-        // TODO:DAZ Convert to model rules
         new ConfigureCUnitTestSources(project).apply(cUnitTestSuite)
         new CreateCUnitBinaries(project, instantiator, resolver).apply(cUnitTestSuite, binaries);
         return cUnitTestSuite;

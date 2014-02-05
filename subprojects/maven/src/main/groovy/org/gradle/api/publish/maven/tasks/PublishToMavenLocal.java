@@ -64,7 +64,6 @@ public class PublishToMavenLocal extends PublishToMavenRepository {
         new PublishOperation(publication, repository) {
             @Override
             protected void publish() throws Exception {
-                // TODO:DAZ inject this
                 MavenPublisher antBackedPublisher = new AntTaskBackedMavenLocalPublisher(getLoggingManagerFactory(), getTemporaryDirFactory());
                 MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(antBackedPublisher);
                 MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
