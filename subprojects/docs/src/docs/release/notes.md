@@ -104,9 +104,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Jesse Glick](https://github.com/jglick) - enabling newlines in option values passed to build
-<!--
-* [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+* [Zeeke](https://github.com/zeeke) - documentation improvements
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
