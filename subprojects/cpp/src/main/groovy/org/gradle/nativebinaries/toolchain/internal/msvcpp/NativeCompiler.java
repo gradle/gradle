@@ -1,19 +1,16 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.gcc.SingleSourceCompileArgTransformer;
+import org.gradle.nativebinaries.toolchain.internal.SingleSourceCompileArgTransformer;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements org.gradle.api.internal.tasks.compile.Compiler<T> {
 
@@ -30,8 +27,9 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements org
     public WorkResult execute(T spec) {
         boolean didWork = false;
         for (File sourceFile : spec.getSourceFiles()) {
+            String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + ".obj";
             WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir())
-                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,  argsTransFormer))
+                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile, objectFileName, argsTransFormer, true))
                     .execute(spec);
             didWork = didWork || result.getDidWork();
         }

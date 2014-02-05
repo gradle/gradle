@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain.internal.gcc;
+package org.gradle.nativebinaries.toolchain.internal;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -28,12 +28,16 @@ import java.util.Collections;
 import java.util.List;
 
 public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
-    private File sourceFile;
     private final ArgsTransformer<T> delegate;
+    private final String objectFileName;
+    private final File sourceFile;
+    private final boolean usingVisualCToolChain;
 
-    public SingleSourceCompileArgTransformer(File sourceFile, ArgsTransformer<T> delegate) {
+    public SingleSourceCompileArgTransformer(File sourceFile, String objectFileName, ArgsTransformer<T> delegate, boolean usingVisualCToolChain) {
         this.sourceFile = sourceFile;
         this.delegate = delegate;
+        this.objectFileName = objectFileName;
+        this.usingVisualCToolChain = usingVisualCToolChain;
     }
 
     public List<String> transform(T spec) {
@@ -43,9 +47,13 @@ public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> impl
 
         File outputFileDir = getOutputFileDir(sourceFile, spec.getObjectFileDir());
         outputFileDir.mkdir();
-        String outputFilePath = new File(outputFileDir, FilenameUtils.removeExtension(sourceFile.getName()) + ".o").getAbsolutePath();
+        String outputFilePath = new File(outputFileDir, objectFileName).getAbsolutePath();
 
-        Collections.addAll(args, "-o", outputFilePath);
+        if (usingVisualCToolChain) {
+            Collections.addAll(args, "/Fo" + outputFilePath);
+        } else {
+            Collections.addAll(args, "-Fo", outputFilePath);
+        }
         return args;
     }
 

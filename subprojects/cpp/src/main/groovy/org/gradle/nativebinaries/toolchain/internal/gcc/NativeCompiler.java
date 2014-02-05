@@ -21,14 +21,13 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativebinaries.toolchain.internal.SingleSourceCompileArgTransformer;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
@@ -47,15 +46,14 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
     public WorkResult execute(T spec) {
         boolean didWork = false;
+        String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
         for (File sourceFile : spec.getSourceFiles()) {
+            String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
             WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir())
-                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,  argsTransfomer))
+                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile, objectFileName, argsTransfomer, false))
                     .execute(spec);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);
     }
-
-
-
 }
