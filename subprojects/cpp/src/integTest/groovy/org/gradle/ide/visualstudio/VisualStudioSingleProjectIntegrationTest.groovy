@@ -71,8 +71,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         final projectFile = projectFile("mainExe.vcxproj")
-        projectFile.sourceFiles == sourceFiles("src/main/cpp")
-        projectFile.headerFiles == allFiles("src/main/headers")
+        projectFile.assertHasComponentSources(app, "src/main")
         projectFile.projectConfigurations.keySet() == projectConfigurations
         projectFile.projectConfigurations.values().each {
             assert it.macros == "TEST;foo=bar"
@@ -103,8 +102,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         final projectFile = projectFile("mainDll.vcxproj")
-        projectFile.sourceFiles == sourceFiles("src/main/cpp")
-        projectFile.headerFiles == allFiles("src/main/headers")
+        projectFile.assertHasComponentSources(app.library, "src/main")
         projectFile.projectConfigurations.keySet() == projectConfigurations
         projectFile.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers")
@@ -138,8 +136,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         final projectFile = projectFile("mainLib.vcxproj")
-        projectFile.sourceFiles == sourceFiles("src/main/cpp")
-        projectFile.headerFiles == allFiles("src/main/headers")
+        projectFile.assertHasComponentSources(app.library, "src/main")
         projectFile.projectConfigurations.keySet() == projectConfigurations
         projectFile.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers")
 
@@ -167,15 +164,13 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         final exeProject = projectFile("mainExe.vcxproj")
-        exeProject.sourceFiles == sourceFiles("src/main/cpp")
-        exeProject.headerFiles.isEmpty()
+        exeProject.assertHasComponentSources(app.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
         final libProject = projectFile("helloLib.vcxproj")
-        libProject.sourceFiles == sourceFiles("src/hello/cpp")
-        libProject.headerFiles == allFiles("src/hello/headers")
+        libProject.assertHasComponentSources(app.library, "src/hello")
         libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers")
 
@@ -204,15 +199,13 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         final exeProject = projectFile("mainExe.vcxproj")
-        exeProject.sourceFiles == sourceFiles("src/main/cpp")
-        exeProject.headerFiles.isEmpty()
+        exeProject.assertHasComponentSources(app.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
         final dllProject = projectFile("helloDll.vcxproj")
-        dllProject.sourceFiles == sourceFiles("src/hello/cpp")
-        dllProject.headerFiles == allFiles("src/hello/headers")
+        dllProject.assertHasComponentSources(app.library, "src/hello")
         dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers")
 
@@ -247,22 +240,19 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         final exeProject = projectFile("mainExe.vcxproj")
-        exeProject.sourceFiles == sourceFiles("src/main/cpp")
-        exeProject.headerFiles.isEmpty()
+        exeProject.assertHasComponentSources(testApp.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
         final helloDllProject = projectFile("helloDll.vcxproj")
-        helloDllProject.sourceFiles == sourceFiles("src/hello/cpp")
-        helloDllProject.headerFiles == allFiles("src/hello/headers")
+        helloDllProject.assertHasComponentSources(testApp.library, "src/hello")
         helloDllProject.projectConfigurations.keySet() == projectConfigurations
         helloDllProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers", "src/greetings/headers")
 
         and:
         final greetingsLibProject = projectFile("greetingsLib.vcxproj")
-        greetingsLibProject.sourceFiles == sourceFiles("src/greetings/cpp")
-        greetingsLibProject.headerFiles == allFiles("src/greetings/headers")
+        greetingsLibProject.assertHasComponentSources(testApp.greetingsLibrary, "src/greetings")
         greetingsLibProject.projectConfigurations.keySet() == projectConfigurations
         greetingsLibProject.projectConfigurations['win32Debug'].includePath == filePath("src/greetings/headers")
 
@@ -410,16 +400,15 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         mainSolution.assertReferencesProject(greetProject, projectConfigurations)
 
         and:
-        exeProject.sourceFiles == sourceFiles("src/main/cpp")
-        exeProject.headerFiles.isEmpty()
+        exeProject.assertHasComponentSources(testApp.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers", "src/greetings/headers")
     }
 
     def "create visual studio solution for executable that depends on both static and shared linkage of library"() {
         given:
-        def app = new ExeWithDiamondDependencyHelloWorldApp()
-        app.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
+        def testApp = new ExeWithDiamondDependencyHelloWorldApp()
+        testApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
 
         and:
         buildFile << """
@@ -453,12 +442,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         mainSolution.assertReferencesProject(greetLibProject, projectConfigurations)
 
         and:
-        exeProject.sourceFiles == sourceFiles("src/main/cpp")
+        exeProject.assertHasComponentSources(testApp.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers", "src/greetings/headers")
 
         and:
-        helloProject.sourceFiles == sourceFiles("src/hello/cpp")
+        helloProject.assertHasComponentSources(testApp.library, "src/hello")
         helloProject.projectConfigurations.keySet() == projectConfigurations
         helloProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers", "src/greetings/headers")
     }
@@ -482,8 +471,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         final projectFile = projectFile("mainExe.vcxproj")
-        projectFile.sourceFiles == sourceFiles("src/main/asm", "src/main/c", "src/main/cpp")
-        projectFile.headerFiles == allFiles("src/main/headers")
+        projectFile.assertHasComponentSources(testApp, "src/main")
         projectFile.projectConfigurations.keySet() == projectConfigurations
         with (projectFile.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers")
@@ -516,9 +504,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         final projectFile = projectFile("mainExe.vcxproj")
-        projectFile.sourceFiles == sourceFiles("src/main/cpp")
-        projectFile.resourceFiles == allFiles("src/main/rc")
-        projectFile.headerFiles == allFiles("src/main/headers")
+        projectFile.assertHasComponentSources(resourceApp, "src/main")
+//        projectFile.sourceFiles == projectSourceFiles("src/main/cpp")
+//        projectFile.resourceFiles == allFiles("src/main/rc")
+//        projectFile.headerFiles == allFiles("src/main/headers")
         projectFile.projectConfigurations.keySet() == projectConfigurations
         with (projectFile.projectConfigurations['win32Debug']) {
             macros == "TEST;foo=bar"
@@ -616,8 +605,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         final projectFile = projectFile("mainExe.vcxproj")
-        projectFile.sourceFiles == sourceFiles("src/win32/cpp", "src/x64/cpp")
-        projectFile.headerFiles == allFiles("src/win32/headers", "src/x64/headers")
+        projectFile.assertHasComponentSources(app, "src/win32", app.alternate, "src/x64")
         projectFile.projectConfigurations.keySet() == projectConfigurations
 
         and:
@@ -732,15 +720,13 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         final exeProject = projectFile("mainExe.vcxproj")
-        exeProject.sourceFiles == sourceFiles("src/main/cpp")
-        exeProject.headerFiles.isEmpty()
+        exeProject.assertHasComponentSources(app.executable, "src/main")
         exeProject.projectConfigurations.keySet() == ['release'] as Set
         exeProject.projectConfigurations['release'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
         final dllProject = projectFile("helloDll.vcxproj")
-        dllProject.sourceFiles == sourceFiles("src/hello/cpp")
-        dllProject.headerFiles == allFiles("src/hello/headers")
+        dllProject.assertHasComponentSources(app.library, "src/hello")
         dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers")
 
@@ -759,23 +745,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         return new ProjectFile(file(path))
     }
 
-    private List<String> sourceFiles(String... paths) {
-        return ['build.gradle'] + allFiles(paths)
-    }
-
-    private List<String> allFiles(String... paths) {
-        List allFiles = []
-        paths.each { path ->
-            file(path).listFiles().each { file ->
-                allFiles.add "${path}/${file.name}"
-            }
-        }
-        return allFiles
-    }
-
-    private String filePath(String... paths) {
-        return paths.collect {
-            "${it}"
-        } .join(';')
+    private static String filePath(String... paths) {
+        return (paths as List).join(';')
     }
 }

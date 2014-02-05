@@ -29,6 +29,21 @@ public class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
         }
     }
 
+
+    public TestComponent getGreetingsLibrary() {
+        return new TestComponent() {
+            @Override
+            public List<SourceFile> getHeaderFiles() {
+                return Arrays.asList(getGreetingsHeader())
+            }
+
+            @Override
+            public List<SourceFile> getSourceFiles() {
+                return greetingsSources
+            }
+        };
+    }
+
     @Override
     String getEnglishOutput() {
         return HELLO_WORLD + " " + HELLO_WORLD

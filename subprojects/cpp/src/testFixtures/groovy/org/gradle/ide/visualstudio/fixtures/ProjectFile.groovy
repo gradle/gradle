@@ -15,6 +15,9 @@
  */
 
 package org.gradle.ide.visualstudio.fixtures
+
+import org.gradle.nativebinaries.language.cpp.fixtures.app.SourceFile
+import org.gradle.nativebinaries.language.cpp.fixtures.app.TestComponent
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
@@ -107,4 +110,19 @@ class ProjectFile {
             "'\$(Configuration)|\$(Platform)'=='${name}|${platformName}'"
         }
     }
+
+    void assertHasComponentSources(TestComponent component, String basePath) {
+        assert sourceFiles == ['build.gradle'] + sourceFiles(component.sourceFiles, basePath)
+        assert headerFiles == sourceFiles(component.headerFiles, basePath)
+    }
+
+    void assertHasComponentSources(TestComponent component, String basePath, TestComponent component2, String basePath2) {
+        assert sourceFiles == ['build.gradle'] + sourceFiles(component.sourceFiles, basePath) + sourceFiles(component2.sourceFiles, basePath2)
+        assert headerFiles == sourceFiles(component.headerFiles, basePath) + sourceFiles(component2.headerFiles, basePath2)
+    }
+
+    private static List<String> sourceFiles(List<SourceFile> files, String path) {
+        return files*.withPath(path).sort()
+    }
+
 }
