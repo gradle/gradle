@@ -17,6 +17,7 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.groovy.scripts.*;
@@ -41,6 +42,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ImportsReader importsReader;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
+    private final ScriptHandlerFactory scriptHandlerFactory;
     private final PluginResolverFactory pluginResolverFactory;
     private ClassLoader pluginParentClassLoader;
 
@@ -48,12 +50,14 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       ImportsReader importsReader,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
+                                      ScriptHandlerFactory scriptHandlerFactory,
                                       PluginResolverFactory pluginResolverFactory,
                                       ClassLoader pluginParentClassLoader) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
+        this.scriptHandlerFactory = scriptHandlerFactory;
         this.pluginResolverFactory = pluginResolverFactory;
         this.pluginParentClassLoader = pluginParentClassLoader;
     }
@@ -82,6 +86,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         public void apply(final Object target) {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
+            services.add(ScriptHandlerFactory.class, scriptHandlerFactory);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandlerInternal.class, scriptHandler);

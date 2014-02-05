@@ -49,7 +49,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def sourceWithImports = Mock(ScriptSource)
     def loggingManager = Mock(LoggingManagerInternal)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, pluginResolverFactory, pluginParentClassLoader)
+    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginResolverFactory, pluginParentClassLoader)
 
     void configuresATargetObjectUsingScript() {
         when:
