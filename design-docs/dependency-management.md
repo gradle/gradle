@@ -186,7 +186,7 @@ This story introduces an API which allows the source and Javadoc artifacts for a
 
 ```
 def result = configuration.incoming.getResolutionResult(JvmLibrary)
-for (jvmLibrary in result.getComponents(JvmLibrary.class)) { println component.id }
+for (jvmLibrary in result.getComponents(JvmLibrary.class)) { println jvmLibrary.id }
 
 // alternatively, ResolutionResult could be changed to have component type as a type parameter
 
