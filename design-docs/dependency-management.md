@@ -249,6 +249,31 @@ for (jvmLibrary in result.getComponents(JvmLibrary.class)) {
   }
 }
 
+#### Some API mockups
+
+public interface ResolvedComponentResult {
+  ...
+  Component getComponent();
+}
+
+public interface Component<T extends Artifact> {
+  ComponentIdentifier getId();
+  Set<T> getArtifacts();
+  <U extends T> Set<U> getArtifacts(Class<U> type);
+}
+
+public interface Artifact {
+  File getFile();
+}
+
+public interface JvmLibrary extends Component<JvmLibraryArtifact>
+
+public interface JvmLibraryMainArtifact extends JvmLibraryArtifact
+
+public interface JvmLibraryJavadocArtifact extends JvmLibraryArtifact
+
+public interface JvmLibrarySourceArtifact extends JvmLibraryArtifact
+
 ## Story: IDE plugins use the resolution result to determine library source and Javadoc artifacts
 
 This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
