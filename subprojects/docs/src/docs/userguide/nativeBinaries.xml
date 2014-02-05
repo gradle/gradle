@@ -638,10 +638,25 @@
                 which will run all of the registered CUnit tests.
                 The generated test results will be located in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
             </para>
-            <sample id="runningCUnitTests" dir="native-binaries/cunit" title="Running CUnit tests" includeLocation="true">
+            <sample id="completeCUnitExample" dir="native-binaries/cunit" title="Running CUnit tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="complete-example"/>
                 <!--<output args='runFailingOperatorsTestCUnitExe' expectFailure="true"/>-->
             </sample>
+            <!-- Cannot presently use generated output since the actual output varies from Windows and Linux,
+                 and UserGuideSamplesIntegrationTest doesn't permit this difference. -->
+            <screen>
+> gradle -q runFailingOperatorsTestCUnitExe
+
+There were test failures:
+  1. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:6  - plus(0, -2) == -2
+  2. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:7  - plus(2, 2) == 4
+
+:runFailingOperatorsTestCUnitExe FAILED
+
+BUILD FAILED
+
+Total time: 1 secs
+            </screen>
         </section>
 
         <note>
