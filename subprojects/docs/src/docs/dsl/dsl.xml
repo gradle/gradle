@@ -569,6 +569,9 @@
                 <td>org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile</td>
             </tr>
             <tr>
+                <td>org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile</td>
+            </tr>
+            <tr>
                 <td>org.gradle.nativebinaries.tasks.LinkExecutable</td>
             </tr>
             <tr>

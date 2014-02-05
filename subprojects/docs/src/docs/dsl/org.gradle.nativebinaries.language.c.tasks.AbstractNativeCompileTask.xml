@@ -39,6 +39,9 @@
                 <td>toolChain</td>
             </tr>
             <tr>
+                <td>targetPlatform</td>
+            </tr>
+            <tr>
                 <td>source</td>
             </tr>
             <tr>
