@@ -19,15 +19,23 @@ package org.gradle.tooling.internal.consumer.parameters;
 import org.gradle.tooling.internal.protocol.ConnectionParameters;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
+
 public class ConsumerConnectionParameters implements ConnectionParameters {
     private final boolean verboseLogging;
+    private final File userHomeDir;
 
-    public ConsumerConnectionParameters(boolean verboseLogging) {
+    public ConsumerConnectionParameters(boolean verboseLogging, File userHomeDir) {
         this.verboseLogging = verboseLogging;
+        this.userHomeDir = userHomeDir;
     }
 
     public boolean getVerboseLogging() {
         return verboseLogging;
+    }
+
+    public File getUserHomeDir() {
+        return userHomeDir;
     }
 
     public String getConsumerVersion() {

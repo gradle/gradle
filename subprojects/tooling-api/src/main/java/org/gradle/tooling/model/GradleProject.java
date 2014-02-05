@@ -72,7 +72,7 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
      * @since 1.12
      */
     @Incubating
-    DomainObjectSet<GradlePublication> getPublications();
+    DomainObjectSet<? extends GradlePublication> getPublications();
 
     /*
      * Returns tasks selectors that can be used to execute build.

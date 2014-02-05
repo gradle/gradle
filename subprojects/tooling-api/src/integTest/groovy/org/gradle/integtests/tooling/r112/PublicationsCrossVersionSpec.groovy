@@ -46,7 +46,7 @@ group = "test.group"
 
 uploadArchives {
     repositories {
-        ivy { url "file:///\$buildDir/ivy-repo" }
+        ivy { url uri("\$buildDir/ivy-repo") }
     }
 }
 """
@@ -75,7 +75,7 @@ group = "test.group"
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file:///\$buildDir/maven-repo")
+            repository(url: uri("\$buildDir/maven-repo"))
         }
     }
 }
@@ -105,7 +105,7 @@ group = "test.group"
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file:///\$buildDir/maven-repo")
+            repository(url: uri("\$buildDir/maven-repo"))
             pom.groupId = "test.groupId"
             pom.artifactId = "test.artifactId"
             pom.version = "1.1"
@@ -139,8 +139,8 @@ group = "test.group"
 
 publishing {
     repositories {
-        ivy { url "file:///\$buildDir/ivy-repo" }
-        maven { url "file:///\$buildDir/maven-repo" }
+        ivy { url uri("\$buildDir/ivy-repo") }
+        maven { url uri("\$buildDir/maven-repo") }
     }
     publications {
         mainIvy(IvyPublication) {
@@ -178,7 +178,8 @@ publishing {
         pub2.id.version == "1.2"
     }
 
-    @TargetGradleVersion('=1.10')
+    @ToolingApiVersion('current')
+    @TargetGradleVersion('<1.12')
     def "decent error message for Gradle version that doesn't expose publications"() {
         when:
         GradleProject project = withConnection { it.getModel(GradleProject.class) }

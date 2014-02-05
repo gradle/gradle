@@ -46,6 +46,9 @@ public abstract class AbstractProjectLibraryBinary extends AbstractProjectNative
             if (!sourceSet.getSource().isEmpty()) {
                 return true;
             }
+            if (sourceSet.hasBuildDependencies()) {
+                return true;
+            }
         }
         return false;
     }
@@ -62,6 +65,15 @@ public abstract class AbstractProjectLibraryBinary extends AbstractProjectNative
                     headerDirs.addAll(sourceSet.getExportedHeaders().getSrcDirs());
                 }
                 return headerDirs;
+            }
+
+            @Override
+            public TaskDependency getBuildDependencies() {
+                DefaultTaskDependency dependency = new DefaultTaskDependency();
+                for (HeaderExportingSourceSet sourceSet : getSource().withType(HeaderExportingSourceSet.class)) {
+                    dependency.add(sourceSet.getBuildDependencies());
+                }
+                return dependency;
             }
         };
     }

@@ -32,6 +32,8 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
+import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
@@ -95,7 +97,7 @@ class DefaultProjectTest {
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
     ComponentMetadataHandler moduleHandlerMock = context.mock(ComponentMetadataHandler)
     PluginContainer pluginContainerMock = context.mock(PluginContainer)
-    ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
+    ScriptHandlerInternal scriptHandlerMock = context.mock(ScriptHandlerInternal)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
     Gradle build = context.mock(GradleInternal)
     FileOperations fileOperationsMock = context.mock(FileOperations)
@@ -152,6 +154,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(FileOperations); will(returnValue(fileOperationsMock))
             allowing(serviceRegistryMock).get(ProcessOperations); will(returnValue(processOperationsMock))
             allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
+            allowing(serviceRegistryMock).get(ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get(ProjectConfigurationActionContainer); will(returnValue(configureActions))
             ModelRegistry modelRegistry = context.mock(ModelRegistry)
             ignoring(modelRegistry)

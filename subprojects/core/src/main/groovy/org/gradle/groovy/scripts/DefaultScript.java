@@ -28,6 +28,8 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -79,7 +81,10 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), __scriptServices.get(ScriptPluginFactory.class), getScriptTarget());
+        ScriptHandlerInternal buildscript = (ScriptHandlerInternal) getBuildscript();
+        return new DefaultObjectConfigurationAction(
+                getFileResolver(), __scriptServices.get(ScriptPluginFactory.class), __scriptServices.get(ScriptHandlerFactory.class), buildscript, getScriptTarget()
+        );
     }
 
     public void apply(Closure closure) {
@@ -95,7 +100,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public ScriptHandler getBuildscript() {
-        return __scriptServices.get(ScriptHandler.class);
+        return __scriptServices.get(ScriptHandlerInternal.class);
     }
 
     public void buildscript(Closure configureClosure) {

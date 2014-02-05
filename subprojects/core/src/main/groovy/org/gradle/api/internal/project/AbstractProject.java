@@ -37,6 +37,9 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.internal.initialization.ScriptCompileScope;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
@@ -159,7 +162,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private String description;
 
     private final Path path;
-    private ScriptPluginFactory scriptPluginFactory;
+    private final ScriptPluginFactory scriptPluginFactory;
+    private final ScriptHandlerFactory scriptHandlerFactory;
 
     public AbstractProject(String name,
                            ProjectInternal parent,
@@ -204,6 +208,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         loggingManager = services.get(LoggingManagerInternal.class);
         softwareComponentContainer = services.get(SoftwareComponentContainer.class);
         scriptPluginFactory = services.get(ScriptPluginFactory.class);
+        scriptHandlerFactory = services.get(ScriptHandlerFactory.class);
         configurationActions = services.get(ProjectConfigurationActionContainer.class);
         modelRegistry = services.get(ModelRegistry.class);
         modelRules = services.get(ModelRules.class);
@@ -270,11 +275,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public void beforeCompile(ScriptPlugin configurer) {
-        if (configurer.getSource() != buildScriptSource) {
-            return;
-        }
-        configurer.setScriptBaseClass(ProjectScript.class);
-        configurer.setClassLoaderProvider(scriptClassLoaderProvider);
+        // nothing
     }
 
     public void afterCompile(ScriptPlugin configurer, org.gradle.groovy.scripts.Script script) {
@@ -977,6 +978,16 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     @Override
     protected ScriptPluginFactory getScriptPluginFactory() {
         return scriptPluginFactory;
+    }
+
+    @Override
+    protected ScriptHandlerFactory getScriptHandlerFactory() {
+        return scriptHandlerFactory;
+    }
+
+    @Override
+    protected ScriptCompileScope getScriptCompileScope() {
+        return (ScriptHandlerInternal) scriptHandler;
     }
 
     /**

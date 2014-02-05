@@ -42,6 +42,11 @@ class MavenHttpRepository implements MavenRepository, HttpRepository {
         return new URI("http://localhost:${server.port}${contextPath}")
     }
 
+    void allowMetaDataGet(String groupId, String artifactId) {
+        def path = "${groupId.replace('.', '/')}/$artifactId/maven-metadata.xml"
+        server.allowGetOrHead("$contextPath/$path", backingRepository.getRootDir().file(path))
+    }
+
     void expectMetaDataGet(String groupId, String artifactId) {
         def path = "${groupId.replace('.', '/')}/$artifactId/maven-metadata.xml"
         server.expectGet("$contextPath/$path", backingRepository.getRootDir().file(path))

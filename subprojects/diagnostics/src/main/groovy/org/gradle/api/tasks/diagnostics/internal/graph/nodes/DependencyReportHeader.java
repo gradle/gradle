@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.tasks.diagnostics.internal.insight.DescribableComponentSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 import java.util.Collections;
 import java.util.Set;
@@ -38,7 +38,7 @@ public class DependencyReportHeader implements RenderableDependency {
     }
 
     public String getDescription() {
-        return new DescribableComponentSelectionReason(dependency.getReason()).describe();
+        return getReasonDescription(dependency.getReason());
     }
 
     public boolean isResolvable() {
@@ -47,5 +47,9 @@ public class DependencyReportHeader implements RenderableDependency {
 
     public Set<? extends RenderableDependency> getChildren() {
         return Collections.emptySet();
+    }
+
+    private String getReasonDescription(ComponentSelectionReason reason) {
+        return !reason.isExpected() ? reason.getDescription() : null;
     }
 }

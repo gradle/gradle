@@ -17,10 +17,10 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.resolve.ComponentMetadataRulesChangingModulesIntegrationTest
-import org.gradle.test.fixtures.HttpRepository
+import org.gradle.test.fixtures.maven.MavenHttpRepository
 
 class MavenComponentMetadataRulesChangingModulesIntegrationTest extends ComponentMetadataRulesChangingModulesIntegrationTest {
-    HttpRepository getRepo() {
+    MavenHttpRepository getRepo() {
         mavenHttpRepo
     }
 
@@ -28,9 +28,44 @@ class MavenComponentMetadataRulesChangingModulesIntegrationTest extends Componen
 """
 repositories {
     maven {
-        url "${getRepo().uri}"
+        url "$repo.uri"
     }
 }
 """
+    }
+
+    def setup() {
+        repo.allowMetaDataGet("org.test", "moduleA")
+    }
+
+    def "snapshot dependencies have changing flag initialized to true"() {
+        def moduleB = repo.module("org.test", "moduleB", "1.0-SNAPSHOT").publish()
+        moduleB.allowAll()
+        repo.allowMetaDataGet("org.test", "moduleB")
+
+        buildFile <<
+"""
+$repoDeclaration
+configurations {
+    modules
+}
+dependencies {
+    modules "org.test:moduleB:1.0-SNAPSHOT"
+    components {
+        eachComponent { details ->
+            file(details.id.name).text = details.changing
+        }
+    }
+}
+task resolve << {
+    configurations.modules.files
+}
+"""
+
+        when:
+        run("resolve")
+
+        then:
+        file("moduleB").text == "true"
     }
 }

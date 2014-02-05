@@ -34,7 +34,7 @@ abstract class ProjectScript extends DefaultScript {
         scriptTarget.apply(options)
     }
 
-    def ScriptHandler getBuildscript() {
+    ScriptHandler getBuildscript() {
         scriptTarget.buildscript
     }
 

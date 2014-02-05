@@ -23,11 +23,6 @@ public interface ScriptClassLoaderProvider extends ScriptCompileScope {
     ClassLoader getBaseCompilationClassLoader();
 
     /**
-     * Returns the final ClassLoader which defines the complete script compilation class path.
-     */
-    ClassLoader getClassLoader();
-
-    /**
      * Adds an additional ClassLoader to make visible for script compilation.
      */
     void addParent(ClassLoader parent);

@@ -21,9 +21,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
-import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.cache.CacheRepository
@@ -73,16 +71,6 @@ public class GradleScopeServicesTest extends Specification {
 
         then:
         serviceRegistry instanceof ProjectScopeServices
-    }
-
-    def "provides a project registry"() {
-        when:
-        def projectRegistry = registry.get(ProjectRegistry)
-        def secondRegistry = registry.get(ProjectRegistry)
-
-        then:
-        projectRegistry instanceof DefaultProjectRegistry
-        projectRegistry sameInstance(secondRegistry)
     }
 
     def "provides a plugin registry"() {

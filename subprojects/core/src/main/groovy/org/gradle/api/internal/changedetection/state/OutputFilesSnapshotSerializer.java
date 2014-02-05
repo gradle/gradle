@@ -37,11 +37,11 @@ class OutputFilesSnapshotSerializer implements Serializer<FileCollectionSnapshot
         FileSnapshotSerializer serializer = new FileSnapshotSerializer();
         FileCollectionSnapshot snapshot = serializer.read(decoder);
 
-        return new OutputFilesSnapshotter.OutputFilesSnapshot(rootFileIds, snapshot);
+        return new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(rootFileIds, snapshot);
     }
 
     public void write(Encoder encoder, FileCollectionSnapshot currentValue) throws Exception {
-        OutputFilesSnapshotter.OutputFilesSnapshot value = (OutputFilesSnapshotter.OutputFilesSnapshot) currentValue;
+        OutputFilesCollectionSnapshotter.OutputFilesSnapshot value = (OutputFilesCollectionSnapshotter.OutputFilesSnapshot) currentValue;
         int rootFileIds = value.rootFileIds.size();
         encoder.writeInt(rootFileIds);
         for (String key : value.rootFileIds.keySet()) {

@@ -69,7 +69,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
     }
 
     def "configures connection"() {
-        def parameters = new ConsumerConnectionParameters(false)
+        def parameters = new ConsumerConnectionParameters(false, null)
 
         when:
         connection.configure(parameters)

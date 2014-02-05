@@ -75,6 +75,18 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
         publishArtifact.file == file
     }
 
+    def "creates artifact from extension-less file"() {
+        def file = new File("someFile")
+
+        when:
+        def publishArtifact = publishArtifactNotationParser.parseNotation(file)
+
+        then:
+        publishArtifact instanceof DefaultPublishArtifact
+        publishArtifact.file == file
+        publishArtifact.type == ''
+    }
+
     def createArtifactFromFileInMap() {
         Task task = Mock()
         def file = new File("some-file-1.2-classifier.zip")

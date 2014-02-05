@@ -42,13 +42,13 @@ class ObjectiveCppNativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         project.executables.all { Executable executable ->
             executable.binaries.all { binary ->
-                binary.extensions.create("objectiveCppCompiler", DefaultPreprocessingTool)
+                binary.extensions.create("objcppCompiler", DefaultPreprocessingTool)
             }
         }
 
         project.libraries.all { Library library ->
             library.binaries.all { binary ->
-                binary.extensions.create("objectiveCppCompiler", DefaultPreprocessingTool)
+                binary.extensions.create("objcppCompiler", DefaultPreprocessingTool)
             }
         }
 
@@ -82,8 +82,8 @@ class ObjectiveCppNativeBinariesPlugin implements Plugin<ProjectInternal> {
         }
 
         compileTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
-        compileTask.macros = binary.objectiveCppCompiler.macros
-        compileTask.compilerArgs = binary.objectiveCppCompiler.args
+        compileTask.macros = binary.objcppCompiler.macros
+        compileTask.compilerArgs = binary.objcppCompiler.args
 
         compileTask
     }

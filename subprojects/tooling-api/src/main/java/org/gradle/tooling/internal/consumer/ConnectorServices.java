@@ -22,7 +22,6 @@ import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationL
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
-import org.gradle.wrapper.GradleUserHomeLookup;
 
 public class ConnectorServices {
 
@@ -30,7 +29,7 @@ public class ConnectorServices {
 
     public DefaultGradleConnector createConnector() {
         ConnectionFactory connectionFactory = new ConnectionFactory(singletonRegistry.get(ToolingImplementationLoader.class));
-        return new DefaultGradleConnector(connectionFactory, new DistributionFactory(GradleUserHomeLookup.gradleUserHome()));
+        return new DefaultGradleConnector(connectionFactory, new DistributionFactory());
     }
 
     /**

@@ -21,6 +21,7 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ThreadGlobalInstantiator;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -56,6 +57,7 @@ public class SettingsFactoryTest {
         final PluginContainer pluginContainer = context.mock(PluginContainer.class);
         final FileResolver fileResolver = context.mock(FileResolver.class);
         final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
+        final ScriptHandlerFactory scriptHandlerFactory = context.mock(ScriptHandlerFactory.class);
 
         final ProjectDescriptorRegistry expectedProjectDescriptorRegistry = context.mock(ProjectDescriptorRegistry.class);
 
@@ -68,6 +70,8 @@ public class SettingsFactoryTest {
             will(returnValue(fileResolver));
             one(settingsServices).get(ScriptPluginFactory.class);
             will(returnValue(scriptPluginFactory));
+            one(settingsServices).get(ScriptHandlerFactory.class);
+            will(returnValue(scriptHandlerFactory));
             one(settingsServices).get(ProjectDescriptorRegistry.class);
             will(returnValue(expectedProjectDescriptorRegistry));
             one(expectedProjectDescriptorRegistry).addProject(with(any(DefaultProjectDescriptor.class)));

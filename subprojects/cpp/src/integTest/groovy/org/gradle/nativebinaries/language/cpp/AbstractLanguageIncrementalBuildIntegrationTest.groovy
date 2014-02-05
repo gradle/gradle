@@ -32,7 +32,7 @@ import static org.gradle.util.TextUtil.escapeString
 
 abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    static boolean multiPlatformsAvailable = false
+    static boolean multiPlatformsAvailable = true
 
     IncrementalHelloWorldApp app
     String mainCompileTask

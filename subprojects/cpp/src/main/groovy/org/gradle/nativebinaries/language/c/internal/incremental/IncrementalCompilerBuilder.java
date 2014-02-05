@@ -17,6 +17,8 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.cache.CacheRepository;
+import org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile;
+import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
 
@@ -25,12 +27,23 @@ import java.io.File;
 public class IncrementalCompilerBuilder {
     private final TaskInternal task;
     private final CacheRepository cacheRepository;
+    private final IncludesParser includesParser;
     private boolean cleanCompile;
     private Iterable<File> includes;
 
     public IncrementalCompilerBuilder(CacheRepository cacheRepository, TaskInternal task) {
         this.task = task;
+        this.includesParser = createIncludesParser(task);
         this.cacheRepository = cacheRepository;
+    }
+
+    private static IncludesParser createIncludesParser(TaskInternal task) {
+        if(ObjectiveCCompile.class.isAssignableFrom(task.getClass())
+           || ObjectiveCppCompile.class.isAssignableFrom(task.getClass())){
+            return new RegexBackedIncludesImportsParser();
+        }else{
+            return new DefaultRegexBackedIncludesParser();
+        }
     }
 
     public IncrementalCompilerBuilder withCleanCompile() {
@@ -51,10 +64,10 @@ public class IncrementalCompilerBuilder {
     }
 
     private Compiler<NativeCompileSpec> createIncrementalCompiler(Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        return new IncrementalNativeCompiler(task, includes, cacheRepository, compiler);
+        return new IncrementalNativeCompiler(task, includesParser, includes, cacheRepository, compiler);
     }
 
     private Compiler<NativeCompileSpec> createCleaningCompiler(Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        return new CleanCompilingNativeCompiler(task, includes, cacheRepository, compiler);
+        return new CleanCompilingNativeCompiler(task, includesParser, includes, cacheRepository, compiler);
     }
 }

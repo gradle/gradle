@@ -1236,7 +1236,7 @@
                   or just the task name.  The <replaceable>testNamePattern</replaceable> will be used to form an include
                   pattern of &quot;**/testNamePattern*.class&quot;.
                   If no tests with this pattern can be found an exception is thrown. This is to shield you from false security.
-                  If tests of more then one subproject are executed, the pattern is applied to each subproject. An exception
+                  If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception
                   is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the
                   pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully
                   qualified task name to be executed. You can also specify multiple patterns. Examples:

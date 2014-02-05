@@ -30,6 +30,14 @@ public class DefaultBinaryNamingSchemeBuilder implements BinaryNamingSchemeBuild
         this.dimensions = new ArrayList<String>();
     }
 
+    public DefaultBinaryNamingSchemeBuilder(BinaryNamingScheme basis) {
+        assert basis instanceof DefaultBinaryNamingScheme;
+        DefaultBinaryNamingScheme clone = (DefaultBinaryNamingScheme) basis;
+        this.parentName = clone.parentName;
+        this.typeString = clone.typeString;
+        this.dimensions = clone.dimensions;
+    }
+
     private DefaultBinaryNamingSchemeBuilder(String parentName, String typeString, List<String> dimensions) {
         this.parentName = parentName;
         this.typeString = typeString;

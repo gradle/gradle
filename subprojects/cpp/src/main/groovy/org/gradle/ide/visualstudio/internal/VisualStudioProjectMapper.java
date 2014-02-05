@@ -17,29 +17,28 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.nativebinaries.SharedLibraryBinary;
+import org.gradle.nativebinaries.StaticLibraryBinary;
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal;
-import org.gradle.nativebinaries.platform.PlatformContainer;
 
-import java.util.Arrays;
+import java.util.List;
 
 public class VisualStudioProjectMapper {
-    private final FlavorContainer flavors;
-    private final PlatformContainer platforms;
-
-    public VisualStudioProjectMapper(FlavorContainer flavors, PlatformContainer platforms) {
-        this.flavors = flavors;
-        this.platforms = platforms;
-    }
 
     public ProjectConfigurationNames mapToConfiguration(ProjectNativeBinary nativeBinary) {
         String projectName = projectPrefix(nativeBinary) + baseName(nativeBinary) + projectSuffix(nativeBinary);
-        String configurationName = makeName(
-                getPlatformComponent(nativeBinary),
-                nativeBinary.getBuildType().getName(),
-                getFlavorComponent(nativeBinary)
-        );
+        String configurationName = getConfigurationName(nativeBinary);
         return new ProjectConfigurationNames(projectName, configurationName, "Win32");
+    }
+
+    private String getConfigurationName(ProjectNativeBinary nativeBinary) {
+        List<String> dimensions = ((ProjectNativeBinaryInternal) nativeBinary).getNamingScheme().getVariantDimensions();
+        if (dimensions.isEmpty()) {
+            return nativeBinary.getBuildType().getName();
+        }
+        return makeName(dimensions);
     }
 
     private String projectPrefix(ProjectNativeBinary nativeBinary) {
@@ -61,10 +60,6 @@ public class VisualStudioProjectMapper {
                 : "Exe";
     }
 
-    private static String makeName(String... components) {
-        return makeName(Arrays.asList(components));
-    }
-
     private static String makeName(Iterable<String> components) {
         StringBuilder builder = new StringBuilder();
         for (String component : components) {
@@ -77,22 +72,6 @@ public class VisualStudioProjectMapper {
             }
         }
         return builder.toString();
-    }
-
-    private String getFlavorComponent(ProjectNativeBinary nativeBinary) {
-        ProjectNativeComponentInternal component = (ProjectNativeComponentInternal) nativeBinary.getComponent();
-        if (component.chooseFlavors(flavors).size() > 1) {
-            return nativeBinary.getFlavor().getName();
-        }
-        return null;
-    }
-
-    private String getPlatformComponent(ProjectNativeBinary nativeBinary) {
-        ProjectNativeComponentInternal component = (ProjectNativeComponentInternal) nativeBinary.getComponent();
-        if (component.choosePlatforms(platforms).size() > 1) {
-            return nativeBinary.getTargetPlatform().getName();
-        }
-        return null;
     }
 
     static class ProjectConfigurationNames {

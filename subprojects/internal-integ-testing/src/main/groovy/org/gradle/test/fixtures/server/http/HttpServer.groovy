@@ -379,7 +379,22 @@ class HttpServer extends ExternalResource {
     }
 
     /**
-     * Allows one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
+     * Allows GET requests for the given URL, returning an apache-compatible directory listing with the given File names.
+     */
+    void allowGetDirectoryListing(String path, File directory) {
+        allow(path, false, ['GET'], new Action() {
+            String getDisplayName() {
+                return "return listing of directory $directory.name"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                sendDirectoryListing(response, directory)
+            }
+        })
+    }
+
+    /**
+     * Expects one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
      */
     void expectGetDirectoryListing(String path, File directory) {
         expect(path, false, ['GET'], new Action() {

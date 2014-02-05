@@ -38,6 +38,7 @@ class OperatingSystemNotationParserTest extends Specification {
         !os.macOsX
         !os.linux
         !os.solaris
+        !os.freeBSD
     }
 
     def "parses osx"() {
@@ -49,6 +50,7 @@ class OperatingSystemNotationParserTest extends Specification {
         os.macOsX
         !os.linux
         !os.solaris
+        !os.freeBSD
 
         where:
         osString << ["osx", "mac os x"]
@@ -63,6 +65,7 @@ class OperatingSystemNotationParserTest extends Specification {
         !os.macOsX
         os.linux
         !os.solaris
+        !os.freeBSD
     }
 
     def "parses solaris"() {
@@ -74,8 +77,24 @@ class OperatingSystemNotationParserTest extends Specification {
         !os.macOsX
         !os.linux
         os.solaris
+        !os.freeBSD
 
         where:
         osString << ["solaris", "sunos"]
+    }
+
+    def "parses FreeBSD"() {
+        when:
+        def os = parser.parseNotation(osString)
+
+        then:
+        !os.windows
+        !os.macOsX
+        !os.linux
+        !os.solaris
+        os.freeBSD
+
+        where:
+        osString << ["FreeBSD", "freebsd"]
     }
 }

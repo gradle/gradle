@@ -16,11 +16,11 @@
 package org.gradle.nativebinaries.test.cunit;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.test.TestSuite;
+import org.gradle.nativebinaries.test.ProjectComponentTestSuite;
 
 /**
  * Test suite of CUnit tests.
  */
 @Incubating
-public interface CUnitTestSuite extends TestSuite {
+public interface CUnitTestSuite extends ProjectComponentTestSuite {
 }

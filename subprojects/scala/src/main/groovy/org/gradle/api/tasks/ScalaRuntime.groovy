@@ -87,17 +87,18 @@ class ScalaRuntime {
             @Override
             FileCollection createDelegate() {
                 if (project.repositories.empty) {
-                    throw new GradleException("Cannot infer Scala class path because no repository is declared for the project.")
+                    throw new GradleException("Cannot infer Scala class path because no repository is declared in $project")
                 }
 
                 def scalaLibraryJar = findScalaJar(classpath, "library")
                 if (scalaLibraryJar == null) {
-                    throw new GradleException("Cannot infer Scala class path because no Scala library Jar was found on class path: $classpath")
+                    throw new GradleException("Cannot infer Scala class path because no Scala library Jar was found. "
+                            + "Does $project declare dependency to scala-library? Searched classpath: $classpath.")
                 }
 
                 def scalaVersion = getScalaVersion(scalaLibraryJar)
                 if (scalaVersion == null) {
-                    throw new AssertionError("Unexpectedly failed to parse version of Scala Jar file: $scalaLibraryJar")
+                    throw new AssertionError("Unexpectedly failed to parse version of Scala Jar file: $scalaLibraryJar in $project")
                 }
 
                 return project.configurations.detachedConfiguration(

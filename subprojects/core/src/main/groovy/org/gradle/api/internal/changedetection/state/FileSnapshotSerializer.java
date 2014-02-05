@@ -37,13 +37,13 @@ class FileSnapshotSerializer implements Serializer<FileCollectionSnapshot> {
     }
 
     public void write(Encoder encoder, FileCollectionSnapshot value) throws Exception {
-        if (value instanceof DefaultFileSnapshotter.FileCollectionSnapshotImpl) {
+        if (value instanceof DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl) {
             encoder.writeByte((byte) 1);
-            DefaultFileSnapshotter.FileCollectionSnapshotImpl cached = (DefaultFileSnapshotter.FileCollectionSnapshotImpl) value;
+            DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl cached = (DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl) value;
             defaultSnapshotSerializer.write(encoder, cached);
-        } else if (value instanceof OutputFilesSnapshotter.OutputFilesSnapshot) {
+        } else if (value instanceof OutputFilesCollectionSnapshotter.OutputFilesSnapshot) {
             encoder.writeByte((byte) 2);
-            OutputFilesSnapshotter.OutputFilesSnapshot cached = (OutputFilesSnapshotter.OutputFilesSnapshot) value;
+            OutputFilesCollectionSnapshotter.OutputFilesSnapshot cached = (OutputFilesCollectionSnapshotter.OutputFilesSnapshot) value;
             outputSnapshotSerializer.write(encoder, cached);
         } else {
             throw new RuntimeException("Unable to write to file snapshot cache. Unexpected type to write: " + value);

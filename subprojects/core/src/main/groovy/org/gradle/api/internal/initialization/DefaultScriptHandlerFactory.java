@@ -72,7 +72,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
             return handler;
         }
 
-        return new NoClassLoaderUpdateScriptHandler(originalHandler.getBaseCompilationClassLoader(), originalHandler.getClassLoader(), repositoryHandler, dependencyHandler, scriptSource, configurationContainer);
+        return new NoClassLoaderUpdateScriptHandler(originalHandler.getBaseCompilationClassLoader(), originalHandler.getScriptCompileClassLoader(), repositoryHandler, dependencyHandler, scriptSource, configurationContainer);
     }
 
     private static class BasicDomainObjectContext implements DomainObjectContext {

@@ -98,8 +98,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new TrueTimeProvider();
     }
 
-    protected IProjectFactory createProjectFactory() {
-        return new ProjectFactory(get(Instantiator.class));
+    protected ProjectRegistry<ProjectInternal> createProjectRegistry() {
+        return new DefaultProjectRegistry<ProjectInternal>();
+    }
+
+    protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
+        return new ProjectFactory(instantiator, projectRegistry);
     }
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
@@ -201,10 +205,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultScriptPluginFactory(
                 get(ScriptCompilerFactory.class),
                 get(ImportsReader.class),
-                get(ScriptHandlerFactory.class),
-                get(BuildClassLoaderRegistry.class).getRootCompileScope(),
                 getFactory(LoggingManagerInternal.class),
                 get(Instantiator.class),
+                get(ScriptHandlerFactory.class),
                 get(PluginResolverFactory.class),
                 get(ClassLoaderRegistry.class).getPluginsClassLoader()
         );
@@ -212,7 +215,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected InitScriptHandler createInitScriptHandler() {
         return new InitScriptHandler(
-                new DefaultInitScriptProcessor(get(ScriptPluginFactory.class))
+                new DefaultInitScriptProcessor(
+                        get(ScriptPluginFactory.class),
+                        get(ScriptHandlerFactory.class),
+                        get(BuildClassLoaderRegistry.class).getRootCompileScope()
+                )
         );
     }
 
@@ -220,6 +227,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new PropertiesLoadingSettingsProcessor(
                 new ScriptEvaluatingSettingsProcessor(
                         get(ScriptPluginFactory.class),
+                        get(ScriptHandlerFactory.class),
                         new SettingsFactory(
                                 get(Instantiator.class),
                                 get(ServiceRegistryFactory.class)

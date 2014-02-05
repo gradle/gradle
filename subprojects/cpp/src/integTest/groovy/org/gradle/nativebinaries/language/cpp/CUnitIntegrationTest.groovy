@@ -59,9 +59,6 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
             }
         """
         settingsFile << "rootProject.name = 'test'"
-
-        app.library.writeSources(file("src/hello"))
-        app.cunitTests.writeSources(file("src/helloTest"))
     }
 
     private def getCunitPlatform() {
@@ -94,6 +91,9 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     }
 
     def "can build and run cunit test suite"() {
+        given:
+        useConventionalSourceLocations()
+
         when:
         run "runHelloTestCUnitExe"
 
@@ -110,8 +110,98 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         testResults.checkAssertions(3, 3, 0)
     }
 
+    def "can supply cCompiler macro to cunit sources"() {
+        given:
+        useConventionalSourceLocations()
+
+        when:
+        buildFile << """
+            binaries.withType(TestSuiteExecutableBinary) {
+                cCompiler.define "ONE_TEST"
+            }
+"""
+        and:
+        run "runHelloTestCUnitExe"
+
+        then:
+        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
+        testResults.checkAssertions(1, 1, 0)
+    }
+
+    def "can configure location of cunit test sources"() {
+        given:
+        app.library.writeSources(file("src/hello"))
+        app.cunitTests.writeSources(file("src/alternateHelloTest"))
+
+        when:
+        buildFile << """
+            sources {
+                helloTest {
+                    cunit {
+                        source.srcDir "src/alternateHelloTest/cunit"
+                    }
+                }
+            }
+"""
+
+        then:
+        succeeds "runHelloTestCUnitExe"
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+    }
+
+    def "variant-dependent sources are included in test binary"() {
+        given:
+        app.library.headerFiles*.writeToDir(file("src/hello"))
+        app.cunitTests.writeSources(file("src/helloTest"))
+        app.library.sourceFiles*.writeToDir(file("src/variant"))
+
+        when:
+        buildFile << """
+            sources {
+                variant {
+                    c {
+                        lib sources.hello.c
+                    }
+                }
+            }
+            binaries.withType(LibraryBinary) {
+                source sources.variant
+            }
+"""
+
+        then:
+        succeeds "runHelloTestCUnitExe"
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+    }
+
+    def "can configure variant-dependent test sources"() {
+        given:
+        app.library.writeSources(file("src/hello"))
+        app.cunitTests.writeSources(file("src/variantTest"))
+
+        when:
+        buildFile << """
+            sources {
+                variantTest {
+                    cunit(CSourceSet) {
+                        lib sources.hello.c
+                        lib sources.helloTest.cunitLauncher
+                    }
+                }
+            }
+            binaries.withType(TestSuiteExecutableBinary) {
+                source sources.variantTest.cunit
+            }
+"""
+
+        then:
+        succeeds "runHelloTestCUnitExe"
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+    }
+
     def "test suite skipped after successful run"() {
         given:
+        useConventionalSourceLocations()
         run "runHelloTestCUnitExe"
 
         when:
@@ -123,7 +213,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can build and run cunit failing test suite"() {
         when:
-        useFailingSources()
+        useFailingTestSources()
         fails "runHelloTestCUnitExe"
 
         then:
@@ -146,10 +236,9 @@ There were test failures:
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
     }
 
-
     def "build does not break for failing tests if ignoreFailures is true"() {
         when:
-        useFailingSources()
+        useFailingTestSources()
         buildFile << """
     tasks.withType(RunTestExecutable) {
         it.ignoreFailures = true
@@ -170,8 +259,7 @@ There were test failures:
 
     def "test suite not skipped after failing run"() {
         given:
-        final String originalText = file("src/hello/c/sum.c").text
-        file("src/hello/c/sum.c").text = originalText.replace("return a + b;", "return 2;")
+        useFailingTestSources()
         fails "runHelloTestCUnitExe"
 
         when:
@@ -182,6 +270,8 @@ There were test failures:
     }
 
     def "creates visual studio solution and project for cunit test suite"() {
+        given:
+        useConventionalSourceLocations()
         buildFile.text = "apply plugin: 'visual-studio'\n" + buildFile.text
 
         when:
@@ -195,20 +285,28 @@ There were test failures:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))
         projectFile.sourceFiles as Set == [
                 "build.gradle",
+                "build/src/helloTestCUnitLauncher/cunit/gradle_cunit_main.c",
                 "src/helloTest/cunit/test.c",
-                "build/src/cunitLauncher/gradle_cunit_main.c",
-                "build/src/cunitLauncher/gradle_cunit_register.h",
                 "src/hello/c/hello.c",
                 "src/hello/c/sum.c"
         ] as Set
-        projectFile.headerFiles == ["src/hello/headers/hello.h"]
+        projectFile.headerFiles == [
+                "build/src/helloTestCUnitLauncher/headers/gradle_cunit_register.h",
+                "src/hello/headers/hello.h"
+        ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "src/hello/headers;libs/cunit/2.1-2/include"
+            includePath == "build/src/helloTestCUnitLauncher/headers;src/helloTest/headers;src/hello/headers;libs/cunit/2.1-2/include"
         }
     }
 
-    private def useFailingSources() {
+    private useConventionalSourceLocations() {
+        app.library.writeSources(file("src/hello"))
+        app.cunitTests.writeSources(file("src/helloTest"))
+    }
+
+    private useFailingTestSources() {
+        useConventionalSourceLocations()
         file("src/hello/c/sum.c").text = file("src/hello/c/sum.c").text.replace("return a + b;", "return 2;")
     }
 

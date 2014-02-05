@@ -53,7 +53,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         1 * md.configurationsNames >> ["archives", "runtime", "compile"]
         1 * md.allExcludeRules >> []
         1 * md.allArtifacts >> [mockArtifact()]
-        1 * md.allDependencyDescriptorMediators >> []
+        0 * md.allDependencyDescriptorMediators
     }
 
     def "can create ivy (unmodified) descriptor"() {

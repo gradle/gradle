@@ -99,7 +99,7 @@ project.logger.debug("debug logging");
         then:
         def out = op.standardOutput
         def err = op.standardError
-        normaliseOutput(out) == normaliseOutput(commandLineResult.output)
+        normaliseOutput(filterToolingApiSpecific(out)) == normaliseOutput(commandLineResult.output)
         err == commandLineResult.error
 
         and:
@@ -116,6 +116,10 @@ project.logger.debug("debug logging");
 
     String normaliseOutput(String output) {
         return output.replaceFirst("Total time: .+ secs", "Total time: 0 secs")
+    }
+
+    String filterToolingApiSpecific(String output) {
+        return output.replaceFirst("Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 2.0" + System.getProperty("line.separator"), "")
     }
 
     void shouldNotContainProviderLogging(String output) {

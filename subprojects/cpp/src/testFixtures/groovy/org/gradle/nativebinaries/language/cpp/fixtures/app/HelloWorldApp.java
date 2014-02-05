@@ -68,10 +68,14 @@ public abstract class HelloWorldApp extends TestApp {
     private String compilerConfig(String action, String arg) {
         StringBuilder builder = new StringBuilder();
         for (String plugin : getPluginList()) {
-            if (plugin.equals("c") || plugin.equals("cpp") || plugin.equals("objective-c") || plugin.equals("objective-cpp")) {
+            if (plugin.equals("c") || plugin.equals("cpp")) {
                 builder.append(GUtil.toLowerCamelCase(plugin)).append("Compiler.").append(action).append(" '").append(arg).append("'\n");
             }
+            if(plugin.equals("objective-c") || plugin.equals("objective-cpp")){
+                builder.append(getSourceType()).append("Compiler.").append(action).append(" '").append(arg).append("'\n");
+            }
         }
+
         return builder.toString();
     }
 }

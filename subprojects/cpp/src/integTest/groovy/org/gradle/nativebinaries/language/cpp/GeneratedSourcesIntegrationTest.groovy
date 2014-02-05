@@ -140,6 +140,37 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         executableBuilt(app)
     }
 
+    def "can have library composed of generated sources"() {
+        given:
+        def app = new CHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/input"))
+        degenerateInputSources()
+
+        when:
+        buildFile << """
+    apply plugin: 'c'
+
+    executables {
+        main {}
+    }
+    libraries {
+        hello {}
+    }
+    sources {
+        hello {
+            c {
+                generatedBy tasks.generateCSources
+            }
+        }
+    }
+    sources.main.c.lib library: 'hello', linkage: 'static'
+"""
+
+        then:
+        executableBuilt(app)
+    }
+
     def "generator task produces cpp sources"() {
         given:
         def app = new CppHelloWorldApp()

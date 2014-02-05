@@ -74,11 +74,6 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
                 printDependency(md, dep, writer);
             }
             printAllExcludes(md, writer);
-
-            if (!md.getAllDependencyDescriptorMediators().getAllRules().isEmpty()) {
-                throw new UnsupportedOperationException("Mediators are not support.");
-            }
-
             writer.endElement();
         }
     }

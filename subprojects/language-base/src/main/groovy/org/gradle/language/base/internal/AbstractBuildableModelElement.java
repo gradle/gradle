@@ -48,4 +48,8 @@ public class AbstractBuildableModelElement implements BuildableModelElement {
         buildDependencies.add(tasks);
     }
 
+    public boolean hasBuildDependencies() {
+        // TODO:DAZ There must be a better way to get independent of a Task
+        return buildDependencies.getDependencies(lifecycleTask).size() > 0;
+    }
 }

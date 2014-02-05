@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins;
 
+import org.apache.maven.project.MavenProject;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -40,6 +41,7 @@ import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.tasks.Upload;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -63,14 +65,17 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final FileResolver fileResolver;
     private final ProjectPublicationRegistry publicationRegistry;
+    private final ProjectConfigurationActionContainer configurationActionContainer;
 
     private Project project;
 
     @Inject
-    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver, ProjectPublicationRegistry publicationRegistry) {
+    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver,
+                       ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
         this.publicationRegistry = publicationRegistry;
+        this.configurationActionContainer = configurationActionContainer;
     }
 
     public void apply(final ProjectInternal project) {
@@ -116,7 +121,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureUploadArchivesTask() {
-        project.afterEvaluate(new Action<Project>() {
+        configurationActionContainer.add(new Action<Project>() {
             public void execute(Project project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
                 if (uploadArchives == null) { return; }
@@ -126,9 +131,9 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
                     MavenPom pom = resolver.getPom();
                     ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(
-                            pom.getGroupId().equals("unknown") ? module.getGroup() : pom.getGroupId(),
-                            pom.getArtifactId().equals("empty-project") ? module.getName() : pom.getArtifactId(),
-                            pom.getVersion().equals("0") ? module.getVersion() : pom.getVersion()
+                            pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID) ? module.getGroup() : pom.getGroupId(),
+                            pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
+                            pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()
                     );
                     publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(publicationId));
                 }

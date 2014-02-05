@@ -23,7 +23,7 @@ import org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyResolver
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
-import org.gradle.plugins.ide.internal.resolver.model.IdeRepoFileDependency
+import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency
 
 class IdeDependenciesExtractor {
@@ -47,14 +47,14 @@ class IdeDependenciesExtractor {
         deps.values()
     }
 
-    List<IdeRepoFileDependency> extractRepoFileDependencies(ConfigurationContainer confContainer,
+    List<IdeExtendedRepoFileDependency> extractRepoFileDependencies(ConfigurationContainer confContainer,
                                                            Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,
                                                            boolean downloadSources, boolean downloadJavadoc) {
-        List<IdeRepoFileDependency> out = []
+        List<IdeExtendedRepoFileDependency> out = []
 
         def downloader = new JavadocAndSourcesDownloader(confContainer, plusConfigurations, minusConfigurations, downloadSources, downloadJavadoc)
 
-        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { IdeRepoFileDependency dependency ->
+        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { IdeExtendedRepoFileDependency dependency ->
             dependency.sourceFile = downloader.sourceFor(dependency.file.name)
             dependency.javadocFile = downloader.javadocFor(dependency.file.name)
             out << dependency
@@ -104,8 +104,8 @@ class IdeDependenciesExtractor {
         fileToConf.values()
     }
 
-    Collection<IdeRepoFileDependency> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        LinkedHashMap<File, IdeRepoFileDependency> out = [:]
+    Collection<IdeExtendedRepoFileDependency> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        LinkedHashMap<File, IdeExtendedRepoFileDependency> out = [:]
 
         for (plusConfiguration in plusConfigurations) {
             for (artifact in ideDependencyResolver.getIdeRepoFileDependencies(plusConfiguration)) {

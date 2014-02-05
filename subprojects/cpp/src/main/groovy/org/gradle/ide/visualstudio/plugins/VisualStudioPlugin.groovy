@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio.plugins
-
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -27,11 +26,7 @@ import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioModel
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioTasks
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.ModelRules
-import org.gradle.model.internal.Inputs
-import org.gradle.model.internal.ModelCreator
-import org.gradle.nativebinaries.FlavorContainer
 import org.gradle.nativebinaries.internal.resolve.ProjectLocator
-import org.gradle.nativebinaries.platform.PlatformContainer
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
 
 import javax.inject.Inject
@@ -54,7 +49,7 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeBinariesModelPlugin)
 
-        project.modelRegistry.create("visualStudio", ["flavors", "platforms"], new VisualStudioExtensionFactory(instantiator, projectLocator, fileResolver))
+        modelRules.register("visualStudio", instantiator.newInstance(DefaultVisualStudioExtension, instantiator, projectLocator, fileResolver))
         modelRules.config("visualStudio", new IncludeBuildFileInProject(project))
         modelRules.rule(new CreateVisualStudioModel())
         modelRules.rule(new CreateVisualStudioTasks())
@@ -73,29 +68,6 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
                     ((DefaultVisualStudioProject) it).addSourceFile(project.getBuildFile())
                 }
             }
-
-        }
-    }
-
-    private static class VisualStudioExtensionFactory implements ModelCreator<DefaultVisualStudioExtension> {
-        private final Instantiator instantiator;
-        private final ProjectLocator projectLocator;
-        private final FileResolver fileResolver;
-
-        public VisualStudioExtensionFactory(Instantiator instantiator, ProjectLocator projectLocator, FileResolver fileResolver) {
-            this.instantiator = instantiator;
-            this.projectLocator = projectLocator;
-            this.fileResolver = fileResolver;
-        }
-
-        DefaultVisualStudioExtension create(Inputs inputs) {
-            FlavorContainer flavors = inputs.get(0, FlavorContainer)
-            PlatformContainer platforms = inputs.get(1, PlatformContainer)
-            return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectLocator, fileResolver, flavors, platforms);
-        }
-
-        Class<DefaultVisualStudioExtension> getType() {
-            return DefaultVisualStudioExtension
         }
     }
 }

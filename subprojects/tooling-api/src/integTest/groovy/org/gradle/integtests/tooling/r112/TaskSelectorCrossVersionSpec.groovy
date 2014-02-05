@@ -20,9 +20,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.UnsupportedMethodException
 
-@ToolingApiVersion("current")
+@ToolingApiVersion(">=1.12")
 class TaskSelectorCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         file('settings.gradle') << '''
@@ -49,7 +48,7 @@ task t1 << {
         e.cause.message.startsWith('Unsupported method: GradleProject.getTaskSelectors().')
     }
 
-    @TargetGradleVersion("current")
+    @TargetGradleVersion(">=1.12")
     def "can request task selectors in action"() {
         when:
         Map<String, Set<String>> result = withConnection { connection ->
@@ -63,7 +62,6 @@ task t1 << {
         !result['c'].contains('t1')
     }
 
-    @TargetGradleVersion(">=1.2")
     def "can request task selectors from obtained GradleProject model"() {
         when:
         GradleProject result = withConnection { it.getModel(GradleProject.class) }
@@ -73,16 +71,5 @@ task t1 << {
         result.getTaskSelectors().find { it.name == 't1' } != null
         result.findByPath(':b').getTaskSelectors().find { it.name == 't1' } != null
         result.findByPath(':b:c').getTaskSelectors().find { it.name == 't1' } == null
-    }
-
-    @TargetGradleVersion(">=1.0-milestone-4 <1.2")
-    def "task selectors from GradleProject not supported for old versions"() {
-        when:
-        GradleProject result = withConnection { it.getModel(GradleProject.class) }
-        result.taskSelectors
-
-        then:
-        UnsupportedMethodException e = thrown()
-        e.message.startsWith('Unsupported method: GradleProject.getTaskSelectors().')
     }
 }

@@ -18,6 +18,8 @@ package org.gradle.language.base.internal;
 
 import org.gradle.api.Nullable;
 
+import java.util.List;
+
 public interface BinaryNamingScheme {
     String getLifecycleTaskName();
 
@@ -28,4 +30,6 @@ public interface BinaryNamingScheme {
     String getOutputDirectoryBase();
 
     String getDescription();
+
+    List<String> getVariantDimensions();
 }

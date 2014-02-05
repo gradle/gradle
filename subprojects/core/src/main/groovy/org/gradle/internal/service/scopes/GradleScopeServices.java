@@ -21,9 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
@@ -84,10 +82,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
                 return gradle.getRootProject().project(path);
             }
         };
-    }
-
-    ProjectRegistry createIProjectRegistry() {
-        return new DefaultProjectRegistry<ProjectInternal>();
     }
 
     TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor) {

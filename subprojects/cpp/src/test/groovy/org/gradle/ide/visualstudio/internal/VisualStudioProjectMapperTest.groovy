@@ -15,25 +15,22 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-
+import org.gradle.language.base.internal.BinaryNamingScheme
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.platform.Architecture
 import org.gradle.nativebinaries.platform.Platform
-import org.gradle.nativebinaries.platform.PlatformContainer
 import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser
 import spock.lang.Specification
 
 class VisualStudioProjectMapperTest extends Specification {
-    def flavors = Mock(FlavorContainer)
-    def platforms = Mock(PlatformContainer)
-    def mapper = new VisualStudioProjectMapper(flavors, platforms)
+    def mapper = new VisualStudioProjectMapper()
 
     def executable = Mock(ExecutableInternal)
     ExecutableBinaryInternal executableBinary
     def library = Mock(LibraryInternal)
+    def namingScheme = Mock(BinaryNamingScheme)
 
     def flavorOne = Mock(Flavor)
     def buildTypeOne = Mock(BuildType)
@@ -42,6 +39,7 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def setup() {
         executableBinary = createExecutableBinary("exeBinaryName", buildTypeOne, platformOne)
+        executableBinary.namingScheme >> namingScheme
 
         executable.baseName >> "exeName"
         library.baseName >> "libName"
@@ -56,8 +54,7 @@ class VisualStudioProjectMapperTest extends Specification {
     def "maps executable binary to visual studio project"() {
         when:
         executable.projectPath >> ":"
-        executable.chooseFlavors(flavors) >> [flavorOne]
-        executable.choosePlatforms(platforms) >> [platformOne]
+        namingScheme.variantDimensions >> []
 
         then:
         checkNames executableBinary, "exeNameExe", 'buildTypeOne', 'Win32'
@@ -68,9 +65,8 @@ class VisualStudioProjectMapperTest extends Specification {
         def sharedLibraryBinary = libraryBinary(SharedLibraryBinaryInternal)
         def staticLibraryBinary = libraryBinary(StaticLibraryBinaryInternal)
 
-        library.chooseFlavors(flavors) >> [flavorOne]
-        library.choosePlatforms(platforms) >> [platformOne]
         library.projectPath >> ":"
+        namingScheme.variantDimensions >> []
 
         then:
         checkNames sharedLibraryBinary, "libNameDll", 'buildTypeOne', 'Win32'
@@ -82,48 +78,25 @@ class VisualStudioProjectMapperTest extends Specification {
         executable.projectPath >> ":subproject:name"
 
         and:
-        executable.chooseFlavors(flavors) >> [flavorOne]
-        executable.choosePlatforms(platforms) >> [platformOne]
+        namingScheme.variantDimensions >> []
 
         then:
         checkNames executableBinary, "subproject_name_exeNameExe", 'buildTypeOne', 'Win32'
     }
 
-    def "maps build type to configuration names for native binary"() {
+    def "uses single variant dimension for configuration name where not empty"() {
         when:
         executable.projectPath >> ":"
-        executable.chooseFlavors(flavors) >> [flavorOne]
-        executable.choosePlatforms(platforms) >> [platformOne]
+        namingScheme.variantDimensions >> ["flavorOne"]
 
         then:
-        checkNames executableBinary, "exeNameExe", "buildTypeOne", "Win32"
+        checkNames executableBinary, "exeNameExe", 'flavorOne', 'Win32'
     }
 
-    def "includes flavor name in configuration where component has multiple flavors"() {
+    def "includes variant dimensions in configuration where component has multiple dimensions"() {
         when:
         executable.projectPath >> ":"
-        executable.chooseFlavors(flavors) >> [flavorOne, new DefaultFlavor("flavorTwo")]
-        executable.choosePlatforms(platforms) >> [platformOne]
-
-        then:
-        checkNames executableBinary, "exeNameExe", 'buildTypeOneFlavorOne', 'Win32'
-    }
-
-    def "includes platform name in configuration where component has multiple platforms"() {
-        when:
-        executable.projectPath >> ":"
-        executable.chooseFlavors(flavors) >> [flavorOne]
-        executable.choosePlatforms(platforms) >> [platformOne, Mock(Platform)]
-
-        then:
-        checkNames executableBinary, "exeNameExe", 'platformOneBuildTypeOne', 'Win32'
-    }
-
-    def "includes flavor and platform name in configuration where component has multiple of both"() {
-        when:
-        executable.projectPath >> ":"
-        executable.chooseFlavors(flavors) >> [flavorOne, new DefaultFlavor("flavor2")]
-        executable.choosePlatforms(platforms) >> [platformOne, Mock(Platform)]
+        namingScheme.variantDimensions >> ["platformOne", "buildTypeOne", "flavorOne"]
 
         then:
         checkNames executableBinary, "exeNameExe", 'platformOneBuildTypeOneFlavorOne', 'Win32'
@@ -157,6 +130,7 @@ class VisualStudioProjectMapperTest extends Specification {
         binary.flavor >> flavorOne
         binary.targetPlatform >> platformOne
         binary.buildType >> buildTypeOne
+        binary.namingScheme >> namingScheme
         return binary
     }
 

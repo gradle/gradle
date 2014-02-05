@@ -24,15 +24,15 @@ class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
 
     def "reads and writes the snapshot"() {
         when:
-        DefaultFileSnapshotter.FileCollectionSnapshotImpl out = serialize(new DefaultFileSnapshotter.FileCollectionSnapshotImpl([
-                "1": new DefaultFileSnapshotter.DirSnapshot(),
-                "2": new DefaultFileSnapshotter.MissingFileSnapshot(),
-                "3": new DefaultFileSnapshotter.FileHashSnapshot("foo".bytes)]), serializer)
+        DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl out = serialize(new DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl([
+                "1": new DefaultFileCollectionSnapshotter.DirSnapshot(),
+                "2": new DefaultFileCollectionSnapshotter.MissingFileSnapshot(),
+                "3": new DefaultFileCollectionSnapshotter.FileHashSnapshot("foo".bytes)]), serializer)
 
         then:
         out.snapshots.size() == 3
-        out.snapshots['1'] instanceof DefaultFileSnapshotter.DirSnapshot
-        out.snapshots['2'] instanceof DefaultFileSnapshotter.MissingFileSnapshot
-        ((DefaultFileSnapshotter.FileHashSnapshot) out.snapshots['3']).hash == "foo".bytes
+        out.snapshots['1'] instanceof DefaultFileCollectionSnapshotter.DirSnapshot
+        out.snapshots['2'] instanceof DefaultFileCollectionSnapshotter.MissingFileSnapshot
+        ((DefaultFileCollectionSnapshotter.FileHashSnapshot) out.snapshots['3']).hash == "foo".bytes
     }
 }

@@ -30,7 +30,7 @@ class DistributionFactoryTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
-    final DistributionFactory factory = new DistributionFactory(tmpDir.file('userHome'))
+    final DistributionFactory factory = new DistributionFactory()
 
     def setup() {
         _ * progressLoggerFactory.newOperation(!null) >> progressLogger
@@ -71,7 +71,7 @@ class DistributionFactoryTest extends Specification {
 
         expect:
         def dist = factory.getDistribution(tmpDir.testDirectory)
-        dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles as Set == [libA, libB] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory, null).asFiles as Set == [libA, libB] as Set
     }
 
     def failsWhenInstallationDirectoryDoesNotExist() {
@@ -79,7 +79,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, null)
 
         then:
         IllegalArgumentException e = thrown()
@@ -91,7 +91,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, null)
 
         then:
         IllegalArgumentException e = thrown()
@@ -103,7 +103,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, null)
 
         then:
         IllegalArgumentException e = thrown()
@@ -127,7 +127,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile.toURI())
 
         expect:
-        dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory, null).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
     }
 
     def usesWrapperDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
@@ -139,13 +139,12 @@ class DistributionFactoryTest extends Specification {
             }
         }
         tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
-        def dist = factory.getDistributionForGradleUserHomeDir(null, customUserHome)
-        def defaultDist = factory.getDefaultDistribution(tmpDir.testDirectory, false)
+        def dist = factory.getDefaultDistribution(tmpDir.testDirectory, false)
+        def result = dist.getToolingImplementationClasspath(progressLoggerFactory, customUserHome)
 
         expect:
-        dist == null
-        defaultDist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
-        (defaultDist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.path as Set).every { it.contains('customUserHome')}
+        result.asFiles.name as Set == ['a.jar', 'b.jar'] as Set
+        (result.asFiles.path as Set).every { it.contains('customUserHome')}
     }
 
     def usesZipDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
@@ -157,30 +156,15 @@ class DistributionFactoryTest extends Specification {
             }
         }
         def dist = factory.getDistribution(zipFile.toURI())
-        dist = factory.getDistributionForGradleUserHomeDir(dist, customUserHome)
+        def result = dist.getToolingImplementationClasspath(progressLoggerFactory, customUserHome)
 
         expect:
-        dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
-        (dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.path as Set).every { it.contains('customUserHome')}
-    }
-
-    def usesZipDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspathDifferentOrder() {
-        File customUserHome = tmpDir.file('customUserHome')
-        def zipFile = createZip {
-            lib {
-                file("a.jar")
-                file("b.jar")
-            }
-        }
-        factory.getDistributionForGradleUserHomeDir(null, customUserHome)
-        def dist = factory.getDistribution(zipFile.toURI())
-
-        expect:
-        dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
-        (dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.path as Set).every { it.contains('customUserHome')}
+        result.asFiles.name as Set == ['a.jar', 'b.jar'] as Set
+        (result.asFiles.path as Set).every { it.contains('customUserHome')}
     }
 
     def reportsZipDownload() {
+        File customUserHome = tmpDir.file('customUserHome')
         def zipFile = createZip {
             lib {
                 file("a.jar")
@@ -191,7 +175,7 @@ class DistributionFactoryTest extends Specification {
         ProgressLogger loggerTwo = Mock()
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, customUserHome)
 
         then:
         2 * progressLoggerFactory.newOperation(DistributionFactory.class) >>> [loggerOne, loggerTwo]
@@ -225,7 +209,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile.toURI())
 
         when:
-        dist.getToolingImplementationClasspath(progressLoggerFactory)
+        dist.getToolingImplementationClasspath(progressLoggerFactory, null)
 
         then:
         IllegalArgumentException e = thrown()

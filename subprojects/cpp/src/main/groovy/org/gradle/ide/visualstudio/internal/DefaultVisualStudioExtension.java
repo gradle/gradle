@@ -21,17 +21,14 @@ import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.FlavorContainer;
 import org.gradle.nativebinaries.internal.resolve.ProjectLocator;
-import org.gradle.nativebinaries.platform.PlatformContainer;
 
 public class DefaultVisualStudioExtension implements VisualStudioExtension {
     private final VisualStudioProjectRegistry projectRegistry;
     private final VisualStudioSolutionRegistry solutionRegistry;
 
-    public DefaultVisualStudioExtension(Instantiator instantiator, ProjectLocator projectLocator, FileResolver fileResolver,
-                                        FlavorContainer flavors, PlatformContainer platforms) {
-        VisualStudioProjectMapper projectMapper = new VisualStudioProjectMapper(flavors, platforms);
+    public DefaultVisualStudioExtension(Instantiator instantiator, ProjectLocator projectLocator, FileResolver fileResolver) {
+        VisualStudioProjectMapper projectMapper = new VisualStudioProjectMapper();
         projectRegistry = new VisualStudioProjectRegistry(fileResolver, projectMapper, instantiator);
         VisualStudioProjectResolver projectResolver = new VisualStudioProjectResolver(projectLocator);
         solutionRegistry = new VisualStudioSolutionRegistry(fileResolver, projectResolver, instantiator);

@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.rules;
 import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.util.ChangeListener;
 
@@ -29,7 +29,7 @@ import java.util.Iterator;
  * A rule which detects changes in the input files of a task.
  */
 class InputFilesStateChangeRule {
-    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter) {
+    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileCollectionSnapshotter inputFilesSnapshotter) {
         final FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
 
         return new TaskStateChanges() {

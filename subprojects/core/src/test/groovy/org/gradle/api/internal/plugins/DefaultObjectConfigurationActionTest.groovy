@@ -15,88 +15,82 @@
  */
 package org.gradle.api.internal.plugins
 
-import static org.hamcrest.Matchers.*
-
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.runner.RunWith
-import org.junit.Test
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.api.internal.initialization.ScriptCompileScope
+import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.configuration.ScriptPlugin
+import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.groovy.scripts.DefaultScript
+import org.junit.Test
+import spock.lang.Specification
 
-@RunWith(JMock.class)
-public class DefaultObjectConfigurationActionTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final Object target = new Object()
-    private final URI file = new URI('script:something')
-    private final FileResolver resolver = context.mock(FileResolver.class)
-    private final ScriptPluginFactory factory = context.mock(ScriptPluginFactory.class)
-    private final ScriptPlugin configurer = context.mock(ScriptPlugin.class)
-    private final DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, factory, target)
+class DefaultObjectConfigurationActionTest extends Specification {
+    Object target = new Object()
+    URI file = new URI('script:something')
 
-    @Test
-    public void doesNothingWhenNothingSpecified() {
+    def resolver = Mock(FileResolver)
+    def scriptPluginFactory = Mock(ScriptPluginFactory)
+    def scriptHandlerFactory = Mock(ScriptHandlerFactory)
+    def scriptHandlerInternal = Mock(ScriptHandlerInternal)
+    def scriptCompileScope = Mock(ScriptCompileScope)
+    def configurer = Mock(ScriptPlugin)
+
+    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, scriptCompileScope, target)
+
+    void doesNothingWhenNothingSpecified() {
+        expect:
         action.execute()
     }
 
     @Test
     public void appliesScriptsToDefaultTargetObject() {
-        context.checking {
-            one(resolver).resolveUri('script')
-            will(returnValue(file))
+        given:
+        1 * resolver.resolveUri('script') >> file
+        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandlerInternal
+        1 * scriptPluginFactory.create(_, scriptHandlerInternal, "buildscript", DefaultScript) >> configurer
 
-            one(factory).create(withParam(notNullValue()))
-            will(returnValue(configurer))
-
-            one(configurer).apply(target)
-        }
-
+        when:
         action.from('script')
+
+        then:
         action.execute()
     }
 
     @Test
     public void appliesScriptsToTargetObjects() {
+        when:
         Object target1 = new Object()
         Object target2 = new Object()
+        1 * resolver.resolveUri('script') >> file
+        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandlerInternal
+        1 * scriptPluginFactory.create(_, scriptHandlerInternal, "buildscript", DefaultScript) >> configurer
+        1 * configurer.apply(target1)
+        1 * configurer.apply(target2)
 
-        context.checking {
-            one(resolver).resolveUri('script')
-            will(returnValue(file))
-
-            one(factory).create(withParam(notNullValue()))
-            will(returnValue(configurer))
-
-            one(configurer).apply(target1)
-            one(configurer).apply(target2)
-        }
-
+        then:
         action.from('script')
         action.to(target1)
         action.to(target2)
         action.execute()
     }
-    
+
     @Test
     public void flattensCollections() {
+        when:
         Object target1 = new Object()
         Object target2 = new Object()
+        1 * resolver.resolveUri('script') >> file
+        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandlerInternal
+        1 * scriptPluginFactory.create(_, scriptHandlerInternal, "buildscript", DefaultScript) >> configurer
+        1 * configurer.apply(target1)
+        1 * configurer.apply(target2)
 
-        context.checking {
-            one(resolver).resolveUri('script')
-            will(returnValue(file))
-
-            one(factory).create(withParam(notNullValue()))
-            will(returnValue(configurer))
-
-            one(configurer).apply(target1)
-            one(configurer).apply(target2)
-        }
-
+        then:
         action.from('script')
         action.to([[target1], target2])
         action.execute()
     }
+
 }
 

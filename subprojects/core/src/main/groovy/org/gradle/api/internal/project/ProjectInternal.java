@@ -32,8 +32,8 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.internal.ModelRegistry;
 
