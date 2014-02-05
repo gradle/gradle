@@ -24,6 +24,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
@@ -52,7 +53,8 @@ class DefaultSettingsTest {
     ServiceRegistryFactory serviceRegistryFactory
     PluginContainer pluginContainer
     FileResolver fileResolver
-    ScriptPluginFactory scriptPluginFactory;
+    ScriptPluginFactory scriptPluginFactory
+    ScriptHandlerFactory scriptHandlerFactory
 
     @Before
     public void setUp() {
@@ -67,6 +69,7 @@ class DefaultSettingsTest {
         serviceRegistryFactory = context.mock(ServiceRegistryFactory.class)
         pluginContainer = context.mock(PluginContainer.class)
         scriptPluginFactory = context.mock(ScriptPluginFactory.class)
+        scriptHandlerFactory = context.mock(ScriptHandlerFactory.class)
         fileResolver = context.mock(FileResolver.class)
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
 
@@ -80,6 +83,8 @@ class DefaultSettingsTest {
                 will(returnValue(fileResolver));
                 one(settingsServices).get(ScriptPluginFactory.class);
                 will(returnValue(scriptPluginFactory));
+                one(settingsServices).get(ScriptHandlerFactory.class);
+                will(returnValue(scriptHandlerFactory));
                 one(settingsServices).get(ProjectDescriptorRegistry.class);
                 will(returnValue(projectDescriptorRegistry));
         }

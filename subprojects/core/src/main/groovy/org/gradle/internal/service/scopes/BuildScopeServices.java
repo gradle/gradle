@@ -205,8 +205,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultScriptPluginFactory(
                 get(ScriptCompilerFactory.class),
                 get(ImportsReader.class),
-                get(ScriptHandlerFactory.class),
-                get(BuildClassLoaderRegistry.class).getRootCompileScope(),
                 getFactory(LoggingManagerInternal.class),
                 get(Instantiator.class),
                 get(PluginResolverFactory.class),
@@ -216,7 +214,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected InitScriptHandler createInitScriptHandler() {
         return new InitScriptHandler(
-                new DefaultInitScriptProcessor(get(ScriptPluginFactory.class))
+                new DefaultInitScriptProcessor(
+                        get(ScriptPluginFactory.class),
+                        get(ScriptHandlerFactory.class),
+                        get(BuildClassLoaderRegistry.class).getRootCompileScope()
+                )
         );
     }
 
@@ -224,6 +226,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new PropertiesLoadingSettingsProcessor(
                 new ScriptEvaluatingSettingsProcessor(
                         get(ScriptPluginFactory.class),
+                        get(ScriptHandlerFactory.class),
                         new SettingsFactory(
                                 get(Instantiator.class),
                                 get(ServiceRegistryFactory.class)

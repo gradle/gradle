@@ -23,12 +23,7 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.project.DefaultIsolatedAntBuilder
-import org.gradle.api.internal.project.DefaultProjectRegistry
-import org.gradle.api.internal.project.IProjectFactory
-import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.api.internal.project.ProjectFactory
-import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.*
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
@@ -174,7 +169,6 @@ public class BuildScopeServicesTest extends Specification {
         setup:
         allowGetCoreImplClassLoader()
         expectListenerManagerCreated()
-        expectScriptClassLoaderCreated()
         expect:
         assertThat(registry.get(ScriptPluginFactory), instanceOf(DefaultScriptPluginFactory))
         assertThat(registry.get(ScriptPluginFactory), sameInstance(registry.get(ScriptPluginFactory)))
@@ -184,7 +178,6 @@ public class BuildScopeServicesTest extends Specification {
         setup:
         allowGetCoreImplClassLoader()
         expectListenerManagerCreated()
-        expectScriptClassLoaderCreated()
         expect:
         assertThat(registry.get(SettingsProcessor), instanceOf(PropertiesLoadingSettingsProcessor))
         assertThat(registry.get(SettingsProcessor), sameInstance(registry.get(SettingsProcessor)))

@@ -16,21 +16,11 @@
 package org.gradle.configuration;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.initialization.ScriptCompileScope;
-import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public interface ScriptPlugin extends Plugin<Object> {
+
     ScriptSource getSource();
-
-    ScriptPlugin setClasspathClosureName(String name);
-
-    ScriptPlugin setScriptBaseClass(Class<? extends BasicScript> type);
-
-    ScriptPlugin setParentScope(ScriptCompileScope parentScope);
-
-    ScriptPlugin setClassLoaderProvider(ScriptClassLoaderProvider classLoaderProvider);
 
     /**
      * Applies the script to the given object. If target object implements {@link org.gradle.groovy.scripts.ScriptAware},

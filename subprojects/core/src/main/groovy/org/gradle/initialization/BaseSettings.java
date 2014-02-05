@@ -22,6 +22,8 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.ScriptCompileScope;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.PluginContainer;
@@ -53,7 +55,9 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     private FileResolver fileResolver;
 
-    private ScriptPluginFactory scriptPluginFactory;
+    private final ScriptPluginFactory scriptPluginFactory;
+    private final ScriptHandlerFactory scriptHandlerFactory;
+    private final ScriptCompileScope scriptCompileScope;
 
     public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                         ClassLoader classloader, File settingsDir, ScriptSource settingsScript,
@@ -67,6 +71,12 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         this.plugins = services.get(PluginContainer.class);
         this.fileResolver = services.get(FileResolver.class);
         this.scriptPluginFactory = services.get(ScriptPluginFactory.class);
+        this.scriptHandlerFactory = services.get(ScriptHandlerFactory.class);
+        this.scriptCompileScope = new ScriptCompileScope() {
+            public ClassLoader getScriptCompileClassLoader() {
+                return BaseSettings.this.classloader;
+            }
+        };
         this.projectDescriptorRegistry = services.get(ProjectDescriptorRegistry.class);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
@@ -208,5 +218,15 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     @Override
     protected ScriptPluginFactory getScriptPluginFactory() {
         return scriptPluginFactory;
+    }
+
+    @Override
+    protected ScriptHandlerFactory getScriptHandlerFactory() {
+        return scriptHandlerFactory;
+    }
+
+    @Override
+    protected ScriptCompileScope getScriptCompileScope() {
+        return scriptCompileScope;
     }
 }

@@ -26,6 +26,8 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.internal.initialization.ScriptCompileScope;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -73,7 +75,9 @@ public class DefaultGradleTest {
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast = context.mock(ListenerBroadcast.class);
     private final FileResolver fileResolverMock = context.mock(FileResolver.class);
     private final PluginContainer pluginContainer = context.mock(PluginContainer.class);
-    private final ScriptPluginFactory scriptPluginFactory= context.mock(ScriptPluginFactory.class);
+    private final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
+    private final ScriptHandlerFactory scriptHandlerFactory = context.mock(ScriptHandlerFactory.class);
+    private final BuildClassLoaderRegistry buildClassLoaderRegistry = context.mock(BuildClassLoaderRegistry.class);
 
     private DefaultGradle gradle;
 
@@ -102,6 +106,16 @@ public class DefaultGradleTest {
             will(returnValue(fileResolverMock));
             allowing(gradleServiceRegistryMock).get(ScriptPluginFactory.class);
             will(returnValue(scriptPluginFactory));
+            allowing(gradleServiceRegistryMock).get(ScriptHandlerFactory.class);
+            will(returnValue(scriptHandlerFactory));
+            allowing(gradleServiceRegistryMock).get(BuildClassLoaderRegistry.class);
+            will(returnValue(buildClassLoaderRegistry));
+            allowing(buildClassLoaderRegistry).getRootCompileScope();
+            will(returnValue(new ScriptCompileScope() {
+                public ClassLoader getScriptCompileClassLoader() {
+                    return getClass().getClassLoader();
+                }
+            }));
             allowing(listenerManager).createAnonymousBroadcaster(BuildListener.class);
             will(returnValue(buildListenerBroadcast));
             allowing(listenerManager).createAnonymousBroadcaster(ProjectEvaluationListener.class);
@@ -249,10 +263,10 @@ public class DefaultGradleTest {
 
         ProjectInternal rootProject = context.mock(ProjectInternal.class);
         gradle.setRootProject(rootProject);
-        
+
         assertThat(gradle.getRootProject(), sameInstance(rootProject));
     }
-    
+
     @Test
     public void rootProjectActionIsExecutedWhenProjectsAreLoaded() {
         final Action<Project> action = context.mock(Action.class);
@@ -263,7 +277,7 @@ public class DefaultGradleTest {
         context.checking(new Expectations() {{
             one(action).execute(rootProject);
         }});
-        
+
         gradle.setRootProject(rootProject);
         gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);
     }
@@ -288,7 +302,7 @@ public class DefaultGradleTest {
         assertThat(gradle.toString(), equalTo("build"));
 
         final ProjectInternal project = context.mock(ProjectInternal.class);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(project).getName();
             will(returnValue("rootProject"));
         }});
@@ -298,7 +312,7 @@ public class DefaultGradleTest {
 
     private Closure closure() {
         final Closure mock = context.mock(Closure.class);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(mock).getMaximumNumberOfParameters();
             will(returnValue(0));
         }});

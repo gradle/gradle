@@ -20,8 +20,10 @@ import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.params.HttpProtocolParams
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.resource.UriResource
+import org.junit.Ignore
 import spock.lang.Specification
 
+@Ignore
 public class HttpClientConfigurerTest extends Specification {
     DefaultHttpClient httpClient = new DefaultHttpClient()
     PasswordCredentials credentials = Mock()

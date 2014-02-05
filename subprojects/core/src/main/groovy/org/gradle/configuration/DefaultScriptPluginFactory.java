@@ -17,8 +17,6 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.initialization.ScriptCompileScope;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.groovy.scripts.*;
@@ -41,8 +39,6 @@ import java.util.List;
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
-    private final ScriptHandlerFactory scriptHandlerFactory;
-    private final ScriptCompileScope defaultCompileScope;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
     private final PluginResolverFactory pluginResolverFactory;
@@ -50,59 +46,37 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       ImportsReader importsReader,
-                                      ScriptHandlerFactory scriptHandlerFactory,
-                                      ScriptCompileScope defaultCompileScope,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
                                       PluginResolverFactory pluginResolverFactory,
                                       ClassLoader pluginParentClassLoader) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
-        this.scriptHandlerFactory = scriptHandlerFactory;
-        this.defaultCompileScope = defaultCompileScope;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
         this.pluginResolverFactory = pluginResolverFactory;
         this.pluginParentClassLoader = pluginParentClassLoader;
     }
 
-    public ScriptPlugin create(ScriptSource scriptSource) {
-        return new ScriptPluginImpl(scriptSource);
+    public ScriptPlugin create(ScriptSource scriptSource, ScriptHandlerInternal scriptHandler, String classpathClosureName, Class<? extends BasicScript> scriptClass) {
+        return new ScriptPluginImpl(scriptSource, scriptHandler, classpathClosureName, scriptClass);
     }
 
     private class ScriptPluginImpl implements ScriptPlugin {
         private final ScriptSource scriptSource;
-        private String classpathClosureName = "buildscript";
-        private Class<? extends BasicScript> scriptType = DefaultScript.class;
-        private ScriptClassLoaderProvider classLoaderProvider;
-        private ScriptCompileScope parentScope = defaultCompileScope;
+        private final String classpathClosureName;
+        private final Class<? extends BasicScript> scriptType;
+        private final ScriptHandlerInternal scriptHandler;
 
-        public ScriptPluginImpl(ScriptSource scriptSource) {
+        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandlerInternal scriptHandler, String classpathClosureName, Class<? extends BasicScript> scriptType) {
             this.scriptSource = scriptSource;
+            this.classpathClosureName = classpathClosureName;
+            this.scriptHandler = scriptHandler;
+            this.scriptType = scriptType;
         }
 
         public ScriptSource getSource() {
             return scriptSource;
-        }
-
-        public ScriptPlugin setClasspathClosureName(String name) {
-            this.classpathClosureName = name;
-            return this;
-        }
-
-        public ScriptPlugin setParentScope(ScriptCompileScope parentScope) {
-            this.parentScope = parentScope;
-            return this;
-        }
-
-        public ScriptPlugin setClassLoaderProvider(ScriptClassLoaderProvider classLoaderProvider) {
-            this.classLoaderProvider = classLoaderProvider;
-            return this;
-        }
-
-        public ScriptPlugin setScriptBaseClass(Class<? extends BasicScript> type) {
-            scriptType = type;
-            return this;
         }
 
         public void apply(final Object target) {
@@ -110,20 +84,16 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
+            services.add(ScriptHandlerInternal.class, scriptHandler);
 
             ScriptAware scriptAware = null;
             if (target instanceof ScriptAware) {
                 scriptAware = (ScriptAware) target;
                 scriptAware.beforeCompile(this);
             }
-            ScriptClassLoaderProvider classLoaderProvider = this.classLoaderProvider;
-            ScriptSource withImports = importsReader.withImports(scriptSource);
 
-            if (classLoaderProvider == null) {
-                ScriptHandlerInternal defaultScriptHandler = scriptHandlerFactory.create(withImports, parentScope);
-                services.add(ScriptHandlerInternal.class, defaultScriptHandler);
-                classLoaderProvider = defaultScriptHandler;
-            }
+            ScriptClassLoaderProvider classLoaderProvider = scriptHandler;
+            ScriptSource withImports = importsReader.withImports(scriptSource);
 
             List<PluginRequest> pluginRequests = new LinkedList<PluginRequest>();
             if (target instanceof PluginAware) {
@@ -165,9 +135,10 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert()));
             ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);
 
-            runner.getScript().init(target, services);
+            BasicScript script = runner.getScript();
+            script.init(target, services);
             if (scriptAware != null) {
-                scriptAware.afterCompile(this, runner.getScript());
+                scriptAware.afterCompile(this, script);
             }
             runner.run();
         }
