@@ -345,8 +345,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         given:
         run "installMainExecutable"
 
-        def oldObjFile = objectFile("build/objectFiles/mainExecutable/main${sourceType}/main")
-        def newObjFile = objectFile("build/objectFiles/mainExecutable/main${sourceType}/changed_main")
+        def oldObjFile = objectFileFor(sourceFile)
+        def newObjFile = objectFileFor(sourceFile.getParentFile().file("changed_${sourceFile.name}"))
         assert oldObjFile.file
         assert !newObjFile.file
 
@@ -374,8 +374,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         run "helloStaticLibrary"
 
         then:
-        def oldObjFile = objectFile("build/objectFiles/helloStaticLibrary/hello${sourceType}/hello")
-        def newObjFile = objectFile("build/objectFiles/helloStaticLibrary/hello${sourceType}/changed_hello")
+        String objectFilesPath = "build/objectFiles/helloStaticLibrary/hello${sourceType}"
+        def oldObjFile = objectFileFor(librarySourceFiles[0], objectFilesPath)
+        def newObjFile = objectFileFor( librarySourceFiles[0].getParentFile().file("changed_${librarySourceFiles[0].name}"), objectFilesPath)
         assert oldObjFile.file
         assert !newObjFile.file
 
@@ -478,4 +479,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         newFile << sourceFile.text
         sourceFile.delete()
     }
+
+
 }

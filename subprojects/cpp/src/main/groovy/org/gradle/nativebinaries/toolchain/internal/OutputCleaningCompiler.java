@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
 
@@ -48,7 +49,7 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
     private boolean deleteOutputsForRemovedSources(NativeCompileSpec spec) {
         boolean didRemove = false;
         for (File removedSource : spec.getRemovedSourceFiles()) {
-            File objectFile = getOutputFile(spec.getObjectFileDir(), removedSource);
+            File objectFile = getObjectFile(spec.getObjectFileDir(), removedSource);
             if (objectFile.delete()) {
                 didRemove = true;
             }
@@ -56,8 +57,10 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
         return didRemove;
     }
 
-    private File getOutputFile(File objectFileDir, File sourceFile) {
+    private File getObjectFile(File objectFileRoot, File sourceFile) {
         String objectFileName = sourceFile.getName().replaceFirst("\\.[^\\.]+$", outputFileSuffix);
+        String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
+        File objectFileDir = new File(objectFileRoot, compactMD5);
         return new File(objectFileDir, objectFileName);
     }
 }

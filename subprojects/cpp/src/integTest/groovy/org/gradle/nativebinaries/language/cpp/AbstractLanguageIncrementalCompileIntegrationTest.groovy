@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.language.cpp
 import groovy.io.FileType
 import org.apache.commons.io.FilenameUtils
+import org.gradle.internal.hash.HashUtil
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -333,6 +334,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
     def outputFile(TestFile sourceFile) {
         final baseName = FilenameUtils.removeExtension(sourceFile.name)
-        return objectFile("build/objectFiles/mainExecutable/main${sourceType}/${baseName}")
+        String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
+        return objectFile("build/objectFiles/mainExecutable/main${sourceType}/$compactMD5/${baseName}")
     }
 }

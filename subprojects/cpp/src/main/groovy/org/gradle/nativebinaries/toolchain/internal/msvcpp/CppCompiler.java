@@ -16,26 +16,13 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.api.internal.tasks.compile.ArgWriter;
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
-class CppCompiler implements Compiler<CppCompileSpec> {
-
-    private final CommandLineTool<CppCompileSpec> commandLineTool;
+class CppCompiler extends NativeCompiler<CppCompileSpec> {
 
     CppCompiler(CommandLineTool<CppCompileSpec> commandLineTool) {
-        this.commandLineTool = commandLineTool.withArguments(
-                new OptionsFileArgsTransformer<CppCompileSpec>(
-                        ArgWriter.windowsStyleFactory(),
-                        new CppCompilerArgsTransformer()));
-    }
-
-    public WorkResult execute(CppCompileSpec spec) {
-        return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
+        super(commandLineTool, new CppCompilerArgsTransformer());
     }
 
     private static class CppCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CppCompileSpec> {
