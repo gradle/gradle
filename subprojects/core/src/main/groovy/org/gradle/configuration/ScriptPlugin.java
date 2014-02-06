@@ -22,12 +22,6 @@ public interface ScriptPlugin extends Plugin<Object> {
 
     ScriptSource getSource();
 
-    /**
-     * Applies the script to the given object. If target object implements {@link org.gradle.groovy.scripts.ScriptAware},
-     * will call {@link org.gradle.groovy.scripts.ScriptAware#beforeCompile(ScriptPlugin)} and {@link
-     * org.gradle.groovy.scripts.ScriptAware#afterCompile(ScriptPlugin , org.gradle.groovy.scripts.Script)}.
-     *
-     * @param target The target object to configure.
-     */
     void apply(Object target);
+
 }
