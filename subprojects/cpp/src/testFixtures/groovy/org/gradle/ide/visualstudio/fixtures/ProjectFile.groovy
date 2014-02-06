@@ -66,7 +66,7 @@ class ProjectFile {
     }
 
     private static List<String> normalise(List<String> files) {
-        return files.collect { TextUtil.normaliseFileSeparators(it)}
+        return files.collect({ TextUtil.normaliseFileSeparators(it)}).sort()
     }
 
     private Node itemGroup(String label) {
