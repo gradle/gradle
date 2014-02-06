@@ -1340,6 +1340,12 @@ a mechanism for providing similar mapping for Build Type.
 * When no Platform architecture/os is defined, assume the current platform architecture/os, not the tool chain default.
     * This will require detecting the current platform, and supplying the correct tool chain arguments when building.
 
+## Story: Only use gcc/g++ front-ends for GCC tool chain
+
+* Use 'gcc -x assembler -c' for assembly sources
+* Use 'gcc' to link instead of 'g++': add -lstdc++ to linker args for C++ sources. Similar for objective-C++.
+* Remove 'as' from the tools in the GCC tool chain.
+
 ## Story: Improve definition of Platform, Architecture and Operating System
 
 In order to make it easier for users to publish and resolve native binary dependencies, this story introduces a set of conventional
@@ -1399,6 +1405,7 @@ This story also aggregates a bunch of review items that relate to Architecture a
 - Canonical names for conventional platforms
 - How to make Platform instance immutable
 - Consistent API for Architecture and OperatingSystem: either public method on both [os.isWindows(),arch.isAmd64()] or only on internal api.
+- Include ABI in architecture so that the correct prebuilt library can be selected for a tool chain
 
 ## Story: Include all macro definitions in Visual Studio project configuration
 
