@@ -18,7 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.initialization.ScriptCompileScope;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.Factories;
@@ -46,10 +46,10 @@ public class DefaultPluginRegistry implements PluginRegistry {
         this.instantiator = instantiator;
     }
 
-    public PluginRegistry createChild(final ScriptCompileScope lookupScope, Instantiator instantiator) {
+    public PluginRegistry createChild(final ClassLoaderScope lookupScope, Instantiator instantiator) {
         Factory<ClassLoader> classLoaderFactory = new Factory<ClassLoader>() {
             public ClassLoader create() {
-                return lookupScope.getScriptCompileClassLoader();
+                return lookupScope.getScopeClassLoader();
             }
         };
         return new DefaultPluginRegistry(this, classLoaderFactory, instantiator);

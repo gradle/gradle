@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.plugins
 
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.initialization.ScriptCompileScope
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.initialization.ScriptHandlerInternal
+
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.DefaultScript
@@ -32,8 +33,8 @@ class DefaultObjectConfigurationActionTest extends Specification {
     def resolver = Mock(FileResolver)
     def scriptPluginFactory = Mock(ScriptPluginFactory)
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
-    def scriptHandlerInternal = Mock(ScriptHandlerInternal)
-    def scriptCompileScope = Mock(ScriptCompileScope)
+    def scriptHandler = Mock(ScriptHandler)
+    def scriptCompileScope = Mock(ClassLoaderScope)
     def configurer = Mock(ScriptPlugin)
 
     DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, scriptCompileScope, target)
@@ -47,8 +48,8 @@ class DefaultObjectConfigurationActionTest extends Specification {
     public void appliesScriptsToDefaultTargetObject() {
         given:
         1 * resolver.resolveUri('script') >> file
-        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandlerInternal
-        1 * scriptPluginFactory.create(_, scriptHandlerInternal, "buildscript", DefaultScript) >> configurer
+        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript) >> configurer
 
         when:
         action.from('script')
@@ -63,8 +64,8 @@ class DefaultObjectConfigurationActionTest extends Specification {
         Object target1 = new Object()
         Object target2 = new Object()
         1 * resolver.resolveUri('script') >> file
-        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandlerInternal
-        1 * scriptPluginFactory.create(_, scriptHandlerInternal, "buildscript", DefaultScript) >> configurer
+        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript) >> configurer
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
 
@@ -81,8 +82,8 @@ class DefaultObjectConfigurationActionTest extends Specification {
         Object target1 = new Object()
         Object target2 = new Object()
         1 * resolver.resolveUri('script') >> file
-        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandlerInternal
-        1 * scriptPluginFactory.create(_, scriptHandlerInternal, "buildscript", DefaultScript) >> configurer
+        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript) >> configurer
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
 

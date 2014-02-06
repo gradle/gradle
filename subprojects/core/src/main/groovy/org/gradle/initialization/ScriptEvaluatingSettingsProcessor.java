@@ -17,12 +17,11 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.initialization.ScriptCompileScope;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.initialization.SimpleScriptCompileScope;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -54,22 +53,22 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     public SettingsInternal process(GradleInternal gradle,
                                     SettingsLocation settingsLocation,
-                                    ClassLoader buildSourceClassLoader,
+                                    ClassLoaderScope classLoaderScope,
                                     StartParameter startParameter) {
         Clock settingsProcessingClock = new Clock();
         Map<String, String> properties = propertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(),
-                settingsLocation.getSettingsScriptSource(), properties, startParameter, buildSourceClassLoader);
+                settingsLocation.getSettingsScriptSource(), properties, startParameter, classLoaderScope);
         applySettingsScript(settingsLocation, settings);
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
         return settings;
     }
 
     private void applySettingsScript(SettingsLocation settingsLocation, final SettingsInternal settings) {
-        ScriptCompileScope scriptCompileScope = new SimpleScriptCompileScope(settings.getClassLoader());
         ScriptSource settingsScriptSource = settingsLocation.getSettingsScriptSource();
-        ScriptHandlerInternal scriptHandlerInternal = scriptHandlerFactory.create(settingsScriptSource, scriptCompileScope);
-        ScriptPlugin configurer = configurerFactory.create(settingsScriptSource, scriptHandlerInternal, "buildscript", SettingsScript.class);
+        ClassLoaderScope classLoaderScope = settings.getClassLoaderScope();
+        ScriptHandler scriptHandler = scriptHandlerFactory.create(settingsScriptSource, classLoaderScope);
+        ScriptPlugin configurer = configurerFactory.create(settingsScriptSource, scriptHandler, classLoaderScope, "buildscript", SettingsScript.class);
         configurer.apply(settings);
     }
 

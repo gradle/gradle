@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.initialization;
 
-import org.gradle.StartParameter
-import org.gradle.api.internal.GradleInternal
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
-import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+
+import java.io.File;
 
 public class DefaultSettings extends BaseSettings {
 
-    DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
+    public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
                     GradleInternal gradle,
-                    ClassLoader classloader, File settingsDir,
+                    ClassLoaderScope classLoaderScope, File settingsDir,
                     ScriptSource settingsScript, StartParameter startParameter) {
-      super(serviceRegistryFactory, gradle, classloader, settingsDir, settingsScript, startParameter)
+        super(serviceRegistryFactory, gradle, classLoaderScope, settingsDir, settingsScript, startParameter);
     }
 
 }

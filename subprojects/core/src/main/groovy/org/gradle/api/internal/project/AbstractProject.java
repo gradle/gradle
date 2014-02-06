@@ -36,10 +36,8 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.initialization.ScriptCompileScope;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
@@ -84,6 +82,7 @@ import static org.gradle.util.GUtil.isTrue;
 
 public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Project.class);
+    private final ClassLoaderScope classLoaderScope;
     private ServiceRegistry services;
 
     private final ProjectInternal rootProject;
@@ -144,8 +143,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private ScriptHandler scriptHandler;
 
-    private ScriptClassLoaderProvider scriptClassLoaderProvider;
-
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
 
     private LoggingManagerInternal loggingManager;
@@ -170,7 +167,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                            File projectDir,
                            ScriptSource buildScriptSource,
                            GradleInternal gradle,
-                           ServiceRegistryFactory serviceRegistryFactory) {
+                           ServiceRegistryFactory serviceRegistryFactory,
+                           ClassLoaderScope classLoaderScope
+    ) {
+        this.classLoaderScope = classLoaderScope;
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
@@ -203,7 +203,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         artifactHandler = services.get(ArtifactHandler.class);
         dependencyHandler = services.get(DependencyHandler.class);
         scriptHandler = services.get(ScriptHandler.class);
-        scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
         projectRegistry = services.get(ProjectRegistry.class);
         loggingManager = services.get(LoggingManagerInternal.class);
         softwareComponentContainer = services.get(SoftwareComponentContainer.class);
@@ -986,8 +985,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     @Override
-    protected ScriptCompileScope getScriptCompileScope() {
-        return (ScriptHandlerInternal) scriptHandler;
+    public ClassLoaderScope getClassLoaderScope() {
+        return classLoaderScope;
     }
 
     /**
@@ -1021,4 +1020,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     public void model(Closure action) {
         new GroovyModelDsl(modelRules).configure(action);
     }
+
+
 }

@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
@@ -70,4 +71,7 @@ public interface GradleInternal extends Gradle {
     ServiceRegistry getServices();
 
     ServiceRegistryFactory getServiceRegistryFactory();
+
+    ClassLoaderScope getClassLoaderScope();
+
 }

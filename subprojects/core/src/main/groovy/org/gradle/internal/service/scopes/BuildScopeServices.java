@@ -58,8 +58,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.invocation.BuildClassLoaderRegistry;
-import org.gradle.invocation.DefaultBuildClassLoaderRegistry;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -168,10 +166,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                                 get(ClassGenerator.class))));
     }
 
-    protected BuildClassLoaderRegistry createBuildClassLoaderRegistry() {
-        return new DefaultBuildClassLoaderRegistry(get(ClassLoaderRegistry.class));
-    }
-
     protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, EmptyScriptGenerator emptyScriptGenerator, FileCacheBackedScriptClassCompiler scriptCompiler) {
         ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
@@ -209,7 +203,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 get(Instantiator.class),
                 get(ScriptHandlerFactory.class),
                 get(PluginResolverFactory.class),
-                get(ClassLoaderRegistry.class).getPluginsClassLoader()
+                get(ClassLoaderRegistry.class).getGradleApiClassLoader()
         );
     }
 
@@ -217,8 +211,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new InitScriptHandler(
                 new DefaultInitScriptProcessor(
                         get(ScriptPluginFactory.class),
-                        get(ScriptHandlerFactory.class),
-                        get(BuildClassLoaderRegistry.class).getRootCompileScope()
+                        get(ScriptHandlerFactory.class)
                 )
         );
     }

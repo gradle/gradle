@@ -25,9 +25,8 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.initialization.SimpleScriptCompileScope;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -77,7 +76,7 @@ public class DefaultGradleTest {
     private final PluginContainer pluginContainer = context.mock(PluginContainer.class);
     private final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
     private final ScriptHandlerFactory scriptHandlerFactory = context.mock(ScriptHandlerFactory.class);
-    private final BuildClassLoaderRegistry buildClassLoaderRegistry = context.mock(BuildClassLoaderRegistry.class);
+    private final ClassLoaderScope classLoaderScope = context.mock(ClassLoaderScope.class);
 
     private DefaultGradle gradle;
 
@@ -88,8 +87,8 @@ public class DefaultGradleTest {
             will(returnValue(gradleServiceRegistryMock));
             allowing(gradleServiceRegistryMock).get(ScriptHandler.class);
             will(returnValue(scriptHandlerMock));
-            allowing(gradleServiceRegistryMock).get(ScriptClassLoaderProvider.class);
-            will(returnValue(context.mock(ScriptClassLoaderProvider.class)));
+            allowing(gradleServiceRegistryMock).get(ClassLoaderScope.class);
+            will(returnValue(classLoaderScope));
             allowing(gradleServiceRegistryMock).get(PluginRegistry.class);
             will(returnValue(pluginRegistry));
             allowing(gradleServiceRegistryMock).get(TaskGraphExecuter.class);
@@ -108,10 +107,6 @@ public class DefaultGradleTest {
             will(returnValue(scriptPluginFactory));
             allowing(gradleServiceRegistryMock).get(ScriptHandlerFactory.class);
             will(returnValue(scriptHandlerFactory));
-            allowing(gradleServiceRegistryMock).get(BuildClassLoaderRegistry.class);
-            will(returnValue(buildClassLoaderRegistry));
-            allowing(buildClassLoaderRegistry).getRootCompileScope();
-            will(returnValue(new SimpleScriptCompileScope(getClass().getClassLoader())));
             allowing(listenerManager).createAnonymousBroadcaster(BuildListener.class);
             will(returnValue(buildListenerBroadcast));
             allowing(listenerManager).createAnonymousBroadcaster(ProjectEvaluationListener.class);

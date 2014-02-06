@@ -31,7 +31,6 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.listener.ListenerManager;
 
 import java.util.LinkedList;
@@ -100,7 +99,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(BuildClassLoaderRegistry.class).getRootCompileScope(), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope(), new DependencyInjectingInstantiator(this));
     }
 
     PluginContainer createPluginContainer(GradleInternal gradle, PluginRegistry pluginRegistry) {

@@ -33,7 +33,6 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.GFileUtils;
 
@@ -58,7 +57,8 @@ public class ProjectBuilderImpl {
                 (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name),
                 new StringScriptSource("test build file", null),
                 parentProject.getGradle(),
-                parentProject.getGradle().getServiceRegistryFactory()
+                parentProject.getGradle().getServiceRegistryFactory(),
+                parentProject.getClassLoaderScope().createChild()
         );
         parentProject.addChildProject(project);
         parentProject.getProjectRegistry().addProject(project);
@@ -78,12 +78,10 @@ public class ProjectBuilderImpl {
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
                 topLevelRegistry.get(FileResolver.class));
-        ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle);
+        ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, gradle.getClassLoaderScope().createSibling());
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
-
-        gradle.getServices().get(BuildClassLoaderRegistry.class).addRootClassLoader(getClass().getClassLoader());
 
         return project;
     }

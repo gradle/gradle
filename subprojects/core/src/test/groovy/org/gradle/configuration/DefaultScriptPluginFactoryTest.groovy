@@ -15,9 +15,11 @@
  */
 package org.gradle.configuration
 
-import org.gradle.api.internal.initialization.ScriptCompileScope
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.*
 import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer
 import org.gradle.internal.Factory
@@ -36,20 +38,29 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def scriptRunner = Mock(ScriptRunner)
     def script = Mock(BasicScript)
     def instantiator = Mock(Instantiator)
-    def parentScope = Mock(ScriptCompileScope)
-    def baseClassLoader = new URLClassLoader(new URL[0])
-    def scriptClassLoader = new URLClassLoader(new URL[0])
+    def classLoaderScope = Mock(ClassLoaderScope)
+    def scopeClassLoader = Mock(ClassLoader)
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
     def pluginResolverFactory = Mock(PluginResolverFactory)
-    def scriptHandler = Mock(ScriptHandlerInternal)
+    def scriptHandler = Mock(ScriptHandler)
     def classPathScriptRunner = Mock(ScriptRunner)
     def classPathScript = Mock(BasicScript)
     def loggingManagerFactory = Mock(Factory) as Factory<LoggingManagerInternal>
-    def pluginParentClassLoader = Mock(ClassLoader)
+    def initialCompileClassLoader = Mock(ClassLoader)
     def sourceWithImports = Mock(ScriptSource)
     def loggingManager = Mock(LoggingManagerInternal)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginResolverFactory, pluginParentClassLoader)
+    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginResolverFactory, initialCompileClassLoader)
+
+    def setup() {
+        def configurations = Mock(ConfigurationContainer)
+        scriptHandler.configurations >> configurations
+        def configuration = Mock(Configuration)
+        configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION) >> configuration
+        configuration.getFiles() >> Collections.emptySet()
+
+        1 * classLoaderScope.getScopeClassLoader() >> scopeClassLoader
+    }
 
     void configuresATargetObjectUsingScript() {
         when:
@@ -58,16 +69,13 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * loggingManagerFactory.create() >> loggingManager
         1 * importsReader.withImports(scriptSource) >> sourceWithImports
         1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
-        1 * scriptHandler.getBaseCompilationClassLoader() >> baseClassLoader
-        1 * scriptCompiler.setClassloader(baseClassLoader)
+        1 * scriptCompiler.setClassloader(initialCompileClassLoader)
         1 * scriptCompiler.setTransformer(_ as StatementExtractingScriptTransformer)
         1 * scriptCompiler.compile(DefaultScript) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
         1 * classPathScriptRunner.run()
-        1 * scriptHandler.updateClassPath()
-        1 * scriptHandler.getScriptCompileClassLoader() >> scriptClassLoader
-        1 * scriptCompiler.setClassloader(scriptClassLoader)
+        1 * scriptCompiler.setClassloader(scopeClassLoader)
         1 * scriptCompiler.setTransformer(!null)
         1 * scriptCompiler.compile(DefaultScript) >> scriptRunner
         1 * scriptRunner.getScript() >> script
@@ -75,7 +83,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptRunner.run()
 
         then:
-        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, "buildscript", DefaultScript)
+        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", DefaultScript)
         configurer.apply(target)
     }
 
@@ -86,16 +94,13 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * loggingManagerFactory.create() >> loggingManager
         1 * importsReader.withImports(scriptSource) >> sourceWithImports
         1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
-        1 * scriptHandler.getBaseCompilationClassLoader() >> baseClassLoader
-        1 * scriptCompiler.setClassloader(baseClassLoader)
+        1 * scriptCompiler.setClassloader(initialCompileClassLoader)
         1 * scriptCompiler.setTransformer(_ as StatementExtractingScriptTransformer)
         1 * scriptCompiler.compile(DefaultScript) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
         1 * classPathScriptRunner.run()
-        1 * scriptHandler.updateClassPath()
-        1 * scriptHandler.getScriptCompileClassLoader() >> scriptClassLoader
-        1 * scriptCompiler.setClassloader(scriptClassLoader)
+        1 * scriptCompiler.setClassloader(scopeClassLoader)
         1 * scriptCompiler.setTransformer(!null)
         1 * scriptCompiler.compile(DefaultScript) >> scriptRunner
         1 * scriptRunner.getScript() >> script
@@ -103,7 +108,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptRunner.run()
 
         then:
-        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, "buildscript", DefaultScript)
+        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", DefaultScript)
         configurer.apply(target)
     }
 }

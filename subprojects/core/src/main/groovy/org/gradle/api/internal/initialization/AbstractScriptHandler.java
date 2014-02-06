@@ -20,13 +20,14 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.net.URI;
 
-public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
+public abstract class AbstractScriptHandler implements ScriptHandler {
     private final ScriptSource scriptSource;
     private final RepositoryHandler repositoryHandler;
     private final DependencyHandler dependencyHandler;
@@ -65,10 +66,6 @@ public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
 
     public ConfigurationContainer getConfigurations() {
         return configContainer;
-    }
-
-    public ClassLoader getClassLoader() {
-        return getScriptCompileClassLoader();
     }
 
     public File getSourceFile() {

@@ -15,10 +15,10 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ScriptCompileScope;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.InitScript;
 
@@ -29,17 +29,16 @@ import org.gradle.initialization.InitScript;
 public class DefaultInitScriptProcessor implements InitScriptProcessor {
     private final ScriptPluginFactory configurerFactory;
     private final ScriptHandlerFactory scriptHandlerFactory;
-    private final ScriptCompileScope compileScope;
 
-    public DefaultInitScriptProcessor(ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory, ScriptCompileScope compileScope) {
+    public DefaultInitScriptProcessor(ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory) {
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
-        this.compileScope = compileScope;
     }
 
     public void process(final ScriptSource initScript, GradleInternal gradle) {
-        ScriptHandlerInternal scriptHandlerInternal = scriptHandlerFactory.create(initScript, compileScope);
-        ScriptPlugin configurer = configurerFactory.create(initScript, scriptHandlerInternal, "initscript", InitScript.class);
+        ClassLoaderScope classLoaderScope = gradle.getClassLoaderScope().createSibling();
+        ScriptHandler scriptHandler = scriptHandlerFactory.create(initScript, classLoaderScope);
+        ScriptPlugin configurer = configurerFactory.create(initScript, scriptHandler, classLoaderScope, "initscript", InitScript.class);
         configurer.apply(gradle);
     }
 }

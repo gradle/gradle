@@ -24,8 +24,9 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.*
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
+
 import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.DefaultAntBuilderFactory
@@ -45,7 +46,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.invocation.BuildClassLoaderRegistry
+
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -61,6 +62,7 @@ class ProjectScopeServicesTest extends Specification {
     ServiceRegistry parent = Stub()
     ProjectScopeServices registry
     PluginRegistry pluginRegistry = Mock()
+    def classLoaderScope = Mock(ClassLoaderScope)
     DependencyResolutionServices dependencyResolutionServices = Stub()
 
     def setup() {
@@ -75,7 +77,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
-        parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry)
+        parent.get(ClassLoaderScope) >> classLoaderScope
         registry = new ProjectScopeServices(parent, project)
     }
 
@@ -107,9 +109,7 @@ class ProjectScopeServicesTest extends Specification {
     }
 
     def "provides a PluginContainer"() {
-        expectScriptClassLoaderProviderCreated()
-
-        1 * pluginRegistry.createChild(!null, _ as DependencyInjectingInstantiator) >> Stub(PluginRegistry)
+        1 * pluginRegistry.createChild(classLoaderScope, _ as DependencyInjectingInstantiator) >> Stub(PluginRegistry)
 
         expect:
         provides(PluginContainer, DefaultPluginContainer)
@@ -142,12 +142,11 @@ class ProjectScopeServicesTest extends Specification {
         registry.getFactory(AntBuilder).is registry.getFactory(AntBuilder)
     }
 
-    def "provides a ScriptHandler and ScriptClassLoaderProvider"() {
+    def "provides a ScriptHandler"() {
         expectScriptClassLoaderProviderCreated()
 
         expect:
         provides(ScriptHandler, DefaultScriptHandler)
-        registry.get(ScriptClassLoaderProvider).is registry.get(ScriptHandler)
     }
 
     def "provides a FileResolver"() {

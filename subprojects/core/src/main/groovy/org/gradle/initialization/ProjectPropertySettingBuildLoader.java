@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.util.GUtil;
@@ -41,8 +42,8 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         this.propertiesLoader = propertiesLoader;
     }
 
-    public void load(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle) {
-        buildLoader.load(rootProjectDescriptor, gradle);
+    public void load(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope classLoaderScope) {
+        buildLoader.load(rootProjectDescriptor, gradle, classLoaderScope);
         setProjectProperties(gradle.getRootProject());
     }
 

@@ -39,8 +39,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.invocation.BuildClassLoaderRegistry
-import org.gradle.invocation.DefaultBuildClassLoaderRegistry
+
 import org.gradle.listener.DefaultListenerManager
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
@@ -248,12 +247,6 @@ public class BuildScopeServicesTest extends Specification {
         expect:
         assertThat(registry.get(ProfileEventAdapter), instanceOf(ProfileEventAdapter))
         assertThat(registry.get(ProfileEventAdapter), sameInstance(registry.get(ProfileEventAdapter)))
-    }
-
-    def providesABuildClassLoaderRegistry() {
-        expect:
-        assertThat(registry.get(BuildClassLoaderRegistry), instanceOf(DefaultBuildClassLoaderRegistry))
-        assertThat(registry.get(BuildClassLoaderRegistry), sameInstance(registry.get(BuildClassLoaderRegistry)))
     }
 
     def "provides a project registry"() {

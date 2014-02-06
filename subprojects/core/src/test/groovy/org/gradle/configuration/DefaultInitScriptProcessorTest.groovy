@@ -15,10 +15,10 @@
  */
 package org.gradle.configuration
 
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.initialization.ScriptCompileScope
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.InitScript
 import spock.lang.Specification
@@ -29,17 +29,21 @@ class DefaultInitScriptProcessorTest extends Specification {
         when:
         def scriptPluginFactory = Mock(ScriptPluginFactory)
         def scriptHandlerFactory = Mock(ScriptHandlerFactory)
-        def compileScope = Mock(ScriptCompileScope)
+        def compileScope = Mock(ClassLoaderScope)
         def initScriptMock = Mock(ScriptSource)
         def gradleMock = Mock(GradleInternal)
-        def scriptHandler = Mock(ScriptHandlerInternal)
+        def scriptHandler = Mock(ScriptHandler)
         def scriptPlugin = Mock(ScriptPlugin)
 
+        1 * gradleMock.getClassLoaderScope() >> Mock(ClassLoaderScope) {
+            createSibling() >> compileScope
+        }
+
         1 * scriptHandlerFactory.create(initScriptMock, compileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(initScriptMock, scriptHandler, "initscript", InitScript) >> scriptPlugin
+        1 * scriptPluginFactory.create(initScriptMock, scriptHandler, compileScope, "initscript", InitScript) >> scriptPlugin
         1 * scriptPlugin.apply(gradleMock)
 
-        DefaultInitScriptProcessor processor = new DefaultInitScriptProcessor(scriptPluginFactory, scriptHandlerFactory, compileScope)
+        DefaultInitScriptProcessor processor = new DefaultInitScriptProcessor(scriptPluginFactory, scriptHandlerFactory)
 
         then:
         processor.process(initScriptMock, gradleMock)

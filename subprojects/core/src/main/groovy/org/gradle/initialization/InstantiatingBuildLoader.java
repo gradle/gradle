@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 
@@ -36,8 +37,8 @@ public class InstantiatingBuildLoader implements BuildLoader {
      * Creates the {@link org.gradle.api.internal.GradleInternal} and {@link ProjectInternal} instances for the given root project,
      * ready for the projects to be evaluated.
      */
-    public void load(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle) {
-        createProjects(rootProjectDescriptor, gradle);
+    public void load(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope classLoaderScope) {
+        createProjects(rootProjectDescriptor, gradle, classLoaderScope);
         attachDefaultProject(gradle);
     }
 
@@ -55,15 +56,15 @@ public class InstantiatingBuildLoader implements BuildLoader {
         }
     }
 
-    private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle) {
-        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle);
+    private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope classLoaderScope) {
+        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle, classLoaderScope);
         gradle.setRootProject(rootProject);
         addProjects(rootProject, rootProjectDescriptor, gradle);
     }
 
     private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle) {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
-            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle);
+            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle, parent.getClassLoaderScope().createChild());
             addProjects(childProject, childProjectDescriptor, gradle);
         }
     }

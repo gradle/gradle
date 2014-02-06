@@ -16,9 +16,9 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
-import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,9 +30,9 @@ class BuildSourceBuilderTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     GradleLauncherFactory launcherFactory = Mock()
-    ClassLoaderRegistry loaderRegistry = Mock()
+    ClassLoaderScope classLoaderScope = Mock()
     CacheRepository cacheRepository = Mock()
-    BuildSourceBuilder buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [launcherFactory, loaderRegistry,  cacheRepository])
+    BuildSourceBuilder buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [launcherFactory, classLoaderScope,  cacheRepository])
 
     StartParameter parameter = new StartParameter()
 

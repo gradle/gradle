@@ -26,7 +26,7 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.ScriptCompileScope;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -61,7 +61,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private FileResolver fileResolver;
 
     private final ScriptPluginFactory scriptPluginFactory;
-    private final ScriptCompileScope scriptCompileScope;
+    private final ClassLoaderScope classLoaderScope;
     private final ScriptHandlerFactory scriptHandlerFactory;
 
     public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
@@ -75,7 +75,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         fileResolver = services.get(FileResolver.class);
         scriptPluginFactory = services.get(ScriptPluginFactory.class);
         scriptHandlerFactory = services.get(ScriptHandlerFactory.class);
-        scriptCompileScope = services.get(BuildClassLoaderRegistry.class).getRootCompileScope();
+        classLoaderScope = services.get(ClassLoaderScope.class);
         buildListenerBroadcast = listenerManager.createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = listenerManager.createAnonymousBroadcaster(ProjectEvaluationListener.class);
         buildListenerBroadcast.add(new BuildAdapter() {
@@ -245,7 +245,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
-    protected ScriptCompileScope getScriptCompileScope() {
-        return scriptCompileScope;
+    public ClassLoaderScope getClassLoaderScope() {
+        return classLoaderScope;
     }
 }

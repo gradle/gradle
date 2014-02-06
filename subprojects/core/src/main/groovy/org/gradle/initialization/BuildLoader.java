@@ -17,11 +17,12 @@ package org.gradle.initialization;
 
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 public interface BuildLoader {
     /**
      * Creates the {@link org.gradle.api.internal.GradleInternal} and {@link org.gradle.api.internal.project.ProjectInternal} instances for the given root project,
      * ready for the projects to be evaluated.
      */
-    void load(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle);
+    void load(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope classLoaderScope);
 }

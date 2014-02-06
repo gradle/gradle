@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -81,4 +82,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
     ProjectConfigurationActionContainer getConfigurationActions();
 
     ModelRegistry getModelRegistry();
+
+    ClassLoaderScope getClassLoaderScope();
+
 }

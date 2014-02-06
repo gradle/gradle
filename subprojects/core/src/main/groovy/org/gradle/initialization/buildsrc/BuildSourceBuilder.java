@@ -18,10 +18,10 @@ package org.gradle.initialization.buildsrc;
 
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.URLClassLoader;
 import java.util.Collections;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -39,18 +38,25 @@ public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
 
     private final GradleLauncherFactory gradleLauncherFactory;
-    private final ClassLoaderRegistry classLoaderRegistry;
+    private final ClassLoaderScope classLoaderScope;
     private final CacheRepository cacheRepository;
 
-    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderRegistry classLoaderRegistry, CacheRepository cacheRepository) {
+    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository) {
         this.gradleLauncherFactory = gradleLauncherFactory;
-        this.classLoaderRegistry = classLoaderRegistry;
+        this.classLoaderScope = classLoaderScope;
         this.cacheRepository = cacheRepository;
     }
 
-    public ClassLoader buildAndCreateClassLoader(StartParameter startParameter) {
+    public ClassLoaderScope buildAndCreateClassLoader(StartParameter startParameter) {
         ClassPath classpath = createBuildSourceClasspath(startParameter);
-        return new URLClassLoader(classpath.getAsURLArray(), classLoaderRegistry.getGradleApiClassLoader());
+        if (classpath.isEmpty()) {
+            return classLoaderScope;
+        } else {
+            ClassLoaderScope childScope = classLoaderScope.createChild();
+            childScope.export(classpath);
+            childScope.lock();
+            return childScope;
+        }
     }
 
     ClassPath createBuildSourceClasspath(StartParameter startParameter) {

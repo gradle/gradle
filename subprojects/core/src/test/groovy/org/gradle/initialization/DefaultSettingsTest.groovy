@@ -24,6 +24,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
@@ -43,7 +44,7 @@ import static org.junit.Assert.*
 class DefaultSettingsTest {
     File settingsDir
     StartParameter startParameter
-    URLClassLoader expectedClassLoader
+    ClassLoaderScope classLoaderScope
     Map gradleProperties
     ScriptSource scriptSourceMock
     GradleInternal gradleMock
@@ -62,7 +63,7 @@ class DefaultSettingsTest {
         settingsDir = new File('/somepath/root').absoluteFile
         gradleProperties = [someGradleProp: 'someValue']
         startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
-        expectedClassLoader = new URLClassLoader(new URL[0])
+        classLoaderScope = context.mock(ClassLoaderScope)
 
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
@@ -89,7 +90,7 @@ class DefaultSettingsTest {
                 will(returnValue(projectDescriptorRegistry));
         }
         settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,
-                    gradleMock, expectedClassLoader, settingsDir, scriptSourceMock, startParameter);
+                    gradleMock, classLoaderScope, settingsDir, scriptSourceMock, startParameter);
 
     }
 
@@ -196,8 +197,8 @@ class DefaultSettingsTest {
     public void testCreateClassLoader() {
         StartParameter expectedStartParameter = settings.startParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
-        def createdClassLoader = settings.getClassLoader()
-        assertSame(createdClassLoader, expectedClassLoader)
+        def createdClassLoaderScope = settings.getClassLoaderScope()
+        assertSame(createdClassLoaderScope, classLoaderScope)
     }
 
     @Test

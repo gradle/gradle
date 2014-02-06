@@ -17,10 +17,10 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.ScriptCompileScope;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.configuration.ScriptPlugin;
@@ -39,20 +39,20 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
-    private final ScriptCompileScope scriptCompileScope;
+    private final ClassLoaderScope classLoaderScope;
     private final Object[] defaultTargets;
 
     public DefaultObjectConfigurationAction(
             FileResolver resolver,
             ScriptPluginFactory configurerFactory,
             ScriptHandlerFactory scriptHandlerFactory,
-            ScriptCompileScope scriptCompileScope,
+            ClassLoaderScope classLoaderScope,
             Object... defaultTargets
     ) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
-        this.scriptCompileScope = scriptCompileScope;
+        this.classLoaderScope = classLoaderScope;
         this.defaultTargets = defaultTargets;
     }
 
@@ -91,8 +91,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
         UriScriptSource scriptSource = new UriScriptSource("script", scriptUri);
-        ScriptHandlerInternal scriptHandler = scriptHandlerFactory.create(scriptSource, scriptCompileScope);
-        ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, "buildscript", DefaultScript.class);
+        ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScope);
+        ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", DefaultScript.class);
         for (Object target : targets) {
             configurer.apply(target);
         }
