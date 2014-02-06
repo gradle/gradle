@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class RelativeFileNameTransformer implements Transformer<String, File> {
     private final File rootDir;
@@ -67,8 +68,9 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
     }
 
     private String findRelativePath(String from, String to) {
-        List<String> fromPath = CollectionUtils.toList(from.split(File.separator));
-        List<String> toPath = CollectionUtils.toList(to.split(File.separator));
+        String fileSeparatorPattern = Pattern.quote(File.separator);
+        List<String> fromPath = CollectionUtils.toList(from.split(fileSeparatorPattern));
+        List<String> toPath = CollectionUtils.toList(to.split(fileSeparatorPattern));
         List<String> relativePath = new ArrayList<String>();
 
         while (!fromPath.isEmpty() && !toPath.isEmpty() && fromPath.get(0).equals(toPath.get(0))) {
