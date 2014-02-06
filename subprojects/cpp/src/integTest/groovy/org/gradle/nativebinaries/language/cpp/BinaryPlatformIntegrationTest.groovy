@@ -15,6 +15,9 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
+import net.rubygrapefruit.platform.Native
+import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement
@@ -43,6 +46,21 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         """
 
         testApp.writeSources(file("src/main"))
+    }
+
+    def "build binary for a default target platform"() {
+        given:
+        final SystemInfo systemInfo = Native.get(SystemInfo)
+        def arch = systemInfo.architecture == SystemInfo.Architecture.amd64 ? [main: "x86_64", alt: "amd64"] : [main: "x86", alt: "i386"]
+
+        when:
+        succeeds "mainExecutable"
+
+        then:
+        executedAndNotSkipped(":mainExecutable")
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == arch.main
+        executable("build/binaries/mainExecutable/main").exec().out == "${arch.alt} ${os.familyName}" * 2
+        binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objectFiles/mainExecutable/mainCpp")).arch.name == arch.main
     }
 
     def "configure component for a single target platform"() {
