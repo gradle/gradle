@@ -56,7 +56,7 @@ public interface ClassLoaderScope {
     /**
      * Adds a class path to this scope, but not to children.
      *
-     * Can only be called once. Can not be called after being locked.
+     * Can not be called after being locked.
      */
     ClassLoader export(ClassPath classpath);
 

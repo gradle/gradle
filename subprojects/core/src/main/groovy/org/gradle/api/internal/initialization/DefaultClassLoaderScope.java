@@ -125,9 +125,6 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         if (locked) {
             throw new IllegalStateException("class loader scope is locked");
         }
-        if (exportingClassLoader != null) {
-            throw new IllegalStateException("class loader scope can only export one classpath");
-        }
         if (classpath.isEmpty()) {
             return parent.getChildClassLoader();
         } else {
