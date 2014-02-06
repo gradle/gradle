@@ -16,11 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.gradle.internal.hash.HashUtil;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
 import java.util.ArrayList;

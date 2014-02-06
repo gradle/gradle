@@ -20,6 +20,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.app.SourceFile
 import org.gradle.nativebinaries.language.cpp.fixtures.app.TestComponent
 
+// TODO add coverage for asm, windows-resources, objective-c/c++ & mixed sources
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can have sourcefiles with same base name but different directories"() {
