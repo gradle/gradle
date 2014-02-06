@@ -274,6 +274,36 @@ public interface JvmLibraryJavadocArtifact extends JvmLibraryArtifact
 
 public interface JvmLibrarySourceArtifact extends JvmLibraryArtifact
 
+#### New mockup that takes into account additional requirements from spec review
+
+ResolutionResult resolutionResult = configuration.incoming.resolutionResult // Buildable
+ResolutionResult internalComponents = resolutionResult.findAll { ResolvedComponentResult componentResult -> componentResult.component.isInternal() }
+ResolutionResult externalComponents = resolutionResult.findAll { ResolvedComponentResult componentResult -> componentResult.component.isExternal() }
+
+ArtifactResolutionQuery query = externalComponents.artifactResolutionQueryBuilder()
+    .withArtifacts(JvmLibrary, JvmLibraryMainArtifact, JvmLibrarySourceArtifact)
+    .withArtifacts(AndroidLibrary, AndroidLibraryMainArtifact)
+    .build();
+
+ArtifactResolutionResult result = resolutionResult.getArtifactResolutionResult(query)
+result.resolutionFailures.each {
+  println it.componentId
+  println it.artifactId
+  println it.exception
+}
+result.getComponents(JvmLibrary).each {
+  println it.mainArtifacts
+  println it.sourceArtifacts
+  println it.javadocArtifacts
+  println it.artifacts // inherited from base interface
+}
+result.getComponents(AndroidLibrary).each {
+  ...
+}
+
+I'm not sure if typed components (JvmLibrary etc.) should be available after the first resolve (incoming.resolutionResult),
+or only after the second one (resolutionResult.getArtifactResolutionResult).
+
 ## Story: IDE plugins use the resolution result to determine library source and Javadoc artifacts
 
 This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
