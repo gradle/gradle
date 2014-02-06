@@ -1225,6 +1225,121 @@ This story moves definition and configuration of the source sets for a component
 
 # Later Milestones
 
+## Story: Improved DSL for tool chain configuration
+
+This story improves the DSL for tweaking arguments for a command-line tool that is part of a tool chain, and extends this
+ability to all command-line based tool chains. It also permits the configuration of tool chain executables on a per-platform basis.
+
+### Implementation
+
+* Add `CommandLineToolInvocation` extends `org.gradle.nativebinaries.Tool` with read-write String property `executable`.
+* Rename `GccTool` to `CommandLineTool` and change to have `eachInvocation(Action<CommandLineToolInvocation>)` in place of `withArguments`
+* Remove tool-specific getters from `Gcc`, and instead make `Gcc` serve as a NamedDomainObjectSet of `CommandLineTool` instances.
+    * Continue to register a `CommandLineTool` for every supported language.
+* Allow the `eachInvocation` method to override the default executable to use.
+* Extract `CommandLineToolChain` interface out of `Gcc` and introduce similar functionality to VisualCpp and Clang tool chains.
+* Add a sample, user-guide documentation and note the breaking change in the release notes.
+* Consolidate various `ArgsTransformer` implementations so that most/all simply set/modify args on a `CommandLineToolInvocation`.
+
+### User visible changes
+
+    model {
+        toolChains {
+            gcc(Gcc) {
+                cppCompiler.eachInvocation {
+                    args.replace("-m32", "-march=i386")
+                }
+                cCompiler.eachInvocation {
+                    executable "gcc-custom"
+                }
+                linker.eachInvocation {
+                    ...
+                }
+            }
+            visualCpp(VisualCpp) {
+                cppCompiler.eachInvocation {
+                   ...
+                }
+            }
+        }
+    }
+
+### Test coverage
+
+* Update existing test cases for argument tweaking with GCC
+* Can use g++ instead of gcc for compiling C sources
+* Can tweak arguments for VisualCpp and Clang
+
+### Open issues
+
+* Only to register a `CommandLineTool` for languages that are supported by build.
+   * Need to make it easy to have centralised tool chain configuration that works regardless of languages in effect.
+
+## Story: Improved DSL for mapping native binary model to tool-chain command-line arguments
+
+The Gradle model for native binaries will describe the concepts of Build Type and Platform in abstract terms, not specific
+to a particular tool chain. It is the job of the tool chain to map these concepts to concrete command-line arguments where possible.
+
+This story improves the mechanism whereby a tool chain supplies arguments specific to a Platform for compiling/linking etc, and provides
+a mechanism for providing similar mapping for Build Type.
+
+### Implementation
+
+* Add `PlatformToolInvocationAction` and `CommandLineTool.forPlatform(PlatformToolInvocationAction)`
+* Add `<T extends CompileSpec> Compiler<T> createCompiler(Class<T> compilerType)` to `CommandLineTool`. The type is fixed for a particular tool.
+* Replace `ToolChain.targetPlatform(Platform)` with new mechanism using `CommandLineTool.forPlatform`, so that platform specification is
+  applied at the tool-level, rather than the tool-chain-level.
+    * Each `CommandLineTool` will have a list of `PlatformToolInvocationAction` instances. The first of these will contain the built-in mapping.
+    * Given a target platform, all `PlatformToolInvocationAction`s will be applied to an invocation
+    * At the end of this process, if there is an executable file specified on the invocation, the platform is buildable.
+* Platform actions should be applied to invocation prior to user args and other build model arguments
+* Add a sample, user-guide documentation and note the breaking change in the release notes.
+
+### User visible changes
+
+    interface PlatformToolInvocationAction {
+        Platform getPlatform()
+        void withInvocation(Action<CommandLineToolInvocation>)
+    }
+
+    model {
+        toolChains {
+            gcc(Gcc) {
+                cppCompiler.forPlatform {
+                    // Override built-in config: uses default executable
+                    if (platform.architecture.amd64) {
+                        withInvocation {
+                            args "-march", "special"
+                        }
+                    }
+
+                    // Add support for a custom platform (cross-compiler exe)
+                    if (platform.architecture.sparc) {
+                        withInvocation {
+                            executable "g++-sparc"
+                            args "-march", "sparc"
+                        }
+                    }
+
+                    // Disable support for a built-in platform
+                    if (platform.architecture.x86) {
+                        withInvocation {
+                            executable null
+                        }
+                    }
+                }
+            }
+
+### Test cases
+
+* Configure a GCC tool chain that creates x86 binaries for amd64 and vice-versa
+* Configure a GCC tool chain that is unable to create x86 binaries
+
+### Open issues
+
+* When no Platform architecture/os is defined, assume the current platform architecture/os, not the tool chain default.
+    * This will require detecting the current platform, and supplying the correct tool chain arguments when building.
+
 ## Story: Improve definition of Platform, Architecture and Operating System
 
 In order to make it easier for users to publish and resolve native binary dependencies, this story introduces a set of conventional
