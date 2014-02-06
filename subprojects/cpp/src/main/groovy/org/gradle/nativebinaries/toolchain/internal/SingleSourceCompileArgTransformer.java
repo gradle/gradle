@@ -42,7 +42,7 @@ public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> impl
         args.add(sourceFile.getAbsolutePath());
 
         File outputFileDir = getOutputFileDir(sourceFile, spec.getObjectFileDir());
-        if(outputFileDir.exists()){
+        if(!outputFileDir.exists()){
             outputFileDir.mkdir();
         }
 
