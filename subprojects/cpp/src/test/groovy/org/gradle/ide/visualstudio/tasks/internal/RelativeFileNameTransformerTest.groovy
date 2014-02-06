@@ -23,9 +23,9 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 class RelativeFileNameTransformerTest extends Specification {
     static rootDir = new File("root")
 
-    def "returns absolute path where file outside of root"() {
+    def "returns canonical path where file outside of root"() {
         expect:
-        transform(relative, file) == normaliseFileSeparators(file.absolutePath)
+        transform(relative, file) == normaliseFileSeparators(file.canonicalPath)
 
         where:
         relative                                          | file
@@ -50,6 +50,7 @@ class RelativeFileNameTransformerTest extends Specification {
         "subdir/child.txt"         | "../../subdir/child.txt"
         "subdir/another"           | "../../subdir/another"
         "subdir/another/child.txt" | "../../subdir/another/child.txt"
+        "another/dir/child.txt"    | "../../another/dir/child.txt"
     }
 
     def "returns relative path where file shared some of current dir path"() {
@@ -63,13 +64,12 @@ class RelativeFileNameTransformerTest extends Specification {
 
         where:
         filePath                   | relativePath
-        "current/child.txt"        | "../../current/child.txt"
-        "current/dir/child.txt"    | "../../current/dir/child.txt"
-        "current/subdir"           | "../../current/subdir"
-        "current/subdir/child.txt" | "../../current/subdir/child.txt"
+        "current/child.txt"        | "../child.txt"
+        "current/dir/child.txt"    | "child.txt"
+        "current/subdir"           | "../subdir"
+        "current/subdir/child.txt" | "../subdir/child.txt"
     }
 
-    // TODO:DAZ Might be better to reduce these paths
     def "handles mixed paths inside of root"() {
         when:
         def file = new File(rootDir, filePath)

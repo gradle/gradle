@@ -54,17 +54,15 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         app.library.writeSources(file("lib/src/hello"))
 
         settingsFile.text = "include ':exe', ':lib'"
-        buildFile << """
-    project(':exe') {
-        executables {
-            main {}
-        }
-        sources.main.cpp.lib project: ':lib', library: 'hello', linkage: 'static'
+        file("exe", "build.gradle") << """
+    executables {
+        main {}
     }
-    project(':lib') {
-        libraries {
-            hello {}
-        }
+    sources.main.cpp.lib project: ':lib', library: 'hello', linkage: 'static'
+"""
+        file("lib", "build.gradle") << """
+    libraries {
+        hello {}
     }
 """
         and:
@@ -72,21 +70,19 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
         then:
         final exeProject = projectFile("exe/exe_mainExe.vcxproj")
-        exeProject.sourceFiles == allFiles("exe/src/main/cpp")
-        exeProject.headerFiles.isEmpty()
+        exeProject.assertHasComponentSources(app.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations.values().each {
-            assert it.includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
+            assert it.includePath == filePath("src/main/headers", "../lib/src/hello/headers")
             assert it.buildCommand == "gradle -p \"..\" :exe:install${it.name.capitalize()}MainExecutable"
         }
 
         and:
         final libProject = projectFile("lib/lib_helloLib.vcxproj")
-        libProject.sourceFiles == allFiles("lib/src/hello/cpp")
-        libProject.headerFiles == allFiles("lib/src/hello/headers")
+        libProject.assertHasComponentSources(app.library, "src/hello")
         libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations.values().each {
-            assert it.includePath == filePath("lib/src/hello/headers")
+            assert it.includePath == filePath("src/hello/headers")
             assert it.buildCommand == "gradle -p \"..\" :lib:${it.name}HelloStaticLibrary"
         }
 
@@ -143,9 +139,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         mainSolution.assertReferencesProject(greetProject, projectConfigurations)
 
         and:
-        exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
-        helloProject.projectConfigurations['debug'].includePath == filePath("lib/src/hello/headers", "greet/src/greetings/headers")
-        greetProject.projectConfigurations['debug'].includePath == filePath("greet/src/greetings/headers")
+        exeProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../lib/src/hello/headers")
+        helloProject.projectConfigurations['debug'].includePath == filePath("src/hello/headers", "../greet/src/greetings/headers")
+        greetProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
     }
 
     def "create visual studio solution where multiple components have same name"() {
@@ -196,9 +192,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         mainSolution.assertReferencesProject(greetProject, projectConfigurations)
 
         and:
-        exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/main/headers")
-        helloProject.projectConfigurations['debug'].includePath == filePath("lib/src/main/headers", "greet/src/main/headers")
-        greetProject.projectConfigurations['debug'].includePath == filePath("greet/src/main/headers")
+        exeProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../lib/src/main/headers")
+        helloProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../greet/src/main/headers")
+        greetProject.projectConfigurations['debug'].includePath == filePath("src/main/headers")
     }
 
     def "create visual studio solution for executable with project dependency cycle"() {
@@ -244,9 +240,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         mainSolution.assertReferencesProject(greetProject, projectConfigurations)
 
         and:
-        exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
-        helloProject.projectConfigurations['debug'].includePath == filePath("lib/src/hello/headers", "exe/src/greetings/headers")
-        greetProject.projectConfigurations['debug'].includePath == filePath("exe/src/greetings/headers")
+        exeProject.projectConfigurations['debug'].includePath == filePath("src/main/headers", "../lib/src/hello/headers")
+        helloProject.projectConfigurations['debug'].includePath == filePath("src/hello/headers", "../exe/src/greetings/headers")
+        greetProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
     }
 
     def "detects gradle wrapper and uses in vs project"() {
@@ -316,15 +312,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         return new ProjectFile(file(path))
     }
 
-    private List<String> allFiles(String path) {
-        return file(path).listFiles().collect { file ->
-            "../${path}/${file.name}"
-        }
-    }
-
-    private String filePath(String... paths) {
-        return paths.collect {
-            "../${it}"
-        } .join(';')
+    private static String filePath(String... paths) {
+        return (paths as List).join(";")
     }
 }

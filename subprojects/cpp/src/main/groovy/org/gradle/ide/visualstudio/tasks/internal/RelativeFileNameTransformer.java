@@ -16,10 +16,14 @@
 
 package org.gradle.ide.visualstudio.tasks.internal;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.Transformer;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RelativeFileNameTransformer implements Transformer<String, File> {
     private final File rootDir;
@@ -40,42 +44,43 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
 
     public String transform(File file) {
         String canonicalRoot;
-        String canonicalCurrent;
-        String canonicalFile;
+        String canonicalFrom;
+        String canonicalTo;
         try {
             canonicalRoot = rootDir.getCanonicalPath();
-            canonicalCurrent = currentDir.getCanonicalPath();
-            canonicalFile = file.getCanonicalPath();
+            canonicalFrom = currentDir.getCanonicalPath();
+            canonicalTo = file.getCanonicalPath();
         } catch (IOException e) {
             return file.getAbsolutePath();
         }
 
-        if (!canonicalCurrent.contains(canonicalRoot) || !canonicalFile.contains(canonicalRoot)) {
-            return file.getAbsolutePath();
-        }
-
-        String relativeFile = canonicalFile.substring(canonicalRoot.length());
-        if (canonicalCurrent.equals(canonicalRoot)) {
-            return relativeFile.length() == 0 ? "." : relativeFile.substring(1);
-        }
-
-        return findPathUpTo(new File(canonicalCurrent), new File(canonicalRoot)) + relativeFile;
+        return findRelativePathInRoot(canonicalRoot, canonicalFrom, canonicalTo);
     }
 
-    private String findPathUpTo(File from, File to) {
-        if (from.equals(to)) {
-            return "";
+    private String findRelativePathInRoot(String root, String from, String to) {
+        if (!from.contains(root) || !to.contains(root)) {
+            return to;
         }
-        if (from.getParentFile() == null) {
-            throw new IllegalStateException("We've already verified that this should never happen");
+
+        String relativePath = findRelativePath(from, to);
+        return relativePath.length() == 0 ? "." : relativePath;
+    }
+
+    private String findRelativePath(String from, String to) {
+        List<String> fromPath = CollectionUtils.toList(from.split(File.separator));
+        List<String> toPath = CollectionUtils.toList(to.split(File.separator));
+        List<String> relativePath = new ArrayList<String>();
+
+        while (!fromPath.isEmpty() && !toPath.isEmpty() && fromPath.get(0).equals(toPath.get(0))) {
+            fromPath.remove(0);
+            toPath.remove(0);
         }
-        if (from.getParentFile().equals(to)) {
-            return "..";
+        for (String ignored : fromPath) {
+            relativePath.add("..");
         }
-        String parentPathUpTo = findPathUpTo(from.getParentFile(), to);
-        if (parentPathUpTo == null) {
-            return null;
+        for (String entry : toPath) {
+            relativePath.add(entry);
         }
-        return ".." + File.separator + parentPathUpTo;
+        return Joiner.on(File.separatorChar).join(relativePath);
     }
 }
