@@ -21,10 +21,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
 
@@ -55,6 +53,13 @@ public class Compile extends AbstractCompile {
     }
 
     @TaskAction
+    protected void compile(IncrementalTaskInputs inputs) {
+        if (compileOptions.isIncremental()) {
+            getLogger().warn("Incremental java compilation is still work in progress. Regular compilation will be used.");
+        }
+        compile();
+    }
+
     protected void compile() {
         DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec();
         spec.setSource(getSource());

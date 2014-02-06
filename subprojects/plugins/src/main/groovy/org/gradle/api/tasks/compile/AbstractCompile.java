@@ -29,7 +29,6 @@ public abstract class AbstractCompile extends SourceTask {
     private String targetCompatibility;
     private FileCollection classpath;
 
-    @TaskAction
     protected abstract void compile();
 
     /**

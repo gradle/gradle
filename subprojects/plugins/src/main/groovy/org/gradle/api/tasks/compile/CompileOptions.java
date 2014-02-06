@@ -18,10 +18,12 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.SingleMessageLogger;
 
 import java.util.List;
 import java.util.Map;
@@ -33,7 +35,7 @@ public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
     private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
-            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "useAnt");
+            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "useAnt", "incremental");
 
     private boolean failOnError = true;
 
@@ -72,6 +74,7 @@ public class CompileOptions extends AbstractOptions {
     private List<String> compilerArgs = Lists.newArrayList();
 
     private boolean useAnt;
+    private boolean incremental;
 
     /**
      * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
@@ -480,6 +483,17 @@ public class CompileOptions extends AbstractOptions {
         return this;
     }
 
+    @Incubating
+    /**
+     * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
+     * The feature is incubating and does not yet satisfies all compilation scenarios.
+     */
+    public CompileOptions setIncremental(boolean incremental) {
+        SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
+        this.incremental = incremental;
+        return this;
+    }
+
     /**
      * Internal method.
      */
@@ -512,6 +526,14 @@ public class CompileOptions extends AbstractOptions {
             return !warnings;
         }
         return value;
+    }
+
+    /**
+     * informs whether to use experimental incremental compilation feature. See {@link #setIncremental(boolean)}
+     */
+    @Incubating
+    public boolean isIncremental() {
+        return incremental;
     }
 }
 
