@@ -52,7 +52,7 @@ public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> impl
         if (usingVisualCToolChain) {
             Collections.addAll(args, "/Fo" + outputFilePath);
         } else {
-            Collections.addAll(args, "-Fo", outputFilePath);
+            Collections.addAll(args, "-o", outputFilePath);
         }
         return args;
     }

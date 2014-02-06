@@ -17,14 +17,18 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc
 
 import org.gradle.api.Action
+import org.gradle.internal.hash.HashUtil
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec
 import org.gradle.nativebinaries.language.c.internal.DefaultCCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import org.gradle.internal.os.OperatingSystem
 
 class CCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
@@ -34,6 +38,7 @@ class CCompilerTest extends Specification {
     Action<List<String>> argAction = Mock(Action)
     CommandLineTool<CCompileSpec> commandLineTool = new CommandLineTool<CCompileSpec>("cCompiler", executable, execActionFactory)
     CCompiler compiler = new CCompiler(commandLineTool, argAction, false);
+    String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
 
     def "compiles all source files in separate executions"() {
         given:
@@ -54,14 +59,17 @@ class CCompilerTest extends Specification {
         compiler.execute(compileSpec)
 
         then:
+        2 * argAction.execute([
+                "-x", "c",
+                "-Dfoo=bar", "-Dempty",
+                "-firstArg", "-secondArg",
+                "-c",
+                "-I", testDir.file("include.h").absolutePath])
+
         ["one.c", "two.c"].each{ sourceFileName ->
-            1 * argAction.execute([
-                    "-x", "c",
-                    "-Dfoo=bar", "-Dempty",
-                    "-firstArg", "-secondArg",
-                    "-c",
-                    "-I", testDir.file("include.h").absolutePath,
-                    testDir.file(sourceFileName).absolutePath])
+
+            TestFile sourceFile = testDir.file(sourceFileName)
+            String objectOutputPath = outputFilePathFor(objectFileDir, sourceFile)
 
             1 * execAction.args([
                     "-x", "c",
@@ -69,7 +77,8 @@ class CCompilerTest extends Specification {
                     "-firstArg", "-secondArg",
                     "-c",
                     "-I", testDir.file("include.h").absolutePath,
-                    testDir.file(sourceFileName).absolutePath])
+                    testDir.file(sourceFileName).absolutePath,
+                    "-o", objectOutputPath])
 
         }
         2 * execActionFactory.newExecAction() >> execAction
@@ -79,5 +88,11 @@ class CCompilerTest extends Specification {
         2 * execAction.execute()
         0 * execAction._
         0 * argAction._
+    }
+
+    String outputFilePathFor(File objectFileRoot, TestFile testFile) {
+        String relativeObjectFilePath = "${HashUtil.createCompactMD5(testFile.absolutePath)}/${testFile.name - ".c"}$objectFileExtension"
+        String outputFilePath = new File(objectFileRoot, relativeObjectFilePath).absolutePath;
+        outputFilePath
     }
 }
