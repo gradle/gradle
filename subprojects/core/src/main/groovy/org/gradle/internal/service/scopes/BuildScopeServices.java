@@ -202,8 +202,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 getFactory(LoggingManagerInternal.class),
                 get(Instantiator.class),
                 get(ScriptHandlerFactory.class),
-                get(PluginResolverFactory.class),
-                get(ClassLoaderRegistry.class).getGradleApiClassLoader()
+                get(PluginResolverFactory.class)
         );
     }
 

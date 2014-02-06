@@ -48,22 +48,19 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final Instantiator instantiator;
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final PluginResolverFactory pluginResolverFactory;
-    private final ClassLoader initialCompileClassLoader;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       ImportsReader importsReader,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
                                       ScriptHandlerFactory scriptHandlerFactory,
-                                      PluginResolverFactory pluginResolverFactory,
-                                      ClassLoader initialCompileClassLoader) {
+                                      PluginResolverFactory pluginResolverFactory) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.pluginResolverFactory = pluginResolverFactory;
-        this.initialCompileClassLoader = initialCompileClassLoader;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptClass) {
@@ -115,7 +112,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             }
 
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
-            compiler.setClassloader(initialCompileClassLoader);
+            compiler.setClassloader(classLoaderScope.getBase().getChildClassLoader());
 
             PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName);
 
