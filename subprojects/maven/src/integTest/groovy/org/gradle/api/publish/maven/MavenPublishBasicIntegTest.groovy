@@ -83,9 +83,6 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         def module = mavenRepo.module('org.gradle.test', 'empty-project', '1.0')
         module.assertPublishedAsPomModule()
         module.parsedPom.scopes.isEmpty()
-
-        and:
-        resolveArtifacts(module) == []
     }
 
     def "can publish simple jar"() {
