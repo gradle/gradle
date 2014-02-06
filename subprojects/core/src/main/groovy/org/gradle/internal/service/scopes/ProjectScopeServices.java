@@ -80,7 +80,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(ClassLoaderScope.class), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(project.getClassLoaderScope(), new DependencyInjectingInstantiator(this));
     }
 
     protected FileResolver createFileResolver() {
