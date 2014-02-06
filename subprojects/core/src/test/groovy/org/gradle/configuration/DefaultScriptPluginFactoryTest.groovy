@@ -39,18 +39,19 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def script = Mock(BasicScript)
     def instantiator = Mock(Instantiator)
     def classLoaderScope = Mock(ClassLoaderScope)
+    def baseClassLoaderScope = Mock(ClassLoaderScope)
     def scopeClassLoader = Mock(ClassLoader)
+    def baseChildClassLoader = Mock(ClassLoader)
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
     def pluginResolverFactory = Mock(PluginResolverFactory)
     def scriptHandler = Mock(ScriptHandler)
     def classPathScriptRunner = Mock(ScriptRunner)
     def classPathScript = Mock(BasicScript)
     def loggingManagerFactory = Mock(Factory) as Factory<LoggingManagerInternal>
-    def initialCompileClassLoader = Mock(ClassLoader)
     def sourceWithImports = Mock(ScriptSource)
     def loggingManager = Mock(LoggingManagerInternal)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginResolverFactory, initialCompileClassLoader)
+    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginResolverFactory)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)
@@ -58,6 +59,8 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         def configuration = Mock(Configuration)
         configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION) >> configuration
         configuration.getFiles() >> Collections.emptySet()
+        classLoaderScope.getBase() >> baseClassLoaderScope
+        baseClassLoaderScope.getChildClassLoader() >> baseChildClassLoader
 
         1 * classLoaderScope.getScopeClassLoader() >> scopeClassLoader
     }
@@ -69,7 +72,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * loggingManagerFactory.create() >> loggingManager
         1 * importsReader.withImports(scriptSource) >> sourceWithImports
         1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
-        1 * scriptCompiler.setClassloader(initialCompileClassLoader)
+        1 * scriptCompiler.setClassloader(baseChildClassLoader)
         1 * scriptCompiler.setTransformer(_ as StatementExtractingScriptTransformer)
         1 * scriptCompiler.compile(DefaultScript) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
@@ -94,7 +97,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * loggingManagerFactory.create() >> loggingManager
         1 * importsReader.withImports(scriptSource) >> sourceWithImports
         1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
-        1 * scriptCompiler.setClassloader(initialCompileClassLoader)
+        1 * scriptCompiler.setClassloader(baseChildClassLoader)
         1 * scriptCompiler.setTransformer(_ as StatementExtractingScriptTransformer)
         1 * scriptCompiler.compile(DefaultScript) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript

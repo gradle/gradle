@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.*
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
-
 import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.DefaultAntBuilderFactory
@@ -46,7 +45,6 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
-
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -69,6 +67,7 @@ class ProjectScopeServicesTest extends Specification {
         project.gradle >> gradle
         project.projectDir >> new File("project-dir").absoluteFile
         project.buildScriptSource >> Stub(ScriptSource)
+        project.getClassLoaderScope() >> classLoaderScope
         parent.get(ITaskFactory) >> taskFactory
         parent.get(DependencyFactory) >> dependencyFactory
         parent.get(PluginRegistry) >> pluginRegistry
@@ -77,7 +76,6 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
-        parent.get(ClassLoaderScope) >> classLoaderScope
         registry = new ProjectScopeServices(parent, project)
     }
 

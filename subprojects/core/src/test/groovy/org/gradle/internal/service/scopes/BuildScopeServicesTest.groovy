@@ -36,10 +36,8 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory
 import org.gradle.initialization.*
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
-import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-
 import org.gradle.listener.DefaultListenerManager
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
@@ -155,7 +153,6 @@ public class BuildScopeServicesTest extends Specification {
     def providesAnInitScriptHandler() {
         setup:
         allowGetCoreImplClassLoader()
-        expectScriptClassLoaderCreated()
         expectListenerManagerCreated()
         allowGetGradleDistributionLocator()
 
@@ -275,10 +272,6 @@ public class BuildScopeServicesTest extends Specification {
 
     private void allowGetCoreImplClassLoader() {
         classLoaderRegistry.getCoreImplClassLoader() >> new ClassLoader() {}
-    }
-
-    private void expectScriptClassLoaderCreated() {
-        1 * classLoaderRegistry.gradleApiClassLoader >> new MultiParentClassLoader()
     }
 
     private void allowGetGradleDistributionLocator() {
