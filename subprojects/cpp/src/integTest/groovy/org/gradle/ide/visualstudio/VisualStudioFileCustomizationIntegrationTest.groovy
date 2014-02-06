@@ -74,10 +74,8 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 
         and:
         final projectFile = projectFile("very/deeply/nested/mainExe.vcxproj")
-        def cppSourceFiles = file("src/main/cpp").listFiles().collect { file ->
-            "../../../src/main/cpp/${file.name}"
-        }
-        projectFile.sourceFiles == ['../../../build.gradle'] + cppSourceFiles
+        assert projectFile.headerFiles == app.headerFiles*.withPath("../../../src/main").sort()
+        assert projectFile.sourceFiles == ['../../../build.gradle'] + app.sourceFiles*.withPath("../../../src/main").sort()
         projectFile.projectConfigurations.values().each {
             assert it.buildCommand == "../../../gradlew.bat -p \"../../..\" :install${it.name.capitalize()}MainExecutable"
             assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/mainExecutable/${it.name}/lib/main")

@@ -117,4 +117,8 @@ STRINGTABLE
 }
 """)
     ]
+
+    List<SourceFile> getResourceSources() {
+        getLibrarySources().subList(1, 2)
+    }
 }

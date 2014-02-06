@@ -504,10 +504,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         final projectFile = projectFile("mainExe.vcxproj")
-        projectFile.assertHasComponentSources(resourceApp, "src/main")
-//        projectFile.sourceFiles == projectSourceFiles("src/main/cpp")
-//        projectFile.resourceFiles == allFiles("src/main/rc")
-//        projectFile.headerFiles == allFiles("src/main/headers")
+        final List<SourceFile> resources = resourceApp.resourceSources
+        final List<SourceFile> sources = resourceApp.sourceFiles - resources
+        assert projectFile.headerFiles == resourceApp.headerFiles*.withPath("src/main").sort()
+        assert projectFile.sourceFiles == ['build.gradle'] + sources*.withPath("src/main").sort()
+        assert projectFile.resourceFiles == resources*.withPath("src/main").sort()
+
         projectFile.projectConfigurations.keySet() == projectConfigurations
         with (projectFile.projectConfigurations['win32Debug']) {
             macros == "TEST;foo=bar"
