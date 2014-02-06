@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.jvm.Jvm;
@@ -508,6 +509,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         properties.put("file.encoding", getDefaultCharacterEncoding());
+
+        properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, "true");
 
         return properties;
     }

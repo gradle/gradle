@@ -27,6 +27,9 @@ import java.util.List;
 
 public class DefaultClassLoaderScope implements ClassLoaderScope {
 
+    public static final String STRICT_MODE_PROPERTY = "org.gradle.classloaderscope.strict";
+    private static final boolean STRICT_MODE = Boolean.getBoolean(STRICT_MODE_PROPERTY);
+
     private final ClassLoaderScope parent;
     private final ClassLoaderScope base;
 
@@ -71,6 +74,10 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
                     createFlexibleLoaderStructure();
                 }
             } else { // creating before locking, have to create the most flexible setup
+                if (STRICT_MODE) {
+                    throw new IllegalStateException("Attempt to define scope class loader before scope is locked");
+                }
+
                 createFlexibleLoaderStructure();
             }
 
