@@ -18,7 +18,6 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import groovy.lang.Script;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -49,7 +48,6 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
@@ -273,22 +271,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return scriptHandler;
     }
 
-    public void beforeCompile(ScriptPlugin configurer) {
-        // nothing
-    }
-
-    public void afterCompile(ScriptPlugin configurer, org.gradle.groovy.scripts.Script script) {
-        if (configurer.getSource() != buildScriptSource) {
-            return;
-        }
-        setScript(script);
-    }
-
     public File getBuildFile() {
         return getBuildscript().getSourceFile();
     }
 
-    public void setScript(Script buildScript) {
+    public void setScript(groovy.lang.Script buildScript) {
         extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties().withNotImplementsMissing(),
                 ExtensibleDynamicObject.Location.BeforeConvention);
     }

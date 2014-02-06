@@ -96,12 +96,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandler.class, scriptHandler);
 
-            ScriptAware scriptAware = null;
-            if (target instanceof ScriptAware) {
-                scriptAware = (ScriptAware) target;
-                scriptAware.beforeCompile(this);
-            }
-
             ScriptSource withImports = importsReader.withImports(scriptSource);
 
             List<PluginRequest> pluginRequests = new LinkedList<PluginRequest>();
@@ -147,8 +141,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             BasicScript script = runner.getScript();
             script.init(target, services);
-            if (scriptAware != null) {
-                scriptAware.afterCompile(this, script);
+            if (target instanceof ScriptAware) {
+                ((ScriptAware) target).setScript(script);
             }
             runner.run();
         }
