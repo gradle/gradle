@@ -277,27 +277,27 @@ public interface JvmLibrarySourceArtifact extends JvmLibraryArtifact
 #### New mockup that takes into account additional requirements from spec review
 
 ResolutionResult resolutionResult = configuration.incoming.resolutionResult // Buildable
-ResolutionResult internalComponents = resolutionResult.findAll { ResolvedComponentResult componentResult -> componentResult.component.isInternal() }
-ResolutionResult externalComponents = resolutionResult.findAll { ResolvedComponentResult componentResult -> componentResult.component.isExternal() }
+ResolutionResult internalComponents = resolutionResult.filter { ResolvedComponentResult componentResult -> componentResult.component.isInternal() }
+ResolutionResult externalComponents = resolutionResult.filter { ResolvedComponentResult componentResult -> componentResult.component.isExternal() }
 
 ArtifactResolutionQuery query = externalComponents.artifactResolutionQueryBuilder()
     .withArtifacts(JvmLibrary, JvmLibraryMainArtifact, JvmLibrarySourceArtifact)
     .withArtifacts(AndroidLibrary, AndroidLibraryMainArtifact)
     .build();
 
-ArtifactResolutionResult result = resolutionResult.getArtifactResolutionResult(query)
-result.resolutionFailures.each {
+ArtifactResolutionResult artifactResult = externalComponents.getArtifactResolutionResult(query)
+artifactResult.resolutionFailures.each {
   println it.componentId
   println it.artifactId
   println it.exception
 }
-result.getComponents(JvmLibrary).each {
+artifactResult.getComponents(JvmLibrary).each {
   println it.mainArtifacts
   println it.sourceArtifacts
   println it.javadocArtifacts
   println it.artifacts // inherited from base interface
 }
-result.getComponents(AndroidLibrary).each {
+artifactResult.getComponents(AndroidLibrary).each {
   ...
 }
 
