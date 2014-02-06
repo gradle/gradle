@@ -18,13 +18,12 @@ package org.gradle.ide.visualstudio.tasks.internal;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.Transformer;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class RelativeFileNameTransformer implements Transformer<String, File> {
     private final File rootDir;
@@ -68,9 +67,8 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
     }
 
     private String findRelativePath(String from, String to) {
-        String fileSeparatorPattern = Pattern.quote(File.separator);
-        List<String> fromPath = CollectionUtils.toList(from.split(fileSeparatorPattern));
-        List<String> toPath = CollectionUtils.toList(to.split(fileSeparatorPattern));
+        List<String> fromPath = splitPath(from);
+        List<String> toPath = splitPath(to);
         List<String> relativePath = new ArrayList<String>();
 
         while (!fromPath.isEmpty() && !toPath.isEmpty() && fromPath.get(0).equals(toPath.get(0))) {
@@ -84,5 +82,15 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
             relativePath.add(entry);
         }
         return Joiner.on(File.separatorChar).join(relativePath);
+    }
+
+    private List<String> splitPath(String path) {
+        File pathFile = new File(path);
+        List<String> split = new LinkedList<String>();
+        while (pathFile != null) {
+            split.add(0, pathFile.getName());
+            pathFile = pathFile.getParentFile();
+        }
+        return split;
     }
 }
