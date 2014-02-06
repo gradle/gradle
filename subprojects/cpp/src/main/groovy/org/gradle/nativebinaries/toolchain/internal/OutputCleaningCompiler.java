@@ -52,6 +52,7 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
             File objectFile = getObjectFile(spec.getObjectFileDir(), removedSource);
             if (objectFile.delete()) {
                 didRemove = true;
+                objectFile.getParentFile().delete();
             }
         }
         return didRemove;

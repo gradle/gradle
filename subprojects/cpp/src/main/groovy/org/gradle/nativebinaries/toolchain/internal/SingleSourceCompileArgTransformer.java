@@ -42,7 +42,10 @@ public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> impl
         args.add(sourceFile.getAbsolutePath());
 
         File outputFileDir = getOutputFileDir(sourceFile, spec.getObjectFileDir());
-        outputFileDir.mkdir();
+        if(outputFileDir.exists()){
+            outputFileDir.mkdir();
+        }
+
         String outputFilePath = new File(outputFileDir, objectFileName).getAbsolutePath();
 
         if (usingVisualCToolChain) {
