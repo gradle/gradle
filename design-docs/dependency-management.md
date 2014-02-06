@@ -304,6 +304,10 @@ artifactResult.getComponents(AndroidLibrary).each {
 I'm not sure if typed components (JvmLibrary etc.) should be available after the first resolve (incoming.resolutionResult),
 or only after the second one (resolutionResult.getArtifactResolutionResult).
 
+Instead of, or in addition to, specialized artifact abstractions such as `JvmLibraryMainArtifact` and `JvmLibrarySourceArtifact`,
+we could have generic ones such as `MainArtifact` and `SourceArtifact`. Question is how many domains we should abstract over
+(e.g. whether Java and CPP domains should use the same `SourceArtifact` base abstraction).
+
 ## Story: IDE plugins use the resolution result to determine library source and Javadoc artifacts
 
 This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
