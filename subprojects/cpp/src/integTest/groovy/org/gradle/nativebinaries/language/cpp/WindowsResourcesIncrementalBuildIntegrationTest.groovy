@@ -74,7 +74,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped ":resourceCompileMainExecutableMainRc", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainRc", ":linkMainExecutable", ":mainExecutable"
 
         and:
         mainExe.exec().out == "Goodbye"
@@ -90,7 +90,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped ":resourceCompileMainExecutableMainRc"
+        executedAndNotSkipped ":compileMainExecutableMainRc"
         skipped ":linkMainExecutable", ":mainExecutable"
     }
 
@@ -110,7 +110,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped ":resourceCompileMainExecutableMainRc", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainRc", ":linkMainExecutable", ":mainExecutable"
     }
 
     def "stale .res files are removed when a resource source file is renamed"() {
@@ -125,7 +125,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped ":resourceCompileMainExecutableMainRc"
+        executedAndNotSkipped ":compileMainExecutableMainRc"
 
         and:
         !oldResFile.file
@@ -144,7 +144,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then: "No resource compilation"
-        skipped ":resourceCompileMainExecutableMainRc"
+        skipped ":compileMainExecutableMainRc"
         resourceFile.lastModified() == 0
 
         when:
@@ -155,7 +155,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then: "Resource is recompiled"
-        executedAndNotSkipped ":resourceCompileMainExecutableMainRc"
+        executedAndNotSkipped ":compileMainExecutableMainRc"
         resourceFile.lastModified() > 0
     }
 }

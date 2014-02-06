@@ -98,6 +98,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Changes to incubating native support
 
 * '-Xlinker' is no longer automatically added to linker args for GCC or Clang. If you want to pass an argument directly to 'ld' you need to add this escape yourself.
+* Tasks for windows resource compilation are now named 'compileXXXX' instead of 'resourceCompileXXX'.
 
 ### Change to treatment of poms with packaging 'pom'
 

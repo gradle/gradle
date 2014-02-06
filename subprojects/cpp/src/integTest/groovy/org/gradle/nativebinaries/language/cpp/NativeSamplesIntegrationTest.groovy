@@ -178,7 +178,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         run "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":resourceCompileHelloSharedLibraryHelloRc",
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":compileHelloSharedLibraryHelloRc",
                               ":linkHelloSharedLibrary", ":helloSharedLibrary",
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 

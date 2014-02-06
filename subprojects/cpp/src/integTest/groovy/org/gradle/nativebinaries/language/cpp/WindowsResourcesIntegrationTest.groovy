@@ -43,7 +43,7 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':resourceCompileMainExecutableMainRc'.");
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.");
         failure.assertHasCause("Windows resource compiler failed; see the error output for details.")
     }
 
