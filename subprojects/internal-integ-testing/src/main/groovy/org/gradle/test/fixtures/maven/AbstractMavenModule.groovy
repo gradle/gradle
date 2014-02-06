@@ -319,18 +319,20 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     MavenModule publish() {
 
         publishPom()
+
         artifacts.each { artifact ->
             publishArtifact(artifact)
         }
-        publishArtifact([:])
+        if (type != 'pom') {
+            publishArtifact([:])
+        }
+
         return this
     }
 
     File publishArtifact(Map<String, ?> artifact) {
         def artifactFile = artifactFile(artifact)
-        if (type == 'pom') {
-            return artifactFile
-        }
+
         publish(artifactFile) { Writer writer ->
             writer << "${artifactFile.name} : $artifactContent"
         }

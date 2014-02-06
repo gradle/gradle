@@ -99,6 +99,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 * '-Xlinker' is no longer automatically added to linker args for GCC or Clang. If you want to pass an argument directly to 'ld' you need to add this escape yourself.
 
+### Change to treatment of poms with packaging 'pom'
+
+If you have a dependency who's pom has packaging of 'pom', Gradle now expects that there will always be an associated jar artifact and will fail to resolve if there is not.
+In particular, this means that you can not have a dependency with a pom that only declares further dependencies and has no artifacts itself.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
