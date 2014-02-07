@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.cache.CacheBuilder;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -27,8 +28,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.*;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.*;
@@ -278,6 +278,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
         return new BuildScopeServiceRegistryFactory(services);
+    }
+
+    protected ClassLoaderCache createClassLoaderCache() {
+        return new DefaultClassLoaderCache(CacheBuilder.newBuilder().<DefaultClassLoaderCache.Key, ClassLoader>build());
+    }
+
+    protected ClassLoaderScope createClassLoaderScope(ClassLoaderRegistry classLoaderRegistry, ClassLoaderCache classLoaderCache) {
+        return new RootClassLoaderScope(classLoaderRegistry.getGradleApiClassLoader(), classLoaderCache);
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {

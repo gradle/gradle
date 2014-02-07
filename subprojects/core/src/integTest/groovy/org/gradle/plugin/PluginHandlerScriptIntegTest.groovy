@@ -367,4 +367,37 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         errorOutput.contains "Plugin 'plugin' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: 'plugin'\" outside of the plugins {} block)"
     }
 
+    def "plugin classes are reused across projects"() {
+        when:
+        bintray.start()
+        publishPluginToBintray("test", "test", "test")
+
+        // resolution is currently not cached, 3 searches are going to happen
+        bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
+        bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
+        bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
+
+        settingsFile << "include 'sub1', 'sub2'"
+
+        ["sub1/build.gradle", "sub2/build.gradle", "build.gradle"].each {
+            file(it) << """
+                plugins {
+                    apply plugin: "test", version: "$pluginVersion"
+                }
+                ext.pluginClass = org.gradle.test.TestPlugin
+            """
+        }
+
+        file("build.gradle") << """
+            evaluationDependsOnChildren()
+
+            pluginClass.is project(":sub1").pluginClass
+            pluginClass.is project(":sub2").pluginClass
+            project(":sub1").pluginClass.is project(":sub2").pluginClass
+        """
+
+        then:
+        succeeds "tasks"
+    }
+
 }

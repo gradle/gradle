@@ -61,7 +61,7 @@ class DefaultScriptHandlerFactoryTest extends Specification {
 //        then:
 //        handler2 instanceof NoClassLoaderUpdateScriptHandler
 //        handler1.baseCompilationClassLoader == handler2.baseCompilationClassLoader
-//        handler1.classLoader == handler2.classLoader
+//        handler1.scopeClassLoader == handler2.scopeClassLoader
 //    }
 
     def doesNotReuseClassLoaderForDifferentScriptClass() {

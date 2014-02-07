@@ -18,10 +18,8 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
-import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,20 +30,22 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     private final ClassLoaderScope parent;
     private final ClassLoaderScope base;
+    private final ClassLoaderCache classLoaderCache;
 
     private boolean locked;
 
     private List<ClassLoader> local;
 
-    private ClassLoader classLoader;
+    private ClassLoader scopeClassLoader;
 
-    private MutableURLClassLoader exportingClassLoader;
+    private MultiParentClassLoader exportingClassLoader;
     private MultiParentClassLoader localClassLoader;
     private ClassLoader childrenParent;
 
-    public DefaultClassLoaderScope(ClassLoaderScope parent, ClassLoaderScope base) {
+    public DefaultClassLoaderScope(ClassLoaderScope parent, ClassLoaderScope base, ClassLoaderCache classLoaderCache) {
         this.parent = parent;
         this.base = base;
+        this.classLoaderCache = classLoaderCache;
     }
 
     public ClassLoader getChildClassLoader() {
@@ -58,18 +58,18 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     }
 
     public ClassLoader getScopeClassLoader() {
-        if (classLoader == null) {
+        if (scopeClassLoader == null) {
             if (locked) {
                 if (local == null && exportingClassLoader == null) { // best case, no additions
-                    classLoader = parent.getChildClassLoader();
-                    childrenParent = classLoader;
+                    scopeClassLoader = parent.getChildClassLoader();
+                    childrenParent = scopeClassLoader;
                 } else if (exportingClassLoader == null) { // no impact on children
                     localClassLoader = new MultiParentClassLoader(parent.getChildClassLoader());
-                    classLoader = new CachingClassLoader(localClassLoader);
+                    scopeClassLoader = new CachingClassLoader(localClassLoader);
                     childrenParent = parent.getChildClassLoader();
                 } else if (local == null) {
-                    classLoader = exportingClassLoader;
-                    childrenParent = classLoader;
+                    scopeClassLoader = exportingClassLoader;
+                    childrenParent = scopeClassLoader;
                 } else {
                     createFlexibleLoaderStructure();
                 }
@@ -88,7 +88,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
             }
         }
 
-        return classLoader;
+        return scopeClassLoader;
     }
 
     private void addLocal(ClassLoader newClassLoader) {
@@ -98,11 +98,11 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     private void createFlexibleLoaderStructure() {
         if (exportingClassLoader == null) {
-            exportingClassLoader = new MutableURLClassLoader(parent.getChildClassLoader());
+            exportingClassLoader = new MultiParentClassLoader();
         }
 
         localClassLoader = new MultiParentClassLoader(exportingClassLoader);
-        classLoader = new CachingClassLoader(localClassLoader);
+        scopeClassLoader = new CachingClassLoader(localClassLoader);
         childrenParent = exportingClassLoader;
     }
 
@@ -115,7 +115,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
                 local = new ArrayList<ClassLoader>(1);
             }
 
-            URLClassLoader newClassLoader = new URLClassLoader(classpath.getAsURLArray(), base.getChildClassLoader());
+            ClassLoader newClassLoader = classLoaderCache.get(base.getChildClassLoader(), classpath, null);
             local.add(newClassLoader);
 
             if (localClassLoader != null) { // classloader was eagerly created, have to add
@@ -136,23 +136,25 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
             return parent.getChildClassLoader();
         } else {
             if (exportingClassLoader == null) {
-                exportingClassLoader = new MutableURLClassLoader(parent.getChildClassLoader());
+                exportingClassLoader = new MultiParentClassLoader();
             }
-            exportingClassLoader.addURLs(classpath.getAsURLs());
-            return exportingClassLoader;
+
+            ClassLoader classLoader = classLoaderCache.get(parent.getChildClassLoader(), classpath, null);
+            exportingClassLoader.addParent(classLoader);
+            return classLoader;
         }
     }
 
     public ClassLoaderScope createSibling() {
-        return new DefaultClassLoaderScope(parent, base);
+        return new DefaultClassLoaderScope(parent, base, classLoaderCache);
     }
 
     public ClassLoaderScope createChild() {
-        return new DefaultClassLoaderScope(this, base);
+        return new DefaultClassLoaderScope(this, base, classLoaderCache);
     }
 
     public ClassLoaderScope createRebasedChild() {
-        return new DefaultClassLoaderScope(this, this);
+        return new DefaultClassLoaderScope(this, this, classLoaderCache);
     }
 
     public void lock() {

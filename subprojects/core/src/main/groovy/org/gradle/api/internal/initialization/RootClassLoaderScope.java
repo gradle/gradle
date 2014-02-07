@@ -21,9 +21,11 @@ import org.gradle.internal.classpath.ClassPath;
 public class RootClassLoaderScope implements ClassLoaderScope {
 
     private final ClassLoader classLoader;
+    private final ClassLoaderCache classLoaderCache;
 
-    public RootClassLoaderScope(ClassLoader classLoader) {
+    public RootClassLoaderScope(ClassLoader classLoader, ClassLoaderCache classLoaderCache) {
         this.classLoader = classLoader;
+        this.classLoaderCache = classLoaderCache;
     }
 
     public ClassLoader getScopeClassLoader() {
@@ -51,7 +53,7 @@ public class RootClassLoaderScope implements ClassLoaderScope {
     }
 
     public ClassLoaderScope createChild() {
-        return new DefaultClassLoaderScope(this, this);
+        return new DefaultClassLoaderScope(this, this, classLoaderCache);
     }
 
     public ClassLoaderScope createRebasedChild() {

@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.initialization
 
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import org.gradle.internal.classloader.CachingClassLoader
-import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestFile
@@ -34,14 +35,17 @@ class DefaultClassLoaderScopeTest extends Specification {
     ClassLoaderScope base
     ClassLoaderScope scope
 
+    Cache<DefaultClassLoaderCache.Key, ClassLoader> backingCache = CacheBuilder.newBuilder().build();
+    ClassLoaderCache classLoaderCache = new DefaultClassLoaderCache(backingCache);
+
     @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     def setup() {
         parentClassLoader = new URLClassLoader(classPath("root").asURLArray)
         baseClassLoader = new URLClassLoader(classPath("base").asURLArray)
-        parent = new RootClassLoaderScope(parentClassLoader)
-        base = new RootClassLoaderScope(baseClassLoader)
-        scope = new DefaultClassLoaderScope(parent, base)
+        parent = new RootClassLoaderScope(parentClassLoader, classLoaderCache)
+        base = new RootClassLoaderScope(baseClassLoader, classLoaderCache)
+        scope = new DefaultClassLoaderScope(parent, base, classLoaderCache)
     }
 
     TestFile file(String path) {
@@ -104,9 +108,8 @@ class DefaultClassLoaderScopeTest extends Specification {
     }
 
     def "requesting loaders before locking creates pessimistic setup"() {
-        expect:
-        scope.scopeClassLoader instanceof CachingClassLoader
-        scope.childClassLoader instanceof MutableURLClassLoader
+        given:
+        scope.scopeClassLoader // trigger
 
         when:
         file("local/local") << "bar"
@@ -193,4 +196,30 @@ class DefaultClassLoaderScopeTest extends Specification {
         childLocalClassLoader.getResource("childLocal").text == "bar"
     }
 
+    def "class loaders are reused"() {
+        expect:
+        backingCache.size() == 0
+
+        when:
+        file("c1/c1") << "bar"
+        file("c2/c2") << "bar"
+        def c1ExportLoader = scope.export(classPath("c1"))
+        def c2Local = scope.addLocal(classPath("c2"))
+        scope.lock()
+
+        def sibling = scope.createSibling()
+        def child = scope.createChild()
+
+        then:
+        backingCache.size() == 2
+        sibling.export(classPath("c1")).is c1ExportLoader
+        backingCache.size() == 2
+
+        !child.export(classPath("c1")).is(c1ExportLoader) // classpath is the same, but parent is different
+        backingCache.size() == 3
+
+        sibling.addLocal(classPath("c2")).is c2Local
+        child.addLocal(classPath("c2")).is c2Local
+        backingCache.size() == 3
+    }
 }
