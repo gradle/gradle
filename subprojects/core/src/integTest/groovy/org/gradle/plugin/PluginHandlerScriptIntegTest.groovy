@@ -447,4 +447,53 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         executedTasks == [":p1", ":p2"]
     }
 
+    def "plugin classes are not available to child projects"() {
+        given:
+        bintray.start()
+        def pb = pluginBuilder().addPlugin("", "plugin")
+        publishPluginToBintray(pb, "plugin", "plugin")
+        bintray.api.expectPackageSearch("plugin", new BintrayApi.FoundPackage(pluginVersion, "plugin:plugin"))
+
+        when:
+        settingsFile << "include 'child'"
+        buildScript """
+            ${testPluginPluginsBlock()}
+            import org.gradle.test.TestPlugin
+        """
+        file("child/build.gradle") << """
+            import org.gradle.test.TestPlugin
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("Could not compile build file '${file("child/build.gradle")}'.")
+    }
+
+    def "plugins cannot be applied by child projects"() {
+        given:
+        bintray.start()
+        def pb = pluginBuilder().addPlugin("", "plugin")
+        publishPluginToBintray(pb, "plugin", "plugin")
+        bintray.api.expectPackageSearch("plugin", new BintrayApi.FoundPackage(pluginVersion, "plugin:plugin"))
+
+        when:
+        settingsFile << "include 'child'"
+        buildScript """
+            ${testPluginPluginsBlock()}
+            import org.gradle.test.TestPlugin
+        """
+        file("child/build.gradle") << """
+            apply plugin: 'plugin'
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Plugin with id 'plugin' not found.")
+    }
+
 }
