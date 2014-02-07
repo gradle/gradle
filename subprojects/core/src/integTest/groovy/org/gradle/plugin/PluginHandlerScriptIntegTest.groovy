@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.bintray.BintrayTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.GradleVersion
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -407,14 +406,13 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         succeeds "tasks"
     }
 
-    @Ignore("not currently implemented, requirement in dispute")
-    def "classes from plugin block are visible to classes from buildscript block"() {
+    def "classes from plugin block are not visible to classes from buildscript block"() {
         given:
         def pb1 = pluginBuilder()
         def pb2 = pluginBuilder()
 
-        pb1.addPlugin("project.task('p1')", "p1", "PluginOne")
-        pb2.addPlugin("apply plugin: PluginOne; project.task('p2').dependsOn(project.tasks.p1)", "p2", "PluginTwo")
+        pb1.addPlugin("getClass().classLoader.loadClass('org.gradle.test.PluginOne')", "p1", "PluginOne")
+        pb2.addPlugin("getClass().classLoader.loadClass('org.gradle.test.PluginOne')", "p2", "PluginTwo")
 
         bintray.start()
 
@@ -424,6 +422,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         publishPluginToBintray(pb2, "p2", "p2")
 
         when:
+        settingsFile << "rootProject.name = 'tp'"
         buildScript """
             buildscript {
                 repositories {
@@ -441,10 +440,12 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "p2"
+        fails "tasks"
 
         and:
-        executedTasks == [":p1", ":p2"]
+        failure.assertHasDescription("A problem occurred evaluating root project 'tp'.")
+        failure.assertHasCause("org.gradle.test.PluginOne") // message of ClassNotFoundException
+        failure.assertHasLineNumber(14) // asserts that  'apply plugin: "p2"' is the line that fails
     }
 
     def "plugin classes are not available to child projects"() {

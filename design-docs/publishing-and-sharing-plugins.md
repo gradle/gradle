@@ -302,7 +302,8 @@ At this stage, dependencies on other plugins are not supported. Dependencies on 
 
 - The classes from plugins declared in a script's `plugins { ... }` block are visible:
     - when compiling the script. (✓)
-    - from classes declared in a script's `buildscript { ... }` block.
+- The classes from plugins declared in a script's `plugins { ... }` block are NOT visible:
+    - from classes declared in a script's `buildscript { ... }` block. (✓)
 - When a parent project's build script uses a `plugins { ... }` block to apply non-core plugins:
     - The classes from plugins are not visible when compiling a child project's build script. (✓)
     - The plugins are not visible via a child project's `Project.apply()` method. (✓)
