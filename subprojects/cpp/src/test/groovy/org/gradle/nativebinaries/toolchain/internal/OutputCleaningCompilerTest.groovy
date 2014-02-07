@@ -37,48 +37,50 @@ class OutputCleaningCompilerTest extends Specification {
     TestFile outputDir = tmpDirProvider.createDir("objectFiles")
 
     WorkResult workResult = Mock(WorkResult)
-
-    List sourceFiles = Arrays.asList(tmpDirProvider.file("src/main/c/main2.c"), tmpDirProvider.file("src/main/c/foo/main2.c"))
+    List sourceFiles = Arrays.asList(tmpDirProvider.file("src/main/c/main.c"), tmpDirProvider.file("src/main/c/foo/main2.c"))
 
     def setup() {
         _ * spec.objectFileDir >> outputDir
         _ * delegateCompiler.execute(_) >> { NativeCompileSpec spec ->
-                _ * workResult.getDidWork() >> !spec.getSourceFiles().isEmpty();
-                return workResult
+            List<File> sourceFiles = spec.getSourceFiles()
+            sourceFiles.each{ inputFile ->
+                createObjFile(inputFile)
             }
+            _ * workResult.getDidWork() >> !sourceFiles.isEmpty();
+            return workResult
+        }
     }
 
     def "deletes output files and according hash directory"() {
-        setup:
-        withAlreadyCompiledSources(sourceFiles[0], sourceFiles[1])
         when:
-        cleanCompiler.execute(spec)
-
+        compile(sourceFiles[0], sourceFiles[1])
         then:
         outputDir.listFiles().size() == 2
 
         when:
-        withRemovedSourceFile(sourceFiles[0])
+        compile(sourceFiles[0])
+        then:
+        outputDir.listFiles().size() == 1
+        outputDir.listFiles()[0].listFiles().size() == 1
+        outputDir.listFiles()[0].listFiles()[0].name == "main.o"
 
-        cleanCompiler.execute(spec)
+
+        when:
+        compile(sourceFiles[1])
         then:
         outputDir.listFiles().size() == 1
         outputDir.listFiles()[0].listFiles().size() == 1
         outputDir.listFiles()[0].listFiles()[0].name == "main2.o"
     }
 
-    def withRemovedSourceFile(TestFile... removedSourceFiles) {
-        _ * spec.getRemovedSourceFiles() >> removedSourceFiles
-        _ * spec.getSourceFiles() >> (sourceFiles - removedSourceFiles)
-    }
+    def compile(TestFile... sourceToCompile) {
+        List<TestFile> toCompile = Arrays.asList(sourceToCompile)
+        List<TestFile> toRemove = sourceFiles - toCompile
+        2 * spec.getSourceFiles() >> toCompile
 
-    def withAlreadyCompiledSources(File... sourceFiles) {
-        sourceFiles.each{ sourceFile ->
-            createObjFile(sourceFile)
-        }
+        1 * spec.getRemovedSourceFiles() >> toRemove
 
-        2 * spec.getSourceFiles() >> [tmpDirProvider.createFile("src/main/c/main.c"), tmpDirProvider.createFile("src/main/c/main2.c")]
-        1 * spec.getRemovedSourceFiles() >> []
+        cleanCompiler.execute(spec)
     }
 
     def createObjFile(File sourceFile) {
