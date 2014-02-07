@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class IvyCustomStatusLatestVersionIntegrationTest extends AbstractIntegrationSpec {
+class IvyCustomStatusLatestVersionIntegrationTest extends AbstractDependencyResolutionTest {
     def "latest.xyz selects highest version with given or higher status"() {
         given:
         buildFile << """
@@ -58,5 +57,53 @@ task retrieve(type: Sync) {
         "silver" | "1.3"
         "gold"   | "1.2"
         "platin" | "1.0"
+    }
+
+    def "uses status provided by component metadata rule for latest.xyz"() {
+        server.start()
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyRepo.uri}"
+// Using the HTTP repository demonstrates a bug in caching the resolution of 'latest.release' when this is based on a metadata rule
+//        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'org.test:projectA:latest.release'
+    components {
+        eachComponent { details ->
+            if (details.id.version == project.properties['releaseVersion']) {
+                details.status = 'release'
+            }
+        }
+    }
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        and:
+        ivyHttpRepo.allowDirectoryListGet('org.test', 'projectA')
+        ivyHttpRepo.module('org.test', 'projectA', '1.0').withStatus("release").publish().allowAll()
+        ivyHttpRepo.module('org.test', 'projectA', '1.1').withStatus("integration").publish().allowAll()
+
+        when:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-1.0.jar")
+
+        when:
+        executer.withArgument("-PreleaseVersion=1.1")
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-1.1.jar")
     }
 }
