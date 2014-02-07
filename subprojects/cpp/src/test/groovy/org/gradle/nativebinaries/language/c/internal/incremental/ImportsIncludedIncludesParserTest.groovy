@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.language.c.internal.incremental
 
+import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.SourceParser
 import spock.lang.Specification
 
 class ImportsIncludedIncludesParserTest extends Specification {

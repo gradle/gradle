@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.c.internal.incremental;
+package org.gradle.nativebinaries.language.c.internal.incremental.sourceparser;
 
 import java.io.File;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * A parser to extract information from C-compatible source files.
  */
-interface SourceParser {
+public interface SourceParser {
 
     SourceDetails parseSource(File sourceFile);
 

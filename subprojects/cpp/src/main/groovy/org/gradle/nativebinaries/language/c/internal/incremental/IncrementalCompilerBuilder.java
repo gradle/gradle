@@ -17,6 +17,7 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.cache.CacheRepository;
+import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.*;
 import org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile;
 import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;

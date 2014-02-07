@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.c.internal.incremental;
+package org.gradle.nativebinaries.language.c.internal.incremental.sourceparser;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class RegexBackedSourceParser implements SourceParser {
-    private static final String INCLUDE_IMPORT_PATTERN = "#(include|import)\\s+((<[^>]+>)|(\"[^\"]+\"))";
+// TODO:DAZ We might be better with a hand-crafter parser
+public class RegexBackedSourceParser implements SourceParser {
+    private static final String INCLUDE_IMPORT_PATTERN = "\\s*#\\s*(include|import)\\s+((<[^>]+>)|(\"[^\"]+\"))";
     private final Pattern includePattern;
 
     public RegexBackedSourceParser() {
@@ -44,14 +42,14 @@ class RegexBackedSourceParser implements SourceParser {
 
     private void parseFile(File file, DefaultSourceDetails includes) {
         try {
-            BufferedReader bf = new BufferedReader(new FileReader(file));
+            BufferedReader bf = new BufferedReader(new PreprocessingReader(new BufferedReader(new FileReader(file))));
 
             try {
                 String line;
                 while ((line = bf.readLine()) != null) {
                     Matcher m = includePattern.matcher(line);
 
-                    while (m.find()) {
+                    if (m.lookingAt()) {
                         boolean isImport = "import".equals(m.group(1));
                         String included = m.group(2);
                         boolean isSystem = included.startsWith("<");

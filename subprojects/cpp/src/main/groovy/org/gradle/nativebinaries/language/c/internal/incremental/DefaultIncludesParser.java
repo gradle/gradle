@@ -16,6 +16,8 @@
 
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
+import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.SourceParser;
+
 import java.io.File;
 import java.util.List;
 
