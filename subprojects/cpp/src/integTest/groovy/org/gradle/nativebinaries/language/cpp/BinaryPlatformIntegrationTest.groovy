@@ -50,17 +50,20 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
     def "build binary for a default target platform"() {
         given:
-        final SystemInfo systemInfo = Native.get(SystemInfo)
-        def arch = systemInfo.architecture == SystemInfo.Architecture.amd64 ? [main: "x86_64", alt: "amd64"] : [main: "x86", alt: "i386"]
+        def arch =  [name: "x86_64", altName: "amd64"]
+        // VisualCpp builds for i386 by default, even on amd64
+        if (toolChain.visualCpp || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
+            arch = [name: "x86", altName: "i386"]
+        }
 
         when:
         succeeds "mainExecutable"
 
         then:
         executedAndNotSkipped(":mainExecutable")
-        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == arch.main
-        executable("build/binaries/mainExecutable/main").exec().out == "${arch.alt} ${os.familyName}" * 2
-        binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objectFiles/mainExecutable/mainCpp")).arch.name == arch.main
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == arch.name
+        executable("build/binaries/mainExecutable/main").exec().out == "${arch.altName} ${os.familyName}" * 2
+        binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objectFiles/mainExecutable/mainCpp")).arch.name == arch.name
     }
 
     def "configure component for a single target platform"() {
