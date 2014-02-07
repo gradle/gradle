@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.apache.commons.io.IOUtils;
@@ -27,22 +28,21 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class AbstractRegexBackedIncludesParser implements IncludesParser {
-
+class RegexBackedSourceParser implements SourceParser {
+    private static final String INCLUDE_IMPORT_PATTERN = "#(include|import)\\s+((<[^>]+>)|(\"[^\"]+\"))";
     private final Pattern includePattern;
-    private final int matchingGroup;
 
-    public AbstractRegexBackedIncludesParser(String pattern, int matchingGroup){
-        this.includePattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
-        this.matchingGroup = matchingGroup;
+    public RegexBackedSourceParser() {
+        this.includePattern = Pattern.compile(INCLUDE_IMPORT_PATTERN, Pattern.CASE_INSENSITIVE);
     }
-    public Includes parseIncludes(File sourceFile) {
-        DefaultIncludes includes = new DefaultIncludes();
+
+    public SourceDetails parseSource(File sourceFile) {
+        DefaultSourceDetails includes = new DefaultSourceDetails();
         parseFile(sourceFile, includes);
         return includes;
     }
 
-    private void parseFile(File file, DefaultIncludes includes) {
+    private void parseFile(File file, DefaultSourceDetails includes) {
         try {
             BufferedReader bf = new BufferedReader(new FileReader(file));
 
@@ -52,12 +52,10 @@ public class AbstractRegexBackedIncludesParser implements IncludesParser {
                     Matcher m = includePattern.matcher(line);
 
                     while (m.find()) {
-                        String include = m.group(matchingGroup);
-                        if (include.startsWith("<")) {
-                            includes.getSystemIncludes().add(strip(include));
-                        } else {
-                            includes.getQuotedIncludes().add(strip(include));
-                        }
+                        boolean isImport = "import".equals(m.group(1));
+                        String included = m.group(2);
+                        boolean isSystem = included.startsWith("<");
+                        includes.add(strip(included), isImport, isSystem);
                     }
                 }
             } finally {
@@ -72,9 +70,11 @@ public class AbstractRegexBackedIncludesParser implements IncludesParser {
         return include.substring(1, include.length() - 1);
     }
 
-    private static class DefaultIncludes implements Includes {
+    private static class DefaultSourceDetails implements SourceDetails {
         private final List<String> includes = new ArrayList<String>();
         private final List<String> systemIncludes = new ArrayList<String>();
+        private final List<String> imports = new ArrayList<String>();
+        private final List<String> systemImports = new ArrayList<String>();
 
         public List<String> getQuotedIncludes() {
             return includes;
@@ -82,6 +82,26 @@ public class AbstractRegexBackedIncludesParser implements IncludesParser {
 
         public List<String> getSystemIncludes() {
             return systemIncludes;
+        }
+
+        public List<String> getQuotedImports() {
+            return imports;
+        }
+
+        public List<String> getSystemImports() {
+            return systemImports;
+        }
+
+        public void add(String value, boolean imported, boolean system) {
+            if (imported && system) {
+                systemImports.add(value);
+            } else if (imported) {
+                imports.add(value);
+            } else if (system) {
+                systemIncludes.add(value);
+            } else {
+                includes.add(value);
+            }
         }
     }
 }

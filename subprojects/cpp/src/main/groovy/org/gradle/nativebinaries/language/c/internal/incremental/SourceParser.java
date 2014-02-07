@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.language.c.internal.incremental
 
-class DefaultRegexBackedIncludesParserTest extends AbstractRegexBackedIncludesParserTest {
-    IncludesParser parser = new DefaultRegexBackedIncludesParser();
+package org.gradle.nativebinaries.language.c.internal.incremental;
+
+import java.io.File;
+import java.util.List;
+
+/**
+ * A parser to extract information from C-compatible source files.
+ */
+interface SourceParser {
+
+    SourceDetails parseSource(File sourceFile);
+
+    interface SourceDetails {
+        List<String> getQuotedIncludes();
+        List<String> getSystemIncludes();
+        List<String> getQuotedImports();
+        List<String> getSystemImports();
+    }
 }

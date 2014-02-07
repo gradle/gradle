@@ -20,10 +20,9 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-abstract class AbstractRegexBackedIncludesParserTest extends Specification {
+class RegexBackedSourceParserTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-
-    abstract IncludesParser getParser()
+    SourceParser parser = new RegexBackedSourceParser()
 
     protected TestFile getSourceFile() {
         testDirectory.file('source.c')
@@ -33,16 +32,24 @@ abstract class AbstractRegexBackedIncludesParserTest extends Specification {
         temporaryFolder.testDirectory
     }
 
-    def getParsedIncludes() {
-        parser.parseIncludes(sourceFile)
+    def getParsedSource() {
+        parser.parseSource(sourceFile)
     }
 
     def getIncludes() {
-        return parsedIncludes.quotedIncludes
+        return parsedSource.quotedIncludes
     }
 
     def getSystemIncludes() {
-        return parsedIncludes.systemIncludes
+        return parsedSource.systemIncludes
+    }
+
+    def getImports() {
+        return parsedSource.quotedImports
+    }
+
+    def getSystemImports() {
+        return parsedSource.systemImports
     }
 
     def "parses file with no includes"() {
@@ -127,4 +134,101 @@ abstract class AbstractRegexBackedIncludesParserTest extends Specification {
         where:
         included << ["test'file", "testfile'", "'testfile'", "test<file", "test\"file", "\"testFile\"", "test file"]
     }
+
+    def "finds quoted import"() {
+        when:
+        sourceFile << """
+            #import "test.h"
+        """
+
+        then:
+        imports == ["test.h"]
+        systemImports == []
+    }
+
+    def "finds system import"() {
+        when:
+        sourceFile << """
+            #import <test.h>
+        """
+
+        then:
+        imports == []
+        systemImports == ["test.h"]
+    }
+
+    def "finds multiple imports"() {
+        when:
+        sourceFile << """
+    #import "test1"
+    #import "test2"
+    #import <system1>
+    #import <system2>
+"""
+        then:
+        imports == ["test1", "test2"]
+        systemImports == ["system1", "system2"]
+    }
+
+
+    def "finds mixed import include statement imports"() {
+        when:
+        sourceFile << """
+    #import "test1"
+    #include "test2"
+    #import "test3"
+    #include "test4"
+    #import <system1>
+    #import <system2>
+    #include <system3>
+    #import <system4>
+"""
+        then:
+        includes == ["test2", "test4"]
+        systemIncludes == ["system3"]
+        imports == ["test1", "test3"]
+        systemImports == ["system1", "system2", "system4"]
+    }
+
+    def "finds imports surrounded by different whitespace"() {
+        when:
+        sourceFile << """
+    #import     "test1"
+    #include \t "test2"  \t
+  \t  #import \t "test3"
+    #import     <system1>
+    #include \t <system2>  \t
+  \t  #import \t <system3>
+"""
+        then:
+        includes == ["test2"]
+        systemIncludes == ["system2"]
+        imports == ["test1", "test3"]
+        systemImports == ["system1", "system3"]
+    }
+
+    def "find quoted import with special characters"() {
+        when:
+        sourceFile << """
+    #import "$included"
+"""
+        then:
+        imports == [included]
+
+        where:
+        included << ["test'file", "testfile'", "'testfile'", "test<>file", "test>file", "<testFile>", "test<file", "test file"]
+    }
+
+    def "find system import with special characters"() {
+        when:
+        sourceFile << """
+    #import <$included>
+"""
+        then:
+        systemImports == [included]
+
+        where:
+        included << ["test'file", "testfile'", "'testfile'", "test<file", "test\"file", "\"testFile\"", "test file"]
+    }
+
 }
