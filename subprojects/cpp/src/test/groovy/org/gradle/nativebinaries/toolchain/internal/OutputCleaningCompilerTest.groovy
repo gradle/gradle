@@ -37,14 +37,14 @@ class OutputCleaningCompilerTest extends Specification {
     TestFile outputDir = tmpDirProvider.createDir("objectFiles")
 
     WorkResult workResult = Mock(WorkResult)
-    List sourceFiles = Arrays.asList(tmpDirProvider.file("src/main/c/main.c"), tmpDirProvider.file("src/main/c/foo/main2.c"))
+    List<TestFile> sourceFiles
 
     def setup() {
         _ * spec.objectFileDir >> outputDir
         _ * delegateCompiler.execute(_) >> { NativeCompileSpec spec ->
             List<File> sourceFiles = spec.getSourceFiles()
             sourceFiles.each{ inputFile ->
-                createObjFile(inputFile)
+                createObjDummy(inputFile)
             }
             _ * workResult.getDidWork() >> !sourceFiles.isEmpty();
             return workResult
@@ -52,6 +52,8 @@ class OutputCleaningCompilerTest extends Specification {
     }
 
     def "deletes output files and according hash directory"() {
+        setup:
+        sourceFiles = Arrays.asList(tmpDirProvider.file("src/main/c/main.c"), tmpDirProvider.file("src/main/c/foo/main2.c"))
         when:
         compile(sourceFiles[0], sourceFiles[1])
         then:
@@ -60,31 +62,54 @@ class OutputCleaningCompilerTest extends Specification {
         when:
         compile(sourceFiles[0])
         then:
-        outputDir.listFiles().size() == 1
-        outputDir.listFiles()[0].listFiles().size() == 1
-        outputDir.listFiles()[0].listFiles()[0].name == "main.o"
+        objectFile(sourceFiles[0])
+        !objectFile(sourceFiles[1])
 
 
         when:
         compile(sourceFiles[1])
         then:
-        outputDir.listFiles().size() == 1
-        outputDir.listFiles()[0].listFiles().size() == 1
-        outputDir.listFiles()[0].listFiles()[0].name == "main2.o"
+        !objectFile(sourceFiles[0])
+        objectFile(sourceFiles[1])
+    }
+
+    def "removes stale output when source file is moved"() {
+        setup:
+        def orgFile = tmpDirProvider.file("src/main/c/org/main.c")
+        def movedFile = tmpDirProvider.file("src/main/c/moved/main.c")
+        sourceFiles = [orgFile, movedFile]
+
+        when:
+        compile(orgFile)
+
+        then:
+        objectFile(orgFile)
+        !objectFile(movedFile)
+
+        when:
+        compile(movedFile)
+        then:
+        !objectFile(orgFile)
+        objectFile(movedFile)
+    }
+
+    def objectFile(TestFile testFile) {
+        assert outputDir.listFiles().size() == 1
+        assert outputDir.listFiles()[0].listFiles().size() == 1
+        outputDir.listFiles()[0].listFiles()[0].text == testFile.absolutePath
     }
 
     def compile(TestFile... sourceToCompile) {
         List<TestFile> toCompile = Arrays.asList(sourceToCompile)
         List<TestFile> toRemove = sourceFiles - toCompile
         2 * spec.getSourceFiles() >> toCompile
-
         1 * spec.getRemovedSourceFiles() >> toRemove
-
         cleanCompiler.execute(spec)
     }
 
-    def createObjFile(File sourceFile) {
+    def createObjDummy(File sourceFile) {
         TestFile objectFile = outputDir.file("${HashUtil.createCompactMD5(sourceFile.absolutePath)}/${sourceFile.name - ".c" + ".o" }")
         objectFile.touch()
+        objectFile.text = sourceFile.absolutePath
     }
 }
