@@ -496,4 +496,25 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Plugin with id 'plugin' not found.")
     }
 
+    def "plugins added via plugins block cannot be applied with project.apply"() {
+        given:
+        bintray.start()
+        def pb = pluginBuilder().addPlugin("project.task('foo')", "plugin")
+        publishPluginToBintray(pb, "plugin", "plugin")
+        bintray.api.expectPackageSearch("plugin", new BintrayApi.FoundPackage(pluginVersion, "plugin:plugin"))
+
+        when:
+        settingsFile << 'rootProject.name = "tp"'
+        buildScript """
+            ${testPluginPluginsBlock()}
+            apply plugin: 'plugin'
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating root project 'tp'.")
+        failure.assertHasCause("Plugin with id 'plugin' not found.")
+    }
 }

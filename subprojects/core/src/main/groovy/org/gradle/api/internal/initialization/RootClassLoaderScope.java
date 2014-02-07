@@ -60,8 +60,8 @@ public class RootClassLoaderScope implements ClassLoaderScope {
         return createChild();
     }
 
-    public void lock() {
-        //
+    public ClassLoaderScope lock() {
+        return this;
     }
 
     public boolean isLocked() {

@@ -68,6 +68,8 @@ class ProjectScopeServicesTest extends Specification {
         project.projectDir >> new File("project-dir").absoluteFile
         project.buildScriptSource >> Stub(ScriptSource)
         project.getClassLoaderScope() >> classLoaderScope
+        project.getClassLoaderScope().createChild() >> classLoaderScope
+        project.getClassLoaderScope().lock() >> classLoaderScope
         parent.get(ITaskFactory) >> taskFactory
         parent.get(DependencyFactory) >> dependencyFactory
         parent.get(PluginRegistry) >> pluginRegistry

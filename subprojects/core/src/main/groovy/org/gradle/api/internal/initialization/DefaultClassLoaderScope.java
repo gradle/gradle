@@ -156,8 +156,9 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         return new DefaultClassLoaderScope(this, this, classLoaderCache);
     }
 
-    public void lock() {
+    public ClassLoaderScope lock() {
         locked = true;
+        return this;
     }
 
     public boolean isLocked() {

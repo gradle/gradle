@@ -306,7 +306,7 @@ At this stage, dependencies on other plugins are not supported. Dependencies on 
 - When a parent project's build script uses a `plugins { ... }` block to apply non-core plugins:
     - The classes from plugins are not visible when compiling a child project's build script. (✓)
     - The plugins are not visible via a child project's `Project.apply()` method. (✓)
-- Verify that a plugin applied using `plugins { ... }` block is not visible via the project's `Project.apply()` method.
+- Verify that a plugin applied using `plugins { ... }` block is not visible via the project's `Project.apply()` method. (✓)
 - When multiple scripts apply the same plugin to different targets, the plugin implementation is downloaded from remote repository once only and cached. (✓)
 - When multiple scripts apply the same plugin to different targets, the plugin classes are the same. (✓)
 

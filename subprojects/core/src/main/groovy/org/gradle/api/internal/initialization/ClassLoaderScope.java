@@ -82,7 +82,7 @@ public interface ClassLoaderScope {
     /**
      * Signal that no more modifications are to come, allowing the structure to be optimised if possible.
      */
-    void lock();
+    ClassLoaderScope lock();
 
     boolean isLocked();
 
