@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.bintray.BintrayTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.GradleVersion
 import org.junit.Rule
+import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -32,11 +33,16 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
     private static final String SCRIPT = "plugins { println 'in' }; println 'out'"
 
     @Rule BintrayTestServer bintray = new BintrayTestServer(executer, mavenRepo) // provides a double for JCenter
-    def pluginBuilder = new PluginBuilder(executer, file("plugin"))
+
+    int pluginCounter = 0
 
     def pluginMessage = "from plugin"
     def pluginTaskName = "pluginTask"
     def pluginVersion = "1.0"
+
+    PluginBuilder pluginBuilder() {
+        new PluginBuilder(executer, file("plugin${++pluginCounter}"))
+    }
 
     def "build scripts have plugin blocks"() {
         when:
@@ -150,21 +156,20 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Plugin 'java' is a core Gradle plugin, which cannot be specified with a version number")
     }
 
-    def void publishPluginToBintray(String id, String group, String name, String version = pluginVersion) {
+    def void publishPluginToBintray(PluginBuilder pluginBuilder, String group, String name, String version = pluginVersion) {
         def module = bintray.jcenter.module(group, name, version)
         module.allowAll()
         def artifact = module.artifact([:])
         module.publish()
-        pluginBuilder.addPluginWithPrintlnTask(pluginTaskName, pluginMessage, id)
         pluginBuilder.publishTo(artifact.file)
     }
 
     void "can use plugin classes in script"() {
         given:
         bintray.start()
-
-        pluginBuilder.groovy("EchoTask.groovy") << """
-            package $pluginBuilder.packageName
+        def pb = pluginBuilder()
+        pb.groovy("EchoTask.groovy") << """
+            package $pb.packageName
 
             class EchoTask extends ${DefaultTask.name} {
                 @${TaskAction.name}
@@ -174,7 +179,8 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
             }
         """
 
-        publishPluginToBintray("test", "test", "test")
+        pb.addPlugin("", "test")
+        publishPluginToBintray(pb, "test", "test")
         bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
 
         buildScript """
@@ -182,7 +188,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
             apply plugin: "test", version: "$pluginVersion"
           }
 
-          task echo(type: ${pluginBuilder.packageName}.EchoTask) {}
+          task echo(type: ${pb.packageName}.EchoTask) {}
         """
 
         when:
@@ -370,7 +376,8 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
     def "plugin classes are reused across projects"() {
         when:
         bintray.start()
-        publishPluginToBintray("test", "test", "test")
+        def pb = pluginBuilder().addPlugin("", "test")
+        publishPluginToBintray(pb, "test", "test")
 
         // resolution is currently not cached, 3 searches are going to happen
         bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
@@ -398,6 +405,46 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
         then:
         succeeds "tasks"
+    }
+
+    @Ignore("not currently implemented, requirement in dispute")
+    def "classes from plugin block are visible to classes from buildscript block"() {
+        given:
+        def pb1 = pluginBuilder()
+        def pb2 = pluginBuilder()
+
+        pb1.addPlugin("project.task('p1')", "p1", "PluginOne")
+        pb2.addPlugin("apply plugin: PluginOne; project.task('p2').dependsOn(project.tasks.p1)", "p2", "PluginTwo")
+
+        bintray.start()
+
+        publishPluginToBintray(pb1, "p1", "p1")
+        bintray.api.expectPackageSearch("p1", new BintrayApi.FoundPackage(pluginVersion, "p1:p1"))
+
+        publishPluginToBintray(pb2, "p2", "p2")
+
+        when:
+        buildScript """
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+                dependencies {
+                    classpath "p2:p2:$pluginVersion"
+                }
+            }
+            plugins {
+                apply plugin: "p1"
+            }
+
+            apply plugin: "p2"
+        """
+
+        then:
+        succeeds "p2"
+
+        and:
+        executedTasks == [":p1", ":p2"]
     }
 
 }

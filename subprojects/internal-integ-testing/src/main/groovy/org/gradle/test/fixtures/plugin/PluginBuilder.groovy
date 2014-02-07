@@ -82,7 +82,7 @@ class PluginBuilder {
         file("src/main/resources/META-INF/gradle-plugins")
     }
 
-    PluginBuilder addPluginWithPrintlnTask(String taskName, String message, String id = "test-plugin", String className = "TestPlugin") {
+    PluginBuilder addPlugin(String impl, String id = "test-plugin", String className = "TestPlugin") {
         pluginIds[id] = className
 
         groovy("${className}.groovy") << """
@@ -90,11 +90,15 @@ class PluginBuilder {
 
             class $className implements $Plugin.name<$Project.name> {
                 void apply($Project.name project) {
-                    project.task("$taskName") << { println "$message" }
+                    $impl
                 }
             }
         """
+        this
+    }
 
+    PluginBuilder addPluginWithPrintlnTask(String taskName, String message, String id = "test-plugin", String className = "TestPlugin") {
+        addPlugin("project.task(\"$taskName\") << { println \"$message\" }", id, className)
         this
     }
 }
