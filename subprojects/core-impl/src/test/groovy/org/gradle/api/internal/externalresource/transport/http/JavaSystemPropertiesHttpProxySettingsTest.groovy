@@ -21,15 +21,18 @@ import spock.lang.Specification
 class JavaSystemPropertiesHttpProxySettingsTest extends Specification {
     def "proxy is not configured when proxyHost property not set"() {
         expect:
-        def settings = settings(null, proxyPort, nonProxyHosts)
+        def settings = settings(proxyHost, proxyPort, nonProxyHosts)
         settings.getProxy(requestHost) == null
 
         where:
-        proxyPort | nonProxyHosts | requestHost
-        null      | null          | null
-        null      | null          | "foo"
-        "111"     | null          | "foo"
-        null      | "foo|bar|baz" | "foo"
+        proxyHost | proxyPort | nonProxyHosts | requestHost
+        null      | null      | null          | null
+        null      | null      | null          | "foo"
+        null      | "111"     | null          | "foo"
+        null      | null      | "foo|bar|baz" | "foo"
+        ""        | null      | null          | null
+        ""        | ""        | null          | null
+        null      | ""        | null          | null
     }
 
     private JavaSystemPropertiesHttpProxySettings settings(host, proxyPort, nonProxyHosts) {
