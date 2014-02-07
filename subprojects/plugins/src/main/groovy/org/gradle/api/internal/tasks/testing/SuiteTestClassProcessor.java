@@ -33,10 +33,9 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
     }
 
     public void startProcessing(TestResultProcessor testResultProcessor) {
-        resultProcessor = new AttachParentTestResultProcessor(testResultProcessor);
-        resultProcessor.started(suiteDescriptor, new TestStartEvent(timeProvider.getCurrentTime()));
-
         try {
+            resultProcessor = new AttachParentTestResultProcessor(testResultProcessor);
+            resultProcessor.started(suiteDescriptor, new TestStartEvent(timeProvider.getCurrentTime()));
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {
             resultProcessor.failure(suiteDescriptor.getId(), new TestSuiteExecutionException(String.format(
