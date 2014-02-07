@@ -74,4 +74,8 @@ allprojects {
         String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
         return objectFile("$rootObjectFilesDir/$compactMD5/${baseName}")
     }
+
+    String hashFor(File inputFile){
+        HashUtil.createCompactMD5(inputFile.getAbsolutePath());
+    }
 }

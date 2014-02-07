@@ -45,7 +45,9 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
     }
 
     public void systemArgs(List<String> args) {
-       systemArgs.addAll(args);
+       if(!systemArgs.containsAll(args)){
+           systemArgs.addAll(args);
+       }
     }
 
     public List<String> getAllArgs() {

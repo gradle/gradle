@@ -79,7 +79,7 @@ class GccPlatformToolChain implements PlatformToolChain {
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
         CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
         commandLineTool.withSpecTransformer(withSystemArgs(AssembleSpec.class, platformConfiguration.getAssemblerArgs()));
-        return (Compiler<T>) new Assembler(commandLineTool, tools.getArgTransformer(ToolType.ASSEMBLER));
+        return (Compiler<T>) new Assembler(commandLineTool, tools.getArgTransformer(ToolType.ASSEMBLER), getOutputFileSuffix());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {

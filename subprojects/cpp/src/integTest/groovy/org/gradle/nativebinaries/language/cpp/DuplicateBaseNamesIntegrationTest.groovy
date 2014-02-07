@@ -17,136 +17,44 @@
 package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.app.SourceFile
-import org.gradle.nativebinaries.language.cpp.fixtures.app.TestComponent
+import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateAssemblerBaseNamesTestApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateCBaseNamesTestApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateCppBaseNamesTestApp
 
-// TODO add coverage for asm, windows-resources, objective-c/c++ & mixed sources
+// TODO add coverage for windows-resources, objective-c/c++ & mixed sources
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can have sourcefiles with same base name but different directories"() {
         setup:
         testApp.writeSources(file("src/main"))
+        buildFile.text = ""
+        testApp.plugins.each{ plugin ->
+            buildFile << "apply plugin: '$plugin'\n"
+        }
+
         buildFile << """
-            apply plugin: '$sourceType'
+            model {
+                platforms {
+                    x86 {
+                        architecture "i386"
+                    }
+                }
+            }
             executables {
                 main {}
             }
-        """
+
+            """
         expect:
+        executer.withArgument("-i")
         succeeds "mainExecutable"
         executable("build/binaries/mainExecutable/main").exec().out == "foo1foo2"
         where:
-        sourceType |  testApp
-        "c"        |  new DuplicateCBaseNamesTestApp()
-        "cpp"      |  new DuplicateCppBaseNamesTestApp()
+        testApp << [
+                new DuplicateCBaseNamesTestApp(),
+                new DuplicateCppBaseNamesTestApp(),
+                new DuplicateAssemblerBaseNamesTestApp(toolChain) ]
     }
 }
 
-class DuplicateCBaseNamesTestApp extends TestComponent {
-    @Override
-    List<SourceFile> getSourceFiles() {
-        [sourceFile("c", "main.c", """
-            #include <stdio.h>
-            #include "foo1/foo.h"
-            #include "foo2/foo.h"
-            int main () {
-               foo1();
-               foo2();
-               return 0;
-            }
-        """),
-                sourceFile("c/foo1", "foo.c", """
-            #include <stdio.h>
-            #include "foo.h"
 
-            void DLL_FUNC foo1() {
-                printf("foo1");
-            }
-        """),
-
-                sourceFile("c/foo2", "foo.c", """
-            #include <stdio.h>
-            #include "foo.h"
-
-            void DLL_FUNC foo2() {
-                printf("foo2");
-            }
-        """)]
-    }
-
-    @Override
-    List<SourceFile> getHeaderFiles() {
-        [sourceFile("c/foo1", "foo.h", """
-           #ifdef _WIN32
-           #define DLL_FUNC __declspec(dllexport)
-           #else
-           #define DLL_FUNC
-           #endif
-           void DLL_FUNC foo1();
-           """),
-                sourceFile("c/foo2", "foo.h", """
-           #ifdef _WIN32
-           #define DLL_FUNC __declspec(dllexport)
-           #else
-           #define DLL_FUNC
-           #endif
-           void DLL_FUNC foo2();
-           """)]
-    }
-}
-
-class DuplicateCppBaseNamesTestApp extends TestComponent {
-    @Override
-    List<SourceFile> getSourceFiles() {
-        [sourceFile("cpp", "main.cpp", """
-            #include <iostream>
-            #include "foo1/foo.h"
-            #include "foo2/foo.h"
-            using namespace std;
-            int main () {
-               foo1();
-               foo2();
-               return 0;
-            }
-        """),
-                sourceFile("cpp/foo1", "foo.cpp", """
-            #include <iostream>
-            #include "foo.h"
-            using namespace std;
-
-            void DLL_FUNC foo1() {
-                cout << "foo1";
-            }
-        """),
-
-                sourceFile("cpp/foo2", "foo.cpp", """
-            #include <iostream>
-            #include "foo.h"
-            using namespace std;
-
-            void DLL_FUNC foo2() {
-                cout << "foo2";
-            }
-        """)]
-    }
-
-    @Override
-    List<SourceFile> getHeaderFiles() {
-        [sourceFile("cpp/foo1", "foo.h", """
-           #ifdef _WIN32
-           #define DLL_FUNC __declspec(dllexport)
-           #else
-           #define DLL_FUNC
-           #endif
-           void DLL_FUNC foo1();
-           """),
-                sourceFile("cpp/foo2", "foo.h", """
-           #ifdef _WIN32
-           #define DLL_FUNC __declspec(dllexport)
-           #else
-           #define DLL_FUNC
-           #endif
-           void DLL_FUNC foo2();
-           """)]
-    }
-}

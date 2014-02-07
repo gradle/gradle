@@ -20,7 +20,6 @@ import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
-import org.gradle.internal.hash.HashUtil
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
@@ -158,10 +157,6 @@ STRINGTABLE
         then: "Resource is recompiled"
         executedAndNotSkipped ":resourceCompileMainExecutableMainRc"
         resourceFile.lastModified() > 0
-    }
-
-    String hashFor(File inputFile){
-        HashUtil.createCompactMD5(inputFile.getAbsolutePath());
     }
 }
 
