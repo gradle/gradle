@@ -203,6 +203,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!deprecationChecksOn) {
             executer.withDeprecationChecksDisabled();
         }
+        if (!eagerClassLoaderCreationChecksOn) {
+            executer.withEagerClassLoaderCreationCheckDisabled();
+        }
         if (!stackTraceChecksOn) {
             executer.withStackTraceChecksDisabled();
         }
