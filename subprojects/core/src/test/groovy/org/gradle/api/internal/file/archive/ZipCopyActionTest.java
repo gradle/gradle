@@ -55,7 +55,7 @@ public class ZipCopyActionTest {
     @Before
     public void setup() {
         zipFile = tmpDir.getTestDirectory().file("test.zip");
-        visitor = new ZipCopyAction(zipFile, ZipStoredCompressor.INSTANCE);
+        visitor = new ZipCopyAction(zipFile, ZipStoredCompressor.INSTANCE_32);
     }
 
     @Test
@@ -92,7 +92,7 @@ public class ZipCopyActionTest {
     @Test
     public void wrapsFailureToOpenOutputFile() {
         final TestFile invalidZipFile = tmpDir.createDir("test.zip");
-        visitor = new ZipCopyAction(invalidZipFile, ZipStoredCompressor.INSTANCE);
+        visitor = new ZipCopyAction(invalidZipFile, ZipStoredCompressor.INSTANCE_32);
 
         try {
             visitor.execute(new CopyActionProcessingStream() {

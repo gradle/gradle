@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
+    private boolean allowZip64 = true;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
@@ -37,9 +38,17 @@ public class Zip extends AbstractArchiveTask {
     protected ZipCompressor getCompressor() {
         switch(entryCompression) {
             case DEFLATED:
-                return ZipDeflatedCompressor.INSTANCE;
+                if(allowZip64) {
+                    return ZipDeflatedCompressor.INSTANCE_64;
+                } else {
+                    return ZipDeflatedCompressor.INSTANCE_32;
+                }
             case STORED:
-                return ZipStoredCompressor.INSTANCE;
+                if(allowZip64) {
+                    return ZipStoredCompressor.INSTANCE_64;
+                } else {
+                    return ZipStoredCompressor.INSTANCE_32;
+                }
             default:
                 throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
         }
@@ -68,6 +77,13 @@ public class Zip extends AbstractArchiveTask {
      */
     public void setEntryCompression(ZipEntryCompression entryCompression) {
         this.entryCompression = entryCompression;
+    }
+
+    /**
+     * Sets the support for Zip64.  Set this to false to support java 1.5 and older.
+     */
+    public void setZip64(boolean allowZip64) {
+        this.allowZip64 = allowZip64;
     }
 
     /**

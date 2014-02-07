@@ -19,7 +19,14 @@ import org.apache.tools.zip.ZipOutputStream;
 
 public class ZipStoredCompressor extends AbstractZipCompressor{
 
-    public static final ZipCompressor INSTANCE = new ZipStoredCompressor();
+    public static final ZipCompressor INSTANCE_32 = new ZipStoredCompressor(false);
+
+    // Zip64 requires Java 1.6+ but supports zips with >65k files and >2G.
+    public static final ZipCompressor INSTANCE_64 = new ZipStoredCompressor(true);
+
+    public ZipStoredCompressor(boolean allowZip64Mode) {
+      super(allowZip64Mode);
+    }
 
     @Override
     public int getCompressedMethod() {
