@@ -56,7 +56,6 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         } catch (Exception e) {
             addConfigurationFailure(project, state, e);
         } finally {
-            project.getClassLoaderScope().lock();
             state.setExecuting(false);
             state.executed();
             notifyAfterEvaluate(listener, project, state);
