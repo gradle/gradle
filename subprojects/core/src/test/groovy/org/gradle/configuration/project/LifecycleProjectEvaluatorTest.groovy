@@ -18,12 +18,14 @@ package org.gradle.configuration.project
 
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
 import spock.lang.Specification
 
 public class LifecycleProjectEvaluatorTest extends Specification {
     private project = Mock(ProjectInternal)
+    def classLoaderScope = Mock(ClassLoaderScope)
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
     private state = Mock(ProjectStateInternal)
@@ -32,6 +34,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
     void setup() {
         project.getProjectEvaluationBroadcaster() >> listener
         project.toString() >> "project1"
+        project.getClassLoaderScope() >> classLoaderScope
     }
 
     void "nothing happens if project was already configured"() {
