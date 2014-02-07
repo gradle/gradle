@@ -85,7 +85,7 @@ class TestNGOptions extends TestFrameworkOptions {
     Set<String> listeners = new LinkedHashSet<String>()
 
     /**
-     * The parallel mode to use for running the tests - either methods or tests.
+     * The parallel mode to use for running the tests - one of the following modes: methods, tests, classes or instances.
      *
      * Not required.
      *
