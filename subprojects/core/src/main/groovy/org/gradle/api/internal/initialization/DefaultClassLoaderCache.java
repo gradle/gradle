@@ -87,11 +87,10 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         try {
             return cache.get(new Key(parent, classPath, filterSpec), new Callable<ClassLoader>() {
                 public ClassLoader call() throws Exception {
-                    ClassLoader classLoader = new URLClassLoader(classPath.getAsURLArray(), parent);
                     if (filterSpec == null) {
-                        return classLoader;
+                        return new URLClassLoader(classPath.getAsURLArray(), parent);
                     } else {
-                        return new FilteringClassLoader(classLoader, filterSpec);
+                        return new FilteringClassLoader(get(parent, classPath, null), filterSpec);
                     }
                 }
             });
