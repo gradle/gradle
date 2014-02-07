@@ -23,14 +23,14 @@ import org.gradle.messaging.serialize.Encoder
 class KryoBackedCodecTest extends AbstractCodecTest {
     @Override
     void encodeTo(OutputStream outputStream, Closure<Encoder> closure) {
-        def encoder = new KryoBackedEncoder(outputStream)
+        def encoder = new KryoBackedEncoder(outputStream, 10)
         closure.call(encoder)
         encoder.flush()
     }
 
     @Override
     void decodeFrom(InputStream inputStream, Closure<Decoder> closure) {
-        def decoder = new KryoBackedDecoder(inputStream)
+        def decoder = new KryoBackedDecoder(inputStream, 10)
         closure.call(decoder)
     }
 

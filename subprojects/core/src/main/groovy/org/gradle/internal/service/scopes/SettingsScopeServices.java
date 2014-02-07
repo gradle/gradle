@@ -20,7 +20,6 @@ import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.PluginContainer;
@@ -30,7 +29,7 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
-public class SettingsScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class SettingsScopeServices extends DefaultServiceRegistry {
     private final SettingsInternal settings;
 
     public SettingsScopeServices(ServiceRegistry parent, final SettingsInternal settings) {
@@ -38,20 +37,12 @@ public class SettingsScopeServices extends DefaultServiceRegistry implements Ser
         this.settings = settings;
     }
 
-    public ServiceRegistryFactory createFor(Object domainObject) {
-        throw new UnsupportedOperationException();
-    }
-
     protected FileResolver createFileResolver() {
         return new BaseDirFileResolver(get(FileSystem.class), settings.getSettingsDir());
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(new ScriptCompileScope() {
-            public ClassLoader getScriptCompileClassLoader() {
-                return settings.getClassLoader();
-            }
-        }, new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(settings.getClassLoaderScope(), new DependencyInjectingInstantiator(this));
     }
 
     protected PluginContainer createPluginContainer() {

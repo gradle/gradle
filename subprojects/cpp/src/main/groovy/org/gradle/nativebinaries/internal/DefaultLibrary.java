@@ -16,64 +16,27 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.HeaderExportingSourceSet;
-import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.Library;
+import org.gradle.nativebinaries.NativeLibraryRequirement;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class DefaultLibrary extends DefaultNativeComponent implements Library {
-    private final DefaultSourceDirectorySet headers;
-
-    public DefaultLibrary(String name, Instantiator instantiator, FileResolver fileResolver) {
-        super(name, instantiator);
-        this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", name), fileResolver);
-        initExportedHeaderTracking();
+public class DefaultLibrary extends AbstractTargetedProjectNativeComponent implements Library {
+    public DefaultLibrary(NativeProjectComponentIdentifier id) {
+        super(id);
     }
 
-    @Override
-    public String toString() {
+    public String getDisplayName() {
         return String.format("library '%s'", getName());
     }
 
-    public SourceDirectorySet getHeaders() {
-        return headers;
+    public NativeLibraryRequirement getShared() {
+        return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "shared");
     }
 
-    public ContextualLibraryResolver getShared() {
-        return new DefaultLibraryResolver(this).withType(SharedLibraryBinary.class);
+    public NativeLibraryRequirement getStatic() {
+        return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "static");
     }
 
-    public ContextualLibraryResolver getStatic() {
-        return new DefaultLibraryResolver(this).withType(StaticLibraryBinary.class);
-    }
-
-    private void initExportedHeaderTracking() {
-        // TODO - headers.srcDirs() should allow a Callable<SourceDirectorySet> for lazy calculation
-        final DomainObjectSet<HeaderExportingSourceSet> headerExportingSourceSets = getSource().withType(HeaderExportingSourceSet.class);
-        headerExportingSourceSets.all(new Action<HeaderExportingSourceSet>() {
-            public void execute(HeaderExportingSourceSet headerExportingSourceSet) {
-                updateHeaderDirs(headerExportingSourceSets, headers);
-            }
-        });
-        headerExportingSourceSets.whenObjectRemoved(new Action<HeaderExportingSourceSet>() {
-            public void execute(HeaderExportingSourceSet headerExportingSourceSet) {
-                updateHeaderDirs(headerExportingSourceSets, headers);
-            }
-        });
-    }
-
-    private void updateHeaderDirs(DomainObjectSet<HeaderExportingSourceSet> sourceSets, DefaultSourceDirectorySet headers) {
-        List<SourceDirectorySet> headerDirs = new ArrayList<SourceDirectorySet>();
-        for (HeaderExportingSourceSet sourceSet : sourceSets) {
-            headerDirs.add(sourceSet.getExportedHeaders());
-        }
-        headers.setSrcDirs(headerDirs);
+    public NativeLibraryRequirement getApi() {
+        return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "api");
     }
 }

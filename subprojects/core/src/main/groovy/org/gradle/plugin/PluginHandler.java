@@ -17,17 +17,15 @@
 package org.gradle.plugin;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+
+import java.util.Map;
 
 /**
  * A manager of plugins.
  */
 @Incubating
-@HasInternalProtocol
 public interface PluginHandler {
 
-    void apply(String pluginId);
-
-    void apply(String pluginId, String version);
+    void apply(Map<String, ?> attributes);
 
 }

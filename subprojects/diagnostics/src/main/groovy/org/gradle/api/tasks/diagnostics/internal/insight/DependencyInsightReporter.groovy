@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.insight;
+package org.gradle.api.tasks.diagnostics.internal.insight
 
-
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.result.DependencyResult
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.*
@@ -42,7 +41,7 @@ public class DependencyInsightReporter {
         def sorted = DependencyResultSorter.sort(dependencies, versionMatcher)
 
         //remember if module id was annotated
-        def annotated = new HashSet<ModuleVersionIdentifier>()
+        def annotated = new HashSet<ComponentIdentifier>()
         def current = null
 
         for (DependencyEdge dependency: sorted) {
@@ -50,11 +49,11 @@ public class DependencyInsightReporter {
             if (annotated.add(dependency.actual)) {
                 //add a heading dependency with the annotation if the dependency does not exist in the graph
                 if (!dependency.requested.matchesStrictly(dependency.actual)) {
-                    out << new RequestedVersion(dependency.actual, dependency.resolvable, describeReason(dependency.reason))
+                    out << new DependencyReportHeader(dependency)
                     current = new RequestedVersion(dependency.requested, dependency.actual, dependency.resolvable, null)
                     out << current
                 } else {
-                    current = new RequestedVersion(dependency.requested, dependency.actual, dependency.resolvable, describeReason(dependency.reason))
+                    current = new RequestedVersion(dependency.requested, dependency.actual, dependency.resolvable, getReasonDescription(dependency.reason))
                     out << current
                 }
             } else if (current.requested != dependency.requested) {
@@ -67,11 +66,7 @@ public class DependencyInsightReporter {
         out
     }
 
-    private String describeReason(ComponentSelectionReason reason) {
-        if (reason.conflictResolution || reason.forced || reason.selectedByRule) {
-            return reason.description
-        } else {
-            return null
-        }
+    private String getReasonDescription(ComponentSelectionReason reason) {
+        !reason.expected ? reason.description : null
     }
 }

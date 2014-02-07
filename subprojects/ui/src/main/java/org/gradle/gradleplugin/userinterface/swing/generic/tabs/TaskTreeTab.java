@@ -133,15 +133,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
         resetShowDescription(); //make sure that our setting is pushed to the tree's setting.
 
         //when we start up, refresh our list.
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                if (gradlePluginLord.isSetupComplete()) {
-                    refresh();
-                } else {
-                    showTextInViewport("Cannot show tasks until configuration is complete. See Setup tab.");
-                }
-            }
-        });
+        refresh();
     }
 
     public void setupUI() {

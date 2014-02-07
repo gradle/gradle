@@ -16,8 +16,8 @@
 package org.gradle.cache.internal.btree;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
-import org.gradle.cache.internal.stream.RandomAccessFileOutputStream;
+import org.gradle.internal.io.RandomAccessFileInputStream;
+import org.gradle.internal.io.RandomAccessFileOutputStream;
 
 import java.io.*;
 import java.util.zip.CRC32;
@@ -40,6 +40,7 @@ public class FileBackedBlockStore implements BlockStore {
     public void open(Runnable runnable, Factory factory) {
         this.factory = factory;
         try {
+            cacheFile.getParentFile().mkdirs();
             file = new RandomAccessFile(cacheFile, "rw");
             nextBlock = file.length();
             if (file.length() == 0) {

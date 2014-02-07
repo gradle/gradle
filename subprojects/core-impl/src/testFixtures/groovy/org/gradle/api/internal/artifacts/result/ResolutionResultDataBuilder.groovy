@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.artifacts.result
 
+import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
@@ -27,16 +29,20 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class ResolutionResultDataBuilder {
 
     static DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String selectedVersion='1') {
-        new DefaultResolvedDependencyResult(newSelector(group, module, version), newModule(group, module, selectedVersion), newModule())
+        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(group, module, version), newModule(group, module, selectedVersion), newModule())
     }
 
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
-        def requested = newSelector(group, module, version)
-        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.REQUESTED, newModule(group, module, selectedVersion), new ModuleVersionResolveException(requested, "broken"))
+        def requested = DefaultModuleComponentSelector.newSelector(group, module, version)
+        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.REQUESTED, newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(group, module, version), "broken"))
     }
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1',
                                                         ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(group, module, version))
+    }
+
+    static DefaultResolvedDependencyResult newDependency(ComponentSelector componentSelector, String group='a', String module='a', String selectedVersion='1') {
+        new DefaultResolvedDependencyResult(componentSelector, newModule(group, module, selectedVersion), newModule())
     }
 }

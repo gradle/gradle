@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
-import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.DefaultArtifactRepository;
@@ -28,17 +27,16 @@ import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
-public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPublisher {
+public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPublisher<CustomDeployTask> {
     public AntTaskBackedMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, Factory<File> temporaryDirFactory) {
         super(loggingManagerFactory, temporaryDirFactory);
     }
 
-    protected void postConfigure(InstallDeployTaskSupport task, MavenArtifactRepository artifactRepository) {
-        CustomDeployTask deployTask = (CustomDeployTask) task;
-        addRepository(deployTask, artifactRepository);
+    protected void postConfigure(CustomDeployTask task, MavenArtifactRepository artifactRepository) {
+        addRepository(task, artifactRepository);
     }
 
-    protected InstallDeployTaskSupport createDeployTask() {
+    protected CustomDeployTask createDeployTask() {
         CustomDeployTask deployTask = new DeployTask(temporaryDirFactory);
         deployTask.setUniqueVersion(true);
         return deployTask;

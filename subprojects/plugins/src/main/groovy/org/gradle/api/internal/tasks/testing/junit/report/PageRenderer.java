@@ -110,6 +110,12 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
                 htmlWriter.endElement();
                 htmlWriter.endElement();
                 htmlWriter.startElement("td");
+                htmlWriter.startElement("div").attribute("class", "infoBox").attribute("id", "ignored");
+                htmlWriter.startElement("div").attribute("class", "counter").characters(Integer.toString(results.getIgnoredCount())).endElement();
+                htmlWriter.startElement("p").characters("ignored").endElement();
+                htmlWriter.endElement();
+                htmlWriter.endElement();
+                htmlWriter.startElement("td");
                 htmlWriter.startElement("div").attribute("class", "infoBox").attribute("id", "duration");
                 htmlWriter.startElement("div").attribute("class", "counter").characters(results.getFormattedDuration()).endElement();
                 htmlWriter.startElement("p").characters("duration").endElement();

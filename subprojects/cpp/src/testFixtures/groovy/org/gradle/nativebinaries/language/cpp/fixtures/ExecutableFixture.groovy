@@ -28,4 +28,8 @@ class ExecutableFixture extends NativeBinaryFixture {
         assertExists()
         return file.execute(args as List, toolChain.runtimeEnv)
     }
+
+    public List<String> listLinkedLibraries() {
+        return binaryInfo.listLinkedLibraries()
+    }
 }

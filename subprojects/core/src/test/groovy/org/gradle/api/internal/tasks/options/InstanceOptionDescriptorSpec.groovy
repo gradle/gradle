@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options
 
+import org.gradle.internal.reflect.JavaMethod
 import spock.lang.Specification
 
 class InstanceOptionDescriptorSpec extends Specification{
@@ -30,63 +31,24 @@ class InstanceOptionDescriptorSpec extends Specification{
 
     def testGetAvailableValuesWithNoDefaults() {
         when:
-        InstanceOptionDescriptor descriptor = new InstanceOptionDescriptor(new NoOptionValues(), delegate)
+        InstanceOptionDescriptor descriptor = new InstanceOptionDescriptor(new SomeClass(), delegate)
         then:
         descriptor.getAvailableValues() == []
     }
 
-    def testGetAvailableValuesWithDefaults() {
+    def getAvailableValuesCallsWhenOptionValueMethodAvailable() {
+        setup:
+        JavaMethod<Object, Collection> optionValueMethod = Mock(JavaMethod)
         when:
-        InstanceOptionDescriptor descriptor = new InstanceOptionDescriptor(new SomeOptionValues(), delegate)
+        InstanceOptionDescriptor descriptor = new InstanceOptionDescriptor(new SomeClass(), delegate, optionValueMethod)
+        List<String> values = descriptor.getAvailableValues()
         then:
-        descriptor.getAvailableValues() == ["something"]
+        values == ["dynValue1", "dynValue2"]
+        1 * optionValueMethod.invoke(_,_) >> ["dynValue1", "dynValue2"]
     }
 
-    def testGetAvailableValuesInvalidAnnotation() {
-        when:
-        new InstanceOptionDescriptor(new WithInvalidSomeOptionMethod(), delegate).getAvailableValues()
-        then:
-        def e = thrown(OptionValidationException)
-        e.message == "OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.WithInvalidSomeOptionMethod'. Supported method must be non static, return Collection and take no parameters.";
-
-        when:
-        new InstanceOptionDescriptor(new WithAnnotatedStaticMethod(), delegate).getAvailableValues()
-        then:
-        e = thrown(OptionValidationException)
-        e.message == "OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.WithAnnotatedStaticMethod'. Supported method must be non static, return Collection and take no parameters.";
-
-        when:
-        new InstanceOptionDescriptor(new WithDuplicateSomeOptions(), delegate).getAvailableValues()
-        then:
-        e = thrown(OptionValidationException)
-        e.message == "OptionValues for 'someOption' cannot be attached to multiple methods in class 'org.gradle.api.internal.tasks.options.WithDuplicateSomeOptions'.";
-
-
+    public class SomeClass {
     }
 }
 
-public class WithInvalidSomeOptionMethod {
-    @OptionValues("someOption")
-    List<String> getValues(String someParam) { return Arrays.asList("something")}
-}
 
-public class WithDuplicateSomeOptions {
-    @OptionValues("someOption")
-    List<String> getValues() { return Arrays.asList("something")}
-
-    @OptionValues("someOption")
-    List<String> getValues2() { return Arrays.asList("somethingElse")}
-}
-
-public class WithAnnotatedStaticMethod {
-    @OptionValues("someOption")
-    static List<String> getValues(String someParam) { return Arrays.asList("something")}
-}
-
-public class NoOptionValues{
-}
-
-public class SomeOptionValues{
-    @OptionValues("someOption")
-    List<String> getValues() { return Arrays.asList("something")}
-}

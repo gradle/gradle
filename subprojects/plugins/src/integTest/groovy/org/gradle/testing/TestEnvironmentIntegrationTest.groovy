@@ -19,11 +19,14 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
+    @Requires(TestPrecondition.NOT_JDK_IBM)
     def canRunTestsWithCustomSystemClassLoader() {
         when:
         run 'test'
@@ -34,6 +37,7 @@ class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
 
+    @Requires(TestPrecondition.NOT_JDK_IBM)
     def canRunTestsWithCustomSystemClassLoaderAndJavaAgent() {
         when:
         run 'test'

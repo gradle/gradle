@@ -34,20 +34,59 @@ class TestOutputStoreSpec extends WorkspaceTest {
         }
     }
 
-    def "flushes all output when output finishes"() {
+    def "output for class includes all events with the given class id"() {
         when:
         def writer = output.writer()
-        writer.onOutput(1, 1, output(StdOut, "[out]"))
-        writer.onOutput(2, 1, output(StdErr, "[err]"))
-        writer.onOutput(1, 1, output(StdErr, "[err]"))
-        writer.onOutput(1, 1, output(StdOut, "[out2]"))
+        writer.onOutput(1, output(StdOut, "[out-1]"))
+        writer.onOutput(1, 1, output(StdOut, "[out-2]"))
+        writer.onOutput(2, 1, output(StdErr, "[out-3]"))
+        writer.onOutput(1, 1, output(StdErr, "[out-4]"))
+        writer.onOutput(1, 1, output(StdOut, "[out-5]"))
+        writer.onOutput(1, 2, output(StdOut, "[out-6]"))
         writer.close()
         def reader = output.reader()
 
         then:
-        collectOutput(reader, 1, StdOut) == "[out][out2]"
-        collectOutput(reader, 1, StdErr) == "[err]"
-        collectOutput(reader, 2, StdErr) == "[err]"
+        collectAllOutput(reader, 1, StdOut) == "[out-1][out-2][out-5][out-6]"
+        collectAllOutput(reader, 1, StdErr) == "[out-4]"
+        collectAllOutput(reader, 2, StdErr) == "[out-3]"
+    }
+
+    def "output for test includes all events with the given class and method ids"() {
+        when:
+        def writer = output.writer()
+        writer.onOutput(1, output(StdOut, "[out-1]"))
+        writer.onOutput(1, 1, output(StdOut, "[out-2]"))
+        writer.onOutput(2, 1, output(StdErr, "[out-3]"))
+        writer.onOutput(1, 1, output(StdErr, "[out-4]"))
+        writer.onOutput(1, 1, output(StdOut, "[out-5]"))
+        writer.onOutput(1, 2, output(StdOut, "[out-6]"))
+        writer.close()
+        def reader = output.reader()
+
+        then:
+        collectOutput(reader, 1, 1, StdOut) == "[out-2][out-5]"
+        collectOutput(reader, 1, 1, StdErr) == "[out-4]"
+        collectOutput(reader, 1, 2, StdOut) == "[out-6]"
+    }
+
+    def "non-test output includes all events with the given class id and no method id"() {
+        when:
+        def writer = output.writer()
+        writer.onOutput(1, output(StdOut, "[out-1]"))
+        writer.onOutput(1, 1, output(StdOut, "[out-2]"))
+        writer.onOutput(1, output(StdErr, "[out-3]"))
+        writer.onOutput(1, output(StdErr, "[out-4]"))
+        writer.onOutput(1, output(StdOut, "[out-5]"))
+        writer.onOutput(1, 2, output(StdOut, "[out-6]"))
+        writer.onOutput(2, output(StdOut, "[out-6]"))
+        writer.close()
+        def reader = output.reader()
+
+        then:
+        collectOutput(reader, 1, StdOut) == "[out-1][out-5]"
+        collectOutput(reader, 1, StdErr) == "[out-3][out-4]"
+        collectOutput(reader, 2, StdOut) == "[out-6]"
     }
 
     def DefaultTestOutputEvent output(TestOutputEvent.Destination destination, String msg) {
@@ -61,7 +100,18 @@ class TestOutputStoreSpec extends WorkspaceTest {
 
         then:
         def reader = output.reader()
-        collectOutput(reader, 20, StdErr) == ""
+        collectAllOutput(reader, 20, StdErr) == ""
+    }
+
+    def "writes nothing for unknown test method"() {
+        when:
+        def writer = output.writer()
+        writer.onOutput(1, 1, output(StdOut, "[out]"))
+        writer.close()
+
+        then:
+        def reader = output.reader()
+        collectOutput(reader, 1, 10, StdOut) == ""
     }
 
     def "can query whether output is available for a test class"() {
@@ -110,9 +160,21 @@ class TestOutputStoreSpec extends WorkspaceTest {
         reader?.close()
     }
 
-    String collectOutput(TestOutputStore.Reader reader, long classId, TestOutputEvent.Destination destination) {
+    String collectAllOutput(TestOutputStore.Reader reader, long classId, TestOutputEvent.Destination destination) {
         def writer = new StringWriter()
         reader.writeAllOutput(classId, destination, writer)
+        return writer.toString()
+    }
+
+    String collectOutput(TestOutputStore.Reader reader, long classId, long testId, TestOutputEvent.Destination destination) {
+        def writer = new StringWriter()
+        reader.writeTestOutput(classId, testId, destination, writer)
+        return writer.toString()
+    }
+
+    String collectOutput(TestOutputStore.Reader reader, long classId, TestOutputEvent.Destination destination) {
+        def writer = new StringWriter()
+        reader.writeNonTestOutput(classId, destination, writer)
         return writer.toString()
     }
 }

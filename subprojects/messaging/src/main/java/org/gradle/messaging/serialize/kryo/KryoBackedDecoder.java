@@ -26,18 +26,22 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Note that this decoder uses buffering, so will attempt to read beyond the end of the encoded data. This means you should use this type only when this decoder will be used to decode the entire
+ * stream.
+ */
 public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Closeable {
     private final Input input;
     private final InputStream inputStream;
     private long extraSkipped;
 
-    /**
-     * Note that this decoder uses buffering, so will attempt to read beyond the end of the encoded data. This means you should use this type only when this decoder will be used to decode the entire
-     * stream.
-     */
     public KryoBackedDecoder(InputStream inputStream) {
+        this(inputStream, 4096);
+    }
+
+    public KryoBackedDecoder(InputStream inputStream, int bufferSize) {
         this.inputStream = inputStream;
-        input = new Input(this.inputStream);
+        input = new Input(this.inputStream, bufferSize);
     }
 
     @Override
@@ -134,17 +138,6 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
     public String readNullableString() throws EOFException {
         try {
             return input.readString();
-        } catch (KryoException e) {
-            throw maybeEndOfStream(e);
-        }
-    }
-
-    public byte[] readBinary() throws IOException {
-        try {
-            int length = input.readInt(true);
-            byte[] result = new byte[length];
-            input.readBytes(result);
-            return result;
         } catch (KryoException e) {
             throw maybeEndOfStream(e);
         }

@@ -69,7 +69,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(new TestClass2())
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass2'."
+        e.message == "@Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass2'."
     }
 
     def "fails on static methods"() {
@@ -77,7 +77,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(new TestClass31())
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option on static method 'setStaticString' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass31'."
+        e.message == "@Option on static method 'setStaticString' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass31'."
     }
 
     def "fails on static fields"() {
@@ -85,7 +85,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(new TestClass32())
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option on static field 'staticField' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass32'."
+        e.message == "@Option on static field 'staticField' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass32'."
     }
 
     def "fail when parameter cannot be converted from the command-line"() {
@@ -157,6 +157,20 @@ class OptionReaderTest extends Specification {
         then:
         def e = thrown(OptionValidationException)
         e.message == "No setter for Option annotated field 'field' in class 'class org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass10'."
+    }
+
+    def "throws decent error for invalid OptionValues annotated methods"() {
+        when:
+        reader.getOptions(new WithInvalidSomeOptionMethod());
+        then:
+        def e = thrown(OptionValidationException)
+        e.message == "@OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithInvalidSomeOptionMethod'. Supported method must be non-static, return a Collection<String> and take no parameters.";
+
+        when:
+        reader.getOptions(new TestClass8());
+        then:
+        e = thrown(OptionValidationException)
+        e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
     }
 
     public static class TestClass1{
@@ -267,6 +281,30 @@ class OptionReaderTest extends Specification {
     public static class TestClass10{
         @Option(description = "some description")
         private String field
+    }
+
+    public static class WithInvalidSomeOptionMethod {
+        @OptionValues("someOption")
+        List<String> getValues(String someParam) { return Arrays.asList("something")}
+    }
+
+    public static class WithDuplicateSomeOptions {
+        @OptionValues("someOption")
+        List<String> getValues() { return Arrays.asList("something")}
+
+        @OptionValues("someOption")
+        List<String> getValues2() { return Arrays.asList("somethingElse")}
+    }
+
+    public static class WithAnnotatedStaticMethod {
+        @OptionValues("someOption")
+        static List<String> getValues(String someParam) { return Arrays.asList("something")}
+    }
+
+
+    public class SomeOptionValues{
+        @OptionValues("someOption")
+        List<String> getValues() { return Arrays.asList("something")}
     }
 
     enum TestEnum {

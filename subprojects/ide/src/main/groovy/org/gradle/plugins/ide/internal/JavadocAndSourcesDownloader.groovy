@@ -16,12 +16,16 @@
 
 package org.gradle.plugins.ide.internal
 
-import org.gradle.api.artifacts.*
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver
+import org.gradle.plugins.ide.internal.resolver.IdeDependencyResolver
+import org.gradle.plugins.ide.internal.resolver.model.IdeRepoFileDependency
 
 class JavadocAndSourcesDownloader {
+    static final String SOURCES_DEPENDENCY_CLASSIFER = 'sources'
+    static final String JAVADOC_DEPENDENCY_CLASSIFER = 'javadoc'
+    IdeDependencyResolver ideDependencyResolver = new DefaultIdeDependencyResolver()
 
     private Map<String, File> sourceFiles
     private Map<String, File> javadocFiles
@@ -32,22 +36,16 @@ class JavadocAndSourcesDownloader {
             return
         }
 
-        def allResolvedDependencies = resolveDependencies(plusConfigurations, minusConfigurations)
-
         if (downloadSources) {
-            Set sourceDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
-                addSourceArtifact(dependency)
+            sourceFiles = determineFileMapping(confContainer, plusConfigurations, minusConfigurations, SOURCES_DEPENDENCY_CLASSIFER) { Configuration configuration, ConfigurationContainer configurationContainer ->
+                ideDependencyResolver.getIdeSourceDependencies(configuration, configurationContainer)
             }
-
-            sourceFiles = getFiles(confContainer.detachedConfiguration(sourceDependencies as Dependency[]), "sources")
         }
 
         if (downloadJavadoc) {
-            Set javadocDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
-                addJavadocArtifact(dependency)
+            javadocFiles = determineFileMapping(confContainer, plusConfigurations, minusConfigurations, JAVADOC_DEPENDENCY_CLASSIFER) { Configuration configuration, ConfigurationContainer configurationContainer ->
+                ideDependencyResolver.getIdeJavadocDependencies(configuration, configurationContainer)
             }
-
-            javadocFiles = getFiles(confContainer.detachedConfiguration(javadocDependencies as Dependency[]), "javadoc")
         }
     }
 
@@ -59,60 +57,30 @@ class JavadocAndSourcesDownloader {
         javadocFiles?.get(name)
     }
 
-    private Set<ResolvedDependency> resolveDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        Set<ResolvedDependency> result = new LinkedHashSet<ResolvedDependency>()
+    private Map<String, File> determineFileMapping(ConfigurationContainer confContainer, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, String classifier, Closure closure) {
+        Map<String, File> mappedSourceFiles = new HashMap<String, File>();
+
         for (plusConfiguration in plusConfigurations) {
-            result.addAll(getAllDeps(plusConfiguration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
+            List<IdeRepoFileDependency> deps = closure(plusConfiguration, confContainer)
+            mappedSourceFiles.putAll(mapFiles(deps, classifier))
         }
+
         for (minusConfiguration in minusConfigurations) {
-            result.removeAll(getAllDeps(minusConfiguration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
+            List<IdeRepoFileDependency> deps = closure(minusConfiguration, confContainer)
+            mappedSourceFiles.keySet().removeAll(mapFiles(deps, classifier).keySet())
         }
-        result
+
+        mappedSourceFiles
     }
 
-    private List<ExternalDependency> getResolvableDependenciesForAllResolvedDependencies(Set<ResolvedDependency> allResolvedDependencies, Closure configureClosure) {
-        return allResolvedDependencies.collect { ResolvedDependency resolvedDependency ->
-            def dependency = new DefaultExternalModuleDependency(resolvedDependency.moduleGroup, resolvedDependency.moduleName, resolvedDependency.moduleVersion,
-                    resolvedDependency.configuration)
-            dependency.transitive = false
-            configureClosure.call(dependency)
-            dependency
-        }
-    }
+    private Map<String, File> mapFiles(List<IdeRepoFileDependency> sourceFileDependencies, String classifier) {
+        Map<String, File> mappedSourceFiles = new HashMap<String, File>();
 
-    private void addSourceArtifact(DefaultExternalModuleDependency dependency) {
-        dependency.artifact { artifact ->
-            artifact.name = dependency.name
-            artifact.type = 'source'
-            artifact.extension = 'jar'
-            artifact.classifier = 'sources'
+        for(IdeRepoFileDependency dependency : sourceFileDependencies) {
+            String key = dependency.file.name.replace("-${classifier}.jar", '.jar')
+            mappedSourceFiles.put(key, dependency.file)
         }
-    }
 
-    private void addJavadocArtifact(DefaultExternalModuleDependency dependency) {
-        dependency.artifact { artifact ->
-            artifact.name = dependency.name
-            artifact.type = 'javadoc'
-            artifact.extension = 'jar'
-            artifact.classifier = 'javadoc'
-        }
-    }
-
-    private Map<String, File> getFiles(Configuration configuration, String classifier) {
-        return (Map) configuration.resolvedConfiguration.lenientConfiguration.getFiles(Specs.satisfyAll()).inject([:]) { result, sourceFile ->
-            String key = sourceFile.name.replace("-${classifier}.jar", '.jar')
-            result[key] = sourceFile
-            result
-        }
-    }
-
-    private Set<ResolvedDependency> getAllDeps(Collection<ResolvedDependency> deps, Set<ResolvedDependency> allDeps = new LinkedHashSet()) {
-        deps.each { ResolvedDependency resolvedDependency ->
-            def notSeenBefore = allDeps.add(resolvedDependency)
-            if (notSeenBefore) { // defend against circular dependencies
-                getAllDeps(resolvedDependency.children, allDeps)
-            }
-        }
-        allDeps
+        mappedSourceFiles
     }
 }

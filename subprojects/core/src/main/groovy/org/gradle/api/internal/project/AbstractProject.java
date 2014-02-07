@@ -18,7 +18,6 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import groovy.lang.Script;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -36,7 +35,8 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
@@ -48,13 +48,13 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
@@ -62,7 +62,6 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRules;
-import org.gradle.model.dsl.ModelDsl;
 import org.gradle.model.dsl.internal.GroovyModelDsl;
 import org.gradle.model.internal.ModelRegistry;
 import org.gradle.process.ExecResult;
@@ -81,7 +80,8 @@ import static org.gradle.util.GUtil.isTrue;
 
 public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Project.class);
-    private ServiceRegistryFactory services;
+    private final ClassLoaderScope classLoaderScope;
+    private ServiceRegistry services;
 
     private final ProjectInternal rootProject;
 
@@ -141,8 +141,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private ScriptHandler scriptHandler;
 
-    private ScriptClassLoaderProvider scriptClassLoaderProvider;
-
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
 
     private LoggingManagerInternal loggingManager;
@@ -159,14 +157,18 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private String description;
 
     private final Path path;
-    private ScriptPluginFactory scriptPluginFactory;
+    private final ScriptPluginFactory scriptPluginFactory;
+    private final ScriptHandlerFactory scriptHandlerFactory;
 
     public AbstractProject(String name,
                            ProjectInternal parent,
                            File projectDir,
                            ScriptSource buildScriptSource,
                            GradleInternal gradle,
-                           ServiceRegistryFactory serviceRegistryFactory) {
+                           ServiceRegistryFactory serviceRegistryFactory,
+                           ClassLoaderScope classLoaderScope
+    ) {
+        this.classLoaderScope = classLoaderScope;
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
@@ -199,11 +201,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         artifactHandler = services.get(ArtifactHandler.class);
         dependencyHandler = services.get(DependencyHandler.class);
         scriptHandler = services.get(ScriptHandler.class);
-        scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
         projectRegistry = services.get(ProjectRegistry.class);
         loggingManager = services.get(LoggingManagerInternal.class);
         softwareComponentContainer = services.get(SoftwareComponentContainer.class);
         scriptPluginFactory = services.get(ScriptPluginFactory.class);
+        scriptHandlerFactory = services.get(ScriptHandlerFactory.class);
         configurationActions = services.get(ProjectConfigurationActionContainer.class);
         modelRegistry = services.get(ModelRegistry.class);
         modelRules = services.get(ModelRules.class);
@@ -269,26 +271,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return scriptHandler;
     }
 
-    public void beforeCompile(ScriptPlugin configurer) {
-        if (configurer.getSource() != buildScriptSource) {
-            return;
-        }
-        configurer.setScriptBaseClass(ProjectScript.class);
-        configurer.setClassLoaderProvider(scriptClassLoaderProvider);
-    }
-
-    public void afterCompile(ScriptPlugin configurer, org.gradle.groovy.scripts.Script script) {
-        if (configurer.getSource() != buildScriptSource) {
-            return;
-        }
-        setScript(script);
-    }
-
     public File getBuildFile() {
         return getBuildscript().getSourceFile();
     }
 
-    public void setScript(Script buildScript) {
+    public void setScript(groovy.lang.Script buildScript) {
         extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties().withNotImplementsMissing(),
                 ExtensibleDynamicObject.Location.BeforeConvention);
     }
@@ -875,12 +862,16 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return processOperations.exec(closure);
     }
 
-    public ServiceRegistryFactory getServices() {
+    public ServiceRegistry getServices() {
         return services;
     }
 
+    public ServiceRegistryFactory getServiceRegistryFactory() {
+        return services.get(ServiceRegistryFactory.class);
+    }
+
     public ModuleInternal getModule() {
-        return getServices().get(DependencyMetaDataProvider.class).getModule();
+        return services.get(DependencyMetaDataProvider.class).getModule();
     }
 
     public AntBuilder ant(Closure configureClosure) {
@@ -975,6 +966,16 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return scriptPluginFactory;
     }
 
+    @Override
+    protected ScriptHandlerFactory getScriptHandlerFactory() {
+        return scriptHandlerFactory;
+    }
+
+    @Override
+    public ClassLoaderScope getClassLoaderScope() {
+        return classLoaderScope;
+    }
+
     /**
      * This is called by the task creation DSL. Need to find a cleaner way to do this...
      */
@@ -1003,7 +1004,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     // This is here temporarily as a quick way to expose it in the build script
     // Longer term it will not be available via Project, but be only available in a build script
-    public void model(Action<? super ModelDsl> action) {
-        action.execute(new GroovyModelDsl(modelRules));
+    public void model(Closure action) {
+        new GroovyModelDsl(modelRules).configure(action);
     }
+
+
 }

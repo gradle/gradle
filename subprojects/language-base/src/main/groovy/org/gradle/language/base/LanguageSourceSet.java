@@ -16,9 +16,9 @@
 package org.gradle.language.base;
 
 import org.gradle.api.Action;
-import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -27,7 +27,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface LanguageSourceSet extends Named, Buildable {
+public interface LanguageSourceSet extends Named, BuildableModelElement {
     // TODO: do we want to keep using SourceDirectorySet in the new API?
     // would feel more natural if dirs could be added directly to LanguageSourceSet
     // could also think about extending SourceDirectorySet
@@ -42,4 +42,6 @@ public interface LanguageSourceSet extends Named, Buildable {
      */
     void source(Action<? super SourceDirectorySet> config);
 
+    // TODO:DAZ Maybe add this as an extension property, and only in domains where it is handled (currently in native-binaries)
+    void generatedBy(Task generatorTask);
 }

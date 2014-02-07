@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal;
 
+import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.streams.StreamsHandler;
@@ -24,18 +25,19 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ExecHandleRunner implements Runnable {
-    private static final Object START_LOCK = new Object();
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
 
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
     private final Lock lock = new ReentrantLock();
+    private final ProcessLauncher processLauncher;
 
     private Process process;
     private boolean aborted;
     private final StreamsHandler streamsHandler;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher) {
+        this.processLauncher = processLauncher;
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
@@ -58,17 +60,10 @@ public class ExecHandleRunner implements Runnable {
     }
 
     public void run() {
-        ProcessParentingInitializer.intitialize();
-        ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
         try {
-            Process process;
-
-            // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout
-            // and stderr streams for some of the processes get stuck
-            synchronized (START_LOCK) {
-                process = processBuilder.start();
-                streamsHandler.connectStreams(process, execHandle.getDisplayName());
-            }
+            ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
+            Process process = processLauncher.start(processBuilder);
+            streamsHandler.connectStreams(process, execHandle.getDisplayName());
             setProcess(process);
 
             execHandle.started();

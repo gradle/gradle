@@ -1,0 +1,25 @@
+apply plugin: 'cpp'
+model {
+    buildTypes {
+        debug
+        release
+    }
+}
+libraries {
+    util {
+        binaries.all {
+            if (buildType == buildTypes.debug) {
+                cppCompiler.define 'DEBUG'
+                if (toolChain in VisualCpp) {
+                    cppCompiler.args '/Zi'
+                    linker.args '/DEBUG'
+                } else {
+                    cppCompiler.args "-g"
+                }
+            }
+        }
+    }
+}
+task buildLibraries {
+    dependsOn binaries.withType(LibraryBinary)
+}

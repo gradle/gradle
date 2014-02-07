@@ -51,21 +51,10 @@ class GccLinker implements Compiler<LinkerSpec> {
             List<String> args = new ArrayList<String>();
             
             args.addAll(spec.getSystemArgs());
-            for (String userArg : spec.getArgs()) {
-                args.add("-Xlinker");
-                args.add(userArg);
-            }
 
             if (spec instanceof SharedLibraryLinkerSpec) {
                 args.add("-shared");
-                if (!OperatingSystem.current().isWindows()) {
-                    String installName = ((SharedLibraryLinkerSpec) spec).getInstallName();
-                    if (OperatingSystem.current().isMacOsX()) {
-                        args.add("-Wl,-install_name," + installName);
-                    } else {
-                        args.add("-Wl,-soname," + installName);
-                    }
-                }
+                maybeSetInstallName((SharedLibraryLinkerSpec) spec, args);
             }
             args.add("-o");
             args.add(spec.getOutputFile().getAbsolutePath());
@@ -82,7 +71,24 @@ class GccLinker implements Compiler<LinkerSpec> {
 //                args.add("-Wl,-rpath," + pathEntry.getAbsolutePath());
                 throw new UnsupportedOperationException("Library Path not yet supported on GCC");
             }
+
+            for (String userArg : spec.getArgs()) {
+                args.add(userArg);
+            }
+
             return args;
+        }
+
+        private void maybeSetInstallName(SharedLibraryLinkerSpec spec, List<String> args) {
+            String installName = spec.getInstallName();
+            if (installName == null || OperatingSystem.current().isWindows()) {
+                return;
+            }
+            if (OperatingSystem.current().isMacOsX()) {
+                args.add("-Wl,-install_name," + installName);
+            } else {
+                args.add("-Wl,-soname," + installName);
+            }
         }
     }
 }

@@ -15,13 +15,16 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.GradleException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.model.EntryPoint;
 import org.gradle.tooling.model.Task;
+import org.gradle.tooling.model.TaskSelector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,15 +50,21 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
         return this;
     }
 
-    public BuildLauncher forTasks(Task... tasks) {
+    public BuildLauncher forTasks(EntryPoint... tasks) {
         forTasks(Arrays.asList(tasks));
         return this;
     }
 
-    public BuildLauncher forTasks(Iterable<? extends Task> tasks) {
+    public BuildLauncher forTasks(Iterable<? extends EntryPoint> tasks) {
         List<String> taskPaths = new ArrayList<String>();
-        for (Task task : tasks) {
-            taskPaths.add(task.getPath());
+        for (EntryPoint task : tasks) {
+            if (task instanceof Task) {
+                taskPaths.add(((Task) task).getPath());
+            } else if (task instanceof TaskSelector) {
+                taskPaths.add(((TaskSelector) task).getName());
+            } else {
+                throw new GradleException("Only Task or TaskSelector instances are supported.");
+            }
         }
         operationParameters.setTasks(taskPaths);
         return this;

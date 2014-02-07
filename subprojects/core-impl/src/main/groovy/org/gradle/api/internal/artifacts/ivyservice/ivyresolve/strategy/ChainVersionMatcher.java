@@ -36,8 +36,8 @@ public class ChainVersionMatcher implements VersionMatcher {
         return getCompatibleMatcher(selector).isDynamic(selector);
     }
 
-    public boolean needModuleMetadata(String selector, String candidate) {
-        return getCompatibleMatcher(selector).needModuleMetadata(selector, candidate);
+    public boolean needModuleMetadata(String selector) {
+        return getCompatibleMatcher(selector).needModuleMetadata(selector);
     }
 
     public boolean accept(String selector, String candidate) {

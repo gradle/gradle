@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.plugins.CppLangPlugin
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
@@ -51,16 +51,19 @@ class CppNativeBinariesPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
+        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-                def compileTask = createCompileTask(project, binary, sourceSet)
-                binary.tasks.add compileTask
-                binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                if (sourceSet.mayHaveSources) {
+                    def compileTask = createCompileTask(project, binary, sourceSet)
+                    compileTask.dependsOn sourceSet
+                    binary.tasks.add compileTask
+                    binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                }
             }
         }
     }
 
-    private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, CppSourceSet sourceSet) {
+    private def createCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, CppSourceSet sourceSet) {
         def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CppCompile) {
             description = "Compiles the $sourceSet of $binary"
         }
@@ -69,11 +72,13 @@ class CppNativeBinariesPlugin implements Plugin<ProjectInternal> {
         compileTask.targetPlatform = binary.targetPlatform
         compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
 
-        compileTask.includes sourceSet.exportedHeaders
-        compileTask.source sourceSet.source
-        binary.getLibs(sourceSet).each { deps ->
-            compileTask.includes deps.includeRoots
+        compileTask.includes {
+            sourceSet.exportedHeaders.srcDirs
         }
+        compileTask.includes {
+            binary.getLibs(sourceSet)*.includeRoots
+        }
+        compileTask.source sourceSet.source
 
         compileTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
         compileTask.macros = binary.cppCompiler.macros

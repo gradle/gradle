@@ -19,6 +19,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
@@ -55,6 +56,7 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
 
         public List<String> transform(WindowsResourceCompileSpec spec) {
             List<String> args = new ArrayList<String>();
+            args.add("/nologo");
             args.add("/fo");
             args.add(getOutputFile(spec).getAbsolutePath());
             for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
@@ -71,7 +73,12 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
 
         private File getOutputFile(WindowsResourceCompileSpec spec) {
             String outputFileName = FilenameUtils.getBaseName(inputFile.getName()) + ".res";
-            return new File(spec.getObjectFileDir(), outputFileName);
+            String compactMD5 = HashUtil.createCompactMD5(inputFile.getAbsolutePath());
+            File outputDirectory = new File(spec.getObjectFileDir(), compactMD5);
+            if(!outputDirectory.exists()){
+                outputDirectory.mkdir();
+            }
+            return new File(outputDirectory, outputFileName);
         }
     }
 

@@ -162,10 +162,14 @@ ext.cssFiles = fileTree(css.destinationDir) {
 task samples(type: ExtractSnippetsTask) {
     source samplesSrcDir
     exclude 'userguideOutput/**'
-    exclude 'userguide/tutorial/antLoadfileResources/**'
     exclude '**/readme.xml'
     exclude '**/build/**'
     exclude '**/.gradle/**'
+
+    // Resources that should not be filtered
+    exclude 'userguide/tutorial/antLoadfileResources/**'
+    exclude 'native-binaries/cunit/lib/**'
+
     destDir = samplesDir
     snippetsDir = new File(buildDir, 'snippets')
     doLast {
@@ -173,6 +177,7 @@ task samples(type: ExtractSnippetsTask) {
             from samplesSrcDir
             into samplesDir
             include 'userguide/tutorial/antLoadfileResources/**'
+            include 'native-binaries/cunit/lib/**'
         }
     }
 }
@@ -320,6 +325,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/*'
     include 'org/gradle/external/javadoc/**'
     include 'org/gradle/language/**'
+    include 'org/gradle/ide/**'
     include 'org/gradle/nativebinaries/**'
     include 'org/gradle/process/**'
     include 'org/gradle/plugins/**'

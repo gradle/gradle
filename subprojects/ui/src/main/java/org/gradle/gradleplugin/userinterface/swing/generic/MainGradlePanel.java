@@ -25,7 +25,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -159,14 +158,9 @@ public class MainGradlePanel extends JPanel {
     public void aboutToShow() {
         setupUI();
 
-        Iterator<GradleTab> iterator = gradleTabs.iterator();
-        while (iterator.hasNext()) {
-            GradleTab gradleTab = iterator.next();
+        for (GradleTab gradleTab : gradleTabs) {
             gradleTab.aboutToShow();
         }
-
-        //now start up the plugin now that everything has been initialized
-        gradlePluginLord.startExecutionQueue();
     }
 
     /**
@@ -221,9 +215,7 @@ public class MainGradlePanel extends JPanel {
     }
 
     private void addTabs() {
-        Iterator<GradleTab> iterator = gradleTabs.iterator();
-        while (iterator.hasNext()) {
-            GradleTab gradleTab = iterator.next();
+        for (GradleTab gradleTab : gradleTabs) {
             tabbedPane.add(gradleTab.getName(), gradleTab.createComponent());
         }
     }

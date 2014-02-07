@@ -38,6 +38,7 @@ class GradleRunnerTest {
   static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
   private File javaprojectDir
+    File gradleUserHomeDir
 
   @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
   final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
@@ -46,7 +47,13 @@ class GradleRunnerTest {
   @Before
   void setUp() {
       javaprojectDir = temporaryFolder.testDirectory
+      gradleUserHomeDir = temporaryFolder.file("gradle-user-home")
+
   }
+
+    String toCommand(String command) {
+        "'-g=$gradleUserHomeDir.absolutePath' $command"
+    }
 
   /**
    * We just want to make sure we can instantiate a GradleRunner here. That's all
@@ -68,13 +75,14 @@ class GradleRunnerTest {
   @Test
   public void testExecution()
   {
+      def gradleUserHome = temporaryFolder.file("gradle-user-home")
     TestGradleRunnerInteractionVersion1 interaction = new TestGradleRunnerInteractionVersion1( javaprojectDir )
 
     GradleRunnerVersion1 runner = GradleRunnerFactory.createGradleRunner(getClass().getClassLoader(), dist.getGradleHomeDir(), interaction, true)
 
     Assert.assertNotNull( "Failed to instantiate runner", runner )
 
-    runner.executeCommand( "clean build" )
+    runner.executeCommand(toCommand("clean build"))
 
         //wait for it to complete
     int totalWaitTime = 0;
@@ -135,7 +143,7 @@ class GradleRunnerTest {
 
     Assert.assertNotNull( "Failed to instantiate runner", runner )
 
-    runner.executeCommand( "build" )
+    runner.executeCommand(toCommand("build"))
 
         //wait for it to complete
     int totalWaitTime = 0;

@@ -37,7 +37,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                         new DefaultProcessMetaDataProvider(
                                 NativeServices.getInstance().get(org.gradle.internal.nativeplatform.ProcessEnvironment)),
                         20 * 60 * 1000 // allow up to 20 minutes to download a distribution
-                , new NoOpFileLockContentionHandler())).create()
+                , new NoOpFileLockContentionHandler()))
     }
 
     protected TestFile versionDir

@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.project.ProjectConfigureAction;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -23,10 +24,14 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 public class ToolingRegistrationAction implements ProjectConfigureAction {
     public void execute(ProjectInternal project) {
         ToolingModelBuilderRegistry modelBuilderRegistry = project.getServices().get(ToolingModelBuilderRegistry.class);
-        modelBuilderRegistry.register(new EclipseModelBuilder());
-        modelBuilderRegistry.register(new IdeaModelBuilder());
-        modelBuilderRegistry.register(new GradleProjectBuilder());
+        ProjectPublicationRegistry projectPublicationRegistry = project.getServices().get(ProjectPublicationRegistry.class);
+
+        GradleProjectBuilder gradleProjectBuilder  = new GradleProjectBuilder(projectPublicationRegistry);
+        IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder);
+        modelBuilderRegistry.register(new EclipseModelBuilder(gradleProjectBuilder));
+        modelBuilderRegistry.register(ideaModelBuilder);
+        modelBuilderRegistry.register(gradleProjectBuilder);
         modelBuilderRegistry.register(new GradleBuildBuilder());
-        modelBuilderRegistry.register(new BasicIdeaModelBuilder());
+        modelBuilderRegistry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
     }
 }

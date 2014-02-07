@@ -16,9 +16,12 @@
 
 package org.gradle.cache;
 
+import org.gradle.api.Action;
+import org.gradle.cache.internal.filelock.LockOptions;
+
 import java.util.Map;
 
-public interface CacheBuilder<T> {
+public interface CacheBuilder {
     enum VersionStrategy {
         /**
          * A separate cache instance for each Gradle version. This is the default.
@@ -28,11 +31,7 @@ public interface CacheBuilder<T> {
          * A single cache instance shared by all Gradle versions. It is the caller's responsibility to make sure that this is shared only with
          * those versions of Gradle that are compatible with the cache implementation and contents.
          */
-        SharedCache,
-        /**
-         * A single cache instance, which is invalidated when the Gradle version changes.
-         */
-        SharedCacheInvalidateOnVersionChange,
+        SharedCache
     }
 
     /**
@@ -42,16 +41,13 @@ public interface CacheBuilder<T> {
      * @param properties additional properties for the cache.
      * @return this
      */
-    CacheBuilder<T> withProperties(Map<String, ?> properties);
+    CacheBuilder withProperties(Map<String, ?> properties);
 
     /**
-     * Specifies the layout strategy for the Cache.
-     *
-     * @param layout The layout for this cache.
+     * Specifies that the cache should be shared by all versions of Gradle. The default is to use a Gradle version specific cache.
      * @return this
      */
-    CacheBuilder<T> withLayout(CacheLayout layout);
-
+    CacheBuilder withCrossVersionCache();
 
     /**
      * Specifies a cache validator for this cache. If {@link CacheValidator#isValid()} results in false, the Cache is considered as invalid.
@@ -59,12 +55,30 @@ public interface CacheBuilder<T> {
      * @param validator The validator
      * @return this
      */
-    CacheBuilder<T> withValidator(CacheValidator validator);
+    CacheBuilder withValidator(CacheValidator validator);
 
     /**
-     * Opens the cache.
+     * Specifies the display name for this cache. This display name is used in logging and error messages.
+     */
+    CacheBuilder withDisplayName(String displayName);
+
+    /**
+     * Specifies the <em>initial</em> lock options to use. See {@link PersistentCache} for details.
+     *
+     * <p>Note that not every combination of cache type and lock options is supported.
+     */
+    CacheBuilder withLockOptions(LockOptions lockOptions);
+
+    /**
+     * Specifies an action to execute to initialize the cache contents, if the cache does not exist or is invalid. An exclusive lock is held while the initializer is executing, to prevent
+     * cross-process access.
+     */
+    CacheBuilder withInitializer(Action<? super PersistentCache> initializer);
+
+    /**
+     * Opens the cache. It is the caller's responsibility to close the cache when finished with it.
      *
      * @return The cache.
      */
-    T open() throws CacheOpenException;
+    PersistentCache open() throws CacheOpenException;
 }

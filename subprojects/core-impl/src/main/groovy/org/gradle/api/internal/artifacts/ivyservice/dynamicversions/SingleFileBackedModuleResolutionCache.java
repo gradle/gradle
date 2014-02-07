@@ -49,7 +49,7 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> initCache() {
-        return cacheLockingManager.createCache("dynamic-revisions.bin", new RevisionKeySerializer(), new ModuleResolutionCacheEntrySerializer());
+        return cacheLockingManager.createCache("dynamic-revisions", new RevisionKeySerializer(), new ModuleResolutionCacheEntrySerializer());
     }
 
     public void cacheModuleResolution(ModuleVersionRepository repository, ModuleVersionSelector requestedVersion, ModuleVersionIdentifier resolvedVersion) {

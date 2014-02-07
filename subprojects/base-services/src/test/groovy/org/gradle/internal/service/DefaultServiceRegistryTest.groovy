@@ -96,6 +96,28 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(Object) == value
     }
 
+    def createsInstanceOfServiceImplementation() {
+        def registry = new DefaultServiceRegistry()
+        registry.register({ ServiceRegistration registration ->
+            registration.add(TestServiceImpl)
+        } as Action)
+
+        expect:
+        registry.get(TestService) instanceof TestServiceImpl
+        registry.get(TestService) == registry.get(TestServiceImpl)
+    }
+
+    def injectsServicesIntoServiceImplementation() {
+        def registry = new DefaultServiceRegistry()
+        registry.register({ ServiceRegistration registration ->
+            registration.add(ServiceWithDependency)
+            registration.add(TestServiceImpl)
+        } as Action)
+
+        expect:
+        registry.get(ServiceWithDependency).service == registry.get(TestServiceImpl)
+    }
+
     def usesFactoryMethodOnProviderToCreateServiceInstance() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new TestProvider())
@@ -509,6 +531,7 @@ class DefaultServiceRegistryTest extends Specification {
         given:
         registry.register({ ServiceRegistration registration ->
             registration.add(Number, 12)
+            registration.add(TestServiceImpl)
             registration.addProvider(new Object() {
                 String createString() {
                     return "hi"
@@ -518,6 +541,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         expect:
         registry.get(Number) == 12
+        registry.get(TestServiceImpl)
         registry.get(String) == "hi"
     }
 
@@ -565,6 +589,19 @@ class DefaultServiceRegistryTest extends Specification {
         ServiceLookupException e = thrown()
         e.message == 'Could not configure services using BrokenConfigureProvider.configure().'
         e.cause == BrokenConfigureProvider.failure
+    }
+
+    def failsWhenCannotCreateServiceInstanceFromImplementationClass() {
+        given:
+        registry.register({ registration -> registration.add(ClassWithBrokenConstructor)} as Action)
+
+        when:
+        registry.get(ClassWithBrokenConstructor)
+
+        then:
+        ServiceCreationException e = thrown()
+        e.message == 'Could not create service of type ClassWithBrokenConstructor.'
+        e.cause == ClassWithBrokenConstructor.failure
     }
 
     def canGetAllServicesOfAGivenType() {
@@ -770,6 +807,18 @@ class DefaultServiceRegistryTest extends Specification {
         noExceptionThrown()
     }
 
+    def closeInvokesCloseMethodOnEachServiceCreatedFromImplementationClass() {
+        given:
+        registry.register({ registration -> registration.add(ClosableService)} as Action)
+        def service = registry.get(ClosableService)
+
+        when:
+        registry.close()
+
+        then:
+        service.closed
+    }
+
     def closeInvokesCloseMethodOnEachServiceCreatedByProviderFactoryMethod() {
         def service = Mock(TestStopService)
 
@@ -959,6 +1008,20 @@ class DefaultServiceRegistryTest extends Specification {
         int value;
         public BigDecimal create() {
             return BigDecimal.valueOf(value++)
+        }
+    }
+
+    private interface TestService {
+    }
+
+    private static class TestServiceImpl implements TestService {
+    }
+
+    private static class ServiceWithDependency {
+        final TestService service
+
+        ServiceWithDependency(TestService service) {
+            this.service = service
         }
     }
 
@@ -1156,5 +1219,21 @@ class DefaultServiceRegistryTest extends Specification {
 
     public interface ClosableServiceRegistry extends ServiceRegistry {
         void close()
+    }
+
+    static class ClassWithBrokenConstructor {
+        static def failure = new RuntimeException("broken")
+
+        ClassWithBrokenConstructor() {
+            throw failure
+        }
+    }
+
+    static class ClosableService {
+        boolean closed
+
+        void close() {
+            closed = true
+        }
     }
 }

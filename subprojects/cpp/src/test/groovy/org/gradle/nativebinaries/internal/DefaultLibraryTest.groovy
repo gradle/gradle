@@ -16,47 +16,44 @@
 
 package org.gradle.nativebinaries.internal
 
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativebinaries.NativeDependencySet
-import org.gradle.nativebinaries.SharedLibraryBinary
-import org.gradle.nativebinaries.StaticLibraryBinary
 import spock.lang.Specification
 
 class DefaultLibraryTest extends Specification {
-    def "has useful string representation"() {
-        def library = new DefaultLibrary("someLib", new DirectInstantiator(), Stub(FileResolver))
+    final library = new DefaultLibrary(new NativeProjectComponentIdentifier("project-path", "someLib"))
 
+    def "has useful string representation"() {
         expect:
         library.toString() == "library 'someLib'"
+        library.displayName == "library 'someLib'"
     }
 
-    def "can use shared and static variants as dependencies"() {
-        def library = new DefaultLibrary("someLib", new DirectInstantiator(), Stub(FileResolver))
-        def sharedLinkFiles = Stub(FileCollection)
-        def staticLinkFiles = Stub(FileCollection)
-        def sharedDependency = Stub(NativeDependencySet)
-        def staticDependency = Stub(NativeDependencySet)
-        def sharedBinary = Stub(SharedLibraryBinary) {
-            getFlavor() >> new DefaultFlavor("default")
-        }
-        def staticBinary = Stub(StaticLibraryBinary) {
-            getFlavor() >> new DefaultFlavor("default")
-        }
+    def "can use shared variant as requirement"() {
+        when:
+        def requirement = library.shared
 
-        given:
-        library.binaries.add(sharedBinary)
-        library.binaries.add(staticBinary)
+        then:
+        requirement.projectPath == 'project-path'
+        requirement.libraryName == 'someLib'
+        requirement.linkage == 'shared'
+    }
 
-        and:
-        sharedDependency.linkFiles >> sharedLinkFiles
-        staticDependency.linkFiles >> staticLinkFiles
-        sharedBinary.resolve() >> sharedDependency
-        staticBinary.resolve() >> staticDependency
+    def "can use static variant as requirement"() {
+        when:
+        def requirement = library.static
 
-        expect:
-        library.shared.resolve().linkFiles == sharedLinkFiles
-        library.static.resolve().linkFiles == staticLinkFiles
+        then:
+        requirement.projectPath == 'project-path'
+        requirement.libraryName == 'someLib'
+        requirement.linkage == 'static'
+    }
+
+    def "can use api linkage as requirement"() {
+        when:
+        def requirement = library.api
+
+        then:
+        requirement.projectPath == 'project-path'
+        requirement.libraryName == 'someLib'
+        requirement.linkage == 'api'
     }
 }

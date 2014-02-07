@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.ToolChain;
 
 import java.io.File;
 

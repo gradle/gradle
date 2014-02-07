@@ -32,9 +32,11 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
 
     String getExtraConfiguration() {
         return """
-            targetPlatforms {
-                x86 {
-                    architecture "i386"
+            model {
+                platforms {
+                    x86 {
+                        architecture "i386"
+                    }
                 }
             }
 """

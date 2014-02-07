@@ -19,7 +19,6 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -34,11 +33,9 @@ import java.util.concurrent.Executor;
 class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(ParallelTaskPlanExecutor.class);
     private final int executorCount;
-    private final TaskArtifactStateCacheAccess cacheAccess;
     private final ExecutorFactory executorFactory;
 
-    public ParallelTaskPlanExecutor(TaskArtifactStateCacheAccess cacheAccess, int numberOfParallelExecutors, ExecutorFactory executorFactory) {
-        this.cacheAccess = cacheAccess;
+    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory) {
         this.executorFactory = executorFactory;
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
@@ -48,20 +45,14 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     }
 
     public void process(final TaskExecutionPlan taskExecutionPlan, final TaskExecutionListener taskListener) {
-        // The main thread holds the lock for the task cache. Need to release the lock while executing the tasks.
-        // This locking needs to be pushed down closer to the things that need the lock and removed from here.
-        cacheAccess.longRunningOperation("Executing all tasks", new Runnable() {
-            public void run() {
-                StoppableExecutor executor = executorFactory.create("Task worker");
-                try {
-                    startAdditionalWorkers(taskExecutionPlan, taskListener, executor);
-                    taskWorker(taskExecutionPlan, taskListener).run();
-                    taskExecutionPlan.awaitCompletion();
-                } finally {
-                    executor.stop();
-                }
-            }
-        });
+        StoppableExecutor executor = executorFactory.create("Task worker");
+        try {
+            startAdditionalWorkers(taskExecutionPlan, taskListener, executor);
+            taskWorker(taskExecutionPlan, taskListener).run();
+            taskExecutionPlan.awaitCompletion();
+        } finally {
+            executor.stop();
+        }
     }
 
     private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener, Executor executor) {

@@ -16,19 +16,15 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.internal.ArchitectureInternal;
-import org.gradle.nativebinaries.internal.PlatformToolChain;
-import org.gradle.nativebinaries.internal.ToolChainAvailability;
+import org.gradle.nativebinaries.platform.Platform;
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
 import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration;
-import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
-import org.gradle.nativebinaries.toolchain.internal.ToolType;
+import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.CollectionUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,10 +52,20 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         configInsertLocation = 0;
     }
 
+    public List<File> getPath() {
+        return tools.getPath();
+    }
+
+    public void path(Object... pathEntries) {
+        for (Object path : pathEntries) {
+            tools.path(resolve(path));
+        }
+    }
+
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
         for (ToolType key : ToolType.values()) {
-            availability.mustExist(key.getToolName(), tools.locate(key));
+            availability.mustBeAvailable(tools.locate(key));
         }
     }
 
@@ -69,8 +75,11 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
     }
 
     public PlatformToolChain target(Platform targetPlatform) {
-        checkAvailable();
+        assertAvailable();
         TargetPlatformConfiguration platformConfiguration = getPlatformConfiguration(targetPlatform);
+        if (platformConfiguration == null) {
+            throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
+        }
         return new GccPlatformToolChain(tools, execActionFactory, platformConfiguration, canUseCommandFile());
     }
 
@@ -80,19 +89,20 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
                 return platformConfig;
             }
         }
-        throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
+        return null;
     }
 
     protected boolean canUseCommandFile() {
         return true;
     }
 
-    public boolean canTargetPlatform(final Platform targetPlatform) {
-        return CollectionUtils.any(platformConfigs, new Spec<TargetPlatformConfiguration>() {
-            public boolean isSatisfiedBy(TargetPlatformConfiguration element) {
-                return element.supportsPlatform(targetPlatform);
-            }
-        });
+    public ToolSearchResult canTargetPlatform(final Platform targetPlatform) {
+        ToolChainAvailability result = new ToolChainAvailability();
+        result.mustBeAvailable(getAvailability());
+        if (getPlatformConfiguration(targetPlatform) == null) {
+            result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
+        }
+        return result;
     }
 
     private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {
@@ -110,6 +120,14 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
 
         public List<String> getCCompilerArgs() {
+            return emptyList();
+        }
+
+        public List<String> getObjectiveCppCompilerArgs() {
+            return emptyList();
+        }
+
+        public List<String> getObjectiveCCompilerArgs() {
             return emptyList();
         }
 
@@ -133,6 +151,14 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
 
         public List<String> getCCompilerArgs() {
+            return asList("-m32");
+        }
+
+        public List<String> getObjectiveCppCompilerArgs() {
+            return asList("-m32");
+        }
+
+        public List<String> getObjectiveCCompilerArgs() {
             return asList("-m32");
         }
 
@@ -164,6 +190,14 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
 
         public List<String> getCCompilerArgs() {
+            return asList("-m64");
+        }
+
+        public List<String> getObjectiveCppCompilerArgs() {
+            return asList("-m64");
+        }
+
+        public List<String> getObjectiveCCompilerArgs() {
             return asList("-m64");
         }
 

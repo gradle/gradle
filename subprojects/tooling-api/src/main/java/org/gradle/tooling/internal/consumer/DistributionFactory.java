@@ -34,10 +34,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DistributionFactory {
-    private final File userHomeDir;
 
-    public DistributionFactory(File userHomeDir) {
-        this.userHomeDir = userHomeDir;
+    public DistributionFactory() {
     }
 
     /**
@@ -88,7 +86,7 @@ public class DistributionFactory {
         return getDistribution(distUri);
     }
 
-    private class ZippedDistribution implements Distribution {
+    private static class ZippedDistribution implements Distribution {
         private InstalledDistribution installedDistribution;
         private final WrapperConfiguration wrapperConfiguration;
 
@@ -100,11 +98,12 @@ public class DistributionFactory {
             return String.format("Gradle distribution '%s'", wrapperConfiguration.getDistribution());
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir) {
             if (installedDistribution == null) {
                 File installDir;
                 try {
-                    Install install = new Install(new ProgressReportingDownload(progressLoggerFactory), new PathAssembler(userHomeDir));
+                    File realUserHomeDir = userHomeDir != null ? userHomeDir : GradleUserHomeLookup.gradleUserHome();
+                    Install install = new Install(new ProgressReportingDownload(progressLoggerFactory), new PathAssembler(realUserHomeDir));
                     installDir = install.createDist(wrapperConfiguration);
                 } catch (FileNotFoundException e) {
                     throw new IllegalArgumentException(String.format("The specified %s does not exist.", getDisplayName()), e);
@@ -113,7 +112,7 @@ public class DistributionFactory {
                 }
                 installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
             }
-            return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory);
+            return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir);
         }
     }
 
@@ -151,7 +150,7 @@ public class DistributionFactory {
             return displayName;
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionFactory.class);
             progressLogger.setDescription("Validate distribution");
             progressLogger.started();
@@ -188,7 +187,7 @@ public class DistributionFactory {
             return "Gradle classpath distribution";
         }
 
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
+        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir) {
             return new EffectiveClassPath(getClass().getClassLoader());
         }
     }

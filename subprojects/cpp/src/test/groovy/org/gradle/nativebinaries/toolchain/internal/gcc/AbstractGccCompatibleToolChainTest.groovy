@@ -16,60 +16,68 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.Platform
-import org.gradle.nativebinaries.internal.ArchitectureInternal
-import org.gradle.nativebinaries.internal.DefaultArchitecture
-import org.gradle.nativebinaries.internal.DefaultOperatingSystem
+import org.gradle.nativebinaries.platform.Platform
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
+import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
+import org.gradle.nativebinaries.platform.internal.DefaultOperatingSystem
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration
 import org.gradle.nativebinaries.toolchain.internal.ToolType
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
-import static org.gradle.nativebinaries.internal.ArchitectureInternal.InstructionSet.X86
+import static ArchitectureInternal.InstructionSet.X86
 
 class AbstractGccCompatibleToolChainTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def execActionFactory = Mock(ExecActionFactory)
     def toolRegistry = Mock(ToolRegistry)
-    def tool = Mock(File)
+    def tool = Stub(CommandLineToolSearchResult) {
+        isAvailable() >> true
+    }
     def os = Mock(OperatingSystem)
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolRegistry)
     def platform = Mock(Platform)
 
     def "is unavailable if not all tools can be found"() {
+        def missing = Stub(CommandLineToolSearchResult) {
+            isAvailable() >> false
+            explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c++ compiler not found") }
+        }
+
         when:
         def availability = toolChain.getAvailability()
 
         then:
-        toolRegistry.locate(ToolType.CPP_COMPILER) >> null
+        toolRegistry.locate(ToolType.CPP_COMPILER) >> missing
+        toolRegistry.locate(_) >> tool
 
         and:
         !availability.available
-        availability.unavailableMessage == "C++ compiler cannot be found"
+        availability.unavailableMessage == "c++ compiler not found"
     }
 
     def "is available if all tools can be found"() {
+        given:
+        toolRegistry.locate(_) >> tool
+
         when:
         def availability = toolChain.getAvailability()
 
         then:
-        toolRegistry.locate(_) >> tool
-        tool.exists() >> true
-
-        and:
         availability.available
     }
 
     def "supplies no additional arguments to target native binary for tool chain default"() {
         when:
+        toolRegistry.locate(_) >> tool
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
-
         then:
-        toolChain.canTargetPlatform(platform)
+        toolChain.canTargetPlatform(platform).available
 
         with(toolChain.getPlatformConfiguration(platform)) {
             linkerArgs == []
@@ -83,11 +91,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "supplies args for supported architecture"() {
         when:
+        toolRegistry.locate(_) >> tool
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> new DefaultArchitecture(arch, instructionSet, registerSize)
 
         then:
-        toolChain.canTargetPlatform(platform)
+        toolChain.canTargetPlatform(platform).available
 
         with(toolChain.getPlatformConfiguration(platform)) {
             linkerArgs == [linkerArg]
@@ -110,11 +119,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     @Requires(TestPrecondition.WINDOWS)
     def "supplies args for supported architecture for i386 architecture on windows"() {
         when:
+        toolRegistry.locate(_) >> tool
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> new DefaultArchitecture("i386", X86, 32)
 
         then:
-        toolChain.canTargetPlatform(platform)
+        toolChain.canTargetPlatform(platform).available
 
         with(toolChain.getPlatformConfiguration(platform)) {
             linkerArgs == ["-m32"]
@@ -129,7 +139,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def "cannot target x86_64 architecture on windows"() {
         when:
         toolRegistry.locate(_) >> tool
-        tool.exists() >> true
 
         and:
         platform.getName() >> "x64"
@@ -148,6 +157,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         def platformConfig1 = Mock(TargetPlatformConfiguration)
         def platformConfig2 = Mock(TargetPlatformConfiguration)
         when:
+        toolRegistry.locate(_) >> tool
         platform.getOperatingSystem() >> new DefaultOperatingSystem("other", OperatingSystem.SOLARIS)
 
         and:
@@ -159,7 +169,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platformConfig2.supportsPlatform(platform) >> true
 
         then:
-        toolChain.canTargetPlatform(platform)
+        toolChain.canTargetPlatform(platform).available
 
         and:
         toolChain.getPlatformConfiguration(platform) == platformConfig2

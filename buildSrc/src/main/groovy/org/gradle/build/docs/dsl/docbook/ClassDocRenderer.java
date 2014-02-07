@@ -19,17 +19,18 @@ package org.gradle.build.docs.dsl.docbook;
 import org.gradle.build.docs.dsl.docbook.model.ClassDoc;
 import org.w3c.dom.Element;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ClassDocRenderer {
     private final GenerationListener listener = new DefaultGenerationListener();
     private final ClassDescriptionRenderer descriptionRenderer = new ClassDescriptionRenderer();
-    private final PropertiesRenderer propertiesRenderer;
-    private final MethodsRenderer methodsRenderer;
-    final BlocksRenderer blocksRenderer;
+    private final List<ClassDocMemberRenderer> memberRenderers = new ArrayList<ClassDocMemberRenderer>();
 
     public ClassDocRenderer(LinkRenderer linkRenderer) {
-        propertiesRenderer = new PropertiesRenderer(linkRenderer, listener);
-        methodsRenderer = new MethodsRenderer(linkRenderer, listener);
-        blocksRenderer = new BlocksRenderer(linkRenderer, listener);
+        memberRenderers.add(new PropertiesRenderer(linkRenderer, listener));
+        memberRenderers.add(new MethodsRenderer(linkRenderer, listener));
+        memberRenderers.add(new BlocksRenderer(linkRenderer, listener));
     }
 
     public void mergeContent(ClassDoc classDoc, Element parent) {
@@ -39,23 +40,18 @@ public class ClassDocRenderer {
             parent.appendChild(chapter);
             chapter.setAttribute("id", classDoc.getId());
             descriptionRenderer.renderTo(classDoc, chapter);
-            mergeProperties(classDoc, chapter);
-            mergeBlocks(classDoc, chapter);
-            mergeMethods(classDoc, chapter);
+            merge(classDoc, chapter);
         } finally {
             listener.finish();
         }
     }
 
-    void mergeProperties(ClassDoc classDoc, Element classContent) {
-        propertiesRenderer.renderTo(classDoc, classContent);
-    }
-
-    void mergeMethods(ClassDoc classDoc, Element classContent) {
-        methodsRenderer.renderTo(classDoc, classContent);
-    }
-
-    void mergeBlocks(ClassDoc classDoc, Element classContent) {
-        blocksRenderer.renderTo(classDoc, classContent);
+    void merge(ClassDoc classDoc, Element chapter) {
+        for (ClassDocMemberRenderer memberRenderer : memberRenderers) {
+            memberRenderer.renderSummaryTo(classDoc, chapter);
+        }
+        for (ClassDocMemberRenderer memberRenderer : memberRenderers) {
+            memberRenderer.renderDetailsTo(classDoc, chapter);
+        }
     }
 }

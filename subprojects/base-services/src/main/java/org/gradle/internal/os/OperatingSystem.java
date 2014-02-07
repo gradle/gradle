@@ -29,6 +29,7 @@ public abstract class OperatingSystem {
     public static final MacOs MAC_OS = new MacOs();
     public static final Solaris SOLARIS = new Solaris();
     public static final Linux LINUX = new Linux();
+    public static final FreeBSD FREE_BSD = new FreeBSD();
     public static final Unix UNIX = new Unix();
 
     public static OperatingSystem current() {
@@ -41,6 +42,8 @@ public abstract class OperatingSystem {
             return SOLARIS;
         } else if (osName.contains("linux")) {
             return LINUX;
+        } else if (osName.contains("freebsd")) {
+            return FREE_BSD;
         } else {
             // Not strictly true
             return UNIX;
@@ -76,10 +79,6 @@ public abstract class OperatingSystem {
         return false;
     }
 
-    public boolean isSolaris() {
-        return false;
-    }
-
     public abstract String getNativePrefix();
 
     public abstract String getScriptName(String scriptPath);
@@ -89,6 +88,8 @@ public abstract class OperatingSystem {
     public abstract String getSharedLibraryName(String libraryName);
 
     public abstract String getStaticLibraryName(String libraryName);
+
+    public abstract String getFamilyName();
 
     /**
      * Locates the given executable in the system path. Returns null if not found.
@@ -149,6 +150,11 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getFamilyName() {
+            return "windows";
+        }
+
+        @Override
         public String getScriptName(String scriptPath) {
             return withSuffix(scriptPath, ".bat");
         }
@@ -205,6 +211,11 @@ public abstract class OperatingSystem {
         @Override
         public String getScriptName(String scriptPath) {
             return scriptPath;
+        }
+
+        @Override
+        public String getFamilyName() {
+            return "unknown";
         }
 
         @Override
@@ -282,6 +293,11 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getFamilyName() {
+            return "os x";
+        }
+
+        @Override
         protected String getSharedLibSuffix() {
             return ".dylib";
         }
@@ -297,12 +313,20 @@ public abstract class OperatingSystem {
         public boolean isLinux() {
             return true;
         }
+
+        @Override
+        public String getFamilyName() {
+            return "linux";
+        }
+    }
+
+    static class FreeBSD extends Unix {
     }
 
     static class Solaris extends Unix {
         @Override
-        public boolean isSolaris() {
-            return true;
+        public String getFamilyName() {
+            return "solaris";
         }
 
         @Override

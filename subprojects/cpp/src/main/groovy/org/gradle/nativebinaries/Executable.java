@@ -18,9 +18,9 @@ package org.gradle.nativebinaries;
 import org.gradle.api.Incubating;
 
 /**
- * The logical representation of an executable native component.
+ * An executable native component that is built by Gradle.
  */
 @Incubating
-public interface Executable extends NativeComponent {
+public interface Executable extends ProjectNativeComponent, TargetedNativeComponent {
     
 }

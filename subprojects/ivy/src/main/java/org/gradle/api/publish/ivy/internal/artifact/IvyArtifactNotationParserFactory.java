@@ -36,7 +36,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-public class IvyArtifactNotationParserFactory implements Factory<NotationParser<IvyArtifact>> {
+public class IvyArtifactNotationParserFactory implements Factory<NotationParser<Object, IvyArtifact>> {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
     private final IvyPublicationIdentity publicationIdentity;
@@ -47,12 +47,12 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         this.publicationIdentity = publicationIdentity;
     }
 
-    public NotationParser<IvyArtifact> create() {
+    public NotationParser<Object, IvyArtifact> create() {
         FileNotationParser fileNotationParser = new FileNotationParser(fileResolver);
         ArchiveTaskNotationParser archiveTaskNotationParser = new ArchiveTaskNotationParser();
         PublishArtifactNotationParser publishArtifactNotationParser = new PublishArtifactNotationParser();
 
-        NotationParser<IvyArtifact> sourceNotationParser = new NotationParserBuilder<IvyArtifact>()
+        NotationParser<Object, IvyArtifact> sourceNotationParser = new NotationParserBuilder<IvyArtifact>()
                 .resultingType(IvyArtifact.class)
                 .parser(archiveTaskNotationParser)
                 .parser(publishArtifactNotationParser)
@@ -113,8 +113,8 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         }
     }
 
-    private class FileNotationParser implements NotationParser<IvyArtifact> {
-        private final NotationParser<File> fileResolverNotationParser;
+    private class FileNotationParser implements NotationParser<Object, IvyArtifact> {
+        private final NotationParser<Object, File> fileResolverNotationParser;
 
         private FileNotationParser(FileResolver fileResolver) {
             this.fileResolverNotationParser = fileResolver.asNotationParser();
@@ -136,9 +136,9 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
     }
 
     private class IvyArtifactMapNotationParser extends MapNotationParser<IvyArtifact> {
-        private final NotationParser<IvyArtifact> sourceNotationParser;
+        private final NotationParser<Object, IvyArtifact> sourceNotationParser;
 
-        private IvyArtifactMapNotationParser(NotationParser<IvyArtifact> sourceNotationParser) {
+        private IvyArtifactMapNotationParser(NotationParser<Object, IvyArtifact> sourceNotationParser) {
             this.sourceNotationParser = sourceNotationParser;
         }
 

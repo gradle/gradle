@@ -73,9 +73,6 @@ allprojects {
         def configDetailsFile = buildFile.parentFile.file("build/${config}.txt")
         def configDetails = configDetailsFile.text.readLines()
 
-        println "VALIDATING"
-        println(configDetailsFile.text)
-
         def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
         def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.module}.jar]" }
         assert actualArtifacts == expectedArtifacts
@@ -153,6 +150,17 @@ allprojects {
             return root
         }
 
+        def root(String path, String value, Closure cl) {
+            if (root != null) {
+                throw new IllegalStateException("Root node is already defined")
+            }
+            root = node("project $path", value)
+            cl.resolveStrategy = Closure.DELEGATE_ONLY
+            cl.delegate = root
+            cl.call()
+            return root
+        }
+
         def node(String id, String moduleVersion) {
             def node = nodes[moduleVersion]
             if (!node) {
@@ -224,7 +232,7 @@ allprojects {
 
         private def addNode(String id, String moduleVersionId = id) {
             def node = graph.node(id, moduleVersionId)
-            deps << new EdgeBuilder(this, node.moduleVersionId, node)
+            deps << new EdgeBuilder(this, node.id, node)
             return node
         }
 

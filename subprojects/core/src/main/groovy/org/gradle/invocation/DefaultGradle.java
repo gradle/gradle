@@ -26,14 +26,16 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
@@ -48,9 +50,8 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final TaskGraphExecuter taskGraph;
     private final Gradle parent;
     private final StartParameter startParameter;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ListenerManager listenerManager;
-    private final ServiceRegistryFactory services;
+    private final ServiceRegistry services;
     private final GradleDistributionLocator distributionLocator;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
@@ -58,19 +59,23 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     private PluginContainer pluginContainer;
     private FileResolver fileResolver;
-    private ScriptPluginFactory scriptPluginFactory;
+
+    private final ScriptPluginFactory scriptPluginFactory;
+    private final ClassLoaderScope classLoaderScope;
+    private final ScriptHandlerFactory scriptHandlerFactory;
 
     public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
         this.listenerManager = services.get(ListenerManager.class);
-        projectRegistry = services.get(ProjectRegistry.class);
         taskGraph = services.get(TaskGraphExecuter.class);
         distributionLocator = services.get(GradleDistributionLocator.class);
+        classLoaderScope = services.get(ClassLoaderScope.class);
         pluginContainer = services.get(PluginContainer.class);
         fileResolver = services.get(FileResolver.class);
         scriptPluginFactory = services.get(ScriptPluginFactory.class);
+        scriptHandlerFactory = services.get(ScriptHandlerFactory.class);
         buildListenerBroadcast = listenerManager.createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = listenerManager.createAnonymousBroadcaster(ProjectEvaluationListener.class);
         buildListenerBroadcast.add(new BuildAdapter() {
@@ -147,10 +152,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return taskGraph;
     }
 
-    public ProjectRegistry<ProjectInternal> getProjectRegistry() {
-        return projectRegistry;
-    }
-
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {
         addListener(listener);
         return listener;
@@ -216,8 +217,12 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return this;
     }
 
-    public ServiceRegistryFactory getServices() {
+    public ServiceRegistry getServices() {
         return services;
+    }
+
+    public ServiceRegistryFactory getServiceRegistryFactory() {
+        return services.get(ServiceRegistryFactory.class);
     }
 
     public PluginContainer getPlugins() {
@@ -232,5 +237,15 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     protected ScriptPluginFactory getScriptPluginFactory() {
         return scriptPluginFactory;
+    }
+
+    @Override
+    protected ScriptHandlerFactory getScriptHandlerFactory() {
+        return scriptHandlerFactory;
+    }
+
+    @Override
+    public ClassLoaderScope getClassLoaderScope() {
+        return classLoaderScope;
     }
 }

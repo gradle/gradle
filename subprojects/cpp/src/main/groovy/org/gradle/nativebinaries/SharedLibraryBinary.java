@@ -17,9 +17,31 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
 
+import java.io.File;
+
 /**
  * A {@link Library} that has been compiled and linked as a shared library.
  */
 @Incubating
 public interface SharedLibraryBinary extends LibraryBinary {
+
+    /**
+     * The shared library file.
+     */
+    File getSharedLibraryFile();
+
+    /**
+     * The shared library link file.
+     */
+    File getSharedLibraryLinkFile();
+
+    /**
+     * The shared library file.
+     */
+    void setSharedLibraryFile(File sharedLibraryFile);
+
+    /**
+     * The shared library file.
+     */
+    void setSharedLibraryLinkFile(File sharedLibraryLinkFile);
 }

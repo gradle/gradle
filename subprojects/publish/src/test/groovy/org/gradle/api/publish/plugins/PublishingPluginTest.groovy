@@ -18,9 +18,9 @@ package org.gradle.api.publish.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -56,9 +56,7 @@ class PublishingPluginTest extends Specification {
 
     def "can add publication"() {
         given:
-        def publication = new Publication() {
-            String getName() { "foo" }
-        }
+        def publication = Stub(PublicationInternal)
 
         when:
         extension.publications.add(publication)

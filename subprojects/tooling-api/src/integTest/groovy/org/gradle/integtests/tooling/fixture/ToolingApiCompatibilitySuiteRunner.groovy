@@ -100,15 +100,6 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             return true
         }
 
-        private GradleVersion extractVersion(annotation) {
-            if ("current".equals(annotation.value())) {
-                //so that one can use 'current' literal in the annotation value
-                //(useful if you don't know if the feature makes its way to the upcoming release)
-                return GradleVersion.current()
-            }
-            return GradleVersion.version(annotation.value())
-        }
-
         private Spec<GradleVersion> toVersionSpec(annotation) {
             if (annotation == null) {
                 return Specs.SATISFIES_ALL

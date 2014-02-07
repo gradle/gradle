@@ -29,6 +29,8 @@ import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.*;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
@@ -44,8 +46,6 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultLoggingManagerFactory;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.junit.Test;
 import spock.lang.Shared;
 
@@ -55,7 +55,7 @@ import static org.junit.Assert.assertThat;
 
 public class GlobalScopeServicesTest {
     @Shared
-    private final ServiceRegistry registry = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices());
+    private final ServiceRegistry registry = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices(false));
 
     @Test
     public void providesAGradleLauncherFactory() {
@@ -69,8 +69,8 @@ public class GlobalScopeServicesTest {
     }
 
     @Test
-    public void providesACacheFactoryFactory() {
-        assertThat(registry.getFactory(CacheFactory.class), instanceOf(DefaultCacheFactory.class));
+    public void providesACacheFactory() {
+        assertThat(registry.get(CacheFactory.class), instanceOf(DefaultCacheFactory.class));
     }
 
     @Test

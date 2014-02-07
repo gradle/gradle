@@ -17,8 +17,9 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.Named;
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.internal.ArchitectureInternal;
+import org.gradle.nativebinaries.platform.Platform;
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
@@ -57,21 +58,25 @@ public class WindowsSdk implements Named {
     };
 
     private final File baseDir;
+    private final VersionNumber version;
+    private final String name;
 
-    public WindowsSdk(File baseDir) {
+    public WindowsSdk(File baseDir, VersionNumber version, String name) {
         this.baseDir = baseDir;
+        this.version = version;
+        this.name = name;
     }
 
     public String getName() {
-        return "Windows SDK " + getVersion();
+        return name;
+    }
+
+    public VersionNumber getVersion() {
+        return version;
     }
 
     public File getResourceCompiler(Platform platform) {
         return new File(getBinDir(platform), "rc.exe");
-    }
-
-    public String getVersion() {
-        return baseDir.getName();
     }
 
     public File getBinDir(Platform platform) {

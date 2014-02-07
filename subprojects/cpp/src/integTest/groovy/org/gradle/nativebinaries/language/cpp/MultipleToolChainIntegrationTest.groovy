@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
@@ -23,6 +22,8 @@ import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
+import spock.lang.Ignore
 
 @RequiresInstalledToolChain
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
@@ -45,8 +46,10 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
         helloWorld.library.writeSources(file("src/hello"))
     }
 
+    // TODO:DAZ Test building for 2 platforms that require different tool chains
+    @Ignore
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "can build with all available tool chains"() {
+    def "can build with all multiple tool chains"() {
         List<AvailableToolChains.InstalledToolChain> installedToolChains = []
         for (AvailableToolChains.ToolChainCandidate toolChainCandidate : AvailableToolChains.getToolChains()) {
             if (toolChainCandidate.isAvailable()) {
@@ -58,11 +61,12 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-            toolChains {
-${toolChainConfig}
-
-                unavailable(Gcc) {
-                    linker.executable = "does_not_exist"
+            model {
+                toolChains {
+                    ${toolChainConfig}
+                    unavailable(Gcc) {
+                        linker.executable = "does_not_exist"
+                    }
                 }
             }
 
@@ -81,9 +85,11 @@ ${toolChainConfig}
     def "exception when building with unavailable tool chain"() {
         when:
         buildFile << """
-            toolChains {
-                bad(Gcc) {
-                    linker.executable = "does_not_exist"
+            model {
+                toolChains {
+                    bad(Gcc) {
+                        linker.executable = "does_not_exist"
+                    }
                 }
             }
 """
@@ -95,31 +101,8 @@ ${toolChainConfig}
 
         and:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("Tool chain bad is not available")
-    }
-
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "includes tool chain in task names and binary paths with two defined and one available"() {
-        AvailableToolChains.InstalledToolChain toolChain = AvailableToolChains.getAvailableToolChains().get(0)
-
-        given:
-        buildFile << """
-            toolChains {
-${toolChain.buildScriptConfig}
-
-                unavailable(Gcc) {
-                    linker.executable = "does_not_exist"
-                }
-            }
-"""
-
-        helloWorld.writeSources(file("src/main"))
-
-        when:
-        succeeds "install${toolChain.id.capitalize()}MainExecutable"
-
-        then:
-        checkInstall("build/install/mainExecutable/${toolChain.id}/main", toolChain)
+        failure.assertHasCause(TextUtil.toPlatformLineSeparators("""No tool chain is available to build for platform 'current':
+  - Tool chain 'bad' (GNU GCC): """))
     }
 
     def checkInstall(String path, AvailableToolChains.InstalledToolChain toolChain) {

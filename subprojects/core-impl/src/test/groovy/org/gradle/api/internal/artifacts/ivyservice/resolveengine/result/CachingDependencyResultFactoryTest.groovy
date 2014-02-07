@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -51,12 +52,12 @@ class CachingDependencyResultFactoryTest extends Specification {
         def selectedModule = Mock(ComponentSelectionReason)
 
         when:
-        def dep = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new ModuleVersionResolveException(selector('requested'), "foo"))
-        def same = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new ModuleVersionResolveException(selector('requested'), "foo"))
+        def dep = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), "foo"))
+        def same = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), "foo"))
 
-        def differentRequested = factory.createUnresolvedDependency(selector('xxx'), fromModule, selectedModule, new ModuleVersionResolveException(selector('xxx'), "foo"))
-        def differentFrom = factory.createUnresolvedDependency(selector('requested'), newModule('xxx'), selectedModule, new ModuleVersionResolveException(selector('requested'), "foo"))
-        def differentFailure = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new ModuleVersionResolveException(selector('requested'), "foo"))
+        def differentRequested = factory.createUnresolvedDependency(selector('xxx'), fromModule, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('xxx'), "foo"))
+        def differentFrom = factory.createUnresolvedDependency(selector('requested'), newModule('xxx'), selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), "foo"))
+        def differentFailure = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), "foo"))
 
         then:
         dep.is(same)
@@ -66,6 +67,10 @@ class CachingDependencyResultFactoryTest extends Specification {
     }
 
     def selector(String group='a', String module='a', String version='1') {
+        DefaultModuleComponentSelector.newSelector(group, module, version)
+    }
+
+    def moduleVersionSelector(String group='a', String module='a', String version='1') {
         newSelector(group, module, version)
     }
 }

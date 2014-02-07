@@ -15,5 +15,5 @@
  */
 package org.gradle.cache.internal;
 
-public class GracefullyStoppedException extends Exception {
+public class GracefullyStoppedException extends RuntimeException {
 }

@@ -330,8 +330,6 @@ public class TestUtility {
 
     private static void refreshProjectsBlocking(GradlePluginLord gradlePluginLord, final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitValue,
                                                 TimeUnit maximumWaitUnits) {
-        gradlePluginLord.startExecutionQueue();   //make sure its started
-
         final CountDownLatch complete = new CountDownLatch(1);
         final AtomicReference<String> errorOutput = new AtomicReference<String>();
 
@@ -391,8 +389,6 @@ public class TestUtility {
      */
     public static void executeBlocking(GradlePluginLord gradlePluginLord, String fullCommandLine, String displayName,
                                        final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitSeconds) {
-        gradlePluginLord.startExecutionQueue();   //make sure its started
-
         final CountDownLatch complete = new CountDownLatch(1);
 
         GradlePluginLord.RequestObserver observer = new GradlePluginLord.RequestObserver() {

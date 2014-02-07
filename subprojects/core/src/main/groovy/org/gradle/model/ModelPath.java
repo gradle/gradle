@@ -16,6 +16,9 @@
 
 package org.gradle.model;
 
+import org.gradle.api.Incubating;
+
+@Incubating
 public class ModelPath {
 
     public static final String SEPARATOR = ".";

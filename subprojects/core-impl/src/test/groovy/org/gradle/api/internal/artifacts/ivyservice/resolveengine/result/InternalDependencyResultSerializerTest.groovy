@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.messaging.serialize.InputStreamBackedDecoder
 import org.gradle.messaging.serialize.OutputStreamBackedEncoder
@@ -32,9 +32,9 @@ class InternalDependencyResultSerializerTest extends Specification {
 
     def "serializes successful dependency result"() {
         def successful = Mock(InternalDependencyResult) {
-            getRequested() >> newSelector("org", "foo", "1.0")
+            getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
             getFailure() >> null
-            getSelected() >> new DefaultModuleVersionSelection(newId("org", "foo", "1.0"), VersionSelectionReasons.REQUESTED, new DefaultModuleComponentIdentifier("org", "foo", "1.0"))
+            getSelected() >> newId("org", "foo", "1.0")
             getReason() >> VersionSelectionReasons.REQUESTED
         }
 
@@ -46,14 +46,13 @@ class InternalDependencyResultSerializerTest extends Specification {
         def out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())), [:])
 
         then:
-        out.requested == newSelector("org", "foo", "1.0")
+        out.requested == DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
         out.failure == null
-        out.selected.selectedId == newId("org", "foo", "1.0")
-        out.selected.selectionReason == VersionSelectionReasons.REQUESTED
+        out.selected == newId("org", "foo", "1.0")
     }
 
     def "serializes failed dependency result"() {
-        ModuleVersionSelector requested = newSelector("x", "y", "1.0")
+        ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector("x", "y", "1.0")
         def failure = new ModuleVersionResolveException(newSelector("x", "y", "1.2"), new RuntimeException("Boo!"))
 
         def failed = Mock(InternalDependencyResult) {
@@ -68,12 +67,12 @@ class InternalDependencyResultSerializerTest extends Specification {
         def encoder = new OutputStreamBackedEncoder(bytes)
         serializer.write(encoder, failed)
         encoder.flush()
-        Map<ModuleVersionSelector, ModuleVersionResolveException> map = new HashMap<>()
+        Map<ModuleComponentSelector, ModuleVersionResolveException> map = new HashMap<>()
         map.put(requested, failure)
         def out = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray())), map)
 
         then:
-        out.requested == newSelector("x", "y", "1.0")
+        out.requested == DefaultModuleComponentSelector.newSelector("x", "y", "1.0")
         out.failure.cause.message == "Boo!"
         out.selected == null
         out.reason == VersionSelectionReasons.CONFLICT_RESOLUTION

@@ -17,7 +17,9 @@
 package org.gradle.messaging.remote.internal.inet;
 
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.internal.*;
+import org.gradle.messaging.remote.internal.ConnectCompletion;
+import org.gradle.messaging.remote.internal.ConnectException;
+import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +32,7 @@ import java.util.List;
 public class TcpOutgoingConnector implements OutgoingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
 
-    public <T> Connection<T> connect(Address destinationAddress, ClassLoader messageClassLoader) throws ConnectException {
-        return connect(destinationAddress, new DefaultMessageSerializer<T>(messageClassLoader));
-    }
-
-    public <T> Connection<T> connect(Address destinationAddress, MessageSerializer<T> serializer) throws ConnectException {
+    public ConnectCompletion connect(Address destinationAddress) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
             throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
@@ -58,8 +56,8 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                     lastFailure = e;
                     continue;
                 }
-                LOGGER.debug("Connected to address {}.", candidate);
-                return new SocketConnection<T>(socketChannel, serializer);
+                LOGGER.debug("Connected to address {}.", socketChannel.socket().getRemoteSocketAddress());
+                return new SocketConnectCompletion(socketChannel);
             }
             throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
                     destinationAddress, candidateAddresses), lastFailure);

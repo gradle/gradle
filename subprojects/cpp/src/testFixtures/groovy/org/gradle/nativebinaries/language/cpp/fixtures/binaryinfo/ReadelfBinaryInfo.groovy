@@ -15,9 +15,11 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
+import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
 
-import org.gradle.nativebinaries.internal.ArchitectureInternal
-import org.gradle.nativebinaries.internal.DefaultArchitecture
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 class ReadelfBinaryInfo implements BinaryInfo {
 
@@ -51,5 +53,30 @@ class ReadelfBinaryInfo implements BinaryInfo {
     List<String> listObjectFiles() {
         def process = ['ar', '-t', binaryFile.getAbsolutePath()].execute()
         return process.inputStream.readLines()
+    }
+
+    List<String> listLinkedLibraries() {
+        def process = ['readelf', '-d', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        return lines
+    }
+
+    String getSoName() {
+        def process = ['readelf', '-d', binaryFile.absolutePath].execute()
+        List<String> lines = process.inputStream.readLines()
+        return readSoName(lines)
+    }
+
+    static String readSoName(List<String> lines) {
+        final Pattern pattern = ~/^.*\(SONAME\)\s+Library soname\: \[(.*)\]$/
+        String matchingLine = lines.find {
+            pattern.matcher(it).matches()
+        }
+        if (matchingLine == null) {
+            return null;
+        }
+        final Matcher matcher = pattern.matcher(matchingLine)
+        assert matcher.matches()
+        return matcher.group(1)
     }
 }

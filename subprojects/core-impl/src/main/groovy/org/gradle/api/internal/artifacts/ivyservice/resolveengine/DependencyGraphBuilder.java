@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -145,7 +146,7 @@ public class DependencyGraphBuilder {
      */
     private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder oldModelBuilder, ResolutionResultBuilder newModelBuilder) {
         FailureState failureState = new FailureState(resolveState.root);
-        newModelBuilder.start(resolveState.root.moduleRevision.id);
+        newModelBuilder.start(resolveState.root.moduleRevision.id, resolveState.root.metaData.getModuleVersion().getComponentId());
 
         // Visit the nodes
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
@@ -382,16 +383,16 @@ public class DependencyGraphBuilder {
             return selector.intersect(selectorSpec);
         }
 
-        public ModuleVersionSelector getRequested() {
-            return dependencyMetaData.getRequested();
+        public ComponentSelector getRequested() {
+            return dependencyMetaData.getSelector();
         }
 
         public ModuleVersionResolveException getFailure() {
             return selector.getFailure();
         }
 
-        public ModuleVersionResolveState getSelected() {
-            return selector.getSelected();
+        public ModuleVersionIdentifier getSelected() {
+            return selector.getSelected().getSelectedId();
         }
 
         public ComponentSelectionReason getReason() {

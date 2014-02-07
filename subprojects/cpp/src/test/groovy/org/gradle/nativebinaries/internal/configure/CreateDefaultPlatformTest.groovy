@@ -15,25 +15,17 @@
  */
 
 package org.gradle.nativebinaries.internal.configure
-import org.gradle.api.internal.plugins.ExtensionContainerInternal
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.PlatformContainer
+
+import org.gradle.nativebinaries.platform.PlatformContainer
 import spock.lang.Specification
 
 class CreateDefaultPlatformTest extends Specification {
-    def project = Mock(ProjectInternal)
-    def extensions = Mock(ExtensionContainerInternal)
     def platforms = Mock(PlatformContainer)
     def action = new CreateDefaultPlatform()
 
-    def setup() {
-        _ * project.getExtensions() >> extensions
-        _ * extensions.getByType(PlatformContainer) >> platforms
-    }
-
     def "adds a default platform when none configured"() {
         when:
-        action.execute(project)
+        action.createDefaultPlatforms(platforms)
 
         then:
         1 * platforms.empty >> true
@@ -43,7 +35,7 @@ class CreateDefaultPlatformTest extends Specification {
 
     def "does not add default platform when some configured"() {
         when:
-        action.execute(project)
+        action.createDefaultPlatforms(platforms)
 
         then:
         1 * platforms.empty >> false

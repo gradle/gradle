@@ -344,7 +344,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allComponents as List
+                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
                 def a = modules.find { it.id.module == 'a' }
                 assert a.id.version == '1.4'
                 assert a.selectionReason.conflictResolution
@@ -382,7 +382,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allComponents as List
+                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
                 def a = modules.find { it.id.module == 'a' }
                 assert a.id.version == '1.3'
                 assert a.selectionReason.conflictResolution
@@ -605,7 +605,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allComponents as List
+                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
                 assert !modules.find { it.id.module == 'a' }
                 def b = modules.find { it.id.module == 'b' }
                 assert b.id.version == '2.1'
@@ -774,7 +774,7 @@ conf
             }
 
             task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allComponents as List
+                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
                 assert modules.find { it.id.module == 'b' && it.id.version == '4.0' && it.selectionReason.conflictResolution }
             }
 """

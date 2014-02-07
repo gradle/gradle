@@ -40,7 +40,7 @@ public class PatternMatcherFactoryTest {
         steps = ((DefaultPatternMatcher) matcher).getStepsForTest();
         assertEquals(3, steps.size());
         step = steps.get(2);
-        assertTrue(step.matches("c", true));
+        assertTrue(step.matches("c"));
 
 
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a\\b\\c");
@@ -48,7 +48,7 @@ public class PatternMatcherFactoryTest {
         steps = ((DefaultPatternMatcher) matcher).getStepsForTest();
         assertEquals(3, steps.size());
         step = steps.get(2);
-        assertTrue(step.matches("c", true));
+        assertTrue(step.matches("c"));
     }
 
     /**

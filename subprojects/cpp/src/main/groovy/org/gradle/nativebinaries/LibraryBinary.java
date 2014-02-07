@@ -22,9 +22,5 @@ import org.gradle.api.Incubating;
  * A physical representation of a {@link Library} component.
  */
 @Incubating
-public interface LibraryBinary extends NativeBinary, LibraryResolver {
-    /**
-     * The Library that this binary represents.
-     */
-    Library getComponent();
+public interface LibraryBinary extends NativeBinary {
 }

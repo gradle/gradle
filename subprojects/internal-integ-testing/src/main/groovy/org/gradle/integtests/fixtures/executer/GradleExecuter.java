@@ -77,8 +77,6 @@ public interface GradleExecuter {
 
     GradleExecuter usingInitScript(File initScript);
 
-    GradleExecuter alwaysUsingInitScript(File initScript);
-
     /**
      * Uses the given project directory
      */
@@ -227,6 +225,11 @@ public interface GradleExecuter {
      * Disables asserting that the execution did not trigger any deprecation warnings.
      */
     GradleExecuter withDeprecationChecksDisabled();
+
+    /**
+     * Disables asserting that class loaders were not eagerly created, potentially leading to performance problems.
+     */
+    GradleExecuter withEagerClassLoaderCreationCheckDisabled();
 
     /**
      * Disables asserting that no unexpected stacktraces are present in the output.

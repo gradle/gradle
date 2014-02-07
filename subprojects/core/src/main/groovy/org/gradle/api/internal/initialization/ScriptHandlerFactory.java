@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public interface ScriptHandlerFactory {
-    ScriptHandlerInternal create(ScriptSource scriptSource, ScriptCompileScope parentScope);
+    ScriptHandler create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope);
 
-    ScriptHandlerInternal create(ScriptSource scriptSource, ScriptCompileScope parentScope, DomainObjectContext context);
+    ScriptHandler create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context);
 }

@@ -22,7 +22,7 @@ import java.util.Collection;
 class LatestModuleConflictResolver implements ModuleConflictResolver {
     private final LatestStrategy latestStrategy;
 
-    LatestModuleConflictResolver(LatestStrategy latestStrategy) {
+        LatestModuleConflictResolver(LatestStrategy latestStrategy) {
         this.latestStrategy = latestStrategy;
     }
 

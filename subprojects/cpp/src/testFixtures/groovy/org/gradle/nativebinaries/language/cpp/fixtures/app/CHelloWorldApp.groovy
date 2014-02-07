@@ -114,4 +114,49 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
     ]
 
     String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12"
+
+    TestComponent getCunitTests() {
+        return new TestComponent() {
+            List<SourceFile> sourceFiles = [
+                    sourceFile("cunit", "test.c", """
+#include <CUnit/Basic.h>
+#include "hello.h"
+#include "gradle_cunit_register.h"
+
+int init_test(void) {
+    return 0;
+}
+
+int clean_test(void) {
+    return 0;
+}
+
+void test_sum(void) {
+  CU_ASSERT(sum(0, 2) == 2);
+#ifndef ONE_TEST
+  CU_ASSERT(sum(0, -2) == -2);
+  CU_ASSERT(sum(2, 2) == 4);
+#endif
+}
+
+void gradle_cunit_register() {
+    CU_pSuite pSuiteMath = CU_add_suite("hello test", init_test, clean_test);
+    CU_add_test(pSuiteMath, "test_sum", test_sum);
+}
+                    """),
+            ]
+            List<SourceFile> headerFiles = [
+            ]
+
+            String testOutput = """
+Suite: hello test
+  Test: test of sum ...passed
+
+Run Summary:    Type  Total    Ran Passed Failed Inactive
+              suites      1      1    n/a      0        0
+               tests      1      1      1      0        0
+             asserts      3      3      3      0      n/a
+"""
+        };
+    }
 }

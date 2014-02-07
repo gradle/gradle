@@ -16,10 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -37,13 +40,16 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
         this.dependencyResolver = dependencyResolver;
     }
 
-    public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
+    public ResolverResults resolve(ConfigurationInternal configuration,
+                                   List<? extends ResolutionAwareRepository> repositories,
+                                   ModuleMetadataProcessor metadataProcessor) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(configuration.getModule());
-            ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id).complete();
+            ComponentIdentifier componentIdentifier = ComponentIdentifierFactory.createComponentIdentifier(configuration.getModule());
+            ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();
             return new ResolverResults(new EmptyResolvedConfiguration(), emptyResult);
         }
-        return dependencyResolver.resolve(configuration, repositories);
+        return dependencyResolver.resolve(configuration, repositories, metadataProcessor);
     }
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {

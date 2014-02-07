@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice
-import org.gradle.api.internal.filestore.PathKeyFileStore
+
+import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.test.fixtures.file.TestFile
@@ -28,7 +28,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheLockingManagerTest extends Specification {
     CacheRepository cacheRepository = Mock()
-    DirectoryCacheBuilder directoryCacheBuilder = Mock()
+    CacheBuilder directoryCacheBuilder = Mock()
     PersistentCache persistentCache = Mock()
     @Rule TestNameTestDirectoryProvider temporaryFolder
 
@@ -38,17 +38,18 @@ class DefaultCacheLockingManagerTest extends Specification {
 
         when:
         CacheLockingManager cacheLockingManager = new DefaultCacheLockingManager(cacheRepository)
-        PathKeyFileStore fileStore = cacheLockingManager.createFileStore()
+        File fileStore = cacheLockingManager.getFileStoreDirectory()
 
         then:
+        fileStore == new File(testCacheDir, CacheLayout.FILE_STORE.key)
+
+        and:
         1 * cacheRepository.store(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withDisplayName("artifact cache") >> directoryCacheBuilder
-        1 * directoryCacheBuilder.withLayout(_) >> directoryCacheBuilder
+        1 * directoryCacheBuilder.withCrossVersionCache() >> directoryCacheBuilder
         1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
         1 * directoryCacheBuilder.open() >> persistentCache
-        2 * persistentCache.baseDir >> testCacheDir
-        fileStore != null
-        fileStore.baseDir == new File(testCacheDir, CacheLayout.FILE_STORE.key)
+        _ * persistentCache.baseDir >> testCacheDir
     }
 
     def "Create metadata store"() {
@@ -57,16 +58,17 @@ class DefaultCacheLockingManagerTest extends Specification {
 
         when:
         CacheLockingManager cacheLockingManager = new DefaultCacheLockingManager(cacheRepository)
-        PathKeyFileStore fileStore = cacheLockingManager.createMetaDataStore()
+        File fileStore = cacheLockingManager.createMetaDataStore()
 
         then:
+        fileStore == new File(testCacheDir, CacheLayout.META_DATA.key + System.properties['file.separator'] + 'descriptors')
+
+        and:
         1 * cacheRepository.store(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withDisplayName("artifact cache") >> directoryCacheBuilder
-        1 * directoryCacheBuilder.withLayout(_) >> directoryCacheBuilder
+        1 * directoryCacheBuilder.withCrossVersionCache() >> directoryCacheBuilder
         1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
         1 * directoryCacheBuilder.open() >> persistentCache
-        2 * persistentCache.baseDir >> testCacheDir
-        fileStore != null
-        fileStore.baseDir == new File(testCacheDir, CacheLayout.META_DATA.key + System.properties['file.separator'] + 'descriptors')
+        _ * persistentCache.baseDir >> testCacheDir
     }
 }

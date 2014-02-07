@@ -24,14 +24,14 @@ import org.gradle.api.tasks.Optional;
 
 import java.util.Collection;
 
-public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotationParser<T> {
+public class ExcludeRuleNotationParser extends MapNotationParser<ExcludeRule> {
 
     @Override
     public void describe(Collection<String> candidateFormats) {
         candidateFormats.add("Maps, e.g. [group: 'org.gradle', module:'gradle-core'].");
     }
 
-    protected T parseMap(@MapKey(ExcludeRule.GROUP_KEY) @Optional String group,
+    protected ExcludeRule parseMap(@MapKey(ExcludeRule.GROUP_KEY) @Optional String group,
                          @MapKey(ExcludeRule.MODULE_KEY) @Optional String module) {
         if (group == null && module == null) {
             throw new InvalidUserDataException("Either a group or module must be specified. For example: [group:'org.gradle']");
@@ -39,6 +39,6 @@ public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotatio
         DefaultExcludeRule excluderule = new DefaultExcludeRule();
         excluderule.setGroup(group);
         excluderule.setModule(module);
-        return (T) excluderule;
+        return excluderule;
     }
 }

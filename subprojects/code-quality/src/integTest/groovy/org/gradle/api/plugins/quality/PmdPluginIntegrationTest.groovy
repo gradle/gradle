@@ -32,6 +32,24 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         return "check"
     }
 
+    def "allows configuring tool dependencies explicitly"() {
+        expect: //defaults exist and can be inspected
+        succeeds("dependencies", "--configuration", "pmd")
+        output.contains "pmd:pmd:"
+
+        when:
+        buildFile << """
+            dependencies {
+                //downgrade version:
+                pmd "pmd:pmd:4.2"
+            }
+        """
+
+        then:
+        succeeds("dependencies", "--configuration", "pmd")
+        output.contains "pmd:pmd:4.2"
+    }
+
     def "analyze good code"() {
         goodCode()
 

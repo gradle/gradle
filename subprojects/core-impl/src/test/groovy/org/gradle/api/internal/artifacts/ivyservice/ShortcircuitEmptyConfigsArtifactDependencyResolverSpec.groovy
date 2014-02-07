@@ -15,26 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.DefaultModule
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Specs
+
 import spock.lang.Specification
 
 class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specification {
 
-    final ArtifactDependencyResolver delegate = Mock()
-    final ConfigurationInternal configuration = Mock()
-    final List<ResolutionAwareRepository> repositories = [Mock(ResolutionAwareRepository)]
-    final DependencySet dependencies = Mock()
+    def delegate = Stub(ArtifactDependencyResolver)
+    def configuration = Stub(ConfigurationInternal)
+    def repositories = [Stub(ResolutionAwareRepository)]
+    def metadataProcessor = Stub(ModuleMetadataProcessor)
+    def dependencies = Stub(DependencySet)
 
-    final ShortcircuitEmptyConfigsArtifactDependencyResolver dependencyResolver = new ShortcircuitEmptyConfigsArtifactDependencyResolver(delegate);
+    def dependencyResolver = new ShortcircuitEmptyConfigsArtifactDependencyResolver(delegate);
 
     def "returns empty config when no dependencies"() {
         given:
@@ -43,8 +44,8 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
         configuration.getModule() >> new DefaultModule("org", "foo", "1.0")
 
         when:
-        ResolverResults results = dependencyResolver.resolve(configuration, repositories);
-        ResolvedConfiguration resolvedConfig = results.resolvedConfiguration
+        def results = dependencyResolver.resolve(configuration, repositories, metadataProcessor)
+        def resolvedConfig = results.resolvedConfiguration
 
         then:
         !resolvedConfig.hasError()
@@ -57,14 +58,14 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
 
     def "delegates to backing service"() {
         given:
-        def resultsDummy = Mock(ResolverResults)
+        def resultsDummy = Stub(ResolverResults)
 
         dependencies.isEmpty() >> false
         configuration.getAllDependencies() >> dependencies
-        delegate.resolve(configuration, repositories) >> resultsDummy
+        delegate.resolve(configuration, repositories, metadataProcessor) >> resultsDummy
 
         when:
-        def out = dependencyResolver.resolve(configuration, repositories)
+        def out = dependencyResolver.resolve(configuration, repositories, metadataProcessor)
 
         then:
         out == resultsDummy

@@ -22,7 +22,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.pattern.PatternStep;
-import org.gradle.api.internal.file.pattern.RegExpPatternStep;
+import org.gradle.api.internal.file.pattern.PatternStepFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
@@ -77,7 +77,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
             DirectoryFileTree fileTree = new DirectoryFileTree(baseDir, patternSet);
             fileTree.visitFrom(visitor, file, new RelativePath(file.isFile(), relativePath.toArray(new String[relativePath.size()])));
         } else if (segment.contains("*") || segment.contains("?")) {
-            PatternStep step = new RegExpPatternStep(segment, false);
+            PatternStep step = PatternStepFactory.getStep(segment, false);
             File[] children = file.listFiles();
             if (children == null) {
                 if (!file.canRead()) {
@@ -88,7 +88,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
             }
             for (File child : children) {
                 if (stopFlag.get()) { break; }
-                if (step.matches(child.getName(), child.isFile())) {
+                if (step.matches(child.getName())) {
                     relativePath.addLast(child.getName());
                     doVisitDirOrFile(visitor, child, relativePath, segmentIndex + 1, stopFlag);
                     relativePath.removeLast();

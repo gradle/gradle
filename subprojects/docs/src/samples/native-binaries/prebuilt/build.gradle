@@ -1,0 +1,45 @@
+apply plugin: 'cpp'
+model {
+    buildTypes {
+        debug
+        release
+    }
+    repositories {
+        libs(PrebuiltLibraries) {
+            boost {
+                headers.srcDir "3rd-party-lib/boost_1_55_0/boost"
+            }
+            util {
+                headers.srcDir "3rd-party-lib/util/src/util/headers"
+                binaries.withType(StaticLibraryBinary) {
+                    def libName = targetPlatform.operatingSystem.windows ? 'util.lib' : 'libutil.a'
+                    staticLibraryFile = file("3rd-party-lib/util/build/binaries/utilStaticLibrary/${buildType.name}/${libName}")
+                }
+                binaries.withType(SharedLibraryBinary) {
+                    def os = targetPlatform.operatingSystem
+                    def baseDir = "3rd-party-lib/util/build/binaries/utilSharedLibrary/${buildType.name}"
+                    if (os.windows) {
+                        // Windows uses a .dll file, with a different link file if it exists (not Cygwin or MinGW)
+                        sharedLibraryFile = file("${baseDir}/util.dll")
+                        if (file("${baseDir}/util.lib").exists()) {
+                            sharedLibraryLinkFile = file("${baseDir}/util.lib")
+                        }
+                    } else if (os.macOsX) {
+                        sharedLibraryFile = file("${baseDir}/libhello.dylib")
+                    } else {
+                        sharedLibraryFile = file("${baseDir}/libutil.so")
+                    }
+                }
+            }
+        }
+    }
+}
+executables {
+    main {}
+}
+sources.main.cpp.lib library: 'boost', linkage: 'api'
+sources.main.cpp.lib library: 'util', linkage: 'static'
+task buildExecutables {
+    dependsOn binaries.withType(ExecutableBinary)
+}
+

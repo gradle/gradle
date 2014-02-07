@@ -57,7 +57,6 @@ task retrieve(type: Sync) {
         server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
 
         server.expectGet('/repo2/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHead('/repo2/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
         server.expectGet('/repo2/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
 
         and:
@@ -190,12 +189,13 @@ compile('group:projectA:1.0') {
         buildWithDependencies("""
 compile 'group:mavenProject:1.0'
 """)
-        def mavenProject = mavenRepo().module('group', 'mavenProject', '1.0').hasType('pom').dependsOn('group', 'projectA', '1.0', 'zip').publish()
+        def mavenProject = mavenRepo().module('group', 'mavenProject', '1.0').artifact(type: "jar").hasType('pom').dependsOn('group', 'projectA', '1.0', 'zip').publish()
+       // def mavenProject = mavenRepo().module('group', 'mavenProject', '1.0').dependsOn('group', 'projectA', '1.0', 'zip').publish()
         publishWithPackaging('custom', 'zip')
 
         and:
         server.expectGet('/repo1/group/mavenProject/1.0/mavenProject-1.0.pom', mavenProject.pomFile)
-        server.expectHeadMissing('/repo1/group/mavenProject/1.0/mavenProject-1.0.jar')
+        server.expectGet('/repo1/group/mavenProject/1.0/mavenProject-1.0.jar', mavenProject.artifactFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
 
         // TODO:GRADLE-2188 This call should not be required, since "type='zip'" on the dependency alleviates the need to check for the packaging artifact
@@ -206,7 +206,7 @@ compile 'group:mavenProject:1.0'
         succeeds 'retrieve'
 
         and:
-        file('libs').assertHasDescendants('projectA-1.0.zip')
+        file('libs').assertHasDescendants('mavenProject-1.0.jar','projectA-1.0.zip')
         file('libs/projectA-1.0.zip').assertIsCopyOf(projectA.artifactFile)
     }
 

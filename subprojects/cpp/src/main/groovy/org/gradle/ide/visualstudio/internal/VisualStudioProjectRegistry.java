@@ -16,65 +16,50 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.LibraryNativeDependencySet;
-import org.gradle.util.CollectionUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
+    private final FileResolver fileResolver;
+    private final VisualStudioProjectMapper projectMapper;
 
-public class VisualStudioProjectRegistry {
-    private Map<String, VisualStudioProject> projects = new HashMap<String, VisualStudioProject>();
-
-    public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
-        VisualStudioProject vsProject = getProject(nativeBinary);
-
-        for (NativeDependencySet dep : nativeBinary.getLibs()) {
-            if (dep instanceof LibraryNativeDependencySet) {
-                LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dep).getLibraryBinary();
-                vsProject.addProjectReference(projectName(dependencyBinary));
-            }
-        }
-        // TODO:DAZ Not sure if adding these on demand is sufficient
-        return vsProject.addConfiguration(nativeBinary);
+    public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectMapper projectMapper, Instantiator instantiator) {
+        super(DefaultVisualStudioProject.class, instantiator);
+        this.fileResolver = fileResolver;
+        this.projectMapper = projectMapper;
     }
 
-    private VisualStudioProject getProject(NativeBinary nativeBinary) {
+    public VisualStudioProjectConfiguration getProjectConfiguration(ProjectNativeBinary nativeBinary) {
         String projectName = projectName(nativeBinary);
-        VisualStudioProject vsProject = projects.get(projectName);
+        return getByName(projectName).getConfiguration(nativeBinary);
+    }
+
+    public VisualStudioProjectConfiguration addProjectConfiguration(ProjectNativeBinary nativeBinary) {
+        VisualStudioProjectMapper.ProjectConfigurationNames names = projectMapper.mapToConfiguration(nativeBinary);
+        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getComponent(), names.project);
+        VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(nativeBinary, project, names.configuration, names.platform);
+        project.addConfiguration(nativeBinary, configuration);
+        return configuration;
+    }
+
+    private VisualStudioProjectConfiguration createVisualStudioProjectConfiguration(ProjectNativeBinary nativeBinary, DefaultVisualStudioProject project, String configuration, String platform) {
+        Class<? extends VisualStudioProjectConfiguration> type =
+                nativeBinary instanceof ExecutableBinary ? ExecutableVisualStudioProjectConfiguration.class : VisualStudioProjectConfiguration.class;
+        return getInstantiator().newInstance(type, project, configuration, platform, nativeBinary);
+    }
+
+    private DefaultVisualStudioProject getOrCreateProject(ProjectNativeComponent nativeComponent, String projectName) {
+        DefaultVisualStudioProject vsProject = findByName(projectName);
         if (vsProject == null) {
-            vsProject = new VisualStudioProject(projectName, nativeBinary.getComponent());
-            projects.put(projectName, vsProject);
+            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, projectName, nativeComponent, fileResolver, getInstantiator());
+            add(vsProject);
         }
         return vsProject;
     }
 
-    public VisualStudioProject getProject(String name) {
-        return projects.get(name);
-    }
-
-    public List<VisualStudioProject> getAllProjects() {
-        return CollectionUtils.toList(projects.values());
-    }
-
-    private static String projectName(NativeBinary nativeBinary) {
-        return projectBaseName(nativeBinary) + projectSuffix(nativeBinary);
-    }
-
-    private static String projectSuffix(NativeBinary nativeBinary) {
-        return nativeBinary instanceof StaticLibraryBinary ? "Lib"
-                : nativeBinary instanceof SharedLibraryBinary ? "Dll"
-                : "Exe";
-    }
-
-    // TODO:DAZ This needs to be unique for multi-project
-    private static String projectBaseName(NativeBinary nativeBinary) {
-        NativeComponent component = nativeBinary.getComponent();
-        if (component.getFlavors().size() <= 1) {
-            return component.getBaseName();
-        }
-        return nativeBinary.getFlavor().getName() + StringUtils.capitalize(component.getBaseName());
+    private String projectName(ProjectNativeBinary nativeBinary) {
+        return projectMapper.mapToConfiguration(nativeBinary).project;
     }
 }

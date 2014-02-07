@@ -16,52 +16,47 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.performance.measure.Amount
-import org.gradle.performance.measure.DataAmount
-import org.gradle.performance.measure.Duration
-import org.gradle.performance.measure.MeasuredOperation
-
-import static org.gradle.performance.fixture.PrettyCalculator.prettyBytes
-import static org.gradle.performance.fixture.PrettyCalculator.prettyTime
+import org.gradle.performance.measure.*
 
 public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
     String name
 
-    Amount<DataAmount> avgMemory() {
-        def bytes = this.collect { it.totalMemoryUsed }
-        bytes.sum() / bytes.size()
+    DataSeries<DataAmount> getTotalMemoryUsed() {
+        return new DataSeries<DataAmount>(this.collect { it.totalMemoryUsed })
     }
 
-    Amount<DataAmount> minMemory() {
-        return collect { it.totalMemoryUsed }.min()
+    DataSeries<DataAmount> getTotalHeapUsage() {
+        return new DataSeries<DataAmount>(this.collect { it.totalHeapUsage })
     }
 
-    Amount<DataAmount> maxMemory() {
-        return collect { it.totalMemoryUsed }.max()
+    DataSeries<DataAmount> getMaxHeapUsage() {
+        return new DataSeries<DataAmount>(this.collect { it.maxHeapUsage })
     }
 
-    Amount<Duration> avgTime() {
-        def currentTimes = this.collect { it.executionTime }
-        currentTimes.sum() / currentTimes.size()
+    DataSeries<DataAmount> getMaxUncollectedHeap() {
+        return new DataSeries<DataAmount>(this.collect { it.maxUncollectedHeap })
     }
 
-    Amount<Duration> maxTime() {
-        return collect { it.executionTime }.max()
+    DataSeries<DataAmount> getMaxCommittedHeap() {
+        return new DataSeries<DataAmount>(this.collect { it.maxCommittedHeap })
     }
 
-    Amount<Duration> minTime() {
-        return collect { it.executionTime }.min()
+    DataSeries<Duration> getExecutionTime() {
+        return new DataSeries<Duration>(this.collect { it.executionTime })
     }
 
     String getSpeedStats() {
-        """  ${name} avg: ${prettyTime(avgTime())} ${collect { prettyTime(it.executionTime) }}
-  > min: ${prettyTime(minTime())}, max: ${prettyTime(maxTime())}
-"""
+        format(executionTime)
     }
 
     String getMemoryStats() {
-        """  ${name} avg: ${prettyBytes(avgMemory())} ${collect { prettyBytes(it.totalMemoryUsed) }}
-  > min: ${prettyBytes(minMemory())}, max: ${prettyBytes(maxMemory())}
+        format(totalMemoryUsed)
+    }
+
+    private String format(DataSeries<?> measurement) {
+        """  ${name} avg: ${measurement.average.format()} ${measurement.collect { it.format() }}
+  > min: ${measurement.min.format()}, max: ${measurement.max.format()}
 """
+
     }
 }

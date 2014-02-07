@@ -29,12 +29,12 @@ import org.gradle.internal.typeconversion.NotationParser;
 import java.util.Map;
 
 public class DefaultDependencyFactory implements DependencyFactory {
-    private final NotationParser<Dependency> dependencyNotationParser;
-    private final NotationParser<ClientModule> clientModuleNotationParser;
+    private final NotationParser<Object, Dependency> dependencyNotationParser;
+    private final NotationParser<Object, ClientModule> clientModuleNotationParser;
     private final ProjectDependencyFactory projectDependencyFactory;
 
-    public DefaultDependencyFactory(NotationParser<Dependency> dependencyNotationParser,
-                                    NotationParser<ClientModule> clientModuleNotationParser,
+    public DefaultDependencyFactory(NotationParser<Object, Dependency> dependencyNotationParser,
+                                    NotationParser<Object, ClientModule> clientModuleNotationParser,
                                     ProjectDependencyFactory projectDependencyFactory) {
         this.dependencyNotationParser = dependencyNotationParser;
         this.clientModuleNotationParser = clientModuleNotationParser;

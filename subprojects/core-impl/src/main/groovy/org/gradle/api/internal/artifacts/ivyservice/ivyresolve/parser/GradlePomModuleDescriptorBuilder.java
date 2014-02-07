@@ -201,11 +201,7 @@ public class GradlePomModuleDescriptorBuilder {
     public void addMainArtifact(String artifactId, String packaging) {
         if ("pom".equals(packaging)) {
             DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, "jar", "jar");
-            ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(artifact);
-            if (parserSettings.artifactExists(artifactIdentifier)) {
-                ivyModuleDescriptor.addArtifact("master", artifact);
-            }
-
+            ivyModuleDescriptor.addArtifact("master", artifact);
             return;
         }
 
@@ -303,9 +299,8 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     /**
-     * Determines the version of a dependency. Uses the specified version if declared for the as coordinate. If the version is not declared, try to resolve it
-     * from the dependency management section. In case the version cannot be resolved with any of these methods, throw an exception of type
-     * {@see org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.UnresolvedDependencyVersionException}.
+     * Determines the version of a dependency. Uses the specified version if declared for the as coordinate. If the version is not declared, try to resolve it from the dependency management section.
+     * In case the version cannot be resolved with any of these methods, throw an exception of type {@see org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.UnresolvedDependencyVersionException}.
      *
      * @param dependency Dependency
      * @return Resolved dependency version
@@ -314,7 +309,7 @@ public class GradlePomModuleDescriptorBuilder {
         String version = dependency.getVersion();
         version = (version == null || version.length() == 0) ? getDefaultVersion(dependency) : version;
 
-        if(version == null) {
+        if (version == null) {
             throw new UnresolvedDependencyVersionException(dependency.getId());
         }
 

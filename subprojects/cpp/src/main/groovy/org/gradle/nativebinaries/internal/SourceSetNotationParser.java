@@ -29,7 +29,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class SourceSetNotationParser {
-    public static NotationParser<Set<LanguageSourceSet>> parser() {
+    public static NotationParser<Object, Set<LanguageSourceSet>> parser() {
         return new NotationParserBuilder<Set<LanguageSourceSet>>()
                 .resultingType(new TypeInfo<Set<LanguageSourceSet>>(Set.class))
                 .parser(new FunctionalSourceSetConverter())

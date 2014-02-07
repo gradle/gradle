@@ -27,9 +27,11 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.*;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerManager;
@@ -48,18 +50,23 @@ public class TaskExecutionServices {
                                                                 ))))))));
     }
 
-    TaskArtifactStateCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, StartParameter startParameter) {
-        InMemoryPersistentCacheDecoratorFactory decoratorFactory = new InMemoryPersistentCacheDecoratorFactory(inMemoryTaskArtifactCache, startParameter);
-        return new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, decoratorFactory);
+    TaskArtifactStateCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, GradleBuildEnvironment environment) {
+        CacheDecorator decorator;
+        if (environment.isLongLivingProcess()) {
+            decorator = inMemoryTaskArtifactCache;
+        } else {
+            decorator = new NoOpDecorator();
+        }
+        return new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, decorator);
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter) {
-        FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(
+        FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(
                 new CachingHasher(
                         new DefaultHasher(),
                         cacheAccess), cacheAccess);
 
-        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheAccess);
+        FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter, new RandomLongIdGenerator(), cacheAccess);
 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
                 new CacheBackedFileSnapshotRepository(cacheAccess,
@@ -72,12 +79,12 @@ public class TaskExecutionServices {
                                 taskHistoryRepository,
                                 instantiator,
                                 outputFilesSnapshotter,
-                                fileSnapshotter
+                                fileCollectionSnapshotter
                         )
         );
     }
 
-    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, TaskArtifactStateCacheAccess cacheAccess, ExecutorFactory executorFactory) {
-        return new TaskPlanExecutorFactory(cacheAccess, startParameter.getParallelThreadCount(), executorFactory).create();
+    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory) {
+        return new TaskPlanExecutorFactory(startParameter.getParallelThreadCount(), executorFactory).create();
     }
 }

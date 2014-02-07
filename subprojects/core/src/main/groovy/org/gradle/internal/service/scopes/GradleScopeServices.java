@@ -21,9 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
@@ -33,7 +31,6 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.listener.ListenerManager;
 
 import java.util.LinkedList;
@@ -44,7 +41,7 @@ import static java.util.Arrays.asList;
 /**
  * Contains the services for a given {@link GradleInternal} instance.
  */
-public class GradleScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class GradleScopeServices extends DefaultServiceRegistry {
     public GradleScopeServices(ServiceRegistry parent, GradleInternal gradle) {
         super(parent);
         add(GradleInternal.class, gradle);
@@ -86,23 +83,23 @@ public class GradleScopeServices extends DefaultServiceRegistry implements Servi
         };
     }
 
-    ProjectRegistry createIProjectRegistry() {
-        return new DefaultProjectRegistry<ProjectInternal>();
-    }
-
     TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor) {
         return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor);
     }
 
-    public ServiceRegistryFactory createFor(Object domainObject) {
-        if (domainObject instanceof ProjectInternal) {
-            return new ProjectScopeServices(this, (ProjectInternal) domainObject);
-        }
-        throw new UnsupportedOperationException();
+    ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
+        return new ServiceRegistryFactory() {
+            public ServiceRegistry createFor(Object domainObject) {
+                if (domainObject instanceof ProjectInternal) {
+                    return new ProjectScopeServices(services, (ProjectInternal) domainObject);
+                }
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(BuildClassLoaderRegistry.class).getRootCompileScope(), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope(), new DependencyInjectingInstantiator(this));
     }
 
     PluginContainer createPluginContainer(GradleInternal gradle, PluginRegistry pluginRegistry) {

@@ -18,9 +18,9 @@ package org.gradle.plugins.ide.eclipse.model.internal
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
-import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeLocalFileDependency
-import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeProjectDependency
-import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeRepoFileDependency
+import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency
+import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
+import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency
 
 class ClasspathFactory {
 
@@ -42,7 +42,7 @@ class ClasspathFactory {
 
     private final ClasspathEntryBuilder projectDependenciesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
-            entries.addAll(dependenciesExtractor.extractProjectDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations)
+            entries.addAll(dependenciesExtractor.extractProjectDependencies(eclipseClasspath.project, eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations)
                 .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.project, it.declaredConfiguration.name) })
         }
     }
@@ -51,7 +51,7 @@ class ClasspathFactory {
         void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
             dependenciesExtractor.extractRepoFileDependencies(
                     classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
-            .each { IdeRepoFileDependency it ->
+            .each { IdeExtendedRepoFileDependency it ->
                 entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath, it.id)
             }
 

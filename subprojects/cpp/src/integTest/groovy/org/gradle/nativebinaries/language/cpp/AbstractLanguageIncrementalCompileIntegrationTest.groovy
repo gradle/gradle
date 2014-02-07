@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.language.cpp
 import groovy.io.FileType
 import org.apache.commons.io.FilenameUtils
+import org.gradle.internal.hash.HashUtil
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -145,6 +146,23 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         recompiled sourceFile
     }
 
+    def "recompiles source file when an included header file is renamed"() {
+        given:
+        initialCompile()
+
+        and:
+        final newFile = file("src/main/${app.sourceType}/changed.h")
+        newFile << sharedHeaderFile.text
+        sharedHeaderFile.delete()
+
+        when:
+        fails "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+        failure.assertHasDescription("Execution failed for task '${compileTask}'.");
+    }
+
     def "does not recompile any sources when unused header file is changed"() {
         given:
         initialCompile()
@@ -234,7 +252,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         noneRecompiled()
     }
 
-    def "removes all output files when all source files are removed"() {
+    def "removes output files when all source files are removed"() {
         given:
         initialCompile()
 
@@ -250,11 +268,32 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         and:
         run "mainExecutable"
 
-        then:
-        file("build/objectFiles").assertIsEmptyDir()
+        then: "linker output file is removed"
+        executable.assertDoesNotExist()
 
-        // TODO:DAZ Link task should remove output when inputs are all removed
-//        executable.assertDoesNotExist()
+        // Stale object files are removed when a new file is added to the source set
+        when:
+        def newSource = file("src/main/${app.sourceType}/newfile.${app.sourceType}") << """
+            #include <stdio.h>
+
+            int main () {
+                printf("hello");
+                return 0;
+            }
+"""
+
+        and:
+        run "mainExecutable"
+
+        then:
+        executable.exec().out == "hello"
+        outputFile(newSource).assertExists()
+
+        and: "Previous object files are removed"
+        outputFile(sourceFile).assertDoesNotExist()
+        otherSourceFiles.each {
+            outputFile(it).assertDoesNotExist()
+        }
     }
 
     def initialCompile() {
@@ -295,6 +334,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
     def outputFile(TestFile sourceFile) {
         final baseName = FilenameUtils.removeExtension(sourceFile.name)
-        return objectFile("build/objectFiles/mainExecutable/main${sourceType}/${baseName}")
+        String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
+        return objectFile("build/objectFiles/mainExecutable/main${sourceType}/$compactMD5/${baseName}")
     }
 }

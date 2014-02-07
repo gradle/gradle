@@ -16,22 +16,23 @@
 
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.api.Project;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.LibraryContainer;
 
 public class DefaultLibraryContainer extends AbstractNamedDomainObjectContainer<Library> implements LibraryContainer {
-    private final FileResolver fileResolver;
+    private final Project project;
 
-    public DefaultLibraryContainer(Instantiator instantiator, FileResolver fileResolver) {
+    public DefaultLibraryContainer(Instantiator instantiator, Project project) {
         super(Library.class, instantiator);
-        this.fileResolver = fileResolver;
+        this.project = project;
     }
 
     @Override
     protected Library doCreate(String name) {
-        return getInstantiator().newInstance(DefaultLibrary.class, name, getInstantiator(), fileResolver);
+        NativeProjectComponentIdentifier id = new NativeProjectComponentIdentifier(project.getPath(), name);
+        return getInstantiator().newInstance(DefaultLibrary.class, id);
     }
 }

@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class DependencyResultSpecNotationParserSpec extends Specification {
 
-    NotationParser<Spec<DependencyResult>> parser = DependencyResultSpecNotationParser.create()
+    NotationParser<Object, Spec<DependencyResult>> parser = DependencyResultSpecNotationParser.create()
 
     def "accepts closures"() {
         given:

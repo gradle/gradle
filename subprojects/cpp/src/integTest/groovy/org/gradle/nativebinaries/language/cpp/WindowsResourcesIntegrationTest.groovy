@@ -19,7 +19,9 @@ import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
 
-@RequiresInstalledToolChain("visual c++")
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
+
+@RequiresInstalledToolChain(VisualCpp)
 class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
@@ -41,7 +43,7 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':resourceCompileMainExecutableMainRc'.");
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.");
         failure.assertHasCause("Windows resource compiler failed; see the error output for details.")
     }
 

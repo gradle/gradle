@@ -113,6 +113,10 @@ abstract class ToolingApiSpecification extends Specification {
         file("build.gradle")
     }
 
+    TestFile getSettingsFile() {
+        file("settings.gradle")
+    }
+
     TestFile file(Object... path) {
         projectDir.file(path)
     }

@@ -20,6 +20,13 @@ package org.gradle.cache;
  * CacheValidator interface can be used for specify a particular cache validation logic.
   */
 public interface CacheValidator {
+    /**
+     * <p>Determines whether a cache is valid. A shared or exclusive lock is held on the cache while this method is executed, so the action is free to
+     * perform read-only operations on the cache to determine its validity.
+     *
+     * <p>If this method returns false, then the contents of the cache are discarded and a new empty cache is created.
+     *
+     * @return true if value, false if not.
+     */
     boolean isValid();
-
 }

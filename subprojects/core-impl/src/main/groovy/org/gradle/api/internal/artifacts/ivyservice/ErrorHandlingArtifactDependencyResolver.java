@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -38,10 +39,12 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         this.dependencyResolver = dependencyResolver;
     }
 
-    public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
+    public ResolverResults resolve(ConfigurationInternal configuration,
+                                   List<? extends ResolutionAwareRepository> repositories,
+                                   ModuleMetadataProcessor metadataProcessor) throws ResolveException {
         final ResolverResults results;
         try {
-            results = dependencyResolver.resolve(configuration, repositories);
+            results = dependencyResolver.resolve(configuration, repositories, metadataProcessor);
         } catch (final Throwable e) {
             return new ResolverResults(new BrokenResolvedConfiguration(e, configuration), wrapException(e, configuration));
         }

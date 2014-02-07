@@ -15,26 +15,21 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
-import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.internal.hub.InterHubMessageSerializer;
 import org.gradle.messaging.remote.internal.hub.MessageHubBackedClient;
 import org.gradle.messaging.remote.internal.hub.MessageHubBackedServer;
-import org.gradle.messaging.remote.internal.hub.MethodInvocationSerializer;
 import org.gradle.messaging.remote.internal.inet.*;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryProtocolSerializer;
-import org.gradle.messaging.serialize.kryo.JavaSerializer;
-import org.gradle.messaging.serialize.kryo.TypeSafeSerializer;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
@@ -114,27 +109,15 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         );
     }
 
-    protected InterHubMessageSerializer createInterHubSerializer() {
-        return new InterHubMessageSerializer(
-                new TypeSafeSerializer<MethodInvocation>(
-                        MethodInvocation.class,
-                        new MethodInvocationSerializer(
-                                messageClassLoader,
-                                new JavaSerializer<Object[]>(
-                                        messageClassLoader))));
-    }
-
-    protected MessagingClient createMessagingClient(OutgoingConnector outgoingConnector, InterHubMessageSerializer messageSerializer, ExecutorFactory executorFactory) {
+    protected MessagingClient createMessagingClient(OutgoingConnector outgoingConnector, ExecutorFactory executorFactory) {
         return new MessageHubBackedClient(
                 outgoingConnector,
-                messageSerializer,
                 executorFactory);
     }
 
-    protected MessagingServer createMessagingServer(IncomingConnector incomingConnector, InterHubMessageSerializer messageSerializer, ExecutorFactory executorFactory) {
+    protected MessagingServer createMessagingServer(IncomingConnector incomingConnector, ExecutorFactory executorFactory) {
         return new MessageHubBackedServer(
                 incomingConnector,
-                messageSerializer,
                 executorFactory);
     }
 

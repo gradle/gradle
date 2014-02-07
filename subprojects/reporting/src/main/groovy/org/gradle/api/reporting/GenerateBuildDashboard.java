@@ -72,7 +72,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
                 return reporting.getReports().getEnabled();
             }
         });
-        return new LinkedHashSet<Report>(CollectionUtils.flattenToList(Report.class, enabledReportSets));
+        return new LinkedHashSet<Report>(CollectionUtils.flattenCollections(Report.class, enabledReportSets));
     }
 
     /**

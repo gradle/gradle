@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyArtifact;
@@ -47,13 +48,16 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
     private final ModelRules modelRules;
+    private final ProjectDependencyPublicationResolver projectDependencyResolver;
 
     @Inject
-    public IvyPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver, ModelRules modelRules) {
+    public IvyPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver, ModelRules modelRules,
+                            ProjectDependencyPublicationResolver projectDependencyResolver) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.modelRules = modelRules;
+        this.projectDependencyResolver = projectDependencyResolver;
     }
 
     public void apply(final Project project) {
@@ -84,10 +88,10 @@ public class IvyPublishPlugin implements Plugin<Project> {
         public IvyPublication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
             IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module.getGroup(), module.getName(), module.getVersion());
-            NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
+            NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
             return instantiator.newInstance(
                     DefaultIvyPublication.class,
-                    name, instantiator, publicationIdentity, notationParser
+                    name, instantiator, publicationIdentity, notationParser, projectDependencyResolver
             );
         }
     }

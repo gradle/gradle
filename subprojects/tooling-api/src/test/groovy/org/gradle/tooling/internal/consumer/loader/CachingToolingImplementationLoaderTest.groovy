@@ -31,6 +31,7 @@ class CachingToolingImplementationLoaderTest extends Specification {
     def delegatesToTargetLoaderToCreateImplementation() {
         final Distribution distribution = Mock()
         final ConsumerConnection connection = Mock()
+        final File userHomeDir = Mock()
 
         when:
         def impl = loader.create(distribution, loggerFactory, params)
@@ -38,13 +39,15 @@ class CachingToolingImplementationLoaderTest extends Specification {
         then:
         impl == connection
         1 * target.create(distribution, loggerFactory, params) >> connection
-        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(new File('a.jar'))
+        1 * params.getUserHomeDir() >> userHomeDir
+        _ * distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir) >> new DefaultClassPath(new File('a.jar'))
         0 * _._
     }
 
     def reusesImplementationWithSameClasspath() {
         final Distribution distribution = Mock()
         final ConsumerConnection connection = Mock()
+        final File userHomeDir = Mock()
 
         when:
         def impl = loader.create(distribution, loggerFactory, params)
@@ -54,7 +57,8 @@ class CachingToolingImplementationLoaderTest extends Specification {
         impl == connection
         impl2 == connection
         1 * target.create(distribution, loggerFactory, params) >> connection
-        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> { new DefaultClassPath(new File('a.jar')) }
+        2 * params.getUserHomeDir() >> userHomeDir
+        _ * distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir) >> { new DefaultClassPath(new File('a.jar')) }
         0 * _._
     }
 
@@ -73,8 +77,9 @@ class CachingToolingImplementationLoaderTest extends Specification {
         impl2 == connection2
         1 * target.create(distribution1, loggerFactory, params) >> connection1
         1 * target.create(distribution2, loggerFactory, params) >> connection2
-        _ * distribution1.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(new File('a.jar'))
-        _ * distribution2.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(new File('b.jar'))
+        2 * params.getUserHomeDir() >> null
+        _ * distribution1.getToolingImplementationClasspath(loggerFactory, null) >> new DefaultClassPath(new File('a.jar'))
+        _ * distribution2.getToolingImplementationClasspath(loggerFactory, null) >> new DefaultClassPath(new File('b.jar'))
         0 * _._
     }
 }

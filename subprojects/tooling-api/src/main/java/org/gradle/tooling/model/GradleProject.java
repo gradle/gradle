@@ -65,4 +65,21 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
      */
     @Incubating
     GradleScript getBuildScript();
+
+    /**
+     * Returns the publications for this project.
+     *
+     * @since 1.12
+     */
+    @Incubating
+    DomainObjectSet<? extends GradlePublication> getPublications();
+
+    /*
+     * Returns tasks selectors that can be used to execute build.
+     *
+     * @return Task selectors.
+     * @since 1.12
+     */
+    @Incubating
+    DomainObjectSet<? extends TaskSelector> getTaskSelectors();
 }

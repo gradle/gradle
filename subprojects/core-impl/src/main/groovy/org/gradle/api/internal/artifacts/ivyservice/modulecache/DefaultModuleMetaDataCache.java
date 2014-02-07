@@ -22,20 +22,22 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.messaging.serialize.*;
-import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.DefaultSerializer;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
+import org.gradle.util.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 
 public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
@@ -51,7 +53,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
 
-        moduleDescriptorStore = new ModuleDescriptorStore(cacheLockingManager.createMetaDataStore(), new IvyXmlModuleDescriptorWriter(), new IvyXmlModuleDescriptorParser(resolverStrategy));
+        moduleDescriptorStore = new ModuleDescriptorStore(new PathKeyFileStore(cacheLockingManager.createMetaDataStore()), new IvyXmlModuleDescriptorWriter(), new IvyXmlModuleDescriptorParser(resolverStrategy));
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> getCache() {
@@ -62,7 +64,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> initCache() {
-        return cacheLockingManager.createCache("module-metadata.bin", new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
+        return cacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
     }
 
     public CachedMetaData getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver) {
@@ -162,12 +164,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
             encoder.writeBoolean(value.isMissing);
             encoder.writeBoolean(value.isChanging);
             encoder.writeLong(value.createTimestamp);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            OutputStreamBackedEncoder sourceEncoder = new OutputStreamBackedEncoder(outputStream);
-            moduleSourceSerializer.write(sourceEncoder, value.moduleSource);
-            sourceEncoder.flush();
-            byte[] serializedModuleSource = outputStream.toByteArray();
-            encoder.writeBinary(serializedModuleSource);
+            moduleSourceSerializer.write(encoder, value.moduleSource);
             byte[] hash = value.moduleDescriptorHash.toByteArray();
             encoder.writeBinary(hash);
         }
@@ -176,8 +173,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
             boolean isMissing = decoder.readBoolean();
             boolean isChanging = decoder.readBoolean();
             long createTimestamp = decoder.readLong();
-            byte[] serializedModuleSource = decoder.readBinary();
-            ModuleSource moduleSource = moduleSourceSerializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(serializedModuleSource)));
+            ModuleSource moduleSource = moduleSourceSerializer.read(decoder);
             byte[] encodedHash = decoder.readBinary();
             BigInteger hash = new BigInteger(encodedHash);
             return new ModuleDescriptorCacheEntry(isChanging, isMissing, createTimestamp, hash, moduleSource);

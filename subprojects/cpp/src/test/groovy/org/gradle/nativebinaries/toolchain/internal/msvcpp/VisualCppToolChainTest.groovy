@@ -15,30 +15,33 @@
  */
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp
+
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.internal.ToolChainAvailability
+import org.gradle.nativebinaries.platform.Platform
+import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
-    final VisualStudioLocator.SearchResult visualStudio = Mock(VisualStudioLocator.SearchResult)
-    final VisualStudioLocator.SearchResult windowsSdk = Mock(VisualStudioLocator.SearchResult)
-    final candidate = file('test')
+    final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
+    final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
-        locateDefaultVisualStudio() >> visualStudio
-        locateDefaultWindowsSdk() >> windowsSdk
+        locateVisualStudioInstalls(_) >> visualStudioLookup
     }
-    final OperatingSystem operatingSystem = Mock(OperatingSystem) {
+    final WindowsSdkLocator windowsSdkLocator = Stub(WindowsSdkLocator) {
+        locateWindowsSdks(_) >> windowsSdkLookup
+    }
+    final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
     }
-    final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator)
-
+    final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator)
 
     def "uses .lib file for shared library at link time"() {
         given:
@@ -56,44 +59,84 @@ class VisualCppToolChainTest extends Specification {
         toolChain.getSharedLibraryName("test") == "test.dll"
     }
 
-    def "is unavailable when visual studio installation cannot be located"() {
-        when:
-        visualStudio.found >> false
-        visualStudio.searchLocations >> [candidate]
-        windowsSdk.found >> false
+    def "installs an unavailable tool chain when not windows"() {
+        given:
+        def operatingSystem = Stub(OperatingSystem)
+        operatingSystem.isWindows() >> false
+        def toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator)
 
-        and:
+        when:
         def availability = new ToolChainAvailability()
         toolChain.checkAvailable(availability)
 
         then:
         !availability.available
-        availability.unavailableMessage == "Visual Studio installation cannot be located. Searched in [${candidate}]."
+        availability.unavailableMessage == 'Visual Studio is not available on this operating system.'
+    }
+
+    def "is unavailable when visual studio installation cannot be located"() {
+        when:
+        visualStudioLookup.available >> false
+        visualStudioLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("vs install not found anywhere") }
+        windowsSdkLookup.available >> false
+
+        and:
+        def result = toolChain.canTargetPlatform(Stub(Platform))
+
+        then:
+        !result.available
+        result.unavailableMessage == "vs install not found anywhere"
     }
 
     def "is unavailable when windows SDK cannot be located"() {
         when:
-        visualStudio.found >> true
-        windowsSdk.found >> false
-        windowsSdk.searchLocations >> [candidate]
+        visualStudioLookup.available >> true
+
+        windowsSdkLookup.available >> false
+        windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
 
         and:
-        def availability = new ToolChainAvailability()
-        toolChain.checkAvailable(availability);
+        def result = toolChain.canTargetPlatform(Stub(Platform))
+
+        then:
+        !result.available
+        result.unavailableMessage == "sdk not found anywhere"
+    }
+
+    def "is not available when visual studio installation and windows SDK can be located and visual studio install does not support target platform"() {
+        when:
+        def visualStudio = Stub(VisualStudioInstall)
+        def visualCpp = Stub(VisualCppInstall)
+        def platform = Stub(Platform) { getName() >> 'platform' }
+        visualStudioLookup.available >> true
+        windowsSdkLookup.available >> true
+        visualStudioLookup.visualStudio >> visualStudio
+        visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
+        visualStudio.visualCpp >> visualCpp
+        visualCpp.isSupportedPlatform(platform) >> false
+
+        and:
+        def availability = toolChain.canTargetPlatform(platform)
 
         then:
         !availability.available
-        availability.unavailableMessage == "Windows SDK cannot be located. Searched in [${candidate}]."
+        availability.unavailableMessage == "Don't know how to build for platform 'platform'."
     }
 
-    def "is available when visual studio installation and windows SDK can be located"() {
+    def "is available when visual studio installation and windows SDK can be located and visual studio install supports target platform"() {
         when:
-        visualStudio.found >> true
-        windowsSdk.found >> true
+        def visualStudio = Stub(VisualStudioInstall)
+        def visualCpp = Stub(VisualCppInstall)
+        def platform = Stub(Platform)
+        visualStudioLookup.available >> true
+        windowsSdkLookup.available >> true
+        visualStudioLookup.visualStudio >> visualStudio
+        visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
+        visualStudio.visualCpp >> visualCpp
+        visualCpp.isSupportedPlatform(platform) >> true
 
         and:
-        def availability = new ToolChainAvailability()
-        toolChain.checkAvailable(availability);
+        def availability = toolChain.canTargetPlatform(platform)
 
         then:
         availability.available
@@ -106,13 +149,13 @@ class VisualCppToolChainTest extends Specification {
 
         and:
         fileResolver.resolve("install-dir") >> file("vs")
-        visualStudioLocator.locateVisualStudio(file("vs")) >> visualStudio
-        visualStudio.found >> true
+        visualStudioLocator.locateVisualStudioInstalls(file("vs")) >> visualStudioLookup
+        visualStudioLookup.available >> true
 
         and:
         fileResolver.resolve("windows-sdk-dir") >> file("win-sdk")
-        visualStudioLocator.locateWindowsSdk(file("win-sdk")) >> windowsSdk
-        windowsSdk.found >> true
+        windowsSdkLocator.locateWindowsSdks(file("win-sdk")) >> windowsSdkLookup
+        windowsSdkLookup.available >> true
 
         and:
         0 * _._

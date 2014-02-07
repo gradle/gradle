@@ -50,6 +50,14 @@ public interface ComponentSelectionReason {
     boolean isSelectedByRule();
 
     /**
+     * Informs whether the component is an expected selection.
+     *
+     * @return Flag
+     * @since 1.11
+     */
+    boolean isExpected();
+
+    /**
      * Returns a human-consumable description of this selection reason.
      */
     String getDescription();

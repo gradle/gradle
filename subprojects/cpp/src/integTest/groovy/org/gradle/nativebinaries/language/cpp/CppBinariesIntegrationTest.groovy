@@ -14,28 +14,31 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
-
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.hamcrest.Matchers
+import spock.lang.IgnoreIf
+import spock.lang.Issue
+import spock.lang.Unroll
 
 class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "can configure the binaries of a C++ application"() {
         given:
         buildFile << """
-            apply plugin: "cpp-exe"
+            apply plugin: "cpp"
 
             executables {
                 main {
                     binaries.all {
-                        outputFile file('${executable("build/test").toURI()}')
                         cppCompiler.define 'ENABLE_GREETING'
                     }
                 }
             }
         """
-        settingsFile << "rootProject.name = 'test'"
 
         and:
         file("src/main/cpp/helloworld.cpp") << """
@@ -53,14 +56,14 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         run "mainExecutable"
 
         then:
-        def executable = executable("build/test")
+        def executable = executable("build/binaries/mainExecutable/main")
         executable.exec().out == "Hello!"
     }
 
     def "can build debug binaries for a C++ executable"() {
         given:
         buildFile << """
-            apply plugin: "cpp-exe"
+            apply plugin: "cpp"
 
             executables {
                 main {
@@ -75,7 +78,6 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                 }
             }
         """
-        settingsFile << "rootProject.name = 'test'"
 
         and:
         file("src/main/cpp/helloworld.cpp") << """
@@ -91,7 +93,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/mainExecutable/test")
+        def executable = executable("build/binaries/mainExecutable/main")
         executable.exec().out == "Hello!"
         executable.assertDebugFileExists()
         // TODO - need to verify that the debug info ended up in the binary
@@ -101,12 +103,11 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
     def "can configure the binaries of a C++ library"() {
         given:
         buildFile << """
-            apply plugin: "cpp-exe"
+            apply plugin: "cpp"
 
             libraries {
                 hello {
                     binaries.all {
-                        outputFile file('${staticLibrary("build/hello").toURI()}')
                         cppCompiler.define 'ENABLE_GREETING'
                     }
                 }
@@ -151,7 +152,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         run "installMainExecutable"
 
         then:
-        staticLibrary("build/hello").assertExists()
+        staticLibrary("build/binaries/helloStaticLibrary/hello").assertExists()
         installation("build/install/mainExecutable").exec().out == "Hello!"
     }
 
@@ -252,5 +253,119 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
 
         then:
         executedTasks.tail() == [":compileMainExecutableMainCpp", ":mainExecutablePreLink", ":linkMainExecutable", ":mainExecutablePostLink", ":mainExecutable"]
+    }
+
+    @Issue("GRADLE-2973")
+    @IgnoreIf({ !GradleContextualExecuter.isParallel() })
+    def "releases cache lock when compilation fails with --parallel"() {
+        def helloWorldApp = new CppHelloWorldApp()
+        given:
+        settingsFile << "include ':a', ':b'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'cpp'
+                executables {
+                    main {}
+                }
+            }
+        """
+
+        and:
+        helloWorldApp.writeSources(file("a/src/main"))
+        helloWorldApp.writeSources(file("b/src/main"))
+
+        file("b/src/main/cpp/broken.cpp") << """
+    A broken C++ file
+"""
+
+        expect:
+        fails "mainExecutable"
+        failure.assertThatCause(Matchers.not(Matchers.containsString("Could not stop")))
+    }
+
+    def "can configure output file for binaries"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp'
+            executables {
+                main {
+                    binaries.all {
+                        executableFile = modPath(executableFile)
+                    }
+                }
+            }
+            libraries {
+                hello {
+                    binaries.withType(SharedLibraryBinary) {
+                        sharedLibraryFile = modPath(sharedLibraryFile)
+                        sharedLibraryLinkFile = modPath(sharedLibraryLinkFile)
+                    }
+                    binaries.withType(StaticLibraryBinary) {
+                        staticLibraryFile = modPath(staticLibraryFile)
+                    }
+                }
+            }
+            //sources.main.cpp.lib libraries.hello
+
+            def modPath(File file) {
+                new File("\${file.parentFile}/new_output/_\${file.name}")
+            }
+"""
+
+        when:
+        succeeds "mainExecutable", "helloSharedLibrary", "helloStaticLibrary"
+
+        then:
+        def modPath = {TestFile file -> new TestFile("${file.parentFile}/new_output/_${file.name}")}
+        modPath(executable("build/binaries/mainExecutable/main").file).assertExists()
+        modPath(sharedLibrary("build/binaries/helloSharedLibrary/hello").file).assertExists()
+        modPath(staticLibrary("build/binaries/helloStaticLibrary/hello").file).assertExists()
+    }
+
+    @Unroll
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "can link to #linkage library binary with custom output file"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp'
+            executables {
+                main {}
+            }
+            libraries {
+                hello {
+                    binaries.withType(SharedLibraryBinary) {
+                        sharedLibraryFile = modPath(sharedLibraryFile)
+                        sharedLibraryLinkFile = modPath(sharedLibraryLinkFile)
+                    }
+                    binaries.withType(StaticLibraryBinary) {
+                        staticLibraryFile = modPath(staticLibraryFile)
+                    }
+                }
+            }
+            sources.main.cpp.lib libraries.hello.${linkage}
+
+            def modPath(File file) {
+                new File("\${file.parentFile}/new_output/_\${file.name}")
+            }
+"""
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == app.englishOutput
+
+        where:
+        linkage << ["static", "shared"]
     }
 }

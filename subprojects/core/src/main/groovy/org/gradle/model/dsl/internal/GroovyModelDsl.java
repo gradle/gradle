@@ -19,47 +19,64 @@ package org.gradle.model.dsl.internal;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.ModelDsl;
 
-public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
+import java.util.concurrent.atomic.AtomicBoolean;
 
+public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
     private final ModelPath modelPath;
     private final ModelRules modelRules;
+    private AtomicBoolean executingDsl;
 
     public GroovyModelDsl(ModelRules modelRules) {
-        this(null, modelRules);
+        this(new AtomicBoolean(), null, modelRules);
     }
 
-    private GroovyModelDsl(ModelPath modelPath, ModelRules modelRules) {
+    private GroovyModelDsl(AtomicBoolean executingDsl, ModelPath modelPath, ModelRules modelRules) {
+        this.executingDsl = executingDsl;
         this.modelPath = modelPath;
         this.modelRules = modelRules;
     }
 
-    public ModelDsl get(String name) {
-        return new GroovyModelDsl(modelPath == null ? ModelPath.path(name) : modelPath.child(name), modelRules);
+    private GroovyModelDsl getChildPath(String name) {
+        ModelPath path = modelPath == null ? ModelPath.path(name) : modelPath.child(name);
+        return new GroovyModelDsl(executingDsl, path, modelRules);
     }
 
-    public void configure(Closure<?> action) {
+    private void registerConfigurationAction(Closure<?> action) {
         modelRules.config(modelPath.toString(), new ClosureBackedAction<Object>(action));
     }
 
-    public ModelDsl propertyMissing(String name) {
-        return get(name);
+    public void configure(Closure<?> action) {
+        executingDsl.set(true);
+        try {
+            new ClosureBackedAction<Object>(action).execute(this);
+        } finally {
+            executingDsl.set(false);
+        }
+    }
+
+    public GroovyModelDsl propertyMissing(String name) {
+        if (!executingDsl.get()) {
+            throw new MissingPropertyException(name, getClass());
+        }
+        return getChildPath(name);
     }
 
     public Void methodMissing(String name, Object argsObj) {
         Object[] args = (Object[]) argsObj;
 
-        if (args.length != 1 || !(args[0] instanceof Closure)) {
+        if (!executingDsl.get() || args.length != 1 || !(args[0] instanceof Closure)) {
             throw new MissingMethodException(name, getClass(), args);
         }
 
         Closure closure = (Closure) args[0];
 
-        get(name).configure(closure);
+        getChildPath(name).registerConfigurationAction(closure);
 
         return null;
     }

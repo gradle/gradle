@@ -21,7 +21,7 @@ Project :webapp - The Web application implementation
 ------------------------------------------------------------
 
 compile
-+--- projectReports:api:1.0-SNAPSHOT
++--- project :api
 |    \--- org.codehaus.groovy:groovy-all:2.2.0
 \--- commons-io:commons-io:1.2
 

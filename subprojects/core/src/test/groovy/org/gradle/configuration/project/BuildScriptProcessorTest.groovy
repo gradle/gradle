@@ -15,7 +15,10 @@
  */
 package org.gradle.configuration.project
 
+import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectScript
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
@@ -26,10 +29,15 @@ public class BuildScriptProcessorTest extends Specification {
     def scriptSource = Mock(ScriptSource)
     def configurerFactory = Mock(ScriptPluginFactory)
     def scriptPlugin = Mock(ScriptPlugin)
-    def BuildScriptProcessor buildScriptProcessor = new BuildScriptProcessor(configurerFactory);
+    def classLoaderScope = Mock(ClassLoaderScope)
+    def BuildScriptProcessor buildScriptProcessor = new BuildScriptProcessor(configurerFactory)
+    private ScriptHandler scriptHandler;
 
     def "setup"() {
         _ * project.buildScriptSource >> scriptSource
+        scriptHandler = Mock(ScriptHandler)
+        project.getBuildscript() >> scriptHandler
+        project.getClassLoaderScope() >> classLoaderScope
     }
 
     def configuresProjectUsingBuildScript() {
@@ -37,7 +45,7 @@ public class BuildScriptProcessorTest extends Specification {
         buildScriptProcessor.execute(project)
 
         then:
-        1 * configurerFactory.create(scriptSource) >> scriptPlugin
+        1 * configurerFactory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", ProjectScript) >> scriptPlugin
         1 * scriptPlugin.apply(project)
     }
 }

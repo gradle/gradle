@@ -61,6 +61,9 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     protected TestFile file(Object... path) {
+        if (path.length == 1 && path[0] instanceof TestFile) {
+            return path[0] as TestFile
+        }
         getTestDirectory().file(path);
     }
 
@@ -138,6 +141,12 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         tasks.each {
             assert it in executedTasks
             assert skippedTasks.contains(it)
+        }
+    }
+
+    protected void notExecuted(String... tasks) {
+        tasks.each {
+            assert !(it in executedTasks)
         }
     }
 

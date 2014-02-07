@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Condition;
@@ -43,11 +44,11 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
 
     ConsumerConnectionParameters connectionParameters;
 
-    public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, boolean verboseLogging) {
+    public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, boolean verboseLogging, File userHomeDir) {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
-        this.connectionParameters = new ConsumerConnectionParameters(verboseLogging);
+        this.connectionParameters = new ConsumerConnectionParameters(verboseLogging, userHomeDir);
     }
 
     public void stop() {

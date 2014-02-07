@@ -32,7 +32,8 @@ public class ConnectionFactory {
 
     public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
         SynchronizedLogging synchronizedLogging = new SynchronizedLogging();
-        ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, synchronizedLogging, parameters.getVerboseLogging());
+        ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(
+                distribution, toolingImplementationLoader, synchronizedLogging, parameters.getVerboseLogging(), parameters.getGradleUserHomeDir());
         ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(lazyConnection, synchronizedLogging);
         ConsumerActionExecutor initializingConnection = new LoggingInitializerConsumerActionExecutor(progressLoggingConnection, synchronizedLogging);
         AsyncConsumerActionExecutor asyncConnection = new DefaultAsyncConsumerActionExecutor(initializingConnection, executorFactory);

@@ -36,9 +36,9 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
     private final String publicationName;
     private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
     private final ArtifactsFileCollection files = new ArtifactsFileCollection();
-    private final NotationParser<IvyArtifact> ivyArtifactParser;
+    private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
 
-    public DefaultIvyArtifactSet(String publicationName, NotationParser<IvyArtifact> ivyArtifactParser) {
+    public DefaultIvyArtifactSet(String publicationName, NotationParser<Object, IvyArtifact> ivyArtifactParser) {
         super(IvyArtifact.class);
         this.publicationName = publicationName;
         this.ivyArtifactParser = ivyArtifactParser;

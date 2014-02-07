@@ -26,6 +26,87 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         executer.requireOwnGradleUserHomeDir()
     }
 
+    def "requires use of configuration flag if Java plugin isn't applied"() {
+        given:
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+        """
+
+        when:
+        def failure = runAndFail("dependencyInsight", "--dependency", "unknown")
+
+        then:
+        failure.assertHasCause("Dependency insight report cannot be generated because the input configuration was not specified.")
+    }
+
+    def "indicates that requested dependency cannot be found for default configuration"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+        mavenRepo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
+        mavenRepo.module("org", "top").dependsOn("middle", "leaf2").publish()
+
+        file("build.gradle") << """
+            apply plugin: 'java'
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "unknown"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+No dependencies matching given input were found in configuration ':compile'
+"""))
+    }
+
+    def "indicates that requested dependency cannot be found for custom configuration"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+        mavenRepo.module("org", "middle").dependsOn("leaf1", "leaf2").publish()
+        mavenRepo.module("org", "top").dependsOn("middle", "leaf2").publish()
+
+        file("build.gradle") << """
+            apply plugin: 'java'
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "unknown", "--configuration", "conf"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+No dependencies matching given input were found in configuration ':conf'
+"""))
+    }
+
     def "shows basic single tree with repeated dependency"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -826,12 +907,12 @@ org:leaf2:1.0
 
         then:
         output.contains(toPlatformLineSeparators("""
-org.foo:root:1.0
-\\--- org.foo:impl:1.0
-     \\--- org.foo:root:1.0 (*)"""))
+project :
+\\--- project :impl
+     \\--- project : (*)"""))
     }
 
-    def "shows project dependencies"() {
+    def "selects a module component dependency with a given name"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
         mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
@@ -857,7 +938,7 @@ org.foo:root:1.0
                 }
             }
             task insight(type: DependencyInsightReportTask) {
-                setDependencySpec { it.requested.module == 'leaf2' }
+                setDependencySpec { it.requested instanceof ModuleComponentSelector && it.requested.module == 'leaf2' }
                 configuration = configurations.compile
             }
         """
@@ -869,8 +950,139 @@ org.foo:root:1.0
         output.contains(toPlatformLineSeparators("""
 org:leaf2:1.0
 \\--- org:leaf1:1.0
-     \\--- org.foo:impl:1.0-SNAPSHOT
+     \\--- project :impl
           \\--- compile
+"""))
+    }
+
+    def "selects a project component dependency with a given project path"() {
+        given:
+        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf3").publish()
+
+        file("settings.gradle") << "include 'impl'; rootProject.name='root'"
+
+        file("build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+                group = 'org.foo'
+                version = '1.0-SNAPSHOT'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+            dependencies {
+                compile project(':impl')
+            }
+            project(':impl') {
+                dependencies {
+                    compile 'org:leaf1:1.0'
+                }
+            }
+            task insight(type: DependencyInsightReportTask) {
+                setDependencySpec { it.requested instanceof ProjectComponentSelector && it.requested.projectPath == ':impl' }
+                configuration = configurations.compile
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+project :impl
+\\--- compile
+"""))
+    }
+
+    def "selects a module component dependency with a given name with dependency command line option"() {
+        given:
+        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf3").publish()
+        mavenRepo.module("org", "leaf4").publish()
+
+        file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
+
+        file("build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+                group = 'org.foo'
+                version = '1.0-SNAPSHOT'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+            dependencies {
+                compile project(':impl')
+            }
+            project(':api') {
+                dependencies {
+                    compile 'org:leaf1:1.0'
+                }
+            }
+            project(':impl') {
+                dependencies {
+                    compile project(':api')
+                    compile 'org:leaf4:1.0'
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf4"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf4:1.0
+\\--- project :impl
+     \\--- compile
+"""))
+    }
+
+    def "selects a project component dependency with a given name with dependency command line option"() {
+        given:
+        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf3").publish()
+        mavenRepo.module("org", "leaf4").publish()
+
+        file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
+
+        file("build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+                group = 'org.foo'
+                version = '1.0-SNAPSHOT'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+            dependencies {
+                compile project(':impl')
+            }
+            project(':api') {
+                dependencies {
+                    compile 'org:leaf1:1.0'
+                }
+            }
+            project(':impl') {
+                dependencies {
+                    compile project(':api')
+                    compile 'org:leaf4:1.0'
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", ":api"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+project :api
+\\--- project :impl
+     \\--- compile
 """))
     }
 }

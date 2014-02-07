@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
@@ -48,11 +49,11 @@ public class OptionsFileArgsTransformer<T extends BinaryToolSpec> implements Arg
         File optionsFile = new File(tempDir, "options.txt");
         try {
             PrintWriter writer = new PrintWriter(optionsFile);
-            ArgWriter argWriter = argWriterFactory.transform(writer);
             try {
+                ArgWriter argWriter = argWriterFactory.transform(writer);
                 argWriter.args(input);
             } finally {
-                writer.close();
+                IOUtils.closeQuietly(writer);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not write compiler options file '%s'.", optionsFile.getAbsolutePath()), e);

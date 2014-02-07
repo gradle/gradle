@@ -74,22 +74,17 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     @Override
     protected void configureTaskDefaults(Pmd task, String baseName) {
-
-        task.conventionMapping.with {
-            pmdClasspath = {
-                def config = project.configurations['pmd']
-                if (config.dependencies.empty) {
-                    VersionNumber version = VersionNumber.parse(extension.toolVersion)
-                    project.dependencies {
-                        if (version < VersionNumber.parse("5.0.0")) {
-                            pmd "pmd:pmd:$extension.toolVersion"
-                        } else {
-                            pmd "net.sourceforge.pmd:pmd:$extension.toolVersion"
-                        }
-                    }
-                }
-                config
+        def config = project.configurations['pmd']
+        config.incoming.beforeResolve {
+            if (config.dependencies.empty) {
+                VersionNumber version = VersionNumber.parse(extension.toolVersion)
+                String dependency = (version < VersionNumber.parse("5.0.0"))?
+                    "pmd:pmd:$extension.toolVersion" : "net.sourceforge.pmd:pmd:$extension.toolVersion"
+                config.dependencies.add(project.dependencies.create(dependency))
             }
+        }
+        task.conventionMapping.with {
+            pmdClasspath = { config }
             ruleSets = { extension.ruleSets }
             ruleSetFiles = { extension.ruleSetFiles }
             ignoreFailures = { extension.ignoreFailures }

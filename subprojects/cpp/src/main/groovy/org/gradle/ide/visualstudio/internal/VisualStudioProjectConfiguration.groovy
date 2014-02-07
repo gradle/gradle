@@ -18,20 +18,23 @@ package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.language.HeaderExportingSourceSet
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.internal.ArchitectureInternal
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.PreprocessingTool
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter
 
 class VisualStudioProjectConfiguration {
-    private final VisualStudioProject vsProject
-    final NativeBinary binary
-    final String type
+    private final DefaultVisualStudioProject vsProject
+    private final String configurationName
+    private final String platformName
+    final ProjectNativeBinaryInternal binary
+    final String type = "Makefile"
 
-    VisualStudioProjectConfiguration(VisualStudioProject vsProject, NativeBinary binary, String type) {
+    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, ProjectNativeBinary binary) {
         this.vsProject = vsProject
-        this.binary = binary
-        this.type = type
+        this.configurationName = configurationName
+        this.platformName = platformName
+        this.binary = binary as ProjectNativeBinaryInternal
     }
 
     String getName() {
@@ -39,52 +42,68 @@ class VisualStudioProjectConfiguration {
     }
 
     String getConfigurationName() {
-        return binary.buildType.name
+        return configurationName
     }
 
     String getPlatformName() {
-        ArchitectureInternal arch = binary.targetPlatform.architecture as ArchitectureInternal
-        return arch.ia64 ? "Itanium" : arch.amd64 ? "x64" : "Win32"
+        return platformName
     }
 
     String getBuildTask() {
-        return binary.name
+        return taskPath(binary.name)
     }
 
     String getCleanTask() {
-        return "clean" + binary.name.capitalize()
+        return taskPath("clean")
+    }
+
+    // TODO:DAZ Make it easier to find the lifecycle task and clean task for a binary and use task.path.
+    private String taskPath(String taskName) {
+        String projectPath = binary.component.projectPath
+        if (projectPath == ":") {
+            return ":${taskName}"
+        }
+        return "${projectPath}:${taskName}"
     }
 
     File getOutputFile() {
-        return binary.outputFile
+        return binary.primaryOutput
     }
 
     boolean isDebug() {
         return binary.buildType.name != 'release'
     }
 
-    List<String> getDefines() {
-        PreprocessingTool compilerTool = findCompiler()
-        return compilerTool == null ? [] : new MacroArgsConverter().transform(compilerTool.macros)
+    List<String> getCompilerDefines() {
+        List<String> defines = []
+        defines.addAll getDefines('cCompiler')
+        defines.addAll getDefines('cppCompiler')
+        defines.addAll getDefines('rcCompiler')
+        return defines
     }
 
-    private PreprocessingTool findCompiler() {
+    private List<String> getDefines(String tool) {
+        PreprocessingTool rcCompiler = findCompiler(tool)
+        return rcCompiler == null ? [] : new MacroArgsConverter().transform(rcCompiler.macros)
+    }
+
+    private PreprocessingTool findCompiler(String tool) {
         ExtensionAware extendedBinary = binary as ExtensionAware;
-        return extendedBinary.extensions.findByName('cppCompiler') ?: extendedBinary.extensions.findByName('cCompiler') as PreprocessingTool
+        return extendedBinary.extensions.findByName(tool) as PreprocessingTool
     }
 
     List<File> getIncludePaths() {
-        List<File> includes = []
+        def includes = [] as Set
         binary.source.withType(HeaderExportingSourceSet).each { HeaderExportingSourceSet sourceSet ->
             includes.addAll sourceSet.exportedHeaders.srcDirs
         }
         binary.libs*.includeRoots.each {
             includes.addAll it.files
         }
-        return includes
+        return includes as List
     }
 
-    VisualStudioProject getProject() {
+    DefaultVisualStudioProject getProject() {
         return vsProject
     }
 }

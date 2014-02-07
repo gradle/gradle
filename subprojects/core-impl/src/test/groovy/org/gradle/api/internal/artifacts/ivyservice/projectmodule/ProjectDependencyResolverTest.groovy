@@ -27,7 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
-    final ProjectModuleRegistry registry = Mock()
+    final ProjectComponentRegistry registry = Mock()
     final DependencyToModuleVersionResolver target = Mock()
     final LocalComponentFactory converter = Mock()
     final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target, converter)
@@ -39,7 +39,9 @@ class ProjectDependencyResolverTest extends Specification {
             toResolveMetaData() >> resolveMetaData
         }
         def result = Mock(BuildableModuleVersionResolveResult)
-        def dependencyProject = Stub(ProjectInternal)
+        def dependencyProject = Stub(ProjectInternal) {
+            getPath() >> ":project"
+        }
         def dependencyDescriptor = Stub(ProjectDependencyDescriptor) {
             getTargetProject() >> dependencyProject
         }
@@ -51,7 +53,7 @@ class ProjectDependencyResolverTest extends Specification {
         resolver.resolve(dependencyMetaData, result)
 
         then:
-        1 * registry.findProject(dependencyDescriptor) >> componentMetaData
+        1 * registry.getProject(":project") >> componentMetaData
         1 * result.resolved(resolveMetaData, _)
         0 * result._
     }

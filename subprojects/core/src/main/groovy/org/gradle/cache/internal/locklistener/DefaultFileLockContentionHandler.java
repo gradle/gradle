@@ -95,6 +95,9 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                 executor = executorFactory.create("File lock request listener");
                 executor.execute(listener());
             }
+            if (contendedActions.containsKey(lockId)) {
+                throw new UnsupportedOperationException("Multiple contention actions for a given lock are currently not supported.");
+            }
             contendedActions.put(lockId, whenContended);
         } finally {
             lock.unlock();
@@ -121,7 +124,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
-    public void     stop() {
+    public void stop() {
         //Down the road this method should be used to clean up,
         //when the Gradle process is about to complete (not gradle build).
         //Ideally in future, this is happens during the clean-up/stopping of the global services

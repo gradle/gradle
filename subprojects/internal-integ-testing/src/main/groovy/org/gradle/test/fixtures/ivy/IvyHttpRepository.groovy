@@ -16,9 +16,10 @@
 
 package org.gradle.test.fixtures.ivy
 
+import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 
-class IvyHttpRepository implements IvyRepository {
+class IvyHttpRepository implements IvyRepository, HttpRepository {
     private final HttpServer server
     private final IvyFileRepository backingRepository
     private final String contextPath
@@ -42,6 +43,10 @@ class IvyHttpRepository implements IvyRepository {
 
     String getArtifactPattern() {
         return "$uri/${backingRepository.baseArtifactPattern}"
+    }
+
+    void allowDirectoryListGet(String organisation, String module) {
+        server.allowGetDirectoryListing("$contextPath/$organisation/$module/", backingRepository.module(organisation, module, "1.0").moduleDir.parentFile)
     }
 
     void expectDirectoryListGet(String organisation, String module) {

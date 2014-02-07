@@ -17,11 +17,10 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.cache.internal.CacheFactory;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import java.io.File;
 
@@ -35,11 +34,6 @@ public class TestBuildScopeServices extends BuildScopeServices {
 
     protected BuildClientMetaData createClientMetaData() {
         return new GradleLauncherMetaData();
-    }
-
-    @Override
-    protected CacheFactory createCacheFactory() {
-        return new InMemoryCacheFactory();
     }
 
     protected GradleDistributionLocator createGradleDistributionLocator() {

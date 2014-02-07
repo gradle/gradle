@@ -22,7 +22,7 @@ import org.gradle.api.Nullable;
  *
  * @since 1.0-milestone-3
  */
-public interface Task {
+public interface Task extends EntryPoint {
     /**
      * Returns the path of this task. This is a fully qualified unique name for this task.
      *

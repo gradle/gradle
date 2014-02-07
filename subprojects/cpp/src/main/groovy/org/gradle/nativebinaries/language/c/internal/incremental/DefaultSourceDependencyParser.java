@@ -15,10 +15,9 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,17 +57,9 @@ public class DefaultSourceDependencyParser implements SourceDependencyParser {
         for (File searchDir : quotedSearchPath) {
             File candidate = new File(searchDir, include);
             if (candidate.exists()) {
-                dependencies.add(canonicalise(candidate));
+                dependencies.add(GFileUtils.canonicalise(candidate));
                 break;
             }
-        }
-    }
-
-    private File canonicalise(File candidate) {
-        try {
-            return candidate.getCanonicalFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 }

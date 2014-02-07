@@ -15,7 +15,6 @@
  */
 package org.gradle.nativebinaries.language.cpp.fixtures
 
-import org.apache.commons.lang.StringUtils
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
@@ -34,11 +33,7 @@ class RequiresInstalledToolChainExtension extends AbstractAnnotationDrivenExtens
     }
 
     private static boolean isToolChainAvailable(RequiresInstalledToolChain annotation) {
-        if (StringUtils.isEmpty(annotation.value())) {
-            return AvailableToolChains.getAvailableToolChains().size() > 0
-        } else {
-            def requiredToolChain = AvailableToolChains.getToolChain(annotation.value())
-            return requiredToolChain?.available
-        }
+        def requiredToolChain = AvailableToolChains.getToolChain(annotation.value())
+        return requiredToolChain != null
     }
 }

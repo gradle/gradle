@@ -69,7 +69,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
     }
 
     def "configures connection"() {
-        def parameters = new ConsumerConnectionParameters(false)
+        def parameters = new ConsumerConnectionParameters(false, null)
 
         when:
         connection.configure(parameters)
@@ -93,7 +93,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         _ * modelMapping.getProtocolType(GradleProject.class) >> Integer.class
         1 * target.run(Integer.class, parameters) >> result
         _ * result.model >> 12
-        1 * adapter.adapt(GradleProject.class, 12) >> adapted
+        1 * adapter.adapt(GradleProject.class, 12, _) >> adapted
         0 * target._
     }
 
@@ -111,7 +111,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         _ * modelMapping.getProtocolType(GradleProject.class) >> GradleProject.class
         1 * target.run(GradleProject.class, parameters) >> result
         _ * result.model >> Stub(GradleProject.class)
-        1 * adapter.adapt(GradleProject.class, _) >> adapted
+        1 * adapter.adapt(GradleProject.class, _, _) >> adapted
         1 * adapter.adapt(GradleBuild.class, _) >> adaptedGradleBuild
         0 * target._
     }

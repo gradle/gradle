@@ -68,6 +68,10 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "evaluates only project referenced in the task list"() {
+        // The util project's classloaders will be created eagerly because util:impl
+        // will be evaluated before it
+        executer.withEagerClassLoaderCreationCheckDisabled()
+
         settingsFile << "include 'api', 'impl', 'util', 'util:impl'"
         buildFile << "allprojects { task foo }"
 

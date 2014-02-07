@@ -148,7 +148,7 @@ project(':tool') {
 
         then:
         resolve.expectGraph {
-            root("test:tool:") {
+            root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
                     edge("org:foo:1.3.3", "org:foo:1.4.4")
                 }
@@ -186,7 +186,7 @@ dependencies {
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 module("org:external:1.2").byConflictResolution()
                 module("org:dep:2.2") {
                     edge("org:external:1.0", "org:external:1.2")
@@ -449,9 +449,9 @@ task checkDeps << {
                 assert result.allComponents.size() == 3
                 def root = result.root
                 assert root.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0', 'org:a:2.0']
-                def a = result.allComponents.find { it.id.module == 'a' }
+                def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
                 assert a.dependencies*.toString() == ['org:b:2.0']
-                def b = result.allComponents.find { it.id.module == 'b' }
+                def b = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }
                 assert b.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0']
             }
         """
@@ -502,11 +502,11 @@ task checkDeps << {
             assert configurations.conf*.name == ['a-1.0.jar', 'b-1.0.jar', 'b-child-1.0.jar', 'target-1.0.jar', 'in-conflict-2.0.jar', 'target-child-1.0.jar']
             def result = configurations.conf.incoming.resolutionResult
             assert result.allComponents.size() == 7
-            def a = result.allComponents.find { it.id.module == 'a' }
+            def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
             assert a.dependencies*.toString() == ['org:in-conflict:1.0 -> org:in-conflict:2.0']
-            def bChild = result.allComponents.find { it.id.module == 'b-child' }
+            def bChild = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b-child' }
             assert bChild.dependencies*.toString() == ['org:in-conflict:2.0']
-            def target = result.allComponents.find { it.id.module == 'target' }
+            def target = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'target' }
             assert target.dependents*.from*.toString() == ['org:in-conflict:2.0']
         }
         """
@@ -614,7 +614,7 @@ dependencies {
 
         then:
         resolve.expectGraph {
-            root("org:test:1.3") {
+            root(":", "org:test:1.3") {
                 module("org:other:1.7") {
                     edge("org:test:1.2", "org:test:1.3")
                 }
@@ -652,7 +652,7 @@ dependencies {
 
         then:
         resolve.expectGraph {
-            root("org:test:1.3") {
+            root(":", "org:test:1.3") {
                 module("org:other:1.7") {
                     module("org:test:2.1").byConflictResolution()
                 }
@@ -689,7 +689,7 @@ dependencies {
 
 task checkDeps(dependsOn: configurations.compile) << {
     assert configurations.compile*.name == ['a-2.jar', 'c-2.jar', 'b-1.jar']
-    assert configurations.compile.incoming.resolutionResult.allComponents.find { it.id.module == 'b' }.dependencies.size() == 1
+    assert configurations.compile.incoming.resolutionResult.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }.dependencies.size() == 1
 }
 """
 

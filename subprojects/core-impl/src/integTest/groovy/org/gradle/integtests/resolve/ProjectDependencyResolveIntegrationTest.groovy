@@ -45,6 +45,9 @@ project(":a") {
     artifacts { api jar }
 }
 project(":b") {
+    group = 'org.gradle'
+    version = '1.0'
+
     configurations {
         compile
     }
@@ -58,20 +61,26 @@ project(":b") {
 
          // Check root component
         def rootId = result.root.id
-        assert rootId instanceof ModuleComponentIdentifier
+        assert rootId instanceof ProjectComponentIdentifier
         def rootPublishedAs = result.root.moduleVersion
-        assert rootPublishedAs.group == rootId.group
-        assert rootPublishedAs.name == rootId.module
-        assert rootPublishedAs.version == rootId.version
+        assert rootPublishedAs.group == 'org.gradle'
+        assert rootPublishedAs.name == 'b'
+        assert rootPublishedAs.version == '1.0'
 
         // Check project components
-        def projectDependencies = result.root.dependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }
-        assert projectDependencies.size() == 1
-        def projectA = projectDependencies[0]
+        def projectComponents = result.root.dependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }
+        assert projectComponents.size() == 1
+        def projectA = projectComponents[0]
         assert projectA.id.projectPath == ':a'
         assert projectA.moduleVersion.group != null
         assert projectA.moduleVersion.name == 'a'
         assert projectA.moduleVersion.version == 'unspecified'
+
+        // Check project dependencies
+        def projectDependencies = result.root.dependencies.requested.findAll { it instanceof ProjectComponentSelector }
+        assert projectDependencies.size() == 1
+        def projectDependency = projectDependencies[0]
+        assert projectDependency.projectPath == ':a'
 
         // Check external module components
         def externalComponents = result.allDependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }

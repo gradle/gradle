@@ -21,45 +21,46 @@ package org.gradle.messaging.remote.internal.hub
 import org.gradle.api.Action
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
-import org.gradle.messaging.remote.Address
-import org.gradle.messaging.remote.ConnectEvent
 import org.gradle.messaging.remote.ConnectionAcceptor
+import org.gradle.messaging.remote.ObjectConnection
+import org.gradle.messaging.remote.internal.ConnectCompletion
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.IncomingConnector
-import org.gradle.messaging.remote.internal.MessageSerializer
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import spock.lang.Specification
 
 class MessageHubBackedServerTest extends Specification {
     final IncomingConnector connector = Mock()
     final ExecutorFactory executorFactory = Mock()
-    final MessageSerializer<InterHubMessage> serializer = Mock()
-    final MessageHubBackedServer server = new MessageHubBackedServer(connector, serializer, executorFactory)
+    final MessageHubBackedServer server = new MessageHubBackedServer(connector, executorFactory)
 
     def "creates connection and cleans up on stop"() {
-        Address remoteAddress = Stub()
-        Address localAddress = Stub()
-        ConnectionAcceptor acceptor = Mock() {
-            getAddress() >> localAddress
-        }
-        Action<ConnectEvent<Connection<InterHubMessage>>> connectAction = Mock()
+        ConnectionAcceptor acceptor = Mock()
+        Action<ObjectConnection> connectAction = Mock()
         Connection<InterHubMessage> backingConnection = Mock()
         StoppableExecutor executor = Mock()
-        def acceptAction
+        ConnectCompletion completion = Mock()
+        Action<ConnectCompletion> acceptAction
         def connection
 
         when:
         server.accept(connectAction)
 
         then:
-        1 * connector.accept(_, serializer, false) >> { acceptAction = it[0]; return acceptor }
+        1 * connector.accept(_, false) >> { acceptAction = it[0]; return acceptor }
 
         when:
-        acceptAction.execute(new ConnectEvent<Connection<InterHubMessage>>(backingConnection, localAddress, remoteAddress))
+        acceptAction.execute(completion)
 
         then:
-        1 * executorFactory.create("${backingConnection} workers") >> executor
-        1 * connectAction.execute(_) >> { ConnectEvent event -> connection = event.connection }
+        1 * executorFactory.create("${completion} workers") >> executor
+        1 * connectAction.execute(_) >> { ObjectConnection c -> connection = c }
+
+        when:
+        connection.connect()
+
+        then:
+        1 * completion.create(_) >> backingConnection
 
         when:
         connection.stop()

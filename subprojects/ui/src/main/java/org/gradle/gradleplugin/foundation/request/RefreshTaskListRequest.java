@@ -37,8 +37,8 @@ public class RefreshTaskListRequest extends AbstractRequest {
 
     private GradlePluginLord gradlePluginLord;
 
-    public RefreshTaskListRequest(long requestID, String fullCommandLine, ExecutionQueue executionQueue, GradlePluginLord gradlePluginLord) {
-        super(requestID, fullCommandLine, "Refresh", false, executionQueue);
+    public RefreshTaskListRequest(long requestID, String fullCommandLine, ExecutionQueue.RequestCancellation cancellation, GradlePluginLord gradlePluginLord) {
+        super(requestID, fullCommandLine, "Refresh", false, cancellation);
         this.gradlePluginLord = gradlePluginLord;
     }
 

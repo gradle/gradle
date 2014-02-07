@@ -18,7 +18,6 @@
 
 package org.gradle.language.jvm.internal
 
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import spock.lang.Specification
 
 class ClassDirectoryBinaryNamingSchemeTest extends Specification {
@@ -39,12 +38,6 @@ class ClassDirectoryBinaryNamingSchemeTest extends Specification {
         "test" | "compile" | null        | "compileTest"
         "test" | null      | "resources" | "testResources"
         "test" | "compile" | "java"      | "compileTestJava"
-    }
-
-    def "generates task name with extended inputs"() {
-        expect:
-        def namer = new DefaultBinaryNamingScheme("theClassesBinary")
-        namer.getTaskName("theVerb", "theTarget") == "theVerbTheClassesBinaryTheTarget"
     }
 
     def "generates base name and output directory"() {

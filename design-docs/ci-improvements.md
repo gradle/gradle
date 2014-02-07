@@ -17,6 +17,20 @@ Here is a rough overview of the current structure of the CI pipeline
 
 This pipeline is replicated for the release and master branches.
 
+# Reduce memory consumption of the full tooling API test suite
+
+Currently, the full cross version integration test suite for the tooling API starts daemons for every Gradle version, and starts
+multiple daemons for each version.
+
+- Verify that many daemon processes are running while the test suite is executing.
+- Verify that daemon processes are started with relatively small heap and permgen limits, rather than the defaults for the daemon, and fix if not.
+- Change test execution for the tooling API test suite so that the tests for a single Gradle version (or small set of versions) are completed before starting
+  tests on another Gradle version. One potential implementation is to introduce a test task per Gradle version.
+
+# Automate installation of TeamCity agents on Windows build VM
+
+- Ensure the init.gradle script is installed in the user's home dir.
+
 # Split builds up so that each build covers a smaller slice of the source
 
 Currently, most builds cover the entire Gradle code-base for a particular environment. We might split this up so that each build covers
@@ -49,6 +63,13 @@ For example, we might
 - change each of these to cover only a single version for the environment coverage builds
 - move coverage of the full set of versions to a nightly build
 
+# Run some coverage builds less frequently
+
+Possibly run these as nightly builds:
+
+- Unknown OS coverage
+- IBM JVM coverage
+
 # Profile the commit and coverage builds
 
 Investigate where the time is going and address this.
@@ -66,3 +87,27 @@ Tweak the teamcity settings so that:
 - Coverage builds for any branch win over nightly builds for any branch
 
 Also remove the fast feedback agent pool
+
+# Leverage incremental build
+
+# Leverage parallel execution
+
+# Proactively clean disks to avoid accumulation
+
+- To avoid accumulation of cruft (e.g. old wrappers, old dependencies), we should periodically recreate the build VMs.
+
+# Run all Windows builds with virtual agents
+
+At the moment running multiple Windows builds with virtual agents in parallel may cause memory issues. As a result the build fails. One of the observed error message
+we see is the following:
+
+    Error occurred during initialization of VM
+    Could not reserve enough space for object heap
+
+This error mainly occurs if one of the builds spawns new Gradle processses. To mitigate this situation the following builds are configured to only use the physical
+Windows machine `winagent perf1`:
+
+- Windows - Java 1.5 - Daemon integration tests
+- Windows - Java 1.6 - Cross-version tests
+
+All other builds are still using the virtual agents. After identifying and fixing the root cause for the error, we should change back the configuration.

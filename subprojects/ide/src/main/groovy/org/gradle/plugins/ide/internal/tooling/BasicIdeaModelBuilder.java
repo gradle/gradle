@@ -21,12 +21,18 @@ import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 public class BasicIdeaModelBuilder implements ToolingModelBuilder {
+    private final IdeaModelBuilder ideaModelBuilder;
+
+    public BasicIdeaModelBuilder(IdeaModelBuilder ideaModelBuilder) {
+        this.ideaModelBuilder = ideaModelBuilder;
+    }
+
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.idea.BasicIdeaProject");
     }
 
     public DefaultIdeaProject buildAll(String modelName, Project project) {
-        return new IdeaModelBuilder()
+        return ideaModelBuilder
                 .setOfflineDependencyResolution(true)
                 .buildAll(modelName, project);
     }

@@ -15,25 +15,15 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
+
 import java.io.File;
-import java.util.List;
 
 public interface VisualStudioLocator {
-    SearchResult locateVisualStudio(File candidate);
 
-    SearchResult locateDefaultVisualStudio();
+    SearchResult locateVisualStudioInstalls(File candidate);
 
-    SearchResult locateWindowsSdk(File candidate);
-
-    SearchResult locateDefaultWindowsSdk();
-
-    interface SearchResult {
-        boolean isFound();
-
-        String getVersion();
-
-        File getResult();
-
-        List<File> getSearchLocations();
+    interface SearchResult extends ToolSearchResult {
+        VisualStudioInstall getVisualStudio();
     }
 }

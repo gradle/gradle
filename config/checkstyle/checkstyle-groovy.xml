@@ -29,4 +29,7 @@
     <module name="RegexpSingleline">
         <property name="format" value="Created with IntelliJ IDEA"/>
     </module>
+    <module name="RegexpSingleline">
+        <property name="format" value="^\s*\*\s*@author"/>
+    </module>
 </module>

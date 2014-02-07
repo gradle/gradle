@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -37,7 +37,7 @@ public class CachingDependencyResultFactory {
     private final Map<List, DefaultUnresolvedDependencyResult> unresolvedDependencies = new HashMap<List, DefaultUnresolvedDependencyResult>();
     private final Map<List, DefaultResolvedDependencyResult> resolvedDependencies = new HashMap<List, DefaultResolvedDependencyResult>();
 
-    public UnresolvedDependencyResult createUnresolvedDependency(ModuleVersionSelector requested, ResolvedComponentResult from,
+    public UnresolvedDependencyResult createUnresolvedDependency(ComponentSelector requested, ResolvedComponentResult from,
                                                        ComponentSelectionReason reason, ModuleVersionResolveException failure) {
         List<Object> key = asList(requested, from);
         if (!unresolvedDependencies.containsKey(key)) {
@@ -46,7 +46,7 @@ public class CachingDependencyResultFactory {
         return unresolvedDependencies.get(key);
     }
 
-    public ResolvedDependencyResult createResolvedDependency(ModuleVersionSelector requested, ResolvedComponentResult from, DefaultResolvedComponentResult selected) {
+    public ResolvedDependencyResult createResolvedDependency(ComponentSelector requested, ResolvedComponentResult from, DefaultResolvedComponentResult selected) {
         List<Object> key = asList(requested, from, selected);
         if (!resolvedDependencies.containsKey(key)) {
             resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, selected, from));

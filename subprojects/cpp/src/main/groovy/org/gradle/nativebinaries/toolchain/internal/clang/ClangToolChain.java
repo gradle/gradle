@@ -19,9 +19,9 @@ package org.gradle.nativebinaries.toolchain.internal.clang;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.Clang;
-import org.gradle.nativebinaries.toolchain.internal.gcc.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.AbstractGccCompatibleToolChain;
+import org.gradle.nativebinaries.toolchain.internal.gcc.ToolRegistry;
 import org.gradle.process.internal.ExecActionFactory;
 
 public class ClangToolChain extends AbstractGccCompatibleToolChain implements Clang {
@@ -32,6 +32,8 @@ public class ClangToolChain extends AbstractGccCompatibleToolChain implements Cl
 
         tools.setExeName(ToolType.CPP_COMPILER, "clang++");
         tools.setExeName(ToolType.C_COMPILER, "clang");
+        tools.setExeName(ToolType.OBJECTIVECPP_COMPILER, "clang++");
+        tools.setExeName(ToolType.OBJECTIVEC_COMPILER, "clang");
         tools.setExeName(ToolType.ASSEMBLER, "as");
         tools.setExeName(ToolType.LINKER, "clang++");
         tools.setExeName(ToolType.STATIC_LIB_ARCHIVER, "ar");

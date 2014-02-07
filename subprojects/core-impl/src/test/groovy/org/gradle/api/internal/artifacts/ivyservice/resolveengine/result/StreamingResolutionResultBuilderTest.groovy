@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -32,7 +33,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore())
 
     def "result can be read multiple times"() {
-        builder.start(newId("org", "root", "1.0"))
+        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
 
         when:
         def result = builder.complete()
@@ -47,12 +48,12 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "maintains graph in byte stream"() {
-        builder.start(newId("org", "root", "1.0"))
+        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
 
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", CONFLICT_RESOLUTION))
         builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-                new DefaultInternalDependencyResult(newSelector("org", "dep1", "2.0"), sel("org", "dep1", "2.0", CONFLICT_RESOLUTION), CONFLICT_RESOLUTION, null),
-                new DefaultInternalDependencyResult(newSelector("org", "dep2", "3.0"), null, CONFLICT_RESOLUTION, new ModuleVersionResolveException(newSelector("org", "dep2", "3.0"), new RuntimeException("Boo!")))
+                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), CONFLICT_RESOLUTION, null),
+                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "3.0"), null, CONFLICT_RESOLUTION, new ModuleVersionResolveException(newSelector("org", "dep2", "3.0"), new RuntimeException("Boo!")))
         ])
 
         when:
@@ -66,14 +67,14 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "visiting resolved module version again has no effect"() {
-        builder.start(newId("org", "root", "1.0"))
+        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
         builder.resolvedModuleVersion(sel("org", "root", "1.0", REQUESTED)) //it's fine
 
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", CONFLICT_RESOLUTION))
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED)) //will be ignored
 
         builder.resolvedConfiguration(newId("org", "root", "1.0"),
-                [new DefaultInternalDependencyResult(newSelector("org", "dep1", "2.0"), sel("org", "dep1", "2.0", CONFLICT_RESOLUTION), CONFLICT_RESOLUTION, null)])
+                [new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), CONFLICT_RESOLUTION, null)])
 
         when:
         def result = builder.complete()
@@ -85,16 +86,16 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "visiting resolved configuration again accumulates dependencies"() {
-        builder.start(newId("org", "root", "1.0"))
+        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
 
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED))
         builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
 
         builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-                new DefaultInternalDependencyResult(newSelector("org", "dep1", "2.0"), sel("org", "dep1", "2.0", REQUESTED), REQUESTED, null),
+                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), REQUESTED, null),
         ])
         builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-                new DefaultInternalDependencyResult(newSelector("org", "dep2", "2.0"), sel("org", "dep2", "2.0", REQUESTED), REQUESTED, null),
+                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), newId("org", "dep2", "2.0"), REQUESTED, null),
         ])
 
         when:
@@ -108,17 +109,17 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "dependency failures are remembered"() {
-        builder.start(newId("org", "root", "1.0"))
+        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
 
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED))
         builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
 
         builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-            new DefaultInternalDependencyResult(newSelector("org", "dep1", "2.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "1.0"), new RuntimeException())),
-            new DefaultInternalDependencyResult(newSelector("org", "dep2", "2.0"), sel("org", "dep2", "2.0", REQUESTED), REQUESTED, null),
+            new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "1.0"), new RuntimeException())),
+            new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), newId("org", "dep2", "2.0"), REQUESTED, null),
         ])
         builder.resolvedConfiguration(newId("org", "dep2", "2.0"), [
-            new DefaultInternalDependencyResult(newSelector("org", "dep1", "5.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "5.0"), new RuntimeException())),
+            new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "5.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "5.0"), new RuntimeException())),
         ])
 
         when:

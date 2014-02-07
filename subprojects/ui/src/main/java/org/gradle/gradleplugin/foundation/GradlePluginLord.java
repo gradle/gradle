@@ -16,7 +16,6 @@
 package org.gradle.gradleplugin.foundation;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -34,12 +33,12 @@ import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * This class has nothing to do with plugins inside of gradle, but are related to making a plugin that uses gradle, such as for an IDE. It is also used by the standalone IDE (that way the standalone
@@ -57,10 +56,7 @@ public class GradlePluginLord {
 
     private FavoritesEditor favoritesEditor;  //an editor for the current favorites. The user can edit this at any time, hence we're using an editor.
 
-    private ExecutionQueue<Request> executionQueue;
-    private LinkedBlockingQueue<Request> currentlyExecutingRequests = new LinkedBlockingQueue<Request>();
-
-    private boolean isStarted;  //this flag is mostly to prevent initialization from firing off repeated refresh requests.
+    private QueueManager queueManager = new QueueManager();
 
     private ShowStacktrace stackTraceLevel = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
@@ -140,7 +136,6 @@ public class GradlePluginLord {
         favoritesEditor = new FavoritesEditor();
 
         //create the queue that executes the commands. The contents of this interaction are where we actually launch gradle.
-        executionQueue = new ExecutionQueue<Request>(new ExecutionQueueInteraction());
 
         currentDirectory = SystemProperties.getCurrentDir();
 
@@ -244,13 +239,6 @@ public class GradlePluginLord {
     }
 
     /**
-     * Call this to start execution. This is done after you've initialized everything.
-     */
-    public void startExecutionQueue() {
-        isStarted = true;
-    }
-
-    /**
      * This gives requests of the queue and then executes them by kicking off gradle in a separate process. Most of the code here is tedious setup code needed to start the server. The server is what
      * starts gradle and opens a socket for interprocess communication so we can receive messages back from gradle.
      */
@@ -261,10 +249,6 @@ public class GradlePluginLord {
          * @param request the request to execute.
          */
         public void execute(final Request request) {
-
-            //mark this request as being currently executed
-            currentlyExecutingRequests.add(request);
-
             notifyAboutToExecuteRequest(request);
 
             //I'm just putting these in temp variables for easier debugging
@@ -282,7 +266,7 @@ public class GradlePluginLord {
             //we need to know when this command is finished executing so we can mark it as complete and notify any observers.
             server.addServerObserver(new ProcessLauncherServer.ServerObserver() {
                 public void clientExited(int result, String output) {
-                    currentlyExecutingRequests.remove(request);
+                    queueManager.onComplete(request);
                     notifyRequestExecutionComplete(request, result, output);
                 }
 
@@ -402,27 +386,6 @@ public class GradlePluginLord {
     }
 
     /**
-     * This executes all the tasks together in a background thread. That is, all tasks are passed to a single gradle call at once. This creates or uses an existing OutputPanel to display the results.
-     *
-     * @param tasks the tasks to execute
-     * @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors so that the output is shown regardless
-     * @param additionCommandLineOptions additional command line options to exeucte.
-     */
-    public Request addExecutionRequestToQueue(final List<TaskView> tasks, boolean forceOutputToBeShown, String... additionCommandLineOptions) {
-
-        if (tasks == null || tasks.isEmpty()) {
-            return null;
-        }
-
-        if (tasks.size() == 1) { //if there's only 1, just treat it as one
-            return addExecutionRequestToQueue(tasks.get(0), forceOutputToBeShown, additionCommandLineOptions);
-        }
-
-        String singleCommandLine = CommandLineAssistant.combineTasks(tasks, additionCommandLineOptions);
-        return addExecutionRequestToQueue(singleCommandLine, tasks.get(0).getName() + "...", forceOutputToBeShown);
-    }
-
-    /**
      * Executes several favorites commands at once as a single command. This has the affect of simply concatenating all the favorite command lines into a single line.
      *
      * @param favorites a list of favorites. If just one favorite, it executes it normally. If multiple favorites, it executes them all at once as a single command.
@@ -456,10 +419,6 @@ public class GradlePluginLord {
      * @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors so that the output is shown regardless
      */
     public Request addExecutionRequestToQueue(String fullCommandLine, String displayName, boolean forceOutputToBeShown) {
-        if (!isStarted) {
-            return null;
-        }
-
         if (fullCommandLine == null) {
             return null;
         }
@@ -467,13 +426,13 @@ public class GradlePluginLord {
         //here we'll give the UI a chance to add things to the command line.
         fullCommandLine = alterCommandLine(fullCommandLine);
 
-        final ExecutionRequest request = new ExecutionRequest(getNextRequestID(), fullCommandLine, displayName, forceOutputToBeShown, executionQueue);
+        final ExecutionRequest request = new ExecutionRequest(getNextRequestID(), fullCommandLine, displayName, forceOutputToBeShown, queueManager);
         requestObserverLord.notifyObservers(new ObserverLord.ObserverNotification<RequestObserver>() {
             public void notify(RequestObserver observer) {
                 observer.executionRequestAdded(request);
             }
         });
-        executionQueue.addRequestToQueue(request);
+        queueManager.addRequestToQueue(request);
         return request;
     }
 
@@ -494,17 +453,9 @@ public class GradlePluginLord {
      * This will refresh the project/task tree. This version allows you to specify additional arguments to be passed to gradle during the refresh (such as -b to specify a build file)
      *
      * @param additionalCommandLineArguments the arguments to add, or null if none.
-     * @return the Request that was created. Null if no request created.
+     * @return the Request that was created.
      */
     public Request addRefreshRequestToQueue(String additionalCommandLineArguments) {
-        if (!isStarted) {
-            return null;
-        }
-
-        if (hasRequestOfType(RefreshTaskListRequest.TYPE)) {
-            return null; //we're already doing a refresh.
-        }
-
         //we'll request a task list since there is no way to do a no op. We're not really interested
         //in what's being executed, just the ability to get the task list (which must be populated as
         //part of executing anything).
@@ -517,8 +468,17 @@ public class GradlePluginLord {
         //here we'll give the UI a chance to add things to the command line.
         fullCommandLine = alterCommandLine(fullCommandLine);
 
-        final RefreshTaskListRequest request = new RefreshTaskListRequest(getNextRequestID(), fullCommandLine, executionQueue, this);
-        executionQueue.addRequestToQueue(request);
+        // Don't schedule again if already doing a refresh with the specified arguments
+        // TODO - fix this race condition - multiple threads may be requesting a refresh
+        List<Request> currentRequests = queueManager.findRequestsOfType(RefreshTaskListRequest.TYPE);
+        for (Request currentRequest : currentRequests) {
+            if (currentRequest.getFullCommandLine().equals(fullCommandLine)) {
+                return currentRequest;
+            }
+        }
+
+        final RefreshTaskListRequest request = new RefreshTaskListRequest(getNextRequestID(), fullCommandLine, queueManager, this);
+        queueManager.addRequestToQueue(request);
         // TODO - fix this race condition - request may already have completed
         requestObserverLord.notifyObservers(new ObserverLord.ObserverNotification<RequestObserver>() {
             public void notify(RequestObserver observer) {
@@ -657,33 +617,44 @@ public class GradlePluginLord {
      * @return true if this is busy, false if not.
      */
     public boolean isBusy() {
-        return hasRequestOfType(ExecutionRequest.TYPE);
+        return !queueManager.findRequestsOfType(ExecutionRequest.TYPE).isEmpty();
     }
 
-    /**
-     * Determines if we have an request of the specified type
-     *
-     * @param type the sought type of request.
-     * @return true if it has the request, false if not.
-     */
-    private boolean hasRequestOfType(Request.Type type) {
-        Iterator<Request> iterator = currentlyExecutingRequests.iterator();
-        while (iterator.hasNext()) {
-            ExecutionQueue.Request request = iterator.next();
-            if (request.getType() == type) {
-                return true;
+    private class QueueManager implements ExecutionQueue.RequestCancellation {
+        private final Object lock = new Object();
+        private final ExecutionQueue<Request> executionQueue = new ExecutionQueue<Request>(new ExecutionQueueInteraction());
+        private final Set<Request> currentlyExecutingRequests = new HashSet<Request>();
+
+        private List<Request> findRequestsOfType(Request.Type type) {
+            List<Request> requests = new ArrayList<Request>();
+            synchronized (lock) {
+                for (Request request : currentlyExecutingRequests) {
+                    if (request.getType() == type) {
+                        requests.add(request);
+                    }
+                }
+            }
+            return requests;
+        }
+
+        public void onCancel(ExecutionQueue.Request request) {
+            executionQueue.removeRequestFromQueue(request);
+            synchronized (lock) {
+                currentlyExecutingRequests.remove(request);
             }
         }
 
-        List<Request> pendingRequests = executionQueue.getRequests();
-        iterator = pendingRequests.iterator();
-        while (iterator.hasNext()) {
-            ExecutionQueue.Request request = iterator.next();
-            if (request.getType() == type) {
-                return true;
+        public void onComplete(Request request) {
+            synchronized (lock) {
+                currentlyExecutingRequests.remove(request);
             }
         }
 
-        return false;
+        public void addRequestToQueue(Request request) {
+            synchronized (lock) {
+                currentlyExecutingRequests.add(request);
+            }
+            executionQueue.addRequestToQueue(request);
+        }
     }
 }

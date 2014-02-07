@@ -17,9 +17,11 @@
 package org.gradle.nativebinaries.toolchain.plugins
 
 import org.gradle.api.Plugin
-import org.gradle.nativebinaries.ToolChain
-import org.gradle.nativebinaries.ToolChainRegistry
-import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.nativebinaries.toolchain.ToolChain
+import org.gradle.nativebinaries.toolchain.ToolChainRegistry
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -39,19 +41,30 @@ abstract class ToolChainPluginTest extends Specification {
         "toolchain"
     }
 
-    ToolChain getToolchain() {
-        toolchains.getByName(toolchainName)
+    ToolChainInternal getToolchain() {
+        project.modelRegistry.get("toolChains", ToolChainRegistry).getByName(getToolchainName()) as ToolChainInternal
     }
 
     void register() {
-        getToolchains().create(getToolchainName(), getToolchainClass())
-    }
-
-    def ToolChainRegistry getToolchains() {
-        project.extensions.getByType(ToolChainRegistry)
+        project.model {
+            toolChains {
+                create(getToolchainName(), getToolchainClass())
+            }
+        }
     }
 
     void addDefaultToolchain() {
-        ((ToolChainRegistryInternal)toolchains).addDefaultToolChain()
+        project.model { toolChains { addDefaultToolChains() } }
+    }
+
+    def "tool chain is extended"() {
+        when:
+        register()
+
+        then:
+        with (toolchain) {
+            it instanceof ExtensionAware
+            it.ext instanceof ExtraPropertiesExtension
+        }
     }
 }

@@ -26,16 +26,13 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.internal.typeconversion.NotationParser
-import org.gradle.api.internal.plugins.ExtensionContainerInternal
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.internal.DefaultPublicationContainer
+import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -45,7 +42,8 @@ import spock.lang.Specification
 public class DefaultMavenPublicationTest extends Specification {
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def module = Mock(MavenProjectIdentity)
-    NotationParser<MavenArtifact> notationParser = Mock(NotationParser)
+    NotationParser<Object, MavenArtifact> notationParser = Mock(NotationParser)
+    def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     TestFile pomDir
     TestFile pomFile
     File artifactFile
@@ -182,24 +180,15 @@ public class DefaultMavenPublicationTest extends Specification {
         }
     }
 
-    def "adopts dependency on project with single publications"() {
+    def "maps project dependency to ivy dependency"() {
         given:
         def publication = createPublication()
         def projectDependency = Mock(ProjectDependency)
-        def extensionContainer = Mock(ExtensionContainerInternal)
-        def publishingExtension = Mock(PublishingExtension)
-        def publications = new DefaultPublicationContainer(new DirectInstantiator())
-        publications.add(otherPublication("otherPub1", "pub-group", "pub-name", "pub-version"))
-
-        when:
-        projectDependency.artifacts >> []
-        projectDependency.dependencyProject >> Stub(ProjectInternal) {
-            getExtensions() >> extensionContainer
-        }
-        extensionContainer.findByType(PublishingExtension) >> publishingExtension
-        publishingExtension.publications >> publications
 
         and:
+        projectDependencyResolver.resolve(projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
+
+        when:
         publication.from(componentWithDependency(projectDependency))
 
         then:
@@ -212,35 +201,6 @@ public class DefaultMavenPublicationTest extends Specification {
         }
     }
 
-    def "adopts dependency on project without publishing extension"() {
-        given:
-        def publication = createPublication()
-        def projectDependency = Mock(ProjectDependency)
-        def extensionContainer = Mock(ExtensionContainerInternal)
-
-        when:
-        projectDependency.group >> "dep-group"
-        projectDependency.name >> "dep-name-1"
-        projectDependency.version >> "dep-version"
-        projectDependency.dependencyProject >> Stub(ProjectInternal) {
-            getExtensions() >> extensionContainer
-            getName() >> "project-name"
-        }
-        projectDependency.artifacts >> []
-        extensionContainer.findByType(PublishingExtension) >> null
-
-        and:
-        publication.from(componentWithDependency(projectDependency))
-
-        then:
-        publication.runtimeDependencies.size() == 1
-        with (publication.runtimeDependencies.asList().first()) {
-            groupId == "dep-group"
-            artifactId == "project-name"
-            version == "dep-version"
-            artifacts == []
-        }
-    }
     def "cannot add multiple components"() {
         given:
         def publication = createPublication()
@@ -323,7 +283,7 @@ public class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = new DefaultMavenPublication("pub-name", module, notationParser, new DirectInstantiator())
+        def publication = new DefaultMavenPublication("pub-name", module, notationParser, new DirectInstantiator(), projectDependencyResolver)
         publication.setPomFile(new SimpleFileCollection(pomFile))
         return publication;
     }

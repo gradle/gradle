@@ -155,6 +155,13 @@ class OperatingSystemTest extends Specification {
         OperatingSystem.current() instanceof OperatingSystem.Linux
     }
 
+    def "uses os.name property to determine if freebsd"() {
+        System.properties['os.name'] = 'FreeBSD'
+
+        expect:
+        OperatingSystem.current() instanceof OperatingSystem.FreeBSD
+    }
+
     def "uses default implementation for other os"() {
         System.properties['os.name'] = 'unknown'
 

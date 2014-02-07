@@ -188,6 +188,7 @@ class UserGuideSamplesRunner extends Runner {
             def outputFile = sample.'@outputFile'
             boolean ignoreExtraLines = Boolean.valueOf(sample.'@ignoreExtraLines')
             boolean ignoreLineOrder = Boolean.valueOf(sample.'@ignoreLineOrder')
+            boolean expectFailure = Boolean.valueOf(sample.'@expectFailure')
 
             def run = new GradleRun(id: id)
             run.subDir = dir
@@ -195,6 +196,7 @@ class UserGuideSamplesRunner extends Runner {
             run.outputFile = outputFile
             run.ignoreExtraLines = ignoreExtraLines as boolean
             run.ignoreLineOrder = ignoreLineOrder as boolean
+            run.expectFailure = expectFailure as boolean
 
             sample.file.each { file -> run.files << file.'@path' }
             sample.dir.each { file -> run.dirs << file.'@path' }

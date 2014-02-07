@@ -15,14 +15,15 @@
  */
 
 package org.gradle.nativebinaries.internal
-import org.gradle.internal.reflect.DirectInstantiator
+
 import spock.lang.Specification
 
 class DefaultExecutableTest extends Specification {
-    def "has useful string representation"() {
-        def executable = new DefaultExecutable("someExe", new DirectInstantiator())
+    def executable = new DefaultExecutable(new NativeProjectComponentIdentifier("project-path", "someExe"))
 
+    def "has useful string representation"() {
         expect:
         executable.toString() == "executable 'someExe'"
+        executable.displayName == "executable 'someExe'"
     }
 }

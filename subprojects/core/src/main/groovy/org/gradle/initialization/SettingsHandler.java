@@ -20,8 +20,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
-import org.gradle.invocation.BuildClassLoaderRegistry;
 
 import java.io.File;
 
@@ -70,7 +70,6 @@ public class SettingsHandler {
             }
         }
 
-        gradle.getServices().get(BuildClassLoaderRegistry.class).addRootClassLoader(settings.getClassLoader());
         return settings;
     }
 
@@ -88,9 +87,9 @@ public class SettingsHandler {
         StartParameter buildSrcStartParameter = startParameter.newBuild();
         buildSrcStartParameter.setCurrentDir(new File(settingsLocation.getSettingsDir(),
                 BaseSettings.DEFAULT_BUILD_SRC_DIR));
-        ClassLoader buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
+        ClassLoaderScope buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
 
-        return loadSettings(gradle, settingsLocation, buildSourceClassLoader, startParameter);
+        return loadSettings(gradle, settingsLocation, buildSourceClassLoader.createRebasedChild(), startParameter);
     }
 
     private SettingsLocation findSettings(StartParameter startParameter) {
@@ -98,8 +97,8 @@ public class SettingsHandler {
     }
 
     private SettingsInternal loadSettings(GradleInternal gradle, SettingsLocation settingsLocation,
-                                          ClassLoader buildSourceClassLoader, StartParameter startParameter) {
-        return settingsProcessor.process(gradle, settingsLocation, buildSourceClassLoader, startParameter);
+                                          ClassLoaderScope classLoaderScope, StartParameter startParameter) {
+        return settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
     }
 }
 

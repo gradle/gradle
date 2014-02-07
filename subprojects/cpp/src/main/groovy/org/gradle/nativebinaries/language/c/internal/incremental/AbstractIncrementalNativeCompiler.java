@@ -20,16 +20,13 @@ import org.gradle.api.internal.hash.CachingHasher;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.cache.CacheLayout;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.CacheLayoutBuilder;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.ReferencablePersistentCache;
-import org.gradle.cache.internal.filelock.LockOptions;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
@@ -37,35 +34,32 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
-    private final RegexBackedIncludesParser includesParser = new RegexBackedIncludesParser();
     private final TaskInternal task;
+    private final IncludesParser includesParser;
     private final CacheRepository cacheRepository;
     private Iterable<File> includes;
 
-    protected AbstractIncrementalNativeCompiler(TaskInternal task, Iterable<File> includes, CacheRepository cacheRepository) {
+    protected AbstractIncrementalNativeCompiler(TaskInternal task, IncludesParser includesParser, Iterable<File> includes, CacheRepository cacheRepository) {
         this.task = task;
         this.includes = includes;
+        this.includesParser = includesParser;
         this.cacheRepository = cacheRepository;
     }
 
     public WorkResult execute(final NativeCompileSpec spec) {
         final PersistentCache cache = openCache(task);
-
-        final AtomicReference<WorkResult> result = new AtomicReference<WorkResult>();
-        cache.useCache("incremental compile", new Runnable() {
-            public void run() {
-                final IncrementalCompileProcessor processor = createProcessor(includes, cache);
-                result.set(doIncrementalCompile(processor, spec));
-            }
-        });
-
-        if (cache instanceof ReferencablePersistentCache) {
-            ((ReferencablePersistentCache) cache).close();
+        try {
+            return cache.useCache("incremental compile", new Factory<WorkResult>() {
+                public WorkResult create() {
+                    IncrementalCompileProcessor processor = createProcessor(includes, cache);
+                    return doIncrementalCompile(processor, spec);
+                }
+            });
+        } finally {
+            cache.close();
         }
-        return result.get();
     }
 
     protected abstract WorkResult doIncrementalCompile(IncrementalCompileProcessor processor, NativeCompileSpec spec);
@@ -88,18 +82,14 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
     }
 
     private PersistentCache openCache(TaskInternal task) {
-        LockOptions lockOptions = LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive);
-        CacheLayout layout = new CacheLayoutBuilder()
-                .withBuildScope(task.getProject())
-                // TODO:DAZ Review
-                .withPath("taskState", task.getPath().replace(':', '_'))
-                .build();
-        return cacheRepository.cache("incrementalCompile").withLayout(layout).withLockOptions(lockOptions).open();
+        return cacheRepository
+                .cache(task, "incrementalCompile")
+                .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
+                .open();
     }
 
     private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, Serializer<V> fileStateDefaultSerializer) {
-        File cacheFile = new File(cache.getBaseDir(), name + ".bin");
-        return cache.createCache(new PersistentIndexedCacheParameters<U, V>(cacheFile, keyType, fileStateDefaultSerializer));
+        return cache.createCache(new PersistentIndexedCacheParameters<U, V>(name, keyType, fileStateDefaultSerializer));
     }
 
 }

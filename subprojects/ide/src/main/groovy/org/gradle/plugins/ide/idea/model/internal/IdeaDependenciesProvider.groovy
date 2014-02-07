@@ -54,7 +54,7 @@ class IdeaDependenciesProvider {
         if (!scopeMap) {
             return []
         }
-        return dependenciesExtractor.extractProjectDependencies(scopeMap.plus, scopeMap.minus).collect {
+        return dependenciesExtractor.extractProjectDependencies(project, scopeMap.plus, scopeMap.minus).collect {
                 new ModuleDependencyBuilder().create(it.project, scopeName)
         }
     }

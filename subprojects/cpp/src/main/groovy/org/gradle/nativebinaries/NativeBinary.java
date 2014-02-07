@@ -16,66 +16,22 @@
 
 package org.gradle.nativebinaries;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.Binary;
-import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.nativebinaries.platform.Platform;
 
-import java.io.File;
-import java.util.Collection;
-
-// TODO:DAZ These don't apply to all binary subtypes: look at splitting this up in to a number of smaller facets / functional interfaces
 /**
- * Represents a particular binary artifact that is the result of building a native component.
+ * Represents a particular binary artifact.
  */
-@Incubating @HasInternalProtocol
+@Incubating
 public interface NativeBinary extends Binary {
-    /**
-     * The component that this binary was built from.
-     */
-    NativeComponent getComponent();
-
     /**
      * The flavor that this binary was built with.
      */
     Flavor getFlavor();
 
     /**
-     * The file where this binary will be created.
-     */
-    File getOutputFile();
-
-    /**
-     * Sets the file where this binary will be created.
-     */
-    void setOutputFile(File outputFile);
-
-    /**
-     * The source sets used to compile this binary.
-     */
-    DomainObjectSet<LanguageSourceSet> getSource();
-
-    /**
-     * Adds one or more {@link LanguageSourceSet}s that are used to compile this binary.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
-     *     <li>A {@link LanguageSourceSet}</li>
-     *     <li>A Collection of {@link LanguageSourceSet}s</li>
-     * </ul>
-     */
-    void source(Object source);
-
-    /**
-     * Returns the {@link ToolChain} that will be used to build this binary.
-     */
-    ToolChain getToolChain();
-
-    /**
-     * Returns the {@link Platform} that this binary is targeted to run on.
+     * Returns the {@link org.gradle.nativebinaries.platform.Platform} that this binary is targeted to run on.
      */
     Platform getTargetPlatform();
 
@@ -83,37 +39,4 @@ public interface NativeBinary extends Binary {
      * Returns the {@link BuildType} used to construct this binary.
      */
     BuildType getBuildType();
-
-    /**
-     * The libraries that should be linked into this binary.
-     */
-    Collection<NativeDependencySet> getLibs();
-
-    /**
-     * Adds a library as input to this binary.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link Library}</li>
-     *     <li>A {@link LibraryBinary}</li>
-     *     <li>A {@link NativeDependencySet}</li>
-     * </ul>
-     */
-    void lib(Object library);
-
-    /**
-     * The settings used for linking this binary.
-     */
-    Tool getLinker();
-
-    /**
-     * The set of tasks associated with this binary.
-     */
-    NativeBinaryTasks getTasks();
-
-    /**
-     * Can this binary be built in the current environment?
-     */
-    boolean isBuildable();
 }

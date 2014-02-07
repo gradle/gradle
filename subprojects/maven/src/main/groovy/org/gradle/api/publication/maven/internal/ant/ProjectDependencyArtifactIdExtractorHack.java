@@ -17,6 +17,7 @@
 package org.gradle.api.publication.maven.internal.ant;
 
 import com.google.common.collect.Lists;
+import org.apache.maven.project.MavenProject;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -57,7 +58,7 @@ public class ProjectDependencyArtifactIdExtractorHack {
         Set<String> artifactIds = getArtifactIds(deployers);
         if (artifactIds.size() == 1) {
             String artifactId = artifactIds.iterator().next();
-            if (artifactId != null && !artifactId.equals("empty-project")) {
+            if (artifactId != null && !artifactId.equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID)) {
                 return artifactId;
             }
         }

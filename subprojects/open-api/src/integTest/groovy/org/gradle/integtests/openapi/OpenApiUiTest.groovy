@@ -387,8 +387,15 @@ class OpenApiUiTest {
             throw new AssertionError('sample project missing. Expected it at: ' + gradleInterface.getCurrentDirectory())
         }
 
+        BlockingRequestObserver setupListener = new BlockingRequestObserver(RequestVersion1.REFRESH_TYPE)
+        gradleInterface.addRequestObserver(setupListener)
+
         //this starts the execution queue
         dualPane.aboutToShow()
+
+        // wait for the implicit refresh to complete
+        setupListener.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
+        gradleInterface.removeRequestObserver(setupListener)
 
         //add a request observer so we can observe when the command is finished. This allows us to
         //see what was actually executed.

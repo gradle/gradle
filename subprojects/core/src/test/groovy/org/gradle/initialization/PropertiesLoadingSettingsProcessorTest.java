@@ -18,6 +18,9 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.DefaultClassLoaderCache;
+import org.gradle.api.internal.initialization.RootClassLoaderScope;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -48,12 +51,14 @@ public class PropertiesLoadingSettingsProcessorTest {
 
         PropertiesLoadingSettingsProcessor processor = new PropertiesLoadingSettingsProcessor(delegate, propertiesLoader);
 
+        final ClassLoaderScope classLoaderScope = new RootClassLoaderScope(urlClassLoader, new DefaultClassLoaderCache());
+
         context.checking(new Expectations() {{
             one(propertiesLoader).loadProperties(settingsDir);
-            one(delegate).process(gradle, settingsLocation, urlClassLoader, startParameter);
+            one(delegate).process(gradle, settingsLocation, classLoaderScope, startParameter);
             will(returnValue(settings));
         }});
 
-        assertThat(processor.process(gradle, settingsLocation, urlClassLoader, startParameter), sameInstance(settings));
+        assertThat(processor.process(gradle, settingsLocation, classLoaderScope, startParameter), sameInstance(settings));
     }
 }

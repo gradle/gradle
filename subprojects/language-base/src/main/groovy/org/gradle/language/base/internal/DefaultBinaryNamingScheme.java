@@ -19,30 +19,15 @@ package org.gradle.language.base.internal;
 import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
-    private final String parentName;
-    private final String typeString;
-    private final String dimensionPrefix;
-    private final List<String> dimensions;
+    final String parentName;
+    final String typeString;
+    final String dimensionPrefix;
+    final List<String> dimensions;
 
-    public DefaultBinaryNamingScheme(String parentName) {
-        this(parentName, "", new ArrayList<String>());
-    }
-
-    public DefaultBinaryNamingScheme withTypeString(String newTypeString) {
-        return new DefaultBinaryNamingScheme(parentName, newTypeString, dimensions);
-    }
-
-    public DefaultBinaryNamingScheme withVariantDimension(String dimension) {
-        List<String> newDimensions = new ArrayList<String>(dimensions);
-        newDimensions.add(dimension);
-        return new DefaultBinaryNamingScheme(parentName, typeString, newDimensions);
-    }
-
-    private DefaultBinaryNamingScheme(String parentName, String typeString, List<String> dimensions) {
+    public DefaultBinaryNamingScheme(String parentName, String typeString, List<String> dimensions) {
         this.parentName = parentName;
         this.typeString = typeString;
         this.dimensions = dimensions;
@@ -84,6 +69,10 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         return builder.toString();
     }
 
+    public List<String> getVariantDimensions() {
+        return dimensions;
+    }
+
     public String getTaskName(@Nullable String verb) {
         return getTaskName(verb, null);
     }
@@ -108,10 +97,16 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     private void appendCapitalized(StringBuilder builder, String word) {
+        if (word.length() == 0) {
+            return;
+        }
         builder.append(Character.toTitleCase(word.charAt(0))).append(word.substring(1));
     }
 
     private void appendUncapitalized(StringBuilder builder, String word) {
+        if (word.length() == 0) {
+            return;
+        }
         builder.append(Character.toLowerCase(word.charAt(0))).append(word.substring(1));
     }
 }

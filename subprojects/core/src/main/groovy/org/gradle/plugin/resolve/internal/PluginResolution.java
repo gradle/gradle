@@ -18,6 +18,7 @@ package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 /**
  * The result of attempting to resolve a plugin to a classpath.
@@ -25,6 +26,6 @@ import org.gradle.api.Plugin;
 @Incubating
 public interface PluginResolution {
 
-    Class<? extends Plugin> resolve(ClassLoader parentClassLoader);
+    Class<? extends Plugin> resolve(ClassLoaderScope classLoaderScope);
 
 }

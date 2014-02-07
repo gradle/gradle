@@ -73,11 +73,7 @@ class DefaultBinaryNamingSchemeTest extends Specification {
         "parent"   | "SharedLibrary" | ["one", "two"] | "shared library 'parent:one:two:sharedLibrary'"
     }
 
-    private DefaultBinaryNamingScheme createNamingScheme(def parentName, def type, def dimensions) {
-        def namingScheme = new DefaultBinaryNamingScheme(parentName).withTypeString(type)
-        for (String dimension : dimensions) {
-            namingScheme = namingScheme.withVariantDimension(dimension)
-        }
-        return namingScheme
+    private BinaryNamingScheme createNamingScheme(def parentName, def type, def dimensions) {
+        return new DefaultBinaryNamingScheme(parentName, type, dimensions)
     }
 }

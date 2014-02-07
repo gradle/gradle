@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
@@ -24,10 +25,15 @@ import org.gradle.util.GUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 import static org.gradle.util.TextUtil.escapeString
 
 abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+
+    static boolean multiPlatformsAvailable = true
+
     IncrementalHelloWorldApp app
     String mainCompileTask
     String libraryCompileTask
@@ -68,7 +74,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             }
         """
         settingsFile << "rootProject.name = 'test'"
-
         sourceFile = app.mainSource.writeToDir(file("src/main"))
         headerFile = app.libraryHeader.writeToDir(file("src/hello"))
         app.librarySources.each {
@@ -173,7 +178,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         headerFile << """
-            void DLL_FUNC unused();
+            int unused();
 """
 
         run "mainExecutable"
@@ -251,13 +256,16 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         install.exec().out == app.frenchOutput
     }
 
+    @IgnoreIf({!AbstractLanguageIncrementalBuildIntegrationTest.multiPlatformsAvailable})
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "rebuilds binary with target platform change"() {
         given:
         buildFile << """
-    targetPlatforms {
-        arch {
-            // Tool chain defaults
+    model {
+        platforms {
+            arch {
+                // Tool chain defaults
+            }
         }
     }
 """
@@ -265,6 +273,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         buildFile.text = buildFile.text.replace("// Tool chain defaults", "architecture 'i386'")
+        println "multiPlatformsAvailable: $multiPlatformsAvailable"
         run "mainExecutable"
 
         then:
@@ -303,12 +312,15 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-no_pie'" : "'-q'";
+        def linkerArgs =
+            toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'";
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
             executables {
                 main {
-                    binaries.all { linker.args ${escapeString(linkerArgs)} }
+                    binaries.all {
+                        linker.args ${escapeString(linkerArgs)}
+                    }
                 }
             }
 """
@@ -333,8 +345,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         given:
         run "installMainExecutable"
 
-        def oldObjFile = objectFile("build/objectFiles/mainExecutable/main${sourceType}/main")
-        def newObjFile = objectFile("build/objectFiles/mainExecutable/main${sourceType}/changed_main")
+        def oldObjFile = objectFileFor(sourceFile)
+        def newObjFile = objectFileFor(sourceFile.getParentFile().file("changed_${sourceFile.name}"))
         assert oldObjFile.file
         assert !newObjFile.file
 
@@ -362,8 +374,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         run "helloStaticLibrary"
 
         then:
-        def oldObjFile = objectFile("build/objectFiles/helloStaticLibrary/hello${sourceType}/hello")
-        def newObjFile = objectFile("build/objectFiles/helloStaticLibrary/hello${sourceType}/changed_hello")
+        String objectFilesPath = "build/objectFiles/helloStaticLibrary/hello${sourceType}"
+        def oldObjFile = objectFileFor(librarySourceFiles[0], objectFilesPath)
+        def newObjFile = objectFileFor( librarySourceFiles[0].getParentFile().file("changed_${librarySourceFiles[0].name}"), objectFilesPath)
         assert oldObjFile.file
         assert !newObjFile.file
 
@@ -387,7 +400,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         assert !staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
     }
 
-    @RequiresInstalledToolChain("visual c++")
+    @RequiresInstalledToolChain(VisualCpp)
     def "cleans up stale debug files when changing from debug to non-debug"() {
 
         given:
@@ -466,4 +479,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         newFile << sourceFile.text
         sourceFile.delete()
     }
+
+
 }

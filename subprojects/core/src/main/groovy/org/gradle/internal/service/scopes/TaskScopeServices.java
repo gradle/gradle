@@ -30,7 +30,7 @@ import org.gradle.logging.LoggingManagerInternal;
 /**
  * Contains the services for a given task.
  */
-public class TaskScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class TaskScopeServices extends DefaultServiceRegistry {
     private final ProjectInternal project;
     private final TaskInternal taskInternal;
 
@@ -54,9 +54,5 @@ public class TaskScopeServices extends DefaultServiceRegistry implements Service
 
     protected LoggingManagerInternal createLoggingManager() {
         return getFactory(LoggingManagerInternal.class).create();
-    }
-
-    public ServiceRegistryFactory createFor(Object domainObject) {
-        throw new UnsupportedOperationException();
     }
 }

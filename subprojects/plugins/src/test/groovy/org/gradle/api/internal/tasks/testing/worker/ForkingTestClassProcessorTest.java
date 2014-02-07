@@ -125,6 +125,8 @@ public class ForkingTestClassProcessorTest {
             one(builder).build();
             will(returnValue(workerProcess));
 
+            one(workerProcess).start();
+
             allowing(workerProcess).getConnection();
             will(returnValue(connection));
 
@@ -133,7 +135,9 @@ public class ForkingTestClassProcessorTest {
             one(connection).addOutgoing(RemoteTestClassProcessor.class);
             will(returnValue(worker));
 
-            one(workerProcess).start();
+            one(connection).useParameterSerializer(with(any(TestEventSerializer.class)));
+
+            one(connection).connect();
 
             one(worker).startProcessing();
         }});

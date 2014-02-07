@@ -20,7 +20,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * A high level interface to the compiler, specifying what is to be compiled and how.
+ * A high level interface to the linker, specifying what is to be linked and how.
  */
 public interface LinkerSpec extends BinaryToolSpec {
 

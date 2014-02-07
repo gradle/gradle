@@ -16,7 +16,7 @@
 package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.platform.Platform;
 
 import java.util.List;
 
@@ -39,6 +39,16 @@ public interface TargetPlatformConfiguration {
      * The additional args supplied to the C compiler to target the platform.
      */
     List<String> getCCompilerArgs();
+
+    /**
+     * The additional args supplied to the Objective-C++ compiler to target the platform.
+     */
+    List<String> getObjectiveCppCompilerArgs();
+
+    /**
+     * The additional args supplied to the Objective-C compiler to target the platform.
+     */
+    List<String> getObjectiveCCompilerArgs();
 
     /**
      * The additional args supplied to the Assembler to target the platform.

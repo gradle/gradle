@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.util.CollectionUtils.flattenToList;
+import static org.gradle.util.CollectionUtils.flattenCollections;
 
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler {
 
@@ -63,7 +63,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         if (modifiedArgs.containsKey("dirs")) {
-            modifiedArgs.put("dirs", flattenToList(modifiedArgs.get("dirs")));
+            modifiedArgs.put("dirs", flattenCollections(modifiedArgs.get("dirs")));
         }
         return flatDir(new ConfigureByMapAction<FlatDirectoryArtifactRepository>(modifiedArgs));
     }
@@ -87,7 +87,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
                     "The 'urls' property of the RepositoryHandler.mavenCentral() method",
                     "You should use the 'artifactUrls' property to define additional artifact locations"
             );
-            List<?> urls = flattenToList(modifiedArgs.remove("urls"));
+            List<?> urls = flattenCollections(modifiedArgs.remove("urls"));
             modifiedArgs.put("artifactUrls", urls);
         }
 
@@ -106,7 +106,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         DeprecationLogger.nagUserOfReplacedMethod("RepositoryHandler.mavenRepo()", "maven()");
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         if (modifiedArgs.containsKey("urls")) {
-            List<?> urls = flattenToList(modifiedArgs.remove("urls"));
+            List<?> urls = flattenCollections(modifiedArgs.remove("urls"));
             if (!urls.isEmpty()) {
                 modifiedArgs.put("url", urls.get(0));
                 List<?> extraUrls = urls.subList(1, urls.size());

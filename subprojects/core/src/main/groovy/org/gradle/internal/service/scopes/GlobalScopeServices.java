@@ -32,11 +32,11 @@ import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.*;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -56,6 +56,17 @@ import java.util.List;
  * Defines the services shared by all builds in a given process.
  */
 public class GlobalScopeServices {
+
+    private GradleBuildEnvironment environment;
+
+    public GlobalScopeServices(final boolean longLiving) {
+        this.environment = new GradleBuildEnvironment() {
+            public boolean isLongLivingProcess() {
+                return longLiving;
+            }
+        };
+    }
+
     void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
         final List<PluginServiceRegistry> pluginServiceFactories = new ServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getCoreImplClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
         for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
@@ -70,6 +81,10 @@ public class GlobalScopeServices {
 
     TemporaryFileProvider createTemporaryFileProvider() {
         return new TmpDirTemporaryFileProvider();
+    }
+
+    GradleBuildEnvironment createGradleBuildEnvironment() {
+        return environment;
     }
 
     CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {
@@ -95,7 +110,7 @@ public class GlobalScopeServices {
         return new DefaultPluginModuleRegistry(moduleRegistry);
     }
 
-    Factory<CacheFactory> createCacheFactory(FileLockManager fileLockManager) {
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager) {
         return new DefaultCacheFactory(fileLockManager);
     }
 
@@ -152,4 +167,5 @@ public class GlobalScopeServices {
     FileResolver createFileResolver(FileSystem fileSystem) {
         return new IdentityFileResolver(fileSystem);
     }
+
 }

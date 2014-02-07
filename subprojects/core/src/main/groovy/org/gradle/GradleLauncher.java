@@ -109,7 +109,7 @@ public abstract class GradleLauncher {
                     .displayName("Global services")
                     .parent(LoggingServiceRegistry.newProcessLogging())
                     .parent(NativeServices.getInstance())
-                    .provider(new GlobalScopeServices())
+                    .provider(new GlobalScopeServices(false))
                     .build()
                     .get(GradleLauncherFactory.class);
         }

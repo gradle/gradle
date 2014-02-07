@@ -67,7 +67,7 @@ class ProtocolStackTest extends ConcurrentSpecification {
         stack?.stop()
     }
 
-    @Timeout(5)
+    @Timeout(10)
     def "top protocol can dispatch incoming message during start"() {
         Protocol<String> protocol = Mock()
         def dispatched = startsAsyncAction()

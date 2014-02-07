@@ -19,6 +19,8 @@ package org.gradle.nativebinaries;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
+import java.io.File;
+
 /**
  * A {@link Library} that has been compiled and archived into a static library.
  */
@@ -27,7 +29,12 @@ import org.gradle.internal.HasInternalProtocol;
 public interface StaticLibraryBinary extends LibraryBinary {
 
     /**
-     * The static archiver settings used for creating this binary.
+     * The static library file.
      */
-    Tool getStaticLibArchiver();
+    File getStaticLibraryFile();
+
+    /**
+     * The static library binary file.
+     */
+    void setStaticLibraryFile(File staticLibraryFile);
 }

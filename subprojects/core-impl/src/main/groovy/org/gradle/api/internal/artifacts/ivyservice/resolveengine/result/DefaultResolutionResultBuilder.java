@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.*;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.internal.Factory;
@@ -37,8 +36,8 @@ public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
 
     CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
 
-    public DefaultResolutionResultBuilder start(ModuleVersionIdentifier root) {
-        rootModule = createOrGet(root, VersionSelectionReasons.ROOT, new DefaultModuleComponentIdentifier(root.getGroup(), root.getName(), root.getVersion()));
+    public DefaultResolutionResultBuilder start(ModuleVersionIdentifier root, ComponentIdentifier componentIdentifier) {
+        rootModule = createOrGet(root, VersionSelectionReasons.ROOT, componentIdentifier);
         return this;
     }
 
@@ -57,7 +56,7 @@ public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
             if (d.getFailure() != null) {
                 dependency = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getReason(), d.getFailure());
             } else {
-                DefaultResolvedComponentResult selected = modules.get(d.getSelected().getSelectedId());
+                DefaultResolvedComponentResult selected = modules.get(d.getSelected());
                 dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
                 selected.addDependent((ResolvedDependencyResult) dependency);
             }

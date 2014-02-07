@@ -18,8 +18,8 @@ package org.gradle.internal.service;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
@@ -195,6 +195,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         return new ServiceRegistration(){
             public <T> void add(Class<T> serviceType, T serviceInstance) {
                 DefaultServiceRegistry.this.add(serviceType, serviceInstance);
+            }
+
+            public void add(Class<?> serviceType) {
+                ownServices.add(new ConstructorService(serviceType));
             }
 
             public void addProvider(Object provider) {
@@ -534,26 +538,23 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
-    private class FactoryMethodService extends SingletonService {
-        private final Method method;
-        private Object target;
+    private abstract class FactoryService extends SingletonService {
         private ServiceProvider[] paramProviders;
 
-        public FactoryMethodService(Object target, Method method) {
-            super(method.getGenericReturnType());
-            this.target = target;
-            this.method = method;
+        protected FactoryService(Type serviceType) {
+            super(serviceType);
         }
 
-        public String getDisplayName() {
-            return String.format("Service %s at %s.%s()", format(method.getGenericReturnType()), method.getDeclaringClass().getSimpleName(), method.getName());
-        }
+        protected abstract Type[] getParameterTypes();
+
+        protected abstract Member getFactory();
 
         @Override
         protected void bind(LookupContext context) {
-            paramProviders = new ServiceProvider[method.getGenericParameterTypes().length];
-            for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
-                Type paramType = method.getGenericParameterTypes()[i];
+            Type[] parameterTypes = getParameterTypes();
+            paramProviders = new ServiceProvider[parameterTypes.length];
+            for (int i = 0; i < parameterTypes.length; i++) {
+                Type paramType = parameterTypes[i];
                 try {
                     if (paramType.equals(ServiceRegistry.class)) {
                         paramProviders[i] = getThisAsProvider();
@@ -561,9 +562,9 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                         ServiceProvider paramProvider = context.find(paramType, allServices);
                         if (paramProvider == null) {
                             throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available.",
-                                    format(method.getGenericReturnType()),
-                                    method.getDeclaringClass().getSimpleName(),
-                                    method.getName(),
+                                    format(serviceType),
+                                    getFactory().getDeclaringClass().getSimpleName(),
+                                    getFactory().getName(),
                                     format(paramType)));
 
                         }
@@ -572,9 +573,9 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                     }
                 } catch (ServiceValidationException e) {
                     throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as there is a problem with parameter #%s of type %s.",
-                            format(method.getGenericReturnType()),
-                            method.getDeclaringClass().getSimpleName(),
-                            method.getName(),
+                            format(serviceType),
+                            getFactory().getDeclaringClass().getSimpleName(),
+                            getFactory().getName(),
                             i+1,
                             format(paramType)), e);
                 }
@@ -584,7 +585,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         @Override
         protected Object create() {
             Object[] params = assembleParameters();
-            return invokeMethod(params);
+            Object result = invokeMethod(params);
+            // Can discard the state required to create instance
+            paramProviders = null;
+            return result;
         }
 
         private Object[] assembleParameters() {
@@ -596,13 +600,39 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             return params;
         }
 
-        private Object invokeMethod(Object[] params) {
+        protected abstract Object invokeMethod(Object[] params);
+    }
+
+    private class FactoryMethodService extends FactoryService {
+        private final Method method;
+        private Object target;
+
+        public FactoryMethodService(Object target, Method method) {
+            super(method.getGenericReturnType());
+            this.target = target;
+            this.method = method;
+        }
+
+        public String getDisplayName() {
+            return String.format("Service %s at %s.%s()", format(method.getGenericReturnType()), method.getDeclaringClass().getSimpleName(), method.getName());
+        }
+
+        protected Type[] getParameterTypes() {
+            return method.getGenericParameterTypes();
+        }
+
+        @Override
+        protected Member getFactory() {
+            return method;
+        }
+
+        protected Object invokeMethod(Object[] params) {
             Object result;
             try {
                 result = invoke(method, target, params);
             } catch (Exception e) {
                 throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s().",
-                        format(method.getGenericReturnType()),
+                        format(serviceType),
                         method.getDeclaringClass().getSimpleName(),
                         method.getName()),
                         e);
@@ -610,14 +640,13 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             try {
                 if (result == null) {
                     throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",
-                            format(method.getGenericReturnType()),
+                            format(serviceType),
                             method.getDeclaringClass().getSimpleName(),
                             method.getName()));
                 }
                 return result;
             } finally {
                 // Can discard the state required to create instance
-                paramProviders = null;
                 target = null;
             }
         }
@@ -651,6 +680,44 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         @Override
         protected Object create() {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private class ConstructorService extends FactoryService {
+        private final Constructor<?> constructor;
+
+        private ConstructorService(Class<?> serviceType) {
+            super(serviceType);
+            Constructor<?>[] constructors = serviceType.getDeclaredConstructors();
+            if (constructors.length != 1) {
+                throw new ServiceValidationException(String.format("Expected a single constructor for %s.", format(serviceType)));
+            }
+            this.constructor = constructors[0];
+        }
+
+        @Override
+        protected Type[] getParameterTypes() {
+            return constructor.getGenericParameterTypes();
+        }
+
+        @Override
+        protected Member getFactory() {
+            return constructor;
+        }
+
+        @Override
+        protected Object invokeMethod(Object[] params) {
+            try {
+                return constructor.newInstance(params);
+            } catch (InvocationTargetException e) {
+                throw new ServiceCreationException(String.format("Could not create service of type %s.", format(serviceType)), e.getCause());
+            } catch (Exception e) {
+                throw new ServiceCreationException(String.format("Could not create service of type %s.", format(serviceType)), e);
+            }
+        }
+
+        public String getDisplayName() {
+            return String.format("Service %s", format(serviceType));
         }
     }
 

@@ -32,11 +32,11 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 public class ModuleVersionSelectorParsers {
 
-    public static NotationParser<Set<ModuleVersionSelector>> multiParser() {
+    public static NotationParser<Object, Set<ModuleVersionSelector>> multiParser() {
         return builder().toFlatteningComposite();
     }
 
-    public static NotationParser<ModuleVersionSelector> parser() {
+    public static NotationParser<Object, ModuleVersionSelector> parser() {
         return builder().toComposite();
     }
 

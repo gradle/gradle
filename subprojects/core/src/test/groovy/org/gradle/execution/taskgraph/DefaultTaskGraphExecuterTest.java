@@ -22,19 +22,15 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.execution.TaskFailureHandler;
-import org.gradle.internal.Factory;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
-import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestClosure;
 import org.hamcrest.Description;
@@ -42,7 +38,6 @@ import org.jmock.Expectations;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.action.CustomAction;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,7 +56,6 @@ import static org.junit.Assert.*;
 public class DefaultTaskGraphExecuterTest {
     final JUnit4Mockery context = new JUnit4GroovyMockery();
     final ListenerManager listenerManager = context.mock(ListenerManager.class);
-    final TaskArtifactStateCacheAccess taskArtifactStateCacheAccess = context.mock(TaskArtifactStateCacheAccess.class);
     DefaultTaskGraphExecuter taskExecuter;
     ProjectInternal root;
     List<Task> executedTasks = new ArrayList<Task>();
@@ -74,16 +68,8 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
-            allowing(taskArtifactStateCacheAccess).longRunningOperation(with(notNullValue(String.class)), with(notNullValue(Runnable.class)));
-            will(new CustomAction("run action") {
-                public Object invoke(Invocation invocation) throws Throwable {
-                    Runnable action = (Runnable) invocation.getParameter(1);
-                    action.run();
-                    return null;
-                }
-            });
         }});
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(taskArtifactStateCacheAccess));
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor());
     }
 
     @Test
@@ -572,25 +558,4 @@ public class DefaultTaskGraphExecuterTest {
         }
     }
 
-    private static class DirectCacheAccess implements TaskArtifactStateCacheAccess {
-        public void useCache(String operationDisplayName, Runnable action) {
-            action.run();
-        }
-
-        public void longRunningOperation(String operationDisplayName, Runnable action) {
-            action.run();
-        }
-
-        public <K, V> PersistentIndexedCache createCache(String cacheName, Class<K> keyType, Class<V> valueType) {
-            throw new UnsupportedOperationException();
-        }
-
-        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-            throw new UnsupportedOperationException();
-        }
-
-        public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
-            throw new UnsupportedOperationException();
-        }
-    }
 }

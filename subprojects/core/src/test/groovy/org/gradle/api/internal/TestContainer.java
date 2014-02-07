@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.internal.reflect.Instantiator;
+
 public class TestContainer extends AbstractNamedDomainObjectContainer<TestObject> {
 
     public TestContainer(org.gradle.internal.reflect.Instantiator instantiator) {
@@ -22,9 +24,9 @@ public class TestContainer extends AbstractNamedDomainObjectContainer<TestObject
     }
 
     protected TestObject doCreate(String name) {
-        TestObject testObject = new TestObject();
+        Instantiator instantiator = getInstantiator();
+        TestObject testObject = new TestObject(instantiator);
         testObject.setName(name);
-        testObject.add(name);
         return testObject;
     }
 }

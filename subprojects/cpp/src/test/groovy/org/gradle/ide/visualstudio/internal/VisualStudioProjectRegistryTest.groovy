@@ -16,163 +16,94 @@
 
 package org.gradle.ide.visualstudio.internal
 
+import org.gradle.api.internal.DefaultDomainObjectSet
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.ArchitectureNotationParser
-import org.gradle.nativebinaries.internal.DefaultBuildType
-import org.gradle.nativebinaries.internal.DefaultFlavorContainer
-import org.gradle.nativebinaries.internal.LibraryNativeDependencySet
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
-    final registry = new VisualStudioProjectRegistry()
-    def executable = Mock(Executable)
-    def executableBinary = Mock(ExecutableBinary)
-    def library = Mock(Library)
-    def sharedLibraryBinary = Mock(SharedLibraryBinary)
-    def staticLibraryBinary = Mock(StaticLibraryBinary)
+    private DefaultDomainObjectSet<LanguageSourceSet> sources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
+    def fileResolver = Mock(FileResolver)
+    def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
+    def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectMapper, new DirectInstantiator())
 
-    def setup() {
-        executable.flavors >> new DefaultFlavorContainer(new DirectInstantiator())
-        library.flavors >> new DefaultFlavorContainer(new DirectInstantiator())
-        executableBinary.libs >> []
-        sharedLibraryBinary.libs >> []
-        staticLibraryBinary.libs >> []
-    }
+    def executable = Mock(Executable)
 
     def "creates a matching visual studio project configuration for NativeBinary"() {
+        def executableBinary = Mock(ExecutableInternal)
         when:
+        visualStudioProjectMapper.mapToConfiguration(executableBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
         executableBinary.component >> executable
-        executable.baseName >> "myTest"
+        executableBinary.source >> sources
 
         and:
-        def platform = Mock(Platform)
-
-        executableBinary.buildType >> new DefaultBuildType(buildType)
-        executableBinary.targetPlatform >> platform
-        platform.architecture >> architecture
+        registry.addProjectConfiguration(executableBinary)
 
         then:
         def vsConfig = registry.getProjectConfiguration(executableBinary)
-        vsConfig.configurationName == vsConfiguration
-        vsConfig.platformName == vsPlatform
-
-        where:
-        buildType | architecture   | vsConfiguration | vsPlatform
-        "debug"   | arch("i386")   | "debug"         | "Win32"
-        "debug"   | arch("x86-64") | "debug"         | "x64"
-        "debug"   | arch("ia-64")  | "debug"         | "Itanium"
+        vsConfig.project.component == executable
+        vsConfig.type == "Makefile"
+        vsConfig.project.name == "vsProject"
+        vsConfig.configurationName == "vsConfig"
+        vsConfig.platformName == "vsPlatform"
     }
 
-    def "creates visual studio project and project configuration for ExecutableBinary"() {
+    def "returns same visual studio project configuration for native binaries that share project name"() {
+        def executableBinary1 = Mock(ExecutableInternal)
+        def executableBinary2 = Mock(ExecutableInternal)
+
         when:
-        executableBinary.component >> executable
-        executable.baseName >> "myTest"
-
-        then:
-        def vsConfig = registry.getProjectConfiguration(executableBinary)
-        vsConfig.type == "Application"
-
-        def vsProject = vsConfig.project
-        vsProject.name == "myTestExe"
-    }
-
-    def "creates visual studio project and project configuration for SharedLibraryBinary"() {
-        when:
-        sharedLibraryBinary.component >> library
-        library.baseName >> "myTest"
-
-        then:
-        def vsConfig = registry.getProjectConfiguration(sharedLibraryBinary)
-        vsConfig.type == "DynamicLibrary"
-
-        def vsProject = vsConfig.project
-        vsProject.name == "myTestDll"
-    }
-
-    def "creates visual studio project and project configuration for StaticLibraryBinary"() {
-        when:
-        staticLibraryBinary.component >> library
-        library.baseName >> "myTest"
-
-        then:
-        def vsConfig = registry.getProjectConfiguration(staticLibraryBinary)
-        vsConfig.type == "StaticLibrary"
-
-        def vsProject = vsConfig.project
-        vsProject.name == "myTestLib"
-    }
-
-
-    def "returns same visual studio project configuration for same native binary"() {
-        when:
-        sharedLibraryBinary.component >> library
-        library.baseName >> "myTest"
-        def vsConfig = registry.getProjectConfiguration(sharedLibraryBinary)
-
-        then:
-        registry.getProjectConfiguration(sharedLibraryBinary) == vsConfig
-    }
-
-    def "uses same visual studio project for native binaries that differ only in build type or architecture"() {
-        when:
-        def sharedLibraryBinary1 = Mock(SharedLibraryBinary)
-        def platform1 = Mock(Platform)
-        sharedLibraryBinary1.component >> library
-        sharedLibraryBinary1.buildType >> new DefaultBuildType(buildType1)
-        sharedLibraryBinary1.libs >> []
-        sharedLibraryBinary1.targetPlatform >> platform1
-        platform1.architecture >> arch1
-
-        def sharedLibraryBinary2 = Mock(SharedLibraryBinary)
-        def platform2 = Mock(Platform)
-        sharedLibraryBinary2.component >> library
-        sharedLibraryBinary2.buildType >> new DefaultBuildType(buildType2)
-        sharedLibraryBinary2.libs >> []
-        sharedLibraryBinary2.targetPlatform >> platform2
-        platform2.architecture >> arch2
-
-        then:
-        def vsConfig1 = registry.getProjectConfiguration(sharedLibraryBinary1)
-        def vsConfig2 = registry.getProjectConfiguration(sharedLibraryBinary2)
-
-        vsConfig1.configurationName == buildType1
-        vsConfig2.configurationName == buildType2
-        vsConfig1.platformName != vsConfig2.platformName
+        visualStudioProjectMapper.mapToConfiguration(executableBinary1) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig1", "vsPlatform")
+        visualStudioProjectMapper.mapToConfiguration(executableBinary2) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig2", "vsPlatform")
+        executableBinary1.source >> sources
+        executableBinary2.source >> sources
 
         and:
+        registry.addProjectConfiguration(executableBinary1)
+        registry.addProjectConfiguration(executableBinary2)
+
+        then:
+        def vsConfig1 = registry.getProjectConfiguration(executableBinary1)
+        def vsConfig2 = registry.getProjectConfiguration(executableBinary2)
         vsConfig1.project == vsConfig2.project
 
-        where:
-        buildType1 | buildType2 | arch1        | arch2
-        "debug"    | "debug"    | arch("i386") | arch("x86-64")
-        "debug"    | "release"  | arch("i386") | arch("ia-64")
+        and:
+        vsConfig1.type == "Makefile"
+        vsConfig1.project.name == "vsProject"
+        vsConfig1.configurationName == "vsConfig1"
+        vsConfig1.platformName == "vsPlatform"
+
+        and:
+        vsConfig2.type == "Makefile"
+        vsConfig2.project.name == "vsProject"
+        vsConfig2.configurationName == "vsConfig2"
+        vsConfig2.platformName == "vsPlatform"
     }
 
-    def "adds project reference for each lib of native binary"() {
+    def "visual studio project contains sources for native binaries for all configurations"() {
+        def executableBinary1 = Mock(ExecutableInternal)
+        def executableBinary2 = Mock(ExecutableInternal)
+        def sourceCommon = Mock(LanguageSourceSet)
+        def source1 = Mock(LanguageSourceSet)
+        def source2 = Mock(LanguageSourceSet)
+
         when:
-        def binary = Mock(ExecutableBinary)
-        def dep1 = Mock(LibraryNativeDependencySet)
-        def dep2 = Mock(LibraryNativeDependencySet)
+        visualStudioProjectMapper.mapToConfiguration(executableBinary1) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig1", "vsPlatform")
+        visualStudioProjectMapper.mapToConfiguration(executableBinary2) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig2", "vsPlatform")
+        executableBinary1.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, [sourceCommon, source1])
+        executableBinary2.source >> new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, [sourceCommon, source2])
 
-        executable.baseName >> "myTest"
-        library.baseName >> "myLibrary"
-
-        binary.component >> executable
-        binary.libs >> [dep1, dep2]
-
-        dep1.libraryBinary >> sharedLibraryBinary
-        sharedLibraryBinary.component >> library
-
-        dep2.libraryBinary >> staticLibraryBinary
-        staticLibraryBinary.component >> library
+        and:
+        registry.addProjectConfiguration(executableBinary1)
+        registry.addProjectConfiguration(executableBinary2)
 
         then:
-        def vsProject = registry.getProjectConfiguration(binary).project
-        vsProject.projectReferences == ["myLibraryLib", "myLibraryDll"] as Set
+        def vsProject = registry.getProjectConfiguration(executableBinary1).project
+        vsProject.sources as List == [sourceCommon, source1, source2]
     }
 
-    private static Architecture arch(String name) {
-        return ArchitectureNotationParser.parser().parseNotation(name)
-    }
+    interface ExecutableInternal extends ExecutableBinary, ProjectNativeBinaryInternal {}
 }

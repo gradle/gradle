@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
@@ -26,7 +27,6 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONFLICT_RESOLUTION
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.FORCED
 
@@ -101,7 +101,7 @@ class DependencyInsightReporterSpec extends Specification {
 
     private dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(group, name, selected))
-        new DefaultResolvedDependencyResult(newSelector(group, name, requested),
+        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(group, name, requested),
                 selectedModule,
                 new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.REQUESTED, new DefaultModuleComponentIdentifier(group, name, selected)))
     }

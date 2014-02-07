@@ -15,10 +15,12 @@
  */
 package org.gradle.test.fixtures.server.http
 
+import com.google.gson.Gson
+import com.google.gson.JsonElement
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.internal.hash.HashUtil
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GFileUtils
-import org.gradle.internal.hash.HashUtil
 import org.hamcrest.Matcher
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.*
@@ -102,8 +104,19 @@ class HttpServer extends ExternalResource {
         server.setHandler(handlers)
     }
 
+    String getAddress() {
+        if (!server.started) {
+            server.start()
+        }
+        "http://localhost:${port}"
+    }
+
     void start() {
         start(0)
+    }
+
+    boolean isRunning() {
+        server.running
     }
 
     void start(int port) {
@@ -366,7 +379,22 @@ class HttpServer extends ExternalResource {
     }
 
     /**
-     * Allows one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
+     * Allows GET requests for the given URL, returning an apache-compatible directory listing with the given File names.
+     */
+    void allowGetDirectoryListing(String path, File directory) {
+        allow(path, false, ['GET'], new Action() {
+            String getDisplayName() {
+                return "return listing of directory $directory.name"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                sendDirectoryListing(response, directory)
+            }
+        })
+    }
+
+    /**
+     * Expects one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
      */
     void expectGetDirectoryListing(String path, File directory) {
         expect(path, false, ['GET'], new Action() {
@@ -529,14 +557,18 @@ class HttpServer extends ExternalResource {
         }
     }
 
-    private void expect(String path, boolean recursive, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
+    void expect(String path, Collection<String> methods, PasswordCredentials passwordCredentials = null, Action action) {
+        expect(path, false, methods, action, passwordCredentials)
+    }
+
+    void expect(String path, boolean matchPrefix, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
         if (credentials != null) {
             action = withAuthentication(path, credentials.username, credentials.password, action)
         }
 
         ExpectOne expectation = new ExpectOne(action, methods, path)
         expections << expectation
-        add(path, recursive, methods, new AbstractHandler() {
+        add(path, matchPrefix, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (expectation.run) {
                     return
@@ -548,8 +580,8 @@ class HttpServer extends ExternalResource {
         })
     }
 
-    private void allow(String path, boolean recursive, Collection<String> methods, Action action) {
-        add(path, recursive, methods, new AbstractHandler() {
+    private void allow(String path, boolean matchPrefix, Collection<String> methods, Action action) {
+        add(path, matchPrefix, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 action.handle(request, response)
                 request.handled = true
@@ -557,7 +589,7 @@ class HttpServer extends ExternalResource {
         })
     }
 
-    private void add(String path, boolean recursive, Collection<String> methods, Handler handler) {
+    private void add(String path, boolean matchPrefix, Collection<String> methods, Handler handler) {
         assert path.startsWith('/')
 //        assert path == '/' || !path.endsWith('/')
         def prefix = path == '/' ? '/' : path + '/'
@@ -566,7 +598,7 @@ class HttpServer extends ExternalResource {
                 if (methods != null && !methods.contains(request.method)) {
                     return
                 }
-                boolean match = request.pathInfo == path || (recursive && request.pathInfo.startsWith(prefix))
+                boolean match = request.pathInfo == path || (matchPrefix && request.pathInfo.startsWith(prefix))
                 if (match && !request.handled) {
                     handler.handle(target, request, response, dispatch)
                 }
@@ -605,6 +637,31 @@ class HttpServer extends ExternalResource {
         String getDisplayName()
 
         void handle(HttpServletRequest request, HttpServletResponse response)
+    }
+
+    static abstract class ActionSupport implements Action {
+        final String displayName
+
+        ActionSupport(String displayName) {
+            this.displayName = displayName
+        }
+    }
+
+    static class Utils {
+        static JsonElement json(HttpServletRequest request) {
+            new Gson().fromJson(request.reader, JsonElement.class)
+        }
+
+        static JsonElement json(String json) {
+            new Gson().fromJson(json, JsonElement.class)
+        }
+
+        static void json(HttpServletResponse response, Object data) {
+            if (!response.contentType) {
+                response.setContentType("application/json")
+            }
+            new Gson().toJson(data, response.writer)
+        }
     }
 
     abstract static class AuthSchemeHandler {

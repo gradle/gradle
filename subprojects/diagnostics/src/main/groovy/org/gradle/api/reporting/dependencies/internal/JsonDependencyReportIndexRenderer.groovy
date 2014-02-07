@@ -38,8 +38,6 @@ import org.gradle.util.GradleVersion
  *         ]
  *     }
  * </pre>
- *
- * @author JB
  */
 class JsonDependencyReportIndexRenderer {
 

@@ -24,9 +24,12 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
@@ -41,7 +44,7 @@ import static org.junit.Assert.*
 class DefaultSettingsTest {
     File settingsDir
     StartParameter startParameter
-    URLClassLoader expectedClassLoader
+    ClassLoaderScope classLoaderScope
     Map gradleProperties
     ScriptSource scriptSourceMock
     GradleInternal gradleMock
@@ -51,7 +54,8 @@ class DefaultSettingsTest {
     ServiceRegistryFactory serviceRegistryFactory
     PluginContainer pluginContainer
     FileResolver fileResolver
-    ScriptPluginFactory scriptPluginFactory;
+    ScriptPluginFactory scriptPluginFactory
+    ScriptHandlerFactory scriptHandlerFactory
 
     @Before
     public void setUp() {
@@ -59,17 +63,18 @@ class DefaultSettingsTest {
         settingsDir = new File('/somepath/root').absoluteFile
         gradleProperties = [someGradleProp: 'someValue']
         startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
-        expectedClassLoader = new URLClassLoader(new URL[0])
+        classLoaderScope = context.mock(ClassLoaderScope)
 
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
         serviceRegistryFactory = context.mock(ServiceRegistryFactory.class)
         pluginContainer = context.mock(PluginContainer.class)
         scriptPluginFactory = context.mock(ScriptPluginFactory.class)
+        scriptHandlerFactory = context.mock(ScriptHandlerFactory.class)
         fileResolver = context.mock(FileResolver.class)
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
 
-        ServiceRegistryFactory settingsServices = context.mock(ServiceRegistryFactory.class)
+        def settingsServices = context.mock(ServiceRegistry.class)
         context.checking{
                 one(serviceRegistryFactory).createFor(with(any(Settings.class)));
                 will(returnValue(settingsServices));
@@ -79,11 +84,13 @@ class DefaultSettingsTest {
                 will(returnValue(fileResolver));
                 one(settingsServices).get(ScriptPluginFactory.class);
                 will(returnValue(scriptPluginFactory));
+                one(settingsServices).get(ScriptHandlerFactory.class);
+                will(returnValue(scriptHandlerFactory));
                 one(settingsServices).get(ProjectDescriptorRegistry.class);
                 will(returnValue(projectDescriptorRegistry));
         }
         settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,
-                    gradleMock, expectedClassLoader, settingsDir, scriptSourceMock, startParameter);
+                    gradleMock, classLoaderScope, settingsDir, scriptSourceMock, startParameter);
 
     }
 
@@ -190,8 +197,8 @@ class DefaultSettingsTest {
     public void testCreateClassLoader() {
         StartParameter expectedStartParameter = settings.startParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
-        def createdClassLoader = settings.getClassLoader()
-        assertSame(createdClassLoader, expectedClassLoader)
+        def createdClassLoaderScope = settings.getClassLoaderScope()
+        assertSame(createdClassLoaderScope, classLoaderScope)
     }
 
     @Test

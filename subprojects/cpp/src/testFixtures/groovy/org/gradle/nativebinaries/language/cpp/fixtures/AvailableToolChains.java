@@ -17,17 +17,18 @@
 package org.gradle.nativebinaries.language.cpp.fixtures;
 
 import com.google.common.base.Joiner;
+import net.rubygrapefruit.platform.SystemInfo;
+import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.internal.ArchitectureNotationParser;
-import org.gradle.nativebinaries.internal.DefaultPlatform;
-import org.gradle.nativebinaries.internal.OperatingSystemNotationParser;
+import org.gradle.nativebinaries.platform.internal.DefaultPlatform;
 import org.gradle.nativebinaries.toolchain.Clang;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
+import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionResult;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocator;
@@ -38,9 +39,12 @@ import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class AvailableToolChains {
     /**
@@ -60,9 +64,9 @@ public class AvailableToolChains {
     /**
      * @return The tool chain with the given name.
      */
-    public static ToolChainCandidate getToolChain(String name) {
+    public static ToolChainCandidate getToolChain(ToolChainRequirement requirement) {
         for (ToolChainCandidate toolChainCandidate : getToolChains()) {
-            if (toolChainCandidate.getDisplayName().equals(name)) {
+            if (toolChainCandidate.meets(requirement)) {
                 return toolChainCandidate;
             }
         }
@@ -94,23 +98,17 @@ public class AvailableToolChains {
     static private ToolChainCandidate findClang() {
         File compilerExe = OperatingSystem.current().findInPath("clang");
         if (compilerExe != null) {
-            return new InstalledClangToolChain();
+            return new InstalledClang();
         }
         return new UnavailableToolChain("clang");
     }
 
     static private ToolChainCandidate findVisualCpp() {
-        // Search first in path, then in the standard installation locations
-        File compilerExe = OperatingSystem.current().findInPath("cl.exe");
-        if (compilerExe != null) {
-            return new InstalledVisualCpp("visual c++");
-        }
-
-        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator();
-        VisualStudioLocator.SearchResult searchResult = vsLocator.locateDefaultVisualStudio();
-        File visualStudioDir = searchResult.getResult();
-        if (visualStudioDir != null) {
-            VisualStudioInstall install = new VisualStudioInstall(visualStudioDir, searchResult.getVersion());
+        // Search in the standard installation locations
+        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.getInstance().get(WindowsRegistry.class), NativeServices.getInstance().get(SystemInfo.class));
+        VisualStudioLocator.SearchResult searchResult = vsLocator.locateVisualStudioInstalls(null);
+        if (searchResult.isAvailable()) {
+            VisualStudioInstall install = searchResult.getVisualStudio();
             return new InstalledVisualCpp("visual c++").withInstall(install);
         }
 
@@ -121,7 +119,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/MinGW/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledGcc("mingw").inPath(compilerExe.getParentFile());
+            return new InstalledWindowsGcc("mingw").inPath(compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("mingw");
@@ -131,7 +129,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/cygwin/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledGcc("gcc cygwin").inPath(compilerExe.getParentFile());
+            return new InstalledWindowsGcc("gcc cygwin").inPath(compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("gcc cygwin");
@@ -148,8 +146,8 @@ public class AvailableToolChains {
         List<File> gppCandidates = OperatingSystem.current().findAllInPath("g++");
         for (int i = 0; i < gppCandidates.size(); i++) {
             File candidate = gppCandidates.get(i);
-            String version = versionDeterminer.transform(candidate);
-            if (version != null && version.startsWith(versionPrefix)) {
+            GccVersionResult version = versionDeterminer.transform(candidate);
+            if (version.isAvailable() && version.getVersion().startsWith(versionPrefix)) {
                 InstalledGcc gcc = new InstalledGcc(name);
                 if (i > 0) {
                     // Not the first g++ in the path, needs the path variable updated
@@ -179,6 +177,8 @@ public class AvailableToolChains {
 
         public abstract boolean isAvailable();
 
+        public abstract boolean meets(ToolChainRequirement requirement);
+
         public abstract void initialiseEnvironment();
 
         public abstract void resetEnvironment();
@@ -189,12 +189,15 @@ public class AvailableToolChains {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
         protected final List<File> pathEntries = new ArrayList<File>();
         private final String displayName;
-        private final String pathVarName;
+        protected final String pathVarName;
+        private final String objectFileNameSuffix;
+
         private String originalPath;
 
         public InstalledToolChain(String displayName) {
             this.displayName = displayName;
             this.pathVarName = OperatingSystem.current().getPathVar();
+            this.objectFileNameSuffix = OperatingSystem.current().isWindows() ? ".obj" : ".o";
         }
 
         InstalledToolChain inPath(File... pathEntries) {
@@ -216,12 +219,14 @@ public class AvailableToolChains {
             return getDisplayName().replaceAll("\\s+\\d+(\\.\\d+)*$", "");
         }
 
+        public abstract String getInstanceDisplayName();
+
         public ExecutableFixture executable(Object path) {
             return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
         }
 
         public TestFile objectFile(Object path) {
-            return new TestFile(path.toString() + ".o");
+            return new TestFile(path.toString() + objectFileNameSuffix);
         }
 
         public SharedLibraryFixture sharedLibrary(Object path) {
@@ -236,6 +241,10 @@ public class AvailableToolChains {
             return new NativeBinaryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
         }
 
+        /**
+         * Initialise the process environment so that this tool chain is visible to the default discovery mechanism that the
+         * plugin uses (eg add the compiler to the PATH).
+         */
         public void initialiseEnvironment() {
             String compilerPath = Joiner.on(File.pathSeparator).join(pathEntries);
 
@@ -271,12 +280,8 @@ public class AvailableToolChains {
          * The environment required to execute a binary created by this toolchain.
          */
         public List<String> getRuntimeEnv() {
-            if (pathEntries.isEmpty()) {
-                return Collections.emptyList();
-            }
-
-            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
-            return Collections.singletonList(pathVarName + "=" + path);
+            // Toolchains should be linking against stuff in the standard locations
+            return Collections.emptyList();
         }
 
         public String getId() {
@@ -290,12 +295,21 @@ public class AvailableToolChains {
         }
 
         @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return requirement == ToolChainRequirement.Gcc || requirement == ToolChainRequirement.Available;
+        }
+
+        @Override
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             for (File pathEntry : getPathEntries()) {
                 config += String.format("%s.path file('%s')", getId(), pathEntry.toURI());
             }
             return config;
+        }
+
+        public String getInstanceDisplayName() {
+            return String.format("Tool chain '%s' (GNU GCC)", getId());
         }
 
         public String getImplementationClass() {
@@ -308,8 +322,26 @@ public class AvailableToolChains {
         }
     }
 
+    public static class InstalledWindowsGcc extends InstalledGcc {
+        public InstalledWindowsGcc(String name) {
+            super(name);
+        }
+
+        /**
+         * The environment required to execute a binary created by this toolchain.
+         */
+        public List<String> getRuntimeEnv() {
+            if (pathEntries.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
+            return Collections.singletonList(pathVarName + "=" + path);
+        }
+    }
+
     public static class InstalledVisualCpp extends InstalledToolChain {
-        private String version;
+        private VersionNumber version;
         private File installDir;
 
         public InstalledVisualCpp(String name) {
@@ -317,12 +349,24 @@ public class AvailableToolChains {
         }
 
         public InstalledVisualCpp withInstall(VisualStudioInstall install) {
-            DefaultPlatform targetPlatform = new DefaultPlatform("default", ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
+            DefaultPlatform targetPlatform = new DefaultPlatform("default");
             installDir = install.getVisualStudioDir();
-            version = install.getVisualStudioVersion();
-            pathEntries.add(install.getVisualCppBin(targetPlatform));
-            pathEntries.add(install.getCommonIdeBin());
+            version = install.getVersion();
+            pathEntries.addAll(install.getVisualCpp().getPath(targetPlatform));
             return this;
+        }
+
+        @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            switch (requirement) {
+                case Available:
+                case VisualCpp:
+                    return true;
+                case VisualCpp2013:
+                    return version.compareTo(VersionNumber.parse("12.0")) >= 0;
+                default:
+                    return false;
+            }
         }
 
         @Override
@@ -338,6 +382,10 @@ public class AvailableToolChains {
             return VisualCpp.class.getSimpleName();
         }
 
+        public String getInstanceDisplayName() {
+            return String.format("Tool chain '%s' (Visual Studio)", getId());
+        }
+
         @Override
         public String getPluginClass() {
             return MicrosoftVisualCppPlugin.class.getSimpleName();
@@ -347,7 +395,7 @@ public class AvailableToolChains {
             return true;
         }
 
-        public String getVersion() {
+        public VersionNumber getVersion() {
             return version;
         }
 
@@ -357,14 +405,23 @@ public class AvailableToolChains {
         }
     }
 
-    private static class InstalledClangToolChain extends InstalledToolChain {
-        public InstalledClangToolChain() {
+    public static class InstalledClang extends InstalledToolChain {
+        public InstalledClang() {
             super("clang");
+        }
+
+        @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return requirement == ToolChainRequirement.Available;
         }
 
         @Override
         public String getBuildScriptConfig() {
             return "clang(Clang)";
+        }
+
+        public String getInstanceDisplayName() {
+            return String.format("Tool chain '%s' (Clang)", getId());
         }
 
         @Override
@@ -383,6 +440,11 @@ public class AvailableToolChains {
 
         public UnavailableToolChain(String name) {
             this.name = name;
+        }
+
+        @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return false;
         }
 
         @Override

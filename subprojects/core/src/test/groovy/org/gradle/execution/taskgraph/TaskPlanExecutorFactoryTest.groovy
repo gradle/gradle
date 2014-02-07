@@ -27,7 +27,7 @@ public class TaskPlanExecutorFactoryTest extends Specification {
 
     def "creates a default executor"() {
         when:
-        def factory = new TaskPlanExecutorFactory(cache, 0, executorFactory)
+        def factory = new TaskPlanExecutorFactory(0, executorFactory)
 
         then:
         factory.create().class == DefaultTaskPlanExecutor
@@ -35,7 +35,7 @@ public class TaskPlanExecutorFactoryTest extends Specification {
 
     def "creates a parallel executor"() {
         when:
-        def factory = new TaskPlanExecutorFactory(cache, parallelExecuterCount, executorFactory)
+        def factory = new TaskPlanExecutorFactory(parallelExecuterCount, executorFactory)
 
         then:
         factory.create().class == ParallelTaskPlanExecutor

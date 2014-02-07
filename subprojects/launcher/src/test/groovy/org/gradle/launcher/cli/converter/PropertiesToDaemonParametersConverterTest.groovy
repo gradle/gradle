@@ -59,7 +59,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
                 (JVM_ARGS_PROPERTY): '-Xmx256m',
                 (JAVA_HOME_PROPERTY): Jvm.current().javaHome.absolutePath,
                 (DAEMON_ENABLED_PROPERTY): "true",
-                (BASE_DIR_PROPERTY): new File("baseDir").absolutePath,
+                (DAEMON_BASE_DIR_PROPERTY): new File("baseDir").absolutePath,
                 (IDLE_TIMEOUT_PROPERTY): "115",
                 (DEBUG_MODE_PROPERTY): "true",
         ], params)

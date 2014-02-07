@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.*
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
@@ -105,11 +106,11 @@ class DependencyGraphBuilderTest extends Specification {
         resolve()
 
         then:
-        1 * resultBuilder.start(newId("group", "root", "1.0"))
+        1 * resultBuilder.start(newId("group", "root", "1.0"), new DefaultModuleComponentIdentifier("group", "root", "1.0"))
         then:
-        1 * resultBuilder.resolvedConfiguration({ it.name == 'root' }, { it*.requested.name == ['a', 'b'] })
+        1 * resultBuilder.resolvedConfiguration({ it.name == 'root' }, { it*.requested.module == ['a', 'b'] })
         then:
-        1 * resultBuilder.resolvedConfiguration({ it.name == 'a' }, { it*.requested.name == ['c', 'd'] && it*.failure.count { it != null } == 1 })
+        1 * resultBuilder.resolvedConfiguration({ it.name == 'a' }, { it*.requested.module == ['c', 'd'] && it*.failure.count { it != null } == 1 })
     }
 
     def "does not resolve a given dynamic module selector more than once"() {

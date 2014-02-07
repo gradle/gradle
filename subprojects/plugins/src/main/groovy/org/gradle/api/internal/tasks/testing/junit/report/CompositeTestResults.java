@@ -26,6 +26,7 @@ public abstract class CompositeTestResults extends TestResultModel {
     private int tests;
     private final Set<TestResult> failures = new TreeSet<TestResult>();
     private long duration;
+    private int ignored;
 
     protected CompositeTestResults(CompositeTestResults parent) {
         this.parent = parent;
@@ -78,6 +79,14 @@ public abstract class CompositeTestResults extends TestResultModel {
         return failures.size();
     }
 
+    public int getIgnoredCount() {
+        return ignored;
+    }
+
+    public int getRunTestCount() {
+        return tests - ignored;
+    }
+
     public long getDuration() {
         return duration;
     }
@@ -92,7 +101,13 @@ public abstract class CompositeTestResults extends TestResultModel {
     }
 
     public ResultType getResultType() {
-        return failures.isEmpty() ? ResultType.SUCCESS : ResultType.FAILURE;
+        if (!failures.isEmpty()) {
+            return ResultType.FAILURE;
+        }
+        if (getIgnoredCount() > 0) {
+            return ResultType.SKIPPED;
+        }
+        return ResultType.SUCCESS;
     }
 
     public String getFormattedSuccessRate() {
@@ -104,20 +119,27 @@ public abstract class CompositeTestResults extends TestResultModel {
     }
 
     public Number getSuccessRate() {
-        if (getTestCount() == 0) {
+        if (getRunTestCount() == 0) {
             return null;
         }
 
-        BigDecimal tests = BigDecimal.valueOf(getTestCount());
-        BigDecimal successful = BigDecimal.valueOf(getTestCount() - getFailureCount());
+        BigDecimal runTests = BigDecimal.valueOf(getRunTestCount());
+        BigDecimal successful = BigDecimal.valueOf(getRunTestCount() - getFailureCount());
 
-        return successful.divide(tests, 2, BigDecimal.ROUND_DOWN).multiply(BigDecimal.valueOf(100)).intValue();
+        return successful.divide(runTests, 2, BigDecimal.ROUND_DOWN).multiply(BigDecimal.valueOf(100)).intValue();
     }
 
     protected void failed(TestResult failedTest) {
         failures.add(failedTest);
         if (parent != null) {
             parent.failed(failedTest);
+        }
+    }
+
+    protected void addIgnored() {
+        ignored++;
+        if (parent != null) {
+            parent.addIgnored();
         }
     }
 

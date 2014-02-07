@@ -15,18 +15,18 @@
  */
 
 package org.gradle.nativebinaries.internal
-import org.gradle.api.Action
+
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.nativebinaries.FlavorContainer
 import spock.lang.Specification
 
 class DefaultNativeComponentTest extends Specification {
     def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    def component = new DefaultNativeComponent("name", instantiator)
+    def id = new NativeProjectComponentIdentifier("project", "name")
+    def component = new TestProjectNativeComponent(id)
 
     def "uses all source sets from a functional source set"() {
         given:
@@ -50,18 +50,25 @@ class DefaultNativeComponentTest extends Specification {
         component.source.contains(sourceSet2)
     }
 
-    def "flavors can be added and will replace default flavor"() {
+    def "flavors can be chosen and will replace default flavor"() {
         when:
-        component.flavors({
-            it.create("flavor1")
-            it.create("flavor2")
-        } as Action<FlavorContainer>)
+        component.targetFlavors "flavor1", "flavor2"
 
         and:
-        component.flavors.create("flavor3")
+        component.targetFlavors("flavor3")
 
         then:
-        component.flavors.collect { it.name } as Set == ["flavor1", "flavor2", "flavor3"] as Set
+        component.chooseFlavors([flavor("flavor1"), flavor("flavor2"), flavor("flavor3"), flavor("flavor4")] as Set)*.name == ["flavor1", "flavor2", "flavor3"]
+    }
+
+    class TestProjectNativeComponent extends AbstractTargetedProjectNativeComponent {
+        TestProjectNativeComponent(NativeProjectComponentIdentifier id) {
+            super(id)
+        }
+
+        String getDisplayName() {
+            return "test component"
+        }
     }
 
     def flavor(String name) {

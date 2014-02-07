@@ -15,6 +15,8 @@ dependencies {
     integTestRuntime project(':ide')
     integTestRuntime project(':buildInit')
     integTestRuntime project(':buildComparison')
+    integTestRuntime project(":ivy")
+    integTestRuntime project(":maven")
 }
 
 useTestFixtures()

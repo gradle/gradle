@@ -15,10 +15,12 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
@@ -30,6 +32,15 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.ProgressListener;
 
 public class TestGlobalScopeServices extends GlobalScopeServices {
+    public TestGlobalScopeServices() {
+        super(false);
+    }
+
+    @Override
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager) {
+        return new InMemoryCacheFactory();
+    }
+
     public static class TestLoggingServices extends DefaultServiceRegistry {
         final ListenerManager listenerManager = new DefaultListenerManager();
 

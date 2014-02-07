@@ -163,7 +163,6 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              filter.includeTestsMatching 'FooTest.missingMethod'
             }
         """
         file("src/test/java/FooTest.java") << """import $framework.imports;
@@ -172,11 +171,15 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        fails("test")
+        //by command line
+        when: fails("test", "--tests", 'FooTest.missingMethod')
+        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
 
-        then:
-        failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
+        //by build script
+        when:
+        buildFile << "test.filter.includeTestsMatching 'FooTest.missingMethod'"
+        fails("test")
+        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
 
         where:
         framework << [jUnit, testNG]

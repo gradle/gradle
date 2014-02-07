@@ -22,10 +22,10 @@ import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.plugins.AssemblerLangPlugin
 import org.gradle.nativebinaries.Executable
 import org.gradle.nativebinaries.Library
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeComponent
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.DefaultTool
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 
@@ -51,22 +51,25 @@ class AssemblerNativeBinariesPlugin implements Plugin<ProjectInternal> {
             addLanguageExtensionsToComponent(library)
         }
 
-        project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
+        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.source.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
-                def assembleTask = createAssembleTask(project, binary, sourceSet)
-                binary.tasks.add assembleTask
-                binary.tasks.builder.source assembleTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                if (sourceSet.mayHaveSources) {
+                    def assembleTask = createAssembleTask(project, binary, sourceSet)
+                    assembleTask.dependsOn sourceSet
+                    binary.tasks.add assembleTask
+                    binary.tasks.builder.source assembleTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                }
             }
         }
     }
 
-    private def addLanguageExtensionsToComponent(NativeComponent component) {
+    private def addLanguageExtensionsToComponent(ProjectNativeComponent component) {
         component.binaries.all { binary ->
             binary.extensions.create("assembler", DefaultTool)
         }
     }
 
-    private def createAssembleTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
+    private def createAssembleTask(ProjectInternal project, ProjectNativeBinaryInternal binary, def sourceSet) {
         def assembleTask = project.task(binary.namingScheme.getTaskName("assemble", sourceSet.fullName), type: Assemble) {
             description = "Assembles the $sourceSet of $binary"
         }

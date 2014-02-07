@@ -17,6 +17,7 @@
 package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 public class SimplePluginResolution implements PluginResolution {
 
@@ -26,7 +27,7 @@ public class SimplePluginResolution implements PluginResolution {
         this.pluginClass = pluginClass;
     }
 
-    public Class<? extends Plugin> resolve(ClassLoader parentClassLoader) {
+    public Class<? extends Plugin> resolve(ClassLoaderScope classLoaderScope) {
         return pluginClass;
     }
 

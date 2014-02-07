@@ -39,8 +39,8 @@ class SubVersionMatcherTest extends Specification {
 
     def "never needs metadata"() {
         expect:
-        !matcher.needModuleMetadata("1+", "1")
-        !matcher.needModuleMetadata("1.2.3+", "1.2.3")
+        !matcher.needModuleMetadata("1+")
+        !matcher.needModuleMetadata("1.2.3+")
     }
 
     def "accepts candidate versions that literally match the selector up until the trailing '+'"() {

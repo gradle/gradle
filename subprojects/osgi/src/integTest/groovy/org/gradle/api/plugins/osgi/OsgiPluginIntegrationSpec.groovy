@@ -98,10 +98,4 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
         then:
         ":jar" in nonSkippedTasks
     }
-
-    private waitForMinimumBndLastModifiedInterval() {
-
-        sleep 1000
-    }
-
 }

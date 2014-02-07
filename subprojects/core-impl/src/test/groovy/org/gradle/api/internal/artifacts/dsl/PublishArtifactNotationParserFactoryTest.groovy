@@ -34,7 +34,7 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
     final Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
     final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider)
-    final NotationParser<PublishArtifact> publishArtifactNotationParser = publishArtifactNotationParserFactory.create();
+    final NotationParser<Object, PublishArtifact> publishArtifactNotationParser = publishArtifactNotationParserFactory.create();
 
     def setup() {
         ModuleInternal module = Mock()
@@ -73,6 +73,18 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
         then:
         publishArtifact instanceof DefaultPublishArtifact
         publishArtifact.file == file
+    }
+
+    def "creates artifact from extension-less file"() {
+        def file = new File("someFile")
+
+        when:
+        def publishArtifact = publishArtifactNotationParser.parseNotation(file)
+
+        then:
+        publishArtifact instanceof DefaultPublishArtifact
+        publishArtifact.file == file
+        publishArtifact.type == ''
     }
 
     def createArtifactFromFileInMap() {

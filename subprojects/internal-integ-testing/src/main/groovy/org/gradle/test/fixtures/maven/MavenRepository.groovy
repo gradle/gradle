@@ -15,10 +15,12 @@
  */
 package org.gradle.test.fixtures.maven
 
+import org.gradle.test.fixtures.Repository
+
 /**
  * A fixture for dealing with Maven repositories.
  */
-interface MavenRepository {
+interface MavenRepository extends Repository {
     URI getUri()
 
     MavenModule module(String groupId, String artifactId)

@@ -20,7 +20,6 @@ import org.gradle.api.specs.Spec;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 
 public class DefaultPatternMatcher implements Spec<RelativePath> {
     private List<PatternStep> steps;
@@ -33,10 +32,8 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
     }
 
     private void compile(boolean caseSensitive, String[] parts) {
-        if (parts.length > 0) {
-            for (int i = 0; i < parts.length; i++) {
-                steps.add(PatternStepFactory.getStep(parts[i], i == parts.length - 1, caseSensitive));
-            }
+        for (int i = 0; i < parts.length; i++) {
+            steps.add(PatternStepFactory.getStep(parts[i], caseSensitive));
         }
     }
 
@@ -44,110 +41,70 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
     // step -> pattern
 
     public boolean isSatisfiedBy(RelativePath pathToTest) {
-        ListIterator<PatternStep> patternIt = steps.listIterator();
-        ListIterator<String> testIt = pathToTest.segmentIterator();
+        String[] segments = pathToTest.getSegments();
+        int nextSegment = 0;
+        int nextPattern = 0;
         boolean seenGreedy = false;
 
-        PatternStep patternStep;
+        while (nextSegment < segments.length && nextPattern < steps.size()) {
+            String currentSegment = segments[nextSegment];
+            nextSegment++;
+            PatternStep currentPattern = steps.get(nextPattern);
+            nextPattern++;
 
-        while (testIt.hasNext()) {
-            String nextToTest = testIt.next();
-
-            if (!patternIt.hasNext()) {
-                return false;
-            }
-            patternStep = patternIt.next();
-
-            if (patternStep.isGreedy()) {
+            if (currentPattern.isGreedy()) {
                 seenGreedy = true;
-                advancePatternStepToNextNonGreedy(patternIt);
-                if (!patternIt.hasNext()) {
-                    return true;
-                }    // pattern ends in greedy
-                patternStep = patternIt.next();
 
-                // advance test until match
-                while (!(patternStep.matches(nextToTest, !testIt.hasNext() && pathToTest.isFile()) && (
-                        (patternIt.hasNext() == testIt.hasNext()) || nextPatternIsGreedy(patternIt)))) {
-                    if (!testIt.hasNext()) {
-                        return partialMatchDirs && !pathToTest
-                                .isFile(); //isTerminatingMatch(pathToTest, patternIt);  // didn't match, but no more segments to test
+                // Find the next non-greedy
+                while (nextPattern < steps.size() && steps.get(nextPattern).isGreedy()) {
+                    nextPattern++;
+                }
+                if (nextPattern == steps.size()) {
+                    // pattern ends in greedy
+                    return true;
+                }
+                currentPattern = steps.get(nextPattern);
+                nextPattern++;
+
+                // advance to the next match and consume it
+                while (!currentPattern.matches(currentSegment)) {
+                    if (nextSegment == segments.length) {
+                        // didn't match, but no more segments to test
+                        return partialMatchDirs && !pathToTest.isFile();
                     }
-                    nextToTest = testIt.next();
+                    currentSegment = segments[nextSegment];
+                    nextSegment++;
                 }
 
                 // should have match at this point, can continue on around the loop
             } else {
                 // not a greedy patternStep
-                if (!patternStep.matches(nextToTest, !testIt.hasNext() && pathToTest.isFile())) {
+                if (!currentPattern.matches(currentSegment)) {
                     // didn't match, check if we are after another greedy
                     if (seenGreedy) {
-                        rewindPatternStepToPreviousGreedy(patternIt);  // rewind pattern to greedy
-                        testIt.previous(); // back up test by one
+                        // rewind pattern to previous greedy and continue
+                        nextPattern--;
+                        while (!steps.get(nextPattern).isGreedy()) {
+                            nextPattern--;
+                        }
+                        nextSegment--; // back up test by one
                     } else {
                         return false;  // haven't seen greedy, no match
                     }
                 }
             }
         }
-        // ran out of stuff to test
 
-        if (!patternIt.hasNext()) {
+        // ran out of stuff to test
+        if (nextSegment == segments.length && nextPattern == steps.size()) {
             return true;    // if out of pattern too, then it's a match
         }
 
-        return isTerminatingMatch(pathToTest, patternIt);
-    }
-
-    private boolean nextPatternIsGreedy(ListIterator<PatternStep> patternIt) {
-        boolean result = false;
-        if (patternIt.hasNext()) {
-            PatternStep next = patternIt.next();
-            if (next.isGreedy() && !patternIt.hasNext()) {
-                result = true;
-            }
-            patternIt.previous();
-        }
-        return result;
-    }
-
-    private boolean isTerminatingMatch(RelativePath pathToTest, ListIterator<PatternStep> patternIt) {
-        PatternStep patternStep;
-
-        if (patternIt.hasNext()) {
-            patternStep = patternIt.next();
-            if (patternStep.isGreedy() && !patternIt.hasNext()) {
-                return true;    // if only a trailing greedy is left, then it matches
-            }
+        if (nextPattern == steps.size() - 1 && steps.get(nextPattern).isGreedy()) {
+            return true; // if only a trailing greedy is left, then it matches
         }
 
         return !pathToTest.isFile() && partialMatchDirs;
-    }
-
-    private void advancePatternStepToNextNonGreedy(ListIterator<PatternStep> patternIt) {
-        PatternStep next = null;
-        while (patternIt.hasNext()) {
-            next = patternIt.next();
-            if (!next.isGreedy()) {
-                break;
-            }
-        }
-        // back up one
-        if (next != null && !next.isGreedy()) {
-            patternIt.previous();
-        }
-    }
-
-    private void rewindPatternStepToPreviousGreedy(ListIterator<PatternStep> patternIt) {
-        PatternStep result = null;
-        while (patternIt.hasPrevious()) {
-            result = patternIt.previous();
-            if (result.isGreedy()) {
-                //patternIt.next();
-                return;
-            }
-        }
-        throw new IllegalStateException("PatternStep list iterator in non-greedy state when rewindToLastGreedy");
     }
 
     List<PatternStep> getStepsForTest() {

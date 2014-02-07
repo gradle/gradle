@@ -15,16 +15,14 @@
  */
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.Executable;
 
-public class DefaultExecutable extends DefaultNativeComponent implements Executable {
-    public DefaultExecutable(String name, Instantiator instantiator) {
-        super(name, instantiator);
+public class DefaultExecutable extends AbstractTargetedProjectNativeComponent implements Executable {
+    public DefaultExecutable(NativeProjectComponentIdentifier id) {
+        super(id);
     }
 
-    @Override
-    public String toString() {
+    public String getDisplayName() {
         return String.format("executable '%s'", getName());
     }
 }

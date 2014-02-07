@@ -17,13 +17,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 
 import java.util.Collection;
 
 //builds new dependency graph model based on result events
 public interface ResolutionResultBuilder {
-    ResolutionResultBuilder start(ModuleVersionIdentifier root);
+    ResolutionResultBuilder start(ModuleVersionIdentifier root, ComponentIdentifier componentIdentifier);
     void resolvedModuleVersion(ModuleVersionSelection moduleVersion);
     void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies);
     ResolutionResult complete();

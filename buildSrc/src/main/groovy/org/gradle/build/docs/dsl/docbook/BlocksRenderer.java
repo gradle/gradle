@@ -24,7 +24,7 @@ import org.w3c.dom.Element;
 
 import java.util.Collection;
 
-public class BlocksRenderer {
+class BlocksRenderer implements ClassDocMemberRenderer {
     private final BlockTableRenderer blockTableRenderer = new BlockTableRenderer();
     private final ExtensionBlocksSummaryRenderer extensionBlocksSummaryRenderer;
     private final BlockDetailRenderer blockDetailRenderer;
@@ -34,7 +34,7 @@ public class BlocksRenderer {
         extensionBlocksSummaryRenderer = new ExtensionBlocksSummaryRenderer(blockTableRenderer);
     }
 
-    public void renderTo(ClassDoc classDoc, Element parent) {
+    public void renderSummaryTo(ClassDoc classDoc, Element parent) {
         Document document = parent.getOwnerDocument();
 
         Element summarySection = document.createElement("section");
@@ -44,11 +44,8 @@ public class BlocksRenderer {
         summarySection.appendChild(title);
         title.appendChild(document.createTextNode("Script blocks"));
 
-        boolean hasBlocks = false;
         Collection<BlockDoc> classBlocks = classDoc.getClassBlocks();
         if (!classBlocks.isEmpty()) {
-            hasBlocks = true;
-
             Element table = document.createElement("table");
             summarySection.appendChild(table);
 
@@ -60,32 +57,47 @@ public class BlocksRenderer {
         }
 
         for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
-            hasBlocks |= !extensionDoc.getExtensionBlocks().isEmpty();
             extensionBlocksSummaryRenderer.renderTo(extensionDoc, summarySection);
         }
 
-        if (!hasBlocks) {
+        if (!hasBlocks(classDoc)) {
             Element para = document.createElement("para");
             summarySection.appendChild(para);
             para.appendChild(document.createTextNode("No script blocks"));
-            return;
         }
+    }
 
+    public void renderDetailsTo(ClassDoc classDoc, Element parent) {
+        if (hasBlocks(classDoc)) {
+            Document document = parent.getOwnerDocument();
 
-        Element detailsSection = document.createElement("section");
-        parent.appendChild(detailsSection);
+            Element detailsSection = document.createElement("section");
+            parent.appendChild(detailsSection);
 
-        title = document.createElement("title");
-        detailsSection.appendChild(title);
-        title.appendChild(document.createTextNode("Script block details"));
+            Element title = document.createElement("title");
+            detailsSection.appendChild(title);
+            title.appendChild(document.createTextNode("Script block details"));
 
-        for (BlockDoc blockDoc : classBlocks) {
-            blockDetailRenderer.renderTo(blockDoc, detailsSection);
-        }
-        for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
-            for (BlockDoc blockDoc : extensionDoc.getExtensionBlocks()) {
+            for (BlockDoc blockDoc : classDoc.getClassBlocks()) {
                 blockDetailRenderer.renderTo(blockDoc, detailsSection);
+            }
+            for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+                for (BlockDoc blockDoc : extensionDoc.getExtensionBlocks()) {
+                    blockDetailRenderer.renderTo(blockDoc, detailsSection);
+                }
             }
         }
     }
+
+    private boolean hasBlocks(ClassDoc classDoc) {
+        boolean hasBlocks = false;
+        if (!classDoc.getClassBlocks().isEmpty()) {
+            hasBlocks = true;
+        }
+        for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+            hasBlocks |= !extensionDoc.getExtensionBlocks().isEmpty();
+        }
+        return hasBlocks;
+    }
+
 }

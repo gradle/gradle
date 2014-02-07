@@ -15,6 +15,7 @@
  */
 package org.gradle.language.base.internal;
 
+import org.gradle.api.Task;
 import org.gradle.language.base.LanguageSourceSet;
 
 public interface LanguageSourceSetInternal extends LanguageSourceSet {
@@ -26,4 +27,11 @@ public interface LanguageSourceSetInternal extends LanguageSourceSet {
      */
     String getFullName();
 
+    /**
+     * Return true if the source set contains sources, or if the source set is generated.
+     */
+    boolean getMayHaveSources();
+
+    // TODO:DAZ Maybe use an extension property
+    Task getGeneratorTask();
 }

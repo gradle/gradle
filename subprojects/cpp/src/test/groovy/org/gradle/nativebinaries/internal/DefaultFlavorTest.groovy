@@ -24,5 +24,6 @@ class DefaultFlavorTest extends Specification {
 
         expect:
         flavor.toString() == "flavor 'someFlavor'"
+        flavor.displayName == "flavor 'someFlavor'"
     }
 }

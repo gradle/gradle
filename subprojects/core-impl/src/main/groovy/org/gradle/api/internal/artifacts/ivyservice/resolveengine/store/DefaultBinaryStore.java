@@ -16,19 +16,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import org.gradle.api.internal.cache.BinaryStore;
-import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.InputStreamBackedDecoder;
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
+import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
+import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.RandomAccessFile;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 class DefaultBinaryStore implements BinaryStore {
     private File file;
-    private DataOutputStream outputStream;
+    private KryoBackedEncoder encoder;
     private int offset = -1;
 
     public DefaultBinaryStore(File file) {
@@ -36,22 +39,22 @@ class DefaultBinaryStore implements BinaryStore {
     }
 
     public void write(WriteAction write) {
-        if (outputStream == null) {
+        if (encoder == null) {
             try {
-                outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
+                encoder = new KryoBackedEncoder(new FileOutputStream(file));
             } catch (FileNotFoundException e) {
                 throw throwAsUncheckedException(e);
             }
         }
         if (offset == -1) {
-            offset = outputStream.size();
+            offset = encoder.getWritePosition();
             if (offset == Integer.MAX_VALUE) {
                 throw new IllegalStateException("Unable to write to binary store. "
                         + "The bytes offset has reached a point where using it is unsafe. Please report this error.");
             }
         }
         try {
-            write.write(new OutputStreamBackedEncoder(outputStream));
+            write.write(encoder);
         } catch (Exception e) {
             throw new RuntimeException("Problems writing to " + diagnose(), e);
         }
@@ -67,12 +70,10 @@ class DefaultBinaryStore implements BinaryStore {
 
     public BinaryData done() {
         try {
-            if (outputStream != null) {
-                outputStream.flush();
+            if (encoder != null) {
+                encoder.flush();
             }
             return new SimpleBinaryData(file, offset, diagnose());
-        } catch (IOException e) {
-            throw new RuntimeException("Problems flushing data to " + diagnose(), e);
         } finally {
             offset = -1;
         }
@@ -80,14 +81,12 @@ class DefaultBinaryStore implements BinaryStore {
 
     public void close() {
         try {
-            if (outputStream != null) {
-                outputStream.close();
+            if (encoder != null) {
+                encoder.close();
             }
-        } catch (IOException e) {
-            throw throwAsUncheckedException(e);
         } finally {
             file.delete();
-            outputStream = null;
+            encoder = null;
             file = null;
         }
     }
@@ -119,7 +118,7 @@ class DefaultBinaryStore implements BinaryStore {
                 if (decoder == null) {
                     RandomAccessFile randomAccess = new RandomAccessFile(inputFile, "r");
                     randomAccess.seek(offset);
-                    decoder = new InputStreamBackedDecoder(new BufferedInputStream(new RandomAccessFileInputStream(randomAccess)));
+                    decoder = new KryoBackedDecoder(new RandomAccessFileInputStream(randomAccess));
                     resources = new CompositeStoppable().add(randomAccess, decoder);
                 }
                 return readAction.read(decoder);
@@ -135,9 +134,10 @@ class DefaultBinaryStore implements BinaryStore {
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Problems cleaning resources of " + sourceDescription, e);
+            } finally {
+                decoder = null;
+                resources = null;
             }
-            decoder = null;
-            resources = null;
         }
 
         public String toString() {

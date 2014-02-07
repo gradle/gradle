@@ -24,7 +24,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>staticLibArchiver</td>
+                <td>staticLibraryFile</td>
             </tr>
         </table>
     </section>

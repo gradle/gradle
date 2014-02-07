@@ -15,32 +15,35 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
-import org.gradle.nativebinaries.internal.ArchitectureInternal
-import org.gradle.nativebinaries.internal.ArchitectureNotationParser;
-import org.gradle.nativebinaries.internal.DefaultArchitecture
-import org.gradle.nativebinaries.internal.DefaultPlatform;
-import org.gradle.nativebinaries.internal.OperatingSystemNotationParser;
+
+import net.rubygrapefruit.platform.SystemInfo
+import net.rubygrapefruit.platform.WindowsRegistry
+import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.InstalledToolChain
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
+import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
+import org.gradle.nativebinaries.platform.internal.DefaultPlatform
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall
 
 class DumpbinBinaryInfo implements BinaryInfo {
     final File binaryFile
     final File vcBin
-    final File commonBin
+    final String vcPath
 
     DumpbinBinaryInfo(File binaryFile, InstalledToolChain tc) {
         this.binaryFile = binaryFile
 
         VisualStudioInstall vsInstall = findVisualStudio()
-        DefaultPlatform targetPlatform = new DefaultPlatform("default", ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
-        vcBin = vsInstall.getVisualCppBin(targetPlatform)
-        commonBin = vsInstall.getCommonIdeBin()
+        DefaultPlatform targetPlatform = new DefaultPlatform("default");
+        vcBin = vsInstall.getVisualCpp().getBinaryPath(targetPlatform)
+        vcPath = vsInstall.getVisualCpp().getPath(targetPlatform).join(';')
     }
 
     static VisualStudioInstall findVisualStudio() {
-        def searchResult = new DefaultVisualStudioLocator().locateDefaultVisualStudio();
-        new VisualStudioInstall(searchResult.result, searchResult.version);
+        def vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.instance.get(WindowsRegistry), NativeServices.instance.get(SystemInfo))
+        return vsLocator.locateVisualStudioInstalls(null).visualStudio
     }
 
     private findExe(String exe) {
@@ -53,7 +56,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
 
     private String getDumpbinHeaders() {
         def dumpbin = findExe("dumpbin.exe")
-        def process = [dumpbin.absolutePath, '/HEADERS', binaryFile.absolutePath].execute(["PATH=$vcBin;$commonBin"], null)
+        def process = [dumpbin.absolutePath, '/HEADERS', binaryFile.absolutePath].execute(["PATH=$vcPath"], null)
         return process.inputStream.text
     }
 
@@ -80,7 +83,17 @@ class DumpbinBinaryInfo implements BinaryInfo {
 
     List<String> listObjectFiles() {
         def dumpbin = findExe("lib.exe")
-        def process = [dumpbin.absolutePath, '/LIST', binaryFile.absolutePath].execute(["PATH=$vcBin;$commonBin"], null)
+        def process = [dumpbin.absolutePath, '/LIST', binaryFile.absolutePath].execute(["PATH=$vcPath"], null)
         return process.inputStream.readLines().drop(3).collect { new File(it).name }
+    }
+
+    List<String> listLinkedLibraries() {
+        def dumpbin = findExe("dumpbin.exe")
+        def process = [dumpbin.absolutePath, '/IMPORTS', binaryFile.absolutePath].execute(["PATH=$vcPath"], null)
+        return process.inputStream.readLines()
+    }
+
+    String getSoName() {
+        throw new UnsupportedOperationException("soname is not relevant on windows")
     }
 }

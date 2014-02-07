@@ -16,56 +16,33 @@
 
 package org.gradle.plugin.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.Named;
-import org.gradle.api.NamedDomainObjectList;
-import org.gradle.api.internal.DefaultNamedDomainObjectList;
-import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.tasks.Optional;
+import org.gradle.internal.typeconversion.MapKey;
+import org.gradle.internal.typeconversion.MapNotationParser;
+import org.gradle.plugin.PluginHandler;
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
 import org.gradle.plugin.resolve.internal.PluginRequest;
-import org.gradle.plugin.resolve.internal.PluginResolution;
-import org.gradle.plugin.resolve.internal.PluginResolver;
-import org.gradle.util.CollectionUtils;
 
-public class DefaultPluginHandler implements PluginHandlerInternal {
+import java.util.List;
+import java.util.Map;
 
-    private final Action<? super PluginResolution> pluginResolutionHandler;
-    private final NamedDomainObjectList<PluginResolver> repositories;
+public class DefaultPluginHandler implements PluginHandler {
 
-    public DefaultPluginHandler(Instantiator instantiator, Action<? super PluginResolution> pluginResolutionHandler) {
-        this.pluginResolutionHandler = pluginResolutionHandler;
+    private final List<PluginRequest> pluginRequests;
 
-        @SuppressWarnings("unchecked")
-        DefaultNamedDomainObjectList<PluginResolver> unchecked = instantiator.newInstance(DefaultNamedDomainObjectList.class, PluginResolver.class, instantiator, Named.Namer.forType(PluginResolver.class));
-        this.repositories = unchecked;
+    public DefaultPluginHandler(List<PluginRequest> pluginRequests) {
+        this.pluginRequests = pluginRequests;
     }
 
-    public void apply(String pluginId) {
-       apply(new DefaultPluginRequest(pluginId));
-    }
-
-    public void apply(String pluginId, String version) {
-        apply(new DefaultPluginRequest(pluginId, version));
-    }
-
-    private void apply(PluginRequest request) {
-        PluginResolution resolution = null;
-        for (PluginResolver repository : repositories) {
-            resolution = repository.resolve(request);
-            if (resolution != null) {
-                break;
-            }
+    private static class PluginRequestNotationParser extends MapNotationParser<PluginRequest> {
+        protected PluginRequest parseMap(@MapKey("plugin") String id, @MapKey("version") @Optional String version) {
+            return version == null ? new DefaultPluginRequest(id) : new DefaultPluginRequest(id, version);
         }
-
-        if (resolution == null) {
-            throw new UnknownPluginException("Cannot resolve plugin request " + request + " from repositories: " + CollectionUtils.toStringList(repositories));
-        }
-
-        pluginResolutionHandler.execute(resolution);
     }
 
-    public NamedDomainObjectList<PluginResolver> getResolvers() {
-        return repositories;
+    public void apply(Map<String, ?> attributes) {
+        PluginRequest pluginRequest = new PluginRequestNotationParser().parseType(attributes);
+        pluginRequests.add(pluginRequest);
     }
+
 }

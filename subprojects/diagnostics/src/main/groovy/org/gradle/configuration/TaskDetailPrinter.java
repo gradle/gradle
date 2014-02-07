@@ -157,7 +157,7 @@ public class TaskDetailPrinter {
             });
 
             List<String> commonAvailableValues = intersection(availableValuesByDescriptor);
-            final List<String> availableValues = withoutDuplicates(commonAvailableValues);
+            Set<String> availableValues = new TreeSet<String>(commonAvailableValues);
             //description does not differ between task objects, grab first one
             output.text(INDENT).text(descriptorsForCurrentName.iterator().next().getDescription());
             if (!availableValues.isEmpty()) {
@@ -165,7 +165,7 @@ public class TaskDetailPrinter {
                 final LinePrefixingStyledTextOutput prefixedOutput = createIndentedOutput(output, optionDescriptionOffset);
                 prefixedOutput.println();
                 prefixedOutput.println("Available values are:");
-                for (String value : sort(availableValues)) {
+                for (String value : availableValues) {
                     prefixedOutput.text(INDENT);
                     prefixedOutput.withStyle(UserInput).println(value);
                 }
@@ -177,7 +177,6 @@ public class TaskDetailPrinter {
             }
         }
     }
-
 
     private ListMultimap<String, OptionDescriptor> groupDescriptorsByName(List<OptionDescriptor> allOptions) {
         ListMultimap<String, OptionDescriptor> optionsGroupedByName = ArrayListMultimap.create();

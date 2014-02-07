@@ -16,8 +16,10 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
-import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.RemoteRepository;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.repository.DefaultArtifactRepository;
+import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publication.maven.internal.ant.CustomInstallTask;
 import org.gradle.internal.Factory;
@@ -25,22 +27,35 @@ import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
-public class AntTaskBackedMavenLocalPublisher extends AbstractAntTaskBackedMavenPublisher {
+public class AntTaskBackedMavenLocalPublisher extends AbstractAntTaskBackedMavenPublisher<AntTaskBackedMavenLocalPublisher.MavenLocalInstallTask> {
     public AntTaskBackedMavenLocalPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, Factory<File> temporaryDirFactory) {
         super(loggingManagerFactory, temporaryDirFactory);
     }
 
     @Override
-    protected void postConfigure(InstallDeployTaskSupport task, MavenArtifactRepository artifactRepository) {
-        //No extra configuration for mavenLocal
+    protected void postConfigure(MavenLocalInstallTask task, MavenArtifactRepository artifactRepository) {
+        task.setRepoLocation(artifactRepository.getUrl().toString());
     }
 
     @Override
-    protected InstallDeployTaskSupport createDeployTask() {
-        return new InstallTask();
+    protected MavenLocalInstallTask createDeployTask() {
+        return new MavenLocalInstallTask();
     }
 
-    private static class InstallTask extends CustomInstallTask {
+    public static class MavenLocalInstallTask extends CustomInstallTask {
+
+        private String repoLocation;
+
+        private void setRepoLocation(String repoLocation) {
+            this.repoLocation = repoLocation;
+        }
+
+        @Override
+        protected ArtifactRepository createLocalArtifactRepository() {
+            ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, getLocalRepository().getLayout());
+            return new DefaultArtifactRepository("local", repoLocation, repositoryLayout);
+        }
+
         @Override
         protected void updateRepositoryWithSettings(RemoteRepository repository) {
             // Do nothing

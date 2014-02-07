@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.api.GradleException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
@@ -23,6 +24,7 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
+import org.gradle.tooling.model.EntryPoint
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 
@@ -193,6 +195,17 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
 
         and:
         operation.runBuild.end > instant.failureAvailable
+    }
+
+    def "rejects unknown EntryPoint"() {
+        EntryPoint task = Mock(EntryPoint)
+
+        when:
+        launcher.forTasks(task)
+
+        then:
+        def e = thrown(GradleException)
+        e != null
     }
 
     def task(String path) {

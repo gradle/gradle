@@ -20,12 +20,12 @@ import org.gradle.internal.service.ServiceRegistry;
 /**
  * A hierarchical service registry.
  */
-public interface ServiceRegistryFactory extends ServiceRegistry {
+public interface ServiceRegistryFactory {
     /**
      * Creates the services for the given domain object.
      *
      * @param domainObject The domain object.
      * @return The registry containing the services for the domain object.
      */
-    ServiceRegistryFactory createFor(Object domainObject);
+    ServiceRegistry createFor(Object domainObject);
 }

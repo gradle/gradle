@@ -27,15 +27,18 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativebinaries.Executable
 import org.gradle.nativebinaries.ExecutableBinary
 import org.gradle.nativebinaries.NativeDependencySet
-import org.gradle.nativebinaries.Platform
-import org.gradle.nativebinaries.internal.*
+import org.gradle.nativebinaries.internal.DefaultFlavor
+import org.gradle.nativebinaries.internal.DefaultFlavorContainer
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.language.PreprocessingTool
+import org.gradle.nativebinaries.platform.Platform
 import spock.lang.Specification
 
 class VisualStudioProjectConfigurationTest extends Specification {
     final flavor = new DefaultFlavor("flavor1")
     def flavors = new DefaultFlavorContainer(new DirectInstantiator())
-    def exe = Mock(Executable) {
+    def exe = Mock(ExecutableInternal) {
         getFlavors() >> flavors
     }
     def extensions = Mock(ExtensionContainer)
@@ -46,71 +49,85 @@ class VisualStudioProjectConfigurationTest extends Specification {
         getComponent() >> exe
         getTargetPlatform() >> platform
     }
-    def configuration = new VisualStudioProjectConfiguration(null, exeBinary, "Application")
+    def configuration = new VisualStudioProjectConfiguration(null, "configName", "platformName", exeBinary)
+    def cppCompiler = Mock(PreprocessingTool)
+    def cCompiler = Mock(PreprocessingTool)
+    def rcCompiler = Mock(PreprocessingTool)
 
     def "setup"() {
         flavors.add(flavor)
     }
 
-    def "configuration is named for build type"() {
-        when:
-        exeBinary.name >> "exeBinary"
-        exeBinary.buildType >> new DefaultBuildType("buildType")
-        exeBinary.targetPlatform >> new DefaultPlatform("arch")
-
-        then:
-        configuration.configurationName == "buildType"
+    def "configuration has supplied names"() {
+        expect:
+        configuration.configurationName == "configName"
+        configuration.platformName == "platformName"
+        configuration.name == "configName|platformName"
     }
 
     def "configuration tasks are binary tasks"() {
         when:
         exeBinary.name >> "exeBinary"
+        exeBinary.component >> exe
+        exe.projectPath >> ":project-path"
 
         then:
-        configuration.buildTask == "exeBinary"
-        configuration.cleanTask == "cleanExeBinary"
+        configuration.buildTask == ":project-path:exeBinary"
+        configuration.cleanTask == ":project-path:clean"
     }
 
-    def "platform is named for architecture"() {
+    def "compiler defines are taken from cpp compiler configuration"() {
         when:
-        platform.getArchitecture() >> arch
-
-        then:
-        configuration.platformName == platformName
-
-        where:
-        arch                                                                            | platformName
-        DefaultArchitecture.TOOL_CHAIN_DEFAULT                                          | "Win32"
-        new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)     | "Win32"
-        new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 64)     | "x64"
-        new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.ITANIUM, 64) | "Itanium"
-    }
-
-    def "defines are taken from cpp or c compiler config"() {
-        def cppCompiler = Mock(PreprocessingTool)
-        def cCompiler = Mock(PreprocessingTool)
-
-        when:
-        1 * extensions.findByName('cppCompiler') >> null
         1 * extensions.findByName('cCompiler') >> null
-
-        then:
-        configuration.defines == []
-
-        when:
         1 * extensions.findByName('cppCompiler') >> cppCompiler
+        1 * extensions.findByName('rcCompiler') >> null
         cppCompiler.macros >> [foo: "bar", empty: null]
 
         then:
-        configuration.defines == ["foo=bar", "empty"]
+        configuration.compilerDefines == ["foo=bar", "empty"]
+    }
 
+    def "compiler defines are taken from c compiler configuration"() {
         when:
-        1 * extensions.findByName('cppCompiler') >> null
         1 * extensions.findByName('cCompiler') >> cCompiler
+        1 * extensions.findByName('cppCompiler') >> null
+        1 * extensions.findByName('rcCompiler') >> null
         cCompiler.macros >> [foo: "bar", another: null]
 
         then:
-        configuration.defines == ["foo=bar", "another"]
+        configuration.compilerDefines == ["foo=bar", "another"]
+    }
+
+    def "resource defines are taken from rcCompiler config"() {
+        when:
+        1 * extensions.findByName('cCompiler') >> null
+        1 * extensions.findByName('cppCompiler') >> null
+        1 * extensions.findByName('rcCompiler') >> rcCompiler
+        rcCompiler.macros >> [foo: "bar", empty: null]
+
+        then:
+        configuration.compilerDefines == ["foo=bar", "empty"]
+    }
+
+    def "compiler defines are taken from cpp, c and rc compiler configurations combined"() {
+        when:
+        1 * extensions.findByName('cppCompiler') >> null
+        1 * extensions.findByName('cCompiler') >> null
+        1 * extensions.findByName('rcCompiler') >> null
+
+        then:
+        configuration.compilerDefines == []
+
+        when:
+        1 * extensions.findByName('cCompiler') >> cCompiler
+        1 * extensions.findByName('cppCompiler') >> cppCompiler
+        1 * extensions.findByName('rcCompiler') >> rcCompiler
+        cCompiler.macros >> [_c: null]
+        cppCompiler.macros >> [foo: "bar", _cpp: null]
+        rcCompiler.macros >> [rc: "defined", rc_empty: null]
+
+        then:
+        configuration.compilerDefines == ["_c", "foo=bar", "_cpp", "rc=defined", "rc_empty"]
     }
 
     def "include paths include component headers"() {
@@ -173,6 +190,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         return deps
     }
 
-    interface TestExecutableBinary extends ExecutableBinary, ExtensionAware {}
+    interface ExecutableInternal extends Executable, ProjectNativeComponentInternal {}
+    interface TestExecutableBinary extends ProjectNativeBinaryInternal, ExecutableBinary, ExtensionAware {}
 
 }

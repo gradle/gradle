@@ -22,6 +22,7 @@ import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -38,6 +39,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
     private ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
     private final CacheValidator validator;
+    private final CompositeStoppable caches = new CompositeStoppable();
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler, ProgressLoggerFactory progressLoggerFactory) {
         this.cacheRepository = cacheRepository;
@@ -56,10 +58,19 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
                 .withProperties(properties)
                 .withValidator(validator)
                 .withDisplayName(String.format("%s class cache for %s", transformer.getId(), source.getDisplayName()))
-                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, transformer, scriptBaseClass))).open();
+                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, transformer, scriptBaseClass)))
+                .open();
+
+        // This isn't quite right. The cache will be closed at the end of the build, releasing the shared lock on the classes. Instead, the cache for a script should be
+        // closed once we no longer require the script classes. This may be earlier than the end of the current build, or it may used across multiple builds
+        caches.add(cache);
 
         File classesDir = classesDir(cache);
         return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, scriptBaseClass);
+    }
+
+    public void close() {
+        caches.stop();
     }
 
     private File classesDir(PersistentCache cache) {

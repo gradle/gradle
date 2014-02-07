@@ -16,45 +16,29 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.changedetection.changes.NoOpInMemoryPersistentCacheDecoratorFactory
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.PersistentIndexedCache
-import org.gradle.messaging.serialize.DefaultSerializer
+import org.gradle.cache.internal.FileLockManager
+import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import spock.lang.Specification
 
 class DefaultTaskArtifactStateCacheAccessTest extends Specification {
     final GradleInternal gradle = Mock()
     final CacheRepository cacheRepository = Mock()
-    final DefaultTaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpInMemoryPersistentCacheDecoratorFactory())
-    
-    def "opens backing cache on first use"() {
-        DirectoryCacheBuilder cacheBuilder = Mock()
+
+    def "opens backing cache on construction"() {
+        CacheBuilder cacheBuilder = Mock()
         PersistentCache backingCache = Mock()
-        PersistentIndexedCache<String, Integer> backingIndexedCache = Mock()
-        ProjectInternal project = Mock()
-
-        def serializer = new DefaultSerializer<Integer>()
-        when:
-        def indexedCache = cacheAccess.createCache("some-cache", String, serializer)
-
-        then:
-        0 * _._
 
         when:
-        indexedCache.get("key")
+        new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
 
         then:
-        1 * cacheRepository.cache("taskArtifacts") >> cacheBuilder
+        1 * cacheRepository.cache(gradle, "taskArtifacts") >> cacheBuilder
+        1 * cacheBuilder.withDisplayName(_) >> cacheBuilder
+        1 * cacheBuilder.withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> backingCache
-        _ * cacheBuilder._ >> cacheBuilder
-        _ * backingCache.baseDir >> new File("baseDir")
-        1 * backingCache.createCache({it.cacheFile == new File("baseDir/some-cache.bin")}) >> backingIndexedCache
-        1 * backingIndexedCache.get("key")
-        1 * gradle.getRootProject() >> project
-        1 * project.getRootProject() >> project
         0 * _._
     }
 }

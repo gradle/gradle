@@ -28,17 +28,18 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'cpp'
-            buildTypes.all {
-                ext.debug = false
-            }
-            buildTypes {
-                debug {
-                    debug = true
+            model {
+                buildTypes {
+                    debug {
+                        ext.debug = true
+                    }
+                    integration {
+                        ext.debug = true
+                    }
+                    release {
+                        ext.debug = false
+                    }
                 }
-                integration {
-                    debug = true
-                }
-                release {}
             }
             binaries.all { binary ->
                 if (toolChain in Gcc && buildType.debug) {
@@ -82,6 +83,38 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         }
     }
 
+    def "configure component for a single build type"() {
+        when:
+        helloWorldApp.writeSources(file("src/main"))
+        buildFile << """
+            apply plugin: 'cpp'
+            model {
+                buildTypes {
+                    debug
+                    release
+                }
+            }
+            executables {
+                main {
+                    targetBuildTypes "release"
+                }
+            }
+            binaries.all { binary ->
+                if (buildType == buildTypes.release) {
+                    cppCompiler.define "FRENCH"
+                }
+            }
+"""
+
+        and:
+        succeeds "mainExecutable"
+
+        then:
+        // Build type dimension is flattened since there is only one possible value
+        executedAndNotSkipped(":mainExecutable")
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+    }
+
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "executable with build type depends on library with matching build type"() {
         when:
@@ -91,9 +124,11 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'cpp'
-            buildTypes {
-                debug { }
-                release {}
+            model {
+                buildTypes {
+                    debug
+                    release
+                }
             }
             binaries.all {
                 if (buildType == buildTypes.debug) {
@@ -114,5 +149,58 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         then:
         installation("build/install/mainExecutable/debug").exec().out == helloWorldApp.frenchOutput
         installation("build/install/mainExecutable/release").exec().out == helloWorldApp.englishOutput
+    }
+
+    def "fails with reasonable error message when trying to target an unknown build type"() {
+        when:
+        settingsFile << "rootProject.name = 'bad-build-type'"
+        buildFile << """
+            model {
+                buildTypes {
+                    debug
+                }
+            }
+            executables {
+                main {
+                    targetBuildTypes "unknown"
+                }
+            }
+"""
+
+        and:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("A problem occurred configuring root project 'bad-build-type'.")
+        failure.assertHasCause("Invalid BuildType: 'unknown'")
+    }
+
+    def "fails with reasonable error message when depended on library has no variant with matching build type"() {
+        when:
+        settingsFile << "rootProject.name = 'no-matching-build-type'"
+        buildFile << """
+            apply plugin: 'cpp'
+            model {
+                buildTypes {
+                    debug
+                    release
+                }
+            }
+            executables {
+                main {}
+            }
+            libraries {
+                hello {
+                    targetBuildTypes "debug"
+                }
+            }
+            sources.main.cpp.lib libraries.hello.static
+"""
+
+        and:
+        fails "releaseMainExecutable"
+
+        then:
+        failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: 'current', buildType: 'release']")
     }
 }

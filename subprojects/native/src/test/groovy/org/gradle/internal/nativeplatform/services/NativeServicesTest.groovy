@@ -15,6 +15,9 @@
  */
 package org.gradle.internal.nativeplatform.services
 
+import net.rubygrapefruit.platform.ProcessLauncher
+import net.rubygrapefruit.platform.SystemInfo
+import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.nativeplatform.console.ConsoleDetector
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
@@ -42,5 +45,20 @@ class NativeServicesTest extends Specification {
     def "makes a ConsoleDetector available"() {
         expect:
         services.get(ConsoleDetector) != null
+    }
+
+    def "makes a WindowsRegistry available"() {
+        expect:
+        services.get(WindowsRegistry) != null
+    }
+
+    def "makes a SystemInfo available"() {
+        expect:
+        services.get(SystemInfo) != null
+    }
+
+    def "makes a ProcessLauncher available"() {
+        expect:
+        services.get(ProcessLauncher) != null
     }
 }

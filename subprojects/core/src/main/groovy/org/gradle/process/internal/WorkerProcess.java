@@ -20,13 +20,16 @@ import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
 
 /**
- * A Java process which performs some worker action. You can send and receive messages to/from the worker process
+ * A Java child process that performs some worker action. You can send and receive messages to/from the worker action
  * using a supplied {@link org.gradle.messaging.remote.ObjectConnection}.
  */
 public interface WorkerProcess {
-    ObjectConnection getConnection();
-
     void start();
+
+    /**
+     * The connection to the worker. Call {@link org.gradle.messaging.remote.ObjectConnection#connect()} to complete the connection.
+     */
+    ObjectConnection getConnection();
 
     ExecResult waitForStop();
 }

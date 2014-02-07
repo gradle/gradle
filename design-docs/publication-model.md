@@ -355,6 +355,11 @@ And:
 * excludes on configuration.
 * dynamic versions.
 * wildcard excludes.
+* project dependency targets specific artifacts.
+
+## Fix Ivy generation issues
+
+* project dependency targets specific artifacts.
 
 ## Warn when no repository of the appropriate type has been specified
 
@@ -373,7 +378,7 @@ Provided dependencies should be included in the generated POM and `ivy.xml`
 * Publishing Ear -> container runtime dependencies should be included.
 * Publishing C++ Exe -> runtime dependencies should be included.
 * Publishing C++ Lib -> runtime, link and compile-tome dependencies should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
-* Publishing distribition -> no dependencies should be included.
+* Publishing distribution -> no dependencies should be included.
 * Fix No pom published when using 'cpp-lib' plugin, due to no main artifact.
 
 ## Add support for resolving and publishing via SFTP
@@ -414,7 +419,11 @@ To provide progress logging, better error reporting, better handling of authenti
 6. Remove Maven 2 as a dependency.
 7. Remove jarjar hacks from Maven 3 classes.
 
-## Can attach multiple components to a publication
+## Can map multiple components to a publication
+
+TBD
+
+## Can map components to multiple publication
 
 TBD
 
@@ -455,12 +464,12 @@ At any point above, and as required, more meta-data for a publication can be mad
 
 # Open issues
 
-* Use authentication information from Maven settings.xml
+* Use authentication information from Maven `settings.xml`
 * Live collections of artifacts.
-* Add multiple components to a publication.
 * How to get rid of `Configuration.artifacts`?
-* How to map a project dependency to Ivy publication or Maven publication when generating descriptor?
 * Add in local publications.
 * Add Gradle descriptor.
 * Move Project.repositories to Project.dependencies.repositories.
 * Validation: Is is an error to call `publish` without defining any publications and/or repositories?
+* Should have identifier attributes on the metadata objects `IvyModuleDescriptor` and `MavenPom`.
+* Rename `MavenPom` so that it has a different name to the legacy `MavenPom`?

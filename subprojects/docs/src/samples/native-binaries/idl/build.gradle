@@ -1,0 +1,44 @@
+apply plugin: 'c'
+
+task idl(type: DummyIdlCompiler) {
+    idlFiles = project.fileTree("src/main/idl")
+    headerDir = project.file("${buildDir}/src/generated/headers")
+    sourceDir = project.file("${buildDir}/src/generated/c")
+}
+
+sources {
+    main {
+        idlOutput(CSourceSet) {
+            generatedBy tasks.idl
+        }
+    }
+}
+sources.main.c.lib sources.main.idlOutput
+
+executables {
+    main {}
+}
+
+class DummyIdlCompiler extends DefaultTask {
+    @InputFiles FileCollection idlFiles
+    @OutputDirectory File headerDir
+    @OutputDirectory File sourceDir
+
+    @TaskAction
+    void processIdlFiles() {
+        idlFiles.files.each { File idlFile ->
+            def baseName = idlFile.name - '.idl'
+            File headerFile = new File(headerDir, "${baseName}.h")
+            File sourceFile = new File(sourceDir, "${baseName}.c")
+            processIdlFile(idlFile, headerFile, sourceFile)
+        }
+    }
+    
+    def processIdlFile(File idlFile, File headerFile, File sourceFile) {
+        def pattern = ~/(?s).*HEADER <<<(.*)>>>.*SOURCE <<<(.*)>>>.*/
+        def matcher = pattern.matcher(idlFile.text)
+        assert matcher.matches()
+        headerFile.text = matcher.group(1)
+        sourceFile.text = matcher.group(2)
+    }
+}

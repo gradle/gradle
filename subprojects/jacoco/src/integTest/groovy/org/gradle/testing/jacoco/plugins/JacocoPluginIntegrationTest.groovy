@@ -44,6 +44,31 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         createTestFiles()
     }
 
+    def "dependencies report shows default jacoco dependencies"() {
+        when: succeeds("dependencies", "--configuration", "jacocoAgent")
+        then: output.contains "org.jacoco:org.jacoco.agent:"
+
+        when: succeeds("dependencies", "--configuration", "jacocoAnt")
+        then: output.contains "org.jacoco:org.jacoco.ant:"
+    }
+
+    void "allows configuring tool dependencies explicitly"() {
+        when:
+        buildFile << """
+            dependencies {
+                //downgrade version:
+                jacocoAgent "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
+                jacocoAnt "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
+            }
+        """
+
+        succeeds("dependencies", "--configuration", "jacocoAgent")
+        then: output.contains "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
+
+        when: succeeds("dependencies", "--configuration", "jacocoAnt")
+        then: output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
+    }
+
     void generatesHtmlReportOnlyAsDefault() {
         when:
         succeeds('test', 'jacocoTestReport')
@@ -52,6 +77,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         file(REPORTING_BASE).listFiles().collect { it.name } as Set == ["jacoco", "tests"] as Set
         file(REPORT_HTML_DEFAULT_PATH).exists()
         file("${REPORTING_BASE}/jacoco/test").listFiles().collect { it.name } == ["html"]
+        file("${REPORTING_BASE}/jacoco/test/html/org.gradle/Class1.java.html").exists()
     }
 
     void canConfigureReportsInJacocoTestReport() {

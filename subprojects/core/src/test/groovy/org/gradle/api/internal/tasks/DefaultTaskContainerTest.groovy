@@ -338,6 +338,50 @@ public class DefaultTaskContainerTest extends Specification {
         container.names ==  ['task1', 'task2'] as SortedSet
     }
 
+    void "maybeCreate creates new task"() {
+        given:
+        def options = singletonMap(Task.TASK_NAME, "task")
+        def task = task("task")
+
+        taskFactory.createTask(options) >> task
+
+        when:
+        def added = container.maybeCreate("task")
+
+        then:
+        added == task
+    }
+
+    void "maybeCreate returns existing task"() {
+        when:
+        def task = addTask("task")
+
+        then:
+        container.maybeCreate("task") == task
+    }
+
+    void "maybeCreate creates new task with type"() {
+        given:
+        def options = [name: "task", type: CustomTask]
+        def task = task("task", CustomTask)
+
+        taskFactory.createTask(options) >> task
+
+        when:
+        def added = container.maybeCreate("task", CustomTask)
+
+        then:
+        added == task
+    }
+
+    void "maybeCreate returns existing task with type"() {
+        when:
+        def task = addTask("task", CustomTask)
+
+        then:
+        container.maybeCreate("task", CustomTask) == task
+    }
+
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {
         def otherProject = Mock(ProjectInternal)
         def otherTaskContainer = Mock(TaskContainerInternal)
@@ -351,7 +395,11 @@ public class DefaultTaskContainerTest extends Specification {
     }
 
     private TaskInternal task(final String name) {
-        Mock(TaskInternal, name: "[task" + ++taskCount + "]") {
+        task(name, TaskInternal)
+    }
+
+    private <U extends TaskInternal> U task(final String name, Class<U> type) {
+        Mock(type, name: "[task" + ++taskCount + "]") {
             getName() >> name
         }
     }
@@ -370,4 +418,14 @@ public class DefaultTaskContainerTest extends Specification {
         container.create(name)
         return task;
     }
+
+    private <U extends Task> U addTask(String name, Class<U> type) {
+        def task = task(name, type)
+        def options = [name: name, type: type]
+        taskFactory.createTask(options) >> task
+        container.create(name, type)
+        return task;
+    }
+
+    interface CustomTask extends TaskInternal {}
 }

@@ -303,9 +303,18 @@
                 <output args="transform" ignoreExtraLines="true"/>
             </sample>
             <para>Now, Gradle knows which files to check to determine whether the task is up-to-date or not.</para>
-
-            <para>The task's <literal>inputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskInputs"/>.
+            <para>
+                The task's <literal>inputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskInputs"/>.
                 The task's <literal>outputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskOutputs"/>.
+            </para>
+            <para>
+                A task with no defined outputs will <emphasis>never</emphasis> be considered up-to-date.
+                For scenarios where the outputs of a task are not files, or for more complex scenarios, the
+                <apilink class="org.gradle.api.tasks.TaskOutputs" method="upToDateWhen(groovy.lang.Closure)" /> method allows you to calculate programmatically if
+                the tasks outputs should be considered up to date.
+            </para>
+            <para>
+                A task with only outputs defined will be considered up-to-date if those outputs are unchanged since the previous build.
             </para>
         </section>
         <section>

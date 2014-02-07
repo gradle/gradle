@@ -15,7 +15,10 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.fixtures
+
+import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
 /**
@@ -24,18 +27,22 @@ import org.junit.runner.RunWith
 @RunWith(SingleToolChainTestRunner.class)
 abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec {
     static AvailableToolChains.InstalledToolChain toolChain
-    def initScript
+    File initScript
 
     def setup() {
         initScript = file("init.gradle") << """
 allprojects {
     apply plugin: ${toolChain.pluginClass}
-    toolChains {
-        ${toolChain.buildScriptConfig}
+    model {
+        toolChains {
+            ${toolChain.buildScriptConfig}
+        }
     }
 }
 """
-        executer.alwaysUsingInitScript(initScript)
+        executer.beforeExecute({
+            usingInitScript(initScript)
+        })
     }
 
     def NativeInstallationFixture installation(Object installDir) {
@@ -60,5 +67,15 @@ allprojects {
 
     def NativeBinaryFixture resourceOnlyLibrary(Object path) {
         return toolChain.resourceOnlyLibrary(file(path))
+    }
+
+    def objectFileFor(TestFile sourceFile, String rootObjectFilesDir = "build/objectFiles/mainExecutable/main${sourceType}") {
+        final baseName = FilenameUtils.removeExtension(sourceFile.name)
+        String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
+        return objectFile("$rootObjectFilesDir/$compactMD5/${baseName}")
+    }
+
+    String hashFor(File inputFile){
+        HashUtil.createCompactMD5(inputFile.getAbsolutePath());
     }
 }

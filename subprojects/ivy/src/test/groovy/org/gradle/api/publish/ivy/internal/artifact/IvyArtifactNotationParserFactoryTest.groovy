@@ -44,7 +44,7 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
     def task = Mock(Task)
     def dependencies = Collections.singleton(Mock(Task))
 
-    NotationParser<IvyArtifact> parser
+    NotationParser<Object, IvyArtifact> parser
 
     def "setup"() {
         def fileResolver = Stub(FileResolver) {

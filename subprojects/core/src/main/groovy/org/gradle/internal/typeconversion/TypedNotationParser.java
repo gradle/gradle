@@ -18,7 +18,7 @@ package org.gradle.internal.typeconversion;
 
 import java.util.Collection;
 
-public abstract class TypedNotationParser<N, T> implements NotationParser<T> {
+public abstract class TypedNotationParser<N, T> implements NotationParser<Object, T> {
 
     private final Class<N> typeToken;
 

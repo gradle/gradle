@@ -18,8 +18,6 @@ package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.internal.ToolChainAvailability;
-import org.gradle.nativebinaries.internal.ToolChainInternal;
 
 import java.io.File;
 
@@ -41,12 +39,16 @@ public abstract class AbstractToolChain implements ToolChainInternal {
 
     protected abstract String getTypeName();
 
-    @Override
-    public String toString() {
-        return String.format("ToolChain '%s' (%s)", getName(), getTypeName());
+    public String getDisplayName() {
+        return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
     }
 
-    public ToolChainAvailability getAvailability() {
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    protected ToolChainAvailability getAvailability() {
         if (availability == null) {
             availability = new ToolChainAvailability();
             checkAvailable(availability);
@@ -54,9 +56,9 @@ public abstract class AbstractToolChain implements ToolChainInternal {
         return availability;
     }
 
-    protected void checkAvailable() {
+    protected void assertAvailable() {
         if (!getAvailability().isAvailable()) {
-            throw new IllegalStateException(String.format("Tool chain %s is not available: %s", getName(), getAvailability().getUnavailableMessage()));
+            throw new IllegalStateException(String.format("%s is not available: %s", getDisplayName(), getAvailability().getUnavailableMessage()));
         }
     }
 

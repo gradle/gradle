@@ -16,25 +16,24 @@
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.SourceDirectorySet;
 
 /**
- * The logical representation of an library native component.
+ * A library component that is built by a gradle project.
  */
 @Incubating
-public interface Library extends NativeComponent {
+public interface Library extends ProjectNativeComponent, TargetedNativeComponent {
     /**
-     * The headers exported by this library.
+     * Converts this library to a native library requirement that uses the shared library variant. This is the default.
      */
-    SourceDirectorySet getHeaders();
+    NativeLibraryRequirement getShared();
 
     /**
-     * Converts this library to a native dependency that uses the shared library variant. This is the default.
+     * Converts this library to a native library requirement that uses the static library variant.
      */
-    LibraryResolver getShared();
+    NativeLibraryRequirement getStatic();
 
     /**
-     * Converts this library to a native dependency that uses the static library variant.
+     * Converts this library to a native library requirement that uses the api library linkage.
      */
-    LibraryResolver getStatic();
+    NativeLibraryRequirement getApi();
 }

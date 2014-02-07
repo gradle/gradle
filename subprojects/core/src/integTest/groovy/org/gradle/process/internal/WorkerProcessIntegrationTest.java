@@ -19,7 +19,6 @@ package org.gradle.process.internal;
 import org.apache.tools.ant.Project;
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.internal.Actions;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -30,17 +29,17 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler;
+import org.gradle.internal.Actions;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.listener.ListenerBroadcast;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.ObjectConnectionBuilder;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.GradleVersion;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -72,14 +71,14 @@ public class WorkerProcessIntegrationTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(NativeServices.getInstance().get(ProcessEnvironment.class));
-    private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler())).create();
-    private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getTestDirectory(), null, CacheUsage.ON, factory);
+    private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()));
+    private final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.getTestDirectory(), null, GradleVersion.current());
+    private final CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, CacheUsage.ON, factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestDirectory()), new LongIdGenerator());
-    private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
-            TestListenerInterface.class);
-    private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);
+    private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);
+    private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast.getSource());
 
     @Before
     public void setUp() {
@@ -106,8 +105,8 @@ public class WorkerProcessIntegrationTest {
 
     @Test
     public void thisProcessCanSendEventsToWorkerProcess() throws Throwable {
-        execute(worker(new PingRemoteProcess()).onServer(new Action<ObjectConnection>() {
-            public void execute(ObjectConnection objectConnection) {
+        execute(worker(new PingRemoteProcess()).onServer(new Action<ObjectConnectionBuilder>() {
+            public void execute(ObjectConnectionBuilder objectConnection) {
                 TestListenerInterface listener = objectConnection.addOutgoing(TestListenerInterface.class);
                 listener.send("1", 0);
                 listener.send("1", 1);
@@ -191,7 +190,7 @@ public class WorkerProcessIntegrationTest {
         private WorkerProcess proc;
         private Action<? super WorkerProcessContext> action;
         private List<String> jvmArgs = Collections.emptyList();
-        private Action<ObjectConnection> serverAction;
+        private Action<ObjectConnectionBuilder> serverAction;
 
         public ChildProcess(Action<? super WorkerProcessContext> action) {
             this.action = action;
@@ -229,6 +228,7 @@ public class WorkerProcessIntegrationTest {
             if (serverAction != null) {
                 serverAction.execute(proc.getConnection());
             }
+            proc.getConnection().connect();
         }
 
         public void waitForStop() {
@@ -243,7 +243,7 @@ public class WorkerProcessIntegrationTest {
             }
         }
 
-        public ChildProcess onServer(Action<ObjectConnection> action) {
+        public ChildProcess onServer(Action<ObjectConnectionBuilder> action) {
             this.serverAction = action;
             return this;
         }
@@ -254,17 +254,17 @@ public class WorkerProcessIntegrationTest {
         }
     }
 
-    public static class RemoteExceptionListener implements Dispatch<MethodInvocation> {
+    public static class RemoteExceptionListener implements TestListenerInterface {
         Throwable ex;
-        final Dispatch<MethodInvocation> dispatch;
+        final TestListenerInterface dispatch;
 
-        public RemoteExceptionListener(Dispatch<MethodInvocation> dispatch) {
+        public RemoteExceptionListener(TestListenerInterface dispatch) {
             this.dispatch = dispatch;
         }
 
-        public void dispatch(MethodInvocation message) {
+        public void send(String message, int count) {
             try {
-                dispatch.dispatch(message);
+                dispatch.send(message, count);
             } catch (Throwable e) {
                 ex = e;
             }
@@ -298,8 +298,8 @@ public class WorkerProcessIntegrationTest {
             }
 
             // Send some messages
-            TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(
-                    TestListenerInterface.class);
+            TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
+            workerProcessContext.getServerConnection().connect();
             sender.send("message 1", 1);
             sender.send("message 2", 2);
         }
@@ -308,6 +308,7 @@ public class WorkerProcessIntegrationTest {
     public static class OtherRemoteProcess implements Action<WorkerProcessContext>, Serializable {
         public void execute(WorkerProcessContext workerProcessContext) {
             TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
+            workerProcessContext.getServerConnection().connect();
             sender.send("other 1", 1);
             sender.send("other 2", 2);
         }
@@ -323,8 +324,8 @@ public class WorkerProcessIntegrationTest {
                 }
             }).start();
 
-            TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(
-                    TestListenerInterface.class);
+            TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
+            workerProcessContext.getServerConnection().connect();
             sender.send("message 1", 1);
             sender.send("message 2", 2);
         }
@@ -346,6 +347,7 @@ public class WorkerProcessIntegrationTest {
         public void execute(WorkerProcessContext workerProcessContext) {
             stopReceived = new CountDownLatch(1);
             workerProcessContext.getServerConnection().addIncoming(TestListenerInterface.class, this);
+            workerProcessContext.getServerConnection().connect();
             try {
                 stopReceived.await();
             } catch (InterruptedException e) {
@@ -357,6 +359,7 @@ public class WorkerProcessIntegrationTest {
     public static class CrashingRemoteProcess implements Action<WorkerProcessContext>, Serializable {
         public void execute(WorkerProcessContext workerProcessContext) {
             TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
+            workerProcessContext.getServerConnection().connect();
             sender.send("message 1", 1);
             sender.send("message 2", 2);
             // crash

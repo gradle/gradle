@@ -28,7 +28,11 @@ public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncod
     private final Output output;
 
     public KryoBackedEncoder(OutputStream outputStream) {
-        output = new Output(outputStream);
+        this(outputStream, 4096);
+    }
+
+    public KryoBackedEncoder(OutputStream outputStream, int bufferSize) {
+        output = new Output(outputStream, bufferSize);
     }
 
     public void writeByte(byte value) {
@@ -68,11 +72,6 @@ public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncod
 
     public void writeNullableString(@Nullable CharSequence value) {
         output.writeString(value);
-    }
-
-    public void writeBinary(byte[] bytes, int offset, int count) {
-        output.writeInt(count, true);
-        output.writeBytes(bytes, offset, count);
     }
 
     /**

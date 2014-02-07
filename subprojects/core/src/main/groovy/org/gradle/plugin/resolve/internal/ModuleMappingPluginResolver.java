@@ -22,15 +22,13 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
 
-public class ModuleMappingPluginResolver implements PluginResolver {
+public abstract class ModuleMappingPluginResolver implements PluginResolver {
 
     private final String name;
-    private final ScriptClassLoaderProvider classLoaderProvider;
     private final DependencyResolutionServices dependencyResolutionServices;
     private final Instantiator instantiator;
     private final Mapper mapper;
@@ -41,9 +39,8 @@ public class ModuleMappingPluginResolver implements PluginResolver {
         Dependency map(PluginRequest request, DependencyHandler dependencyHandler);
     }
 
-    public ModuleMappingPluginResolver(String name, ScriptClassLoaderProvider classLoaderProvider, DependencyResolutionServices dependencyResolutionServices, Instantiator instantiator, Mapper mapper, Action<? super RepositoryHandler> repositoriesConfigurer) {
+    public ModuleMappingPluginResolver(String name, DependencyResolutionServices dependencyResolutionServices, Instantiator instantiator, Mapper mapper, Action<? super RepositoryHandler> repositoriesConfigurer) {
         this.name = name;
-        this.classLoaderProvider = classLoaderProvider;
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.instantiator = instantiator;
         this.mapper = mapper;
@@ -58,12 +55,14 @@ public class ModuleMappingPluginResolver implements PluginResolver {
             // TODO the dependency resolution config of this guy needs to be externalized
             Factory<ClassPath> classPathFactory = new DependencyResolvingClasspathProvider(dependencyResolutionServices, dependency, repositoriesConfigurer);
 
-            return new ClassPathPluginResolution(classLoaderProvider, instantiator, pluginRequest.getId(), classPathFactory);
+            return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), classPathFactory);
         }
     }
 
-    public String getName() {
-        return name;
+    @Override
+    public String toString() {
+        return getClass().getName() + "[" + name + "]";
     }
 
+    public abstract String getDescriptionForNotFoundMessage();
 }

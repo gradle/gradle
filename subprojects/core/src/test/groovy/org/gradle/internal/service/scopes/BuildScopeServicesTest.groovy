@@ -23,10 +23,7 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.project.DefaultIsolatedAntBuilder
-import org.gradle.api.internal.project.IProjectFactory
-import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.api.internal.project.ProjectFactory
+import org.gradle.api.internal.project.*
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
@@ -38,10 +35,9 @@ import org.gradle.groovy.scripts.DefaultScriptCompilerFactory
 import org.gradle.groovy.scripts.ScriptCompilerFactory
 import org.gradle.initialization.*
 import org.gradle.internal.Factory
+import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.invocation.BuildClassLoaderRegistry
-import org.gradle.invocation.DefaultBuildClassLoaderRegistry
 import org.gradle.listener.DefaultListenerManager
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
@@ -51,11 +47,8 @@ import org.gradle.process.internal.DefaultWorkerProcessFactory
 import org.gradle.process.internal.WorkerProcessBuilder
 import org.gradle.profile.ProfileEventAdapter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.internal.classloader.ClassLoaderFactory
-import org.gradle.internal.classloader.MultiParentClassLoader
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Timeout
 
 import static org.hamcrest.Matchers.instanceOf
 import static org.hamcrest.Matchers.sameInstance
@@ -84,6 +77,8 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
         parent.get(FileResolver) >> Stub(FileResolver)
         parent.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
+        parent.get(CacheFactory) >> Stub(CacheFactory)
+        parent.get(DocumentationRegistry) >> new DocumentationRegistry()
     }
 
     def delegatesToParentForUnknownService() {
@@ -111,7 +106,7 @@ public class BuildScopeServicesTest extends Specification {
 
     def throwsExceptionForUnknownDomainObject() {
         when:
-        registry.createFor("string")
+        registry.get(ServiceRegistryFactory).createFor("string")
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Cannot create services for unknown domain object of type String."
@@ -120,9 +115,17 @@ public class BuildScopeServicesTest extends Specification {
     def canCreateServicesForAGradleInstance() {
         setup:
         GradleInternal gradle = Mock()
-        ServiceRegistryFactory registry = this.registry.createFor(gradle)
+        def registry = registry.get(ServiceRegistryFactory).createFor(gradle)
         expect:
         registry instanceof GradleScopeServices
+    }
+
+    def canCreateServicesForASettingsInstance() {
+        setup:
+        SettingsInternal settings = Mock()
+        def registry = registry.get(ServiceRegistryFactory).createFor(settings)
+        expect:
+        registry instanceof SettingsScopeServices
     }
 
     def providesAListenerManager() {
@@ -132,7 +135,6 @@ public class BuildScopeServicesTest extends Specification {
         assertThat(registry.get(ListenerManager), sameInstance(listenerManager))
     }
 
-    @Timeout(5)
     def providesAScriptCompilerFactory() {
         setup:
         expectListenerManagerCreated()
@@ -143,19 +145,14 @@ public class BuildScopeServicesTest extends Specification {
     }
 
     def providesACacheRepositoryAndCleansUpOnClose() {
-        setup:
-        1 * cacheFactory.close()
-
         expect:
         registry.get(CacheRepository) instanceof DefaultCacheRepository
         registry.get(CacheRepository) == registry.get(CacheRepository)
-        registry.close()
     }
 
     def providesAnInitScriptHandler() {
         setup:
         allowGetCoreImplClassLoader()
-        expectScriptClassLoaderCreated()
         expectListenerManagerCreated()
         allowGetGradleDistributionLocator()
 
@@ -168,7 +165,6 @@ public class BuildScopeServicesTest extends Specification {
         setup:
         allowGetCoreImplClassLoader()
         expectListenerManagerCreated()
-        expectScriptClassLoaderCreated()
         expect:
         assertThat(registry.get(ScriptPluginFactory), instanceOf(DefaultScriptPluginFactory))
         assertThat(registry.get(ScriptPluginFactory), sameInstance(registry.get(ScriptPluginFactory)))
@@ -178,7 +174,6 @@ public class BuildScopeServicesTest extends Specification {
         setup:
         allowGetCoreImplClassLoader()
         expectListenerManagerCreated()
-        expectScriptClassLoaderCreated()
         expect:
         assertThat(registry.get(SettingsProcessor), instanceOf(PropertiesLoadingSettingsProcessor))
         assertThat(registry.get(SettingsProcessor), sameInstance(registry.get(SettingsProcessor)))
@@ -251,10 +246,14 @@ public class BuildScopeServicesTest extends Specification {
         assertThat(registry.get(ProfileEventAdapter), sameInstance(registry.get(ProfileEventAdapter)))
     }
 
-    def providesABuildClassLoaderRegistry() {
-        expect:
-        assertThat(registry.get(BuildClassLoaderRegistry), instanceOf(DefaultBuildClassLoaderRegistry))
-        assertThat(registry.get(BuildClassLoaderRegistry), sameInstance(registry.get(BuildClassLoaderRegistry)))
+    def "provides a project registry"() {
+        when:
+        def projectRegistry = registry.get(ProjectRegistry)
+        def secondRegistry = registry.get(ProjectRegistry)
+
+        then:
+        projectRegistry instanceof DefaultProjectRegistry
+        projectRegistry sameInstance(secondRegistry)
     }
 
     private <T> T expectParentServiceLocated(Class<T> type) {
@@ -273,10 +272,6 @@ public class BuildScopeServicesTest extends Specification {
 
     private void allowGetCoreImplClassLoader() {
         classLoaderRegistry.getCoreImplClassLoader() >> new ClassLoader() {}
-    }
-
-    private void expectScriptClassLoaderCreated() {
-        1 * classLoaderRegistry.gradleApiClassLoader >> new MultiParentClassLoader()
     }
 
     private void allowGetGradleDistributionLocator() {

@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 
@@ -27,13 +28,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorator {
+public class InMemoryTaskArtifactCache implements CacheDecorator {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
     private final static Object NULL = new Object();
-
-    private final Object lock = new Object();
-    private final Map<File, Cache<Object, Object>> cache = new HashMap<File, Cache<Object, Object>>();
-    private final Map<File, FileLock.State> states = new HashMap<File, FileLock.State>();
 
     private static final Map<String, Integer> CACHE_CAPS = new HashMap<String, Integer>();
 
@@ -42,27 +39,23 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
         //at very least, the max size should be provided at creation, by the creator of the cache
         //however, max size is a bit awkward in general and we should look into other options,
         //like using the Weighter and relate the cache size to the available heap, etc.
-        CACHE_CAPS.put("fileSnapshots.bin", 10000);
-        CACHE_CAPS.put("taskArtifacts.bin", 2000);
-        CACHE_CAPS.put("outputFileStates.bin", 3000);
-        CACHE_CAPS.put("fileHashes.bin", 140000);
+        CACHE_CAPS.put("fileSnapshots", 10000);
+        CACHE_CAPS.put("taskArtifacts", 2000);
+        CACHE_CAPS.put("outputFileStates", 3000);
+        CACHE_CAPS.put("fileHashes", 140000);
 
         //In general, the in-memory cache must be capped at some level, otherwise it is reduces performance in truly gigantic builds
     }
 
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(final File cacheFile, final MultiProcessSafePersistentIndexedCache<K, V> original) {
-        final Cache<Object, Object> data;
-        synchronized (lock) {
-            if (this.cache.containsKey(cacheFile)) {
-                data = this.cache.get(cacheFile);
-                LOG.info("In-memory cache of {}: Size{{}}, {}", cacheFile.getName(), data.size(), data.stats());
-            } else {
-                Integer maxSize = CACHE_CAPS.get(cacheFile.getName());
-                assert maxSize != null : "Unknown cache.";
-                data = CacheBuilder.newBuilder().maximumSize(maxSize).build();
-                this.cache.put(cacheFile, data);
-            }
-        }
+    private final Object lock = new Object();
+    private final Cache<String, Cache<Object, Object>> cache = CacheBuilder.newBuilder()
+            .maximumSize(CACHE_CAPS.size() * 2) //X2 to factor in a child build (for example buildSrc)
+            .build();
+
+    private final Map<String, FileLock.State> states = new HashMap<String, FileLock.State>();
+
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(final String cacheId, String cacheName, final MultiProcessSafePersistentIndexedCache<K, V> original) {
+        final Cache<Object, Object> data = loadData(cacheId, cacheName);
 
         return new MultiProcessSafePersistentIndexedCache<K, V>() {
             public void close() {
@@ -96,21 +89,37 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
             public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
                 boolean outOfDate;
                 synchronized (lock) {
-                    FileLock.State previousState = states.get(cacheFile);
+                    FileLock.State previousState = states.get(cacheId);
                     outOfDate = previousState == null || currentCacheState.hasBeenUpdatedSince(previousState);
                 }
 
                 if (outOfDate) {
-                    LOG.info("Invalidating in-memory cache of {}", cacheFile);
+                    LOG.info("Invalidating in-memory cache of {}", cacheId);
                     data.invalidateAll();
                 }
             }
 
             public void onEndWork(FileLock.State currentCacheState) {
                 synchronized (lock) {
-                    states.put(cacheFile, currentCacheState);
+                    states.put(cacheId, currentCacheState);
                 }
             }
         };
+    }
+
+    private Cache<Object, Object> loadData(String cacheId, String cacheName) {
+        Cache<Object, Object> theData;
+        synchronized (lock) {
+            theData = this.cache.getIfPresent(cacheId);
+            if (theData != null) {
+                LOG.info("In-memory cache of {}: Size{{}}, {}", cacheId, theData.size() , theData.stats());
+            } else {
+                Integer maxSize = CACHE_CAPS.get(cacheName);
+                assert maxSize != null : "Unknown cache.";
+                theData = CacheBuilder.newBuilder().maximumSize(maxSize).build();
+                this.cache.put(cacheId, theData);
+            }
+        }
+        return theData;
     }
 }

@@ -21,16 +21,14 @@ import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
-import org.gradle.nativebinaries.Platform
-import org.gradle.nativebinaries.ToolChain
+import org.gradle.nativebinaries.platform.Platform
+import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.internal.LinkerSpec
 
 import javax.inject.Inject
 
 @Incubating
 abstract class AbstractLinkTask extends DefaultTask implements BuildBinaryTask {
-    private FileCollection source
-
     @Inject
     AbstractLinkTask() {
         libs = project.files()
@@ -70,10 +68,8 @@ abstract class AbstractLinkTask extends DefaultTask implements BuildBinaryTask {
     /**
      * The source object files to be passed to the linker.
      */
-    @InputFiles @SkipWhenEmpty // Can't use field due to GRADLE-2026
-    FileCollection getSource() {
-        source
-    }
+    @InputFiles
+    FileCollection source
 
     /**
      * The library files to be passed to the linker.
@@ -102,6 +98,11 @@ abstract class AbstractLinkTask extends DefaultTask implements BuildBinaryTask {
         def cleaner = new SimpleStaleClassCleaner(getOutputs())
         cleaner.setDestinationDir(getDestinationDir())
         cleaner.execute()
+
+        if (source.empty) {
+            didWork = false
+            return
+        }
 
         def spec = createLinkerSpec()
         spec.tempDir = getTemporaryDir()

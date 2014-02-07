@@ -17,10 +17,7 @@
 package org.gradle.nativebinaries.toolchain.plugins
 
 import org.gradle.api.Plugin
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.nativebinaries.ToolChain
-import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
+import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.internal.gcc.GccToolChain
 import org.gradle.util.TestUtil
@@ -48,26 +45,15 @@ class GccCompilerPluginTest extends ToolChainPluginTest {
         register()
 
         then:
-        getToolchain() instanceof GccToolChain
+        toolchain instanceof GccToolChain
+        toolchain.displayName == "Tool chain 'gcc' (GNU GCC)"
     }
 
-    @RequiresInstalledToolChain("gcc 4")
     def "registers default Gcc tool chain"() {
         when:
         addDefaultToolchain()
 
         then:
-        getToolchain() instanceof GccToolChain
-    }
-
-    def "Gcc tool chain is extended"() {
-        when:
-        register()
-
-        then:
-        with(getToolchain()) {
-            it instanceof ExtensionAware
-            it.ext instanceof ExtraPropertiesExtension
-        }
+        toolchain instanceof GccToolChain
     }
 }

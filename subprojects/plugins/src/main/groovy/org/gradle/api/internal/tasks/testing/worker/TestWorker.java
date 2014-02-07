@@ -54,7 +54,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     public void execute(final WorkerProcessContext workerProcessContext) {
-        LOGGER.info("{} executing tests.", workerProcessContext.getDisplayName());
+        LOGGER.info("{} started executing tests.", workerProcessContext.getDisplayName());
 
         completed = new CountDownLatch(1);
 
@@ -88,8 +88,10 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         processor = proxy.getSource();
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
+        serverConnection.useParameterSerializer(new TestEventSerializer());
         this.resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
         serverConnection.addIncoming(RemoteTestClassProcessor.class, this);
+        serverConnection.connect();
     }
 
     public void startProcessing() {

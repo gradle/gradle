@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectContainer;
 
 public class NamedDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
@@ -26,7 +27,15 @@ public class NamedDomainObjectContainerConfigureDelegate extends ConfigureDelega
     }
 
     @Override
-    protected void _configure(String name, Object[] params) {
-        _container.create(name);
+    protected boolean _isConfigureMethod(String name, Object[] params) {
+        return params.length == 1 && params[0] instanceof Closure;
+    }
+
+    @Override
+    protected Object _configure(String name, Object[] params) {
+        if (params.length == 0) {
+            return _container.create(name);
+        }
+        return _container.create(name, (Closure) params[0]);
     }
 }

@@ -17,6 +17,7 @@ package org.gradle.initialization
 import org.gradle.api.Project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ExtraPropertiesExtension
@@ -40,6 +41,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     final ExtraPropertiesExtension rootProperties = Mock()
     final ExtensionContainerInternal childExtension = Mock()
     final ExtraPropertiesExtension childProperties = Mock()
+    def classLoaderScope = Mock(ClassLoaderScope)
 
     def setup() {
         _ * gradle.rootProject >> rootProject
@@ -58,10 +60,10 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         _ * propertiesLoader.mergeProperties(!null) >> [:]
         
         when:
-        loader.load(projectDescriptor, gradle)
+        loader.load(projectDescriptor, gradle, classLoaderScope)
 
         then:
-        1 * target.load(projectDescriptor, gradle)
+        1 * target.load(projectDescriptor, gradle, classLoaderScope)
         0 * target._
     }
 
@@ -70,7 +72,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         2 * propertiesLoader.mergeProperties([:]) >> [prop: 'value']
 
         when:
-        loader.load(projectDescriptor, gradle)
+        loader.load(projectDescriptor, gradle, classLoaderScope)
 
         then:
         1 * rootProperties.set('prop', 'value')
@@ -83,7 +85,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         GUtil.saveProperties(new Properties([prop: 'childValue']), new File(childProjectDir, Project.GRADLE_PROPERTIES))
 
         when:
-        loader.load(projectDescriptor, gradle)
+        loader.load(projectDescriptor, gradle, classLoaderScope)
 
         then:
         1 * propertiesLoader.mergeProperties([prop: 'rootValue']) >> [prop: 'rootValue']

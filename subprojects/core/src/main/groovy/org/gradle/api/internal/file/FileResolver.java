@@ -56,5 +56,5 @@ public interface FileResolver {
      */
     FileResolver withNoBaseDir();
 
-    NotationParser<File> asNotationParser();
+    NotationParser<Object, File> asNotationParser();
 }

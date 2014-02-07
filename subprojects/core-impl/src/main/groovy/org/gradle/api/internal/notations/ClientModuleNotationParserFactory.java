@@ -22,7 +22,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
-public class ClientModuleNotationParserFactory implements Factory<NotationParser<ClientModule>> {
+public class ClientModuleNotationParserFactory implements Factory<NotationParser<Object, ClientModule>> {
 
     private final Instantiator instantiator;
 
@@ -30,7 +30,7 @@ public class ClientModuleNotationParserFactory implements Factory<NotationParser
         this.instantiator = instantiator;
     }
 
-    public NotationParser<ClientModule> create() {
+    public NotationParser<Object, ClientModule> create() {
         return new NotationParserBuilder<ClientModule>()
                 .resultingType(ClientModule.class)
                 .parser(new DependencyStringNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))

@@ -15,92 +15,75 @@
  */
 package org.gradle.api.internal.initialization;
 
+import groovy.lang.Closure;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.classloader.CachingClassLoader;
-import org.gradle.internal.classloader.MultiParentClassLoader;
-import org.gradle.internal.classloader.MutableURLClassLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.internal.Factory;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.net.URI;
 
-public class DefaultScriptHandler extends AbstractScriptHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScriptHandler.class);
-    private final ScriptCompileScope parentScope;
-    private List<ClassLoader> parents = new ArrayList<ClassLoader>();
-    private ClassLoader classLoader;
-    private MutableURLClassLoader scriptClassPathClassLoader;
-    private MultiParentClassLoader multiParentClassLoader;
+public class DefaultScriptHandler implements ScriptHandler {
 
-    public DefaultScriptHandler(ScriptSource scriptSource, RepositoryHandler repositoryHandler,
-                                DependencyHandler dependencyHandler, ConfigurationContainer configContainer,
-                                ScriptCompileScope parentScope) {
-        super(repositoryHandler, dependencyHandler, scriptSource, configContainer);
-        this.parentScope = parentScope;
+    private final ScriptSource scriptSource;
+    private final RepositoryHandler repositoryHandler;
+    private final DependencyHandler dependencyHandler;
+    private final ConfigurationContainer configContainer;
+    private final Factory<ClassLoader> classLoaderFactory;
+    private final Configuration classpathConfiguration;
+
+    public DefaultScriptHandler(
+            ScriptSource scriptSource, RepositoryHandler repositoryHandler,
+            DependencyHandler dependencyHandler, ConfigurationContainer configContainer,
+            Factory<ClassLoader> classLoaderFactory
+    ) {
+        this.repositoryHandler = repositoryHandler;
+        this.dependencyHandler = dependencyHandler;
+        this.scriptSource = scriptSource;
+        this.configContainer = configContainer;
+        this.classLoaderFactory = classLoaderFactory;
+        classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
     }
 
-    public ClassLoader getBaseCompilationClassLoader() {
-        return parentScope.getScriptCompileClassLoader();
+    public void dependencies(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, dependencyHandler);
     }
 
-    public ClassLoader getScriptCompileClassLoader() {
-        if (classLoader == null) {
-            // This is for backwards compatibility - it is possible to query the script ClassLoader before it has been finalized.
-            // So, eagerly create the most flexible ClassLoader structure in case it is required.
-            LOGGER.debug("Eager creation of script class loader for {}. This may result in performance issues.", getSourceFile());
-            scriptClassPathClassLoader = new MutableURLClassLoader(getBaseCompilationClassLoader());
-            multiParentClassLoader = new MultiParentClassLoader(scriptClassPathClassLoader);
-            classLoader = new CachingClassLoader(multiParentClassLoader);
-        }
-        return classLoader;
+    protected Configuration getClasspathConfiguration() {
+        return classpathConfiguration;
     }
 
-    public void addParent(ClassLoader parent) {
-        if (parents == null) {
-            throw new IllegalStateException("Cannot add a parent ClassLoader after script ClassLoader has been finalized.");
-        }
-        parents.add(parent);
+    public DependencyHandler getDependencies() {
+        return dependencyHandler;
     }
 
-    public void updateClassPath() {
-        if (classLoader == null) {
-            ClassLoader current = getBaseCompilationClassLoader();
-            Set<File> classPath = getClasspathConfiguration().getFiles();
-            if (!classPath.isEmpty()) {
-                MutableURLClassLoader mutableClassLoader = new MutableURLClassLoader(current);
-                addClassPath(mutableClassLoader);
-                current = mutableClassLoader;
-            }
-            if (!parents.isEmpty()) {
-                parents.add(0, current);
-                current = new CachingClassLoader(new MultiParentClassLoader(parents));
-            }
-            this.classLoader = current;
-        } else {
-            // This is for backwards compatibility - see the comment in #getClassLoader() above
-            // Here, we fill in the missing bits that weren't available when the ClassLoader was eagerly created
-            addClassPath(scriptClassPathClassLoader);
-            for (ClassLoader parent : parents) {
-                multiParentClassLoader.addParent(parent);
-            }
-        }
-        parents = null;
+    public RepositoryHandler getRepositories() {
+        return repositoryHandler;
     }
 
-    private void addClassPath(MutableURLClassLoader mutableClassLoader) {
-        for (File file : getClasspathConfiguration().getFiles()) {
-            try {
-                mutableClassLoader.addURL(file.toURI().toURL());
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    public void repositories(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, repositoryHandler);
     }
+
+    public ConfigurationContainer getConfigurations() {
+        return configContainer;
+    }
+
+    public File getSourceFile() {
+        return scriptSource.getResource().getFile();
+    }
+
+    public URI getSourceURI() {
+        return scriptSource.getResource().getURI();
+    }
+
+    public ClassLoader getClassLoader() {
+        return classLoaderFactory.create();
+    }
+
 }

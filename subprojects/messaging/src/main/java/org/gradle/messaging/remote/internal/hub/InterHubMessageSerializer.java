@@ -16,68 +16,73 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier;
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage;
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.FlushableEncoder;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
-import org.gradle.messaging.serialize.kryo.KryoAwareSerializer;
+import org.gradle.messaging.serialize.kryo.StatefulSerializer;
+import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
+import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class InterHubMessageSerializer implements MessageSerializer<InterHubMessage> {
-    private final KryoAwareSerializer<Object> payloadSerializer;
+    private static final byte CHANNEL_MESSAGE = 1;
+    private static final byte END_STREAM_MESSAGE = 2;
+    private final StatefulSerializer<Object> payloadSerializer;
 
-    public InterHubMessageSerializer(KryoAwareSerializer<Object> payloadSerializer) {
+    public InterHubMessageSerializer(StatefulSerializer<Object> payloadSerializer) {
         this.payloadSerializer = payloadSerializer;
     }
 
     public ObjectReader<InterHubMessage> newReader(InputStream inputStream, Address localAddress, Address remoteAddress) {
-        Input input = new Input(inputStream);
-        return new MessageReader(input, payloadSerializer.newReader(input));
+        Decoder decoder = new KryoBackedDecoder(inputStream);
+        return new MessageReader(decoder, payloadSerializer.newReader(decoder));
     }
 
     public ObjectWriter<InterHubMessage> newWriter(OutputStream outputStream) {
-        Output output = new Output(outputStream);
-        return new MessageWriter(output, payloadSerializer.newWriter(output));
+        FlushableEncoder encoder = new KryoBackedEncoder(outputStream);
+        return new MessageWriter(encoder, payloadSerializer.newWriter(encoder));
     }
 
     private static class MessageReader implements ObjectReader<InterHubMessage> {
         private final Map<Integer, ChannelIdentifier> channels = new HashMap<Integer, ChannelIdentifier>();
-        private final Input input;
+        private final Decoder decoder;
         private final ObjectReader<?> payloadReader;
 
-        public MessageReader(Input input, ObjectReader<?> payloadReader) {
-            this.input = input;
+        public MessageReader(Decoder decoder, ObjectReader<?> payloadReader) {
+            this.decoder = decoder;
             this.payloadReader = payloadReader;
         }
 
         public InterHubMessage read() throws Exception {
-            switch (input.readByte()) {
-                case 1:
+            switch (decoder.readByte()) {
+                case CHANNEL_MESSAGE:
                     ChannelIdentifier channelId = readChannelId();
                     Object payload = payloadReader.read();
                     return new ChannelMessage(channelId, payload);
-                case 2:
+                case END_STREAM_MESSAGE:
                     return new EndOfStream();
                 default:
                     throw new IllegalArgumentException();
             }
         }
 
-        private ChannelIdentifier readChannelId() {
-            int channelNum = input.readInt(true);
+        private ChannelIdentifier readChannelId() throws IOException {
+            int channelNum = decoder.readSmallInt();
             ChannelIdentifier channelId = channels.get(channelNum);
             if (channelId == null) {
-                String channel = input.readString();
+                String channel = decoder.readString();
                 channelId = new ChannelIdentifier(channel);
                 channels.put(channelNum, channelId);
             }
@@ -87,37 +92,37 @@ public class InterHubMessageSerializer implements MessageSerializer<InterHubMess
 
     private static class MessageWriter implements ObjectWriter<InterHubMessage> {
         private final Map<ChannelIdentifier, Integer> channels = new HashMap<ChannelIdentifier, Integer>();
-        private final Output output;
+        private final FlushableEncoder encoder;
         private final ObjectWriter<Object> payloadWriter;
 
-        public MessageWriter(Output output, ObjectWriter<Object> payloadWriter) {
-            this.output = output;
+        public MessageWriter(FlushableEncoder encoder, ObjectWriter<Object> payloadWriter) {
+            this.encoder = encoder;
             this.payloadWriter = payloadWriter;
         }
 
         public void write(InterHubMessage message) throws Exception {
             if (message instanceof ChannelMessage) {
                 ChannelMessage channelMessage = (ChannelMessage) message;
-                output.writeByte(1);
+                encoder.writeByte(CHANNEL_MESSAGE);
                 writeChannelId(channelMessage);
                 payloadWriter.write(channelMessage.getPayload());
             } else if (message instanceof EndOfStream) {
-                output.writeByte(2);
+                encoder.writeByte(END_STREAM_MESSAGE);
             } else {
                 throw new IllegalArgumentException();
             }
-            output.flush();
+            encoder.flush();
         }
 
-        private void writeChannelId(ChannelMessage channelMessage) {
+        private void writeChannelId(ChannelMessage channelMessage) throws IOException {
             Integer channelNum = channels.get(channelMessage.getChannel());
             if (channelNum == null) {
                 channelNum = channels.size();
                 channels.put(channelMessage.getChannel(), channelNum);
-                output.writeInt(channelNum, true);
-                output.writeString(channelMessage.getChannel().getName());
+                encoder.writeSmallInt(channelNum);
+                encoder.writeString(channelMessage.getChannel().getName());
             } else {
-                output.writeInt(channelNum, true);
+                encoder.writeSmallInt(channelNum);
             }
         }
     }

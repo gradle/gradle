@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.rc.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.language.rc.plugins.WindowsResourceScriptPlugin
-import org.gradle.nativebinaries.Executable
-import org.gradle.nativebinaries.Library
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeComponent
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
+import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.StaticLibraryBinaryInternal
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+
 /**
  * A plugin for projects wishing to build native binary components from Windows Resource sources.
  *
@@ -51,22 +50,25 @@ class WindowsResourcesNativeBinariesPlugin implements Plugin<ProjectInternal> {
             addLanguageExtensionsToComponent(library)
         }
 
-        project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
+        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             if (shouldProcessResources(binary)) {
-                binary.source.withType(WindowsResourceSet).all { WindowsResourceSet inputs ->
-                    def resourceCompileTask = createResourceCompileTask(project, binary, inputs)
-                    binary.tasks.add resourceCompileTask
-                    final resourceOutputs = resourceCompileTask.outputs.files.asFileTree.matching { include '**/*.res' }
-                    binary.tasks.builder.source resourceOutputs
-                    if (binary instanceof StaticLibraryBinaryInternal) {
-                        binary.additionalLinkFiles resourceOutputs
+                binary.source.withType(WindowsResourceSet).all { WindowsResourceSet resources ->
+                    if (resources.mayHaveSources) {
+                        def resourceCompileTask = createResourceCompileTask(project, binary, resources)
+                        resourceCompileTask.dependsOn resources
+                        binary.tasks.add resourceCompileTask
+                        final resourceOutputs = resourceCompileTask.outputs.files.asFileTree.matching { include '**/*.res' }
+                        binary.tasks.builder.source resourceOutputs
+                        if (binary instanceof StaticLibraryBinaryInternal) {
+                            binary.additionalLinkFiles resourceOutputs
+                        }
                     }
                 }
             }
         }
     }
 
-    private def addLanguageExtensionsToComponent(NativeComponent component) {
+    private def addLanguageExtensionsToComponent(ProjectNativeComponent component) {
         component.binaries.all { NativeBinary binary ->
             if (shouldProcessResources(binary)) {
                 binary.extensions.create("rcCompiler", DefaultPreprocessingTool)
@@ -78,15 +80,17 @@ class WindowsResourcesNativeBinariesPlugin implements Plugin<ProjectInternal> {
         binary.targetPlatform.operatingSystem.windows
     }
 
-    private def createResourceCompileTask(ProjectInternal project, NativeBinaryInternal binary, WindowsResourceSet sourceSet) {
-        WindowsResourceCompile compileTask = project.task(binary.namingScheme.getTaskName("resourceCompile", sourceSet.fullName), type: WindowsResourceCompile) {
+    private def createResourceCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, WindowsResourceSet sourceSet) {
+        WindowsResourceCompile compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: WindowsResourceCompile) {
             description = "Compiles resources of the $sourceSet of $binary"
         }
 
         compileTask.toolChain = binary.toolChain
         compileTask.targetPlatform = binary.targetPlatform
 
-        compileTask.includes sourceSet.exportedHeaders
+        compileTask.includes {
+            sourceSet.exportedHeaders.srcDirs
+        }
         compileTask.source sourceSet.source
 
         compileTask.outputDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")

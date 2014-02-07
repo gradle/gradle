@@ -34,6 +34,7 @@ public class FindBugsWorkerServer implements Action<WorkerProcessContext>, Seria
     public void execute(WorkerProcessContext context) {
         final FindBugsResult result = execute();
         final FindBugsWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(FindBugsWorkerClientProtocol.class);
+        context.getServerConnection().connect();
         clientProtocol.executed(result);
     }
 

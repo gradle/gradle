@@ -18,10 +18,10 @@ package org.gradle.api.reporting.dependencies
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 /**
  * Integration tests for the HTML dependency report generation task
- * @author JB Nizet
  */
 class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -390,6 +390,129 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         def barInsight = json.project.configurations[0].moduleInsights.find({ it.module == 'foo:bar' }).insight
         barInsight.size() == 1
         barInsight[0].name == 'foo:bar:1.0'
+    }
+
+    @Issue("GRADLE-2979")
+    def "renders a mix of project and external dependencies"() {
+        given:
+        mavenRepo.module("foo", "bar", 1.0).publish()
+        mavenRepo.module("foo", "bar", 2.0).publish()
+
+        file("settings.gradle") << """include 'a', 'b', 'a:c', 'd', 'e'
+rootProject.name = 'root'
+"""
+
+        file("build.gradle") << """
+            apply plugin : 'project-report'
+
+            allprojects {
+                apply plugin: 'java'
+                version = '1.0'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(":a") {
+               dependencies {
+                    compile 'foo:bar:1.0'
+                }
+            }
+
+            project(":b") {
+               dependencies {
+                    compile 'foo:bar:0.5.dont.exist'
+                }
+            }
+
+            project(":a:c") {
+               dependencies {
+                    compile 'foo:bar:2.0'
+               }
+            }
+
+            project(":d") {
+               dependencies {
+                    compile project(":e")
+                }
+            }
+
+            project(":e") {
+               dependencies {
+                    compile 'foo:bar:2.0'
+                }
+            }
+
+            dependencies {
+                compile project(":a"), project(":b"), project(":a:c"), project(":d")
+            }
+        """
+
+        when:
+        run "htmlDependencyReport"
+        def json = readGeneratedJson("root")
+        def compileConfiguration = json.project.configurations.find { it.name == "compile" }
+
+        then:
+        compileConfiguration
+        compileConfiguration.dependencies.size() == 4
+        compileConfiguration.dependencies[0].module == null
+        compileConfiguration.dependencies[0].name == "project :a"
+        compileConfiguration.dependencies[0].resolvable == true
+        compileConfiguration.dependencies[0].alreadyRendered == false
+        compileConfiguration.dependencies[0].hasConflict == false
+        compileConfiguration.dependencies[0].children.size() == 1
+        compileConfiguration.dependencies[0].children[0].module == "foo:bar"
+        compileConfiguration.dependencies[0].children[0].name == "foo:bar:1.0 \u27A1 2.0"
+        compileConfiguration.dependencies[0].children[0].resolvable == true
+        compileConfiguration.dependencies[0].children[0].alreadyRendered == false
+        compileConfiguration.dependencies[0].children[0].hasConflict == true
+        compileConfiguration.dependencies[0].children[0].children.empty
+
+        compileConfiguration.dependencies[1].module == null
+        compileConfiguration.dependencies[1].name == "project :b"
+        compileConfiguration.dependencies[1].resolvable == true
+        compileConfiguration.dependencies[1].alreadyRendered == false
+        compileConfiguration.dependencies[1].hasConflict == false
+        compileConfiguration.dependencies[1].children.size() == 1
+        compileConfiguration.dependencies[1].children[0].module == "foo:bar"
+        compileConfiguration.dependencies[1].children[0].name == "foo:bar:0.5.dont.exist \u27A1 2.0"
+        compileConfiguration.dependencies[1].children[0].resolvable == true
+        compileConfiguration.dependencies[1].children[0].alreadyRendered == false
+        compileConfiguration.dependencies[1].children[0].hasConflict == true
+        compileConfiguration.dependencies[1].children[0].children.empty
+
+        compileConfiguration.dependencies[2].module == null
+        compileConfiguration.dependencies[2].name == "project :a:c"
+        compileConfiguration.dependencies[2].resolvable == true
+        compileConfiguration.dependencies[2].alreadyRendered == false
+        compileConfiguration.dependencies[2].hasConflict == false
+        compileConfiguration.dependencies[2].children.size() == 1
+        compileConfiguration.dependencies[2].children[0].module == "foo:bar"
+        compileConfiguration.dependencies[2].children[0].name == "foo:bar:2.0"
+        compileConfiguration.dependencies[2].children[0].resolvable == true
+        compileConfiguration.dependencies[2].children[0].alreadyRendered == false
+        compileConfiguration.dependencies[2].children[0].hasConflict == false
+        compileConfiguration.dependencies[2].children[0].children.empty
+
+        compileConfiguration.dependencies[3].module == null
+        compileConfiguration.dependencies[3].name == "project :d"
+        compileConfiguration.dependencies[3].resolvable == true
+        compileConfiguration.dependencies[3].alreadyRendered == false
+        compileConfiguration.dependencies[3].hasConflict == false
+        compileConfiguration.dependencies[3].children.size() == 1
+        compileConfiguration.dependencies[3].children[0].module == null
+        compileConfiguration.dependencies[3].children[0].name == "project :e"
+        compileConfiguration.dependencies[3].children[0].resolvable == true
+        compileConfiguration.dependencies[3].children[0].alreadyRendered == false
+        compileConfiguration.dependencies[3].children[0].hasConflict == false
+        compileConfiguration.dependencies[3].children[0].children.size() == 1
+        compileConfiguration.dependencies[3].children[0].children[0].module == "foo:bar"
+        compileConfiguration.dependencies[3].children[0].children[0].name == "foo:bar:2.0"
+        compileConfiguration.dependencies[3].children[0].children[0].resolvable == true
+        compileConfiguration.dependencies[3].children[0].children[0].alreadyRendered == false
+        compileConfiguration.dependencies[3].children[0].children[0].hasConflict == false
+        compileConfiguration.dependencies[3].children[0].children[0].children.empty
     }
 
     private def readGeneratedJson(fileNameWithoutExtension) {

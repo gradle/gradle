@@ -37,8 +37,8 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.TestUtil;
 import org.gradle.util.TestClosure;
+import org.gradle.util.TestUtil;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
@@ -92,6 +92,12 @@ public class TestTest extends AbstractConventionTaskTest {
         reportDir = tmpDir.createDir("report");
 
         test = createTask(Test.class);
+
+        context.checking(new Expectations() {{
+            TestFrameworkOptions testOptions = context.mock(TestFrameworkOptions.class);
+            allowing(testFrameworkMock).getOptions();
+            will(returnValue(testOptions));
+        }});
     }
 
     public ConventionTask getTask() {
@@ -310,24 +316,13 @@ public class TestTest extends AbstractConventionTaskTest {
         assertEquals(toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getExcludes());
     }
 
-    private void expectOptionsBuilt() {
-        context.checking(new Expectations() {{
-            TestFrameworkOptions testOptions = context.mock(TestFrameworkOptions.class);
-            allowing(testFrameworkMock).getOptions();
-            will(returnValue(testOptions));
-        }});
-    }
-
     private void expectTestsExecuted() {
-        expectOptionsBuilt();
         context.checking(new Expectations() {{
             one(testExecuterMock).execute(with(sameInstance(test)), with(notNullValue(TestListenerAdapter.class)));
         }});
     }
 
     private void expectTestsFail() {
-        expectOptionsBuilt();
-
         context.checking(new Expectations() {{
             final TestResult result = context.mock(TestResult.class);
             allowing(result).getResultType();

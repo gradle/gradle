@@ -31,6 +31,9 @@ buildTypes {
     preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
     quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
 
+    // For testing pull requests
+    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality", "classes"
+
     // A full (in-process) test
     developerBuild "check"
 
@@ -56,7 +59,7 @@ buildTypes {
     localPerformanceTest "performance:integTest"
 
     // Used for cross version tests on CI
-    crossVersionTest "runtimeIntegTests", crossVersionTestsOnly: "", testAllVersions: "", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
+    crossVersionTest "runtimeIntegTests", crossVersionTestsOnly: "", testVersions: "all", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
 
     // Used to build production distros and smoke test them
     packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
@@ -140,20 +143,20 @@ configurations {
     runtime {
         visible = false
     }
-    plugins {
+    gradlePlugins {
         visible = false
     }
     testRuntime {
         extendsFrom runtime
-        extendsFrom plugins
+        extendsFrom gradlePlugins
     }
 }
 
 dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
-    plugins pluginProjects
-    plugins project(':coreImpl')
+    gradlePlugins pluginProjects
+    gradlePlugins project(':coreImpl')
 }
 
 task verifyIsProductionBuildEnvironment << {
@@ -164,7 +167,7 @@ task verifyIsProductionBuildEnvironment << {
 
 task waitForDaemonsToDie {
     if (!project.hasProperty("noWaitForDaemonsToDie")) {
-        if (isWindows && isCiServer) {
+        if (isWindows && isCiServer && buildTypes.activeNames.contains("crossVersionTest")) {
             gradle.startParameter.taskNames.add(0, it.path)
         }
         doLast {

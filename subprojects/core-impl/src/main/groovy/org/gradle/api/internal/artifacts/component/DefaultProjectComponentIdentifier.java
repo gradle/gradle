@@ -62,4 +62,8 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     public String toString() {
         return displayName;
     }
+
+    public static ProjectComponentIdentifier newId(String projectPath) {
+        return new DefaultProjectComponentIdentifier(projectPath);
+    }
 }

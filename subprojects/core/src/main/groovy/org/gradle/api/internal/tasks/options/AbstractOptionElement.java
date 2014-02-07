@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.internal.typeconversion.OptionNotationParserFactory;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.ValueAwareNotationParser;
 
 import java.lang.annotation.IncompleteAnnotationException;
 import java.lang.reflect.Method;
@@ -30,36 +30,18 @@ abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
     private final Class<?> optionType;
-    private final NotationParser notationParser;
+    private final ValueAwareNotationParser<?> notationParser;
 
-    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass) {
+    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, ValueAwareNotationParser<?> notationParser) {
         this.description = readDescription(option, optionName, declaringClass);
         this.optionName = optionName;
         this.optionType = optionType;
-        this.notationParser = createNotationParser(optionName, optionType, declaringClass);
-    }
-
-    private NotationParser createNotationParser(String optionName, Class<?> optionType, Class<?> declaringClass) {
-        try{
-            return new OptionNotationParserFactory(optionType).toComposite();
-        }   catch(Exception ex){
-            throw new OptionValidationException(String.format("Option '%s' cannot be casted to type '%s' in class '%s'.",
-                    optionName, optionType.getName(), declaringClass.getName()));
-        }
-    }
-
-    protected static Class<?> calculateOptionType(Class<?> type) {
-        //we don't want to support "--flag true" syntax
-        if (type == Boolean.class || type == Boolean.TYPE) {
-            return Void.TYPE;
-        } else {
-            return type;
-        }
+        this.notationParser = notationParser;
     }
 
     public List<String> getAvailableValues() {
         List<String> describes = new ArrayList<String>();
-        notationParser.describe(describes);
+        notationParser.describeValues(describes);
         return describes;
     }
 
@@ -88,7 +70,27 @@ abstract class AbstractOptionElement implements OptionElement {
         return description;
     }
 
-    protected NotationParser getNotationParser() {
+    protected NotationParser<CharSequence, ?> getNotationParser() {
         return notationParser;
     }
+
+    protected static ValueAwareNotationParser<Object> createNotationParserOrFail(OptionNotationParserFactory optionNotationParserFactory, String optionName, Class<?> optionType, Class<?> declaringClass) {
+        try {
+            return optionNotationParserFactory.toComposite(optionType);
+        } catch (OptionValidationException ex) {
+            throw new OptionValidationException(String.format("Option '%s' cannot be casted to type '%s' in class '%s'.",
+                    optionName, optionType.getName(), declaringClass.getName()));
+        }
+    }
+
+    protected static Class<?> calculateOptionType(Class<?> type) {
+        //we don't want to support "--flag true" syntax
+        if (type == Boolean.class || type == Boolean.TYPE) {
+            return Void.TYPE;
+        } else {
+            return type;
+        }
+    }
+
+
 }

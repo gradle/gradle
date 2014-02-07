@@ -69,6 +69,16 @@ There are a number of other places where the plugins use `container.all { }` to 
 
 These should be refactored to use model rules instead. These will probably require some DSL and rules support.
 
+- Remove all usages of `ModelRegistry` outside the rules infrastructure.
+- Document the model rule DSL.
+
+### Open issues
+
+- Don't close the task container of a project until after all projects that need to be configured have been configured. Need to expose model closing time
+  in the profile report.
+- Add `ModelRules.register()` overload that is given an implementation class and takes care of instantiation and dependency injection.
+- Replace `ModelRules.register()` method that takes a `Factory` and instead takes a rule that is inspected for its dependencies and return type.
+
 ## Native language plugins use model rules to define and configure tasks
 
 There are a number of places where the native language plugins use `container.all { }` to configure:
@@ -94,6 +104,8 @@ There are two approaches we might take here:
    as they are still incubating, but will help drive backwards compatibility with the existing DSL for stable plugins.
 2. Change the native language plugins so that they do not use extensions and ignore integration between the old and new DSL for now.
 
+- Change native language plugins so that they no longer use extensions (see `CreateNativeBinaries`).
+
 ## Build author uses the model DSL to configure the native components tasks
 
 The model DSL should allow the tasks for a native binary and component to be configured. The configuration should happen only when the task is added to the task graph.
@@ -116,6 +128,14 @@ For location #3, this is an incubating element, so we can simply defer all confi
 
 Similarly, this work should consider how the existing task DSL can be used to access these tasks: Is it an error? Does it trigger model rules?
 
+## Build author is warned when model rule targets unknown model object
+
+TBD
+
+## Internal properties and methods are not visible from the model DSL
+
+The model DSL should expose only public methods and properties defined by the public API. All other methods and properties should be hidden.
+
 ## Plugin author uses model rules to define tasks after plugin model has been configured
 
 A common problem when authoring a plugin is how to handle configuration that happens after the plugin is applied.
@@ -124,7 +144,7 @@ This story exposes model rules as a public (but very much experimental) feature 
 story is mostly about exposing and documenting the features that already exist, possibly along with some sugar to help solve this very common use case.
 
 - Provide a mechanism for the plugin to register a model object and some logic which later receives the immutable model object and defines some tasks from this object.
-- Add documentation and samples.
+- Add documentation for the model rules API and samples.
 - Add some mechanism to expose the model object also as an extension, to provide the plugin with a migration path to the new DSL.
     - Generate a warning when the build script author uses the extension DSL to configure the model.
     - Generate a warning when the extension DSL is used after the model object has been closed.
@@ -202,7 +222,41 @@ The implementation should be able to detect and report on typos and predicates t
 - Model element is mutated after it is closed
 - Integration with old DSL.
 
+- Tool chain is modified once it has been used to define a binary:
+    - Gcc or Visual Studio install path, Gcc tool configuration, etc.
+- Tool chain is added once tool chains have been selected for a binary.
+
+### Open issues
+
+When locating a library in another project at dependency resolve time, should use the model registry locate the target library:
+
+1. Register the libraries in the model registry.
+2. Add an implicit rule that the project build script must be executed before creating any domain objects.
+
+Another example ordering problem:
+
+    project(":exe") {
+        evaluationDependsOn(":lib") // Closes the tasks for lib
+        executables {
+            main {}
+        }
+        sources.main.cpp.lib project: ':lib', library: 'hello'
+    }
+    project(":lib") {
+        // This stuff is effectively ignored
+        libraries {
+            hello {}
+        }
+    }
+
 ## Native language plugins do not create tasks for binaries that cannot be built
+
+Change the native language plugins so a single lifecycle task is created for each binary that is not buildable.
+
+## Native language plugins do not create model objects that are not required
+
+Change the visual studio plugin so that it does not create visual studio project instances that are not required by any visual studio solution,
+or the associated generation tasks.
 
 ## Plugins use model rules to define implicit tasks
 
@@ -219,6 +273,9 @@ Address some of the current problems with the publishing plugins:
 
 - Almost always need to determine the project version before closing the publications. This may happen in various places.
 - Warn when maven repositories are defined but no maven publications are defined, and vice versa. Same for Ivy.
+- Don't allow the identifier of a publication to be changed after the identity has been used:
+    - to generate a descriptor for a publication that depends on it
+    - at resolve time.
 - Validate publications once they have been configured.
 
 Remove support for `@DeferredConfigurable` once this is complete.

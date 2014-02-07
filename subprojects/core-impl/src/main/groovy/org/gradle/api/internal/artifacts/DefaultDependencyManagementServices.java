@@ -105,8 +105,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     metaDataProvider);
         }
 
-        DependencyHandler createDependencyHandler(ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler) {
-            return new DefaultDependencyHandler(configurationContainer,
+        DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
+                                                  ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler) {
+            return instantiator.newInstance(DefaultDependencyHandler.class,
+                    configurationContainer,
                     dependencyFactory,
                     projectFinder,
                     componentMetadataHandler);
@@ -117,14 +119,13 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ArtifactHandler createArtifactHandler(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, ConfigurationContainerInternal configurationContainer) {
-            NotationParser<PublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider).create();
+            NotationParser<Object, PublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider).create();
             return new DefaultArtifactHandler(configurationContainer, publishArtifactNotationParser);
         }
 
-        ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver, RepositoryHandler repositories) {
-            return new DefaultConfigurationResolver(
-                    artifactDependencyResolver,
-                    repositories);
+        ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver, RepositoryHandler repositories,
+                                                       ModuleMetadataProcessor metadataProcessor) {
+            return new DefaultConfigurationResolver(artifactDependencyResolver, repositories, metadataProcessor);
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

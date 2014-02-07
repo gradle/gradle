@@ -16,6 +16,15 @@
 
 package org.gradle.model;
 
+import org.gradle.api.Incubating;
+
+/**
+ * An model object mutation rule, provided to {@link ModelRules#rule(ModelRule)}.
+ *
+ * <p>Rules that are an instance of this class are executed after those rules that are not. This allows some
+ * basic control over rule ordering.
+ */
+@Incubating
 public abstract class ModelFinalizer extends ModelRule {
 
 }

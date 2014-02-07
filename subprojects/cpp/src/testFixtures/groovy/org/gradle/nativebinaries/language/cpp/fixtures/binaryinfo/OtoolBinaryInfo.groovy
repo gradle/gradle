@@ -16,8 +16,8 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
 
-import org.gradle.nativebinaries.internal.ArchitectureInternal
-import org.gradle.nativebinaries.internal.DefaultArchitecture
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
+import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
 
 class OtoolBinaryInfo implements BinaryInfo {
     def binaryFile
@@ -43,5 +43,17 @@ class OtoolBinaryInfo implements BinaryInfo {
     List<String> listObjectFiles() {
         def process = ['ar', '-t', binaryFile.getAbsolutePath()].execute()
         return process.inputStream.readLines().drop(1)
+    }
+
+    List<String> listLinkedLibraries() {
+        def process = ['otool', '-L', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        return lines
+    }
+
+    String getSoName() {
+        def process = ['otool', '-D', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        return lines[1]
     }
 }

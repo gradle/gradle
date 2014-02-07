@@ -63,10 +63,6 @@ useful can be inferred, the user can select from a list or assemble the model in
 
 Add the following types:
 
-- `groovy-library`
-    - Include a spock unit test
-- `scala-library`
-    - Include a scalatest suite
 - `gradle-plugin`
 - `web-application`
 - `java-application`

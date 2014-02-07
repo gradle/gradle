@@ -17,11 +17,11 @@ package org.gradle.internal.typeconversion;
 
 import java.util.Collection;
 
-public class JustReturningParser<T> implements NotationParser<T> {
+public class JustReturningParser<N, T> implements NotationParser<N, T> {
 
-    private final Class<T> passThroughType;
+    private final Class<? extends T> passThroughType;
 
-    public JustReturningParser(Class<T> passThroughType) {
+    public JustReturningParser(Class<? extends T> passThroughType) {
         this.passThroughType = passThroughType;
     }
 
@@ -29,7 +29,7 @@ public class JustReturningParser<T> implements NotationParser<T> {
         candidateFormats.add(String.format("Instances of %s.", passThroughType.getSimpleName()));
     }
 
-    public T parseNotation(Object notation) {
+    public T parseNotation(N notation) {
         if (!passThroughType.isInstance(notation)) {
             throw new UnsupportedNotationException(notation);
         }

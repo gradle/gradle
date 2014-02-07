@@ -18,23 +18,22 @@ package org.gradle.internal.typeconversion;
 
 import java.util.Collection;
 
-public class CompositeNotationParser<T> implements NotationParser<T> {
+public class CompositeNotationParser<N, T> implements NotationParser<N, T> {
+    private final Collection<? extends NotationParser<? super N, ? extends T>> delegates;
 
-    private final Collection<NotationParser<? extends T>> delegates;
-
-    public CompositeNotationParser(Collection<NotationParser<? extends T>> delegates) {
+    public CompositeNotationParser(Collection<? extends NotationParser<? super N, ? extends T>> delegates) {
         assert delegates != null : "delegates cannot be null!";
         this.delegates = delegates;
     }
 
     public void describe(Collection<String> candidateFormats) {
-        for (NotationParser<? extends T> delegate : delegates) {
+        for (NotationParser<?, ?> delegate : delegates) {
             delegate.describe(candidateFormats);
         }
     }
 
-    public T parseNotation(Object notation) {
-        for (NotationParser<? extends T> delegate : delegates) {
+    public T parseNotation(N notation) {
+        for (NotationParser<? super N, ? extends T> delegate : delegates) {
             try {
                 return delegate.parseNotation(notation);
             } catch (UnsupportedNotationException e) {

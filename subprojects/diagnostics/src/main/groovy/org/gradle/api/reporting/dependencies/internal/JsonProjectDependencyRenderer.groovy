@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -91,8 +92,6 @@ import org.gradle.util.GradleVersion
  *          }
  *      }
  * </pre>
- *
- * @author JB Nizet
  */
 class JsonProjectDependencyRenderer {
     private final VersionMatcher versionMatcher
@@ -146,7 +145,7 @@ class JsonProjectDependencyRenderer {
             String name = replaceArrow(childDependency.name)
             boolean hasConflict = name != childDependency.name
             def result = [
-                module : childDependency.id.group + ':' + childDependency.id.module,
+                module : getModuleIdentifier(childDependency)?.toString(),
                 name : name,
                 resolvable : childDependency.resolvable,
                 hasConflict : hasConflict,
@@ -157,6 +156,12 @@ class JsonProjectDependencyRenderer {
                 result.children = createDependencyChildren(childDependency, visited)
             }
             return result
+        }
+    }
+
+    private ModuleIdentifier getModuleIdentifier(RenderableDependency renderableDependency) {
+        if(renderableDependency.id instanceof ModuleComponentIdentifier) {
+            return new DefaultModuleIdentifier(renderableDependency.id.group, renderableDependency.id.module)
         }
     }
 
@@ -178,7 +183,7 @@ class JsonProjectDependencyRenderer {
 
     private void populateModulesWithChildDependencies(RenderableDependency dependency, Set<ComponentIdentifier> visited, Set<ModuleIdentifier> modules) {
         for (RenderableDependency childDependency : dependency.children) {
-            def moduleId = new DefaultModuleIdentifier(childDependency.id.group, childDependency.id.module)
+            def moduleId = getModuleIdentifier(childDependency)
             modules.add(moduleId)
             boolean alreadyVisited = !visited.add(childDependency.id);
             if (!alreadyVisited) {
@@ -189,7 +194,7 @@ class JsonProjectDependencyRenderer {
 
     private Map createModuleInsight(ModuleIdentifier module, Configuration configuration) {
         [
-            module : module.group + ':' + module.name,
+            module : module?.toString(),
             insight : createInsight(module, configuration)
         ]
     }

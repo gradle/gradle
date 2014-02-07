@@ -24,12 +24,12 @@ import java.util.Collection;
 import java.util.Formatter;
 import java.util.List;
 
-public class ErrorHandlingNotationParser<T> implements NotationParser<T> {
+public class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
     private final String targetTypeDisplayName;
     private final String invalidNotationMessage;
-    private final NotationParser<T> delegate;
+    private final NotationParser<N, T> delegate;
 
-    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, NotationParser<T> delegate) {
+    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, NotationParser<N, T> delegate) {
         this.targetTypeDisplayName = targetTypeDisplayName;
         this.invalidNotationMessage = invalidNotationMessage;
         this.delegate = delegate;
@@ -39,7 +39,7 @@ public class ErrorHandlingNotationParser<T> implements NotationParser<T> {
         delegate.describe(candidateFormats);
     }
 
-    public T parseNotation(Object notation) {
+    public T parseNotation(N notation) {
         Formatter message = new Formatter();
         if (notation == null) {
             //we don't support null input at the moment. If you need this please implement it.

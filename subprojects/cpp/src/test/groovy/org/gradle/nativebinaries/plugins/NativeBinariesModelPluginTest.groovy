@@ -15,14 +15,19 @@
  */
 
 package org.gradle.nativebinaries.plugins
+
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.ArchitectureInternal
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
 import org.gradle.nativebinaries.internal.DefaultFlavor
-import org.gradle.nativebinaries.internal.ToolChainInternal
+import org.gradle.nativebinaries.platform.Platform
+import org.gradle.nativebinaries.platform.PlatformContainer
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
+import org.gradle.nativebinaries.toolchain.ToolChainRegistry
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -37,76 +42,82 @@ class NativeBinariesModelPluginTest extends Specification {
         expect:
         project.executables instanceof NamedDomainObjectContainer
         project.libraries instanceof NamedDomainObjectContainer
-        project.toolChains instanceof NamedDomainObjectContainer
-        project.targetPlatforms instanceof NamedDomainObjectContainer
-        project.buildTypes instanceof NamedDomainObjectContainer
+        project.modelRegistry.get("toolChains", ToolChainRegistry) != null
+        project.modelRegistry.get("platforms", PlatformContainer) != null
+        project.modelRegistry.get("buildTypes", BuildTypeContainer) != null
+        project.modelRegistry.get("flavors", FlavorContainer) != null
     }
 
-    def "adds default tool chain, target platform and build type"() {
-        when:
-        project.evaluate()
-
-        then:
-        one(project.toolChains).name == 'unavailable'
-        with (one(project.targetPlatforms)) {
+    def "adds default target platform, build type and flavor"() {
+        expect:
+        with (one(project.modelRegistry.get("platforms", PlatformContainer))) {
             name == 'current'
             architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
         }
-        with (one(project.buildTypes)) {
-            name == 'debug'
-        }
+        one(project.modelRegistry.get("buildTypes", BuildTypeContainer)).name == 'debug'
+        one(project.modelRegistry.get("flavors", FlavorContainer)).name == 'default'
     }
 
-    def "default tool chain is unavailable"() {
-        given:
-        project.evaluate()
-
-        when:
-        one(project.toolChains).target(null)
-
-        then:
-        def t = thrown(IllegalStateException)
-        t.message == "No tool chain is available: [No tool chain plugin applied]"
+    def "does not provide a default tool chain"() {
+        expect:
+        project.modelRegistry.get("toolChains", ToolChainRegistry).isEmpty()
     }
 
-    def "adds default flavor to every component"() {
+    def "adds default flavor to every binary"() {
         when:
         project.executables.create "exe"
         project.libraries.create "lib"
         project.evaluate()
 
         then:
-        one(project.executables.exe.flavors).name == DefaultFlavor.DEFAULT
-        one(project.libraries.lib.flavors).name == DefaultFlavor.DEFAULT
+        one(project.binaries.withType(ExecutableBinary)).flavor.name == DefaultFlavor.DEFAULT
+        one(project.binaries.withType(SharedLibraryBinary)).flavor.name == DefaultFlavor.DEFAULT
     }
 
     def "does not add defaults when domain is explicitly configured"() {
         when:
-        project.toolChains.add named(ToolChainInternal, "tc")
-        project.targetPlatforms.add named(Platform, "platform")
-        project.buildTypes.add named(BuildType, "bt")
-
-        and:
-        def exe = project.executables.create "exe"
-        exe.flavors.add named(Flavor, 'flav')
+        project.model {
+            toolChains {
+                add named(ToolChainInternal, "tc")
+            }
+            platforms {
+                add named(Platform, "platform")
+            }
+            buildTypes {
+                add named(BuildType, "bt")
+            }
+            flavors {
+                add named(Flavor, "flavor1")
+            }
+        }
 
         and:
         project.evaluate()
 
         then:
-        one(project.toolChains).name == 'tc'
-        one(project.targetPlatforms).name == 'platform'
-        one(project.buildTypes).name == 'bt'
-        one(one(project.executables).flavors).name == 'flav'
-
+        one(project.modelRegistry.get("toolChains", ToolChainRegistry)).name == 'tc'
+        one(project.modelRegistry.get("platforms", PlatformContainer)).name == 'platform'
+        one(project.modelRegistry.get("buildTypes", BuildTypeContainer)).name == 'bt'
+        one(project.modelRegistry.get("flavors", FlavorContainer)).name == 'flavor1'
     }
 
     def "creates binaries for executable"() {
         when:
         project.plugins.apply(NativeBinariesModelPlugin)
-        project.toolChains.add named(ToolChainInternal, "tc")
-        project.targetPlatforms.add named(Platform, "platform")
-        project.buildTypes.add named(BuildType, "bt")
+        project.model {
+            toolChains {
+                add toolChain("tc")
+            }
+            platforms {
+                add named(Platform, "platform")
+            }
+            buildTypes {
+                add named(BuildType, "bt")
+            }
+            flavors {
+                add named(Flavor, "flavor1")
+            }
+        }
         def executable = project.executables.create "test"
         project.evaluate()
 
@@ -118,6 +129,7 @@ class NativeBinariesModelPluginTest extends Specification {
             toolChain.name == "tc"
             targetPlatform.name == "platform"
             buildType.name == "bt"
+            flavor.name == "flavor1"
         }
 
         and:
@@ -127,9 +139,20 @@ class NativeBinariesModelPluginTest extends Specification {
     def "creates binaries for library"() {
         when:
         project.plugins.apply(NativeBinariesModelPlugin)
-        project.toolChains.add named(ToolChainInternal, "tc")
-        project.targetPlatforms.add named(Platform, "platform")
-        project.buildTypes.add named(BuildType, "bt")
+        project.model {
+            toolChains {
+                add toolChain("tc")
+            }
+            platforms {
+                add named(Platform, "platform")
+            }
+            buildTypes {
+                add named(BuildType, "bt")
+            }
+            flavors {
+                add named(Flavor, "flavor1")
+            }
+        }
         def library = project.libraries.create "test"
         project.evaluate()
 
@@ -142,6 +165,7 @@ class NativeBinariesModelPluginTest extends Specification {
             toolChain.name == "tc"
             targetPlatform.name == "platform"
             buildType.name == "bt"
+            flavor.name == "flavor1"
         }
 
         and:
@@ -153,6 +177,7 @@ class NativeBinariesModelPluginTest extends Specification {
             toolChain.name == "tc"
             targetPlatform.name == "platform"
             buildType.name == "bt"
+            flavor.name == "flavor1"
         }
 
         and:
@@ -185,7 +210,7 @@ class NativeBinariesModelPluginTest extends Specification {
         }
     }
 
-    def one(def collection) {
+    static <T> T one(Collection<T> collection) {
         assert collection.size() == 1
         return collection.iterator().next()
     }
@@ -193,6 +218,15 @@ class NativeBinariesModelPluginTest extends Specification {
     def named(Class type, def name) {
         Stub(type) {
             getName() >> name
+        }
+    }
+
+    def toolChain(def name) {
+        Stub(ToolChainInternal) {
+            getName() >> name
+            canTargetPlatform(_) >> Stub(ToolSearchResult) {
+                isAvailable() >> true
+            }
         }
     }
 

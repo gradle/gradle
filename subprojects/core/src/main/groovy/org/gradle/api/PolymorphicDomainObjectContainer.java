@@ -39,6 +39,21 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
     <U extends T> U create(String name, Class<U> type) throws InvalidUserDataException;
 
     /**
+     * Looks for an item with the given name and type, creating and adding it to this container if it does not exist.
+     *
+     * @param name the name of the domain object to be created
+     * @param type the type of the domain object to be created
+     * @param <U> the type of the domain object to be created
+     *
+     * @return the found or created domain object, never <code>null</code>.
+     *
+     * @throws InvalidUserDataException if the container does not support creating a domain object with the specified type
+     * @throws ClassCastException if a domain object with the specified name exists with a different type
+     */
+    @Incubating
+    <U extends T> U maybeCreate(String name, Class<U> type) throws InvalidUserDataException;
+
+    /**
      * Creates a domain object with the specified name and type, adds it to the container, and configures
      * it with the specified action.
      *

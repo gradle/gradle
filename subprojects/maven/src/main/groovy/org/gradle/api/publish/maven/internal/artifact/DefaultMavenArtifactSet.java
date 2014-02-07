@@ -35,9 +35,9 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     private final String publicationName;
     private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
     private final ArtifactsFileCollection files = new ArtifactsFileCollection();
-    private final NotationParser<MavenArtifact> mavenArtifactParser;
+    private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
-    public DefaultMavenArtifactSet(String publicationName, NotationParser<MavenArtifact> mavenArtifactParser) {
+    public DefaultMavenArtifactSet(String publicationName, NotationParser<Object, MavenArtifact> mavenArtifactParser) {
         super(MavenArtifact.class);
         this.publicationName = publicationName;
         this.mavenArtifactParser = mavenArtifactParser;

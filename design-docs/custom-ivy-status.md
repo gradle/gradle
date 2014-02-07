@@ -108,14 +108,47 @@ The `componentMetadata` rule should allow to declare a component as "changing". 
         }
     }
 
+Out-of-scope for this story is to deal with changes to the rule logic and caching. This is dealt with by the next story. Implementation-wise, this means it
+is sufficient for this story to execute the meta-data rules where they currently are (in the ExternalResourceResolver) and to store the result in the
+cache.
+
 ### User visible changes
 
 Add a "changing" property to `ComponentMetadataDetails`.
 
 ### Test coverage
 
-* Add a "changing" rule and verify that the module is treated as changing (cf. the existing concept of changing dependency).
-* Verify that `details.changing` is initialized correctly for a module that results from resolving a changing dependency.
+* Add a rule that forces a static component to changing and verify that the component is treated as changing (cf. the existing concept of changing dependency).
+    * Verify that the `changing` flag defaults to `false`.
+    * Verify that the component is treated as changing.
+    * When expired, HTTP requests are made to verify the component meta-data and artifacts have changed, and artifacts downloaded if they have changed.
+* Add a rule that forces a changing component to not changing and verify that the component is treated as static.
+    * Verify that the `changing` flag defaults to `true`.
+    * Verify that the component is treated as not changing.
+* Verify that `details.changing` is initialized to true for:
+    * Dependency declaration with `changing` flag set to `true`
+    * Maven snapshots.
+* Verify that `details.changing` is initialized to false for:
+    * Static dependency
+    * Dynamic dependency (that is, the dependency may refer to different components over time, but the components themselves do not change)
+
+## GRADLE-2903 - Component metadata respects changes to metadata rule implementation
+
+It should be possible to change the implementation of a metadata rule and have those changes reflected in the meta-data components, regardless of
+whether the component is cached or not, as if the rule is evaluated on each resolution (and this is certainly one possible implementation).
+
+### Implementation
+
+Whenever `CachingMavenRepository` needs to query the changing flag for a component, component metadata rules are evaluated just beforehand. Rules are
+evaluated at most twice per dependency to be resolved (not counting any rule evaluations performed by other classes). Rules are evaluated after writing into
+the metadata cache, hence any changes made by rules won't be cached.
+
+### Test coverage
+
+* Changes made to the changing flag by a component metadata rule aren't cached.
+    * Add a rule that makes a non-changing component changing
+    * Resolve the component
+    * Verify that on the next resolve, component is again presented as non-changing to metadata rule
 
 ## Consume a "latest" version of an Ivy module with custom status that exists in multiple Ivy repositories
 

@@ -19,16 +19,19 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler;
+import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
+import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
+import org.gradle.messaging.remote.internal.MessagingServices;
+import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 
 import java.io.InputStream;
 
@@ -44,8 +47,19 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
         addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
     }
 
-    protected FileLockManager createFileLockManager(ProcessEnvironment processEnvironment) {
-        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(processEnvironment), new NoOpFileLockContentionHandler());
+    protected FileLockManager createFileLockManager(ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
+        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(processEnvironment), fileLockContentionHandler);
+    }
+
+    protected MessagingServices createMessagingServices() {
+        return new MessagingServices(getClass().getClassLoader());
+    }
+
+    protected FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, MessagingServices messagingServices) {
+        return new DefaultFileLockContentionHandler(
+                executorFactory,
+                messagingServices.get(InetAddressFactory.class)
+        );
     }
 
     protected ExecutorFactory createExecutorFactory() {

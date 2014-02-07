@@ -110,7 +110,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public MavenArtifactRepository createJCenterRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository();
-        mavenRepository.setUrl(DefaultRepositoryHandler.BINTRAY_JCENTER_URL);
+        String url = System.getProperty(JCENTER_REPO_OVERRIDE_URL_PROPERTY, DefaultRepositoryHandler.BINTRAY_JCENTER_URL);
+        mavenRepository.setUrl(url);
         return mavenRepository;
     }
 

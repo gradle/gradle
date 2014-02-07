@@ -16,6 +16,8 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.maven.M2Installation
+import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -305,6 +307,33 @@ uploadArchives {
         server.expectPut("$path/$name", moduleDir.file("$name"))
         server.expectPut("$path/${name}.md5", moduleDir.file("${name}.md5"))
         server.expectPut("$path/${name}.sha1", moduleDir.file("${name}.sha1"))
+    }
+
+    def "can publish to custom maven local repo defined in settings.xml"() {
+        given:
+        def m2Installation = new M2Installation(testDirectory)
+        def localM2Repo = m2Installation.mavenRepo()
+        def customLocalRepo = new MavenLocalRepository(file("custom-maven-local"))
+        m2Installation.generateUserSettingsFile(customLocalRepo)
+        executer.beforeExecute(m2Installation)
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+        """
+
+        when:
+        args "-i"
+        succeeds 'install'
+
+        then:
+        !localM2Repo.module("group", "root", "1.0").artifactFile(type: "jar").exists()
+        customLocalRepo.module("group", "root", "1.0").assertPublishedAsJavaModule()
     }
 
     @Unroll

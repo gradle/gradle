@@ -40,7 +40,12 @@ class ResultsStoreTest extends ResultSpecification {
                 vcsCommit: "1234")
         def baseline1 = result1.baseline("1.0")
         def baseline2 = result1.baseline("1.5")
-        result1.current << operation(executionTime: minutes(12), heapUsed: kbytes(12.33))
+        result1.current << operation(executionTime: minutes(12),
+                totalMemoryUsed: kbytes(12.33),
+                totalHeapUsage: kbytes(5612.45),
+                maxHeapUsage: kbytes(124.01),
+                maxUncollectedHeap: kbytes(45.22),
+                maxCommittedHeap: kbytes(200))
         baseline1.results << operation()
         baseline2.results << operation()
         baseline2.results << operation()
@@ -91,6 +96,10 @@ class ResultsStoreTest extends ResultSpecification {
         results[0].current.size() == 1
         results[0].current[0].executionTime == minutes(12)
         results[0].current[0].totalMemoryUsed == kbytes(12.33)
+        results[0].current[0].totalHeapUsage == kbytes(5612.45)
+        results[0].current[0].maxHeapUsage == kbytes(124.01)
+        results[0].current[0].maxUncollectedHeap == kbytes(45.22)
+        results[0].current[0].maxCommittedHeap == kbytes(200)
         results[0].baselineVersions*.version == ["1.0", "1.5"]
         results[0].baseline("1.0").results.size() == 1
         results[0].baseline("1.5").results.size() == 3
@@ -118,15 +127,11 @@ class ResultsStoreTest extends ResultSpecification {
     }
 
     def "returns test names in ascending order"() {
-        def result1 = results(testId: "test1", testTime: 30000, versionUnderTest: "1.7-rc-1")
-        def result2 = results(testId: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
-        def result3 = results(testId: "test3", testTime: 10000, versionUnderTest: "1.7-rc-3")
-
         given:
         def writeStore = new ResultsStore(dbFile)
-        writeStore.report(result3)
-        writeStore.report(result1)
-        writeStore.report(result2)
+        writeStore.report(results(testId: "test3"))
+        writeStore.report(results(testId: "test1"))
+        writeStore.report(results(testId: "test2"))
         writeStore.close()
 
         when:
@@ -142,15 +147,11 @@ class ResultsStoreTest extends ResultSpecification {
     }
 
     def "returns test executions in descending date order"() {
-        def result1 = results(testId: "some test", testTime: 10000, versionUnderTest: "1.7-rc-1")
-        def result2 = results(testId: "some test", testTime: 20000, versionUnderTest: "1.7-rc-2")
-        def result3 = results(testId: "some test", testTime: 30000, versionUnderTest: "1.7-rc-3")
-
         given:
         def writeStore = new ResultsStore(dbFile)
-        writeStore.report(result3)
-        writeStore.report(result1)
-        writeStore.report(result2)
+        writeStore.report(results(testId: "some test", testTime: 30000, versionUnderTest: "1.7-rc-3"))
+        writeStore.report(results(testId: "some test", testTime: 10000, versionUnderTest: "1.7-rc-1"))
+        writeStore.report(results(testId: "some test", testTime: 20000, versionUnderTest: "1.7-rc-2"))
         writeStore.close()
 
         when:
@@ -161,6 +162,38 @@ class ResultsStoreTest extends ResultSpecification {
         results.results.size() == 3
         results.results*.versionUnderTest == ["1.7-rc-3", "1.7-rc-2", "1.7-rc-1"]
         results.resultsOldestFirst*.versionUnderTest == ["1.7-rc-1", "1.7-rc-2", "1.7-rc-3"]
+
+        cleanup:
+        writeStore?.close()
+        readStore?.close()
+    }
+
+    def "returns baseline versions in ascending order"() {
+        given:
+        def writeStore = new ResultsStore(dbFile)
+
+        def results1 = results()
+        results1.baseline("1.8-rc-2").results << operation()
+        results1.baseline("1.0").results << operation()
+        def results2 = results()
+        results2.baseline("1.8-rc-1").results << operation()
+        results2.baseline("1.0").results << operation()
+        results2.baseline("1.10").results << operation()
+        def results3 = results()
+        results3.baseline("1.8").results << operation()
+        results3.baseline("1.10").results << operation()
+
+        writeStore.report(results1)
+        writeStore.report(results2)
+        writeStore.report(results3)
+        writeStore.close()
+
+        when:
+        def readStore = new ResultsStore(dbFile)
+        def results = readStore.getTestResults("test-id")
+
+        then:
+        results.baselineVersions == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10"]
 
         cleanup:
         writeStore?.close()

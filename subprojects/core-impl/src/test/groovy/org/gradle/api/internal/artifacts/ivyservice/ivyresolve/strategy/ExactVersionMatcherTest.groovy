@@ -38,8 +38,8 @@ class ExactVersionMatcherTest extends Specification {
 
     def "doesn't need metadata"() {
         expect:
-        !matcher.needModuleMetadata("1.0", "1.0")
-        !matcher.needModuleMetadata("[1.0,2.0]", "2.0")
+        !matcher.needModuleMetadata("1.0")
+        !matcher.needModuleMetadata("[1.0,2.0]")
     }
 
     def "accepts candidate version iff it literally matches the selector"() {

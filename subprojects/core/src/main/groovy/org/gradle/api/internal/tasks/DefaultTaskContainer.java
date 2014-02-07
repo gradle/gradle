@@ -23,6 +23,7 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.reflect.Instantiator;
@@ -65,6 +66,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         add(task);
 
         return task;
+    }
+
+    public <U extends Task> U maybeCreate(String name, Class<U> type) throws InvalidUserDataException {
+        Task existing = findByName(name);
+        if (existing != null) {
+            return Transformers.cast(type).transform(existing);
+        }
+        return create(name, type);
     }
 
     public Task add(Map<String, ?> options) {
@@ -175,12 +184,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return task;
     }
 
-    protected Object createConfigureDelegate(Closure configureClosure) {
-        return new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
-    }
-
     public TaskContainerInternal configure(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, createConfigureDelegate(configureClosure));
+        ConfigureUtil.configure(configureClosure, new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this));
         return this;
     }
 

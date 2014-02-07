@@ -19,6 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.ModuleInternal;
@@ -27,7 +28,8 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.*;
-import org.gradle.api.internal.initialization.*;
+import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
@@ -46,7 +48,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.ModelRules;
 import org.gradle.model.internal.DefaultModelRegistry;
@@ -60,7 +61,7 @@ import java.io.File;
 /**
  * Contains the services for a given project.
  */
-public class ProjectScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class ProjectScopeServices extends DefaultServiceRegistry {
     private final ProjectInternal project;
 
     public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project) {
@@ -78,7 +79,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(ScriptClassLoaderProvider.class), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(project.getClassLoaderScope().createChild().lock(), new DependencyInjectingInstantiator(this));
     }
 
     protected FileResolver createFileResolver() {
@@ -146,18 +147,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
         return get(Instantiator.class).newInstance(ModelRegistryBackedModelRules.class, get(ModelRegistry.class));
     }
 
-    protected ScriptHandlerInternal createScriptHandler() {
+    protected ScriptHandler createScriptHandler() {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
                 get(DependencyManagementServices.class),
                 get(FileResolver.class),
                 get(DependencyMetaDataProvider.class));
-        ScriptCompileScope parentScope;
-        if (project.getParent() != null) {
-            parentScope = project.getParent().getServices().get(ScriptCompileScope.class);
-        } else {
-            parentScope = get(BuildClassLoaderRegistry.class).getRootCompileScope();
-        }
-        return factory.create(project.getBuildScriptSource(), parentScope, project);
+        return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), project);
     }
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
@@ -168,11 +163,14 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
         };
     }
 
-    public ServiceRegistryFactory createFor(Object domainObject) {
-        if (domainObject instanceof TaskInternal) {
-            return new TaskScopeServices(this, project, (TaskInternal) domainObject);
-        }
-        throw new UnsupportedOperationException();
+    protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
+        return new ServiceRegistryFactory() {
+            public ServiceRegistry createFor(Object domainObject) {
+                if (domainObject instanceof TaskInternal) {
+                    return new TaskScopeServices(services, project, (TaskInternal) domainObject);
+                }
+                throw new UnsupportedOperationException();
+            }
+        };
     }
-
 }

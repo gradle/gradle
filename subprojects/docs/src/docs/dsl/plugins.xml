@@ -77,11 +77,18 @@
         <extends targetClass="org.gradle.api.Project" id="jacoco" extensionClass="org.gradle.testing.jacoco.plugins.JacocoPluginExtension"/>
         <extends targetClass="org.gradle.api.tasks.testing.Test" id="jacoco" extensionClass="org.gradle.testing.jacoco.plugins.JacocoTaskExtension"/>
     </plugin>
+    <plugin id="LanguageBasePlugin" description="Language Base Plugin">
+        <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.language.base.BinaryContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="sources" extensionClass="org.gradle.language.base.ProjectSourceSet"/>
+    </plugin>
     <plugin id="native-binaries" description="Native Binaries Model Plugin">
-        <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativebinaries.ToolChainRegistry"/>
         <extends targetClass="org.gradle.api.Project" id="executables" extensionClass="org.gradle.nativebinaries.ExecutableContainer"/>
         <extends targetClass="org.gradle.api.Project" id="libraries" extensionClass="org.gradle.nativebinaries.LibraryContainer"/>
         <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.language.base.BinaryContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativebinaries.toolchain.ToolChainRegistry"/>
+        <extends targetClass="org.gradle.api.Project" id="buildTypes" extensionClass="org.gradle.nativebinaries.BuildTypeContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="platforms" extensionClass="org.gradle.nativebinaries.platform.PlatformContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="flavors" extensionClass="org.gradle.nativebinaries.FlavorContainer"/>
     </plugin>
     <plugin id="cpp" description="C++ Plugin">
         <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cppCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
@@ -91,5 +98,20 @@
     </plugin>
     <plugin id="assembler" description="Assembler Plugin">
         <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="assembler" extensionClass="org.gradle.nativebinaries.Tool"/>
+    </plugin>
+    <plugin id="objective-c" description="Objective-C Plugin">
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="objectiveCCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
+    </plugin>
+    <plugin id="objective-cpp" description="Objective-C++ Plugin">
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="objectiveCppCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
+    </plugin>
+    <plugin id="windows-resources" description="Windows Resources Plugin">
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="rcCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
+    </plugin>
+    <plugin id="visual-studio" description="Visual Studio Plugin">
+        <extends targetClass="org.gradle.api.Project" id="visualStudio" extensionClass="org.gradle.ide.visualstudio.VisualStudioExtension"/>
+    </plugin>
+    <plugin id="cunit" description="CUnit Test Plugin">
+        <extends targetClass="org.gradle.api.Project" id="testSuites" extensionClass="org.gradle.nativebinaries.test.TestSuiteContainer"/>
     </plugin>
 </plugins>

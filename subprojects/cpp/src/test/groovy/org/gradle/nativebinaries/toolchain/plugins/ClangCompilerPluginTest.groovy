@@ -16,47 +16,42 @@
 
 package org.gradle.nativebinaries.toolchain.plugins
 
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.api.Plugin
+import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.internal.clang.ClangToolChain
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class ClangCompilerPluginTest extends Specification {
-    def project = TestUtil.createRootProject()
+class ClangCompilerPluginTest extends ToolChainPluginTest {
 
-    def setup() {
-        project.plugins.apply(ClangCompilerPlugin)
+    @Override
+    Class<? extends Plugin> getPluginClass() {
+        ClangCompilerPlugin
+    }
+
+    @Override
+    Class<? extends ToolChain> getToolchainClass() {
+        Clang
+    }
+
+    @Override
+    String getToolchainName() {
+        "clang"
     }
 
     def "makes a Clang tool chain available"() {
         when:
-        project.toolChains.create("clang", Clang)
+        register()
 
         then:
-        project.toolChains.clang instanceof ClangToolChain
+        toolchain instanceof ClangToolChain
+        toolchain.displayName == "Tool chain 'clang' (Clang)"
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "registers default Clang tool chain"() {
         when:
-        project.toolChains.addDefaultToolChain()
+        addDefaultToolchain()
 
         then:
-        project.toolChains.clang instanceof ClangToolChain
-    }
-
-    def "Clang tool chain is extended"() {
-        when:
-        project.toolChains.create("clang", Clang)
-
-        then:
-        with(project.toolChains.clang) {
-            it instanceof ExtensionAware
-            it.ext instanceof ExtraPropertiesExtension
-        }
+        toolchain instanceof ClangToolChain
     }
 }

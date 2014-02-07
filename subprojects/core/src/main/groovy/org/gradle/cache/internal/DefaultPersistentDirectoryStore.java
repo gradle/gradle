@@ -15,22 +15,22 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Action;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.IOException;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     private final File dir;
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
     private final String displayName;
-    private DefaultCacheAccess cacheAccess;
+    private CacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(File dir, String displayName, LockOptions lockOptions, FileLockManager fileLockManager) {
         this.dir = dir;
@@ -44,14 +44,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         cacheAccess = createCacheAccess();
         try {
             cacheAccess.open(lockOptions);
-            try {
-                init();
-            } catch (Throwable throwable) {
-                if (cacheAccess != null) {
-                    cacheAccess.close();
-                }
-                throw throwable;
-            }
         } catch (Throwable e) {
             throw new CacheOpenException(String.format("Could not open %s.", this), e);
         }
@@ -59,36 +51,24 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return this;
     }
 
-    private DefaultCacheAccess createCacheAccess() {
-        return new DefaultCacheAccess(displayName, getLockTarget(), lockManager);
+    private CacheCoordinator createCacheAccess() {
+        return new DefaultCacheAccess(displayName, getLockTarget(), dir, lockManager, getInitAction());
     }
-
-    protected void withExclusiveLock(Action<FileLock> action) {
-        if (cacheAccess != null && (cacheAccess.getFileLock().getMode() == FileLockManager.LockMode.Exclusive)) {
-            action.execute(getLock());
-        } else {
-            boolean reopen = cacheAccess != null;
-            close();
-            DefaultCacheAccess exclusiveAccess = createCacheAccess();
-            exclusiveAccess.open(lockOptions.withMode(FileLockManager.LockMode.Exclusive));
-            try {
-                action.execute(exclusiveAccess.getFileLock());
-            } finally {
-                exclusiveAccess.close();
-            }
-            if (reopen) {
-                cacheAccess = createCacheAccess();
-                cacheAccess.open(lockOptions);
-            }
-        }
-    }
-
 
     protected File getLockTarget() {
         return dir;
     }
 
-    protected void init() throws IOException {
+    protected CacheInitializationAction getInitAction() {
+        return new CacheInitializationAction() {
+            public boolean requiresInitialization(FileLock fileLock) {
+                return false;
+            }
+
+            public void initialize(FileLock fileLock) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     public void close() {
@@ -99,11 +79,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
                 cacheAccess = null;
             }
         }
-
-    }
-
-    public FileLock getLock() {
-        return cacheAccess.getFileLock();
     }
 
     public File getBaseDir() {
@@ -117,6 +92,10 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
         return cacheAccess.newCache(parameters);
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+        return cacheAccess.newCache(new PersistentIndexedCacheParameters<K, V>(name, keyType, valueSerializer));
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
