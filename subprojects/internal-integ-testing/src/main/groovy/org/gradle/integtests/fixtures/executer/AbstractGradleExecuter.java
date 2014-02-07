@@ -72,6 +72,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean requireGradleHome;
 
     private boolean deprecationChecksOn = true;
+    private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
 
     private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
@@ -510,7 +511,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         properties.put("file.encoding", getDefaultCharacterEncoding());
 
-        properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, "true");
+        if (eagerClassLoaderCreationChecksOn) {
+            properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, "true");
+        }
 
         return properties;
     }
@@ -625,6 +628,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         deprecationChecksOn = false;
         // turn off stack traces too
         stackTraceChecksOn = false;
+        return this;
+    }
+
+    public GradleExecuter withEagerClassLoaderCreationCheckDisabled() {
+        eagerClassLoaderCreationChecksOn = false;
         return this;
     }
 
