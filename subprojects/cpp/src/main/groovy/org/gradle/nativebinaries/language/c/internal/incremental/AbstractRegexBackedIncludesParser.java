@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.BufferedReader;
@@ -60,7 +61,7 @@ public class AbstractRegexBackedIncludesParser implements IncludesParser {
                     }
                 }
             } finally {
-                bf.close();
+                IOUtils.closeQuietly(bf);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
