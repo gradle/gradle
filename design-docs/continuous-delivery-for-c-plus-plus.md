@@ -1038,7 +1038,7 @@ To implement this:
 * Assemble source set includes files with the same name in different directories. (✓)
 * Windows resource source set includes files with the same name in different directories. (✓)
 * C, C++, Objective-C and Objective-C++ source sets include files with the same base name (eg there's a `foo.c`, `foo.cpp`, `foo.m` and `foo.mm` in the same directory)
-* Removes stale outputs when source file is moved to a different directory
+* Removes stale outputs when source file is moved to a different directory (✓)
 
 # Milestone 4
 
