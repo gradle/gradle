@@ -65,7 +65,7 @@ class DuplicateAssemblerBaseNamesTestApp extends TestComponent{
 
 PUBLIC    _${methodName}
 _TEXT     SEGMENT
-__${methodName}    PROC
+_${methodName}    PROC
 mov    eax, DWORD PTR 4[esp]
 add    eax, DWORD PTR 8[esp]
 ret    0
