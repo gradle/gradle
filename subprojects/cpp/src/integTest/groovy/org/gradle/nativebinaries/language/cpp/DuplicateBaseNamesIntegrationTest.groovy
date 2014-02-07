@@ -17,11 +17,14 @@
 package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateAssemblerBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateCBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateCppBaseNamesTestApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
-// TODO add coverage for windows-resources, objective-c/c++ & mixed sources
+// TODO add coverage for objective-c/c++ & mixed sources
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can have sourcefiles with same base name but different directories"() {
@@ -46,7 +49,6 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
 
             """
         expect:
-        executer.withArgument("-i")
         succeeds "mainExecutable"
         executable("build/binaries/mainExecutable/main").exec().out == "foo1foo2"
         where:
@@ -55,6 +57,26 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
                 new DuplicateCppBaseNamesTestApp(),
                 new DuplicateAssemblerBaseNamesTestApp(toolChain) ]
     }
+
+    @RequiresInstalledToolChain(VisualCpp)
+    def "windows-resources can have sourcefiles with same base name but different directories"() {
+        setup:
+        def testApp = new DuplicateWindowsResourcesBaseNamesTestApp();
+        testApp.writeSources(file("src/main"))
+        buildFile.text = ""
+        testApp.plugins.each{ plugin ->
+            buildFile << "apply plugin: '$plugin'\n"
+        }
+        buildFile <<"""
+            binaries.all {
+                linker.args "user32.lib"
+            }
+            executables {
+                main {}
+            }
+            """
+        expect:
+        succeeds "mainExecutable"
+        executable("build/binaries/mainExecutable/main").exec().out == "foo1foo2"
+    }
 }
-
-

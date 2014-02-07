@@ -20,17 +20,6 @@ class DuplicateCppBaseNamesTestApp extends TestComponent {
 
     def plugins = ["cpp"]
 
-
-    @Override
-    SourceFile getMainSource() {
-
-    }
-
-    @Override
-    SourceFile getLibraryHeader() {
-
-    }
-
     @Override
     List<SourceFile> getSourceFiles() {
         [sourceFile("cpp", "main.cpp", """
