@@ -67,6 +67,10 @@ public class BroadcastDispatch<T> implements Dispatch<MethodInvocation> {
         handlers.remove(listener);
     }
 
+    public void removeAll() {
+        handlers.clear();
+    }
+
     private String getErrorMessage() {
         String typeDescription = type.getSimpleName().replaceAll("(\\p{Upper})", " $1").trim().toLowerCase();
         return String.format("Failed to notify %s.", typeDescription);

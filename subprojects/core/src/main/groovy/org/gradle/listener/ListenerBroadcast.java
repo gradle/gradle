@@ -114,6 +114,13 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
     }
 
     /**
+     * Removes all listeners.
+     */
+    public void removeAll() {
+        broadcast.removeAll();
+    }
+
+    /**
      * Broadcasts the given event to all listeners.
      *
      * @param event The event
