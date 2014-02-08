@@ -51,8 +51,8 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "build binary for a default target platform"() {
         given:
         def arch =  [name: "x86_64", altName: "amd64"]
-        // VisualCpp builds for i386 by default, even on amd64
-        if (toolChain.visualCpp || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
+        // Tool chains on Windows currently build for i386 by default, even on amd64
+        if (OperatingSystem.current().windows || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
             arch = [name: "x86", altName: "i386"]
         }
 
