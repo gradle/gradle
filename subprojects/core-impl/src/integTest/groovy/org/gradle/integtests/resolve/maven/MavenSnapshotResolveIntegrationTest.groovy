@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenHttpModule
 import spock.lang.Ignore
+import spock.lang.Issue
 
 class MavenSnapshotResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -510,6 +511,64 @@ project('second') {
         then:
         downloadedJarFile.assertHasChangedSince(initialDownloadJarFileSnapshot)
         downloadedJarFile.assertIsCopyOf(module.artifactFile)
+    }
+
+    @Issue("GRADLE-3017")
+    def "resolves changed metadata in snapshot dependency"() {
+        given:
+        server.start()
+
+        def projectB1 = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
+        def projectB2 = mavenHttpRepo.module('group', 'projectB', '2.0').publish()
+        def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").dependsOn('group', 'projectB', '1.0').publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
+dependencies {
+    compile 'group:projectA:1.0-SNAPSHOT'
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        projectA.pom.expectGet()
+        projectA.metaData.expectGet()
+        projectA.artifact.expectGet()
+        projectB1.pom.expectGet()
+        projectB1.artifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
+
+        when:
+        projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").dependsOn('group', 'projectB', '2.0').publishWithChangedContent()
+        projectA.pom.expectHead()
+        projectA.pom.sha1.expectGet()
+        projectA.pom.expectGet()
+        projectA.metaData.expectGet()
+        projectA.artifact.expectHead()
+        projectA.artifact.sha1.expectGet()
+        projectA.artifact.expectGet()
+        projectB2.pom.expectGet()
+        projectB2.artifact.expectGet()
+        and:
+        run 'retrieve'
+        then:
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
     }
 
     private expectModuleServed(MavenHttpModule module) {
