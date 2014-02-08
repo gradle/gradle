@@ -568,7 +568,7 @@ task retrieve(type: Sync) {
         and:
         run 'retrieve'
         then:
-        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
     private expectModuleServed(MavenHttpModule module) {
