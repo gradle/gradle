@@ -528,7 +528,9 @@ repositories {
 }
 configurations {
     compile {
-        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+        if (project.hasProperty('bypassCache')) {
+            resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+        }
     }
 }
 dependencies {
@@ -542,32 +544,49 @@ task retrieve(type: Sync) {
 """
 
         when:
+        run 'retrieve'
+
+        and:
         projectA.pom.expectGet()
         projectA.metaData.expectGet()
         projectA.artifact.expectGet()
         projectB1.pom.expectGet()
         projectB1.artifact.expectGet()
 
-        and:
-        run 'retrieve'
-
         then:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
 
-        when:
-        projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").dependsOn('group', 'projectB', '2.0').publishWithChangedContent()
+        when: "Project A is published with changed dependencies"
+        server.resetExpectations()
+        projectA = projectA.dependsOn('group', 'projectB', '2.0').publish()
+
+        and: "Resolve with caching"
+        run 'retrieve'
+
+        then: "Gets original ProjectA metadata from cache"
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
+
+        when: "Resolve without cache"
+        executer.withArguments("-PbypassCache")
+        run 'retrieve'
+
+        and:
+        projectA.metaData.expectGet()
         projectA.pom.expectHead()
         projectA.pom.sha1.expectGet()
         projectA.pom.expectGet()
-        projectA.metaData.expectGet()
         projectA.artifact.expectHead()
-        projectA.artifact.sha1.expectGet()
-        projectA.artifact.expectGet()
         projectB2.pom.expectGet()
         projectB2.artifact.expectGet()
-        and:
+
+        then: "Gets updated metadata"
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
+
+        when: "Resolve with caching"
+        server.resetExpectations()
         run 'retrieve'
-        then:
+
+        then: "Gets updated metadata from cache"
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
