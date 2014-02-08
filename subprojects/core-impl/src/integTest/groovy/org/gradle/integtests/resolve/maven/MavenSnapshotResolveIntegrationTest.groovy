@@ -544,14 +544,14 @@ task retrieve(type: Sync) {
 """
 
         when:
-        run 'retrieve'
-
-        and:
         projectA.pom.expectGet()
         projectA.metaData.expectGet()
         projectA.artifact.expectGet()
         projectB1.pom.expectGet()
         projectB1.artifact.expectGet()
+
+        and:
+        run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
@@ -567,10 +567,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
 
         when: "Resolve without cache"
-        executer.withArguments("-PbypassCache")
-        run 'retrieve'
-
-        and:
         projectA.metaData.expectGet()
         projectA.pom.expectHead()
         projectA.pom.sha1.expectGet()
@@ -578,6 +574,10 @@ task retrieve(type: Sync) {
         projectA.artifact.expectHead()
         projectB2.pom.expectGet()
         projectB2.artifact.expectGet()
+
+        and:
+        executer.withArguments("-PbypassCache")
+        run 'retrieve'
 
         then: "Gets updated metadata"
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
