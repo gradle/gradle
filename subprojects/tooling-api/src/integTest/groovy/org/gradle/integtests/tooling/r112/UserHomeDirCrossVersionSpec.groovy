@@ -16,10 +16,8 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 
-@ToolingApiVersion(">=1.11")
 class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
