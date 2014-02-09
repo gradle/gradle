@@ -75,4 +75,18 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         fromBytes(toBytes(123L, serializer1), serializer2) == 123L
         fromBytes(toBytes(123, serializer1), serializer2) == 123
     }
+
+    def "cannot write value with type that has not been registered"() {
+        given:
+        def registry = new DefaultSerializerRegistry()
+        registry.register(Long, longSerializer)
+        registry.register(Integer, intSerializer)
+        def serializer = registry.build()
+
+        when:
+        toBytes(123.4, serializer)
+
+        then:
+        thrown(IllegalArgumentException)
+    }
 }

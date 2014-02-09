@@ -21,16 +21,22 @@ import org.gradle.cache.PersistentStore;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
+import org.gradle.messaging.serialize.SerializerRegistry;
 
 import java.io.File;
 
 public class CachingFileSnapshotter implements FileSnapshotter {
     private final PersistentIndexedCache<File, FileInfo> cache;
     private final Hasher hasher;
+    private final FileInfoSerializer serializer = new FileInfoSerializer();
 
     public CachingFileSnapshotter(Hasher hasher, PersistentStore store) {
         this.hasher = hasher;
-        this.cache = store.createCache("fileHashes", File.class, new FileInfoSerializer());
+        this.cache = store.createCache("fileHashes", File.class, serializer);
+    }
+
+    public void registerSerializers(SerializerRegistry<FileSnapshot> registry) {
+        registry.register(FileInfo.class, serializer);
     }
 
     public FileInfo snapshot(File file) {

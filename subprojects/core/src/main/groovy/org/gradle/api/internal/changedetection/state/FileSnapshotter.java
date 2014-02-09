@@ -16,9 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.messaging.serialize.SerializerRegistry;
+
 import java.io.File;
 
 public interface FileSnapshotter {
+    /**
+     * Registers Serializers to use to persist the {@link FileSnapshot} instances that this snapshotter produces.
+     */
+    void registerSerializers(SerializerRegistry<FileSnapshot> registry);
+
     /**
      * Takes a snapshot of the current content of the given file. The provided file must exist and be a file (rather than, say, a directory).
      */

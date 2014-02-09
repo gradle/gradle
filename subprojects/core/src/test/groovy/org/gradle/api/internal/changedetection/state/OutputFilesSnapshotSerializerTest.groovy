@@ -16,21 +16,26 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.messaging.serialize.Serializer
 import org.gradle.messaging.serialize.SerializerSpec
 
 class OutputFilesSnapshotSerializerTest extends SerializerSpec {
-
-    def serializer = new OutputFilesSnapshotSerializer()
+    def targetSerializer = Mock(Serializer)
+    def serializer = new OutputFilesSnapshotSerializer(targetSerializer)
 
     def "reads and writes the snapshot"() {
-        def snapshot = new DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl(["1": new DefaultFileCollectionSnapshotter.DirSnapshot()])
+        def snapshot = Stub(FileCollectionSnapshot)
         def outputSnapshot = new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(["x": 14L], snapshot)
+
+        given:
+        1 * targetSerializer.write(_, snapshot)
+        1 * targetSerializer.read(_) >> snapshot
 
         when:
         OutputFilesCollectionSnapshotter.OutputFilesSnapshot out = serialize(outputSnapshot, serializer)
 
         then:
-        ((DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl)out.filesSnapshot).snapshots.size() == 1
         out.rootFileIds == ['x': 14L]
+        out.filesSnapshot == snapshot
     }
 }

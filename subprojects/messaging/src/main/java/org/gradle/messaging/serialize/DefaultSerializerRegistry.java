@@ -16,7 +16,10 @@
 
 package org.gradle.messaging.serialize;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
     private final Map<Class<?>, Serializer<?>> serializerMap = new TreeMap<Class<?>, Serializer<?>>(new Comparator<Class<?>>() {
@@ -25,7 +28,7 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
         }
     });
 
-    public <U extends T> void register(Class<U> implementationType, Serializer<U> serializer) {
+    public <U extends T> void register(Class<U> implementationType, Serializer<?> serializer) {
         serializerMap.put(implementationType, serializer);
     }
 

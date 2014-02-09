@@ -24,17 +24,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 class OutputFilesSnapshotSerializer implements Serializer<FileCollectionSnapshot> {
+    private final Serializer<FileCollectionSnapshot> serializer;
+
+    public OutputFilesSnapshotSerializer(Serializer<FileCollectionSnapshot> serializer) {
+        this.serializer = serializer;
+    }
 
     public FileCollectionSnapshot read(Decoder decoder) throws Exception {
         Map<String, Long> rootFileIds = new HashMap<String, Long>();
-        int rootFileIdsCount = decoder.readInt();
+        int rootFileIdsCount = decoder.readSmallInt();
         for (int i = 0; i < rootFileIdsCount; i++) {
             String key = decoder.readString();
             boolean notNull = decoder.readBoolean();
             Long value = notNull? decoder.readLong() : null;
             rootFileIds.put(key, value);
         }
-        FileSnapshotSerializer serializer = new FileSnapshotSerializer();
         FileCollectionSnapshot snapshot = serializer.read(decoder);
 
         return new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(rootFileIds, snapshot);
@@ -43,7 +47,7 @@ class OutputFilesSnapshotSerializer implements Serializer<FileCollectionSnapshot
     public void write(Encoder encoder, FileCollectionSnapshot currentValue) throws Exception {
         OutputFilesCollectionSnapshotter.OutputFilesSnapshot value = (OutputFilesCollectionSnapshotter.OutputFilesSnapshot) currentValue;
         int rootFileIds = value.rootFileIds.size();
-        encoder.writeInt(rootFileIds);
+        encoder.writeSmallInt(rootFileIds);
         for (String key : value.rootFileIds.keySet()) {
             Long id = value.rootFileIds.get(key);
             encoder.writeString(key);
@@ -55,7 +59,6 @@ class OutputFilesSnapshotSerializer implements Serializer<FileCollectionSnapshot
             }
         }
 
-        FileSnapshotSerializer serializer = new FileSnapshotSerializer();
         serializer.write(encoder, value.filesSnapshot);
     }
 }
