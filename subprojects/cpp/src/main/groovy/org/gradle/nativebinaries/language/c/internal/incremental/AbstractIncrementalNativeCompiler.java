@@ -17,7 +17,7 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
-import org.gradle.api.internal.hash.CachingHasher;
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
@@ -77,7 +77,7 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
         DefaultSourceDependencyParser dependencyParser = new DefaultSourceDependencyParser(includesParser, CollectionUtils.toList(includes));
 
         // TODO:DAZ Inject a factory, and come up with a common abstraction for TaskArtifactStateCacheAccess and PersistentCache
-        FileSnapshotter snapshotter = new CachingHasher(new DefaultHasher(), cache);
+        FileSnapshotter snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cache);
 
         return new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, snapshotter);
     }

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.hash
+package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
+import org.gradle.api.internal.hash.Hasher
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class CachingHasherTest extends Specification {
+class CachingFileSnapshotterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def target = Mock(Hasher)
@@ -30,12 +30,12 @@ class CachingHasherTest extends Specification {
     def cacheAccess = Mock(TaskArtifactStateCacheAccess)
     def byte[] hash = "hash".bytes
     def file = tmpDir.createFile("testfile")
-    CachingHasher hasher
+    CachingFileSnapshotter hasher
 
     def setup() {
         file.write("some-content")
         1 * cacheAccess.createCache("fileHashes", _, _) >> cache
-        hasher = new CachingHasher(target, cacheAccess);
+        hasher = new CachingFileSnapshotter(target, cacheAccess);
     }
 
     def hashesFileWhenHashNotCached() {
@@ -48,7 +48,7 @@ class CachingHasherTest extends Specification {
         and:
         1 * cache.get(file) >> null
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File key, CachingHasher.FileInfo fileInfo ->
+        1 * cache.put(file, _) >> { File key, CachingFileSnapshotter.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -64,9 +64,9 @@ class CachingHasherTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> new CachingHasher.FileInfo(hash, 1024, file.lastModified())
+        1 * cache.get(file) >> new CachingFileSnapshotter.FileInfo(hash, 1024, file.lastModified())
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File key, CachingHasher.FileInfo fileInfo ->
+        1 * cache.put(file, _) >> { File key, CachingFileSnapshotter.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -82,9 +82,9 @@ class CachingHasherTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> new CachingHasher.FileInfo(hash, file.length(), 124)
+        1 * cache.get(file) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), 124)
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File key, CachingHasher.FileInfo fileInfo ->
+        1 * cache.put(file, _) >> { File key, CachingFileSnapshotter.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -100,7 +100,7 @@ class CachingHasherTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> new CachingHasher.FileInfo(hash, file.length(), file.lastModified())
+        1 * cache.get(file) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), file.lastModified())
         0 * _._
     }
 }

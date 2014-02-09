@@ -22,7 +22,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.*
-import org.gradle.api.internal.hash.CachingHasher
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
 import org.gradle.api.internal.hash.DefaultHasher
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
@@ -70,7 +70,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     def setup() {
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, CacheUsage.ON, new InMemoryCacheFactory())
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
-        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(new CachingHasher(new DefaultHasher(), cacheAccess), cacheAccess)
+        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(new CachingFileSnapshotter(new DefaultHasher(), cacheAccess), cacheAccess)
         FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess)
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, new RandomLongIdGenerator()))
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, new DirectInstantiator(), outputFilesSnapshotter, inputFilesSnapshotter)
