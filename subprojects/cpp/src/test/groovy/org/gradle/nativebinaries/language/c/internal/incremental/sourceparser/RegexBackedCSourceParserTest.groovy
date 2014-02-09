@@ -21,9 +21,9 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class RegexBackedSourceParserTest extends Specification {
+class RegexBackedCSourceParserTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    SourceParser parser = new RegexBackedSourceParser()
+    CSourceParser parser = new RegexBackedCSourceParser()
 
     protected TestFile getSourceFile() {
         testDirectory.file('source.c')
@@ -38,34 +38,24 @@ class RegexBackedSourceParserTest extends Specification {
     }
 
     def getIncludes() {
-        return parsedSource.quotedIncludes
-    }
-
-    def getSystemIncludes() {
-        return parsedSource.systemIncludes
+        return parsedSource.includes
     }
 
     def getImports() {
-        return parsedSource.quotedImports
-    }
-
-    def getSystemImports() {
-        return parsedSource.systemImports
+        return parsedSource.imports
     }
 
     def getFound() {
-        return includes + systemIncludes + imports + systemImports
+        return includes + imports
     }
     
     def noIncludes() {
         assert includes == []
-        assert systemIncludes == []
         true
     }
     
     def noImports() {
         assert imports == []
-        assert systemImports == []
         true
     }
 
@@ -78,10 +68,7 @@ class RegexBackedSourceParserTest extends Specification {
         sourceFile << ""
 
         then:
-        includes == []
-        systemIncludes == []
-        
-        and:
+        noIncludes()
         noImports()
     }
 
@@ -92,9 +79,8 @@ class RegexBackedSourceParserTest extends Specification {
 """
 
         then:
-        includes == ["test.h"]
-        systemIncludes == []
-        
+        includes == ['"test.h"']
+
         and:
         noImports()
     }
@@ -106,9 +92,21 @@ class RegexBackedSourceParserTest extends Specification {
 """
 
         then:
-        includes == []
-        systemIncludes == ["test.h"]
+        includes == ['<test.h>']
         
+        and:
+        noImports()
+    }
+
+    def "finds defined include"() {
+        when:
+        sourceFile << """
+    #include DEFINED
+"""
+
+        then:
+        includes == ['DEFINED']
+
         and:
         noImports()
     }
@@ -120,10 +118,10 @@ class RegexBackedSourceParserTest extends Specification {
     #include "test2"
     #include <system1>
     #include <system2>
+    #include DEFINED
 """
         then:
-        includes == ["test1", "test2"]
-        systemIncludes == ["system1", "system2"]
+        includes == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED']
         
         and:
         noImports()
@@ -136,9 +134,8 @@ class RegexBackedSourceParserTest extends Specification {
         """
 
         then:
-        imports == ["test.h"]
-        systemImports == []
-        
+        imports == ['"test.h"']
+
         and:
         noIncludes()
     }
@@ -150,9 +147,21 @@ class RegexBackedSourceParserTest extends Specification {
         """
 
         then:
-        imports == []
-        systemImports == ["test.h"]
+        imports == ['<test.h>']
         
+        and:
+        noIncludes()
+    }
+
+    def "finds defined import"() {
+        when:
+        sourceFile << """
+            #import DEFINED
+        """
+
+        then:
+        imports == ['DEFINED']
+
         and:
         noIncludes()
     }
@@ -164,11 +173,11 @@ class RegexBackedSourceParserTest extends Specification {
     #import "test2"
     #import <system1>
     #import <system2>
+    #import DEFINED
 """
         then:
-        imports == ["test1", "test2"]
-        systemImports == ["system1", "system2"]
-        
+        imports == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED']
+
         and:
         noIncludes()
     }
@@ -184,12 +193,12 @@ class RegexBackedSourceParserTest extends Specification {
     #import <system2>
     #include <system3>
     #import <system4>
+    #include DEFINED1
+    #import DEFINED2
 """
         then:
-        includes == ["test2", "test4"]
-        systemIncludes == ["system3"]
-        imports == ["test1", "test3"]
-        systemImports == ["system1", "system2", "system4"]
+        includes == ['"test2"', '"test4"', '<system3>', 'DEFINED1']
+        imports == ['"test1"', '"test3"', '<system1>', '<system2>', '<system4>', 'DEFINED2']
     }
 
     @Unroll
@@ -207,7 +216,7 @@ class RegexBackedSourceParserTest extends Specification {
         useDirective(directive)
 
         then:
-        found == ["test1", "test2", "test3", "system1", "system2", "system3"]
+        found == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', '<system3>']
 
         where:
         directive << ["include", "import"]
@@ -227,7 +236,7 @@ class RegexBackedSourceParserTest extends Specification {
         useDirective(directive)
 
         then:
-        found == ["test1", "test2", "system1", "system2"]
+        found == ['"test1"', '"test2"', '<system1>', '<system2>']
 
         where:
         directive << ["include", "import"]
@@ -248,8 +257,7 @@ class RegexBackedSourceParserTest extends Specification {
 */
 """
         then:
-        includes == ["test1", "test2", "test3"]
-        systemIncludes == ["system1", "system2", "system3"]
+        includes == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', '<system3>']
     }
 
     @Unroll
@@ -263,12 +271,12 @@ class RegexBackedSourceParserTest extends Specification {
 /* a comment here*/#include/* a comment here*/"test3"
 #include/* a comment here*/<system1>
 #/* a comment here*/include <system2>
-/* a comment here*/#include/* a comment here*/<system3>
+/* a comment here*/#include/* a comment here*/DEFINED
 """
         useDirective(directive)
 
         then:
-        found == ["test1", "test2", "test3", "system1", "system2", "system3"]
+        found == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', 'DEFINED']
 
         where:
         directive << ["include", "import"]
@@ -281,8 +289,8 @@ class RegexBackedSourceParserTest extends Specification {
     #import "$included"
 """
         then:
-        includes == [included]
-        imports == [included]
+        includes == ['"' + included + '"']
+        imports == ['"' + included + '"']
 
         where:
         included << ["test'file", "testfile'", "'testfile'", "test<>file", "test>file", "<testFile>", "test<file", "test file"]
@@ -295,11 +303,25 @@ class RegexBackedSourceParserTest extends Specification {
     #import <$included>
 """
         then:
-        systemIncludes == [included]
-        systemImports == [included]
+        includes == ['<' + included + '>']
+        imports == ['<' + included + '>']
 
         where:
         included << ["test'file", "testfile'", "'testfile'", "test<file", "test\"file", "\"testFile\"", "test file"]
+    }
+
+    def "find various defined includes"() {
+        when:
+        sourceFile << """
+    #include $included
+    #import $included
+"""
+        then:
+        includes == [included]
+        imports == [included]
+
+        where:
+        included << ["DEFINED", "mixedDefined", "DEF_INED", "_DEFINED", "__DEFINED__"]
     }
 
     @Unroll
@@ -359,6 +381,6 @@ st3"
 """
 
         then:
-        includes == ["test1", "test2", "test3"]
+        includes == ['"test1"', '"test2"', '"test3"']
     }
 }

@@ -39,12 +39,9 @@ public class IncrementalCompilerBuilder {
     }
 
     private static IncludesParser createIncludesParser(TaskInternal task) {
-        SourceParser sourceParser = new RegexBackedSourceParser();
-        if (ObjectiveCCompile.class.isAssignableFrom(task.getClass())
-                || ObjectiveCppCompile.class.isAssignableFrom(task.getClass())) {
-            return new ImportsIncludedIncludesParser(sourceParser);
-        }
-        return new DefaultIncludesParser(sourceParser);
+        CSourceParser sourceParser = new RegexBackedCSourceParser();
+        boolean importsAreIncludes = ObjectiveCCompile.class.isAssignableFrom(task.getClass()) || ObjectiveCppCompile.class.isAssignableFrom(task.getClass());
+        return new DefaultIncludesParser(sourceParser, importsAreIncludes);
     }
 
     public IncrementalCompilerBuilder withCleanCompile() {

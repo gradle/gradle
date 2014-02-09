@@ -16,22 +16,22 @@
 
 package org.gradle.nativebinaries.language.c.internal.incremental
 
-import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.SourceParser
+import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.CSourceParser
 import spock.lang.Specification
 
 class DefaultIncludesParserTest extends Specification {
-    def sourceParser = Mock(SourceParser)
-    def sourceDetails = Mock(SourceParser.SourceDetails)
-    def includesParser = new DefaultIncludesParser(sourceParser)
+    def sourceParser = Mock(CSourceParser)
+    def sourceDetails = Mock(CSourceParser.SourceDetails)
 
     def "imports are not included in includes"() {
         given:
         def file = new File("test")
 
         when:
+        def includesParser = new DefaultIncludesParser(sourceParser, false)
+
         1 * sourceParser.parseSource(file) >> sourceDetails
-        1 * sourceDetails.quotedIncludes >> ["quoted"]
-        1 * sourceDetails.systemIncludes >> ["system"]
+        1 * sourceDetails.includes >> ['"quoted"', '<system>']
         0 * sourceDetails._
 
         and:
@@ -41,4 +41,26 @@ class DefaultIncludesParserTest extends Specification {
         includes.quotedIncludes == ["quoted"]
         includes.systemIncludes == ["system"]
     }
+
+
+    def "imports are included in includes"() {
+        given:
+        def file = new File("test")
+
+        when:
+        def includesParser = new DefaultIncludesParser(sourceParser, true)
+
+        1 * sourceParser.parseSource(file) >> sourceDetails
+        1 * sourceDetails.includes >> ['"quoted"', '<system>']
+        1 * sourceDetails.imports >> ['"quotedImport"', '<systemImport>']
+        0 * sourceDetails._
+
+        and:
+        def includes = includesParser.parseIncludes(file)
+
+        then:
+        includes.quotedIncludes == ["quoted", "quotedImport"]
+        includes.systemIncludes == ["system", "systemImport"]
+    }
+
 }

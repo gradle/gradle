@@ -22,14 +22,12 @@ import java.util.List;
 /**
  * A parser to extract information from C-compatible source files.
  */
-public interface SourceParser {
+public interface CSourceParser {
 
     SourceDetails parseSource(File sourceFile);
 
     interface SourceDetails {
-        List<String> getQuotedIncludes();
-        List<String> getSystemIncludes();
-        List<String> getQuotedImports();
-        List<String> getSystemImports();
+        List<String> getIncludes();
+        List<String> getImports();
     }
 }

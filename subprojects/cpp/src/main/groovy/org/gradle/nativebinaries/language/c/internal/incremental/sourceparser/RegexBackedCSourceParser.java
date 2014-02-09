@@ -26,21 +26,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // TODO:DAZ We might be better with a hand-crafter parser
-public class RegexBackedSourceParser implements SourceParser {
-    private static final String INCLUDE_IMPORT_PATTERN = "\\s*#\\s*(include|import)\\s+((<[^>]+>)|(\"[^\"]+\"))";
+public class RegexBackedCSourceParser implements CSourceParser {
+    private static final String INCLUDE_IMPORT_PATTERN = "\\s*#\\s*(include|import)\\s+((<[^>]+>)|(\"[^\"]+\")|(\\w+))";
     private final Pattern includePattern;
 
-    public RegexBackedSourceParser() {
+    public RegexBackedCSourceParser() {
         this.includePattern = Pattern.compile(INCLUDE_IMPORT_PATTERN, Pattern.CASE_INSENSITIVE);
     }
 
     public SourceDetails parseSource(File sourceFile) {
-        DefaultSourceDetails includes = new DefaultSourceDetails();
-        parseFile(sourceFile, includes);
-        return includes;
+        DefaultSourceDetails sourceDetails = new DefaultSourceDetails();
+        parseFile(sourceFile, sourceDetails);
+        return sourceDetails;
     }
 
-    private void parseFile(File file, DefaultSourceDetails includes) {
+    private void parseFile(File file, DefaultSourceDetails sourceDetails) {
         try {
             BufferedReader bf = new BufferedReader(new PreprocessingReader(new BufferedReader(new FileReader(file))));
 
@@ -51,9 +51,12 @@ public class RegexBackedSourceParser implements SourceParser {
 
                     if (m.lookingAt()) {
                         boolean isImport = "import".equals(m.group(1));
-                        String included = m.group(2);
-                        boolean isSystem = included.startsWith("<");
-                        includes.add(strip(included), isImport, isSystem);
+                        String value = m.group(2);
+                        if (isImport) {
+                            sourceDetails.getImports().add(value);
+                        } else {
+                            sourceDetails.getIncludes().add(value);
+                        }
                     }
                 }
             } finally {
@@ -64,42 +67,16 @@ public class RegexBackedSourceParser implements SourceParser {
         }
     }
 
-    private String strip(String include) {
-        return include.substring(1, include.length() - 1);
-    }
-
     private static class DefaultSourceDetails implements SourceDetails {
         private final List<String> includes = new ArrayList<String>();
-        private final List<String> systemIncludes = new ArrayList<String>();
         private final List<String> imports = new ArrayList<String>();
-        private final List<String> systemImports = new ArrayList<String>();
 
-        public List<String> getQuotedIncludes() {
+        public List<String> getIncludes() {
             return includes;
         }
 
-        public List<String> getSystemIncludes() {
-            return systemIncludes;
-        }
-
-        public List<String> getQuotedImports() {
+        public List<String> getImports() {
             return imports;
-        }
-
-        public List<String> getSystemImports() {
-            return systemImports;
-        }
-
-        public void add(String value, boolean imported, boolean system) {
-            if (imported && system) {
-                systemImports.add(value);
-            } else if (imported) {
-                imports.add(value);
-            } else if (system) {
-                systemIncludes.add(value);
-            } else {
-                includes.add(value);
-            }
         }
     }
 }

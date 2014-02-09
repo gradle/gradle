@@ -16,16 +16,19 @@
 
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
-import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.SourceParser;
+import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.CSourceParser;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultIncludesParser implements IncludesParser {
-    private final SourceParser sourceParser;
+    private final CSourceParser sourceParser;
+    private final boolean importAware;
 
-    public DefaultIncludesParser(SourceParser sourceParser) {
+    public DefaultIncludesParser(CSourceParser sourceParser, boolean importAware) {
         this.sourceParser = sourceParser;
+        this.importAware = importAware;
     }
 
     public Includes parseIncludes(File sourceFile) {
@@ -33,18 +36,40 @@ public class DefaultIncludesParser implements IncludesParser {
     }
 
     private class DefaultIncludes implements Includes {
-        private final SourceParser.SourceDetails delegate;
+        private final List<String> quotedIncludes = new ArrayList<String>();
+        private final List<String> systemIncludes = new ArrayList<String>();
+        private final List<String> unknownIncludes = new ArrayList<String>();
 
-        private DefaultIncludes(SourceParser.SourceDetails delegate) {
-            this.delegate = delegate;
+        private DefaultIncludes(CSourceParser.SourceDetails delegate) {
+            List<String> includes = delegate.getIncludes();
+            addAll(includes);
+            if (importAware) {
+                addAll(delegate.getImports());
+            }
+        }
+
+        private void addAll(List<String> includes) {
+            for (String value : includes) {
+                if (value.startsWith("<") && value.endsWith(">")) {
+                    systemIncludes.add(strip(value));
+                } else if (value.startsWith("\"") && value.endsWith("\"")) {
+                    quotedIncludes.add(strip(value));
+                } else {
+                    unknownIncludes.add(value);
+                }
+            }
+        }
+
+        private String strip(String include) {
+            return include.substring(1, include.length() - 1);
         }
 
         public List<String> getQuotedIncludes() {
-            return delegate.getQuotedIncludes();
+            return quotedIncludes;
         }
 
         public List<String> getSystemIncludes() {
-            return delegate.getSystemIncludes();
+            return systemIncludes;
         }
     }
 }
