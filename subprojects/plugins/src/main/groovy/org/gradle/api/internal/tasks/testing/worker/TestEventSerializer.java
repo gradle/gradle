@@ -24,11 +24,24 @@ import org.gradle.messaging.remote.internal.Message;
 import org.gradle.messaging.serialize.*;
 import org.gradle.messaging.serialize.kryo.StatefulSerializer;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class TestEventSerializer implements StatefulSerializer<Object[]> {
-    private final Serializer<Object> paramSerializer = new ParamSerializer();
+    private final Serializer<Object> paramSerializer;
+
+    public TestEventSerializer() {
+        DefaultSerializerRegistry<Object> registry = new DefaultSerializerRegistry<Object>();
+        registry.register(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
+        registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
+        registry.register(DefaultTestSuiteDescriptor.class, new DefaultTestSuiteDescriptorSerializer());
+        registry.register(WorkerTestClassProcessor.WorkerTestSuiteDescriptor.class, new WorkerTestSuiteDescriptorSerializer());
+        registry.register(DefaultTestClassDescriptor.class, new DefaultTestClassDescriptorSerializer());
+        registry.register(DefaultTestMethodDescriptor.class, new DefaultTestMethodDescriptorSerializer());
+        registry.register(DefaultTestDescriptor.class, new DefaultTestDescriptorSerializer());
+        registry.register(TestStartEvent.class, new TestStartEventSerializer());
+        registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer());
+        registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer());
+        registry.register(Throwable.class, new ThrowableSerializer());
+        paramSerializer = registry.build();
+    }
 
     public ObjectReader<Object[]> newReader(final Decoder decoder) {
         return new ObjectReader<Object[]>() {
@@ -52,57 +65,6 @@ public class TestEventSerializer implements StatefulSerializer<Object[]> {
                 }
             }
         };
-    }
-
-    private static class TypeInfo {
-        final byte tag;
-        final Serializer serializer;
-
-        private TypeInfo(byte tag, Serializer serializer) {
-            this.tag = tag;
-            this.serializer = serializer;
-        }
-    }
-
-    private static class ParamSerializer implements Serializer<Object> {
-        private final Map<Class<?>, TypeInfo> serializersByType = new HashMap<Class<?>, TypeInfo>();
-        private final Map<Byte, TypeInfo> serializersByTag = new HashMap<Byte, TypeInfo>();
-
-        private ParamSerializer() {
-            add(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
-            add(CompositeIdGenerator.CompositeId.class, new IdSerializer());
-            add(DefaultTestSuiteDescriptor.class, new DefaultTestSuiteDescriptorSerializer());
-            add(WorkerTestClassProcessor.WorkerTestSuiteDescriptor.class, new WorkerTestSuiteDescriptorSerializer());
-            add(DefaultTestClassDescriptor.class, new DefaultTestClassDescriptorSerializer());
-            add(DefaultTestMethodDescriptor.class, new DefaultTestMethodDescriptorSerializer());
-            add(DefaultTestDescriptor.class, new DefaultTestDescriptorSerializer());
-            add(TestStartEvent.class, new TestStartEventSerializer());
-            add(TestCompleteEvent.class, new TestCompleteEventSerializer());
-            add(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer());
-            add(Throwable.class, new ThrowableSerializer());
-        }
-
-        private <T> void add(Class<T> type, Serializer<T> serializer) {
-            TypeInfo typeInfo = new TypeInfo((byte) serializersByTag.size(), serializer);
-            serializersByType.put(type, typeInfo);
-            serializersByTag.put(typeInfo.tag, typeInfo);
-        }
-
-        public Object read(Decoder decoder) throws Exception {
-            byte tag = decoder.readByte();
-            TypeInfo typeInfo = serializersByTag.get(tag);
-            return typeInfo.serializer.read(decoder);
-        }
-
-        public void write(Encoder encoder, Object value) throws Exception {
-            Class<?> targetType = value instanceof Throwable ? Throwable.class : value.getClass();
-            TypeInfo typeInfo = serializersByType.get(targetType);
-            if (typeInfo == null) {
-                throw new IllegalArgumentException(String.format("Don't know how to serialize an object of type %s.", value.getClass().getName()));
-            }
-            encoder.writeByte(typeInfo.tag);
-            typeInfo.serializer.write(encoder, value);
-        }
     }
 
     private static class EnumSerializer<T extends Enum> implements Serializer<T> {
