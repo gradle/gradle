@@ -56,7 +56,8 @@ public class DefaultSourceDependencyParser implements SourceDependencyParser {
     private void searchForDependency(List<File> dependencies, List<File> quotedSearchPath, String include) {
         for (File searchDir : quotedSearchPath) {
             File candidate = new File(searchDir, include);
-            if (candidate.exists()) {
+            // TODO:DAZ This means that we'll never detect changed files if they are not on our defined include path
+            if (candidate.isFile()) {
                 dependencies.add(GFileUtils.canonicalise(candidate));
                 break;
             }
