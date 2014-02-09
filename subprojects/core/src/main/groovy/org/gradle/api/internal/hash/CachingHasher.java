@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.hash;
 
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
 import org.gradle.messaging.serialize.Decoder;
@@ -22,9 +23,8 @@ import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
-import java.io.Serializable;
 
-public class CachingHasher implements Hasher {
+public class CachingHasher implements Hasher, FileSnapshotter {
     private final PersistentIndexedCache<File, FileInfo> cache;
     private final Hasher hasher;
 
@@ -34,20 +34,25 @@ public class CachingHasher implements Hasher {
     }
 
     public byte[] hash(File file) {
+        return snapshot(file).hash;
+    }
+
+    public FileInfo snapshot(File file) {
         FileInfo info = cache.get(file);
 
         long length = file.length();
         long timestamp = file.lastModified();
         if (info != null && length == info.length && timestamp == info.timestamp) {
-            return info.hash;
+            return info;
         }
 
         byte[] hash = hasher.hash(file);
-        cache.put(file, new FileInfo(hash, length, timestamp));
-        return hash;
+        info = new FileInfo(hash, length, timestamp);
+        cache.put(file, info);
+        return info;
     }
 
-    public static class FileInfo implements Serializable {
+    public static class FileInfo implements FileSnapshot {
         private final byte[] hash;
         private final long timestamp;
         private final long length;
@@ -56,6 +61,10 @@ public class CachingHasher implements Hasher {
             this.hash = hash;
             this.length = length;
             this.timestamp = timestamp;
+        }
+
+        public byte[] getHash() {
+            return hash;
         }
     }
 
