@@ -77,10 +77,7 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
             String compactMD5 = HashUtil.createCompactMD5(inputFile.getAbsolutePath());
             File outputDirectory = new File(spec.getObjectFileDir(), compactMD5);
             if(!outputDirectory.exists()){
-                if(!outputDirectory.mkdir()){
-                    Logging.getLogger(getClass()).warn("Cannot create outputDirectory. Try mkdirs instead!");
-                    assert outputDirectory.mkdirs();
-                }
+                outputDirectory.mkdir();
             }
             return new File(outputDirectory, outputFileName);
         }
