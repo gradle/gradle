@@ -1053,6 +1053,18 @@ To implement this:
 
 A sequence of stories to make source sets much more flexible, and to improve the conventions of the source sets for a component:
 
+### Story: Language source sets filter source files by file extension
+
+This story introduces applies some default extensions to each language source set.
+
+- For each language (C, C++, Objective-C, Objective-C++, Assembly, Windows resources), apply the appropriate file extensions using `sourceSet.source.filters`.
+
+#### Test cases
+
+- A native component with the source and headers for each language all in the same source directory.
+- Can include or exclude source files in a source set by file extension.
+- Fix sample and int tests that apply patterns to select source files with a given extension so that they no longer do.
+
 ### Story: Introduce implementation headers for native components
 
 This story introduces a set of headers that are visible to all the source files of a component, but are not visible outside the component.
@@ -1090,6 +1102,20 @@ This story introduces a set of headers that are visible to all the source files 
             }
         }
     }
+
+##### Test cases
+
+- Native library `mylib` defines some header files in `src/mylib/include` and `src/mylib/headers`.
+    - Header files in both locations are visible at compile time for a C, C++, windows resource, Objective-C and Objective-C++ source file.
+- Native library `mylib` defines some implementation headers in `src/mylib/include` and some public headers in `src/mylib/headers`
+    - Header files in both locations are visible at compile time for a C source file in the component.
+    - Headers in `src/mylib/include` are not visible to a C source file in another component that depends on `mylib`.
+    - Headers in `src/mylib/headers` are visible to a C source file in another component that depends on `mylib`.
+- Native library `mylib` does not define any header files.
+    - Can compile and link `mylib` and use it in an executable. Need to use C as the implementation language.
+- Native library `mylib` defines a set of headers that are visible to the component's C source, but not visible to:
+    - C++ source in the same component.
+    - C and C++ source in another component that depends on `mylib`.
 
 #### Open issues
 
