@@ -34,6 +34,8 @@ import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerManager;
+import org.gradle.messaging.serialize.DefaultSerializerRegistry;
+import org.gradle.messaging.serialize.SerializerRegistry;
 
 public class TaskExecutionServices {
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager) {
@@ -67,8 +69,13 @@ public class TaskExecutionServices {
 
         FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter, new RandomLongIdGenerator(), cacheAccess);
 
+        SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
+        fileCollectionSnapshotter.registerSerializers(serializerRegistry);
+        outputFilesSnapshotter.registerSerializers(serializerRegistry);
+
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
                 new CacheBackedFileSnapshotRepository(cacheAccess,
+                        serializerRegistry.build(),
                         new RandomLongIdGenerator()));
 
         return new ShortCircuitTaskArtifactStateRepository(

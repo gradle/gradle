@@ -23,14 +23,14 @@ import org.gradle.messaging.serialize.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 
-class OutputFilesSnapshotSerializer implements Serializer<FileCollectionSnapshot> {
+class OutputFilesSnapshotSerializer implements Serializer<OutputFilesCollectionSnapshotter.OutputFilesSnapshot> {
     private final Serializer<FileCollectionSnapshot> serializer;
 
     public OutputFilesSnapshotSerializer(Serializer<FileCollectionSnapshot> serializer) {
         this.serializer = serializer;
     }
 
-    public FileCollectionSnapshot read(Decoder decoder) throws Exception {
+    public OutputFilesCollectionSnapshotter.OutputFilesSnapshot read(Decoder decoder) throws Exception {
         Map<String, Long> rootFileIds = new HashMap<String, Long>();
         int rootFileIdsCount = decoder.readSmallInt();
         for (int i = 0; i < rootFileIdsCount; i++) {
@@ -44,8 +44,7 @@ class OutputFilesSnapshotSerializer implements Serializer<FileCollectionSnapshot
         return new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(rootFileIds, snapshot);
     }
 
-    public void write(Encoder encoder, FileCollectionSnapshot currentValue) throws Exception {
-        OutputFilesCollectionSnapshotter.OutputFilesSnapshot value = (OutputFilesCollectionSnapshotter.OutputFilesSnapshot) currentValue;
+    public void write(Encoder encoder, OutputFilesCollectionSnapshotter.OutputFilesSnapshot value) throws Exception {
         int rootFileIds = value.rootFileIds.size();
         encoder.writeSmallInt(rootFileIds);
         for (String key : value.rootFileIds.keySet()) {

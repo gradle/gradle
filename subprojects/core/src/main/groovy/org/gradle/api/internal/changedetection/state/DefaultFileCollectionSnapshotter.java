@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.messaging.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.NoOpChangeListener;
 
@@ -32,6 +33,10 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess) {
         this.snapshotter = snapshotter;
         this.cacheAccess = cacheAccess;
+    }
+
+    public void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry) {
+        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer());
     }
 
     public FileCollectionSnapshot emptySnapshot() {

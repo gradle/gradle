@@ -19,7 +19,9 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.messaging.serialize.DefaultSerializerRegistry;
 import org.gradle.messaging.serialize.LongSerializer;
+import org.gradle.messaging.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 import org.gradle.util.NoOpChangeListener;
@@ -50,6 +52,12 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         this.idGenerator = idGenerator;
         this.cacheAccess = cacheAccess;
         dirIdentiferCache = cacheAccess.createCache("outputFileStates", String.class, new LongSerializer());
+    }
+
+    public void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry) {
+        DefaultSerializerRegistry<FileCollectionSnapshot> nested = new DefaultSerializerRegistry<FileCollectionSnapshot>();
+        snapshotter.registerSerializers(nested);
+        registry.register(OutputFilesSnapshot.class, new OutputFilesSnapshotSerializer(nested.build()));
     }
 
     public FileCollectionSnapshot emptySnapshot() {

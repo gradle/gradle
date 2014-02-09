@@ -17,7 +17,7 @@
 package org.gradle.messaging.serialize;
 
 public interface SerializerRegistry<T> {
-    <U extends T> void register(Class<U> implementationType, Serializer<?> serializer);
+    <U extends T> void register(Class<U> implementationType, Serializer<U> serializer);
 
     Serializer<T> build();
 }

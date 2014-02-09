@@ -28,7 +28,7 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
         }
     });
 
-    public <U extends T> void register(Class<U> implementationType, Serializer<?> serializer) {
+    public <U extends T> void register(Class<U> implementationType, Serializer<U> serializer) {
         serializerMap.put(implementationType, serializer);
     }
 
@@ -36,7 +36,7 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
         if (serializerMap.size() == 1) {
             return (Serializer<T>) serializerMap.values().iterator().next();
         }
-        TaggedTypeSerializer serializer = new TaggedTypeSerializer();
+        TaggedTypeSerializer<T> serializer = new TaggedTypeSerializer<T>();
         for (Map.Entry<Class<?>, Serializer<?>> entry : serializerMap.entrySet()) {
             serializer.add(entry.getKey(), entry.getValue());
         }
@@ -57,7 +57,7 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
         private final Map<Class<?>, TypeInfo> serializersByType = new HashMap<Class<?>, TypeInfo>();
         private final Map<Byte, TypeInfo> serializersByTag = new HashMap<Byte, TypeInfo>();
 
-        private <T> void add(Class<T> type, Serializer<T> serializer) {
+        private <T> void add(Class<?> type, Serializer<?> serializer) {
             TypeInfo typeInfo = new TypeInfo((byte) serializersByTag.size(), serializer);
             serializersByType.put(type, typeInfo);
             serializersByTag.put(typeInfo.tag, typeInfo);
