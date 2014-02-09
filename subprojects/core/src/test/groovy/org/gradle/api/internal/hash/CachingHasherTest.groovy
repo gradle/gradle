@@ -30,7 +30,7 @@ class CachingHasherTest extends Specification {
     def cacheAccess = Mock(TaskArtifactStateCacheAccess)
     def byte[] hash = "hash".bytes
     def file = tmpDir.createFile("testfile")
-    def hasher
+    CachingHasher hasher
 
     def setup() {
         file.write("some-content")
@@ -40,15 +40,15 @@ class CachingHasherTest extends Specification {
 
     def hashesFileWhenHashNotCached() {
         when:
-        def result = hasher.hash(file)
+        def result = hasher.snapshot(file)
 
         then:
-        result == hash
+        result.hash == hash
 
         and:
         1 * cache.get(file) >> null
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File, CachingHasher.FileInfo fileInfo ->
+        1 * cache.put(file, _) >> { File key, CachingHasher.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -58,15 +58,15 @@ class CachingHasherTest extends Specification {
 
     def hashesFileWhenLengthHasChanged() {
         when:
-        def result = hasher.hash(file)
+        def result = hasher.snapshot(file)
 
         then:
-        result == hash
+        result.hash == hash
 
         and:
         1 * cache.get(file) >> new CachingHasher.FileInfo(hash, 1024, file.lastModified())
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File, CachingHasher.FileInfo fileInfo ->
+        1 * cache.put(file, _) >> { File key, CachingHasher.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -76,15 +76,15 @@ class CachingHasherTest extends Specification {
 
     def hashesFileWhenTimestampHasChanged() {
         when:
-        def result = hasher.hash(file)
+        def result = hasher.snapshot(file)
 
         then:
-        result == hash
+        result.hash == hash
 
         and:
         1 * cache.get(file) >> new CachingHasher.FileInfo(hash, file.length(), 124)
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File, CachingHasher.FileInfo fileInfo ->
+        1 * cache.put(file, _) >> { File key, CachingHasher.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -94,10 +94,10 @@ class CachingHasherTest extends Specification {
 
     def doesNotHashFileWhenTimestampAndLengthHaveNotChanged() {
         when:
-        def result = hasher.hash(file)
+        def result = hasher.snapshot(file)
 
         then:
-        result == hash
+        result.hash == hash
 
         and:
         1 * cache.get(file) >> new CachingHasher.FileInfo(hash, file.length(), file.lastModified())

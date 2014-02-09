@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
-import org.gradle.api.internal.hash.Hasher;
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.cache.PersistentIndexedCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,13 +30,14 @@ public class IncrementalCompileProcessor {
     private final PersistentIndexedCache<File, FileState> fileStateCache;
     private final PersistentIndexedCache<String, List<File>> previousSourcesCache;
     private final SourceDependencyParser dependencyParser;
-    private final Hasher hasher;
+    private final FileSnapshotter snapshotter;
 
-    public IncrementalCompileProcessor(PersistentIndexedCache<File, FileState> fileStateCache, PersistentIndexedCache<String, List<File>> previousSourcesCache, SourceDependencyParser dependencyParser, Hasher hasher) {
+    public IncrementalCompileProcessor(PersistentIndexedCache<File, FileState> fileStateCache, PersistentIndexedCache<String, List<File>> previousSourcesCache, SourceDependencyParser dependencyParser,
+                                       FileSnapshotter snapshotter) {
         this.fileStateCache = fileStateCache;
         this.previousSourcesCache = previousSourcesCache;
         this.dependencyParser = dependencyParser;
-        this.hasher = hasher;
+        this.snapshotter = snapshotter;
     }
 
     public IncrementalCompilation processSourceFiles(Collection<File> sourceFiles) {
@@ -111,7 +112,7 @@ public class IncrementalCompileProcessor {
                 state = new FileState();
             }
 
-            byte[] currentHash = hasher.hash(file);
+            byte[] currentHash = snapshotter.snapshot(file).getHash();
             if (hasChanged(state, currentHash)) {
                 changed = true;
                 state.setHash(currentHash);

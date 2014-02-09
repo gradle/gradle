@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.hash.Hasher;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.NoOpChangeListener;
 
@@ -27,11 +26,11 @@ import java.math.BigInteger;
 import java.util.*;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
-    private final Hasher hasher;
+    private final FileSnapshotter snapshotter;
     private TaskArtifactStateCacheAccess cacheAccess;
 
-    public DefaultFileCollectionSnapshotter(Hasher hasher, TaskArtifactStateCacheAccess cacheAccess) {
-        this.hasher = hasher;
+    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess) {
+        this.snapshotter = snapshotter;
         this.cacheAccess = cacheAccess;
     }
 
@@ -46,7 +45,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             public void run() {
                 for (File file : theFiles) {
                     if (file.isFile()) {
-                        snapshots.put(file.getAbsolutePath(), new FileHashSnapshot(hasher.hash(file)));
+                        snapshots.put(file.getAbsolutePath(), new FileHashSnapshot(snapshotter.snapshot(file).getHash()));
                     } else if (file.isDirectory()) {
                         snapshots.put(file.getAbsolutePath(), new DirSnapshot());
                     } else {

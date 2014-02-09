@@ -24,17 +24,13 @@ import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 
-public class CachingHasher implements Hasher, FileSnapshotter {
+public class CachingHasher implements FileSnapshotter {
     private final PersistentIndexedCache<File, FileInfo> cache;
     private final Hasher hasher;
 
     public CachingHasher(Hasher hasher, PersistentStore store) {
         this.hasher = hasher;
         this.cache = store.createCache("fileHashes", File.class, new FileInfoSerializer());
-    }
-
-    public byte[] hash(File file) {
-        return snapshot(file).hash;
     }
 
     public FileInfo snapshot(File file) {

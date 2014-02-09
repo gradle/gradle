@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.hash.DefaultHasher
+import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ChangeListener
@@ -25,17 +25,22 @@ import org.junit.Rule
 import spock.lang.Specification
 
 public class DefaultFileCollectionSnapshotterTest extends Specification {
-    def hasher = new DefaultHasher()
+    def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
-    def snapshotter = new DefaultFileCollectionSnapshotter(hasher, cacheAccess)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess)
 
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def setup() {
-        cacheAccess.useCache(_, _) >> { args ->
-            args[1].run()
+        fileSnapshotter.snapshot(_) >> { File file ->
+            return Stub(FileSnapshotter.FileSnapshot) {
+                getHash() >> HashUtil.sha1(file).asByteArray()
+            }
+        }
+        cacheAccess.useCache(_, _) >> { String name, Runnable action ->
+            action.run()
         }
     }
 

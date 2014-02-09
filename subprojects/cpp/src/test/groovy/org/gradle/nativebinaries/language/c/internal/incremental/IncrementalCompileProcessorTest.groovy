@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.c.internal.incremental
+
 import org.gradle.CacheUsage
-import org.gradle.api.internal.hash.DefaultHasher
+import org.gradle.api.internal.changedetection.state.FileSnapshotter
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.internal.hash.HashUtil
 import org.gradle.messaging.serialize.DefaultSerializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
@@ -30,10 +32,10 @@ class IncrementalCompileProcessorTest extends Specification {
     def cacheDir = tmpDir.createDir("cache")
     def dependencyParser = Mock(SourceDependencyParser)
     def cacheFactory = new InMemoryCacheFactory()
-    def hasher = new DefaultHasher()
+    def fileSnapshotter = Stub(FileSnapshotter)
     def stateCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new DefaultSerializer<FileState>())
     def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new DefaultSerializer<List<File>>())
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, hasher)
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, fileSnapshotter)
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -42,6 +44,14 @@ class IncrementalCompileProcessorTest extends Specification {
     def dep3 = sourceFile("dep3")
     def dep4 = sourceFile("dep4")
     def sourceFiles
+
+    def setup() {
+        fileSnapshotter.snapshot(_) >> { File file ->
+            return Stub(FileSnapshotter.FileSnapshot) {
+                getHash() >> HashUtil.sha1(file).asByteArray()
+            }
+        }
+    }
 
     def initialFiles() {
         // S1 - D1 \
