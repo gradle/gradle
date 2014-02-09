@@ -17,6 +17,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.hash.HashUtil;
@@ -76,7 +77,10 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
             String compactMD5 = HashUtil.createCompactMD5(inputFile.getAbsolutePath());
             File outputDirectory = new File(spec.getObjectFileDir(), compactMD5);
             if(!outputDirectory.exists()){
-                outputDirectory.mkdir();
+                if(!outputDirectory.mkdir()){
+                    Logging.getLogger(getClass()).warn("Cannot create outputDirectory. Try mkdirs instead!");
+                    assert outputDirectory.mkdirs();
+                }
             }
             return new File(outputDirectory, outputFileName);
         }

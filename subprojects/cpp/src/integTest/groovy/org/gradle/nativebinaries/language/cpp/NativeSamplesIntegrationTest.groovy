@@ -175,6 +175,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         sample windowsResources
 
         when:
+        executer.withArgument("-i")
         run "installMainExecutable"
 
         then:
