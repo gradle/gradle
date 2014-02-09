@@ -136,6 +136,8 @@ TBD
 
 The model DSL should expose only public methods and properties defined by the public API. All other methods and properties should be hidden.
 
+- Reasonable error message when DSL uses unknown property, eg show matching candidates, inform user that method/property is internal.
+
 ## Plugin author uses model rules to define tasks after plugin model has been configured
 
 A common problem when authoring a plugin is how to handle configuration that happens after the plugin is applied.
@@ -262,7 +264,7 @@ or the associated generation tasks.
 
 Replace usages of `TaskContainerInternal.addPlaceholderAction()`
 
-## User discovers which model elements are available
+## User discovers available model elements
 
 - Add some command-line and HTML reporting tasks that can present the model, or parts of the model, to the user.
 - Include the model DSL in the DSL reference guide.
@@ -274,9 +276,17 @@ Address some of the current problems with the publishing plugins:
 - Almost always need to determine the project version before closing the publications. This may happen in various places.
 - Warn when maven repositories are defined but no maven publications are defined, and vice versa. Same for Ivy.
 - Don't allow the identifier of a publication to be changed after the identity has been used:
-    - to generate a descriptor for a publication that depends on it
-    - at resolve time.
+    - to generate a descriptor for a publication that depends on it.
+    - used at resolve time.
+    - exposed to tooling API client.
+- Don't allow additional publications to be defined after the set of publication identities have been used (as per previous item).
 - Validate publications once they have been configured.
+- Use model rules to register outgoing publications to `ProjectPublicationRegistry`.
+    - `BasePlugin`
+    - `MavenPlugin`
+    - `PublishingPlugin`
+- Change `ProjectDependencyPublicationResolver` to use `ProjectPublicationRegistry` and remove explicit call to project `evaluate()`.
+- Change `ProjectDependencyArtifactIdExtractorHack` to use `ProjectPublicationRegistry`.
 
 Remove support for `@DeferredConfigurable` once this is complete.
 
