@@ -18,6 +18,7 @@ package org.gradle.tooling;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.model.EntryPoint;
+import org.gradle.tooling.model.Task;
 
 import java.io.File;
 import java.io.InputStream;
@@ -86,25 +87,41 @@ public interface BuildLauncher extends LongRunningOperation {
      * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
      *
      * <p>Note that the supplied tasks do not necessarily need to belong to the project which this launcher was created for.
-     * <p>Note that the method was changed to accept @link EntryPoint parameters since 1.11.
      *
      * @param tasks The tasks to be executed.
      * @return this
      * @since 1.0-milestone-3
      */
-    BuildLauncher forTasks(EntryPoint... tasks);
+    BuildLauncher forTasks(Task... tasks);
 
     /**
      * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
      *
      * <p>Note that the supplied tasks do not necessarily need to belong to the project which this launcher was created for.
-     * <p>Note that the method was changed to accept @link EntryPoint parameters since 1.11.
      *
      * @param tasks The tasks to be executed.
      * @return this
      * @since 1.0-milestone-3
      */
-    BuildLauncher forTasks(Iterable<? extends EntryPoint> tasks);
+    BuildLauncher forTasks(Iterable<? extends Task> tasks);
+
+    /**
+     * Sets the entry points to be executed. If no entries are specified, the project's default tasks are executed.
+     *
+     * @param entryPoints The entry points to be executed.
+     * @return this
+     * @since 1.12
+     */
+    BuildLauncher forEntryPoints(EntryPoint... entryPoints);
+
+    /**
+     * Sets the entry points to be executed. If no entries are specified, the project's default tasks are executed.
+     *
+     * @param entryPoints The entry points to be executed.
+     * @return this
+     * @since 1.12
+     */
+    BuildLauncher forEntryPoints(Iterable<? extends EntryPoint> entryPoints);
 
     /**
      * {@inheritDoc}

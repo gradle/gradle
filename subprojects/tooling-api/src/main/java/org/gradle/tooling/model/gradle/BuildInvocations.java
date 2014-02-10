@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.model;
+
+package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
-
-import java.io.File;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.TaskSelector;
 
 /**
- * Represents an entry point that uses task name to select tasks executed from a given context.
+ * A model providing access to {@link org.gradle.tooling.model.EntryPoint}s that can be used
+ * to initiate Gradle build.
  *
  * @since 1.12
  */
 @Incubating
-public interface TaskSelector extends EntryPoint {
-    /**
-     * Returns the display name.
-     * @return Display name of the task
-     */
-    String getDisplayName();
-
-    /**
-     * Returns the project directory used as a starting point for a build invoked by this
-     * task selector.
+public interface BuildInvocations {
+    /*
+     * Returns tasks selectors that can be used to execute build.
      *
-     * @return The project directory associated with this task selector.
+     * @return Task selectors.
+     * @since 1.12
      */
-    File getProjectDir();
+    @Incubating
+    DomainObjectSet<? extends TaskSelector> getTaskSelectors();
 }

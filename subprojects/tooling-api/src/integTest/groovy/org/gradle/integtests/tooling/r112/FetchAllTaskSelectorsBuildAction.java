@@ -18,22 +18,26 @@ package org.gradle.integtests.tooling.r112;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.TaskSelector;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 
-public class FetchTaskSelectorsBuildAction implements BuildAction<BuildInvocations> {
-    private final String projectName;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-    public FetchTaskSelectorsBuildAction(String projectName) {
-        this.projectName = projectName;
-    }
-
-    public BuildInvocations execute(BuildController controller) {
+public class FetchAllTaskSelectorsBuildAction implements BuildAction<Map<String, Set<String>>> {
+    public Map<String, Set<String>> execute(BuildController controller) {
+        Map<String, Set<String>> model = new HashMap<String, Set<String>>();
         for (BasicGradleProject project: controller.getBuildModel().getProjects()) {
-            if (project.getName().equals(projectName)) {
-                return controller.getModel(project, BuildInvocations.class);
+            BuildInvocations entryPointsForProject = controller.getModel(project, BuildInvocations.class);
+            Set<String> selectorNames = new HashSet<String>();
+            for (TaskSelector selector : entryPointsForProject.getTaskSelectors()) {
+                selectorNames.add(selector.getName());
             }
+            model.put(project.getName(), selectorNames);
         }
-        return null;
+        return model;
     }
 }

@@ -85,14 +85,14 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
     private List<DefaultGradleTaskSelector> taskSelectors(DefaultGradleProject owner) {
         // TODO radim: extract service from TaskReportTask and reuse here
         Set<DefaultGradleTaskSelector> taskSelectors = new HashSet<DefaultGradleTaskSelector>();
-        for (DefaultGradleTask t : owner.getTasks()) {
-            taskSelectors.add(new DefaultGradleTaskSelector()
-                    .setName(t.getName()));
-        }
         for (PartialGradleProject child : owner.getChildren()) {
             for (DefaultGradleTask t : child.getTasks()) {
                 taskSelectors.add(new DefaultGradleTaskSelector()
                         .setName(t.getName()));
+            }
+            for (DefaultGradleTaskSelector ts : child.getTaskSelectors()) {
+                taskSelectors.add(new DefaultGradleTaskSelector()
+                        .setName(ts.getName()));
             }
         }
 

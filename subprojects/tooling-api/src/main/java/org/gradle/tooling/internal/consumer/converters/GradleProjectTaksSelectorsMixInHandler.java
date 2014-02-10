@@ -33,12 +33,11 @@ public class GradleProjectTaksSelectorsMixInHandler {
 
     public Set<DefaultGradleTaskSelector> getTaskSelectors() {
         Set<DefaultGradleTaskSelector> taskSelectors = new HashSet<DefaultGradleTaskSelector>();
-        for (GradleTask t : project.getTasks()) {
-            taskSelectors.add(new DefaultGradleTaskSelector()
-                    .setName(t.getName()));
-        }
         for (GradleProject child : project.getChildren()) {
             taskSelectors.addAll(new GradleProjectTaksSelectorsMixInHandler(child).getTaskSelectors());
+            for (GradleTask t : child.getTasks()) {
+                taskSelectors.add(new DefaultGradleTaskSelector().setName(t.getName()));
+            }
         }
         return taskSelectors;
     }

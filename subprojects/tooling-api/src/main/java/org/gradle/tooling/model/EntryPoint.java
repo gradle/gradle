@@ -16,12 +16,31 @@
 package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
- * Represents an arbitrary entry point to the build
+ * Represents an arbitrary entry point to the build.
+ *
+ * This can be an existing task or a task selector used to run a build.
  *
  * @since 1.12
  */
 @Incubating
 public interface EntryPoint {
+    /**
+     * Returns the name of this entry point. Note that the name is not necessarily a unique identifier for the entry point.
+     *
+     * @return The name of this task.
+     * @since 1.12
+     */
+    String getName();
+
+    /**
+     * Returns the description of this task, or {@code null} if it has no description.
+     *
+     * @return The description of this task, or {@code null} if it has no description.
+     * @since 1.12
+     */
+    @Nullable
+    String getDescription();
 }

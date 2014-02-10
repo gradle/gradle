@@ -27,6 +27,7 @@ import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.EntryPoint
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
+import org.gradle.tooling.model.TaskSelector
 
 class DefaultBuildLauncherTest extends ConcurrentSpec {
     final AsyncConsumerActionExecutor asyncConnection = Mock()
@@ -91,6 +92,43 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             assert params.tasks == [':task1', ':task2']
             assert params.standardOutput == stdout
             assert params.standardError == stderr
+            return null
+        }
+        1 * handler.onComplete(null)
+        0 * asyncConnection._
+        0 * handler._
+    }
+
+    def "can configure task selector build operation"() {
+        // TODO radim: can't build task selectors from different projects
+        File projectDir = Mock(File)
+        TaskSelector ts = Mock(TaskSelector)
+        _ * ts.name >> 'myTask'
+        _ * ts.projectDir >> projectDir
+        ResultHandlerVersion1<Void> adaptedHandler
+        ResultHandler<Void> handler = Mock()
+        OutputStream stdout = Stub()
+        OutputStream stderr = Stub()
+
+        when:
+        launcher.standardOutput = stdout
+        launcher.standardError = stderr
+        launcher.forEntryPoints(ts)
+        launcher.run(handler)
+
+        then:
+        1 * asyncConnection.run(!null, !null) >> { args ->
+            ConsumerAction<GradleProject> action = args[0]
+            action.run(connection)
+            adaptedHandler = args[1]
+            adaptedHandler.onComplete(null)
+        }
+        1 * connection.run(Void, _) >> {args ->
+            ConsumerOperationParameters params = args[1]
+            assert params.tasks == ['myTask']
+            assert params.standardOutput == stdout
+            assert params.standardError == stderr
+            assert params.projectDir == projectDir
             return null
         }
         1 * handler.onComplete(null)
@@ -201,7 +239,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         EntryPoint task = Mock(EntryPoint)
 
         when:
-        launcher.forTasks(task)
+        launcher.forEntryPoints(task)
 
         then:
         def e = thrown(GradleException)

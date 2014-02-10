@@ -29,7 +29,7 @@ class ConnectionFactoryTest extends Specification {
     final ListenerManager listenerManager = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final Distribution distribution = Mock()
-    final ConnectionParameters parameters = new DefaultConnectionParameters()
+    final ConnectionParameters parameters = DefaultConnectionParameters.builder().build()
     final ConnectionFactory factory = new ConnectionFactory(implementationLoader)
 
     def usesImplementationLoaderToLoadConnectionFactory() {

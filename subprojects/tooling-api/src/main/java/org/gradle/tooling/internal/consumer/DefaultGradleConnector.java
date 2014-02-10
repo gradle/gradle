@@ -32,7 +32,7 @@ public class DefaultGradleConnector extends GradleConnector {
     private final DistributionFactory distributionFactory;
     private Distribution distribution;
 
-    private final DefaultConnectionParameters connectionParameters = new DefaultConnectionParameters();
+    private final DefaultConnectionParameters.Builder connectionParamsBuilder = DefaultConnectionParameters.builder();
 
     public DefaultGradleConnector(ConnectionFactory connectionFactory, DistributionFactory distributionFactory) {
         this.connectionFactory = connectionFactory;
@@ -65,28 +65,28 @@ public class DefaultGradleConnector extends GradleConnector {
     }
 
     public GradleConnector forProjectDirectory(File projectDir) {
-        connectionParameters.setProjectDir(projectDir);
+        connectionParamsBuilder.setProjectDir(projectDir);
         return this;
     }
 
     public GradleConnector useGradleUserHomeDir(File gradleUserHomeDir) {
-        connectionParameters.setGradleUserHomeDir(gradleUserHomeDir);
+        connectionParamsBuilder.setGradleUserHomeDir(gradleUserHomeDir);
         return this;
     }
 
     public GradleConnector searchUpwards(boolean searchUpwards) {
-        connectionParameters.setSearchUpwards(searchUpwards);
+        connectionParamsBuilder.setSearchUpwards(searchUpwards);
         return this;
     }
 
     public GradleConnector embedded(boolean embedded) {
-        connectionParameters.setEmbedded(embedded);
+        connectionParamsBuilder.setEmbedded(embedded);
         return this;
     }
 
     public GradleConnector daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits) {
-        connectionParameters.setDaemonMaxIdleTimeValue(timeoutValue);
-        connectionParameters.setDaemonMaxIdleTimeUnits(timeoutUnits);
+        connectionParamsBuilder.setDaemonMaxIdleTimeValue(timeoutValue);
+        connectionParamsBuilder.setDaemonMaxIdleTimeUnits(timeoutUnits);
         return this;
     }
 
@@ -97,13 +97,14 @@ public class DefaultGradleConnector extends GradleConnector {
      * @return
      */
     public DefaultGradleConnector setVerboseLogging(boolean verboseLogging) {
-        connectionParameters.setVerboseLogging(verboseLogging);
+        connectionParamsBuilder.setVerboseLogging(verboseLogging);
         return this;
     }
 
     public ProjectConnection connect() throws GradleConnectionException {
         LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
 
+        ConnectionParameters connectionParameters = connectionParamsBuilder.build();
         if (connectionParameters.getProjectDir() == null) {
             throw new IllegalStateException("A project directory must be specified before creating a connection.");
         }
