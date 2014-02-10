@@ -18,9 +18,16 @@ package org.gradle.plugin.bintray
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.cache.PersistentIndexedCache
+import org.gradle.internal.Factories
+import org.gradle.internal.Supplier
+import org.gradle.internal.Suppliers
+import org.gradle.messaging.serialize.BaseSerializerFactory
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest
 import org.gradle.plugin.resolve.internal.InvalidPluginRequestException
 import org.gradle.plugin.resolve.internal.JCenterPluginMapper
+import org.gradle.plugin.resolve.internal.PluginRequest
+import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import spock.lang.Specification
 
 class JCenterPluginMapperSpec extends Specification {
@@ -41,8 +48,9 @@ class JCenterPluginMapperSpec extends Specification {
         }
     }
 
-    JCenterPluginMapper mapper = new JCenterPluginMapper()
-
+    PersistentIndexedCache<PluginRequest, String> cache = new InMemoryIndexedCache<PluginRequest, String>(BaseSerializerFactory.STRING_SERIALIZER)
+    Supplier<PersistentIndexedCache<PluginRequest, String>> cacheSupplier = Suppliers.of(Factories.constant(cache))
+    JCenterPluginMapper mapper = new JCenterPluginMapper(cacheSupplier)
 
     def 'Latest version of plugin maps correctly from Bintray'() {
         when:

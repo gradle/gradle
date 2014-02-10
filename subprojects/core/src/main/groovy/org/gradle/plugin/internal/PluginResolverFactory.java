@@ -28,6 +28,7 @@ import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.cache.CacheRepository;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.resolve.internal.NotInPluginRegistryPluginResolverCheck;
@@ -47,6 +48,7 @@ public class PluginResolverFactory {
     private final FileResolver fileResolver;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final DocumentationRegistry documentationRegistry;
+    private final CacheRepository cacheRepository;
 
     private final ProjectFinder projectFinder = new ProjectFinder() {
         public ProjectInternal getProject(String path) {
@@ -54,13 +56,14 @@ public class PluginResolverFactory {
         }
     };
 
-    public PluginResolverFactory(PluginRegistry pluginRegistry, Instantiator instantiator, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, DocumentationRegistry documentationRegistry) {
+    public PluginResolverFactory(PluginRegistry pluginRegistry, Instantiator instantiator, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, DocumentationRegistry documentationRegistry, CacheRepository cacheRepository) {
         this.pluginRegistry = pluginRegistry;
         this.instantiator = instantiator;
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.documentationRegistry = documentationRegistry;
+        this.cacheRepository = cacheRepository;
     }
 
     public PluginResolver createPluginResolver(ClassLoader scriptClassLoader) {
@@ -76,7 +79,7 @@ public class PluginResolverFactory {
 
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new PluginRegistryPluginResolver(documentationRegistry, pluginRegistry));
-        resolvers.add(jcenterGradleOfficial(instantiator, createDependencyResolutionServices()));
+        resolvers.add(jcenterGradleOfficial(instantiator, createDependencyResolutionServices(), cacheRepository));
     }
 
     private DependencyResolutionServices createDependencyResolutionServices() {

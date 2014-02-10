@@ -43,6 +43,10 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         new PluginBuilder(executer, file("plugin${++pluginCounter}"))
     }
 
+    def setup() {
+        executer.requireOwnGradleUserHomeDir() // to negate caching effects
+    }
+
     def "build scripts have plugin blocks"() {
         when:
         buildFile << SCRIPT
@@ -372,15 +376,13 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         errorOutput.contains "Plugin 'plugin' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: 'plugin'\" outside of the plugins {} block)"
     }
 
-    def "plugin classes are reused across projects"() {
+    def "plugin classes are reused across projects and resolution is cached"() {
         when:
         bintray.start()
         def pb = pluginBuilder().addPlugin("", "test")
         publishPluginToBintray(pb, "test", "test")
 
-        // resolution is currently not cached, 3 searches are going to happen
-        bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
-        bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
+        // Only receiving one search request verifies that the result is cached
         bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
 
         settingsFile << "include 'sub1', 'sub2'"

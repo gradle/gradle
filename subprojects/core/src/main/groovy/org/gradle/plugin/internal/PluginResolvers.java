@@ -16,21 +16,40 @@
 
 package org.gradle.plugin.internal;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.internal.Factory;
+import org.gradle.internal.Supplier;
+import org.gradle.internal.Suppliers;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.resolve.internal.JCenterPluginMapper;
-import org.gradle.plugin.resolve.internal.JCenterRepositoryConfigurer;
-import org.gradle.plugin.resolve.internal.ModuleMappingPluginResolver;
-import org.gradle.plugin.resolve.internal.PluginResolver;
+import org.gradle.messaging.serialize.BaseSerializerFactory;
+import org.gradle.plugin.resolve.internal.*;
 
 public abstract class PluginResolvers {
 
-    public static PluginResolver jcenterGradleOfficial(Instantiator instantiator, DependencyResolutionServices dependencyResolutionServices) {
-        final JCenterPluginMapper mapper = new JCenterPluginMapper();
-        return new ModuleMappingPluginResolver(
-                "jcenter plugin resolver", dependencyResolutionServices, instantiator,
-                mapper, new JCenterRepositoryConfigurer()
-        ) {
+    public static PluginResolver jcenterGradleOfficial(Instantiator instantiator, DependencyResolutionServices dependencyResolutionServices, final CacheRepository cacheRepository) {
+        Supplier<PersistentIndexedCache<PluginRequest, String>> cacheSupplier = Suppliers.wrap(
+                Suppliers.ofQuietlyClosed(new Factory<PersistentCache>() {
+                    public PersistentCache create() {
+                        return cacheRepository.cache("plugins").withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive)).open();
+                    }
+                }),
+                new Transformer<PersistentIndexedCache<PluginRequest, String>, PersistentCache>() {
+                    public PersistentIndexedCache<PluginRequest, String> transform(PersistentCache original) {
+                        PersistentIndexedCacheParameters<PluginRequest, String> cacheParams = new PersistentIndexedCacheParameters<PluginRequest, String>("jcenter", new PluginRequestSerializer(), BaseSerializerFactory.STRING_SERIALIZER);
+                        return original.createCache(cacheParams);
+                    }
+                });
+
+        final JCenterPluginMapper mapper = new JCenterPluginMapper(cacheSupplier);
+
+        return new ModuleMappingPluginResolver("jcenter plugin resolver", dependencyResolutionServices, instantiator, mapper, new JCenterRepositoryConfigurer()) {
             @Override
             public String getDescriptionForNotFoundMessage() {
                 return String.format("Gradle Bintray Plugin Repository (listing: %s)", mapper.getBintrayRepoUrl());

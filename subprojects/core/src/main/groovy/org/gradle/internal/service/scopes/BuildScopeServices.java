@@ -246,7 +246,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 get(DependencyManagementServices.class),
                 get(FileResolver.class),
                 new DependencyMetaDataProviderImpl(),
-                get(DocumentationRegistry.class)
+                get(DocumentationRegistry.class),
+                get(CacheRepository.class)
         );
     }
 

@@ -29,6 +29,7 @@ class BintrayPluginResolutionIntegTest extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(executer, file("plugin"))
 
     def setup() {
+        executer.requireOwnGradleUserHomeDir() // negate caching behaviour
         bintray.start()
     }
 
