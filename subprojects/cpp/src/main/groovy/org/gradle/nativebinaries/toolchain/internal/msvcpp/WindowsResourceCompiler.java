@@ -58,13 +58,13 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
             List<String> args = new ArrayList<String>();
             args.add("/nologo");
             args.add("/fo");
-            args.add("\\\\?\\" + getOutputFile(spec).getAbsolutePath());
+            args.add(getOutputFile(spec).getAbsolutePath());
             for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
                 args.add("/D" + macroArg);
             }
             args.addAll(spec.getAllArgs());
             for (File file : spec.getIncludeRoots()) {
-                args.add("/I" + "\\\\?\\" + file.getAbsolutePath());
+                args.add("/I" + file.getAbsolutePath());
             }
             args.add(inputFile.getAbsolutePath());
 
