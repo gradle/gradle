@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.nativebinaries.internal.LinkerSpec;
@@ -31,11 +32,16 @@ import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.process.internal.ExecActionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VisualCppToolChain.class);
 
     public static final String DEFAULT_NAME = "visualCpp";
 
@@ -188,7 +194,20 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             tool.withPath(visualCpp.getPath(targetPlatform));
             tool.withPath(sdk.getBinDir(targetPlatform));
 
+            // Clear environment variables that might effect cl.exe & link.exe
+            clearEnvironmentVars(tool, "INCLUDE", "CL", "LIBPATH", "LINK", "LIB");
             return tool;
+        }
+
+        private <T extends BinaryToolSpec> void clearEnvironmentVars(CommandLineTool<T> tool, String... names) {
+            Map<String,?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(System.getenv());
+            for (String name : names) {
+                Object value = environmentVariables.get(name);
+                if (value != null) {
+                    LOGGER.warn("Ignoring value '{}' set for environment variable '{}'.", value, name);
+                    tool.withEnvironmentVar(name, "");
+                }
+            }
         }
 
         public String getOutputType() {
