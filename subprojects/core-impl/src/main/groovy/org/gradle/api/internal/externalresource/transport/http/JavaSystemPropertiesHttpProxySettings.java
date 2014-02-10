@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.externalresource.transport.http;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ public class JavaSystemPropertiesHttpProxySettings implements HttpProxySettings 
     }
 
     JavaSystemPropertiesHttpProxySettings(String proxyHost, String proxyPortString, String proxyUser, String proxyPassword, String nonProxyHostsString) {
-        if (proxyHost == null) {
+        if (StringUtils.isBlank(proxyHost)) {
             this.proxy = null;
         } else {
             this.proxy = new HttpProxy(proxyHost, initProxyPort(proxyPortString), proxyUser, proxyPassword);
@@ -46,7 +47,7 @@ public class JavaSystemPropertiesHttpProxySettings implements HttpProxySettings 
     }
 
     private int initProxyPort(String proxyPortString) {
-        if (proxyPortString == null) {
+        if (StringUtils.isBlank(proxyPortString)) {
             return DEFAULT_PROXY_PORT;
         }
         
@@ -59,7 +60,7 @@ public class JavaSystemPropertiesHttpProxySettings implements HttpProxySettings 
     }
 
     private List<Pattern> initNonProxyHosts(String nonProxyHostsString) {
-        if (nonProxyHostsString == null) {
+        if (StringUtils.isBlank(nonProxyHostsString)) {
             return Collections.emptyList();
         }
 
