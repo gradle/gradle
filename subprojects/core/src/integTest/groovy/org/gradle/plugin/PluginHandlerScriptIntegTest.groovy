@@ -433,7 +433,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
                 }
             }
             plugins {
-                apply plugin: "p1"
+                apply plugin: "p1", version: "1.0"
             }
 
             apply plugin: "p2"

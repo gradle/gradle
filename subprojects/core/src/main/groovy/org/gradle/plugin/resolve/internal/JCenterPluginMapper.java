@@ -56,7 +56,7 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
         }
         String version = request.getVersion();
         if (version == null) {
-            version = pluginPackage.latestVersion();
+            throw new InvalidPluginRequestException(String.format("No version number supplied for plugin '%s'. A version number must be supplied for plugins resolved from '%s'.", pluginId, getBintrayRepoUrl()));
         }
         return dependencyHandler.create(systemIds.get(0) + ":" + version);
     }

@@ -328,7 +328,7 @@ Implementation should use `http://plugins.gradle.org` as the entry point to the 
 
 - When multiple scripts apply the same plugin to different targets, the plugin resolution is done against the remote repository once only and cached.
 - Build author receives a nice error message when using the `plugins { ... }` block to:
-    - Attempt to apply a plugin from a remote repository without declaring a version selector.
+    - Attempt to apply a plugin from a remote repository without declaring a version selector. (✓)
     - Attempt to apply an unknown plugin.
         - Should list some candidates that are available, including those in the remote repositories.
     - Attempting to apply an unknown version of a plugin.

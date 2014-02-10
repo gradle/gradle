@@ -19,6 +19,7 @@ package org.gradle.plugin.bintray
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest
+import org.gradle.plugin.resolve.internal.InvalidPluginRequestException
 import org.gradle.plugin.resolve.internal.JCenterPluginMapper
 import spock.lang.Specification
 
@@ -26,7 +27,6 @@ class JCenterPluginMapperSpec extends Specification {
 
     public static final String TEST_PLUGIN_MAVEN_GROUP_ID = 'com.bintray.gradle.test'
     public static final String TEST_PLUGIN_MAVEN_ARTIFACT_ID = 'test-plugin'
-    public static final String TEST_PLUGIN_LATEST_VERSION = '2.0'
     public static final String TEST_PLUGIN_EXPLICIT_VERSION = '1.0'
     public static final String TEST_PLUGIN_ID = 'gradle-test-plugin'
 
@@ -46,12 +46,13 @@ class JCenterPluginMapperSpec extends Specification {
 
     def 'Latest version of plugin maps correctly from Bintray'() {
         when:
-        Dependency dependency = mapper.map(new DefaultPluginRequest(TEST_PLUGIN_ID), getMockForVersion(TEST_PLUGIN_LATEST_VERSION))
+        def dependencyHandler = Mock(DependencyHandler)
+        0 * dependencyHandler._
+        mapper.map(new DefaultPluginRequest(TEST_PLUGIN_ID), dependencyHandler)
 
         then:
-        dependency.group == TEST_PLUGIN_MAVEN_GROUP_ID
-        dependency.name == TEST_PLUGIN_MAVEN_ARTIFACT_ID
-        dependency.version == TEST_PLUGIN_LATEST_VERSION
+        def e = thrown InvalidPluginRequestException
+        e.message.startsWith "No version number supplied for plugin '$TEST_PLUGIN_ID'"
     }
 
     def 'Explicit version of plugin maps correctly from Bintray'() {

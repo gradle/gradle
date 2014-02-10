@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.bintray.BintrayApi
 import org.gradle.test.fixtures.bintray.BintrayTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.hamcrest.Matchers
 import org.junit.Rule
 
 class BintrayPluginResolutionIntegTest extends AbstractIntegrationSpec {
@@ -52,7 +53,7 @@ class BintrayPluginResolutionIntegTest extends AbstractIntegrationSpec {
 
         buildScript """
           plugins {
-            apply plugin: "$id"
+            apply plugin: "$id", version: "2.0"
           }
         """
 
@@ -61,6 +62,53 @@ class BintrayPluginResolutionIntegTest extends AbstractIntegrationSpec {
 
         then:
         output.contains message
+    }
+
+    def "plugin version number is required"() {
+        given:
+        def group = "org.gradle.test"
+        def name = "foo"
+        def id = "fake-plugin"
+        def version = "2.0"
+
+        bintray.api.expectPackageSearch(id, new BintrayApi.FoundPackage(version, "$group:$name"))
+
+        def module = bintray.jcenter.module(group, name, version)
+        module.allowAll()
+        def artifact = module.artifact([:])
+        module.publish()
+
+        pluginBuilder.addPlugin("", id)
+        pluginBuilder.publishTo(artifact.file)
+
+        buildScript """
+          plugins {
+            apply plugin: "$id"
+          }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("No version number supplied for plugin 'fake-plugin'. A version number must be supplied for plugins resolved from 'https://bintray.com/gradle-plugins-development/gradle-plugins'.")
+    }
+
+    def "does not assert has version number if plugin not found"() {
+        given:
+        def id = "fake-plugin"
+        bintray.api.expectPackageSearch(id)
+        buildScript """
+          plugins {
+            apply plugin: "$id"
+          }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertThatCause(Matchers.startsWith("Cannot resolve plugin request"))
     }
 
 }
