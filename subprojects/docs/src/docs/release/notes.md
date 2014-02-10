@@ -352,7 +352,7 @@ The previous behavior was surprising in certain circumstances and has been remov
 JUnit tests that JUnit API internally represents by 'null' test methods are filtered only by class name.
 This is a very internal change and should not affect users. It is mentioned for completeness.
 
-### Changes HTML test reports
+### Changes to HTML test reports
 
 Ignored tests are no longer considered in the calculation of the reported percentage success rate.
 A test run with 1 failed test, 1 successful test and 8 ignored tests will now report a success rate of 50%
