@@ -333,6 +333,9 @@ Implementation should use `http://plugins.gradle.org` as the entry point to the 
         - Should list some candidates that are available, including those in the remote repositories.
     - Attempting to apply an unknown version of a plugin.
         - Should list some candidate versions that are available.
+    - Plugins with -SNAPSHOT versions are requested (Bintray does not allow snapshot versions)
+- Plugins can be resolved with status version numbers (e.g. latest.release)
+- Plugins can be resolved with version ranges (e.g. 2.+, ]1.0,2.0])
 
 ## Story: External plugins are usable when offline
 
