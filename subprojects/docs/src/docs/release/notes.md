@@ -335,7 +335,7 @@ exclusively returned a `ModuleComponentIdentifier`.
 
 ### Changes to container configuration DSL
 
-In previous versions of Gradle, accessing a property on the [configuration container](dsl/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)) would 
+In previous versions of Gradle, accessing a property on the [configuration container](dsl/org.gradle.api.Project.html#org.gradle.api.Project:configurations\(groovy.lang.Closure\)) would
 create a new configuration on demand if a configuration with the name of the property did not exist.
 In Gradle 1.11, this behavior only now occurs when inside the configurations script block…
 
