@@ -111,6 +111,7 @@ We would like to thank the following community members for making contributions 
 
 * [Jesse Glick](https://github.com/jglick) - enabling newlines in option values passed to build
 * [Zeeke](https://github.com/zeeke) - documentation improvements
+* [Kamil Szymański](https://github.com/kamilszymanski) - documentation improvements
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
