@@ -200,7 +200,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
 
         private <T extends BinaryToolSpec> void clearEnvironmentVars(CommandLineTool<T> tool, String... names) {
-            Map<String,?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(System.getenv());
+            Map<String, ?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(System.getenv());
             for (String name : names) {
                 Object value = environmentVariables.get(name);
                 if (value != null) {
