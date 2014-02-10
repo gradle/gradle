@@ -569,6 +569,7 @@ The implementation will also remove stale object files.
 ### Open issues
 
 - Need to handle `#import` with Visual C++, which may reference a `.tld` file.
+- Should not parse headers that we deem to be unchanging: 'system' libraries, unchanging repository libraries, etc.
 
 ## Story: Modify command line arguments for binary tool prior to execution
 
@@ -1849,6 +1850,7 @@ TBD
 - AssemblerSourceSet should implement DependentSourceSet (has source dependencies)
 - Add source sets only to a component, have some way to describe how to include/exclude a source set
 - Some conventional location for OS specific source for a component
+- Allow encoding to specified on a source set, with default values as per java sources
 
 ## Compilation
 
