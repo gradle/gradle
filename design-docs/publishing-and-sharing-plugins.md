@@ -370,6 +370,15 @@ a build script and a plugin declare a dependency on the same plugin, the same im
 
 Add a basic plugin authoring plugin, that adds support for publishing to bintray with the appropriate meta-data.
 
+## Story: Plugin author can test use of plugin
+
+Authors should be able to test that their plugins are compatible with the new mechanism.
+
+- Provide mechanism to simulate plugin application at unit test level (new mechanism has functional differences at application time)
+- Provide mechanism to functionally test new plugin metadata (i.e. correctly declared dependencies on other plugins)
+
+(note: overlap with [design-docs/testing-user-build-logic.md](https://github.com/gradle/gradle/blob/master/design-docs/testing-user-build-logic.md))
+
 ## Story: Resolve plugins relative to Gradle distribution
 
 Plugin resolution uses Gradle runtime's URL (i.e as used by the wrapper) to locate a repository to search for plugins
