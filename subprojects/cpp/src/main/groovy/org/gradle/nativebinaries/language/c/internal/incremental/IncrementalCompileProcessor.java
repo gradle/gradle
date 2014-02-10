@@ -17,11 +17,14 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.cache.PersistentIndexedCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
 
 public class IncrementalCompileProcessor {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IncrementalCompileProcessor.class);
 
     private static final String PREVIOUS_FILES = "previous";
     private final PersistentIndexedCache<File, FileState> fileStateCache;
@@ -62,8 +65,10 @@ public class IncrementalCompileProcessor {
 
         fileStateCache.remove(removed);
 
-        for (File file : state.getDependencies()) {
-            purgeRemoved(file, result);
+        for (SourceDependency sourceDependency : state.getDependencies()) {
+            if (!sourceDependency.isUnknown()) {
+                purgeRemoved(sourceDependency.getFile(), result);
+            }
         }
     }
 
@@ -114,9 +119,14 @@ public class IncrementalCompileProcessor {
                 saveState(file, state);
             }
 
-            for (File dep : state.getDependencies()) {
-                boolean depChanged = checkChangedAndUpdateState(dep);
-                changed = changed || depChanged;
+            for (SourceDependency dep : state.getDependencies()) {
+                if (dep.isUnknown()) {
+                    LOGGER.info(String.format("Cannot determine changed state of included '%s' in source file '%s'. Assuming changed.", dep.getInclude(), file.getName()));
+                    changed = true;
+                } else {
+                    boolean depChanged = checkChangedAndUpdateState(dep.getFile());
+                    changed = changed || depChanged;
+                }
             }
 
             processed.put(file, changed);

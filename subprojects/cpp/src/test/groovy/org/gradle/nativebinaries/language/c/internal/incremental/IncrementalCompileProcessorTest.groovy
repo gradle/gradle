@@ -50,9 +50,9 @@ class IncrementalCompileProcessorTest extends Specification {
         // S2 ------/
         //    \ D4
 
-        1 * dependencyParser.parseDependencies(source1) >> [dep1, dep2]
-        1 * dependencyParser.parseDependencies(source2) >> [dep3, dep4]
-        1 * dependencyParser.parseDependencies(dep1) >> [dep3]
+        1 * dependencyParser.parseDependencies(source1) >> deps(dep1, dep2)
+        1 * dependencyParser.parseDependencies(source2) >> deps(dep3, dep4)
+        1 * dependencyParser.parseDependencies(dep1) >> deps(dep3)
         1 * dependencyParser.parseDependencies(dep2) >> []
         1 * dependencyParser.parseDependencies(dep3) >> []
         1 * dependencyParser.parseDependencies(dep4) >> []
@@ -133,7 +133,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
         when:
         source2 << "More text"
-        1 * dependencyParser.parseDependencies(source2) >> [dep3, dep4]
+        1 * dependencyParser.parseDependencies(source2) >> deps(dep3, dep4)
 
         then:
         with (state) {
@@ -196,7 +196,7 @@ class IncrementalCompileProcessorTest extends Specification {
         when:
         source2 << "More text"
         def dep5 = sourceFile("dep5")
-        1 * dependencyParser.parseDependencies(source2) >> [dep3, dep4, dep5]
+        1 * dependencyParser.parseDependencies(source2) >> deps(dep3, dep4, dep5)
         1 * dependencyParser.parseDependencies(dep5) >> []
 
         then:
@@ -223,7 +223,7 @@ class IncrementalCompileProcessorTest extends Specification {
         when:
         dep4 << "More text"
         def dep5 = sourceFile("dep5")
-        1 * dependencyParser.parseDependencies(dep4) >> [dep5]
+        1 * dependencyParser.parseDependencies(dep4) >> deps(dep5)
         1 * dependencyParser.parseDependencies(dep5) >> []
 
         then:
@@ -249,7 +249,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
         when:
         dep3 << "More text"
-        1 * dependencyParser.parseDependencies(dep3) >> [dep1]
+        1 * dependencyParser.parseDependencies(dep3) >> deps(dep1)
 
         then:
         with (state) {
@@ -265,7 +265,7 @@ class IncrementalCompileProcessorTest extends Specification {
         when:
         dep3 << "More text"
         def dep5 = sourceFile("dep5")
-        1 * dependencyParser.parseDependencies(dep3) >> [dep5]
+        1 * dependencyParser.parseDependencies(dep3) >> deps(dep5)
         1 * dependencyParser.parseDependencies(dep5) >> []
 
         then:
@@ -294,7 +294,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
         def file3 = sourceFile("file3")
         sourceFiles = [file3, source1, source2]
-        1 * dependencyParser.parseDependencies(file3) >> [dep4]
+        1 * dependencyParser.parseDependencies(file3) >> deps(dep4)
 
         then:
         with (state) {
@@ -333,7 +333,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
         and:
         dep2 << "changed"
-        1 * dependencyParser.parseDependencies(dep2) >> [source2]
+        1 * dependencyParser.parseDependencies(dep2) >> deps(source2)
         with (state) {
             recompile == [source1]
         }
@@ -354,7 +354,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
         when:
         dep2 << "added dep"
-        1 * dependencyParser.parseDependencies(dep2) >> [source2]
+        1 * dependencyParser.parseDependencies(dep2) >> deps(source2)
 
         and:
         sourceFiles.remove(source2)
@@ -395,5 +395,9 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def sourceFile(def name) {
         tmpDir.createFile(name) << "initial text"
+    }
+
+    def deps(File... dep) {
+        dep.collect {new SourceDependency(it.name, it)}
     }
 }

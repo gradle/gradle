@@ -31,7 +31,7 @@ class DefaultIncludesParserTest extends Specification {
         def includesParser = new DefaultIncludesParser(sourceParser, false)
 
         1 * sourceParser.parseSource(file) >> sourceDetails
-        1 * sourceDetails.includes >> ['"quoted"', '<system>']
+        1 * sourceDetails.includes >> ['"quoted"', '<system>', 'DEFINED']
         0 * sourceDetails._
 
         and:
@@ -40,6 +40,7 @@ class DefaultIncludesParserTest extends Specification {
         then:
         includes.quotedIncludes == ["quoted"]
         includes.systemIncludes == ["system"]
+        includes.macroIncludes == ["DEFINED"]
     }
 
 
@@ -51,8 +52,8 @@ class DefaultIncludesParserTest extends Specification {
         def includesParser = new DefaultIncludesParser(sourceParser, true)
 
         1 * sourceParser.parseSource(file) >> sourceDetails
-        1 * sourceDetails.includes >> ['"quoted"', '<system>']
-        1 * sourceDetails.imports >> ['"quotedImport"', '<systemImport>']
+        1 * sourceDetails.includes >> ['"quoted"', '<system>', 'DEFINED']
+        1 * sourceDetails.imports >> ['"quotedImport"', '<systemImport>', 'DEFINED_IMPORT']
         0 * sourceDetails._
 
         and:
@@ -61,6 +62,7 @@ class DefaultIncludesParserTest extends Specification {
         then:
         includes.quotedIncludes == ["quoted", "quotedImport"]
         includes.systemIncludes == ["system", "systemImport"]
+        includes.macroIncludes == ["DEFINED", "DEFINED_IMPORT"]
     }
 
 }

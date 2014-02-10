@@ -117,6 +117,44 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         recompiled sourceFile
     }
 
+    def "source is always recompiled if it includes header via macro"() {
+        given:
+        sourceFile << """
+            #define MY_HEADER "${otherHeaderFile.name}"
+            #include MY_HEADER
+"""
+
+        and:
+        initialCompile()
+
+        when:
+        otherHeaderFile << """
+            // Some extra content
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled sourceFile
+
+        // TODO:DAZ Remove this behaviour
+        when: "Header that is NOT included is changed"
+        file("src/main/headers/notIncluded.h") << """
+            // Dummy header file
+"""
+        and:
+        run "mainExecutable"
+
+        then: "Source is still recompiled"
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled sourceFile
+    }
+
     def "recompiles source file when transitively included header file is changed"() {
         given:
         def transitiveHeaderFile = file("src/main/headers/transitive.h") << """

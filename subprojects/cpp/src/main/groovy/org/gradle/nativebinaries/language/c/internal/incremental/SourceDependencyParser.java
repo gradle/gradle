@@ -19,5 +19,5 @@ import java.io.File;
 import java.util.List;
 
 public interface SourceDependencyParser {
-    List<File> parseDependencies(File sourceFile);
+    List<SourceDependency> parseDependencies(File sourceFile);
 }

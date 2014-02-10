@@ -25,5 +25,6 @@ public interface IncludesParser {
     interface Includes {
         List<String> getQuotedIncludes();
         List<String> getSystemIncludes();
+        List<String> getMacroIncludes();
     }
 }

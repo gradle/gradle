@@ -30,12 +30,15 @@ public class DefaultSourceDependencyParser implements SourceDependencyParser {
         this.includePaths = includePaths;
     }
 
-    public List<File> parseDependencies(File sourceFile) {
-        List<File> dependencies = new ArrayList<File>();
+    public List<SourceDependency> parseDependencies(File sourceFile) {
+        List<SourceDependency> dependencies = new ArrayList<SourceDependency>();
         IncludesParser.Includes includes = includesParser.parseIncludes(sourceFile);
 
         searchForDependencies(dependencies, prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes());
         searchForDependencies(dependencies, includePaths, includes.getSystemIncludes());
+        if (!includes.getMacroIncludes().isEmpty()) {
+            dependencies.add(new SourceDependency(includes.getMacroIncludes().get(0), null));
+        }
 
         return dependencies;
     }
@@ -47,18 +50,18 @@ public class DefaultSourceDependencyParser implements SourceDependencyParser {
         return quotedSearchPath;
     }
 
-    private void searchForDependencies(List<File> dependencies, List<File> quotedSearchPath, List<String> quotedIncludes) {
-        for (String include : quotedIncludes) {
-            searchForDependency(dependencies, quotedSearchPath, include);
+    private void searchForDependencies(List<SourceDependency> dependencies, List<File> searchPath, List<String> includes) {
+        for (String include : includes) {
+            searchForDependency(dependencies, searchPath, include);
         }
     }
 
-    private void searchForDependency(List<File> dependencies, List<File> quotedSearchPath, String include) {
-        for (File searchDir : quotedSearchPath) {
+    private void searchForDependency(List<SourceDependency> dependencies, List<File> searchPath, String include) {
+        for (File searchDir : searchPath) {
             File candidate = new File(searchDir, include);
-            // TODO:DAZ This means that we'll never detect changed files if they are not on our defined include path
+            // TODO:DAZ This means that we'll never detect changed files if they are not on the defined include path
             if (candidate.isFile()) {
-                dependencies.add(GFileUtils.canonicalise(candidate));
+                dependencies.add(new SourceDependency(include, GFileUtils.canonicalise(candidate)));
                 break;
             }
         }

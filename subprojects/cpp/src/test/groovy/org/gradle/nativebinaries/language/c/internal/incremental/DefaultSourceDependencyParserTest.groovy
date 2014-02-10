@@ -27,6 +27,7 @@ class DefaultSourceDependencyParserTest extends Specification {
     def sourceDirectory = testDirectory.createDir("sources")
     def quotedIncludes = []
     def systemIncludes = []
+    def macroIncludes = []
     def includesParser = Mock(IncludesParser)
     def includePaths = []
 
@@ -35,6 +36,7 @@ class DefaultSourceDependencyParserTest extends Specification {
         includesParser.parseIncludes(sourceFile) >> includes
         includes.getQuotedIncludes() >> quotedIncludes
         includes.getSystemIncludes() >> systemIncludes
+        includes.getMacroIncludes() >> macroIncludes
     }
 
     protected TestFile getSourceFile() {
@@ -68,7 +70,7 @@ class DefaultSourceDependencyParserTest extends Specification {
         quotedIncludes << "test1.h" << "test2.h"
 
         then:
-        dependencies == [header1, header2]
+        dependencies == deps(header1, header2)
     }
 
     def "locates quoted includes relative to source directory"() {
@@ -81,7 +83,7 @@ class DefaultSourceDependencyParserTest extends Specification {
         quotedIncludes << "test1.h" << "nested/test2.h" << "../sibling/test3.h"
 
         then:
-        dependencies == [header1, header2, header3]
+        dependencies.collect {it.file} == [header1, header2, header3]
     }
 
     def "does not locate system includes in same directory"() {
@@ -110,7 +112,7 @@ class DefaultSourceDependencyParserTest extends Specification {
         systemIncludes << "test12.h" << "test22.h"
 
         then:
-        dependencies == [header11, header21, header12, header22]
+        dependencies == deps(header11, header21, header12, header22)
     }
 
     def "searches relative before searching include path"() {
@@ -125,6 +127,27 @@ class DefaultSourceDependencyParserTest extends Specification {
         quotedIncludes << "test.h" << "other.h"
 
         then:
-        dependencies == [relativeHeader, otherHeader]
+        dependencies == deps(relativeHeader, otherHeader)
+    }
+
+    def "includes unknown source dependency for first macro include"() {
+        when:
+        macroIncludes << 'DEFINE_1' << 'DEFINE_2'
+
+        then:
+        dependencies.size() == 1
+        with (dependencies[0]) {
+            unknown
+            include == 'DEFINE_1'
+            file == null
+        }
+    }
+
+    def deps(File... files) {
+        return files.collect {dep(it)}
+    }
+
+    def dep(File dependencyFile) {
+        return new SourceDependency(dependencyFile.name, dependencyFile)
     }
 }

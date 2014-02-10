@@ -38,7 +38,7 @@ public class DefaultIncludesParser implements IncludesParser {
     private class DefaultIncludes implements Includes {
         private final List<String> quotedIncludes = new ArrayList<String>();
         private final List<String> systemIncludes = new ArrayList<String>();
-        private final List<String> unknownIncludes = new ArrayList<String>();
+        private final List<String> macroIncludes = new ArrayList<String>();
 
         private DefaultIncludes(CSourceParser.SourceDetails delegate) {
             List<String> includes = delegate.getIncludes();
@@ -55,7 +55,7 @@ public class DefaultIncludesParser implements IncludesParser {
                 } else if (value.startsWith("\"") && value.endsWith("\"")) {
                     quotedIncludes.add(strip(value));
                 } else {
-                    unknownIncludes.add(value);
+                    macroIncludes.add(value);
                 }
             }
         }
@@ -70,6 +70,10 @@ public class DefaultIncludesParser implements IncludesParser {
 
         public List<String> getSystemIncludes() {
             return systemIncludes;
+        }
+
+        public List<String> getMacroIncludes() {
+            return macroIncludes;
         }
     }
 }

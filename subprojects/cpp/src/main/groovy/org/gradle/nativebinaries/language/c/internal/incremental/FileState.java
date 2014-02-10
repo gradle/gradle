@@ -15,13 +15,12 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileState implements Serializable {
-    private List<File> dependencies = new ArrayList<File>();
+    private List<SourceDependency> dependencies = new ArrayList<SourceDependency>();
     private byte[] hash;
 
     public byte[] getHash() {
@@ -32,11 +31,11 @@ public class FileState implements Serializable {
         this.hash = hash;
     }
 
-    public List<File> getDependencies() {
+    public List<SourceDependency> getDependencies() {
         return dependencies;
     }
 
-    public void setDependencies(List<File> files) {
+    public void setDependencies(List<SourceDependency> files) {
         this.dependencies.clear();
         this.dependencies.addAll(files);
     }
