@@ -16,10 +16,14 @@
 
 
 package org.gradle.nativebinaries.language.cpp
+
+import org.apache.commons.lang.RandomStringUtils
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
@@ -160,6 +164,35 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         def install = installation("build/install/mainExecutable")
         install.assertInstalled()
         install.exec().out == helloWorldApp.frenchOutput
+    }
+
+    @Ignore
+    def "can run project in extended nested file paths"() {
+        // windows can't handle a path up to 260 characters
+        // we create a path that ends up with build folder longer than is 260
+        def projectPathOffset = 180 - testDirectory.getAbsolutePath().length()
+        def nestedProjectPath = RandomStringUtils.randomAlphanumeric(projectPathOffset-10) + "/123456789"
+
+        setup:
+        def deepNestedProjectFolder = file(nestedProjectPath)
+        executer.usingProjectDirectory(deepNestedProjectFolder)
+        def TestFile buildFile = deepNestedProjectFolder.file("build.gradle")
+        buildFile << helloWorldApp.pluginScript
+        buildFile << helloWorldApp.extraConfiguration
+        buildFile << """
+            executables {
+                main {}
+            }
+        """
+
+        and:
+        helloWorldApp.writeSources(file("$nestedProjectPath/src/main"));
+
+        expect:
+        succeeds "mainExecutable"
+        def mainExecutable = executable("$nestedProjectPath/build/binaries/mainExecutable/main")
+        mainExecutable.assertExists()
+        mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 }
 
