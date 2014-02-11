@@ -21,6 +21,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateAssemblerBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateCBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateCppBaseNamesTestApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateMixedSameBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateObjectiveCBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateObjectiveCppBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
@@ -41,6 +42,11 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         }
 
         buildFile << """
+        binaries.all{
+            linker.args "-v"
+        }
+        """
+        buildFile << """
             model {
                 platforms {
                     x86 {
@@ -55,12 +61,13 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
             """
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "foo1foo2"
+        executable("build/binaries/mainExecutable/main").exec().out == expectedOutput
         where:
-        testApp << [
-                new DuplicateCBaseNamesTestApp(),
-                new DuplicateCppBaseNamesTestApp(),
-                new DuplicateAssemblerBaseNamesTestApp(toolChain)]
+        testApp                                              |   expectedOutput
+        new DuplicateCBaseNamesTestApp()                     |    "foo1foo2"
+        new DuplicateCppBaseNamesTestApp()                   |    "foo1foo2"
+        new DuplicateAssemblerBaseNamesTestApp(toolChain)    |    "foo1foo2"
+        new DuplicateMixedSameBaseNamesTestApp(toolChain)    |    "fooFromC\nfooFromCpp\nfooFromAsm\n"
     }
 
     //TODO Rene: inline with testcase above once we got coverage for objective-c and objective-cpp on windows
