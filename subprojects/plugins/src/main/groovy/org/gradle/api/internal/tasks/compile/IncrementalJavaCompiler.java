@@ -21,6 +21,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
 import org.gradle.language.jvm.internal.StaleClassCleaner;
 
+//TODO SF needs a rename job because it's not really incremental
 public class IncrementalJavaCompiler extends IncrementalJavaCompilerSupport<JavaCompileSpec> implements Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> compiler;
     private final Factory<AntBuilder> antBuilderFactory;
