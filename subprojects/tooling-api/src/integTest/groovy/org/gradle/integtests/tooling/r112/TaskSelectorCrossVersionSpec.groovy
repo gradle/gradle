@@ -115,14 +115,12 @@ task t2 << {
         then:
         selectors*.name as Set == ['t1', 't2', 't3'] as Set
 
-        // TODO radim: how to return all task from getModel(Class) and project's selectors from getModel(Model, Class)
-//        when:
-//        selectors = model.taskSelectors.find { TaskSelector it ->
-//            it.projectDir == file('b')
-//        }
-//        then:
-//        selectors*.name as Set == ['t1', 't2'] as Set
-        // TODO test also null (root project)
+        when:
+        selectors = model.taskSelectors.findAll { TaskSelector it ->
+            it.projectDir == file('b')
+        }
+        then:
+        selectors*.name as Set == ['t1', 't2'] as Set
     }
 
     def "can request task selectors from obtained GradleProject model"() {

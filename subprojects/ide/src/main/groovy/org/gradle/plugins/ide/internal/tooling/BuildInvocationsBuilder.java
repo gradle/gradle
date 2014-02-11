@@ -23,12 +23,12 @@ import org.gradle.api.Project;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
 import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
 import org.gradle.tooling.model.TaskSelector;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
 import java.util.List;
 import java.util.Set;
 
-public class BuildInvocationsBuilder implements ToolingModelBuilder{
+public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.gradle.BuildInvocations");
     }
@@ -53,5 +53,22 @@ public class BuildInvocationsBuilder implements ToolingModelBuilder{
                     setDisplayName(String.format("%s built in %s and subprojects.", selectorName, project.getName())));
         }
         return new DefaultBuildInvocations().setSelectors(selectors);
+    }
+
+    public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
+        if (implicitProject) {
+            return new DefaultBuildInvocations().setSelectors(buildRecursively(modelName, project.getRootProject()));
+        } else {
+            return buildAll(modelName, project);
+        }
+    }
+
+    private List<DefaultGradleTaskSelector> buildRecursively(String modelName, Project project) {
+        List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
+        selectors.addAll(buildAll(modelName, project).getTaskSelectors());
+        for (Project childProject : project.getSubprojects()) {
+            selectors.addAll(buildRecursively(modelName, childProject));
+        }
+        return selectors;
     }
 }

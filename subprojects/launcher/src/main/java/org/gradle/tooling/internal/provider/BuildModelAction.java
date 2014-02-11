@@ -20,6 +20,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.*;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
@@ -56,7 +57,12 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
                     failure.set((InternalUnsupportedModelException) (new InternalUnsupportedModelException().initCause(e)));
                     return;
                 }
-                Object result = builder.buildAll(modelName, gradle.getDefaultProject());
+                Object result;
+                if (builder instanceof ProjectSensitiveToolingModelBuilder) {
+                    result = ((ProjectSensitiveToolingModelBuilder) builder).buildAll(modelName, gradle.getDefaultProject(), true);
+                } else {
+                    result = builder.buildAll(modelName, gradle.getDefaultProject());
+                }
                 model.set(result);
             }
         };
