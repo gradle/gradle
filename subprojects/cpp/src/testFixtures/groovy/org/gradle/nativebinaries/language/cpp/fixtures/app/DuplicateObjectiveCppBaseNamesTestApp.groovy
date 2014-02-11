@@ -23,6 +23,8 @@ class DuplicateObjectiveCppBaseNamesTestApp extends TestComponent{
     @Override
     List<SourceFile> getSourceFiles() {
         [sourceFile("objcpp", "main.mm", """
+            #define __STDC_LIMIT_MACROS
+            #include <stdint.h>
             #import <Foundation/Foundation.h>
             #import "foo.h"
 
