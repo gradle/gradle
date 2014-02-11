@@ -31,7 +31,7 @@ abstract class ComponentMetadataRulesChangingModulesIntegrationTest extends Abst
         moduleA.allowAll()
     }
 
-    def "changing dependencies have changing flag initialized to true"() {
+    def "changing dependency doesn't affect changing flag"() {
         buildFile <<
 """
 $repoDeclaration
@@ -42,7 +42,7 @@ dependencies {
     modules("org.test:moduleA:1.0") { changing = true }
     components {
         eachComponent { details ->
-            file("changing").text = details.changing
+            assert !details.changing
         }
     }
 }
@@ -51,11 +51,8 @@ task resolve << {
 }
 """
 
-        when:
-        run("resolve")
-
-        then:
-        file("changing").text == "true"
+        expect:
+        succeeds("resolve")
     }
 
     def "static and dynamic dependencies have changing flag initialized to false"() {
@@ -69,7 +66,7 @@ dependencies {
     modules "org.test:moduleA:$version"
     components {
         eachComponent { details ->
-            file("changing").text = details.changing
+            assert !details.changing
         }
     }
 }
@@ -78,18 +75,15 @@ task resolve << {
 }
 """
 
-        when:
-        run("resolve")
-
-        then:
-        file("changing").text == "false"
+        expect:
+        succeeds("resolve")
 
         where:
         version << ["1.0", "[1.0,2.0]"]
     }
 
 
-    def "rule can change a non-changing component to changing"() {
+    def "rule can make a component changing"() {
         buildFile <<
 """
 $repoDeclaration
@@ -125,7 +119,7 @@ task resolve << {
         artifact.assertContentsHaveChangedSince(snapshot)
     }
 
-    def "rule can change a changing component to non-changing"() {
+    def "rule cannot make a dependency non-changing"() {
         buildFile <<
 """
 $repoDeclaration
@@ -158,35 +152,6 @@ task resolve << {
         run("resolve")
 
         then:
-        artifact.assertContentsHaveNotChangedSince(snapshot)
-    }
-
-    def "changes made by metadata rule aren't cached"() {
-        buildFile <<
-"""
-$repoDeclaration
-configurations {
-    modules
-}
-dependencies {
-    modules "org.test:moduleA:1.0"
-    components {
-        eachComponent {
-            file("changing").text = it.changing
-            it.changing = true
-        }
-    }
-}
-task resolve << {
-    configurations.modules.resolve()
-}
-"""
-
-        when:
-        run("resolve")
-        run("resolve")
-
-        then:
-        file("changing").text == "false"
+        artifact.assertContentsHaveChangedSince(snapshot)
     }
 }
