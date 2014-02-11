@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
@@ -23,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -42,8 +42,8 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     @Override
-    protected void getDependencyForFoundIvyFileRef(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, DownloadedAndParsedMetaDataArtifact ivyRef) {
-        ModuleVersionMetaData metaData = getArtifactMetadata(ivyRef.getArtifact(), ivyRef.getResource());
+    protected void getDependencyForFoundIvyFileRef(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, DownloadedAndParsedMetaDataArtifact ivyRef) {
+        ModuleVersionMetaData metaData = getArtifactMetadata(dependency, ivyRef.getArtifact(), ivyRef.getResource());
 
         if (!metaData.isMetaDataOnly()) {
             ResolvedArtifact artifactRef = findAnyArtifact(metaData);
@@ -53,6 +53,6 @@ public class MavenLocalResolver extends MavenResolver {
             }
         }
 
-        super.getDependencyForFoundIvyFileRef(dependencyDescriptor, result, moduleRevisionId, ivyRef);
+        super.getDependencyForFoundIvyFileRef(dependency, result, moduleRevisionId, ivyRef);
     }
 }

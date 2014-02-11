@@ -154,39 +154,38 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        getDependency(dependency.getDescriptor(), result);
-    }
-
-    protected void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result) {
+        DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
         ModuleRevisionId moduleRevisionId = dependencyDescriptor.getDependencyRevisionId();
         if (versionMatcher.isDynamic(moduleRevisionId.getRevision())) {
-            findDynamicDependency(dependencyDescriptor, result);
+            findDynamicDependency(dependency, result);
         } else {
-            findStaticDependency(dependencyDescriptor, result);
+            findStaticDependency(dependency, result);
         }
     }
 
-    protected void findStaticDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result) {
-        DownloadedAndParsedMetaDataArtifact ivyRef = findMetaDataFileUsingAnyPattern(dependencyDescriptor.getDependencyRevisionId());
+    protected void findStaticDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+        DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
+        DownloadedAndParsedMetaDataArtifact ivyRef = findMetaDataFileUsingAnyPattern(dependency, dependencyDescriptor.getDependencyRevisionId());
 
         // get module descriptor
         if (ivyRef == null) {
-            getDependencyForMissingIvyFileRef(dependencyDescriptor, result, dependencyDescriptor.getDependencyRevisionId());
+            getDependencyForMissingIvyFileRef(dependency, result, dependencyDescriptor.getDependencyRevisionId());
         } else {
-            getDependencyForFoundIvyFileRef(dependencyDescriptor, result, ivyRef.getArtifact().getModuleRevisionId(), ivyRef);
+            getDependencyForFoundIvyFileRef(dependency, result, ivyRef.getArtifact().getModuleRevisionId(), ivyRef);
         }
     }
 
-    protected void findDynamicDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result) {
+    protected void findDynamicDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+        DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
         ModuleIdentifier module  = new DefaultModuleIdentifier(dependencyDescriptor.getDependencyId().getOrganisation(), dependencyDescriptor.getDependencyId().getName());
         VersionList versionList = versionLister.getVersionList(module);
         Artifact metaDataArtifact = getMetaDataArtifactFor(dependencyDescriptor.getDependencyRevisionId());
-        Artifact[] otherArtifacts = getDefaultMetaData(dependencyDescriptor, dependencyDescriptor.getDependencyRevisionId()).getDescriptor().getAllArtifacts();
+        Artifact[] otherArtifacts = getDefaultMetaData(dependency, dependencyDescriptor.getDependencyRevisionId()).getDescriptor().getAllArtifacts();
         listVersionsForAllPatterns(module, getIvyPatterns(), metaDataArtifact, versionList);
         for (Artifact otherArtifact : otherArtifacts) {
             listVersionsForAllPatterns(module, getArtifactPatterns(), otherArtifact, versionList);
         }
-        DownloadedAndParsedMetaDataArtifact artifact = findLatestMetaData(dependencyDescriptor, versionList);
+        DownloadedAndParsedMetaDataArtifact artifact = findLatestMetaData(dependency, versionList);
         if (artifact == null) {
             result.missing();
         } else {
@@ -194,8 +193,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
     }
 
-    private void getDependencyForMissingIvyFileRef(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId) {
-        DownloadedAndParsedMetaDataArtifact artifactRef = findDefaultArtifactUsingAnyPattern(dependencyDescriptor, moduleRevisionId);
+    private void getDependencyForMissingIvyFileRef(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId) {
+        DownloadedAndParsedMetaDataArtifact artifactRef = findDefaultArtifactUsingAnyPattern(dependency, moduleRevisionId);
         if (artifactRef == null) {
             LOGGER.debug("No meta-data file nor artifact found for module '{}' in repository '{}'.", moduleRevisionId, getName());
             result.missing();
@@ -204,23 +203,30 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
     }
 
-    protected MutableModuleVersionMetaData getDefaultMetaData(DependencyDescriptor dependencyDescriptor, ModuleRevisionId moduleRevisionId) {
-        DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
+    protected MutableModuleVersionMetaData getDefaultMetaData(DependencyMetaData dependency, ModuleRevisionId moduleRevisionId) {
+        DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependency.getDescriptor().getAllDependencyArtifacts());
         moduleDescriptor.setStatus("integration");
-        return new ModuleDescriptorAdapter(moduleDescriptor);
+        MutableModuleVersionMetaData rawMetaData = new ModuleDescriptorAdapter(moduleDescriptor);
+        return processRawMetaData(rawMetaData);
     }
 
-    protected void getDependencyForFoundIvyFileRef(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, DownloadedAndParsedMetaDataArtifact metaDataArtifact) {
+    protected void getDependencyForFoundIvyFileRef(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, DownloadedAndParsedMetaDataArtifact metaDataArtifact) {
         MutableModuleVersionMetaData moduleVersionMetaData = metaDataArtifact.moduleVersionMetaData;
         LOGGER.debug("Ivy file found for module '{}' in repository '{}'.", moduleRevisionId, getName());
-        moduleVersionMetaData.setChanging(isChanging(moduleVersionMetaData.getDescriptor()));
         result.resolved(moduleVersionMetaData, null);
     }
 
-    protected MutableModuleVersionMetaData getArtifactMetadata(Artifact artifact, ExternalResource resource) {
-        MutableModuleVersionMetaData metadata = doGetArtifactMetadata(artifact, resource);
-        metadataProcessor.process(metadata);
-        return metadata;
+    protected MutableModuleVersionMetaData getArtifactMetadata(DependencyMetaData dependency, Artifact artifact, ExternalResource resource) {
+        MutableModuleVersionMetaData rawMetaData = doGetArtifactMetadata(artifact, resource);
+        return processRawMetaData(rawMetaData);
+    }
+
+    private MutableModuleVersionMetaData processRawMetaData(MutableModuleVersionMetaData rawMetaData) {
+        rawMetaData.setChanging(isChanging(rawMetaData.getDescriptor()));
+        MutableModuleVersionMetaData metaData = rawMetaData.copy();
+        metaData.setRawMetaData(rawMetaData);
+        metadataProcessor.process(metaData);
+        return metaData;
     }
 
     private MutableModuleVersionMetaData doGetArtifactMetadata(Artifact artifact, ExternalResource resource) {
@@ -258,7 +264,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
     }
 
-    private DownloadedAndParsedMetaDataArtifact findMetaDataFileUsingAnyPattern(ModuleRevisionId moduleRevisionId) {
+    private DownloadedAndParsedMetaDataArtifact findMetaDataFileUsingAnyPattern(DependencyMetaData dependency, ModuleRevisionId moduleRevisionId) {
         Artifact artifact = getMetaDataArtifactFor(moduleRevisionId);
         if (artifact == null) {
             return null;
@@ -267,7 +273,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         if (metaDataResource == null) {
             return null;
         }
-        MutableModuleVersionMetaData moduleVersionMetaData = getArtifactMetadata(metaDataResource.getArtifact(), metaDataResource.getResource());
+        MutableModuleVersionMetaData moduleVersionMetaData = getArtifactMetadata(dependency, metaDataResource.getArtifact(), metaDataResource.getResource());
 
         if (isCheckconsistency()) {
             checkMetadataConsistency(DefaultModuleVersionIdentifier.newId(moduleRevisionId), moduleVersionMetaData, metaDataResource);
@@ -328,8 +334,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
     }
 
-    private DownloadedAndParsedMetaDataArtifact findLatestMetaData(DependencyDescriptor dependencyDescriptor, VersionList versions) {
-        ModuleRevisionId revisionId = dependencyDescriptor.getDependencyRevisionId();
+    private DownloadedAndParsedMetaDataArtifact findLatestMetaData(DependencyMetaData dependency, VersionList versions) {
+        ModuleRevisionId revisionId = dependency.getDescriptor().getDependencyRevisionId();
         String requestedVersion = revisionId.getRevision();
         String name = getName();
 
@@ -343,9 +349,9 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             }
 
             ModuleRevisionId candidateModuleVersionId = IvyUtil.createModuleRevisionId(revisionId.getOrganisation(), revisionId.getName(), foundVersion, null);
-            DownloadedAndParsedMetaDataArtifact resolvedResource = findMetaDataFileUsingAnyPattern(candidateModuleVersionId);
+            DownloadedAndParsedMetaDataArtifact resolvedResource = findMetaDataFileUsingAnyPattern(dependency, candidateModuleVersionId);
             if (resolvedResource == null) {
-                resolvedResource = findDefaultArtifactUsingAnyPattern(dependencyDescriptor, candidateModuleVersionId);
+                resolvedResource = findDefaultArtifactUsingAnyPattern(dependency, candidateModuleVersionId);
                 if (resolvedResource == null) {
                     continue;
                 }
@@ -362,12 +368,12 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return null;
     }
 
-    private DownloadedAndParsedMetaDataArtifact findDefaultArtifactUsingAnyPattern(DependencyDescriptor dependencyDescriptor, ModuleRevisionId moduleRevisionId) {
+    private DownloadedAndParsedMetaDataArtifact findDefaultArtifactUsingAnyPattern(DependencyMetaData dependency, ModuleRevisionId moduleRevisionId) {
         if (!isAllownomd()) {
             return null;
         }
 
-        MutableModuleVersionMetaData metaData = getDefaultMetaData(dependencyDescriptor, moduleRevisionId);
+        MutableModuleVersionMetaData metaData = getDefaultMetaData(dependency, moduleRevisionId);
 
         ResolvedArtifact artifactRef = findAnyArtifact(metaData);
         if (artifactRef == null) {
@@ -375,8 +381,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         LOGGER.debug("No meta-data file found for module '{}' in repository '{}', using default data instead.", moduleRevisionId, getName());
-
-        metaData.setChanging(isChanging(metaData.getDescriptor()));
 
         return new DownloadedAndParsedMetaDataArtifact(artifactRef.resource, artifactRef.artifact, metaData);
     }
@@ -617,7 +621,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     private boolean isChanging(ModuleDescriptor moduleDescriptor) {
         if (changingMatcherName == null || changingPattern == null) {
-            return false; // TODO: tell from module metadata (rule)
+            return false;
         }
         PatternMatcher matcher = resolverStrategy.getPatternMatcher(changingMatcherName);
         if (matcher == null) {

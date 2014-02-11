@@ -28,6 +28,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
@@ -74,25 +76,27 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         updatePatterns();
     }
 
-    protected void getDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
-        if (isSnapshotVersion(dd)) {
-            getSnapshotDependency(dd, result);
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+        DependencyDescriptor descriptor = dependency.getDescriptor();
+        if (isSnapshotVersion(descriptor)) {
+            getSnapshotDependency(dependency, result);
         } else {
-            super.getDependency(dd, result);
+            super.getDependency(dependency, result);
         }
     }
 
-    private void getSnapshotDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
-        final ModuleRevisionId dependencyRevisionId = dd.getDependencyRevisionId();
+    private void getSnapshotDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+        DependencyDescriptor descriptor = dependency.getDescriptor();
+        final ModuleRevisionId dependencyRevisionId = descriptor.getDependencyRevisionId();
         final String uniqueSnapshotVersion = findUniqueSnapshotVersion(dependencyRevisionId);
         if (uniqueSnapshotVersion != null) {
-            DependencyDescriptor enrichedDependencyDescriptor = enrichDependencyDescriptorWithSnapshotVersionInfo(dd, dependencyRevisionId, uniqueSnapshotVersion);
-            findStaticDependency(enrichedDependencyDescriptor, result);
+            DependencyDescriptor enrichedDescriptor = enrichDependencyDescriptorWithSnapshotVersionInfo(descriptor, dependencyRevisionId, uniqueSnapshotVersion);
+            findStaticDependency(new DefaultDependencyMetaData(enrichedDescriptor), result);
             if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
                 result.setModuleSource(new TimestampedModuleSource(uniqueSnapshotVersion));
             }
         } else {
-            findStaticDependency(dd, result);
+            findStaticDependency(dependency, result);
         }
     }
 

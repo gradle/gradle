@@ -51,4 +51,11 @@ public interface ModuleVersionMetaData {
     List<String> getStatusScheme();
 
     ComponentIdentifier getComponentId();
+
+    /**
+     * Returns the original metadata before it was processed by component metadata rules and other parties.
+     * Returns {@code null} if this object is already the original metadata.
+     */
+    @Nullable
+    ModuleVersionMetaData getRawMetaData();
 }

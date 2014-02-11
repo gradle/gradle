@@ -38,6 +38,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     private List<DependencyMetaData> dependencies;
     private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
     private Set<ModuleVersionArtifactMetaData> artifacts;
+    private ModuleVersionMetaData rawMetaData;
 
     public ModuleDescriptorAdapter(ModuleDescriptor moduleDescriptor) {
         this(DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId()), moduleDescriptor);
@@ -62,6 +63,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         copy.metaDataOnly = metaDataOnly;
         copy.status = status;
         copy.statusScheme = statusScheme;
+        copy.rawMetaData = rawMetaData;
         return copy;
     }
 
@@ -157,6 +159,14 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
             }
         }
         return artifacts;
+    }
+
+    public ModuleVersionMetaData getRawMetaData() {
+        return rawMetaData != null ? rawMetaData : this;
+    }
+
+    public void setRawMetaData(ModuleVersionMetaData metaData) {
+        rawMetaData = metaData;
     }
 
     protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {

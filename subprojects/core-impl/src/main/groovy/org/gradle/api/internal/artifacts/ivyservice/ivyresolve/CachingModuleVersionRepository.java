@@ -100,8 +100,8 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
                 MutableModuleVersionMetaData metaData = result.getMetaData();
                 moduleResolutionCache.cacheModuleResolution(delegate, dependency.getRequested(), metaData.getId());
                 ModuleSource moduleSource = result.getModuleSource();
-                ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData, moduleSource);
-                result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), isChanging(dependency, metaData), moduleSource));
+                ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData.getRawMetaData(), moduleSource);
+                result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), dependency.isChanging() || metaData.isChanging(), moduleSource));
                 break;
             case Failed:
                 break;
@@ -148,8 +148,8 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             }
             return;
         }
-
-        if (isChanging(dependency, cachedMetaData.getMetaData())) {
+        MutableModuleVersionMetaData metaData = processRawMetaData(cachedMetaData.getMetaData());
+        if (dependency.isChanging() || metaData.isChanging()) {
             if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
                 return;
@@ -163,15 +163,14 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
 
         LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
-        result.resolved(cachedMetaData.getMetaData(), new CachingModuleSource(cachedMetaData.getDescriptorHash(), cachedMetaData.getMetaData().isChanging(), cachedMetaData.getModuleSource()));
+        result.resolved(metaData, new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), cachedMetaData.getModuleSource()));
     }
 
-    private boolean isChanging(DependencyMetaData dependency, MutableModuleVersionMetaData metadata) {
-        if (dependency.isChanging()) {
-            metadata.setChanging(true);
-        }
-        metadataProcessor.process(metadata);
-        return metadata.isChanging();
+    private MutableModuleVersionMetaData processRawMetaData(MutableModuleVersionMetaData rawMetaData) {
+        MutableModuleVersionMetaData metaData = rawMetaData.copy();
+        metaData.setRawMetaData(rawMetaData);
+        metadataProcessor.process(metaData);
+        return metaData;
     }
 
     public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
