@@ -60,8 +60,7 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         testApp << [
                 new DuplicateCBaseNamesTestApp(),
                 new DuplicateCppBaseNamesTestApp(),
-                new DuplicateAssemblerBaseNamesTestApp(toolChain),
-                new DuplicateObjectiveCBaseNamesTestApp() ]
+                new DuplicateAssemblerBaseNamesTestApp(toolChain)]
     }
 
     //TODO Rene: inline with testcase above once we got coverage for objective-c and objective-cpp on windows
