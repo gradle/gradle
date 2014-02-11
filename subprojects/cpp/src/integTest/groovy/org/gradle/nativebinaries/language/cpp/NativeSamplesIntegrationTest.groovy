@@ -188,10 +188,10 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
 
         when:
         executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
-        run "helloResourcesSharedLibrary"
+        run "helloResSharedLibrary"
 
         then:
-        file("native-binaries/windows-resources/build/binaries/helloResourcesSharedLibrary/helloResources.dll").assertExists()
+        file("native-binaries/windows-resources/build/binaries/helloResSharedLibrary/helloRes.dll").assertExists()
     }
 
     def "custom layout"() {
