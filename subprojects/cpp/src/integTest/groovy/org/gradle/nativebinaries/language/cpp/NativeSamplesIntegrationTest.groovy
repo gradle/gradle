@@ -171,7 +171,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
 
 
     @RequiresInstalledToolChain(VisualCpp)
-    def "win-rc"() {
+    def "win rc"() {
         given:
         sample windowsResources
 
