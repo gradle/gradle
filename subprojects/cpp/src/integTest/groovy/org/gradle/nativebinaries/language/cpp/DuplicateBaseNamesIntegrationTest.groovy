@@ -21,10 +21,15 @@ import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateAssemblerBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateCBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateCppBaseNamesTestApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateObjectiveCBaseNamesTestApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateObjectiveCppBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
-// TODO add coverage for objective-c/c++ & mixed sources
+// TODO add coverage for mixed sources
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can have sourcefiles with same base name but different directories"() {
@@ -55,7 +60,32 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         testApp << [
                 new DuplicateCBaseNamesTestApp(),
                 new DuplicateCppBaseNamesTestApp(),
-                new DuplicateAssemblerBaseNamesTestApp(toolChain) ]
+                new DuplicateAssemblerBaseNamesTestApp(toolChain),
+                new DuplicateObjectiveCBaseNamesTestApp() ]
+    }
+
+    //TODO Rene: inline with testcase above once we got coverage for objective-c and objective-cpp on windows
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "can have objectiveC and objectiveCpp source files with same name in different directories"(){
+        setup:
+        testApp.writeSources(file("src/main"))
+        buildFile.text = ""
+        testApp.plugins.each{ plugin ->
+            buildFile << "apply plugin: '$plugin'\n"
+        }
+        buildFile << testApp.extraConfiguration
+
+        buildFile << """
+            executables {
+                main {}
+            }
+
+            """
+        expect:
+        succeeds "mainExecutable"
+        executable("build/binaries/mainExecutable/main").exec().out == "foo1foo2"
+        where:
+        testApp << [ new DuplicateObjectiveCBaseNamesTestApp(), new DuplicateObjectiveCppBaseNamesTestApp() ]
     }
 
     @RequiresInstalledToolChain(VisualCpp)
