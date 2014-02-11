@@ -19,10 +19,10 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app
 import org.gradle.internal.os.OperatingSystem
 
 class DuplicateObjectiveCppBaseNamesTestApp extends TestComponent{
-    def plugins = ["objective-c"]
+    def plugins = ["objective-cpp"]
     @Override
     List<SourceFile> getSourceFiles() {
-        [sourceFile("objc", "main.mm", """
+        [sourceFile("objcpp", "main.mm", """
             #import <Foundation/Foundation.h>
             #import "foo.h"
 
@@ -33,7 +33,7 @@ class DuplicateObjectiveCppBaseNamesTestApp extends TestComponent{
                 return 0;
             }
         """),
-            sourceFile("objc/foo1", "foo.mm", """
+            sourceFile("objcpp/foo1", "foo.mm", """
             #import <Foundation/Foundation.h>
             #import "foo.h"
 
@@ -44,13 +44,13 @@ class DuplicateObjectiveCppBaseNamesTestApp extends TestComponent{
                 [stdout writeData: strData];
             }
         """),
-                sourceFile("objc/foo2", "foo.mm", """
+                sourceFile("objcpp/foo2", "foo.mm", """
             #import <iostream>
             #import "foo.h"
 
-            void sayFoo1()
+            void sayFoo2()
             {
-                std::cout << "foo2" << std::endl;
+                std::cout << "foo2";
             }
         """)]
     }
@@ -62,10 +62,6 @@ class DuplicateObjectiveCppBaseNamesTestApp extends TestComponent{
             void sayFoo2();
            """)
         ]
-    }
-
-    SourceFile fooSource(int index) {
-
     }
 
     public String getExtraConfiguration() {
