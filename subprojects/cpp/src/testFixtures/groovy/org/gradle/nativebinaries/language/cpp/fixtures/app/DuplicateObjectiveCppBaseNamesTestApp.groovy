@@ -36,6 +36,8 @@ class DuplicateObjectiveCppBaseNamesTestApp extends TestComponent{
             }
         """),
             sourceFile("objcpp/foo1", "foo.mm", """
+            #define __STDC_LIMIT_MACROS
+            #include <stdint.h>
             #import <Foundation/Foundation.h>
             #import "foo.h"
 
