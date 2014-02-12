@@ -22,9 +22,6 @@ import java.io.File;
 
 import static java.lang.String.format;
 
-/**
- * by Szczepan Faber, created at: 1/17/14
- */
 public class InputOutputMapper {
 
     private Iterable<File> sourceDirs;

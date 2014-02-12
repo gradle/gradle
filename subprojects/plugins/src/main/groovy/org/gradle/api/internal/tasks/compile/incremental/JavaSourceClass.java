@@ -18,9 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import java.io.File;
 
-/**
- * by Szczepan Faber, created at: 1/17/14
- */
 public class JavaSourceClass {
     private final String relativePath;
     private final File compileDestination;

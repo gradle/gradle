@@ -19,9 +19,6 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import java.io.File;
 import java.util.List;
 
-/**
- * by Szczepan Faber, created at: 1/30/14
- */
 public class JarDeltaProvider {
 
     private List<String> changedSource;

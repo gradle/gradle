@@ -27,9 +27,6 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * by Szczepan Faber, created at: 1/16/14
- */
 public class SelectiveJavaCompiler implements Compiler<JavaCompileSpec> {
     private Compiler<JavaCompileSpec> compiler;
     private List<File> staleClasses = new LinkedList<File>();

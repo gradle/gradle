@@ -18,18 +18,13 @@ package org.gradle.api.internal.tasks.compile.incremental.graph;
 
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.gradle.api.internal.tasks.compile.incremental.ClassDependents;
-import org.gradle.api.internal.tasks.compile.incremental.DummySerializer;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 1/15/14
- */
 public class ClassDependencyInfo implements Serializable {
 
     private final Map<String, ClassDependents> dependents;

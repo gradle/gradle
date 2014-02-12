@@ -20,9 +20,6 @@ import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 1/21/14
- */
 public class ClassDependents implements Serializable {
 
     private final Set<String> dependentClasses = new LinkedHashSet<String>();

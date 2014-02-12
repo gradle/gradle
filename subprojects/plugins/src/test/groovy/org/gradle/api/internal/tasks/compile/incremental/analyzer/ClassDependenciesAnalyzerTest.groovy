@@ -20,9 +20,6 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.*
 import spock.lang.Specification
 import spock.lang.Subject
 
-/**
- * by Szczepan Faber, created at: 1/16/14
- */
 class ClassDependenciesAnalyzerTest extends Specification {
 
     @Subject analyzer = new ClassDependenciesAnalyzer()

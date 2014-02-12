@@ -20,9 +20,6 @@ import java.io.*;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
-/**
- * by Szczepan Faber, created at: 1/30/14
- */
 public class DummySerializer {
     public static void writeTargetTo(File outputFile, Object target) {
         try {

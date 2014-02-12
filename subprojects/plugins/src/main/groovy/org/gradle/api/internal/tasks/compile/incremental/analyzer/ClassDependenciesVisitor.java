@@ -20,9 +20,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Opcodes;
 
-/**
- * by Szczepan Faber, created at: 1/21/14
- */
 public class ClassDependenciesVisitor extends ClassVisitor {
 
     private final static int API = Opcodes.ASM4;

@@ -18,9 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import java.util.List;
 
-/**
- * by Szczepan Faber, created at: 1/21/14
- */
 public class ClassAnalysis {
     private final List<String> classDependencies;
     private boolean dependentToAll;

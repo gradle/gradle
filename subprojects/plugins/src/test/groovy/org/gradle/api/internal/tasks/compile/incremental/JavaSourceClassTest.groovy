@@ -20,9 +20,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/17/14
- */
 class JavaSourceClassTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()

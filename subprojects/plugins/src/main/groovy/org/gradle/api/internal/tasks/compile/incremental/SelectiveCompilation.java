@@ -32,9 +32,6 @@ import org.gradle.util.Clock;
 import java.io.File;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 1/16/14
- */
 public class SelectiveCompilation {
     private final FileCollection source;
     private final FileCollection classpath;

@@ -20,9 +20,6 @@ import java.io.File;
 
 import static org.gradle.util.GFileUtils.relativePath;
 
-/**
- * by Szczepan Faber, created at: 1/16/14
- */
 public class ClassNameProvider {
 
     private final File compiledClassesDir;

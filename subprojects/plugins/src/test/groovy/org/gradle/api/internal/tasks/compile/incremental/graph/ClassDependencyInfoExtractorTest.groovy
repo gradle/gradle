@@ -25,9 +25,6 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.UsedByNonPriva
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.YetAnotherClass
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/16/14
- */
 class ClassDependencyInfoExtractorTest extends Specification {
 
     def "knows recursive dependency tree"() {

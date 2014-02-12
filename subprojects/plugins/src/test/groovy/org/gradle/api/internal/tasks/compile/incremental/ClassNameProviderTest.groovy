@@ -21,9 +21,6 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-/**
- * by Szczepan Faber, created at: 1/16/14
- */
 class ClassNameProviderTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()

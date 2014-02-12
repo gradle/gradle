@@ -26,9 +26,6 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * by Szczepan Faber, created at: 1/16/14
- */
 public class ClassDependenciesAnalyzer {
 
     public ClassAnalysis getClassAnalysis(String className, InputStream input) throws IOException {
