@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
+import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.TaskSelector
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -121,6 +122,18 @@ task t2 << {
         }
         then:
         selectors*.name as Set == ['t1', 't2'] as Set
+    }
+
+    @TargetGradleVersion("<1.8")
+    def "cannot request task selectors for old project"() {
+        when:
+        withConnection { connection ->
+            connection.getModel(BuildInvocations)
+        }
+
+        then:
+        UnknownModelException e = thrown()
+        e.message.contains('does not support building a model of type \'' + BuildInvocations.simpleName + '\'')
     }
 
     def "can request task selectors from obtained GradleProject model"() {
