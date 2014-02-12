@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveJavaCompiler;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.*;
@@ -77,7 +78,7 @@ public class Compile extends AbstractCompile {
 
             if (compileOptions.isIncremental()) {
                 Clock clock = new Clock();
-                ClassDependencyInfo info = new ClassDependencyInfo(getDestinationDir());
+                ClassDependencyInfo info = new ClassDependencyInfoExtractor().extractInfo(getDestinationDir());
                 info.writeTo(getClassDependencyInfoFile());
                 LOG.lifecycle("{} performed class dependency analysis in {}", getPath(), clock.getTime());
             }

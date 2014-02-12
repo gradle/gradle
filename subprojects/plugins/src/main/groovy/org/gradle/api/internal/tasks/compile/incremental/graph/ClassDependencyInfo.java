@@ -16,62 +16,26 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.graph;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.gradle.api.internal.tasks.compile.incremental.ClassDependents;
-import org.gradle.api.internal.tasks.compile.incremental.ClassNameProvider;
 import org.gradle.api.internal.tasks.compile.incremental.DummySerializer;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * by Szczepan Faber, created at: 1/15/14
  */
 public class ClassDependencyInfo implements Serializable {
 
-    private final Map<String, ClassDependents> dependents = new HashMap<String, ClassDependents>();
+    private final Map<String, ClassDependents> dependents;
 
-    public ClassDependencyInfo(File compiledClassesDir) {
-        this(compiledClassesDir, "");
-    }
-
-    ClassDependencyInfo(File compiledClassesDir, String packagePrefix) {
-        Iterator output = FileUtils.iterateFiles(compiledClassesDir, new String[]{"class"}, true);
-        ClassNameProvider nameProvider = new ClassNameProvider(compiledClassesDir);
-        while (output.hasNext()) {
-            File classFile = (File) output.next();
-            String className = nameProvider.provideName(classFile);
-            if (!className.startsWith(packagePrefix)) {
-                continue;
-            }
-            try {
-                ClassAnalysis analysis = new ClassDependenciesAnalyzer().getClassAnalysis(className, classFile);
-                for (String dependency : analysis.getClassDependencies()) {
-                    if (!dependency.equals(className) && dependency.startsWith(packagePrefix)) {
-                        getOrCreateDependentMapping(dependency).addClass(className);
-                    }
-                }
-                if (analysis.isDependentToAll()) {
-                    getOrCreateDependentMapping(className).setDependentToAll();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Problems extracting class dependency from " + classFile, e);
-            }
-        }
-    }
-
-    private ClassDependents getOrCreateDependentMapping(String dependency) {
-        ClassDependents d = dependents.get(dependency);
-        if (d == null) {
-            d = new ClassDependents();
-            dependents.put(dependency, d);
-        }
-        return d;
+    public ClassDependencyInfo(Map<String, ClassDependents> dependents) {
+        this.dependents = dependents;
     }
 
     public void writeTo(File outputFile) {

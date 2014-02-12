@@ -28,17 +28,19 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 1/16/14
  */
-class ClassDependencyInfoTest extends Specification {
+class ClassDependencyInfoExtractorTest extends Specification {
 
     def "knows recursive dependency tree"() {
-        def tree = new ClassDependencyInfo(new File(ClassDependencyInfoTest.classLoader.getResource("").toURI()), "org.gradle.api.internal.tasks.compile.incremental")
+        def info = new ClassDependencyInfoExtractor().extractInfo(new File(ClassDependencyInfoExtractorTest.classLoader.getResource("").toURI()), "org.gradle.api.internal.tasks.compile.incremental")
         expect:
-        tree.getActualDependents(SomeClass.name) == [SomeOtherClass.name] as Set
-        tree.getActualDependents(SomeOtherClass.name) == [] as Set
-        tree.getActualDependents(YetAnotherClass.name) == [SomeOtherClass.name] as Set
-        tree.getActualDependents(AccessedFromPrivateClass.name) == [SomeClass.name, SomeOtherClass.name] as Set
-        tree.getActualDependents(HasPrivateConstants.name) == [] as Set
-        tree.getActualDependents(HasNonPrivateConstants.name) == null
-        tree.getActualDependents(UsedByNonPrivateConstantsClass.name) == null
+        info.getActualDependents(SomeClass.name) == [SomeOtherClass.name] as Set
+        info.getActualDependents(SomeOtherClass.name) == [] as Set
+        info.getActualDependents(YetAnotherClass.name) == [SomeOtherClass.name] as Set
+        info.getActualDependents(AccessedFromPrivateClass.name) == [SomeClass.name, SomeOtherClass.name] as Set
+        info.getActualDependents(HasPrivateConstants.name) == [] as Set
+        info.getActualDependents(HasNonPrivateConstants.name) == null
+        info.getActualDependents(UsedByNonPrivateConstantsClass.name) == null
     }
+
+    //TODO SF tighten and refactor the coverage
 }
