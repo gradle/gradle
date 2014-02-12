@@ -24,10 +24,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilationSupport;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveJavaCompiler;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -76,14 +75,12 @@ public class Compile extends AbstractCompile {
     protected void compile(IncrementalTaskInputs inputs) {
         if (!maybeCompileIncrementally(inputs)) {
             compile();
-
-            if (compileOptions.isIncremental()) {
-                Clock clock = new Clock();
-                ClassDependencyInfo info = new ClassDependencyInfoExtractor().extractInfo(getDestinationDir());
-                new ClassDependencyInfoSerializer(getClassDependencyInfoFile()).writeInfo(info);
-                LOG.lifecycle("{} performed class dependency analysis in {}", getPath(), clock.getTime());
-            }
         }
+        new IncrementalCompilationSupport().compilationComplete(compileOptions, getDestinationDir(), getDependencyInfoSerializer());
+    }
+
+    private ClassDependencyInfoSerializer getDependencyInfoSerializer() {
+        return new ClassDependencyInfoSerializer(new File(getProject().getBuildDir(), "class-info.bin"));
     }
 
     private boolean maybeCompileIncrementally(IncrementalTaskInputs inputs) {
@@ -105,7 +102,7 @@ public class Compile extends AbstractCompile {
 
         SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler);
         SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, getSource(), getClasspath(), getDestinationDir(),
-                new ClassDependencyInfoSerializer(getClassDependencyInfoFile()), getClassDeltaCache(), compiler, sourceDirs);
+                getDependencyInfoSerializer(), getClassDeltaCache(), compiler, sourceDirs);
 
         if (!selectiveCompilation.getCompilationNeeded()) {
             LOG.lifecycle("{} does not require recompilation. Skipping the compiler.", getPath());
@@ -156,10 +153,6 @@ public class Compile extends AbstractCompile {
         //hack, needs fixing
         Jar jar = (Jar) getProject().getTasks().getByName("jar");
         return new File(jar.getArchivePath() + "-class-delta.bin");
-    }
-
-    private File getClassDependencyInfoFile() {
-        return new File(getProject().getBuildDir(), "class-info.bin");
     }
 
     @OutputDirectory

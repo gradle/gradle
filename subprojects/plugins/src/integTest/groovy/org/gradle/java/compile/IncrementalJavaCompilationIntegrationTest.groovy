@@ -27,7 +27,12 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
                 compileJava.options.incremental = true
             }
 
+            task cleanFiles(type: Delete) {
+                delete("changedFiles.txt", "unchangedFiles.txt")
+            }
+
             compileJava {
+                dependsOn cleanFiles
                 def times = [:]
                 doFirst {
                     fileTree("build/classes/main").each {
@@ -90,6 +95,27 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         when: run "compileJava"
 
         then: changedFiles == ['AnotherPersonImpl'] as Set
+    }
+
+    def "refreshes the class dependencies with each run"() {
+        run "compileJava"
+
+        file("src/main/java/org/AnotherPersonImpl.java").text = """package org;
+        public class AnotherPersonImpl {}""" //remove the dependency to the interface
+
+        when: run "compileJava"
+
+        then: changedFiles == ['AnotherPersonImpl'] as Set
+
+        when:
+        file("src/main/java/org/Person.java").text = """package org;
+        public interface Person {
+            String getName();
+            String toString();
+        }"""
+        run "compileJava"
+
+        then: changedFiles == ['PersonImpl', 'Person'] as Set
     }
 
     def "compiles set of classes that depend on changed ones"() {
