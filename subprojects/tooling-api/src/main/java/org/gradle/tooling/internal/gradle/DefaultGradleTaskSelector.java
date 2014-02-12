@@ -71,7 +71,7 @@ public class DefaultGradleTaskSelector implements TaskSelector, Serializable {
     @Override
     public String toString() {
         return "GradleTaskSelector{"
-                + "name='" + name
+                + "name='" + name + "' "
                 + "projectDir='" + projectDir + "'}";
     }
 }

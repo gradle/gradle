@@ -101,7 +101,7 @@ task t2 << {
     }
 
     // TODO retrofit to older version
-    @TargetGradleVersion(">=1.12")
+    @TargetGradleVersion(">=1.8")
     def "can request task selectors for project"() {
         given:
         BuildInvocations model = withConnection { connection ->
