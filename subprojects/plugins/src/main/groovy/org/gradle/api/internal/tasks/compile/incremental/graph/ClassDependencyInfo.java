@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.graph;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
+import org.gradle.api.internal.tasks.compile.incremental.ClassDependents;
+import org.gradle.api.internal.tasks.compile.incremental.ClassNameProvider;
+import org.gradle.api.internal.tasks.compile.incremental.DummySerializer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 
@@ -29,15 +32,15 @@ import java.util.*;
 /**
  * by Szczepan Faber, created at: 1/15/14
  */
-public class ClassDependencyTree implements Serializable {
+public class ClassDependencyInfo implements Serializable {
 
     private final Map<String, ClassDependents> dependents = new HashMap<String, ClassDependents>();
 
-    public ClassDependencyTree(File compiledClassesDir) {
+    public ClassDependencyInfo(File compiledClassesDir) {
         this(compiledClassesDir, "");
     }
 
-    ClassDependencyTree(File compiledClassesDir, String packagePrefix) {
+    ClassDependencyInfo(File compiledClassesDir, String packagePrefix) {
         Iterator output = FileUtils.iterateFiles(compiledClassesDir, new String[]{"class"}, true);
         ClassNameProvider nameProvider = new ClassNameProvider(compiledClassesDir);
         while (output.hasNext()) {
@@ -72,12 +75,12 @@ public class ClassDependencyTree implements Serializable {
     }
 
     public void writeTo(File outputFile) {
-        ClassDependencyTree target = this;
+        ClassDependencyInfo target = this;
         DummySerializer.writeTargetTo(outputFile, target);
     }
 
-    public static ClassDependencyTree loadFrom(File inputFile) {
-        return (ClassDependencyTree) DummySerializer.readFrom(inputFile);
+    public static ClassDependencyInfo loadFrom(File inputFile) {
+        return (ClassDependencyInfo) DummySerializer.readFrom(inputFile);
     }
 
     public Set<String> getActualDependents(String className) {

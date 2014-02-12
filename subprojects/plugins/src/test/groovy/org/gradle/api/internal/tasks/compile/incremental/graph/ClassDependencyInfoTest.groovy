@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental
+package org.gradle.api.internal.tasks.compile.incremental.graph
 
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.AccessedFromPrivateClass
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.HasNonPrivateConstants
@@ -28,10 +28,10 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 1/16/14
  */
-class ClassDependencyTreeTest extends Specification {
+class ClassDependencyInfoTest extends Specification {
 
     def "knows recursive dependency tree"() {
-        def tree = new ClassDependencyTree(new File(ClassDependencyTreeTest.classLoader.getResource("").toURI()), "org.gradle.api.internal.tasks.compile.incremental")
+        def tree = new ClassDependencyInfo(new File(ClassDependencyInfoTest.classLoader.getResource("").toURI()), "org.gradle.api.internal.tasks.compile.incremental")
         expect:
         tree.getActualDependents(SomeClass.name) == [SomeOtherClass.name] as Set
         tree.getActualDependents(SomeOtherClass.name) == [] as Set

@@ -24,9 +24,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.internal.tasks.compile.incremental.ClassDependencyTree;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveJavaCompiler;
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.*;
@@ -77,8 +77,8 @@ public class Compile extends AbstractCompile {
 
             if (compileOptions.isIncremental()) {
                 Clock clock = new Clock();
-                ClassDependencyTree tree = new ClassDependencyTree(getDestinationDir());
-                tree.writeTo(getClassTreeCache());
+                ClassDependencyInfo info = new ClassDependencyInfo(getDestinationDir());
+                info.writeTo(getClassDependencyInfoFile());
                 LOG.lifecycle("{} performed class dependency analysis in {}", getPath(), clock.getTime());
             }
         }
@@ -103,7 +103,7 @@ public class Compile extends AbstractCompile {
 
         SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler);
         SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, getSource(), getClasspath(), getDestinationDir(),
-                getClassTreeCache(), getClassDeltaCache(), compiler, sourceDirs);
+                getClassDependencyInfoFile(), getClassDeltaCache(), compiler, sourceDirs);
 
         if (!selectiveCompilation.getCompilationNeeded()) {
             LOG.lifecycle("{} does not require recompilation. Skipping the compiler.", getPath());
@@ -156,8 +156,8 @@ public class Compile extends AbstractCompile {
         return new File(jar.getArchivePath() + "-class-delta.bin");
     }
 
-    private File getClassTreeCache() {
-        return new File(getProject().getBuildDir(), "class-tree.bin");
+    private File getClassDependencyInfoFile() {
+        return new File(getProject().getBuildDir(), "class-info.bin");
     }
 
     @OutputDirectory

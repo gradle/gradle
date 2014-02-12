@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -43,15 +44,15 @@ public class SelectiveCompilation {
     private boolean compilationNeeded = true;
 
     public SelectiveCompilation(IncrementalTaskInputs inputs, FileTree source, FileCollection compileClasspath, final File compileDestination,
-                                final File classTreeCache, final File classDeltaCache, final SelectiveJavaCompiler compiler, Iterable<File> sourceDirs) {
+                                final File dependencyInfoFile, final File classDeltaCache, final SelectiveJavaCompiler compiler, Iterable<File> sourceDirs) {
         this.classDeltaCache = classDeltaCache;
         this.compiler = compiler;
 
         Clock clock = new Clock();
         final InputOutputMapper mapper = new InputOutputMapper(sourceDirs, compileDestination);
 
-        //load dependency tree
-        final ClassDependencyTree tree = ClassDependencyTree.loadFrom(classTreeCache);
+        //load dependency info
+        final ClassDependencyInfo dependencyInfo = ClassDependencyInfo.loadFrom(dependencyInfoFile);
 
         //including only source java classes that were changed
         final PatternSet changedSourceOnly = new PatternSet();
@@ -66,7 +67,7 @@ public class SelectiveCompilation {
                     JavaSourceClass source = mapper.toJavaSourceClass(inputFile);
                     compiler.addStaleClass(source);
                     changedSourceOnly.include(source.getRelativePath());
-                    Set<String> actualDependents = tree.getActualDependents(source.getClassName());
+                    Set<String> actualDependents = dependencyInfo.getActualDependents(source.getClassName());
                     if (actualDependents == null) {
                         rebuildNeeded = "change to " + source.getClassName() + " requires full rebuild";
                         return;
@@ -87,7 +88,7 @@ public class SelectiveCompilation {
                     }
                     Iterable<String> classes = delta.getChangedClasses();
                     for (String c : classes) {
-                        Set<String> actualDependents = tree.getActualDependents(c);
+                        Set<String> actualDependents = dependencyInfo.getActualDependents(c);
                         for (String d : actualDependents) {
                             JavaSourceClass dSource = mapper.toJavaSourceClass(d);
                             compiler.addStaleClass(dSource);
