@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -44,7 +45,7 @@ public class SelectiveCompilation {
     private boolean compilationNeeded = true;
 
     public SelectiveCompilation(IncrementalTaskInputs inputs, FileTree source, FileCollection compileClasspath, final File compileDestination,
-                                final File dependencyInfoFile, final File classDeltaCache, final SelectiveJavaCompiler compiler, Iterable<File> sourceDirs) {
+                                final ClassDependencyInfoSerializer dependencyInfoSerializer, final File classDeltaCache, final SelectiveJavaCompiler compiler, Iterable<File> sourceDirs) {
         this.classDeltaCache = classDeltaCache;
         this.compiler = compiler;
 
@@ -52,7 +53,7 @@ public class SelectiveCompilation {
         final InputOutputMapper mapper = new InputOutputMapper(sourceDirs, compileDestination);
 
         //load dependency info
-        final ClassDependencyInfo dependencyInfo = ClassDependencyInfo.loadFrom(dependencyInfoFile);
+        final ClassDependencyInfo dependencyInfo = dependencyInfoSerializer.readInfo();
 
         //including only source java classes that were changed
         final PatternSet changedSourceOnly = new PatternSet();

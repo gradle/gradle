@@ -36,8 +36,9 @@ public class ClassDependents implements Serializable {
         return dependentToAll;
     }
 
-    public void addClass(String className) {
+    public ClassDependents addClass(String className) {
         dependentClasses.add(className);
+        return this;
     }
 
     public void setDependentToAll() {

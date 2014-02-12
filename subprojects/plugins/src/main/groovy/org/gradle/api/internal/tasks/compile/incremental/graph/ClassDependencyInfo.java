@@ -38,15 +38,6 @@ public class ClassDependencyInfo implements Serializable {
         this.dependents = dependents;
     }
 
-    public void writeTo(File outputFile) {
-        ClassDependencyInfo target = this;
-        DummySerializer.writeTargetTo(outputFile, target);
-    }
-
-    public static ClassDependencyInfo loadFrom(File inputFile) {
-        return (ClassDependencyInfo) DummySerializer.readFrom(inputFile);
-    }
-
     public Set<String> getActualDependents(String className) {
         Set<String> out = new HashSet<String>();
         Set<String> visited = new HashSet<String>();
