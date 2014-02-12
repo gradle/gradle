@@ -67,7 +67,7 @@ public class Compile extends AbstractCompile {
         CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
         JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, antBuilderFactory, inProcessCompilerFactory, compilerDaemonManager);
         javaCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
-        cleaningCompiler = new IncrementalJavaCompiler(javaCompiler, antBuilderFactory, getOutputs());
+        cleaningCompiler = new CleaningJavaCompiler(javaCompiler, antBuilderFactory, getOutputs());
     }
 
     @TaskAction

@@ -64,7 +64,7 @@ public class ScalaCompile extends AbstractCompile {
         CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
         ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal, antBuilder, antBuilderFactory, compilerDaemonManager);
         Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = new DelegatingScalaCompiler(scalaCompilerFactory);
-        compiler = new IncrementalScalaCompiler(delegatingCompiler, getOutputs());
+        compiler = new CleaningScalaCompiler(delegatingCompiler, getOutputs());
     }
 
     /**

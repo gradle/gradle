@@ -13,28 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
 import org.gradle.language.jvm.internal.StaleClassCleaner;
 
-public class IncrementalGroovyCompiler extends IncrementalJavaCompilerSupport<GroovyJavaJointCompileSpec> {
-    private final Compiler<GroovyJavaJointCompileSpec> compiler;
+public class CleaningScalaCompiler extends CleaningJavaCompilerSupport<ScalaJavaJointCompileSpec>
+        implements Compiler<ScalaJavaJointCompileSpec> {
+    private final Compiler<ScalaJavaJointCompileSpec> compiler;
     private final TaskOutputsInternal taskOutputs;
 
-    public IncrementalGroovyCompiler(Compiler<GroovyJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs) {
+    public CleaningScalaCompiler(Compiler<ScalaJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs) {
         this.compiler = compiler;
         this.taskOutputs = taskOutputs;
     }
 
     @Override
-    protected Compiler<GroovyJavaJointCompileSpec> getCompiler() {
+    protected Compiler<ScalaJavaJointCompileSpec> getCompiler() {
         return compiler;
     }
 
     @Override
-    protected StaleClassCleaner createCleaner(GroovyJavaJointCompileSpec spec) {
-        return new SimpleStaleClassCleaner(taskOutputs);
+    protected StaleClassCleaner createCleaner(ScalaJavaJointCompileSpec spec) {
+        if (spec.getScalaCompileOptions().isUseAnt()) {
+            return new SimpleStaleClassCleaner(taskOutputs);
+        }
+        return new NoOpStaleClassCleaner();
     }
 }

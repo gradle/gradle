@@ -13,34 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.scala;
+package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.AntBuilder;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.compile.*;
-import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
 import org.gradle.language.jvm.internal.StaleClassCleaner;
 
-public class IncrementalScalaCompiler extends IncrementalJavaCompilerSupport<ScalaJavaJointCompileSpec>
-        implements Compiler<ScalaJavaJointCompileSpec> {
-    private final Compiler<ScalaJavaJointCompileSpec> compiler;
+public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompileSpec> implements Compiler<JavaCompileSpec> {
+    private final Compiler<JavaCompileSpec> compiler;
+    private final Factory<AntBuilder> antBuilderFactory;
     private final TaskOutputsInternal taskOutputs;
 
-    public IncrementalScalaCompiler(Compiler<ScalaJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs) {
+    public CleaningJavaCompiler(Compiler<JavaCompileSpec> compiler, Factory<AntBuilder> antBuilderFactory,
+                                TaskOutputsInternal taskOutputs) {
         this.compiler = compiler;
+        this.antBuilderFactory = antBuilderFactory;
         this.taskOutputs = taskOutputs;
     }
 
     @Override
-    protected Compiler<ScalaJavaJointCompileSpec> getCompiler() {
+    protected Compiler<JavaCompileSpec> getCompiler() {
         return compiler;
     }
 
-    @Override
-    protected StaleClassCleaner createCleaner(ScalaJavaJointCompileSpec spec) {
-        if (spec.getScalaCompileOptions().isUseAnt()) {
+    protected StaleClassCleaner createCleaner(JavaCompileSpec spec) {
+        if (spec.getCompileOptions().isUseDepend()) {
+            AntDependsStaleClassCleaner cleaner = new AntDependsStaleClassCleaner(antBuilderFactory, spec.getCompileOptions());
+            cleaner.setDependencyCacheDir(spec.getDependencyCacheDir());
+            return cleaner;
+        } else {
             return new SimpleStaleClassCleaner(taskOutputs);
         }
-        return new NoOpStaleClassCleaner();
     }
 }

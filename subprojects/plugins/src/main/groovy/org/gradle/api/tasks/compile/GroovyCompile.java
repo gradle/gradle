@@ -58,7 +58,7 @@ public class GroovyCompile extends AbstractCompile {
         DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, antBuilderFactory, inProcessCompilerFactory, compilerDaemonManager);
         GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, antBuilder, classPathRegistry, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory);
-        compiler = new IncrementalGroovyCompiler(delegatingCompiler, getOutputs());
+        compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
     }
 
     @TaskAction
