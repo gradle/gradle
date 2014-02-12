@@ -22,20 +22,16 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorld
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 @Requires(TestPrecondition.NOT_WINDOWS)
-@Ignore
 class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest{
 
     def setupSpec(){
         multiPlatformsAvailable = OperatingSystem.current().isMacOsX();
     }
 
-    def "recompiles binary when #statement header file changes"() {
-        println sourceFile.text
+    def "recompiles binary when header file changes"() {
         sourceFile.text = sourceFile.text.replaceFirst('#import "hello.h"', "#$statement \"hello.h\"")
-        println sourceFile.text
 
         given:
         run "installMainExecutable"

@@ -57,6 +57,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         libraryCompileTask = ":compileHelloSharedLibraryHello${sourceType}"
 
         buildFile << app.pluginScript
+        buildFile << app.extraConfiguration
+
         buildFile << """
             executables {
                 main {

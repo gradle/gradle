@@ -19,9 +19,10 @@ package org.gradle.nativebinaries.language.objectivec
 import org.gradle.nativebinaries.language.cpp.AbstractLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCppHelloWorldApp
-import org.junit.Ignore
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
-@Ignore
+@Requires(TestPrecondition.NOT_WINDOWS)
 class ObjectiveCppLanguageIncrementalBuildIntegrationTest  extends AbstractLanguageIncrementalBuildIntegrationTest{
 
     @Override
