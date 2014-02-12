@@ -31,7 +31,7 @@ import spock.lang.Specification
 class ClassDependencyInfoExtractorTest extends Specification {
 
     def "knows recursive dependency tree"() {
-        def info = new ClassDependencyInfoExtractor().extractInfo(new File(ClassDependencyInfoExtractorTest.classLoader.getResource("").toURI()), "org.gradle.api.internal.tasks.compile.incremental")
+        def info = new ClassDependencyInfoExtractor(new File(ClassDependencyInfoExtractorTest.classLoader.getResource("").toURI())).extractInfo("org.gradle.api.internal.tasks.compile.incremental")
         expect:
         info.getActualDependents(SomeClass.name) == [SomeOtherClass.name] as Set
         info.getActualDependents(SomeOtherClass.name) == [] as Set

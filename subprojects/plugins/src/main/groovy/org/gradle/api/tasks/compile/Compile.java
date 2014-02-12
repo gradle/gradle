@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilationSupport;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveJavaCompiler;
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -76,7 +77,8 @@ public class Compile extends AbstractCompile {
         if (!maybeCompileIncrementally(inputs)) {
             compile();
         }
-        new IncrementalCompilationSupport().compilationComplete(compileOptions, getDestinationDir(), getDependencyInfoSerializer());
+        new IncrementalCompilationSupport().compilationComplete(compileOptions,
+                new ClassDependencyInfoExtractor(getDestinationDir()), getDependencyInfoSerializer());
     }
 
     private ClassDependencyInfoSerializer getDependencyInfoSerializer() {

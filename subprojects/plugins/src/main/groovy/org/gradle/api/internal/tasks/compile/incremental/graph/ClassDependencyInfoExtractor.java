@@ -29,14 +29,17 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class ClassDependencyInfoExtractor {
-    public ClassDependencyInfo extractInfo(File compileDestinationDir) {
-        return this.extractInfo(compileDestinationDir, "");
+
+    private File classesDir;
+
+    public ClassDependencyInfoExtractor(File classesDir) {
+        this.classesDir = classesDir;
     }
 
-    public ClassDependencyInfo extractInfo(File compiledClassesDir, String packagePrefix) {
+    public ClassDependencyInfo extractInfo(String packagePrefix) {
         Map<String, ClassDependents> dependents = new HashMap<String, ClassDependents>();
-        Iterator output = FileUtils.iterateFiles(compiledClassesDir, new String[]{"class"}, true);
-        ClassNameProvider nameProvider = new ClassNameProvider(compiledClassesDir);
+        Iterator output = FileUtils.iterateFiles(classesDir, new String[]{"class"}, true);
+        ClassNameProvider nameProvider = new ClassNameProvider(classesDir);
         while (output.hasNext()) {
             File classFile = (File) output.next();
             String className = nameProvider.provideName(classFile);
