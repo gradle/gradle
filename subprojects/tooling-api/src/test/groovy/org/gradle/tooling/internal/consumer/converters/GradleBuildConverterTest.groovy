@@ -16,18 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.converters
 
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
-import org.junit.Rule
 import spock.lang.Specification
 
 class GradleBuildConverterTest extends Specification {
-
-
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     DefaultGradleBuild gradleBuild;
 
