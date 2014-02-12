@@ -36,7 +36,7 @@ class DuplicateCBaseNamesTestApp extends TestComponent {
             #include <stdio.h>
             #include "foo.h"
 
-            void DLL_FUNC foo1() {
+            void foo1() {
                 printf("foo1");
             }
         """),
@@ -45,7 +45,7 @@ class DuplicateCBaseNamesTestApp extends TestComponent {
             #include <stdio.h>
             #include "foo.h"
 
-            void DLL_FUNC foo2() {
+            void foo2() {
                 printf("foo2");
             }
         """)]
@@ -54,13 +54,8 @@ class DuplicateCBaseNamesTestApp extends TestComponent {
     @Override
     List<SourceFile> getHeaderFiles() {
         [sourceFile("headers", "foo.h", """
-           #ifdef _WIN32
-           #define DLL_FUNC __declspec(dllexport)
-           #else
-           #define DLL_FUNC
-           #endif
-           void DLL_FUNC foo1();
-           void DLL_FUNC foo2();
+           void foo1();
+           void foo2();
            """)]
     }
 }

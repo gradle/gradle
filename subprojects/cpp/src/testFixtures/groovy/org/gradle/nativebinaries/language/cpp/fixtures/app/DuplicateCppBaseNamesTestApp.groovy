@@ -37,7 +37,7 @@ class DuplicateCppBaseNamesTestApp extends TestComponent {
             #include "foo.h"
             using namespace std;
 
-            void DLL_FUNC foo1() {
+            void foo1() {
                 cout << "foo1";
             }
         """),
@@ -47,7 +47,7 @@ class DuplicateCppBaseNamesTestApp extends TestComponent {
             #include "foo.h"
             using namespace std;
 
-            void DLL_FUNC foo2() {
+            void foo2() {
                 cout << "foo2";
             }
         """)]
@@ -56,13 +56,8 @@ class DuplicateCppBaseNamesTestApp extends TestComponent {
     @Override
     List<SourceFile> getHeaderFiles() {
         [sourceFile("headers", "foo.h", """
-           #ifdef _WIN32
-           #define DLL_FUNC __declspec(dllexport)
-           #else
-           #define DLL_FUNC
-           #endif
-           void DLL_FUNC foo1();
-           void DLL_FUNC foo2();
+           void foo1();
+           void foo2();
            """)
          ]
     }
