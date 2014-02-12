@@ -26,6 +26,7 @@ public class TestClassResult {
     private final String className;
     private long startTime;
     private int failuresCount;
+    private int skippedCount;
     private long id;
 
     public TestClassResult(long id, String className, long startTime) {
@@ -49,6 +50,9 @@ public class TestClassResult {
         if (methodResult.getResultType() == TestResult.ResultType.FAILURE) {
             failuresCount++;
         }
+        if(methodResult.getResultType() == TestResult.ResultType.SKIPPED) {
+            skippedCount++;
+        }
         methodResults.add(methodResult);
         return this;
     }
@@ -67,6 +71,11 @@ public class TestClassResult {
 
     public int getFailuresCount() {
         return failuresCount;
+    }
+
+
+    public int getSkippedCount() {
+        return skippedCount;
     }
 
     public long getDuration() {
