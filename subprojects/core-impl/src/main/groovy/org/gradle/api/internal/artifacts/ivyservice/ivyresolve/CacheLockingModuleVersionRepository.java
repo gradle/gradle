@@ -40,6 +40,14 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         return repository.getName();
     }
 
+    public void listModuleVersions(final DependencyMetaData dependency, final BuildableModuleVersionSelectionResolveResult result) {
+        cacheLockingManager.longRunningOperation(String.format("List %s using repository %s", dependency, getId()), new Runnable() {
+            public void run() {
+                repository.listModuleVersions(dependency, result);
+            }
+        });
+    }
+
     public void getDependency(final DependencyMetaData dependency, final BuildableModuleVersionMetaDataResolveResult result) {
         cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, getId()), new Runnable() {
             public void run() {

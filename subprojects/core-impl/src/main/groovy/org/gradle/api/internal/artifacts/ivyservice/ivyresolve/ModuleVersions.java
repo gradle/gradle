@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersions;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 
-class ModuleResolutionCacheEntry {
-    public ModuleVersions moduleVersions;
-    public long createTimestamp;
+import java.util.List;
+import java.util.Set;
 
-    ModuleResolutionCacheEntry(ModuleVersions moduleVersions, long createTimestamp) {
-        this.moduleVersions = moduleVersions;
-        this.createTimestamp = createTimestamp;
+public interface ModuleVersions {
+
+    Set<AvailableVersion> getVersions();
+
+    boolean isEmpty();
+
+    List<AvailableVersion> sortLatestFirst(LatestStrategy latestStrategy);
+
+    interface AvailableVersion extends Versioned {
     }
+
 }

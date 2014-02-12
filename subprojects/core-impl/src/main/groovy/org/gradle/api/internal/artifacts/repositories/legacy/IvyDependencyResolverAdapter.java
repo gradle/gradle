@@ -80,6 +80,14 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         return false;
     }
 
+    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        DefaultBuildableModuleVersionMetaDataResolveResult moduleMetadataResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
+        getDependency(dependency, moduleMetadataResult);
+        // TODO:DAZ Handle failures/missing
+        // TODO:DAZ We're now resolving twice
+        result.listed(new DefaultModuleVersions(moduleMetadataResult.getMetaData().getId().getVersion()));
+    }
+
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         IvyContext.getContext().setResolveData(resolveData);
         try {

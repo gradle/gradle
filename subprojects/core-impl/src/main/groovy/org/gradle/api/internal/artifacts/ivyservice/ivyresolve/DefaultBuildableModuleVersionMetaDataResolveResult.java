@@ -31,6 +31,10 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         moduleSource = null;
     }
 
+    public void reset() {
+        reset(State.Unknown);
+    }
+
     public void resolved(MutableModuleVersionMetaData metaData, ModuleSource moduleSource) {
         reset(State.Resolved);
         this.metaData = metaData;

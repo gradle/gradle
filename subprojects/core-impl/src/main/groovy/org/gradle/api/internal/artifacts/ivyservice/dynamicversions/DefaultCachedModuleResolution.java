@@ -15,30 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersions;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 class DefaultCachedModuleResolution implements ModuleResolutionCache.CachedModuleResolution {
-    private final ModuleVersionSelector requestedVersion;
-    private final ModuleVersionIdentifier resolvedVersion;
+    private final ModuleIdentifier moduleId;
+    private final ModuleVersions moduleVersions;
     private final long ageMillis;
 
-    public DefaultCachedModuleResolution(ModuleVersionSelector requestedVersion, ModuleResolutionCacheEntry entry, BuildCommencedTimeProvider timeProvider) {
-        this.requestedVersion = requestedVersion;
-        this.resolvedVersion = entry.moduleVersionIdentifier;
+    public DefaultCachedModuleResolution(ModuleIdentifier moduleId, ModuleResolutionCacheEntry entry, BuildCommencedTimeProvider timeProvider) {
+        this.moduleId = moduleId;
+        this.moduleVersions = entry.moduleVersions;
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
     }
 
-    public ModuleVersionIdentifier getResolvedVersion() {
-        return resolvedVersion;
+    public ModuleVersions getModuleVersions() {
+        return moduleVersions;
     }
 
     public long getAgeMillis() {
         return ageMillis;
-    }
-
-    public boolean isDynamicVersion() {
-        return !requestedVersion.matchesStrictly(resolvedVersion);
     }
 }

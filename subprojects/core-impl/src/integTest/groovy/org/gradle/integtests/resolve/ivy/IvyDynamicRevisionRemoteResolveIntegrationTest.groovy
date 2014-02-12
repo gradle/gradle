@@ -211,9 +211,6 @@ task retrieveMilestone(type: Sync) {
         file('release').assertHasDescendants('projectA-2.0.jar')
 
         when:
-        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        integration.ivy.expectHead()
-        milestone.ivy.expectHead()
         milestone.jar.expectGet()
 
         and:
@@ -563,17 +560,6 @@ task retrieve2(type: Sync) {
 
         and:
         run 'retrieve1'
-
-        then:
-        file('libs1').assertHasDescendants('projectA-1.2.jar')
-
-        when:
-        server.resetExpectations()
-        ivyHttpRepo.expectDirectoryListGet("org.test", "projectA")
-        projectA12.ivy.expectHead()
-
-        and:
-        run 'retrieve2'
 
         then:
         file('libs1').assertHasDescendants('projectA-1.2.jar')

@@ -153,14 +153,37 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return repositoryCacheManager.isLocal();
     }
 
+    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
+        ModuleIdentifier module  = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
+        if (!versionMatcher.isDynamic(dependency.getRequested().getVersion())) {
+            throw new IllegalArgumentException("Can only select for a dynamic version");
+        }
+        VersionList versionList = versionLister.getVersionList(module);
+        // List modules based on metadata files
+        Artifact metaDataArtifact = getMetaDataArtifactFor(dependencyDescriptor.getDependencyRevisionId());
+        listVersionsForAllPatterns(module, getIvyPatterns(), metaDataArtifact, versionList);
+
+        // List modules with missing metadata files
+        // TODO:DAZ Should check isAllownomd()
+        Artifact[] otherArtifacts = getDefaultMetaData(dependency, dependencyDescriptor.getDependencyRevisionId()).getDescriptor().getAllArtifacts();
+        for (Artifact otherArtifact : otherArtifacts) {
+            listVersionsForAllPatterns(module, getArtifactPatterns(), otherArtifact, versionList);
+        }
+        DefaultModuleVersions moduleVersions = new DefaultModuleVersions();
+        for (VersionList.ListedVersion listedVersion : versionList.getVersions()) {
+            moduleVersions.add(listedVersion.getVersion());
+        }
+        result.listed(moduleVersions);
+    }
+
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
         ModuleRevisionId moduleRevisionId = dependencyDescriptor.getDependencyRevisionId();
         if (versionMatcher.isDynamic(moduleRevisionId.getRevision())) {
-            findDynamicDependency(dependency, result);
-        } else {
-            findStaticDependency(dependency, result);
+            throw new IllegalArgumentException("Must first select a static version");
         }
+        findStaticDependency(dependency, result);
     }
 
     protected void findStaticDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
@@ -172,24 +195,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             getDependencyForMissingIvyFileRef(dependency, result, dependencyDescriptor.getDependencyRevisionId());
         } else {
             getDependencyForFoundIvyFileRef(dependency, result, ivyRef.getArtifact().getModuleRevisionId(), ivyRef);
-        }
-    }
-
-    protected void findDynamicDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
-        ModuleIdentifier module  = new DefaultModuleIdentifier(dependencyDescriptor.getDependencyId().getOrganisation(), dependencyDescriptor.getDependencyId().getName());
-        VersionList versionList = versionLister.getVersionList(module);
-        Artifact metaDataArtifact = getMetaDataArtifactFor(dependencyDescriptor.getDependencyRevisionId());
-        Artifact[] otherArtifacts = getDefaultMetaData(dependency, dependencyDescriptor.getDependencyRevisionId()).getDescriptor().getAllArtifacts();
-        listVersionsForAllPatterns(module, getIvyPatterns(), metaDataArtifact, versionList);
-        for (Artifact otherArtifact : otherArtifacts) {
-            listVersionsForAllPatterns(module, getArtifactPatterns(), otherArtifact, versionList);
-        }
-        DownloadedAndParsedMetaDataArtifact artifact = findLatestMetaData(dependency, versionList);
-        if (artifact == null) {
-            result.missing();
-        } else {
-            result.resolved(artifact.moduleVersionMetaData, null);
         }
     }
 

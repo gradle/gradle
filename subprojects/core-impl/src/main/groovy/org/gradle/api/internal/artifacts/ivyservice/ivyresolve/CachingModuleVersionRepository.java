@@ -17,17 +17,20 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
-import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
@@ -82,9 +85,48 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return "Caching " + delegate.toString();
     }
 
+    public void localListModuleVersions(DependencyMetaData original, BuildableModuleVersionSelectionResolveResult result) {
+        ModuleVersionSelector requested = original.getRequested();
+        ModuleIdentifier moduleId = new DefaultModuleIdentifier(requested.getGroup(), requested.getName());
+        ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = moduleResolutionCache.getCachedModuleResolution(delegate, moduleId);
+        if (cachedModuleResolution != null) {
+            ModuleVersions versionList = cachedModuleResolution.getModuleVersions();
+            ModuleVersionIdentifier dummyId = new DefaultModuleVersionIdentifier(moduleId.getGroup(), moduleId.getName(), "0");
+            if (cachePolicy.mustRefreshDynamicVersion(requested, dummyId, cachedModuleResolution.getAgeMillis())) {
+                LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
+            } else {
+                if (versionList.isEmpty()) {
+                    if (cachedModuleResolution.getAgeMillis() == 0) {
+                        // Verified since the start of this build, assume still missing
+                        result.noVersions();
+                    } else {
+                        // Was missing last time we checked
+                        result.probablyNoVersions();
+                    }
+                } else {
+                    result.listed(versionList);
+                }
+            }
+        }
+    }
+
+    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        delegate.listModuleVersions(dependency, result);
+        switch (result.getState()) {
+            case Listed:
+                ModuleIdentifier moduleId = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
+                ModuleVersions versionList = result.getVersions();
+                moduleResolutionCache.cacheModuleResolution(delegate, moduleId, versionList);
+                break;
+            case Failed:
+                break;
+            default:
+                throw new IllegalStateException("Unexpected state on listModuleVersions: " + result.getState());
+        }
+    }
+
     public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        DependencyMetaData resolvedDependency = maybeUseCachedDynamicVersion(delegate, dependency);
-        lookupModuleInCache(delegate, resolvedDependency, result);
+        lookupModuleInCache(delegate, dependency, result);
     }
 
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
@@ -98,7 +140,6 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
                 break;
             case Resolved:
                 MutableModuleVersionMetaData metaData = result.getMetaData();
-                moduleResolutionCache.cacheModuleResolution(delegate, dependency.getRequested(), metaData.getId());
                 ModuleSource moduleSource = result.getModuleSource();
                 ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData.getRawMetaData(), moduleSource);
                 result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), dependency.isChanging() || metaData.isChanging(), moduleSource));
@@ -108,22 +149,6 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             default:
                 throw new IllegalStateException("Unexpected resolve state: " + result.getState());
         }
-    }
-
-    private DependencyMetaData maybeUseCachedDynamicVersion(ModuleVersionRepository repository, DependencyMetaData original) {
-        ModuleVersionSelector requested = original.getRequested();
-        ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = moduleResolutionCache.getCachedModuleResolution(repository, requested);
-        if (cachedModuleResolution != null && cachedModuleResolution.isDynamicVersion()) {
-            ModuleVersionIdentifier resolvedVersion = cachedModuleResolution.getResolvedVersion();
-            if (cachePolicy.mustRefreshDynamicVersion(requested, resolvedVersion, cachedModuleResolution.getAgeMillis())) {
-                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, repository.getName());
-                return original;
-            } else {
-                LOGGER.debug("Found resolved revision in dynamic revision cache of '{}': Using '{}' for '{}'", repository.getName(), cachedModuleResolution.getResolvedVersion(), requested);
-                return original.withRequestedVersion(DefaultModuleVersionSelector.newSelector(resolvedVersion.getGroup(), resolvedVersion.getName(), resolvedVersion.getVersion()));
-            }
-        }
-        return original;
     }
 
     private void lookupModuleInCache(ModuleVersionRepository repository, DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {

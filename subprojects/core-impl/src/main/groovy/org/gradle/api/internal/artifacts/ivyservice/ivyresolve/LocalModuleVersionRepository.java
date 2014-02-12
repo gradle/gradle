@@ -27,6 +27,13 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
         this.delegate = delegate;
     }
 
+    public void localListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        delegate.listModuleVersions(dependency, result);
+    }
+
+    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+    }
+
     public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
         delegate.resolve(artifact, result, moduleSource);
     }

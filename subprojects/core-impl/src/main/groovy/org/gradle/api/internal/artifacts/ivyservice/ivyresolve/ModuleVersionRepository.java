@@ -31,6 +31,11 @@ public interface ModuleVersionRepository {
     String getName();
 
     /**
+     * Resolves the given dependency to a list of module versions.
+     */
+    void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result);
+
+    /**
      * Resolves the given dependency to the corresponding module version meta-data.
      */
     void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
