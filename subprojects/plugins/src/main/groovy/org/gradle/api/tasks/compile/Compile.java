@@ -17,16 +17,30 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.api.internal.tasks.compile.incremental.ClassDependencyTree;
+import org.gradle.api.internal.tasks.compile.incremental.SelectiveCompilation;
+import org.gradle.api.internal.tasks.compile.incremental.SelectiveJavaCompiler;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Factory;
+import org.gradle.util.Clock;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Compiles Java source files.
@@ -35,9 +49,13 @@ import java.io.File;
  */
 @Deprecated
 public class Compile extends AbstractCompile {
-    private Compiler<JavaCompileSpec> javaCompiler;
+
+    private static final Logger LOG = Logging.getLogger(Compile.class);
+
+    private Compiler<JavaCompileSpec> cleaningCompiler;
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
+    private final Compiler<JavaCompileSpec> javaCompiler;
 
     public Compile() {
         if (!(this instanceof JavaCompile)) {
@@ -48,29 +66,98 @@ public class Compile extends AbstractCompile {
         ProjectInternal projectInternal = (ProjectInternal) getProject();
         CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
         JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, antBuilderFactory, inProcessCompilerFactory, compilerDaemonManager);
-        Compiler<JavaCompileSpec> delegatingCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
-        javaCompiler = new IncrementalJavaCompiler(delegatingCompiler, antBuilderFactory, getOutputs());
+        javaCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
+        cleaningCompiler = new IncrementalJavaCompiler(javaCompiler, antBuilderFactory, getOutputs());
     }
 
     @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {
-        if (compileOptions.isIncremental()) {
-            getLogger().warn("Incremental java compilation is still work in progress. Regular compilation will be used.");
+        if (!maybeCompileIncrementally(inputs)) {
+            compile();
+
+            if (compileOptions.isIncremental()) {
+                Clock clock = new Clock();
+                ClassDependencyTree tree = new ClassDependencyTree(getDestinationDir());
+                tree.writeTo(getClassTreeCache());
+                LOG.lifecycle("{} performed class dependency analysis in {}", getPath(), clock.getTime());
+            }
         }
-        compile();
+    }
+
+    private boolean maybeCompileIncrementally(IncrementalTaskInputs inputs) {
+        if (!compileOptions.isIncremental()) {
+            return false;
+        }
+        //hack
+        List<File> sourceDirs = getSourceDirs();
+        if (sourceDirs.isEmpty()) {
+            LOG.lifecycle("{} cannot run incrementally because Gradle cannot infer the source directories.", getPath());
+            return false;
+        }
+        if (!inputs.isIncremental()) {
+            LOG.lifecycle("{} is not incremental (e.g. outputs have changed, no previous execution, etc). Using regular compile.", getPath());
+            return false;
+        }
+
+        SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
+
+        SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler);
+        SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, getSource(), getClasspath(), getDestinationDir(),
+                getClassTreeCache(), getClassDeltaCache(), compiler, sourceDirs);
+
+        if (!selectiveCompilation.getCompilationNeeded()) {
+            LOG.lifecycle("{} does not require recompilation. Skipping the compiler.", getPath());
+            return true;
+        }
+
+        Clock clock = new Clock();
+        FileCollection sourceToCompile = selectiveCompilation.getSource();
+        performCompilation(sourceToCompile, selectiveCompilation.getClasspath(), compiler);
+        LOG.lifecycle("{} - compilation took {}", getPath(), clock.getTime());
+        selectiveCompilation.compilationComplete();
+        return true;
+    }
+
+    private List<File> getSourceDirs() {
+        List<File> sourceDirs = new LinkedList<File>();
+        for (Object s : source) {
+            if (s instanceof SourceDirectorySet) {
+                sourceDirs.addAll(((SourceDirectorySet) s).getSrcDirs());
+            } else {
+                return Collections.emptyList();
+            }
+        }
+        return sourceDirs;
     }
 
     protected void compile() {
+        FileTree source = getSource();
+        FileCollection classpath = getClasspath();
+
+        performCompilation(source, classpath, cleaningCompiler);
+    }
+
+    private void performCompilation(FileCollection source, FileCollection classpath, Compiler<JavaCompileSpec> compiler) {
         DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec();
-        spec.setSource(getSource());
+        spec.setSource(source);
         spec.setDestinationDir(getDestinationDir());
-        spec.setClasspath(getClasspath());
+        spec.setClasspath(classpath);
         spec.setDependencyCacheDir(getDependencyCacheDir());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(compileOptions);
-        WorkResult result = javaCompiler.execute(spec);
+        WorkResult result = compiler.execute(spec);
         setDidWork(result.getDidWork());
+    }
+
+    private File getClassDeltaCache() {
+        //hack, needs fixing
+        Jar jar = (Jar) getProject().getTasks().getByName("jar");
+        return new File(jar.getArchivePath() + "-class-delta.bin");
+    }
+
+    private File getClassTreeCache() {
+        return new File(getProject().getBuildDir(), "class-tree.bin");
     }
 
     @OutputDirectory
@@ -93,10 +180,10 @@ public class Compile extends AbstractCompile {
     }
 
     public Compiler<JavaCompileSpec> getJavaCompiler() {
-        return javaCompiler;
+        return cleaningCompiler;
     }
 
     public void setJavaCompiler(Compiler<JavaCompileSpec> javaCompiler) {
-        this.javaCompiler = javaCompiler;
+        this.cleaningCompiler = javaCompiler;
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.IgnoreRest
 
 class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -78,12 +77,6 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
 
     Set getUnchangedFiles() {
         file("unchangedFiles.txt").text.split(",").findAll { it.length() > 0 }.collect { it.replaceAll("\\.class", "")}
-    }
-
-    @IgnoreRest
-    def "incremental compilation is not yet supported"() {
-        when: run "compileJava"
-        then: output.contains("Incremental java compilation is still work in progress. Regular compilation will be used.")
     }
 
     def "compiles only a single class that was changed"() {
