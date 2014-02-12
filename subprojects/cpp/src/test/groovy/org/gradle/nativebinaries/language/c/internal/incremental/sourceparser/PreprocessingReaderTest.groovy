@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.language.c.internal.incremental.sourceparser
 import spock.lang.Specification
 
 class PreprocessingReaderTest extends Specification {
-    static String bn = "\\\r" + System.lineSeparator()
+    private static final String BN = "\\" + System.getProperty("line.separator")
     String input
 
     def getOutput() {
@@ -29,7 +29,7 @@ class PreprocessingReaderTest extends Specification {
 
     def "removes line continuation characters"() {
         when:
-        input = """Here is a ${bn}single line ${bn}with continuations \\${bn}and \\ slashes\\\t\n too\\ \n."""
+        input = """Here is a ${BN}single line ${BN}with continuations \\${BN}and \\ slashes\\\t\n too\\ \n."""
 
         then:
         output == "Here is a single line with continuations \\and \\ slashes\\\t\n too\\ \n."
@@ -42,7 +42,7 @@ Here/* comment */is a string/*
 multiline
 comment
 here */that contains/**
- comment /* containing ** / ${bn} characters */several inline comments.
+ comment /* containing ** / ${BN} characters */several inline comments.
 """
 
         then:
@@ -65,7 +65,7 @@ line comments.
 
     def "can cope with multiple unescaped and escaped \\r characters"() {
         when:
-        input =  "Here \r\r\\\r\\\r${bn}\\\r\\\r\\\r\\\r."
+        input =  "Here \r\r\\\r\\\r${BN}\\\r\\\r\\\r\\\r."
         then:
         output == "Here \r\r\\\r\\\r\\\r\\\r\\\r\\\r."
     }
