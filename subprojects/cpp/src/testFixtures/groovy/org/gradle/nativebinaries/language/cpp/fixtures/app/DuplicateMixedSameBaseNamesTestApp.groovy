@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains;
 
 
@@ -111,7 +112,7 @@ _sayFooFromAsm:
         movl    %eax, -4(%ebp)
         movl    -4(%ebp), %eax
         movl    \$LC0, (%esp)
-        call    _printf
+        call    ${OperatingSystem.current().isMacOsX() ? '_printf' : 'printf'}
         movl    \$0, %eax
         leave
         ret
