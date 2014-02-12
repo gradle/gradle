@@ -57,7 +57,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
-                .assertTestCount(4, 1, 0)
+                .assertTestCount(4, 1, 1, 0)
                 .assertTestFailed("some failing test", equalTo('failure message'))
                 .assertTestsSkipped("some skipped test")
                 .assertTestsExecuted("some test", "some test two", "some failing test")
@@ -68,14 +68,16 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.foo.FooTest" tests="4" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
+<testsuite name="com.foo.FooTest" tests="4" skipped="1" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
   <properties/>
   <testcase name="some test" classname="com.foo.FooTest" time="0.015"/>
   <testcase name="some test two" classname="com.foo.FooTest" time="0.015"/>
   <testcase name="some failing test" classname="com.foo.FooTest" time="0.01">
     <failure message="failure message" type="ExceptionType">[stack-trace]</failure>
   </testcase>
-  <ignored-testcase name="some skipped test" classname="com.foo.FooTest" time="0.01"/>
+  <testcase name="some skipped test" classname="com.foo.FooTest" time="0.01">
+    <skipped/>
+  </testcase>
   <system-out><![CDATA[1st output message
 2nd output message
 ]]></system-out>
@@ -94,7 +96,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.foo.FooTest" tests="1" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
   <properties/>
   <testcase name="some test" classname="com.foo.FooTest" time="0.2"/>
   <system-out><![CDATA[]]></system-out>
@@ -128,7 +130,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.foo.IgnoredTest" tests="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.0">
+<testsuite name="com.foo.IgnoredTest" tests="0" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.0">
   <properties/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
@@ -162,7 +164,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Foo" tests="2" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Foo" tests="2" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Foo" time="0.1">
     <system-out><![CDATA[ m1-out-1 m1-out-2]]></system-out>
