@@ -106,6 +106,7 @@ public class SelectiveCompilation {
         inputs.removed(new Action<InputFileDetails>() {
             public void execute(InputFileDetails inputFileDetails) {
                 compiler.addStaleClass(mapper.toJavaSourceClass(inputFileDetails.getFile()));
+                //TODO needs to schedule for recompilation all dependencies of this class
             }
         });
         //since we're compiling selectively we need to include the classes compiled previously
