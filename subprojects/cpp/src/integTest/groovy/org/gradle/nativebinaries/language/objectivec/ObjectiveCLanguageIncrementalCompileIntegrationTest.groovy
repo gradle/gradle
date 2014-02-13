@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,16 @@
 
 package org.gradle.nativebinaries.language.objectivec
 
-import org.gradle.nativebinaries.language.cpp.AbstractLanguageIntegrationTest
-import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCppHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.AbstractLanguageIncrementalCompileIntegrationTest
+import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.NOT_WINDOWS)
-class ObjectiveCppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
-
+class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLanguageIncrementalCompileIntegrationTest {
     @Override
-    HelloWorldApp getHelloWorldApp() {
-        return new ObjectiveCppHelloWorldApp()
+    IncrementalHelloWorldApp getHelloWorldApp() {
+        return new ObjectiveCHelloWorldApp()
     }
 }

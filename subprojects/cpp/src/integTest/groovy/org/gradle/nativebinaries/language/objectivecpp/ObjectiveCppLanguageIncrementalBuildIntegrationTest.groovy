@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.objectivec
+package org.gradle.nativebinaries.language.objectivecpp
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.AbstractLanguageIncrementalBuildIntegrationTest

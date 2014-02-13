@@ -42,6 +42,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         compileTask = ":compileMainExecutableMain${sourceType}"
 
         buildFile << app.pluginScript
+        buildFile << app.extraConfiguration
         buildFile << """
             executables {
                 main {}
