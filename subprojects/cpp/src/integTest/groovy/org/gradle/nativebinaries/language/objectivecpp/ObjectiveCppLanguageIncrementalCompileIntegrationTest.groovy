@@ -16,14 +16,14 @@
 
 package org.gradle.nativebinaries.language.objectivecpp
 
-import org.gradle.nativebinaries.language.cpp.AbstractLanguageIncrementalCompileIntegrationTest
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCppHelloWorldApp
+import org.gradle.nativebinaries.language.objectivec.ObjectiveCLanguageIncrementalCompileIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.NOT_WINDOWS)
-class ObjectiveCppLanguageIncrementalCompileIntegrationTest extends AbstractLanguageIncrementalCompileIntegrationTest {
+class ObjectiveCppLanguageIncrementalCompileIntegrationTest extends ObjectiveCLanguageIncrementalCompileIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
         return new ObjectiveCppHelloWorldApp()

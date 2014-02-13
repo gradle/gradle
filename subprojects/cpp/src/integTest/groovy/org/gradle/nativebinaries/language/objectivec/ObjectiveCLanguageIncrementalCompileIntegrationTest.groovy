@@ -28,4 +28,93 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
     IncrementalHelloWorldApp getHelloWorldApp() {
         return new ObjectiveCHelloWorldApp()
     }
+
+    def "recompiles only source file that imported changed header file"() {
+        given:
+        sourceFile << """
+            #import "${otherHeaderFile.name}"
+"""
+        and:
+        initialCompile()
+
+        when:
+        otherHeaderFile << """
+            // Some extra content
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled sourceFile
+    }
+
+    def "source is always recompiled if it imported header via macro"() {
+        given:
+        sourceFile << """
+            #define MY_HEADER "${otherHeaderFile.name}"
+            #import MY_HEADER
+"""
+
+        and:
+        initialCompile()
+
+        when:
+        otherHeaderFile << """
+            // Some extra content
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled sourceFile
+
+        // TODO:DAZ Remove this behaviour
+        when: "Header that is NOT included is changed"
+        file("src/main/headers/notIncluded.h") << """
+            // Dummy header file
+"""
+        and:
+        run "mainExecutable"
+
+        then: "Source is still recompiled"
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled sourceFile
+    }
+
+    def "recompiles source file when transitively imported header file is changed"() {
+        given:
+        def transitiveHeaderFile = file("src/main/headers/transitive.h") << """
+           // Dummy header file
+"""
+        otherHeaderFile << """
+            #import "${transitiveHeaderFile.name}"
+"""
+        sourceFile << """
+            #import "${otherHeaderFile.name}"
+"""
+
+        and:
+        initialCompile()
+
+        when:
+        transitiveHeaderFile << """
+            // Some extra content
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled sourceFile
+    }
 }
