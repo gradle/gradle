@@ -316,6 +316,7 @@
             <para>
                 A task with only outputs defined will be considered up-to-date if those outputs are unchanged since the previous build.
             </para>
+
         </section>
         <section>
             <title>How does it work?</title>
@@ -323,8 +324,7 @@
                 Before a task is executed for the first time, Gradle takes a snapshot of the inputs. This snapshot contains
                 the set of input files and a hash of the contents of each file. Gradle then executes the task. If the
                 task completes successfully, Gradle takes a snapshot of the outputs. This snapshot contains the set of
-                output files and a hash of the contents of each file. Gradle takes note of any files created, changed or
-                deleted in the output directories of the task. Gradle persists both snapshots for next time the task
+                output files and a hash of the contents of each file. Gradle persists both snapshots for next time the task
                 is executed.
             </para>
             <para>
@@ -332,6 +332,11 @@
                 If the new snapshots are the same as the previous snapshots, Gradle assumes that the outputs are up to
                 date and skips the task. If they are not the same, Gradle executes the task. Gradle persists both snapshots
                 for next time the task is executed.
+            </para>
+            <para>
+                Note that if a task has an output directory specified, any files added to that directory since the last time it was executed
+                are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other.
+                If this is not the behaviour you want for some reason, consider using <apilink class="org.gradle.api.tasks.TaskOutputs" method="upToDateWhen(groovy.lang.Closure)" />
             </para>
         </section>
     </section>
