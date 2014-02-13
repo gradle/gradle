@@ -183,6 +183,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             int unused();
 """
 
+        sleep(1200)
         run "mainExecutable"
 
         then:
