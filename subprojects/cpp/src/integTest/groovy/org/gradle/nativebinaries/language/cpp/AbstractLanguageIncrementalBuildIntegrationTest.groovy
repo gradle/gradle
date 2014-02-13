@@ -24,8 +24,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Assume
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 import static org.gradle.util.TextUtil.escapeString
@@ -258,9 +258,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         install.exec().out == app.frenchOutput
     }
 
-    @IgnoreIf({!AbstractLanguageIncrementalBuildIntegrationTest.multiPlatformsAvailable})
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "rebuilds binary with target platform change"() {
+        Assume.assumeTrue(multiPlatformsAvailable)
         given:
         buildFile << """
     model {
@@ -275,7 +275,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         buildFile.text = buildFile.text.replace("// Tool chain defaults", "architecture 'i386'")
-        println "multiPlatformsAvailable: $multiPlatformsAvailable"
         run "mainExecutable"
 
         then:
