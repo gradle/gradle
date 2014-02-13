@@ -49,11 +49,13 @@ configurations {
     simple
     dynamic
     dynamic2
+    dynamicMissing
 }
 dependencies {
     simple 'group:projectA:1.2'
     dynamic 'group:projectB:1.+'
     dynamic2 'group:projectB:2.+'
+    dynamicMissing 'group:projectC:1.+'
 }
 task retrieveSimple(type: Sync) {
   from configurations.simple
@@ -66,6 +68,10 @@ task retrieveDynamic(type: Sync) {
 task retrieveDynamic2(type: Sync) {
   from configurations.dynamic2
   into 'dynamic2'
+}
+task retrieveDynamicMissing(type: Sync) {
+  from configurations.dynamicMissing
+  into 'dynamicMissing'
 }
 """
         when:
@@ -103,6 +109,9 @@ task retrieveDynamic2(type: Sync) {
         projectB11.jar.expectHead()
         projectB11.jar.expectGet()
 
+        // TODO:DAZ This is a regression in retrieve dynamic versions with custom ivy resolver. Not sure if we care.
+        projectB11.ivy.expectGet()
+
         and:
         executer.withDeprecationChecksDisabled()
         succeeds 'retrieveDynamic'
@@ -132,10 +141,57 @@ task retrieveDynamic2(type: Sync) {
         projectB20.jar.expectHead()
         projectB20.jar.expectGet()
         executer.withDeprecationChecksDisabled()
+
+        // TODO:DAZ Extra get since refactoring (for custom ivy resolver only)
+        projectB20.ivy.expectGet()
+
+        and:
         succeeds 'retrieveDynamic2'
 
         then:
         file('dynamic2').assertHasDescendants('projectB-2.0.jar')
+    }
+
+    public void "reports module missing when directory listing for module is empty or broken"() {
+        given:
+        server.start()
+        def repo = ivyHttpRepo
+
+        and:
+        buildFile << """
+repositories {
+    add(new org.apache.ivy.plugins.resolver.URLResolver()) {
+        name = "repo"
+        addIvyPattern("${repo.ivyPattern}")
+        addArtifactPattern("${repo.artifactPattern}")
+    }
+}
+configurations { compile }
+dependencies { compile 'org.gradle:projectA:1.+' }
+task testResolve(type: Sync) {
+  println configurations.compile.files
+}
+"""
+        when:
+        server.resetExpectations()
+        2.times {repo.expectDirectoryListGetBroken("org.gradle", "projectA") }
+        executer.withDeprecationChecksDisabled()
+
+        then:
+        fails 'testResolve'
+
+        and:
+        failure.assertHasCause "Could not find any version that matches org.gradle:projectA:1.+"
+
+        when:
+        2.times { repo.expectDirectoryListGetMissing("org.gradle", "projectA") }
+        executer.withDeprecationChecksDisabled()
+
+        then:
+        fails 'testResolve'
+
+        and:
+        failure.assertHasCause "Could not find any version that matches org.gradle:projectA:1.+"
     }
 
     public void "honours changing patterns from custom resolver"() {

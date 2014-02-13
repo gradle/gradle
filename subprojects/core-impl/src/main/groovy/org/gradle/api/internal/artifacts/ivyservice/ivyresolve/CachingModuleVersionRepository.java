@@ -16,11 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -56,12 +56,13 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     private final ModuleVersionRepository delegate;
     private final BuildCommencedTimeProvider timeProvider;
     private final ModuleMetadataProcessor metadataProcessor;
+    private final Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor;
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                           CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                           DependencyToModuleVersionResolver resolver,
                                           CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
-                                          ModuleMetadataProcessor metadataProcessor) {
+                                          ModuleMetadataProcessor metadataProcessor, Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor) {
         this.delegate = delegate;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleVersionsCache = moduleVersionsCache;
@@ -70,6 +71,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
         this.metadataProcessor = metadataProcessor;
+        this.moduleExtractor = moduleExtractor;
     }
 
     public String getId() {
@@ -85,14 +87,15 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return "Caching " + delegate.toString();
     }
 
-    public void localListModuleVersions(DependencyMetaData original, BuildableModuleVersionSelectionResolveResult result) {
-        ModuleVersionSelector requested = original.getRequested();
-        ModuleIdentifier moduleId = new DefaultModuleIdentifier(requested.getGroup(), requested.getName());
+    public void localListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        ModuleVersionSelector requested = dependency.getRequested();
+        ModuleIdentifier moduleId = moduleExtractor.transform(requested);
         ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
         if (cachedModuleVersionList != null) {
             ModuleVersions versionList = cachedModuleVersionList.getModuleVersions();
+
             // TODO:DAZ Fix this
-            ModuleVersionIdentifier dummyId = new DefaultModuleVersionIdentifier(moduleId.getGroup(), moduleId.getName(), "0");
+            ModuleVersionIdentifier dummyId = new DefaultModuleVersionIdentifier(moduleId, "0");
             if (cachePolicy.mustRefreshDynamicVersion(requested, dummyId, cachedModuleVersionList.getAgeMillis())) {
                 LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
             } else {
@@ -115,7 +118,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         delegate.listModuleVersions(dependency, result);
         switch (result.getState()) {
             case Listed:
-                ModuleIdentifier moduleId = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
+                ModuleIdentifier moduleId = moduleExtractor.transform(dependency.getRequested());
                 ModuleVersions versionList = result.getVersions();
                 moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
                 break;
