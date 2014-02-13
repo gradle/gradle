@@ -90,6 +90,8 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     SourceFile getAlternateMainSource() {
         return sourceFile("objcpp", "main.mm", """
             // Simple hello world app
+            #define __STDC_LIMIT_MACROS
+            #include <stdint.h>
             #import <Foundation/Foundation.h>
             #import <iostream>
             #import "hello.h"
@@ -109,6 +111,8 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     List<SourceFile> getAlternateLibrarySources() {
         return [
             sourceFile("objcpp", "hello.mm", """
+            #define __STDC_LIMIT_MACROS
+            #include <stdint.h>
             #include <iostream>
             #include "hello.h"
 
