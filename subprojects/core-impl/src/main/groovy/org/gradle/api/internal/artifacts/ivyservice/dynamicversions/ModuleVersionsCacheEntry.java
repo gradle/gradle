@@ -17,11 +17,11 @@ package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersions;
 
-class ModuleResolutionCacheEntry {
+class ModuleVersionsCacheEntry {
     public ModuleVersions moduleVersions;
     public long createTimestamp;
 
-    ModuleResolutionCacheEntry(ModuleVersions moduleVersions, long createTimestamp) {
+    ModuleVersionsCacheEntry(ModuleVersions moduleVersions, long createTimestamp) {
         this.moduleVersions = moduleVersions;
         this.createTimestamp = createTimestamp;
     }

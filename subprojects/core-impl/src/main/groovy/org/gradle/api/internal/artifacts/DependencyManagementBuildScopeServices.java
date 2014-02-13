@@ -23,8 +23,8 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
@@ -120,8 +120,8 @@ class DependencyManagementBuildScopeServices {
         return new BuildCommencedTimeProvider();
     }
 
-    ModuleResolutionCache createModuleResolutionCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        return new SingleFileBackedModuleResolutionCache(
+    ModuleVersionsCache createModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+        return new SingleFileBackedModuleVersionsCache(
                 timeProvider,
                 cacheLockingManager
         );
@@ -222,13 +222,13 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleResolutionCache moduleResolutionCache, ModuleMetaDataCache moduleMetaDataCache,
+    ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                               ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex, CacheLockingManager cacheLockingManager,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryDependencyMetadataCache inMemoryDependencyMetadataCache,
                                               VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
-                moduleResolutionCache,
+                moduleVersionsCache,
                 moduleMetaDataCache,
                 artifactAtRepositoryCachedArtifactIndex,
                 cacheLockingManager,
