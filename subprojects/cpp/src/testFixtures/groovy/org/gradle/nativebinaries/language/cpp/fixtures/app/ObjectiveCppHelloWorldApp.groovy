@@ -27,7 +27,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
             #define __STDC_LIMIT_MACROS
             #include <stdint.h>
             #import <Foundation/Foundation.h>
-            #import "hello.h"
+            #include "hello.h"
 
             int main (int argc, const char * argv[])
             {

@@ -16,20 +16,14 @@
 
 package org.gradle.nativebinaries.language.objectivecpp
 
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.language.cpp.AbstractLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCppHelloWorldApp
+import org.gradle.nativebinaries.language.objectivec.ObjectiveCLanguageIncrementalBuildIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.NOT_WINDOWS)
-class ObjectiveCppLanguageIncrementalBuildIntegrationTest  extends AbstractLanguageIncrementalBuildIntegrationTest{
-
-    def setupSpec(){
-        multiPlatformsAvailable = OperatingSystem.current().isMacOsX();
-    }
-
+class ObjectiveCppLanguageIncrementalBuildIntegrationTest  extends ObjectiveCLanguageIncrementalBuildIntegrationTest{
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
         return new ObjectiveCppHelloWorldApp()

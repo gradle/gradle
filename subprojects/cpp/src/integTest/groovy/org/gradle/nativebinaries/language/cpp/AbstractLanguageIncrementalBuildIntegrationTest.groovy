@@ -242,6 +242,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             }
 """
 
+        executer.withArgument("-i")
         run "installMainExecutable"
 
         then:

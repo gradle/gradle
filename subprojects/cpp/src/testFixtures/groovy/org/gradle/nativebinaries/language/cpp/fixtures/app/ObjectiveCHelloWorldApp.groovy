@@ -25,7 +25,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
         return sourceFile("objc", "main.m", """
             // Simple hello world app
             #import <Foundation/Foundation.h>
-            #import "hello.h"
+            #include "hello.h"
 
             int main (int argc, const char * argv[])
             {

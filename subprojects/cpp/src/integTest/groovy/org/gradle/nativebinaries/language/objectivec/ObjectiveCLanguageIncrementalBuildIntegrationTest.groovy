@@ -30,8 +30,8 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguage
         multiPlatformsAvailable = OperatingSystem.current().isMacOsX();
     }
 
-    def "recompiles binary when header file changes"() {
-        sourceFile.text = sourceFile.text.replaceFirst('#import "hello.h"', "#$statement \"hello.h\"")
+    def "recompiles binary when imported header file changes"() {
+        sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
 
         given:
         run "installMainExecutable"
@@ -49,9 +49,6 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguage
 
         skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
         skipped ":linkMainExecutable", ":mainExecutable"
-
-        where:
-        statement << ["include", "import"]
     }
 
     @Override
