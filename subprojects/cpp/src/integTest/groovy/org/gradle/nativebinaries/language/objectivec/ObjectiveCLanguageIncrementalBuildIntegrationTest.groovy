@@ -46,9 +46,13 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguage
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-
-        skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
-        skipped ":linkMainExecutable", ":mainExecutable"
+        if (isClangOnNonOsxWithObjectiveC()) {
+            executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
+        } else {
+            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            skipped ":linkMainExecutable", ":mainExecutable"
+        }
     }
 
     @Override
