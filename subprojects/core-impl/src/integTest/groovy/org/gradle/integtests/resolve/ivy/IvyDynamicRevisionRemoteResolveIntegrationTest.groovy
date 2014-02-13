@@ -851,4 +851,96 @@ task retrieve(type: Sync) {
         then:
         file('build').assertHasDescendants('a-1.1.jar')
     }
+
+    def "can resolve dynamic versions with multiple ivy patterns"() {
+        given:
+        server.start()
+        def repo1versions = [:]
+        def repo1 = ivyHttpRepo("ivyRepo1")
+        def repo2versions = [:]
+        def repo2 = ivyHttpRepo("ivyRepo2")
+        repo1versions.A1 = repo1.module('org.test', 'projectA', '1.1').publish()
+        repo1versions.A2 = repo1.module('org.test', 'projectA', '1.2').publish()
+        repo1versions.A3 = repo1.module('org.test', 'projectA', '1.3') // unpublished
+
+        repo2versions.A1 = repo2.module('org.test', 'projectA', '1.1').publish()
+        repo2versions.A3 = repo2.module('org.test', 'projectA', '1.3').publish()
+
+        repo1versions.B1 = repo1.module('org.test', 'projectB', '1.1').withStatus("integration").publish()
+        repo1versions.B2 = repo1.module('org.test', 'projectB', '1.2').withStatus("milestone").publish()
+        repo1versions.B3 = repo1.module('org.test', 'projectB', '1.3') // unpublished
+
+        repo2versions.B1 = repo2.module('org.test', 'projectB', '1.1').withStatus("milestone").publish()
+        repo2versions.B3 = repo2.module('org.test', 'projectB', '1.3').withStatus("integration").publish()
+
+        and:
+        buildFile << """
+repositories {
+    ivy {
+        url "${repo1.uri}"
+        ivyPattern "${repo2.uri}/[organisation]/[module]/[revision]/ivy-[revision].xml"
+        artifactPattern "${repo2.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+    }
+}
+configurations {
+    dynamic
+    milestone
+}
+dependencies {
+  dynamic 'org.test:projectA:1.+'
+  milestone 'org.test:projectB:latest.milestone'
+}
+task retrieveDynamic(type: Sync) {
+  from configurations.dynamic
+  into 'dynamic'
+}
+task retrieveMilestone(type: Sync) {
+  from configurations.milestone
+  into 'milestone'
+}
+"""
+
+        when:
+        repo1.expectDirectoryListGet("org.test", "projectA")
+        repo2.allowDirectoryListGet("org.test", "projectA")
+        repo1versions.A3.ivy.expectGetMissing()
+        repo2versions.A3.ivy.expectGet()
+        repo1versions.A3.jar.expectGetMissing()
+        repo2versions.A3.jar.expectGet()
+
+        and:
+        run 'retrieveDynamic'
+
+        then:
+        file('dynamic').assertHasDescendants('projectA-1.3.jar')
+
+        when: "resolve a second time"
+        server.resetExpectations()
+        run 'retrieveDynamic'
+
+        then: "Uses cache"
+        file('dynamic').assertHasDescendants('projectA-1.3.jar')
+
+        when:
+        repo1.expectDirectoryListGet("org.test", "projectB")
+        repo2.expectDirectoryListGet("org.test", "projectB")
+        repo1versions.B3.ivy.expectGetMissing()
+        repo2versions.B3.ivy.expectGet()
+        repo1versions.B2.ivy.expectGet()
+        repo1versions.B2.jar.expectGet()
+
+        and:
+        run 'retrieveMilestone'
+
+        then:
+        file('milestone').assertHasDescendants('projectB-1.2.jar')
+
+        when: "resolve a second time"
+        server.resetExpectations()
+        run 'retrieveMilestone'
+
+        then: "cache is used"
+        file('milestone').assertHasDescendants('projectB-1.2.jar')
+    }
+
 }
