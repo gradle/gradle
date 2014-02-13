@@ -65,9 +65,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyRepo.uri}"
-// Using the HTTP repository demonstrates a bug in caching the resolution of 'latest.release' when this is based on a metadata rule
-//        url "${ivyHttpRepo.uri}"
+        url "${ivyHttpRepo.uri}"
     }
 }
 configurations { compile }
