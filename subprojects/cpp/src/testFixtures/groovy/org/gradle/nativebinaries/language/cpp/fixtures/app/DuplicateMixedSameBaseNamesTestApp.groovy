@@ -112,7 +112,7 @@ _sayFooFromAsm:
         movl    %eax, -4(%ebp)
         movl    -4(%ebp), %eax
         movl    \$LC0, (%esp)
-        call    ${OperatingSystem.current().isMacOsX() ? '_printf' : 'printf'}
+        call    ${OperatingSystem.current().isLinux() ? 'printf' : '_printf'}
         movl    \$0, %eax
         leave
         ret
