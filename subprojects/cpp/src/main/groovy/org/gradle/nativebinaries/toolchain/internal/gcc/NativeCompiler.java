@@ -50,7 +50,10 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         for (File sourceFile : spec.getSourceFiles()) {
             String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
             WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir())
-                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile, objectFileName, argsTransfomer, false))
+                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,
+                                            objectFileName,
+                                            new ShortCircuitArgsTransformer(argsTransfomer),
+                                            false))
                     .execute(spec);
             didWork = didWork || result.getDidWork();
         }

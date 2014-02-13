@@ -25,6 +25,7 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.SingleSourceCompileArgTransformer;
+import org.gradle.nativebinaries.toolchain.internal.gcc.ShortCircuitArgsTransformer;
 
 import java.io.File;
 
@@ -45,7 +46,10 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements org
         for (File sourceFile : spec.getSourceFiles()) {
             String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + ".obj";
             WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir())
-                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile, objectFileName, argsTransFormer, true))
+                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,
+                                                                            objectFileName,
+                                                                            new ShortCircuitArgsTransformer<T>(argsTransFormer),
+                                                                            true))
                     .execute(spec);
             didWork = didWork || result.getDidWork();
         }
