@@ -49,6 +49,6 @@ class ObjectiveCppUnsupportedIntegrationTest extends AbstractInstalledToolChainI
         fails "compileMainExecutableMainObjcpp"
 
         then:
-        failure.assertThatCause(containsString("Objective-Cpp is not available on the Visual C++ toolchain"))
+        failure.assertThatCause(containsString("Objective-C++ is not available on the Visual C++ toolchain"))
     }
 }
