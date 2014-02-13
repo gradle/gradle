@@ -33,8 +33,8 @@ class VersionDetailsCrossVersionSpec extends ToolingApiSpecification {
         VersionDetails version = ModelBuilderBackedConsumerConnection.getVersionDetails(targetDist.version.version)
 
         then:
-        version.isModelSupported(GradleBuild) == targetDist.version.compareTo(GradleVersion.version("1.8")) >= 0
-        version.isModelSupported(BuildInvocations) == targetDist.version.compareTo(GradleVersion.version("1.11")) > 0
-        version.supportsGradleProjectModel() == targetDist.version.compareTo(GradleVersion.version("1.6")) >= 0
+        version.isModelSupported(GradleBuild) == targetDist.version.compareTo(targetDist.version.version("1.8")) >= 0
+        version.isModelSupported(BuildInvocations) == targetDist.version.compareTo(targetDist.version.version("1.11")) > 0
+        version.supportsGradleProjectModel() == targetDist.version.compareTo(targetDist.version.version("1.6")) >= 0
     }
 }
