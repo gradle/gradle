@@ -15,14 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
@@ -109,7 +105,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return dd.getRequested().getVersion().endsWith("SNAPSHOT");
     }
 
-    protected File download(Artifact artifact, ModuleSource moduleSource) throws IOException {
+    protected File download(ArtifactRevisionId artifact, ModuleSource moduleSource) throws IOException {
         if (moduleSource instanceof TimestampedModuleSource) {
             TimestampedModuleSource timestampedModuleSource = (TimestampedModuleSource) moduleSource;
             String timestampedVersion = timestampedModuleSource.getTimestampedVersion();
@@ -119,13 +115,13 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         }
     }
 
-    private File downloadTimestampedVersion(Artifact artifact, String timestampedVersion) throws IOException {
+    private File downloadTimestampedVersion(ArtifactRevisionId artifact, String timestampedVersion) throws IOException {
         final ModuleRevisionId artifactModuleRevisionId = artifact.getModuleRevisionId();
         final ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(artifactModuleRevisionId.getOrganisation(),
                 artifactModuleRevisionId.getName(),
                 artifactModuleRevisionId.getRevision(),
                 WrapUtil.toMap("timestamp", timestampedVersion));
-        final Artifact artifactWithResolvedModuleRevisionId = DefaultArtifact.cloneWithAnotherMrid(artifact, moduleRevisionId);
+        final ArtifactRevisionId artifactWithResolvedModuleRevisionId = ArtifactRevisionId.newInstance(moduleRevisionId, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
         return download(artifactWithResolvedModuleRevisionId);
     }
 
