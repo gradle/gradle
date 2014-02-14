@@ -19,7 +19,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
@@ -39,9 +41,10 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
 
     public WorkResult execute(WindowsResourceCompileSpec spec) {
         boolean didWork = false;
+        boolean windowsPathLimitation = OperatingSystem.current().isWindows();
         CommandLineTool<WindowsResourceCompileSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
-            WorkResult result = commandLineAssembler.withArguments(new RcCompilerArgsTransformer(sourceFile)).execute(spec);
+            WorkResult result = commandLineAssembler.withArguments(new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation)).execute(spec);
             didWork |= result.getDidWork();
         }
         return new SimpleWorkResult(didWork);
@@ -49,9 +52,11 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
 
     private static class RcCompilerArgsTransformer implements ArgsTransformer<WindowsResourceCompileSpec> {
         private final File inputFile;
+        private boolean windowsPathLengthLimitation;
 
-        public RcCompilerArgsTransformer(File inputFile) {
+        public RcCompilerArgsTransformer(File inputFile, boolean windowsPathLengthLimitation) {
             this.inputFile = inputFile;
+            this.windowsPathLengthLimitation = windowsPathLengthLimitation;
         }
 
         public List<String> transform(WindowsResourceCompileSpec spec) {
@@ -78,8 +83,8 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
             if(!outputDirectory.exists()){
                 outputDirectory.mkdir();
             }
-            return new File(outputDirectory, outputFileName);
+            File outputFile = new File(outputDirectory, outputFileName);
+            return windowsPathLengthLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
         }
     }
-
 }

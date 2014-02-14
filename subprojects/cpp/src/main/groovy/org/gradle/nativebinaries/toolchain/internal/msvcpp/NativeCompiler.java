@@ -49,6 +49,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements org
                     .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,
                                                                             objectFileName,
                                                                             new ShortCircuitArgsTransformer<T>(argsTransFormer),
+                                                                            true,
                                                                             true))
                     .execute(spec);
             didWork = didWork || result.getDidWork();

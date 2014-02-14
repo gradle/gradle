@@ -46,6 +46,8 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
     public WorkResult execute(T spec) {
         boolean didWork = false;
+        boolean windowsPathLimitation = OperatingSystem.current().isWindows();
+
         String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
         for (File sourceFile : spec.getSourceFiles()) {
             String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
@@ -53,6 +55,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
                     .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,
                                             objectFileName,
                                             new ShortCircuitArgsTransformer(argsTransfomer),
+                                            windowsPathLimitation,
                                             false))
                     .execute(spec);
             didWork = didWork || result.getDidWork();

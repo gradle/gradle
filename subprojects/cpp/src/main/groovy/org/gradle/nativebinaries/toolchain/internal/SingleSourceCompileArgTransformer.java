@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal;
 
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
@@ -28,37 +29,38 @@ public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> impl
     private final String objectFileName;
     private final File sourceFile;
     private final boolean usingVisualCToolChain;
+    private final boolean windowsPathLengthLimitation;
 
-    public SingleSourceCompileArgTransformer(File sourceFile, String objectFileName, ArgsTransformer<T> delegate, boolean usingVisualCToolChain) {
+    public SingleSourceCompileArgTransformer(File sourceFile, String objectFileName, ArgsTransformer<T> delegate, boolean windowsPathLengthLimitation, boolean usingVisualCToolChain) {
         this.sourceFile = sourceFile;
         this.delegate = delegate;
         this.objectFileName = objectFileName;
         this.usingVisualCToolChain = usingVisualCToolChain;
+        this.windowsPathLengthLimitation = windowsPathLengthLimitation;
     }
 
     public List<String> transform(T spec) {
         List<String> args = new ArrayList<String>();
+        File outputFilePath = getOutputFileDir(sourceFile, spec.getObjectFileDir());
+
         args.addAll(delegate.transform(spec));
         args.add(sourceFile.getAbsolutePath());
 
-        File outputFileDir = getOutputFileDir(sourceFile, spec.getObjectFileDir());
-        if(!outputFileDir.exists()){
-            outputFileDir.mkdir();
-        }
-
-        String outputFilePath = new File(outputFileDir, objectFileName).getAbsolutePath();
-
         if (usingVisualCToolChain) {
-            Collections.addAll(args, "/Fo" + outputFilePath);
+            Collections.addAll(args, "/Fo" + outputFilePath.getAbsolutePath());
         } else {
-            Collections.addAll(args, "-o", outputFilePath);
+            Collections.addAll(args, "-o", outputFilePath.getAbsolutePath());
         }
         return args;
     }
 
     protected File getOutputFileDir(File sourceFile, File objectFileDir) {
         String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
-        return new File(objectFileDir, compactMD5);
+        File outputFileDir = new File(objectFileDir, compactMD5);
+        if(!outputFileDir.exists()){
+            outputFileDir.mkdir();
+        }
+        File outputFile = new File(outputFileDir, objectFileName);
+        return windowsPathLengthLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
-
 }
