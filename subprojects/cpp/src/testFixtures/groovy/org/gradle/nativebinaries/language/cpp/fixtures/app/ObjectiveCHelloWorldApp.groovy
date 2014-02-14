@@ -71,10 +71,9 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
 
             void sayHello()
             {
-                #ifdef FRENCH
-                NSString *helloWorld = @"${HELLO_WORLD_FRENCH}\\n";
-                #else
                 NSString *helloWorld = @"${HELLO_WORLD}\\n";
+                #ifdef FRENCH
+                helloWorld = @"${HELLO_WORLD_FRENCH}\\n";
                 #endif
                 NSFileHandle *stdout = [NSFileHandle fileHandleWithStandardOutput];
                 NSData *strData = [helloWorld dataUsingEncoding: NSASCIIStringEncoding];
