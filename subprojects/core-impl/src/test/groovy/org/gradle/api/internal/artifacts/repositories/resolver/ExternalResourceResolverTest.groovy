@@ -108,16 +108,16 @@ class ExternalResourceResolverTest extends Specification {
     }
 
     def artifactIsMissing() {
-        resolver.download(_) >> null
+        resolver.download(_, _) >> null
     }
 
     def downloadIsFailing(IOException failure) {
-        resolver.download(_) >> {
+        resolver.download(_, _) >> {
             throw failure
         }
     }
 
     def artifactCanBeResolved() {
-        resolver.download(_) >> downloadedFile
+        resolver.download(_, _) >> downloadedFile
     }
 }

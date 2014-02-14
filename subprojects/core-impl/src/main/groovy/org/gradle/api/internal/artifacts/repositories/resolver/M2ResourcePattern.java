@@ -46,11 +46,6 @@ public class M2ResourcePattern extends IvyResourcePattern {
     @Override
     public String toPath(ArtifactRevisionId artifact) {
         Map<String, Object> attributes = toAttributes(artifact);
-        if (artifact.getModuleRevisionId().getExtraAttributes().containsKey("timestamp")) {
-            final Object revisionValue = artifact.getModuleRevisionId().getExtraAttribute("timestamp");
-            String pattern = getPattern().replaceFirst("\\-\\[revision\\]", "-" + revisionValue);
-            return IvyPatternHelper.substituteTokens(pattern, attributes);
-        }
         return IvyPatternHelper.substituteTokens(getPattern(), attributes);
     }
 

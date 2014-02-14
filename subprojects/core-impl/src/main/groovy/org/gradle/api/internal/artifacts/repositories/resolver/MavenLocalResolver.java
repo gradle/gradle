@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
@@ -38,17 +37,23 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     @Override
-    protected void getDependencyForFoundIvyFileRef(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result, DownloadedAndParsedMetaDataArtifact ivyRef) {
-        ModuleVersionMetaData metaData = getArtifactMetadata(dependency, ivyRef.getArtifactId(), ivyRef.getResource());
+    protected DownloadedAndParsedMetaDataArtifact findMetaDataArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
+        DownloadedAndParsedMetaDataArtifact metaDataArtifact = super.findMetaDataArtifact(dependency, artifactResolver);
+        if (isOrphanedPom(metaDataArtifact, artifactResolver)) {
+            return null;
+        }
+        return metaDataArtifact;
+    }
 
+    private boolean isOrphanedPom(DownloadedAndParsedMetaDataArtifact metaDataArtifact, ArtifactResolver artifactResolver) {
+        ModuleVersionMetaData metaData = metaDataArtifact.moduleVersionMetaData;
         if (!metaData.isMetaDataOnly()) {
-            ResolvedArtifact artifactRef = findAnyArtifact(metaData);
+            ResolvedArtifact artifactRef = findAnyArtifact(metaData, artifactResolver);
             if (artifactRef == null) {
-                LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", dependency.getRequested(), getName());
-                return;
+                LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", metaData.getId(), getName());
+                return true;
             }
         }
-
-        super.getDependencyForFoundIvyFileRef(dependency, result, ivyRef);
+        return false;
     }
 }

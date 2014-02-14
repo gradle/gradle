@@ -15,30 +15,31 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class MavenResolver extends ExternalResourceResolver implements PatternBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
@@ -73,56 +74,45 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         if (isSnapshotVersion(dependency)) {
-            getSnapshotDependency(dependency, result);
-        } else {
-            super.getDependency(dependency, result);
-        }
-    }
-
-    private void getSnapshotDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        DependencyDescriptor descriptor = dependency.getDescriptor();
-        final ModuleRevisionId dependencyRevisionId = descriptor.getDependencyRevisionId();
-        final String uniqueSnapshotVersion = findUniqueSnapshotVersion(dependencyRevisionId);
-        if (uniqueSnapshotVersion != null) {
-            DependencyDescriptor enrichedDescriptor = enrichDependencyDescriptorWithSnapshotVersionInfo(descriptor, dependencyRevisionId, uniqueSnapshotVersion);
-            findStaticDependency(new DefaultDependencyMetaData(enrichedDescriptor), result);
-            if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
-                result.setModuleSource(new TimestampedModuleSource(uniqueSnapshotVersion));
+            final TimestampedModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(dependency.getDescriptor().getDependencyRevisionId());
+            if (uniqueSnapshotVersion != null) {
+                resolveUniqueSnapshotDependency(dependency, result, uniqueSnapshotVersion);
+                return;
             }
-        } else {
-            findStaticDependency(dependency, result);
         }
+
+        resolveStaticDependency(dependency, result, createArtifactResolver());
     }
 
-    private DependencyDescriptor enrichDependencyDescriptorWithSnapshotVersionInfo(DependencyDescriptor dd, ModuleRevisionId dependencyRevisionId, String uniqueSnapshotVersion) {
-        Map<String, String> extraAttributes = new HashMap<String, String>(1);
-        extraAttributes.put("timestamp", uniqueSnapshotVersion);
-        final ModuleRevisionId newModuleRevisionId = ModuleRevisionId.newInstance(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision(), extraAttributes);
-        return dd.clone(newModuleRevisionId);
+    private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result, TimestampedModuleSource snapshotSource) {
+        resolveStaticDependency(dependency, result, createArtifactResolver(snapshotSource));
+        if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+            result.setModuleSource(snapshotSource);
+        }
     }
 
     private boolean isSnapshotVersion(DependencyMetaData dd) {
         return dd.getRequested().getVersion().endsWith("SNAPSHOT");
     }
 
-    protected File download(ArtifactRevisionId artifact, ModuleSource moduleSource) throws IOException {
+    protected File download(ArtifactRevisionId artifactId, ModuleSource moduleSource) throws IOException {
         if (moduleSource instanceof TimestampedModuleSource) {
-            TimestampedModuleSource timestampedModuleSource = (TimestampedModuleSource) moduleSource;
-            String timestampedVersion = timestampedModuleSource.getTimestampedVersion();
-            return downloadTimestampedVersion(artifact, timestampedVersion);
+            return downloadArtifact(artifactId, createArtifactResolver((TimestampedModuleSource) moduleSource));
         } else {
-            return download(artifact);
+            return downloadArtifact(artifactId, createArtifactResolver());
         }
     }
 
-    private File downloadTimestampedVersion(ArtifactRevisionId artifact, String timestampedVersion) throws IOException {
-        final ModuleRevisionId artifactModuleRevisionId = artifact.getModuleRevisionId();
-        final ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(artifactModuleRevisionId.getOrganisation(),
-                artifactModuleRevisionId.getName(),
-                artifactModuleRevisionId.getRevision(),
-                WrapUtil.toMap("timestamp", timestampedVersion));
-        final ArtifactRevisionId artifactWithResolvedModuleRevisionId = ArtifactRevisionId.newInstance(moduleRevisionId, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
-        return download(artifactWithResolvedModuleRevisionId);
+    private ArtifactResolver createArtifactResolver(TimestampedModuleSource timestampedModuleSource) {
+        final String timestampedVersion = timestampedModuleSource.getTimestampedVersion();
+        Transformer<String, String> patternTransformer = new Transformer<String, String>() {
+            public String transform(String original) {
+                return original.replaceFirst("\\-\\[revision\\]", "-" + timestampedVersion);
+            }
+        };
+        return new ArtifactResolver(
+                CollectionUtils.collect(getIvyPatterns(), patternTransformer),
+                CollectionUtils.collect(getArtifactPatterns(), patternTransformer));
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {
@@ -168,7 +158,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return null;
     }
 
-    private String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
+    private TimestampedModuleSource findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
         ArtifactRevisionId pomArtifact = ArtifactRevisionId.newInstance(moduleRevisionId, moduleRevisionId.getName(), "pom", "pom");
         String metadataLocation = toResourcePattern(getWholePattern()).toModuleVersionPath(pomArtifact) + "/maven-metadata.xml";
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
@@ -178,7 +168,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             String rev = moduleRevisionId.getRevision();
             rev = rev.substring(0, rev.length() - "SNAPSHOT".length());
             rev = rev + mavenMetadata.timestamp + "-" + mavenMetadata.buildNumber;
-            return rev;
+            return new TimestampedModuleSource(rev);
         }
         return null;
     }
