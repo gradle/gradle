@@ -183,7 +183,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             int unused();
 """
 
-        sleep(1000)
         run "mainExecutable"
 
         then:
@@ -191,25 +190,13 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         executedAndNotSkipped mainCompileTask
 
         // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (toolChain.visualCpp || isClangOnNonOsxWithObjectiveC()) {
+        if (toolChain.visualCpp) {
             executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
         }
-    }
-
-    // clang compiler on objective-c or objective-cpp on ubuntu
-    // creates different .o files when header changes
-    boolean isClangOnNonOsxWithObjectiveC() {
-        if(toolChain.displayName == "clang"){
-            if(OperatingSystem.current().isMacOsX()){
-                return false;
-            }
-            return app.pluginList.contains("objective-c") || app.pluginList.contains("objective-cpp")
-        }
-        false;
     }
 
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
@@ -229,7 +216,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         executedAndNotSkipped mainCompileTask
 
         // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (toolChain.visualCpp || isClangOnNonOsxWithObjectiveC()) {
+        if (toolChain.visualCpp) {
             executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
         } else {
