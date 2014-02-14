@@ -20,36 +20,24 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 
 
 @TargetVersions(['4.4', '4.8.2', '4.11'])
 class JUnitIgnoreClassCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
 
-    @Rule
-    public final TestResources resources = new TestResources(temporaryFolder)
+    @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    String junitDependency = "junit:junit:$version"
-
-    @Before
-    public void before() {
+    def canHandleClassLevelIgnoredTests() {
         executer.noExtraLogging()
-        configureJUnit()
-    }
-
-    private void configureJUnit() {
         buildFile << """
-        dependencies {
-        testCompile '${junitDependency.toString()}'
-        }"""
-    }
+            dependencies { testCompile 'junit:junit:$version' }
+        """
 
-    @Test
-    public void canHandleClassLevelIgnoredTests() {
-        resources.maybeCopy('JUnitIntegrationTest/ignoreTests')
+        when:
         executer.withTasks('check').run()
+
+        then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.IgnoredTest', 'org.gradle.CustomIgnoredTest')
         result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored")
