@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
-
 @TargetCoverage({JUnitVersions.STANDARD_COVERAGE})
 class JUnitIgnoreClassCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
 
@@ -35,7 +34,7 @@ class JUnitIgnoreClassCrossVersionIntegrationSpec extends MultiVersionIntegratio
         """
 
         when:
-        executer.withTasks('check').run()
+        run('check')
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)

@@ -20,34 +20,20 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 
 @TargetCoverage({JUnitVersions.ASSUMPTIONS})
 public class JUnitAssumptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
-    @Rule
-    public final TestResources resources = new TestResources(temporaryFolder)
+    @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    @Before
-    public void before() {
-        executer.noExtraLogging()
-    }
+    def supportsAssumptions() {
+        executer.noExtraLogging() //TODO SF check if this is still needed (and in other tests, too)
+        buildFile << "dependencies { testCompile 'junit:junit:$version' }"
 
-    private void configureJUnit() {
-        buildFile << """
-        dependencies {
-            testCompile 'junit:junit:$version'
-        }"""
-    }
-
-    @Test
-    public void supportsAssumptions() {
-        setup:
-        configureJUnit()
         when:
         executer.withTasks('check').run()
+
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.TestWithAssumptions')

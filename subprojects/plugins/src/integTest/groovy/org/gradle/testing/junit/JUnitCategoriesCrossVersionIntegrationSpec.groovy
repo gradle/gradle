@@ -20,36 +20,27 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 
 @TargetCoverage({JUnitVersions.CATEGORIES})
 public class JUnitCategoriesCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
 
-    @Rule
-    public final TestResources resources = new TestResources(temporaryFolder)
+    @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    String junitDependency = "junit:junit:$version"
-
-    @Before
-    public void before() {
+    def setup() {
         executer.noExtraLogging()
     }
 
-    private void configureJUnit() {
-        buildFile << """
-        dependencies {
-        testCompile '${junitDependency.toString()}'
-        }"""
+    def configureJUnit() {
+        buildFile << "dependencies { testCompile 'junit:junit:$version' }"
     }
 
-    @Test
-    public void canSpecifyIncludeAndExcludeCategories() {
-        given:
-        configureJUnit();
+    def canSpecifyIncludeAndExcludeCategories() {
+        configureJUnit()
+
         when:
-        executer.withTasks('test').run();
+        run('test')
+
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.CatATests', 'org.gradle.CatBTests', 'org.gradle.CatADTests', 'org.gradle.MixedTests')
@@ -64,12 +55,12 @@ public class JUnitCategoriesCrossVersionIntegrationSpec extends MultiVersionInte
         result.testClass("org.gradle.MixedTests").assertTestsSkipped('someIgnoredTest')
     }
 
-    @Test
-    public void canSpecifyExcludesOnly() {
-        given:
-        configureJUnit();
+    def canSpecifyExcludesOnly() {
+        configureJUnit()
+
         when:
-        executer.withTasks('test').run();
+        run('test')
+
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.NoCatTests', 'org.gradle.SomeTests', 'org.gradle.SomeOtherCatTests')
@@ -81,12 +72,12 @@ public class JUnitCategoriesCrossVersionIntegrationSpec extends MultiVersionInte
         result.testClass("org.gradle.SomeTests").assertTestsExecuted('noCatOk3', 'noCatOk4', 'someOtherCatOk2')
     }
 
-    @Test
-    public void canCombineCategoriesWithCustomRunner() {
-        given:
-        configureJUnit();
+    def canCombineCategoriesWithCustomRunner() {
+        configureJUnit()
+
         when:
-        executer.withTasks('test').run();
+        run('test')
+
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeLocaleTests')

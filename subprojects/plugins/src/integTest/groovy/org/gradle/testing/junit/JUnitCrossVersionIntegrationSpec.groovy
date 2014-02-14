@@ -21,24 +21,22 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import org.junit.Test
 
-@TargetCoverage({JUnitVersions.LARGE_COVERAGE})
+@TargetCoverage({ JUnitVersions.LARGE_COVERAGE })
 class JUnitCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
-    @Rule
-    public final TestResources resources = new TestResources(temporaryFolder)
 
-    String junitDependency = "junit:junit:$version"
+    @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    @Test
-    public void canRunTestsUsingJUnit() {
+    def canRunTestsUsingJUnit() {
         given:
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
         resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
 
-        configureJUnit();
+        buildFile << "dependencies { testCompile 'junit:junit:$version' }"
+
         when:
-        executer.withTasks('check').run()
+        run('check')
+
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test')
@@ -51,12 +49,5 @@ class JUnitCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
                 .assertTestsExecuted('ok')
                 .assertTestPassed('ok')
                 .assertTestsSkipped('broken')
-    }
-
-    private void configureJUnit() {
-        buildFile << """
-        dependencies {
-        testCompile '${junitDependency.toString()}'
-        }"""
     }
 }

@@ -76,8 +76,7 @@ org.gradle.JUnit4StandardOutputTest > printTest STANDARD_OUT
         """)
     }
 
-    @Test
-    void "test logging is included in XML results"() {
+    def "test logging is included in XML results"() {
         file("build.gradle") << """
             apply plugin: 'java'
                 repositories { mavenCentral() }
