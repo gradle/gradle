@@ -18,12 +18,12 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 
-@TargetVersions(['4.0', '4.4', '4.8.2', '4.11'])
+@TargetCoverage({JUnitVersions.LARGE_COVERAGE})
 class JUnitCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)

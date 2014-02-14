@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures
 
 /**
- * Runs the target test class against the versions specified in a {@link TargetVersions}
+ * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}
  */
 class MultiVersionSpecRunner extends AbstractMultiTestRunner {
     MultiVersionSpecRunner(Class<?> target) {
@@ -27,10 +27,14 @@ class MultiVersionSpecRunner extends AbstractMultiTestRunner {
     @Override
     protected void createExecutions() {
         def versions = target.getAnnotation(TargetVersions)
-        if (versions == null) {
-            throw new RuntimeException("Target class '$target' is not annotated with @${TargetVersions.simpleName}.")
+        def coverage = target.getAnnotation(TargetCoverage)
+        if (versions != null) {
+            versions.value().each { add(new VersionExecution(it)) }
+        } else if (coverage != null) {
+            coverage.value().newInstance(target, target).call().each { add(new VersionExecution(it)) }
+        } else {
+            throw new RuntimeException("Target class '$target' is not annotated with @${TargetVersions.simpleName} nor with @${TargetCoverage.simpleName}.")
         }
-        versions.value().each { add(new VersionExecution(it)) }
     }
 
     private static class VersionExecution extends AbstractMultiTestRunner.Execution {

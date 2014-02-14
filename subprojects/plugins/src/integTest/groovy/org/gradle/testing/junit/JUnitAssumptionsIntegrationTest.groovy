@@ -18,13 +18,13 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-@TargetVersions(['4.5', '4.11'])
+@TargetCoverage({JUnitVersions.ASSUMPTIONS})
 public class JUnitAssumptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule
