@@ -44,16 +44,22 @@ public interface BuildableModuleVersionSelectionResolveResult {
     ModuleVersionResolveException getFailure();
 
     /**
-     * Marks the module version as resolved, with the given meta-data and source.
+     * Marks the module as having been listed to have the specified versions available.
      */
     void listed(ModuleVersions versions);
 
+    /**
+     * Marks the module as having no versions available.
+     */
     void noVersions();
 
+    /**
+     * Marks the module as probably having no versions available.
+     */
     void probablyNoVersions();
 
     /**
-     * Marks the resolve as failed with the given exception.
+     * Marks the list as failed with the given exception.
      */
     void failed(ModuleVersionResolveException failure);
 }

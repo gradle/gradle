@@ -19,7 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 public interface LocalAwareModuleVersionRepository extends ModuleVersionRepository {
+    /**
+     * Lists the available versions for a module, using only local resources.
+     */
     void localListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result);
+
+    /**
+     * Lists the available versions for a module, using whichever resources are appropriate.
+     * Always called after {@link #localListModuleVersions(org.gradle.api.internal.artifacts.metadata.DependencyMetaData, BuildableModuleVersionSelectionResolveResult)}.
+     */
     void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result);
 
     /**
