@@ -51,11 +51,11 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
     }
 
     private PersistentIndexedCache<ModuleKey, ModuleVersionsCacheEntry> initCache() {
-        return cacheLockingManager.createCache("dynamic-revisions", new ModuleKeySerializer(), new ModuleResolutionCacheEntrySerializer());
+        return cacheLockingManager.createCache("module-versions", new ModuleKeySerializer(), new ModuleVersionsCacheEntrySerializer());
     }
 
     public void cacheModuleVersionList(ModuleVersionRepository repository, ModuleIdentifier moduleId, ModuleVersions listedVersions) {
-        LOGGER.debug("Caching version list in dynamic revision cache: Using '{}' for '{}'", listedVersions, moduleId);
+        LOGGER.debug("Caching version list in module versions cache: Using '{}' for '{}'", listedVersions, moduleId);
         getCache().put(createKey(repository, moduleId), createEntry(listedVersions));
     }
 
@@ -114,7 +114,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
         }
     }
 
-    private static class ModuleResolutionCacheEntrySerializer implements Serializer<ModuleVersionsCacheEntry> {
+    private static class ModuleVersionsCacheEntrySerializer implements Serializer<ModuleVersionsCacheEntry> {
 
         public void write(Encoder encoder, ModuleVersionsCacheEntry value) throws Exception {
             Set<ModuleVersions.AvailableVersion> versions = value.moduleVersions.getVersions();
