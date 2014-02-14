@@ -21,6 +21,8 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
@@ -160,18 +162,18 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     @Override
-    protected Artifact getMetaDataArtifactFor(DependencyMetaData dependency) {
-        ModuleRevisionId moduleRevisionId = dependency.getDescriptor().getDependencyRevisionId();
+    protected ArtifactRevisionId getMetaDataArtifactFor(DependencyMetaData dependency) {
         if (isUsepoms()) {
-            ArtifactRevisionId artifactRevisionId = ArtifactRevisionId.newInstance(moduleRevisionId, moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
-            return new DefaultArtifact(artifactRevisionId, null, null, true);
+            // TODO:DAZ Don't need to use ivy here
+            ModuleRevisionId moduleRevisionId = dependency.getDescriptor().getDependencyRevisionId();
+            return ArtifactRevisionId.newInstance(moduleRevisionId, moduleRevisionId.getName(), "pom", "pom", null);
         }
 
         return null;
     }
 
     private String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
-        Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, new Date());
+        ArtifactRevisionId pomArtifact = ArtifactRevisionId.newInstance(moduleRevisionId, moduleRevisionId.getName(), "pom", "pom");
         String metadataLocation = toResourcePattern(getWholePattern()).toModuleVersionPath(pomArtifact) + "/maven-metadata.xml";
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.externalresource.local.ivy;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.EmptyFileVisitor;
@@ -56,14 +54,10 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
             }
 
             private MinimalFileTree getMatchingFiles(ArtifactRevisionId artifact) {
-                String patternString = getArtifactPattern(artifact);
+                String patternString = pattern.toPath(artifact);
                 return new SingleIncludePatternFileTree(baseDir, patternString);
             }
 
-            private String getArtifactPattern(ArtifactRevisionId artifactId) {
-                Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
-                return pattern.toPath(dummyArtifact);
-            }
         };
     }
 }

@@ -17,7 +17,8 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.Map;
@@ -43,7 +44,7 @@ public class M2ResourcePattern extends IvyResourcePattern {
     }
 
     @Override
-    public String toPath(Artifact artifact) {
+    public String toPath(ArtifactRevisionId artifact) {
         Map<String, Object> attributes = toAttributes(artifact);
         if (artifact.getModuleRevisionId().getExtraAttributes().containsKey("timestamp")) {
             final Object revisionValue = artifact.getModuleRevisionId().getExtraAttribute("timestamp");
@@ -54,7 +55,7 @@ public class M2ResourcePattern extends IvyResourcePattern {
     }
 
     @Override
-    public String toModuleVersionPath(Artifact artifact) {
+    public String toModuleVersionPath(ArtifactRevisionId artifact) {
         String pattern = getPattern();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
             throw new UnsupportedOperationException("Cannot locate module version for non-maven layout.");
@@ -64,7 +65,12 @@ public class M2ResourcePattern extends IvyResourcePattern {
     }
 
     @Override
-    protected Map<String, Object> toAttributes(Artifact artifact) {
+    protected Map<String, Object> toAttributes(ArtifactRevisionId artifact) {
+        return mapOrganisation(super.toAttributes(artifact));
+    }
+
+    @Override
+    protected Map<String, Object> toAttributes(ArtifactIdentifier artifact) {
         return mapOrganisation(super.toAttributes(artifact));
     }
 

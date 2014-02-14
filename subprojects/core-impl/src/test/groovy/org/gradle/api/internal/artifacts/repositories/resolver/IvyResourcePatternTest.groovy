@@ -17,15 +17,18 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
+import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.ArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import spock.lang.Specification
 
 class IvyResourcePatternTest extends Specification {
     def "substitutes artifact attributes into pattern"() {
         def pattern = new IvyResourcePattern("prefix/[organisation]-[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
-        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
-        def artifact3 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance(null, "projectA", "1.2"), new Date())
+        def artifact1 = artifactId("group", "projectA", "1.2")
+        def artifact2 = artifactId("org.group", "projectA", "1.2")
+        def artifact3 = artifactId(null, "projectA", "1.2")
 
         expect:
         pattern.toPath(artifact1) == 'prefix/group-projectA/1.2/ivys/1.2/ivy.xml'
@@ -35,11 +38,20 @@ class IvyResourcePatternTest extends Specification {
 
     def "substitutes artifact attributes without revision into pattern"() {
         def pattern = new IvyResourcePattern("prefix/[organisation]-[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
-        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
+        def artifact1 = artifactIdentifier("group", "projectA", "1.2")
+        def artifact2 = artifactIdentifier("org.group", "projectA", "1.2")
 
         expect:
         pattern.toVersionListPattern(artifact1) == 'prefix/group-projectA/[revision]/ivys/[revision]/ivy.xml'
         pattern.toVersionListPattern(artifact2) == 'prefix/org.group-projectA/[revision]/ivys/[revision]/ivy.xml'
     }
+
+    private static ArtifactRevisionId artifactId(String group, String name, String version) {
+        DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance(group, name, version), new Date()).getId()
+    }
+
+    private static ArtifactIdentifier artifactIdentifier(String group, String name, String version) {
+        return new DefaultArtifactIdentifier(DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance(group, name, version), new Date()))
+    }
+
 }

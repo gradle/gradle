@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
@@ -51,8 +49,9 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     }
 
     @Nullable
-    protected Artifact getMetaDataArtifactFor(DependencyMetaData dependency) {
-        return DefaultArtifact.newIvyArtifact(dependency.getDescriptor().getDependencyRevisionId(), null);
+    protected ArtifactRevisionId getMetaDataArtifactFor(DependencyMetaData dependency) {
+        // TODO:DAZ Don't need to use ivy here
+        return ArtifactRevisionId.newInstance(dependency.getDescriptor().getDependencyRevisionId(), "ivy", "ivy", "xml");
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {

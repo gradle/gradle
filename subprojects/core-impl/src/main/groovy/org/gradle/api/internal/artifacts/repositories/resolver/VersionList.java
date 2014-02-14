@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.resource.ResourceException;
@@ -32,7 +32,7 @@ public interface VersionList {
      * @throws ResourceNotFoundException If information for versions cannot be found.
      * @throws ResourceException If information for versions cannot be loaded.
      */
-    void visit(ResourcePattern pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException;
+    void visit(ResourcePattern pattern, ArtifactIdentifier artifactId) throws ResourceNotFoundException, ResourceException;
 
     Set<ListedVersion> getVersions();
 
