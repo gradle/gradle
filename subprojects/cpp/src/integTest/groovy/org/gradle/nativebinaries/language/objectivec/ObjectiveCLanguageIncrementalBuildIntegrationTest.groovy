@@ -36,10 +36,12 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguage
         given:
         run "installMainExecutable"
 
+
         when:
         headerFile << """
             int unused();
 """
+        sleep(1000)
         run "mainExecutable"
 
         then:

@@ -183,6 +183,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             int unused();
 """
 
+        sleep(1000)
         run "mainExecutable"
 
         then:
@@ -220,6 +221,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 // Comment added to the end of the header file
 """
 
+        sleep(1000)
         run "mainExecutable"
 
         then:
