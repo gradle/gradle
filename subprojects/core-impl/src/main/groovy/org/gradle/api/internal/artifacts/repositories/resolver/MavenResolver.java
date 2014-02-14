@@ -25,9 +25,7 @@ import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -56,11 +54,10 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                         ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher,
-                         LatestStrategy latestStrategy, ResolverStrategy resolverStrategy) {
+                         ModuleMetadataProcessor metadataProcessor, ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
-                locallyAvailableResourceFinder, new GradlePomModuleDescriptorParser(), metadataProcessor, resolverStrategy, versionMatcher, latestStrategy);
+                locallyAvailableResourceFinder, new GradlePomModuleDescriptorParser(), metadataProcessor, resolverStrategy);
         transport.configureCacheManager(this);
 
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
@@ -77,8 +74,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        DependencyDescriptor descriptor = dependency.getDescriptor();
-        if (isSnapshotVersion(descriptor)) {
+        if (isSnapshotVersion(dependency)) {
             getSnapshotDependency(dependency, result);
         } else {
             super.getDependency(dependency, result);
@@ -107,8 +103,8 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return dd.clone(newModuleRevisionId);
     }
 
-    private boolean isSnapshotVersion(DependencyDescriptor dd) {
-        return dd.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT");
+    private boolean isSnapshotVersion(DependencyMetaData dd) {
+        return dd.getRequested().getVersion().endsWith("SNAPSHOT");
     }
 
     protected File download(Artifact artifact, ModuleSource moduleSource) throws IOException {
@@ -164,7 +160,8 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     @Override
-    protected Artifact getMetaDataArtifactFor(ModuleRevisionId moduleRevisionId) {
+    protected Artifact getMetaDataArtifactFor(DependencyMetaData dependency) {
+        ModuleRevisionId moduleRevisionId = dependency.getDescriptor().getDependencyRevisionId();
         if (isUsepoms()) {
             ArtifactRevisionId artifactRevisionId = ArtifactRevisionId.newInstance(moduleRevisionId, moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
             return new DefaultArtifact(artifactRevisionId, null, null, true);

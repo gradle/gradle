@@ -24,9 +24,7 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -46,21 +44,17 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private List<Object> additionalUrls = new ArrayList<Object>();
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final ModuleMetadataProcessor metadataProcessor;
-    private final VersionMatcher versionMatcher;
-    private final LatestStrategy latestStrategy;
     private final ResolverStrategy resolverStrategy;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                          ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher, LatestStrategy latestStrategy,
+                                          ModuleMetadataProcessor metadataProcessor,
                                           ResolverStrategy resolverStrategy) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.metadataProcessor = metadataProcessor;
-        this.versionMatcher = versionMatcher;
-        this.latestStrategy = latestStrategy;
         this.resolverStrategy = resolverStrategy;
     }
 
@@ -108,7 +102,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
 
         MavenResolver resolver = new MavenResolver(getName(), rootUri, getTransport(rootUri.getScheme()),
-                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy);
+                locallyAvailableResourceFinder, metadataProcessor, resolverStrategy);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl, null);
         }
@@ -131,15 +125,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return metadataProcessor;
     }
 
-    protected VersionMatcher getVersionMatcher() {
-        return versionMatcher;
-    }
-
     protected ResolverStrategy getResolverStrategy() {
         return resolverStrategy;
-    }
-
-    protected LatestStrategy getLatestStrategy() {
-        return latestStrategy;
     }
 }

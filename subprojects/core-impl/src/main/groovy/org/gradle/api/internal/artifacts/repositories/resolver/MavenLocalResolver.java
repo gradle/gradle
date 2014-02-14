@@ -16,12 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -36,23 +33,22 @@ public class MavenLocalResolver extends MavenResolver {
 
     public MavenLocalResolver(String name, URI rootUri, RepositoryTransport transport,
                               LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                              ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher,
-                              LatestStrategy latestStrategy, ResolverStrategy resolverStrategy) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy);
+                              ModuleMetadataProcessor metadataProcessor, ResolverStrategy resolverStrategy) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, metadataProcessor, resolverStrategy);
     }
 
     @Override
-    protected void getDependencyForFoundIvyFileRef(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, DownloadedAndParsedMetaDataArtifact ivyRef) {
-        ModuleVersionMetaData metaData = getArtifactMetadata(dependency, ivyRef.getArtifact(), ivyRef.getResource());
+    protected void getDependencyForFoundIvyFileRef(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result, DownloadedAndParsedMetaDataArtifact ivyRef) {
+        ModuleVersionMetaData metaData = getArtifactMetadata(dependency, ivyRef.getArtifactId(), ivyRef.getResource());
 
         if (!metaData.isMetaDataOnly()) {
             ResolvedArtifact artifactRef = findAnyArtifact(metaData);
             if (artifactRef == null) {
-                LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", moduleRevisionId, getName());
+                LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", dependency.getRequested(), getName());
                 return;
             }
         }
 
-        super.getDependencyForFoundIvyFileRef(dependency, result, moduleRevisionId, ivyRef);
+        super.getDependencyForFoundIvyFileRef(dependency, result, ivyRef);
     }
 }

@@ -45,7 +45,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
             fileResolver, credentials, transportFactory, locallyAvailableResourceFinder,
-            new DirectInstantiator(), metadataProcessor, versionMatcher, latestStrategy,
+            new DirectInstantiator(), metadataProcessor,
             resolverStrategy
     )
 

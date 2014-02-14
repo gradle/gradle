@@ -41,7 +41,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final ResolverStrategy resolverStrategy = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-            resolver, credentials, transportFactory, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy)
+            resolver, credentials, transportFactory, locallyAvailableResourceFinder, metadataProcessor, resolverStrategy)
 
     def "creates local repository"() {
         given:
