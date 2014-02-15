@@ -17,9 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.base.Joiner;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.util.ChecksumHelper;
@@ -226,10 +223,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected MutableModuleVersionMetaData getDefaultMetaData(DependencyMetaData dependency) {
-        ModuleRevisionId moduleRevisionId = dependency.getDescriptor().getDependencyRevisionId();
-        DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependency.getDescriptor().getAllDependencyArtifacts());
-        moduleDescriptor.setStatus("integration");
-        MutableModuleVersionMetaData rawMetaData = new ModuleDescriptorAdapter(moduleDescriptor);
+        MutableModuleVersionMetaData rawMetaData = ModuleDescriptorAdapter.defaultForDependency(dependency);
         return processRawMetaData(rawMetaData);
     }
 
@@ -247,7 +241,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     private MutableModuleVersionMetaData processRawMetaData(MutableModuleVersionMetaData rawMetaData) {
-        rawMetaData.setChanging(isChanging(rawMetaData.getDescriptor()));
+        rawMetaData.setChanging(isChanging(rawMetaData.getId().getVersion()));
         MutableModuleVersionMetaData metaData = rawMetaData.copy();
         metaData.setRawMetaData(rawMetaData);
         metadataProcessor.process(metaData);
@@ -596,7 +590,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return isM2compatible() ? new M2ResourcePattern(pattern) : new IvyResourcePattern(pattern);
     }
 
-    private boolean isChanging(ModuleDescriptor moduleDescriptor) {
+    private boolean isChanging(String version) {
         if (changingMatcherName == null || changingPattern == null) {
             return false;
         }
@@ -605,7 +599,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             throw new IllegalStateException("unknown matcher '" + changingMatcherName
                     + "'. It is set as changing matcher in " + this);
         }
-        return matcher.getMatcher(changingPattern).matches(moduleDescriptor.getResolvedModuleRevisionId().getRevision());
+        return matcher.getMatcher(changingPattern).matches(version);
     }
 
     protected static class ResolvedArtifact {

@@ -40,6 +40,13 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     private Set<ModuleVersionArtifactMetaData> artifacts;
     private ModuleVersionMetaData rawMetaData;
 
+    public static ModuleDescriptorAdapter defaultForDependency(DependencyMetaData dependencyMetaData) {
+        DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
+        DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(dependencyDescriptor.getDependencyRevisionId(), dependencyDescriptor.getAllDependencyArtifacts());
+        moduleDescriptor.setStatus("integration");
+        return new ModuleDescriptorAdapter(moduleDescriptor);
+    }
+
     public ModuleDescriptorAdapter(ModuleDescriptor moduleDescriptor) {
         this(DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId()), moduleDescriptor);
     }
