@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit;
+package org.gradle.testing.fixture;
 
-class JUnitVersions {
+class JUnitCoverage {
     final static String NEWEST = '4.11'
     final static String[] LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]
     final static String[] STANDARD_COVERAGE = ['4.4', NEWEST]
