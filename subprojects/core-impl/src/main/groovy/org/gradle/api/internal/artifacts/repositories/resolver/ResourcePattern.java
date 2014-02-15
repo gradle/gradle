@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
@@ -24,7 +23,7 @@ public interface ResourcePattern {
     /**
      * Returns the path to the given artifact.
      */
-    String toPath(ArtifactRevisionId artifact);
+    String toPath(ArtifactIdentifier artifact);
 
     /**
      * Returns the pattern which can be used to search for versions of the given artifact.
@@ -40,5 +39,5 @@ public interface ResourcePattern {
     /**
      * Returns the path to the module version for the given artifact.
      */
-    String toModuleVersionPath(ArtifactRevisionId artifact);
+    String toModuleVersionPath(ArtifactIdentifier artifact);
 }

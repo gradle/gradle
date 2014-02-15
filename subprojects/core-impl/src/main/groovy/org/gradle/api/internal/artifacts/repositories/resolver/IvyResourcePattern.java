@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
@@ -40,7 +39,7 @@ public class IvyResourcePattern implements ResourcePattern {
         return String.format("Ivy pattern '%s'", pattern);
     }
 
-    public String toPath(ArtifactRevisionId artifact) {
+    public String toPath(ArtifactIdentifier artifact) {
         Map<String, Object> attributes = toAttributes(artifact);
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }
@@ -55,12 +54,8 @@ public class IvyResourcePattern implements ResourcePattern {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    public String toModuleVersionPath(ArtifactRevisionId artifact) {
+    public String toModuleVersionPath(ArtifactIdentifier artifact) {
         throw new UnsupportedOperationException("not implemented yet.");
-    }
-
-    protected Map<String, Object> toAttributes(ArtifactRevisionId artifact) {
-        return new HashMap<String, Object>(artifact.getAttributes());
     }
 
     protected Map<String, Object> toAttributes(ArtifactIdentifier artifact) {
@@ -71,7 +66,7 @@ public class IvyResourcePattern implements ResourcePattern {
         attributes.put(IvyPatternHelper.ARTIFACT_KEY, artifact.getName());
         attributes.put(IvyPatternHelper.TYPE_KEY, artifact.getType());
         attributes.put(IvyPatternHelper.EXT_KEY, artifact.getExtension());
-        // TODO:DAZ Need classifier?
+        attributes.put("classifier", artifact.getClassifier());
         return attributes;
     }
 

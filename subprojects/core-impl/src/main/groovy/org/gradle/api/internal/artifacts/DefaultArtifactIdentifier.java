@@ -37,6 +37,10 @@ public class DefaultArtifactIdentifier implements ArtifactIdentifier {
         this.classifier = classifier;
     }
 
+    public DefaultArtifactIdentifier(String group, String module, String version, String name, String type, String extension, String classifier) {
+        this(newId(group, module, version), name, type, extension, classifier);
+    }
+
     public DefaultArtifactIdentifier(Artifact artifact) {
         this(newId(artifact.getModuleRevisionId()), artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttribute("classifier"));
     }
