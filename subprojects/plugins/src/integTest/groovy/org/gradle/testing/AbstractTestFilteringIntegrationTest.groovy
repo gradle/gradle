@@ -15,47 +15,43 @@
  */
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import spock.lang.Shared
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import spock.lang.Unroll
 
-public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrationSpec {
 
-    class TestFramework {
-        String name
-        String imports
-        String toString() { name }
-    }
+    protected String framework
+    protected String dependency
+    protected String imports
 
-    @Shared TestFramework jUnit = new TestFramework(name: "JUnit", imports: "org.junit.*")
-    @Shared TestFramework testNG = new TestFramework(name: "TestNG", imports: "org.testng.annotations.*")
+    abstract void configureFramework()
 
     void setup() {
+        configureFramework()
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile "org.testng:testng:6.3.1", "junit:junit:4.11" }
+            dependencies { testCompile '$dependency:$version' }
+            test { use${framework}() }
         """
     }
 
-    @Unroll
-    def "#framework executes single method from a test class"() {
+    def "executes single method from a test class"() {
         buildFile << """
             test {
-              use$framework.name()
               filter {
                 includeTestsMatching "FooTest.pass"
               }
             }
         """
-        file("src/test/java/FooTest.java") << """import $framework.imports;
+        file("src/test/java/FooTest.java") << """import $imports;
             public class FooTest {
                 @Test public void pass() {}
                 @Test public void fail() { throw new RuntimeException("Boo!"); }
             }
         """
-        file("src/test/java/OtherTest.java") << """import $framework.imports;
+        file("src/test/java/OtherTest.java") << """import $imports;
             public class OtherTest {
                 @Test public void pass() {}
                 @Test public void fail() { throw new RuntimeException("Boo!"); }
@@ -69,16 +65,11 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("FooTest")
         result.testClass("FooTest").assertTestsExecuted("pass")
-
-        where:
-        framework << [jUnit, testNG]
     }
 
-    @Unroll
-    def "#framework executes multiple methods from a test class"() {
+    def "executes multiple methods from a test class"() {
         buildFile << """
             test {
-              use$framework.name()
               include 'FooTest*'
               def cls = "FooTest"
               filter {
@@ -87,14 +78,14 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
               }
             }
         """
-        file("src/test/java/FooTest.java") << """import $framework.imports;
+        file("src/test/java/FooTest.java") << """import $imports;
             public class FooTest {
                 @Test public void passOne() {}
                 @Test public void passTwo() {}
                 @Test public void fail() { throw new RuntimeException("Boo!"); }
             }
         """
-        file("src/test/java/OtherTest.java") << """import $framework.imports;
+        file("src/test/java/OtherTest.java") << """import $imports;
             public class OtherTest {
                 @Test public void passOne() {}
                 @Test public void fail() { throw new RuntimeException("Boo!"); }
@@ -108,37 +99,32 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("FooTest")
         result.testClass("FooTest").assertTestCount(2, 0, 0)
-
-        where:
-        framework << [jUnit, testNG]
     }
 
-    @Unroll
-    def "#framework executes multiple methods from different classes"() {
+    def "executes multiple methods from different classes"() {
         buildFile << """
             test {
-              use$framework.name()
               filter.setIncludePatterns 'Foo*.pass*'
             }
         """
-        file("src/test/java/Foo1Test.java") << """import $framework.imports;
+        file("src/test/java/Foo1Test.java") << """import $imports;
             public class Foo1Test {
                 @Test public void pass1() {}
                 @Test public void boo() {}
             }
         """
-        file("src/test/java/Foo2Test.java") << """import $framework.imports;
+        file("src/test/java/Foo2Test.java") << """import $imports;
             public class Foo2Test {
                 @Test public void pass2() {}
                 @Test public void boo() {}
             }
         """
-        file("src/test/java/Foo3Test.java") << """import $framework.imports;
+        file("src/test/java/Foo3Test.java") << """import $imports;
             public class Foo3Test {
                 @Test public void boo() {}
             }
         """
-        file("src/test/java/OtherTest.java") << """import $framework.imports;
+        file("src/test/java/OtherTest.java") << """import $imports;
             public class OtherTest {
                 @Test public void pass3() {}
                 @Test public void boo() {}
@@ -153,19 +139,10 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTestClassesExecuted("Foo1Test", "Foo2Test")
         result.testClass("Foo1Test").assertTestsExecuted("pass1")
         result.testClass("Foo2Test").assertTestsExecuted("pass2")
-
-        where:
-        framework << [jUnit, testNG]
     }
 
-    @Unroll
-    def "#framework reports when no matching methods found"() {
-        buildFile << """
-            test {
-              use$framework.name()
-            }
-        """
-        file("src/test/java/FooTest.java") << """import $framework.imports;
+    def "reports when no matching methods found"() {
+        file("src/test/java/FooTest.java") << """import $imports;
             public class FooTest {
                 @Test public void pass() {}
             }
@@ -180,20 +157,15 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "test.filter.includeTestsMatching 'FooTest.missingMethod'"
         fails("test")
         then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
-
-        where:
-        framework << [jUnit, testNG]
     }
 
-    @Unroll
-    def "#framework task is out of date when included methods change"() {
+    def "task is out of date when included methods change"() {
         buildFile << """
             test {
-              use$framework.name()
               filter.includeTestsMatching 'FooTest.pass'
             }
         """
-        file("src/test/java/FooTest.java") << """import $framework.imports;
+        file("src/test/java/FooTest.java") << """import $imports;
             public class FooTest {
                 @Test public void pass() {}
                 @Test public void pass2() {}
@@ -212,8 +184,5 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         !result.skippedTasks.contains(":test")
         new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass", "pass2")
-
-        where:
-        framework << [jUnit, testNG]
     }
 }

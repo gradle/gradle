@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit;
 
-class JUnitVersions {
-    final static String NEWEST = '4.11'
-    final static String[] LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]
-    final static String[] STANDARD_COVERAGE = ['4.4', NEWEST]
-    final static String[] ASSUMPTIONS = ['4.5', NEWEST]
-    final static String[] CATEGORIES = ['4.8', NEWEST]
-    final static String[] FILTERING = ['4.6', NEWEST]
+package org.gradle.testing.junit
+
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.AbstractTestFilteringIntegrationTest
+
+@TargetCoverage({JUnitVersions.FILTERING})
+public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
+
+    void configureFramework() {
+        framework = "JUnit"
+        dependency = "junit:junit"
+        imports = "org.junit.*"
+    }
 }
