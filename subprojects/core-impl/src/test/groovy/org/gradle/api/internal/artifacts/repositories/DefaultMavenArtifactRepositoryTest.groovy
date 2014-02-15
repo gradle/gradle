@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.repositories
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -36,8 +33,6 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
     final ModuleMetadataProcessor metadataProcessor = Mock()
-    final VersionMatcher versionMatcher = Stub()
-    final LatestStrategy latestStrategy = Stub()
     final ResolverStrategy resolverStrategy = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(

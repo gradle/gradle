@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Transformer;
@@ -56,7 +55,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     private final MavenMetadataLoader mavenMetaDataLoader;
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
-                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                         LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
                          ModuleMetadataProcessor metadataProcessor, ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
@@ -99,7 +98,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return dd.getRequested().getVersion().endsWith("SNAPSHOT");
     }
 
-    protected File download(ArtifactRevisionId artifactId, ModuleSource moduleSource) throws IOException {
+    protected File download(ArtifactIdentifier artifactId, ModuleSource moduleSource) throws IOException {
         if (moduleSource instanceof TimestampedModuleSource) {
             return downloadArtifact(artifactId, createArtifactResolver((TimestampedModuleSource) moduleSource));
         } else {

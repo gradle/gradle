@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -39,10 +38,6 @@ public class DefaultArtifactIdentifier implements ArtifactIdentifier {
 
     public DefaultArtifactIdentifier(String group, String module, String version, String name, String type, String extension, String classifier) {
         this(newId(group, module, version), name, type, extension, classifier);
-    }
-
-    public DefaultArtifactIdentifier(Artifact artifact) {
-        this(newId(artifact.getModuleRevisionId()), artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttribute("classifier"));
     }
 
     public DefaultArtifactIdentifier(ArtifactRevisionId artifact) {

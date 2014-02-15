@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import groovy.lang.Closure;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -47,14 +47,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
-    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
+    private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
     private final MetaDataProvider metaDataProvider;
     private final Instantiator instantiator;
     private final ModuleMetadataProcessor metadataProcessor;
     private final ResolverStrategy resolverStrategy;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, Instantiator instantiator,
+                                        LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder, Instantiator instantiator,
                                         ModuleMetadataProcessor metadataProcessor, ResolverStrategy resolverStrategy) {
         super(credentials);
         this.fileResolver = fileResolver;

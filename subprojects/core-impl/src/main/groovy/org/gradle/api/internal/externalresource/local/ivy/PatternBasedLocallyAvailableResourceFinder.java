@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.externalresource.local.ivy;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.externalresource.local.AbstractLocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
@@ -30,15 +29,15 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ArtifactRevisionId> {
+public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ArtifactIdentifier> {
 
     public PatternBasedLocallyAvailableResourceFinder(File baseDir, ResourcePattern pattern) {
         super(createProducer(baseDir, pattern));
     }
 
-    private static Transformer<Factory<List<File>>, ArtifactRevisionId> createProducer(final File baseDir, final ResourcePattern pattern) {
-        return new Transformer<Factory<List<File>>, ArtifactRevisionId>() {
-            public Factory<List<File>> transform(final ArtifactRevisionId artifactId) {
+    private static Transformer<Factory<List<File>>, ArtifactIdentifier> createProducer(final File baseDir, final ResourcePattern pattern) {
+        return new Transformer<Factory<List<File>>, ArtifactIdentifier>() {
+            public Factory<List<File>> transform(final ArtifactIdentifier artifactId) {
                 return new Factory<List<File>>() {
                     public List<File> create() {
                         final List<File> files = new LinkedList<File>();
@@ -55,8 +54,8 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
             }
 
             // TODO:DAZ Push ArtifactIdentifier out
-            private MinimalFileTree getMatchingFiles(ArtifactRevisionId artifact) {
-                String patternString = pattern.toPath(new DefaultArtifactIdentifier(artifact));
+            private MinimalFileTree getMatchingFiles(ArtifactIdentifier artifactIdentifier) {
+                String patternString = pattern.toPath(artifactIdentifier);
                 return new SingleIncludePatternFileTree(baseDir, patternString);
             }
 

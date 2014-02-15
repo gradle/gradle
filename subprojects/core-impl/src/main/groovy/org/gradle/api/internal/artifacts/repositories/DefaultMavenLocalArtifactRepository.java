@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
@@ -31,7 +31,7 @@ import java.net.URI;
 
 public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, ModuleMetadataProcessor metadataProcessor,
+                                        LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder, ModuleMetadataProcessor metadataProcessor,
                                         ResolverStrategy resolverStrategy) {
         super(fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, metadataProcessor, resolverStrategy);
     }

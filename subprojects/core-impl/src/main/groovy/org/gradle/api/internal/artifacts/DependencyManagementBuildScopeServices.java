@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
@@ -56,7 +56,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
-import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
+import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -151,8 +151,8 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore(CacheLockingManager cacheLockingManager) {
-        return new ArtifactRevisionIdFileStore(new UniquePathKeyFileStore(cacheLockingManager.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
+    ArtifactIdentifierFileStore createArtifactRevisionIdFileStore(CacheLockingManager cacheLockingManager) {
+        return new ArtifactIdentifierFileStore(new UniquePathKeyFileStore(cacheLockingManager.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
     }
 
     MavenSettingsProvider createMavenSettingsProvider() {
@@ -163,7 +163,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider, SystemProperties.asMap(), System.getenv());
     }
 
-    LocallyAvailableResourceFinder<ArtifactRevisionId> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactRevisionIdFileStore  fileStore) {
+    LocallyAvailableResourceFinder<ArtifactIdentifier> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactIdentifierFileStore fileStore) {
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
                 artifactCacheMetaData,
                 localMavenRepositoryLocator,
@@ -187,9 +187,9 @@ class DependencyManagementBuildScopeServices {
         return new LocalFileRepositoryArtifactCache();
     }
 
-    DownloadingRepositoryArtifactCache createDownloadingRepositoryArtifactCache(ArtifactRevisionIdFileStore artifactRevisionIdFileStore, ByUrlCachedExternalResourceIndex externalResourceIndex,
+    DownloadingRepositoryArtifactCache createDownloadingRepositoryArtifactCache(ArtifactIdentifierFileStore artifactIdentifierFileStore, ByUrlCachedExternalResourceIndex externalResourceIndex,
                                                                                 TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
-        return new DownloadingRepositoryArtifactCache(artifactRevisionIdFileStore,
+        return new DownloadingRepositoryArtifactCache(artifactIdentifierFileStore,
                 externalResourceIndex,
                 temporaryFileProvider,
                 cacheLockingManager);
@@ -208,14 +208,14 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    LegacyDependencyResolverRepositoryFactory createCustomerResolverRepositoryFactory(ProgressLoggerFactory progressLoggerFactory, ArtifactRevisionIdFileStore artifactRevisionIdFileStore,
+    LegacyDependencyResolverRepositoryFactory createCustomerResolverRepositoryFactory(ProgressLoggerFactory progressLoggerFactory, ArtifactIdentifierFileStore artifactIdentifierFileStore,
                                                                                       TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         return new CustomIvyResolverRepositoryFactory(
                 progressLoggerFactory,
                 new LocalFileRepositoryCacheManager("local"),
                 new DownloadingRepositoryCacheManager(
                         "downloading",
-                        artifactRevisionIdFileStore,
+                        artifactIdentifierFileStore,
                         temporaryFileProvider,
                         cacheLockingManager
                 )

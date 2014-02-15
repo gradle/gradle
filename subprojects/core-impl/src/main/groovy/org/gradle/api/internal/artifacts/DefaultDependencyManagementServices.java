@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -72,7 +72,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
     private static class DependencyResolutionScopeServices {
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
-                                                          RepositoryTransportFactory repositoryTransportFactory, LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                                                          RepositoryTransportFactory repositoryTransportFactory, LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
                                                           ModuleMetadataProcessor metadataProcessor, LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
                                                           ResolverStrategy resolverStrategy) {
             return new DefaultBaseRepositoryFactory(

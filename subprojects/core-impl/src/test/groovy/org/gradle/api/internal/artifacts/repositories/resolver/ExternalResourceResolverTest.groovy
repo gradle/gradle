@@ -15,7 +15,8 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
-import org.apache.ivy.core.module.id.ArtifactRevisionId
+
+import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
@@ -31,7 +32,7 @@ class ExternalResourceResolverTest extends Specification {
     String name = "TestResolver"
     ExternalResourceRepository repository = Mock()
     VersionLister versionLister = Mock()
-    LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder = Mock()
+    LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder = Mock()
     BuildableArtifactResolveResult result = Mock()
     MetaDataParser parser = Mock()
     ModuleMetadataProcessor metadataProcessor = Mock()

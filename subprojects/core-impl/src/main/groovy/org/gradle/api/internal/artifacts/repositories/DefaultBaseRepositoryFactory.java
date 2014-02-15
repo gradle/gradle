@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
@@ -42,7 +42,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final FileResolver fileResolver;
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
-    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
+    private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
     private final ModuleMetadataProcessor metadataProcessor;
     private final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory;
     private final ResolverStrategy resolverStrategy;
@@ -51,7 +51,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         FileResolver fileResolver,
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                                        LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
                                         ModuleMetadataProcessor metadataProcessor,
                                         LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
                                         ResolverStrategy resolverStrategy) {

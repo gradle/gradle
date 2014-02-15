@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.Lists;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
@@ -39,13 +39,13 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final FileResolver fileResolver;
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryTransportFactory transportFactory;
-    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
+    private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
     private final ModuleMetadataProcessor metadataProcessor;
     private final ResolverStrategy resolverStrategy;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
-                                            LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                                            LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
                                             ModuleMetadataProcessor metadataProcessor,
                                             ResolverStrategy resolverStrategy) {
         this.fileResolver = fileResolver;

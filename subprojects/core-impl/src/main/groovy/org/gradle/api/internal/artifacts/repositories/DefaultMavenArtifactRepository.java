@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.Lists;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
@@ -42,12 +42,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final RepositoryTransportFactory transportFactory;
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
-    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
+    private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
     private final ModuleMetadataProcessor metadataProcessor;
     private final ResolverStrategy resolverStrategy;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                                          LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
                                           ModuleMetadataProcessor metadataProcessor,
                                           ResolverStrategy resolverStrategy) {
         super(credentials);
@@ -117,7 +117,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
     }
 
-    protected LocallyAvailableResourceFinder<ArtifactRevisionId> getLocallyAvailableResourceFinder() {
+    protected LocallyAvailableResourceFinder<ArtifactIdentifier> getLocallyAvailableResourceFinder() {
         return locallyAvailableResourceFinder;
     }
 

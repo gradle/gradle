@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
@@ -38,10 +39,10 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     private final ExternalResourceResolver moduleResolver;
     private final ModuleRevisionId moduleRevisionId;
 
-    public ExternalResourceResolverDescriptorParseContext(DependencyToModuleVersionResolver mainResolver, ExternalResourceResolver moduleResolver, ModuleRevisionId moduleRevisionId) {
+    public ExternalResourceResolverDescriptorParseContext(DependencyToModuleVersionResolver mainResolver, ExternalResourceResolver moduleResolver, ModuleVersionIdentifier moduleVersionIdentifier) {
         this.mainResolver = mainResolver;
         this.moduleResolver = moduleResolver;
-        this.moduleRevisionId = moduleRevisionId;
+        this.moduleRevisionId = IvyUtil.createModuleRevisionId(moduleVersionIdentifier);
     }
 
     public ModuleRevisionId getCurrentRevisionId() {

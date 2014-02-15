@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -34,7 +33,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     private final boolean dynamicResolve;
 
     public IvyResolver(String name, RepositoryTransport transport,
-                       LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                       LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
                        ModuleMetadataProcessor metadataProcessor,
                        boolean dynamicResolve, ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()),

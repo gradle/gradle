@@ -55,7 +55,7 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
     }
 
     public ArtifactIdentifier toArtifactIdentifier() {
-        return new DefaultArtifactIdentifier(artifact);
+        return new DefaultArtifactIdentifier(artifact.getId());
     }
 
     public IvyArtifactName getName() {
