@@ -19,7 +19,6 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
-import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 
 @TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})

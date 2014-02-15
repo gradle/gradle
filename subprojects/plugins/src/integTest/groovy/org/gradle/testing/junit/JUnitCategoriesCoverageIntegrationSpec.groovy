@@ -24,7 +24,7 @@ import org.gradle.testing.fixture.JUnitCoverage
 import org.junit.Rule
 
 @TargetCoverage({JUnitCoverage.CATEGORIES})
-public class JUnitCategoriesCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
+public class JUnitCategoriesCoverageIntegrationSpec extends MultiVersionIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 

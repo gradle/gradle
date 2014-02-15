@@ -19,12 +19,9 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import org.junit.Test
-import static org.hamcrest.Matchers.startsWith
 
+import static org.hamcrest.Matchers.startsWith
 
 public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
 
