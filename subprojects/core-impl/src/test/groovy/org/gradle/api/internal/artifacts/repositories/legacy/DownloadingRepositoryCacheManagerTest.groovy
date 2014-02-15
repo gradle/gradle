@@ -17,13 +17,11 @@
 package org.gradle.api.internal.artifacts.repositories.legacy
 
 import org.apache.ivy.core.module.descriptor.Artifact
-import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.plugins.repository.Resource
 import org.apache.ivy.plugins.repository.ResourceDownloader
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.internal.filestore.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResource
