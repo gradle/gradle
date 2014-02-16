@@ -142,9 +142,10 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         listVersionsForAllPatterns(module, getIvyPatterns(), metaDataArtifact, versionList);
 
         // List modules with missing metadata files
-        // TODO:DAZ Should check isAllownomd()
-        for (ArtifactIdentifier otherArtifact : getAllArtifacts(getDefaultMetaData(dependency))) {
-            listVersionsForAllPatterns(module, getArtifactPatterns(), otherArtifact, versionList);
+        if (isAllownomd()) {
+            for (ArtifactIdentifier otherArtifact : getAllArtifacts(getDefaultMetaData(dependency))) {
+                listVersionsForAllPatterns(module, getArtifactPatterns(), otherArtifact, versionList);
+            }
         }
         DefaultModuleVersions moduleVersions = new DefaultModuleVersions();
         for (VersionList.ListedVersion listedVersion : versionList.getVersions()) {
@@ -159,9 +160,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             try {
                 versionList.visit(resourcePattern, artifactId);
             } catch (ResourceNotFoundException e) {
-                LOGGER.debug(String.format("Unable to load version list for %s from %s", module, getRepository()));
-                // Don't add any versions
-                // TODO:DAZ Should fail?
+                LOGGER.warn(String.format("Unable to load version list for %s from %s", module, getRepository()), e);
             }
         }
     }

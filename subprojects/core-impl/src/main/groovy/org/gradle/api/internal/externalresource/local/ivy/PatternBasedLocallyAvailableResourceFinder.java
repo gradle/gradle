@@ -53,7 +53,6 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
                 };
             }
 
-            // TODO:DAZ Push ArtifactIdentifier out
             private MinimalFileTree getMatchingFiles(ArtifactIdentifier artifactIdentifier) {
                 String patternString = pattern.toPath(artifactIdentifier);
                 return new SingleIncludePatternFileTree(baseDir, patternString);

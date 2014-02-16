@@ -142,7 +142,7 @@ task retrieveDynamicMissing(type: Sync) {
         projectB20.jar.expectGet()
         executer.withDeprecationChecksDisabled()
 
-        // TODO:DAZ Extra get since refactoring (for custom ivy resolver only)
+        // TODO:DAZ Extra get since moving version listing up into UserResolverChain (for custom ivy resolver only)
         projectB20.ivy.expectGet()
 
         and:

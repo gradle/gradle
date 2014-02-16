@@ -284,10 +284,11 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
             ModuleVersionSelector selector = dependency.getRequested();
             for (Versioned candidate : selectionResult.getVersions().sortLatestFirst(latestStrategy)) {
                 // Resolve the metadata
-                moduleAccess.getDependency(dependency.withRequestedVersion(candidate.getVersion()), resolveResult);
+                DependencyMetaData moduleVersionDependency = dependency.withRequestedVersion(candidate.getVersion());
+                moduleAccess.getDependency(moduleVersionDependency, resolveResult);
                 if (resolveResult.getState() != BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
                     // Couldn't load listed module
-                    // TODO:DAZ warn
+                    LOGGER.warn("Could not load metadata for '{}' of listed module '{}' - ignoring.", candidate, selector);
                     resolveResult.reset();
                     return true;
                 }

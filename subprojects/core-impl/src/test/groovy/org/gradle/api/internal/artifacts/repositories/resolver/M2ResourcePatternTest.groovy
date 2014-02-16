@@ -32,13 +32,10 @@ class M2ResourcePatternTest extends Specification {
         final String version = "1.2"
         def artifact1 = artifactId(group, name, version)
         def artifact2 = artifactId("org.group", "projectA", "1.2")
-//        def artifact3 = artifactId(null, "projectA", "1.2")
 
         expect:
         pattern.toPath(artifact1) == 'prefix/group/projectA/1.2/ivys/1.2/ivy.xml'
         pattern.toPath(artifact2) == 'prefix/org/group/projectA/1.2/ivys/1.2/ivy.xml'
-        // TODO:DAZ Validate this isn't required
-//        pattern.toPath(artifact3) == 'prefix/[organisation]/projectA/1.2/ivys/1.2/ivy.xml'
     }
 
     def "substitutes module attributes into pattern to determine module pattern"() {
