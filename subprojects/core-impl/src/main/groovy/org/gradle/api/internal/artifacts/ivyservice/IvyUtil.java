@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -50,12 +48,6 @@ public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(ModuleVersionIdentifier id) {
         return ModuleRevisionId.newInstance(id.getGroup(), id.getName(), id.getVersion());
-    }
-
-    public static ArtifactRevisionId createArtifactRevisionId(ArtifactIdentifier id) {
-        ModuleRevisionId moduleRevisionId = createModuleRevisionId(id.getModuleVersionIdentifier());
-        // TODO:DAZ Handle classifier
-        return ArtifactRevisionId.newInstance(moduleRevisionId, id.getName(), id.getType(), id.getExtension());
     }
 
     private static String emptyStringIfNull(String value) {
