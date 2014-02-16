@@ -15,12 +15,10 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-
 import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
@@ -38,12 +36,11 @@ class CachingModuleVersionRepositoryTest extends Specification {
     def moduleResolutionCache = Stub(ModuleVersionsCache)
     def moduleDescriptorCache = Mock(ModuleMetaDataCache)
     def artifactAtRepositoryCache = Mock(CachedArtifactIndex)
-    def resolver = Stub(DependencyToModuleVersionResolver)
     def cachePolicy = Stub(CachePolicy)
     def metadataProcessor = Stub(ModuleMetadataProcessor)
     def moduleExtractor = Mock(Transformer)
     def repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache,
-            resolver, cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor, moduleExtractor)
+            cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor, moduleExtractor)
 
     @Unroll
     def "last modified date is cached - lastModified = #lastModified"() {

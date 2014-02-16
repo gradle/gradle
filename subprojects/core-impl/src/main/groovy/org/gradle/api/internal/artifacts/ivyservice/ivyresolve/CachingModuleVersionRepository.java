@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
@@ -49,7 +48,6 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     private final ModuleVersionsCache moduleVersionsCache;
     private final ModuleMetaDataCache moduleMetaDataCache;
     private final CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex;
-    private final DependencyToModuleVersionResolver resolver;
 
     private final CachePolicy cachePolicy;
 
@@ -60,14 +58,12 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                           CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
-                                          DependencyToModuleVersionResolver resolver,
                                           CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
                                           ModuleMetadataProcessor metadataProcessor, Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor) {
         this.delegate = delegate;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleVersionsCache = moduleVersionsCache;
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
-        this.resolver = resolver;
         this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
         this.metadataProcessor = metadataProcessor;
@@ -94,9 +90,8 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         if (cachedModuleVersionList != null) {
             ModuleVersions versionList = cachedModuleVersionList.getModuleVersions();
 
-            // TODO:DAZ Fix this
-            ModuleVersionIdentifier dummyId = new DefaultModuleVersionIdentifier(moduleId, "0");
-            if (cachePolicy.mustRefreshDynamicVersion(requested, dummyId, cachedModuleVersionList.getAgeMillis())) {
+            ModuleVersionIdentifier requestedId = new DefaultModuleVersionIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
+            if (cachePolicy.mustRefreshDynamicVersion(requested, requestedId, cachedModuleVersionList.getAgeMillis())) {
                 LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
             } else {
                 if (versionList.isEmpty()) {
@@ -158,7 +153,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     private void lookupModuleInCache(ModuleVersionRepository repository, DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         ModuleRevisionId resolvedModuleVersionId = dependency.getDescriptor().getDependencyRevisionId();
         ModuleVersionIdentifier moduleVersionIdentifier = newId(resolvedModuleVersionId);
-        ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.getCachedModuleDescriptor(repository, moduleVersionIdentifier, resolver);
+        ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.getCachedModuleDescriptor(repository, moduleVersionIdentifier);
         if (cachedMetaData == null) {
             return;
         }
