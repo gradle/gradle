@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import com.google.common.base.Joiner;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.util.ChecksumHelper;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
@@ -50,7 +49,6 @@ import org.gradle.api.internal.externalresource.transport.ExternalResourceReposi
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,13 +85,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     protected VersionLister versionLister;
 
-    // TODO:DAZ Get rid of this
-    private final ExternalResourceDownloader resourceDownloader = new ExternalResourceDownloader() {
-        public void download(ExternalResource resource, File dest) throws IOException {
-            get(resource, dest);
-            verifyChecksums(resource, dest);
-        }
-    };
 
     public ExternalResourceResolver(String name,
                                     ExternalResourceRepository repository,
@@ -162,25 +153,37 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         result.listed(moduleVersions);
     }
 
+    private void listVersionsForAllPatterns(ModuleIdentifier module, List<String> patternList, ArtifactIdentifier artifactId, VersionList versionList) {
+        for (String pattern : patternList) {
+            ResourcePattern resourcePattern = toResourcePattern(pattern);
+            try {
+                versionList.visit(resourcePattern, artifactId);
+            } catch (ResourceNotFoundException e) {
+                LOGGER.debug(String.format("Unable to load version list for %s from %s", module, getRepository()));
+                // Don't add any versions
+                // TODO:DAZ Should fail?
+            }
+        }
+    }
+
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         resolveStaticDependency(dependency, result, createArtifactResolver());
     }
 
     protected final void resolveStaticDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result, ArtifactResolver artifactResolver) {
-        DownloadedAndParsedMetaDataArtifact metaDataArtifact = findMetaDataArtifact(dependency, artifactResolver);
+        MutableModuleVersionMetaData metaDataArtifactMetaData = findMetaDataArtifact(dependency, artifactResolver);
 
-        if (metaDataArtifact != null) {
-            MutableModuleVersionMetaData moduleVersionMetaData = metaDataArtifact.moduleVersionMetaData;
+        if (metaDataArtifactMetaData != null) {
             LOGGER.debug("Metadata file found for module '{}' in repository '{}'.", dependency.getRequested(), getName());
-            result.resolved(moduleVersionMetaData, null);
+            result.resolved(metaDataArtifactMetaData, null);
             return;
         }
 
         if (isAllownomd()) {
-            DownloadedAndParsedMetaDataArtifact defaultArtifact = findDefaultArtifact(dependency, artifactResolver);
-            if (defaultArtifact != null) {
+            MutableModuleVersionMetaData defaultArtifactMetaData = findDefaultArtifact(dependency, artifactResolver);
+            if (defaultArtifactMetaData != null) {
                 LOGGER.debug("Artifact file found for module '{}' in repository '{}'.", dependency.getRequested(), getName());
-                result.resolved(defaultArtifact.moduleVersionMetaData, null);
+                result.resolved(defaultArtifactMetaData, null);
                 return;
             }
         }
@@ -189,54 +192,51 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         result.missing();
     }
 
-    protected DownloadedAndParsedMetaDataArtifact findMetaDataArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
+    protected MutableModuleVersionMetaData findMetaDataArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
         ArtifactIdentifier artifactIdentifier = getMetaDataArtifactFor(dependency);
         if (artifactIdentifier == null) {
             return null;
         }
-        ResolvedArtifact metaDataResource = artifactResolver.downloadMetaDataArtifact(artifactIdentifier);
+        ExternalResource metaDataResource = artifactResolver.resolveMetaDataArtifact(artifactIdentifier);
         if (metaDataResource == null) {
             return null;
         }
-        MutableModuleVersionMetaData moduleVersionMetaData = getArtifactMetadata(dependency, artifactIdentifier, metaDataResource.getResource());
+        MutableModuleVersionMetaData moduleVersionMetaData = getArtifactMetadata(dependency, artifactIdentifier, metaDataResource);
 
         if (isCheckconsistency()) {
             ModuleVersionSelector requested = dependency.getRequested();
             ModuleVersionIdentifier requestedId = DefaultModuleVersionIdentifier.newId(requested.getGroup(), requested.getName(), requested.getVersion());
-            checkMetadataConsistency(requestedId, moduleVersionMetaData, metaDataResource);
+            checkMetadataConsistency(requestedId, moduleVersionMetaData);
         }
-
-        return new DownloadedAndParsedMetaDataArtifact(metaDataResource.resource, metaDataResource.artifactId, moduleVersionMetaData);
-    }
-
-    private DownloadedAndParsedMetaDataArtifact findDefaultArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
-        MutableModuleVersionMetaData metaData = getDefaultMetaData(dependency);
-
-        ResolvedArtifact artifactRef = findAnyArtifact(metaData, artifactResolver);
-        if (artifactRef == null) {
-            return null;
-        }
-
-        LOGGER.debug("No meta-data file found for module '{}' in repository '{}', using default data instead.", dependency.getRequested(), getName());
-
-        return new DownloadedAndParsedMetaDataArtifact(artifactRef.resource, artifactRef.artifactId, metaData);
-    }
-
-    protected MutableModuleVersionMetaData getDefaultMetaData(DependencyMetaData dependency) {
-        MutableModuleVersionMetaData rawMetaData = ModuleDescriptorAdapter.defaultForDependency(dependency);
-        return processRawMetaData(rawMetaData);
+        return moduleVersionMetaData;
     }
 
     protected MutableModuleVersionMetaData getArtifactMetadata(DependencyMetaData dependency, ArtifactIdentifier artifactId, ExternalResource resource) {
         ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(nestedResolver, this, artifactId.getModuleVersionIdentifier());
         LocallyAvailableExternalResource cachedResource;
         try {
-            cachedResource = repositoryCacheManager.downloadAndCacheArtifactFile(artifactId, resourceDownloader, resource);
+            cachedResource = downloadAndCacheResource(artifactId, resource);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
         MutableModuleVersionMetaData rawMetaData =  metaDataParser.parseMetaData(context, cachedResource);
+        return processRawMetaData(rawMetaData);
+    }
+
+    private MutableModuleVersionMetaData findDefaultArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
+        MutableModuleVersionMetaData metaData = getDefaultMetaData(dependency);
+
+        if (hasArtifacts(metaData, artifactResolver)) {
+            LOGGER.debug("No meta-data file found for module '{}' in repository '{}', using default data instead.", dependency.getRequested(), getName());
+
+            return metaData;
+        }
+        return null;
+    }
+
+    protected MutableModuleVersionMetaData getDefaultMetaData(DependencyMetaData dependency) {
+        MutableModuleVersionMetaData rawMetaData = ModuleDescriptorAdapter.defaultForDependency(dependency);
         return processRawMetaData(rawMetaData);
     }
 
@@ -248,8 +248,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return metaData;
     }
 
-    protected void checkMetadataConsistency(ModuleVersionIdentifier expectedId, ModuleVersionMetaData metadata,
-                                            ResolvedArtifact ivyRef) throws MetaDataParseException {
+    private void checkMetadataConsistency(ModuleVersionIdentifier expectedId, ModuleVersionMetaData metadata) throws MetaDataParseException {
         List<String> errors = new ArrayList<String>();
         if (!expectedId.getGroup().equals(metadata.getId().getGroup())) {
             errors.add("bad group: expected='" + expectedId.getGroup() + "' found='" + metadata.getId().getGroup() + "'");
@@ -265,7 +264,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
         if (errors.size() > 0) {
             throw new MetaDataParseException(String.format("inconsistent module metadata found. Descriptor: %s Errors: %s",
-                    ivyRef.resource, Joiner.on(SystemProperties.getLineSeparator()).join(errors)));
+                    metadata.getId(), Joiner.on(SystemProperties.getLineSeparator()).join(errors)));
         }
     }
 
@@ -277,14 +276,13 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     @Nullable
     protected abstract ArtifactIdentifier getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier);
 
-    protected ResolvedArtifact findAnyArtifact(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
+    protected boolean hasArtifacts(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
         for (ArtifactIdentifier artifact : getAllArtifacts(metaData)) {
-            ResolvedArtifact artifactRef = artifactResolver.resolveArtifact(artifact);
-            if (artifactRef != null) {
-                return artifactRef;
+            if (artifactResolver.artifactExists(artifact)) {
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     private Iterable<ArtifactIdentifier> getAllArtifacts(ModuleVersionMetaData metaData) {
@@ -296,88 +294,12 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
-        ResolvedArtifact artifactRef = createArtifactResolver().resolveArtifact(artifact.toArtifactIdentifier());
-        return artifactRef != null && artifactRef.resource.exists();
+        return createArtifactResolver().artifactExists(artifact.toArtifactIdentifier());
     }
 
-    protected ArtifactResolver createArtifactResolver() {
-        return new ArtifactResolver(getIvyPatterns(), getArtifactPatterns());
-    }
-
-    // TODO:DAZ Extract this properly: make this static
-    protected class ArtifactResolver {
-        private final List<String> ivyPatterns;
-        private final List<String> artifactPatterns;
-
-        public ArtifactResolver(List<String> ivyPatterns, List<String> artifactPatterns) {
-            this.ivyPatterns = ivyPatterns;
-            this.artifactPatterns = artifactPatterns;
-        }
-
-        public ResolvedArtifact downloadMetaDataArtifact(ArtifactIdentifier artifactRevisionId) {
-            return findStaticResourceUsingPatterns(ivyPatterns, artifactRevisionId, true);
-        }
-
-        public ResolvedArtifact downloadArtifact(ArtifactIdentifier artifactRevisionId) {
-            return findStaticResourceUsingPatterns(artifactPatterns, artifactRevisionId, true);
-        }
-
-        public ResolvedArtifact resolveArtifact(ArtifactIdentifier artifactRevisionId) {
-            return findStaticResourceUsingPatterns(artifactPatterns, artifactRevisionId, false);
-        }
-
-        private ResolvedArtifact findStaticResourceUsingPatterns(List<String> patternList, ArtifactIdentifier artifactId, boolean forDownload) {
-            for (String pattern : patternList) {
-                ResourcePattern resourcePattern = toResourcePattern(pattern);
-                String resourceName = resourcePattern.toPath(artifactId);
-                LOGGER.debug("Loading {}", resourceName);
-                ExternalResource resource = getResource(resourceName, artifactId, forDownload);
-                if (resource.exists()) {
-                    return new ResolvedArtifact(resource, artifactId);
-                } else {
-                    LOGGER.debug("Resource not reachable for {}: res={}", artifactId, resource);
-                    discardResource(resource);
-                }
-            }
-            return null;
-        }
-
-        private ExternalResource getResource(String source, ArtifactIdentifier target, boolean forDownload) {
-            try {
-                if (forDownload) {
-                    LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(target);
-                    ExternalResource resource = repository.getResource(source, localCandidates);
-                    return resource == null ? new MissingExternalResource(source) : resource;
-                } else {
-                    // TODO - there's a potential problem here in that we don't carry correct isLocal data in MetaDataOnlyExternalResource
-                    ExternalResourceMetaData metaData = repository.getResourceMetaData(source);
-                    return metaData == null ? new MissingExternalResource(source) : new MetaDataOnlyExternalResource(source, metaData);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(String.format("Could not get resource '%s'.", source), e);
-            }
-        }
-
-        protected void discardResource(ExternalResource resource) {
-            try {
-                resource.close();
-            } catch (IOException e) {
-                LOGGER.warn("Exception closing resource " + resource.getName(), e);
-            }
-        }
-    }
-
-    private void listVersionsForAllPatterns(ModuleIdentifier module, List<String> patternList, ArtifactIdentifier artifactId, VersionList versionList) {
-        for (String pattern : patternList) {
-            ResourcePattern resourcePattern = toResourcePattern(pattern);
-            try {
-                versionList.visit(resourcePattern, artifactId);
-            } catch (ResourceNotFoundException e) {
-                LOGGER.debug(String.format("Unable to load version list for %s from %s", module, getRepository()));
-                // Don't add any versions
-                // TODO:DAZ Should fail?
-            }
-        }
+    private LocallyAvailableExternalResource downloadAndCacheResource(ArtifactIdentifier artifactId, ExternalResource resource) throws IOException {
+        final ExternalResourceDownloader resourceDownloader = new VerifyingExternalResourceDownloader(getChecksumAlgorithms(), getRepository());
+        return repositoryCacheManager.downloadAndCacheArtifactFile(artifactId, resourceDownloader, resource);
     }
 
     public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
@@ -403,55 +325,16 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected File downloadArtifact(ArtifactIdentifier artifactIdentifier, ArtifactResolver artifactResolver) throws IOException {
-        ResolvedArtifact artifactRef = artifactResolver.downloadArtifact(artifactIdentifier);
-        if (artifactRef == null) {
+        ExternalResource artifactResource = artifactResolver.resolveArtifact(artifactIdentifier);
+        if (artifactResource == null) {
             return null;
         }
 
-        return repositoryCacheManager.downloadAndCacheArtifactFile(artifactIdentifier, resourceDownloader, artifactRef.resource).getLocalResource().getFile();
+        return downloadAndCacheResource(artifactIdentifier, artifactResource).getLocalResource().getFile();
     }
 
-    private void get(ExternalResource resource, File destination) throws IOException {
-        LOGGER.debug("Downloading {} to {}", resource.getName(), destination);
-        if (destination.getParentFile() != null) {
-            GFileUtils.mkdirs(destination.getParentFile());
-        }
-
-        try {
-            resource.writeTo(destination);
-        } finally {
-            resource.close();
-        }
-    }
-
-    private void verifyChecksums(ExternalResource resource, File dest) throws IOException {
-        String[] checksums = getChecksumAlgorithms();
-        boolean checked = false;
-        for (int i = 0; i < checksums.length && !checked; i++) {
-            checked = check(resource, dest, checksums[i]);
-        }
-    }
-
-    private boolean check(ExternalResource resource, File dest, String algorithm) throws IOException {
-        if (!ChecksumHelper.isKnownAlgorithm(algorithm)) {
-            throw new IllegalArgumentException("Unknown checksum algorithm: " + algorithm);
-        }
-
-        ExternalResource checksumResource = repository.getResource(resource.getName() + "." + algorithm);
-        if (checksumResource != null && checksumResource.exists()) {
-            LOGGER.debug(algorithm + " file found for " + resource + ": checking...");
-            File csFile = File.createTempFile("ivytmp", algorithm);
-            try {
-                get(checksumResource, csFile);
-                ChecksumHelper.check(dest, csFile, algorithm);
-                LOGGER.debug("{} OK for {}", algorithm, resource);
-                return true;
-            } finally {
-                csFile.delete();
-            }
-        } else {
-            return false;
-        }
+    protected ArtifactResolver createArtifactResolver() {
+        return new ArtifactResolver(getIvyPatterns(), getArtifactPatterns());
     }
 
     // TODO:DAZ Remove the need for this, by using our own set of PatternMatchers
@@ -602,30 +485,66 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return matcher.getMatcher(changingPattern).matches(version);
     }
 
-    protected static class ResolvedArtifact {
-        private final ExternalResource resource;
-        private final ArtifactIdentifier artifactId;
+    // TODO:DAZ Extract this properly: make this static
+    protected class ArtifactResolver {
+        private final List<String> ivyPatterns;
+        private final List<String> artifactPatterns;
 
-        public ResolvedArtifact(ExternalResource resource, ArtifactIdentifier artifactId) {
-            this.resource = resource;
-            this.artifactId = artifactId;
+        public ArtifactResolver(List<String> ivyPatterns, List<String> artifactPatterns) {
+            this.ivyPatterns = ivyPatterns;
+            this.artifactPatterns = artifactPatterns;
         }
 
-        protected ExternalResource getResource() {
-            return resource;
+        public ExternalResource resolveMetaDataArtifact(ArtifactIdentifier artifactIdentifier) {
+            return findStaticResourceUsingPatterns(ivyPatterns, artifactIdentifier, true);
         }
 
-        protected ArtifactIdentifier getArtifactId() {
-            return artifactId;
+        public ExternalResource resolveArtifact(ArtifactIdentifier artifactIdentifier) {
+            return findStaticResourceUsingPatterns(artifactPatterns, artifactIdentifier, true);
         }
-    }
 
-    protected static class DownloadedAndParsedMetaDataArtifact extends ResolvedArtifact {
-        protected final MutableModuleVersionMetaData moduleVersionMetaData;
+        public boolean artifactExists(ArtifactIdentifier artifactIdentifier) {
+            return findStaticResourceUsingPatterns(artifactPatterns, artifactIdentifier, false) != null;
+        }
 
-        public DownloadedAndParsedMetaDataArtifact(ExternalResource resource, ArtifactIdentifier artifactId, MutableModuleVersionMetaData moduleVersionMetaData) {
-            super(resource, artifactId);
-            this.moduleVersionMetaData = moduleVersionMetaData;
+        private ExternalResource findStaticResourceUsingPatterns(List<String> patternList, ArtifactIdentifier artifactId, boolean forDownload) {
+            for (String pattern : patternList) {
+                ResourcePattern resourcePattern = toResourcePattern(pattern);
+                String resourceName = resourcePattern.toPath(artifactId);
+                LOGGER.debug("Loading {}", resourceName);
+                ExternalResource resource = getResource(resourceName, artifactId, forDownload);
+                if (resource.exists()) {
+                    return resource;
+                } else {
+                    LOGGER.debug("Resource not reachable for {}: res={}", artifactId, resource);
+                    discardResource(resource);
+                }
+            }
+            return null;
+        }
+
+        private ExternalResource getResource(String source, ArtifactIdentifier target, boolean forDownload) {
+            try {
+                if (forDownload) {
+                    LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(target);
+                    ExternalResource resource = repository.getResource(source, localCandidates);
+                    return resource == null ? new MissingExternalResource(source) : resource;
+                } else {
+                    // TODO - there's a potential problem here in that we don't carry correct isLocal data in MetaDataOnlyExternalResource
+                    ExternalResourceMetaData metaData = repository.getResourceMetaData(source);
+                    return metaData == null ? new MissingExternalResource(source) : new MetaDataOnlyExternalResource(source, metaData);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(String.format("Could not get resource '%s'.", source), e);
+            }
+        }
+
+        protected void discardResource(ExternalResource resource) {
+            try {
+                resource.close();
+            } catch (IOException e) {
+                LOGGER.warn("Exception closing resource " + resource.getName(), e);
+            }
         }
     }
 }

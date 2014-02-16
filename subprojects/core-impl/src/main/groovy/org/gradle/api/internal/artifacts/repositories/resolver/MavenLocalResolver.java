@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.slf4j.Logger;
@@ -37,19 +38,17 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     @Override
-    protected DownloadedAndParsedMetaDataArtifact findMetaDataArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
-        DownloadedAndParsedMetaDataArtifact metaDataArtifact = super.findMetaDataArtifact(dependency, artifactResolver);
-        if (isOrphanedPom(metaDataArtifact, artifactResolver)) {
+    protected MutableModuleVersionMetaData findMetaDataArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
+        MutableModuleVersionMetaData metaData = super.findMetaDataArtifact(dependency, artifactResolver);
+        if (isOrphanedPom(metaData, artifactResolver)) {
             return null;
         }
-        return metaDataArtifact;
+        return metaData;
     }
 
-    private boolean isOrphanedPom(DownloadedAndParsedMetaDataArtifact metaDataArtifact, ArtifactResolver artifactResolver) {
-        ModuleVersionMetaData metaData = metaDataArtifact.moduleVersionMetaData;
+    private boolean isOrphanedPom(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
         if (!metaData.isMetaDataOnly()) {
-            ResolvedArtifact artifactRef = findAnyArtifact(metaData, artifactResolver);
-            if (artifactRef == null) {
+            if (!hasArtifacts(metaData, artifactResolver)) {
                 LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", metaData.getId(), getName());
                 return true;
             }
