@@ -46,7 +46,6 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCa
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -139,12 +138,12 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         VersionList versionList = versionLister.getVersionList(module);
         // List modules based on metadata files
         ArtifactIdentifier metaDataArtifact = getMetaDataArtifactFor(dependency);
-        listVersionsForAllPatterns(module, getIvyPatterns(), metaDataArtifact, versionList);
+        listVersionsForAllPatterns(getIvyPatterns(), metaDataArtifact, versionList);
 
         // List modules with missing metadata files
         if (isAllownomd()) {
             for (ArtifactIdentifier otherArtifact : getAllArtifacts(getDefaultMetaData(dependency))) {
-                listVersionsForAllPatterns(module, getArtifactPatterns(), otherArtifact, versionList);
+                listVersionsForAllPatterns(getArtifactPatterns(), otherArtifact, versionList);
             }
         }
         DefaultModuleVersions moduleVersions = new DefaultModuleVersions();
@@ -154,14 +153,10 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         result.listed(moduleVersions);
     }
 
-    private void listVersionsForAllPatterns(ModuleIdentifier module, List<String> patternList, ArtifactIdentifier artifactId, VersionList versionList) {
+    private void listVersionsForAllPatterns(List<String> patternList, ArtifactIdentifier artifactId, VersionList versionList) {
         for (String pattern : patternList) {
             ResourcePattern resourcePattern = toResourcePattern(pattern);
-            try {
-                versionList.visit(resourcePattern, artifactId);
-            } catch (ResourceNotFoundException e) {
-                LOGGER.warn(String.format("Unable to load version list for %s from %s", module, getRepository()), e);
-            }
+            versionList.visit(resourcePattern, artifactId);
         }
     }
 
