@@ -341,6 +341,21 @@ Implementation should use `http://plugins.gradle.org` as the entry point to the 
 
 Cache the plugin mapping. Periodically check for new versions when a dynamic version selector is used. Reuse cached mapping when `--offline`.
 
+## Story: Plugins included in Gradle public repository are smoke tested
+
+For plugins to be listed in the public repository, there must be some external (i.e. not performed by plugin author) verification that the plugin is not completely broken.
+That is, the plugin should be:
+
+1. Able to be applied via the new plugin mechanism
+2. Not produce errors after simply applying
+
+This will (at least) need to be able to be performed _before_ the plugin is included in the public repository. 
+
+### Open issues
+
+1. Are existing plugins periodically tested? Or only upon submission (for each new version)?
+1. What action is taken if a plugin used to work but no longer does?
+
 ## Story: Make plugin DSL public
 
 - Include new DSL in DSL reference.
