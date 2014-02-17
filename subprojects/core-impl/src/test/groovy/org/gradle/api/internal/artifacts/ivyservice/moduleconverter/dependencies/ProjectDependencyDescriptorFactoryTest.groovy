@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
+package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
-
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.project.AbstractProject
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.util.TestUtil
@@ -51,7 +50,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);
         assertFalse(dependencyDescriptor.isChanging());
         assertFalse(dependencyDescriptor.isForce());
-        assertEquals(ModuleRevisionId.newInstance("someGroup", "test", "someVersion"), dependencyDescriptor.getDependencyRevisionId());
+        assertEquals(IvyUtil.createModuleRevisionId("someGroup", "test", "someVersion"), dependencyDescriptor.getDependencyRevisionId());
         assertSame(projectDependency.getDependencyProject(), dependencyDescriptor.getTargetProject());
     }
 

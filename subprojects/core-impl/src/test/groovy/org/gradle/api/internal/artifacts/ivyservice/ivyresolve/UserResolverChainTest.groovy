@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
@@ -573,7 +573,7 @@ class UserResolverChainTest extends Specification {
 
     def descriptor(String version) {
         def descriptor = Stub(ModuleDescriptor)
-        descriptor.resolvedModuleRevisionId >> ModuleRevisionId.newInstance("org", "module", version)
+        descriptor.resolvedModuleRevisionId >> IvyUtil.createModuleRevisionId("org", "module", version)
         return descriptor
     }
 

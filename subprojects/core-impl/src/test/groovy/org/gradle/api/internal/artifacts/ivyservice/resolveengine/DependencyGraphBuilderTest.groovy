@@ -15,27 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DefaultArtifact
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
-import org.gradle.api.artifacts.LenientConfiguration
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ResolveException
-import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.*
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.*
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder
@@ -43,6 +33,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBi
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
@@ -906,7 +898,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def brokenSelector(Map<String, ?> args = [:], ModuleVersionMetaData from, String to) {
-        def descriptor = dependsOn(args, from.descriptor, ModuleRevisionId.newInstance("group", to, "1.0"))
+        def descriptor = dependsOn(args, from.descriptor, IvyUtil.createModuleRevisionId("group", to, "1.0"))
         ModuleVersionIdResolveResult result = Mock()
         (0..1) * dependencyResolver.resolve({it.descriptor == descriptor}) >> result
         _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.apache.ivy.core.module.descriptor.License
-import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt
@@ -551,7 +551,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == ModuleRevisionId.newInstance('group-one', 'artifact-one', 'version-one')
+        pomReader.relocation == IvyUtil.createModuleRevisionId('group-one', 'artifact-one', 'version-one')
     }
 
     def "Parse relocated POM with provided group ID"() {
@@ -582,7 +582,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == ModuleRevisionId.newInstance('group-two', 'artifact-one', 'version-one')
+        pomReader.relocation == IvyUtil.createModuleRevisionId('group-two', 'artifact-one', 'version-one')
     }
 
     def "Parse relocated POM with provided group ID and artifact ID"() {
@@ -614,7 +614,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == ModuleRevisionId.newInstance('group-two', 'artifact-two', 'version-one')
+        pomReader.relocation == IvyUtil.createModuleRevisionId('group-two', 'artifact-two', 'version-one')
     }
 
     def "Parse relocated POM with all provided coordinates"() {
@@ -647,7 +647,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == ModuleRevisionId.newInstance('group-two', 'artifact-two', 'version-two')
+        pomReader.relocation == IvyUtil.createModuleRevisionId('group-two', 'artifact-two', 'version-two')
     }
 
     @Issue("GRADLE-2938")

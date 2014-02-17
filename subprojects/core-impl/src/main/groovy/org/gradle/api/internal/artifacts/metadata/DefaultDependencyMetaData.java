@@ -21,8 +21,9 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory;
 import org.gradle.internal.UncheckedException;
@@ -90,7 +91,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             return this;
         }
 
-        ModuleRevisionId requestedId = ModuleRevisionId.newInstance(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
+        ModuleRevisionId requestedId = IvyUtil.createModuleRevisionId(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
         DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
         return new DefaultDependencyMetaData(substitutedDescriptor);
     }

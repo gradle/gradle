@@ -31,6 +31,7 @@ import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
@@ -331,8 +332,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         protected DependencyDescriptor getDefaultConfMappingDescriptor() {
             if (defaultConfMappingDescriptor == null) {
-                defaultConfMappingDescriptor = new DefaultDependencyDescriptor(ModuleRevisionId
-                        .newInstance("", "", ""), false);
+                defaultConfMappingDescriptor = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("", "", ""), false);
                 parseDepsConfs(defaultConfMapping, defaultConfMappingDescriptor, false, false);
             }
             return defaultConfMappingDescriptor;

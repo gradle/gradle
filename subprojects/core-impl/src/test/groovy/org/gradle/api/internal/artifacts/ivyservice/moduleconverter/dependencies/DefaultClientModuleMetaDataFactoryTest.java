@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.util.WrapUtil;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -40,7 +41,7 @@ public class DefaultClientModuleMetaDataFactoryTest {
                 new DefaultClientModuleMetaDataFactory();
         clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactorySpy);
         ModuleDependency dependencyMock = context.mock(ModuleDependency.class);
-        final ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance("org", "name", "version");
+        final ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId("org", "name", "version");
 
         MutableModuleVersionMetaData metaData = clientModuleDescriptorFactory.createModuleDescriptor(
                 moduleRevisionId,

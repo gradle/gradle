@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
 import org.gradle.api.internal.externalresource.ExternalResource
@@ -33,7 +33,7 @@ import spock.lang.Specification
 
 class MavenVersionListerTest extends Specification {
     def repo = Mock(ExternalResourceRepository)
-    def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "testproject", "1.0")
+    def moduleRevisionId = IvyUtil.createModuleRevisionId("org.acme", "testproject", "1.0")
     def module = new DefaultModuleIdentifier("org.acme", "testproject")
     def artifact = new DefaultArtifactIdentifier(new DefaultModuleVersionIdentifier(module, "1.0"), "testproject", "jar", "jar", null)
 

@@ -17,6 +17,7 @@ package org.gradle.util
 
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.Task
@@ -90,7 +91,7 @@ class TestUtil {
      }
 
      static DefaultModuleDescriptor createModuleDescriptor(Set confs) {
-         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance('org', 'name', 'rev'), "status", null)
+         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId('org', 'name'), 'rev'), "status", null)
          confs.each { moduleDescriptor.addConfiguration(new Configuration(it)) }
          return moduleDescriptor;
      }

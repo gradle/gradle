@@ -48,7 +48,7 @@ public class IvyResolverBackedModuleVersionPublisher implements ModuleVersionPub
         boolean successfullyPublished = false;
         try {
             ModuleVersionIdentifier id = moduleVersion.getId();
-            ModuleRevisionId ivyId = ModuleRevisionId.newInstance(id.getGroup(), id.getName(), id.getVersion());
+            ModuleRevisionId ivyId = IvyUtil.createModuleRevisionId(id.getGroup(), id.getName(), id.getVersion());
             resolver.beginPublishTransaction(ivyId, true);
             for (ModuleVersionArtifactPublishMetaData artifactMetaData : moduleVersion.getArtifacts()) {
                 Artifact artifact = artifactMetaData.getArtifact();

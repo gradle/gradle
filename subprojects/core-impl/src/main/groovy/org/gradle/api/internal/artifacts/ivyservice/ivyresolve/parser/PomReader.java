@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -306,7 +307,7 @@ public class PomReader implements PomParent {
             relocGroupId = relocGroupId == null ? getGroupId() : relocGroupId;
             relocArtId = relocArtId == null ? getArtifactId() : relocArtId;
             relocVersion = relocVersion == null ? getVersion() : relocVersion;
-            return ModuleRevisionId.newInstance(relocGroupId, relocArtId, relocVersion);
+            return IvyUtil.createModuleRevisionId(relocGroupId, relocArtId, relocVersion);
         }
     }
 

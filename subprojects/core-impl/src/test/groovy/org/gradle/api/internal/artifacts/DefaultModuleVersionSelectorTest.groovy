@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -56,7 +56,7 @@ class DefaultModuleVersionSelectorTest extends Specification {
     }
 
     def "construct from ModuleRevisionId"() {
-        def module = ModuleRevisionId.newInstance("group", "name", "version")
+        def module = IvyUtil.createModuleRevisionId("group", "name", "version")
         def selector = newSelector(module)
 
         expect:

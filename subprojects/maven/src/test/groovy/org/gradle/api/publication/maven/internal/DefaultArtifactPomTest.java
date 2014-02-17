@@ -17,13 +17,13 @@ package org.gradle.api.publication.maven.internal;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
@@ -237,7 +237,7 @@ public class DefaultArtifactPomTest {
         if (classifier != null) {
             extraAttributes.put(Dependency.CLASSIFIER, classifier);
         }
-        return new DefaultArtifact(ModuleRevisionId.newInstance("org", name, "1.0"), null, name, type, type, extraAttributes);
+        return new DefaultArtifact(IvyUtil.createModuleRevisionId("org", name, "1.0"), null, name, type, type, extraAttributes);
     }
 
     @Test
