@@ -24,14 +24,16 @@ import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
 
-class ComponentIdentifierFactoryTest extends Specification {
+class DefaultComponentIdentifierFactoryTest extends Specification {
+    ComponentIdentifierFactory componentIdentifierFactory = new DefaultComponentIdentifierFactory()
+
     def "can create project component identifier"() {
         given:
         Project project = Mock(ProjectInternal)
         ModuleInternal module = new ProjectBackedModule(project)
 
         when:
-        ComponentIdentifier componentIdentifier = ComponentIdentifierFactory.createComponentIdentifier(module)
+        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
 
         then:
         project.path >> ':a'
@@ -43,7 +45,7 @@ class ComponentIdentifierFactoryTest extends Specification {
         ModuleInternal module = new DefaultModule('some-group', 'some-name', '1.0')
 
         when:
-        ComponentIdentifier componentIdentifier = ComponentIdentifierFactory.createComponentIdentifier(module)
+        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
 
         then:
         componentIdentifier == new DefaultModuleComponentIdentifier('some-group', 'some-name', '1.0')

@@ -20,6 +20,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.*;
@@ -60,12 +62,12 @@ import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
@@ -241,7 +243,8 @@ class DependencyManagementBuildScopeServices {
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory, PublishLocalComponentFactory publishModuleDescriptorConverter,
                                                                 CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager, ResolutionResultsStoreFactory resolutionResultsStoreFactory,
-                                                                VersionMatcher versionMatcher, LatestStrategy latestStrategy, ProjectRegistry<ProjectInternal> projectRegistry) {
+                                                                VersionMatcher versionMatcher, LatestStrategy latestStrategy, ProjectRegistry<ProjectInternal> projectRegistry,
+                                                                ComponentIdentifierFactory componentIdentifierFactory) {
         ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
                 resolveIvyFactory,
                 publishModuleDescriptorConverter,
@@ -262,7 +265,8 @@ class DependencyManagementBuildScopeServices {
                         new SelfResolvingDependencyResolver(
                                 new CacheLockingArtifactDependencyResolver(
                                         cacheLockingManager,
-                                        resolver))));
+                                        resolver)),
+                        componentIdentifierFactory));
     }
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
@@ -271,5 +275,9 @@ class DependencyManagementBuildScopeServices {
 
     ProjectPublicationRegistry createProjectPublicationRegistry() {
         return new DefaultProjectPublicationRegistry();
+    }
+
+    ComponentIdentifierFactory createComponentIdentifierFactory() {
+        return new DefaultComponentIdentifierFactory();
     }
 }

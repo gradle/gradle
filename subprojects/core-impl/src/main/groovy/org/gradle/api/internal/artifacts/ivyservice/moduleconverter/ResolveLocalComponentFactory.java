@@ -32,13 +32,16 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
     private final ModuleDescriptorFactory moduleDescriptorFactory;
     private final ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
     private final DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
+    private final ComponentIdentifierFactory componentIdentifierFactory;
 
     public ResolveLocalComponentFactory(ModuleDescriptorFactory moduleDescriptorFactory,
                                         ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                        DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter) {
+                                        DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
+                                        ComponentIdentifierFactory componentIdentifierFactory) {
         this.moduleDescriptorFactory = moduleDescriptorFactory;
         this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
         this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
+        this.componentIdentifierFactory = componentIdentifierFactory;
     }
 
     public MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, ModuleInternal module) {
@@ -46,7 +49,7 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
         DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
         dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations);
-        ComponentIdentifier componentIdentifier = ComponentIdentifierFactory.createComponentIdentifier(module);
+        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         return new DefaultLocalComponentMetaData(moduleDescriptor, componentIdentifier);
     }
 }

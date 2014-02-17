@@ -35,9 +35,11 @@ import java.util.Set;
 
 public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements ArtifactDependencyResolver {
     private final ArtifactDependencyResolver dependencyResolver;
+    private final ComponentIdentifierFactory componentIdentifierFactory;
 
-    public ShortcircuitEmptyConfigsArtifactDependencyResolver(ArtifactDependencyResolver dependencyResolver) {
+    public ShortcircuitEmptyConfigsArtifactDependencyResolver(ArtifactDependencyResolver dependencyResolver, ComponentIdentifierFactory componentIdentifierFactory) {
         this.dependencyResolver = dependencyResolver;
+        this.componentIdentifierFactory = componentIdentifierFactory;
     }
 
     public ResolverResults resolve(ConfigurationInternal configuration,
@@ -45,7 +47,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
                                    ModuleMetadataProcessor metadataProcessor) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(configuration.getModule());
-            ComponentIdentifier componentIdentifier = ComponentIdentifierFactory.createComponentIdentifier(configuration.getModule());
+            ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(configuration.getModule());
             ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();
             return new ResolverResults(new EmptyResolvedConfiguration(), emptyResult);
         }
