@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.resolution.ArtifactResolutionQuery;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 
@@ -36,13 +37,16 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;
     private final ComponentMetadataHandler metadataHandler;
+    private final ArtifactResolutionQueryFactory resolutionQueryFactory;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
-                                    ProjectFinder projectFinder, ComponentMetadataHandler metadataHandler) {
+                                    ProjectFinder projectFinder, ComponentMetadataHandler metadataHandler,
+                                    ArtifactResolutionQueryFactory resolutionQueryFactory) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
         this.metadataHandler = metadataHandler;
+        this.resolutionQueryFactory = resolutionQueryFactory;
     }
 
     public Dependency add(String configurationName, Object dependencyNotation) {
@@ -125,4 +129,7 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         return metadataHandler;
     }
 
+    public ArtifactResolutionQuery createArtifactResolutionQuery() {
+        return resolutionQueryFactory.createArtifactResolutionQuery();
+    }
 }
