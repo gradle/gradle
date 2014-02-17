@@ -172,8 +172,13 @@ class TestNGOptions extends TestFrameworkOptions {
      */
     void suites(String... suiteFiles) {
         suiteFiles.each {
-            suiteXmlFiles.add(new File(projectDir, it))
+            suiteXmlFiles.add(new File(this.getProjectDir(), it))
         }
+    }
+
+    //needed otherwise GRADLE-3020
+    protected File getProjectDir() {
+        return projectDir;
     }
 
     /**
