@@ -21,29 +21,18 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.util.GUtil;
 
-import java.util.Collections;
-import java.util.Map;
-
 public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(Module module) {
-        return createModuleRevisionId(module, Collections.<String, String>emptyMap());
-    }
-
-    public static ModuleRevisionId createModuleRevisionId(Module module, Map<String, String> extraAttributes) {
-        return createModuleRevisionId(module.getGroup(), module.getName(), module.getVersion(), extraAttributes);
+        return createModuleRevisionId(module.getGroup(), module.getName(), module.getVersion());
     }
 
     public static ModuleRevisionId createModuleRevisionId(Dependency dependency) {
-        return createModuleRevisionId(dependency, Collections.<String, String>emptyMap());
+        return createModuleRevisionId(dependency.getGroup(), dependency.getName(), dependency.getVersion());
     }
 
-    public static ModuleRevisionId createModuleRevisionId(Dependency dependency, Map<String, String> extraAttributes) {
-        return createModuleRevisionId(dependency.getGroup(), dependency.getName(), dependency.getVersion(), extraAttributes);
-    }
-
-    public static ModuleRevisionId createModuleRevisionId(String group, String name, String version, Map<String, String> extraAttributes) {
-        return ModuleRevisionId.newInstance(emptyStringIfNull(group), name, emptyStringIfNull(version), extraAttributes);
+    public static ModuleRevisionId createModuleRevisionId(String group, String name, String version) {
+        return ModuleRevisionId.newInstance(emptyStringIfNull(group), name, emptyStringIfNull(version));
     }
 
     public static ModuleRevisionId createModuleRevisionId(ModuleVersionIdentifier id) {
