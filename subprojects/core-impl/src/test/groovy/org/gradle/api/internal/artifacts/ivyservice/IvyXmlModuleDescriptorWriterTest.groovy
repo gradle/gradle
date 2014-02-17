@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.apache.ivy.core.module.descriptor.Artifact
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.descriptor.*
+import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -35,29 +34,9 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     private ModuleRevisionId resolvedModuleRevisionId = Mock()
     def ivyXmlModuleDescriptorWriter = new IvyXmlModuleDescriptorWriter()
 
-    def setup() {
-        1 * md.extraAttributesNamespaces >> [:]
-        1 * md.extraAttributes >> [buildNr: "815"]
-        1 * md.qualifiedExtraAttributes >> [buildNr: "815"]
-        1 * md.getExtraInfo() >> Collections.emptyMap()
-        1 * md.getLicenses() >> Collections.emptyList()
-        1 * md.inheritedDescriptors >> Collections.emptyList()
-        1 * md.resolvedModuleRevisionId >> resolvedModuleRevisionId
-        1 * md.resolvedPublicationDate >> date("20120817120000")
-        1 * md.status >> "integration"
-        1 * resolvedModuleRevisionId.revision >> "1.0"
-        1 * md.moduleRevisionId >> moduleRevisionId;
-        1 * moduleRevisionId.organisation >> "org.test"
-        1 * moduleRevisionId.name >> "projectA"
-        1 * md.configurations >> [mockConfiguration("archives"), mockConfiguration("compile"), mockConfiguration("runtime", ["compile"])]
-        1 * md.configurationsNames >> ["archives", "runtime", "compile"]
-        1 * md.allExcludeRules >> []
-        1 * md.allArtifacts >> [mockArtifact()]
-        0 * md.allDependencyDescriptorMediators
-    }
-
     def "can create ivy (unmodified) descriptor"() {
         setup:
+        assertMockMethodInvocations()
         def dependency1 = mockDependencyDescriptor("Dep1")
         def dependency2 = mockDependencyDescriptor("Dep2")
         1 * dependency2.force >> true
@@ -79,6 +58,48 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         assert ivyModule.configurations.conf.collect {it.@name } == ["archives", "compile", "runtime"]
         assert ivyModule.publications.artifact.collect {it.@name } == ["testartifact"]
         assert ivyModule.dependencies.dependency.collect { "${it.@org}:${it.@name}:${it.@rev}" } == ["org.test:Dep1:1.0", "org.test:Dep2:1.0"]
+    }
+
+    private void assertMockMethodInvocations() {
+        1 * md.extraAttributesNamespaces >> [:]
+        1 * md.extraAttributes >> [buildNr: "815"]
+        1 * md.qualifiedExtraAttributes >> [buildNr: "815"]
+        1 * md.getExtraInfo() >> Collections.emptyMap()
+        1 * md.getLicenses() >> Collections.emptyList()
+        1 * md.inheritedDescriptors >> Collections.emptyList()
+        1 * md.resolvedModuleRevisionId >> resolvedModuleRevisionId
+        1 * md.resolvedPublicationDate >> date("20120817120000")
+        1 * md.status >> "integration"
+        1 * resolvedModuleRevisionId.revision >> "1.0"
+        1 * md.moduleRevisionId >> moduleRevisionId;
+        1 * moduleRevisionId.organisation >> "org.test"
+        1 * moduleRevisionId.name >> "projectA"
+        1 * md.configurations >> [mockConfiguration("archives"), mockConfiguration("compile"), mockConfiguration("runtime", ["compile"])]
+        1 * md.configurationsNames >> ["archives", "runtime", "compile"]
+        1 * md.allExcludeRules >> []
+        1 * md.allArtifacts >> [mockArtifact()]
+        0 * md.allDependencyDescriptorMediators
+    }
+
+    def "does not evaluate dependency descriptor mediators"() {
+        given:
+        ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance('org.test', 'projectA', '2.0')
+        ModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId)
+        ModuleId moduleId = new ModuleId('org.test', 'projectA')
+        DependencyDescriptorMediator mediator = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId)
+        moduleDescriptor.addDependencyDescriptorMediator(moduleId, new ExactPatternMatcher(), mediator)
+        assert moduleDescriptor.allDependencyDescriptorMediators.allRules.size() == 1
+
+        when:
+        File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
+        ivyXmlModuleDescriptorWriter.write(moduleDescriptor, ivyFile)
+
+        then:
+        def ivyModule = new XmlSlurper().parse(ivyFile)
+        notThrown(UnsupportedOperationException)
+        assert ivyModule.info.@organisation == 'org.test'
+        assert ivyModule.info.@module == 'projectA'
+        assert ivyModule.info.@revision == '2.0'
     }
 
     def date(String timestamp) {
