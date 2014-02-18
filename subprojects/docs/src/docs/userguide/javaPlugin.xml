@@ -1203,10 +1203,10 @@
                         <para><literal>gradle test --tests org.gradle.SomeTest.someSpecificFeature</literal></para>
                     </listitem>
                     <listitem>
-                        <para><literal>gradle test --tests SomeTest.someSpecificFeature</literal></para>
+                        <para><literal>gradle test --tests *SomeTest.someSpecificFeature</literal></para>
                     </listitem>
                     <listitem>
-                        <para><literal>gradle test --tests SomeSpecificTest</literal></para>
+                        <para><literal>gradle test --tests *SomeSpecificTest</literal></para>
                     </listitem>
                     <listitem>
                         <para><literal>gradle test --tests all.in.specific.package*</literal></para>
