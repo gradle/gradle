@@ -90,7 +90,7 @@ class DefaultTestReportTest extends Specification {
                 }
                 testcase("ignored") {
                     duration = 1000;
-                    resultType = TestResult.ResultType.SKIPPED
+                    ignore()
                 }
             }
             testClassResult("org.gradle.failing.SomeIgnoredSomePassedSomeFailed") {
@@ -99,7 +99,7 @@ class DefaultTestReportTest extends Specification {
                 }
                 testcase("ignored") {
                     duration = 1000;
-                    resultType = TestResult.ResultType.SKIPPED
+                    ignore()
                 }
                 testcase("failed") {
                     duration = 1000;

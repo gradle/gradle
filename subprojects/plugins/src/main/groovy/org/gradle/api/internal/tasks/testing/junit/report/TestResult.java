@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
+import org.gradle.api.internal.tasks.testing.junit.result.TestIgnore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +27,8 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
     private final long duration;
     final ClassTestResults classResults;
     final List<TestFailure> failures = new ArrayList<TestFailure>();
+    final List<TestIgnore> ignored = new ArrayList<TestIgnore>();
     final String name;
-    private boolean ignored;
 
     public TestResult(String name, long duration, ClassTestResults classResults) {
         this.name = name;
@@ -49,7 +50,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
     }
 
     public ResultType getResultType() {
-        if (ignored) {
+        if (!ignored.isEmpty()) {
             return ResultType.SKIPPED;
         }
         return failures.isEmpty() ? ResultType.SUCCESS : ResultType.FAILURE;
@@ -61,7 +62,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
 
     @Override
     public String getFormattedDuration() {
-        return ignored ? "-" : super.getFormattedDuration();
+        return !ignored.isEmpty() ? "-" : super.getFormattedDuration();
     }
 
     public ClassTestResults getClassResults() {
@@ -72,14 +73,18 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return failures;
     }
 
+    public List<TestIgnore> getIgnored() {
+        return ignored;
+    }
+
     public void addFailure(TestFailure failure) {
         classResults.failed(this);
         failures.add(failure);
     }
 
-    public void ignored() {
-        classResults.addIgnored();
-        ignored = true;
+    public void addIgnored(TestIgnore ignore) {
+        classResults.ignored(this);
+        ignored.add(ignore);
     }
 
     public int compareTo(TestResult testResult) {

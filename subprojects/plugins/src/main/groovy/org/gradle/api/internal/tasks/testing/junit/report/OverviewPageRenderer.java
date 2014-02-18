@@ -25,6 +25,7 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
     @Override
     protected void registerTabs() {
         addFailuresTab();
+        addIgnoredTab();
         if (!getResults().getPackages().isEmpty()) {
             addTab("Packages", new ErroringAction<SimpleHtmlWriter>() {
                 @Override

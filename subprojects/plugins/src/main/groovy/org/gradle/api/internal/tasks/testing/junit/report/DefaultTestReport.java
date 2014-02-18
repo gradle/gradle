@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
+import org.gradle.api.internal.tasks.testing.junit.result.TestIgnore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.logging.Logger;
@@ -58,7 +59,10 @@ public class DefaultTestReport implements TestReporter {
                 for (TestMethodResult collectedResult : collectedResults) {
                     final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
                     if (collectedResult.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
-                        testResult.ignored();
+                        List<TestIgnore> ignored = collectedResult.getIgnored();
+                        for (TestIgnore ignore : ignored) {
+                            testResult.addIgnored(ignore);
+                        }
                     } else {
                         List<TestFailure> failures = collectedResult.getFailures();
                         for (TestFailure failure : failures) {
