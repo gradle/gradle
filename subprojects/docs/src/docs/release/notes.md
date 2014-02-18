@@ -105,6 +105,20 @@ The following are the newly deprecated items in this Gradle release. If you have
 If you have a dependency who's pom has packaging of 'pom', Gradle now expects that there will always be an associated jar artifact and will fail to resolve if there is not.
 In particular, this means that you can not have a dependency with a pom that only declares further dependencies and has no artifacts itself.
 
+### Change to JUnit XML file for skipped tests
+
+The way that skipped/ignored tests are represented in the JUnit XML output file produced by the `Test` task.
+Gradle now produces the same output, with regard to skipped tests, as Apache Ant and Apache Maven.
+This format is accepted, and expected, by all major Continuous Integration servers.
+
+This change is described as follows:
+
+1. The `testsuite` element now contains a `skipped` attribute, indicating the number of skipped tests (may be 0)
+2. The element representing a test case is now always named `testcase` (previously it was named `ignored-testcase` if it was a skipped test)
+3. If a test case was skipped, a child `<skipped/>` element will be present
+
+No changes are necessary to build scripts or Continuous Integration server configuration to accommodate this change.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -113,6 +127,7 @@ We would like to thank the following community members for making contributions 
 * [Zeeke](https://github.com/zeeke) - documentation improvements
 * [Kamil Szymański](https://github.com/kamilszymanski) - documentation improvements
 * [Jakub Kubryński](https://github.com/jkubrynski) - handling of empty string proxy system property values
+* [Lee Symes](https://github.com/leesdolphin) & [Greg Temchenko](https://github.com/soid) - fix skipped test representation in JUnit XML result files [GRADLE-2731]
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
