@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app;
 
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.util.GUtil;
 
 import java.util.Collections;
@@ -39,6 +40,10 @@ public abstract class HelloWorldApp extends TestApp {
 
     public String getSourceType() {
         return getMainSource().getPath();
+    }
+
+    public String getSourceExtension() {
+        return FilenameUtils.getExtension(getMainSource().getName());
     }
 
     public List<String> getPluginList() {

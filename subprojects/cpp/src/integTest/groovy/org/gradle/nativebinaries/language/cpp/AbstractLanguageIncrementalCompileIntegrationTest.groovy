@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
 import groovy.io.FileType
 import org.apache.commons.io.FilenameUtils
 import org.gradle.internal.hash.HashUtil
@@ -22,6 +23,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
+import spock.lang.Unroll
 
 abstract class AbstractLanguageIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     IncrementalHelloWorldApp app
@@ -190,7 +192,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         initialCompile()
 
         and:
-        final newFile = file("src/main/${app.sourceType}/changed.h")
+        final newFile = file("src/main/headers/changed.h")
         newFile << sharedHeaderFile.text
         sharedHeaderFile.delete()
 
@@ -218,9 +220,108 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         noneRecompiled()
     }
 
+    @Unroll
+    def "does not recompile when include path has #testCase"() {
+        given:
+        initialCompile()
+
+        file("src/additional-headers/other.h") << """
+    // extra header file that is not included in source
+"""
+        file("src/replacement-headers/${sharedHeaderFile.name}") << """
+    // replacement header file that is included in source
+"""
+
+        when:
+        buildFile << """
+            sources.main.${app.sourceType} {
+                exportedHeaders {
+                    srcDirs ${headerDirs}
+                }
+            }
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        skipped compileTask
+        noneRecompiled()
+
+        where:
+        testCase                       | headerDirs
+        "extra header dir after"       | '"src/main/headers", "src/additional-headers"'
+        "extra header dir before"      | '"src/additional-headers", "src/main/headers"'
+        "replacement header dir after" | '"src/main/headers", "src/replacement-headers"'
+    }
+
+    def "recompiles when include path is changed so that replacement header file occurs before previous header"() {
+        given:
+        initialCompile()
+
+        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text
+
+        when:
+        buildFile << """
+            sources.main.${app.sourceType}  {
+                exportedHeaders {
+                    srcDirs "src/replacement-headers", "src/main/headers"
+                }
+            }
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled allSources
+    }
+
+    def "recompiles when replacement header file is added before previous header to existing include path"() {
+        given:
+        buildFile << """
+            sources.main.${app.sourceType} {
+                exportedHeaders {
+                    srcDirs "src/replacement-headers", "src/main/headers"
+                }
+            }
+"""
+        initialCompile()
+
+        when:
+        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text
+
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled allSources
+    }
+
+    def "recompiles when replacement header file is added to source directory"() {
+        given:
+        initialCompile()
+
+        when:
+        sourceFile.parentFile.file(sharedHeaderFile.name) << sharedHeaderFile.text
+
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled allSources
+    }
+
     def "recompiles all source files and removes stale outputs when compiler arg changes"() {
         given:
-        def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceType}")
+        def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
         extraSource << sourceFile.text.replaceAll("main", "main2")
 
         initialCompile()
@@ -253,12 +354,28 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         outputFile(extraSource).assertDoesNotExist()
     }
 
+    def "recompiles all source files when generated object files are removed"() {
+        given:
+        initialCompile()
+
+        when:
+        file("build/objectFiles").deleteDir()
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled allSources
+    }
+
     def "removes output file when source file is renamed"() {
         given:
         initialCompile()
 
         when:
-        final newFile = file("src/main/${app.sourceType}/changed.${app.sourceType}")
+        final newFile = file("src/main/${app.sourceType}/changed.${app.sourceExtension}")
         newFile << sourceFile.text
         sourceFile.delete()
 
@@ -272,7 +389,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
     def "removes output file when source file is removed"() {
         given:
-        def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceType}")
+        def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
         extraSource << sourceFile.text.replaceAll("main", "main2")
 
         initialCompile()
@@ -312,7 +429,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         // Stale object files are removed when a new file is added to the source set
         when:
-        def newSource = file("src/main/${app.sourceType}/newfile.${app.sourceType}") << """
+        def newSource = file("src/main/${app.sourceType}/newfile.${app.sourceExtension}") << """
             #include <stdio.h>
 
             int main () {
