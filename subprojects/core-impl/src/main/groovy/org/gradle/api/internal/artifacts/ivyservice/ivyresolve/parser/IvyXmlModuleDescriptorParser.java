@@ -681,7 +681,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             DefaultModuleDescriptor descriptor = getMd();
             ModuleRevisionId currentMrid = descriptor.getModuleRevisionId();
 
-            ModuleRevisionId mergedMrid = ModuleRevisionId.newInstance(
+            ModuleRevisionId mergedMrid = IvyUtil.createModuleRevisionId(
                 mergeValue(parentMrid.getOrganisation(), currentMrid.getOrganisation()),
                 currentMrid.getName(),
                 mergeValue(parentMrid.getBranch(), currentMrid.getBranch()),
@@ -873,19 +873,19 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String[] ignoredAttributeNames = DEPENDENCY_REGULAR_ATTRIBUTES;
             Map extraAttributes = getExtraAttributes(attributes, ignoredAttributeNames);
 
-            ModuleRevisionId revId = ModuleRevisionId.newInstance(org, name, branch, rev, extraAttributes);
+            ModuleRevisionId revId = IvyUtil.createModuleRevisionId(org, name, branch, rev, extraAttributes);
             ModuleRevisionId dynamicId;
             if ((revConstraint == null) && (branchConstraint == null)) {
                 // no dynamic constraints defined, so dynamicId equals revId
-                dynamicId = ModuleRevisionId.newInstance(org, name, branch, rev, extraAttributes, false);
+                dynamicId = IvyUtil.createModuleRevisionId(org, name, branch, rev, extraAttributes, false);
             } else {
                 if (branchConstraint == null) {
                     // this situation occurs when there was no branch defined
                     // in the original dependency descriptor. So the dynamicId
                     // shouldn't contain a branch neither
-                    dynamicId = ModuleRevisionId.newInstance(org, name, null, revConstraint, extraAttributes, false);
+                    dynamicId = IvyUtil.createModuleRevisionId(org, name, null, revConstraint, extraAttributes, false);
                 } else {
-                    dynamicId = ModuleRevisionId.newInstance(org, name, branchConstraint, revConstraint, extraAttributes);
+                    dynamicId = IvyUtil.createModuleRevisionId(org, name, branchConstraint, revConstraint, extraAttributes);
                 }
             }
 
@@ -961,7 +961,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String revision = substitute(attributes.getValue("revision"));
             String branch = substitute(attributes.getValue("branch"));
             Map extraAttributes = getExtraAttributes(attributes, new String[]{"organisation", "module", "revision", "status", "publication", "branch", "namespace", "default", "resolver"});
-            getMd().setModuleRevisionId(ModuleRevisionId.newInstance(org, module, branch, revision, extraAttributes));
+            getMd().setModuleRevisionId(IvyUtil.createModuleRevisionId(org, module, branch, revision, extraAttributes));
 
             getMd().setStatus(elvis(substitute(attributes.getValue("status")), "integration"));
             getMd().setDefault(Boolean.valueOf(substitute(attributes.getValue("default"))));

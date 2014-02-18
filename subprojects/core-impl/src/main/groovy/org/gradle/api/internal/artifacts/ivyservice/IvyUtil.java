@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.util.GUtil;
 
+import java.util.Map;
+
 public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(Module module) {
@@ -39,7 +41,19 @@ public class IvyUtil {
         return ModuleRevisionId.newInstance(id.getGroup(), id.getName(), id.getVersion());
     }
 
+    public static ModuleRevisionId createModuleRevisionId(ModuleRevisionId revId, String version) {
+        return ModuleRevisionId.newInstance(revId, version);
+    }
+
     private static String emptyStringIfNull(String value) {
         return GUtil.elvis(value, "");
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(String org, String name, String branch, String rev, Map extraAttributes) {
+        return createModuleRevisionId(org, name, branch, rev, extraAttributes, true);
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(String org, String name, String branch, String revConstraint, Map extraAttributes, boolean replaceNullBranchWithDefault) {
+        return ModuleRevisionId.newInstance(org, name, branch, revConstraint, extraAttributes, replaceNullBranchWithDefault);
     }
 }

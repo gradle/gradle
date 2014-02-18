@@ -83,7 +83,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         if (requestedVersion.equals(requested.getVersion())) {
             return this;
         }
-        return new DefaultDependencyMetaData(dependencyDescriptor.clone(ModuleRevisionId.newInstance(dependencyDescriptor.getDependencyRevisionId(), requestedVersion)));
+        return new DefaultDependencyMetaData(dependencyDescriptor.clone(IvyUtil.createModuleRevisionId(dependencyDescriptor.getDependencyRevisionId(), requestedVersion)));
     }
 
     public DependencyMetaData withRequestedVersion(ModuleVersionSelector requestedVersion) {
