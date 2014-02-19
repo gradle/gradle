@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
 import org.gradle.api.internal.file.copy.FileCopier;
@@ -144,11 +143,11 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
         return copyAction.sync(action);
     }
 
-    public CopySpecInternal copySpec(Closure closure) {
+    public CopySpec copySpec(Closure closure) {
         return copySpec(new ClosureBackedAction<CopySpec>(closure));
     }
 
-    public CopySpecInternal copySpec(Action<? super CopySpec> action) {
+    public CopySpec copySpec(Action<? super CopySpec> action) {
         DefaultCopySpec copySpec = instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
         action.execute(copySpec);
         return copySpec;

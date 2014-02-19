@@ -27,7 +27,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.*;
-import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
@@ -173,7 +172,7 @@ public abstract class DefaultScript extends BasicScript {
         return fileOperations.copySpec(closure);
     }
 
-    public CopySpecInternal copySpec(Action<? super CopySpec> action) {
+    public CopySpec copySpec(Action<? super CopySpec> action) {
         return fileOperations.copySpec(action);
     }
 

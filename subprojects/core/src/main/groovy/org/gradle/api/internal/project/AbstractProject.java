@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
@@ -850,7 +849,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return fileOperations.copySpec(closure);
     }
 
-    public CopySpecInternal copySpec(Action<? super CopySpec> action) {
+    public CopySpec copySpec(Action<? super CopySpec> action) {
         return fileOperations.copySpec(action);
     }
 
