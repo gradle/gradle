@@ -236,6 +236,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
+    public boolean isClosed() {
+        return closed;
+    }
+
     private static String format(Type type) {
         if (type instanceof Class) {
             Class<?> aClass = (Class) type;

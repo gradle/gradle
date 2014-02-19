@@ -33,7 +33,6 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.service.ServiceRegistry
-
 import org.gradle.listener.ListenerManager
 import spock.lang.Specification
 
@@ -70,6 +69,26 @@ public class GradleScopeServicesTest extends Specification {
 
         then:
         serviceRegistry instanceof ProjectScopeServices
+    }
+
+    def "created project registries are closed on close"() {
+        ProjectInternal project1 = Mock()
+        ProjectInternal project2 = Mock()
+
+        when:
+        def serviceRegistry1 = registry.get(ServiceRegistryFactory).createFor(project1)
+        def serviceRegistry2 = registry.get(ServiceRegistryFactory).createFor(project2)
+
+        then:
+        !serviceRegistry1.closed
+        !serviceRegistry2.closed
+
+        when:
+        registry.close()
+
+        then:
+        serviceRegistry1.closed
+        serviceRegistry2.closed
     }
 
     def "provides a plugin registry"() {

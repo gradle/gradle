@@ -82,4 +82,7 @@ public interface ServiceRegistry {
      * For each service, if the service has a public void close() or stop() method, that method is called to close the service.
      */
     void close();
+
+    boolean isClosed();
+
 }

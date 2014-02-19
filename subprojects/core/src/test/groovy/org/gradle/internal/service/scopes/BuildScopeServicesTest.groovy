@@ -120,6 +120,25 @@ public class BuildScopeServicesTest extends Specification {
         registry instanceof GradleScopeServices
     }
 
+    def "closing the registry closes gradle scoped services, closing project services"() {
+        given:
+        GradleInternal gradle = Mock()
+        def gradleRegistry = registry.get(ServiceRegistryFactory).createFor(gradle)
+        def project = Mock(ProjectInternal)
+        def projectRegistry = gradleRegistry.get(ServiceRegistryFactory).createFor(project)
+
+        expect:
+        !gradleRegistry.closed
+        !projectRegistry.closed
+
+        when:
+        registry.close()
+
+        then:
+        gradleRegistry.closed
+        projectRegistry.closed
+    }
+
     def canCreateServicesForASettingsInstance() {
         setup:
         SettingsInternal settings = Mock()

@@ -29,6 +29,7 @@ import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
@@ -42,6 +43,9 @@ import static java.util.Arrays.asList;
  * Contains the services for a given {@link GradleInternal} instance.
  */
 public class GradleScopeServices extends DefaultServiceRegistry {
+
+    private final CompositeStoppable registries = new CompositeStoppable();
+
     public GradleScopeServices(ServiceRegistry parent, GradleInternal gradle) {
         super(parent);
         add(GradleInternal.class, gradle);
@@ -91,7 +95,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new ServiceRegistryFactory() {
             public ServiceRegistry createFor(Object domainObject) {
                 if (domainObject instanceof ProjectInternal) {
-                    return new ProjectScopeServices(services, (ProjectInternal) domainObject);
+                    ProjectScopeServices projectScopeServices = new ProjectScopeServices(services, (ProjectInternal) domainObject);
+                    registries.add(projectScopeServices);
+                    return projectScopeServices;
                 }
                 throw new UnsupportedOperationException();
             }
@@ -104,5 +110,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     PluginContainer createPluginContainer(GradleInternal gradle, PluginRegistry pluginRegistry) {
         return new DefaultPluginContainer<GradleInternal>(pluginRegistry, gradle);
+    }
+
+    @Override
+    public void close() {
+        registries.stop();
+        super.close();
     }
 }
