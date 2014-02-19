@@ -41,4 +41,9 @@ abstract class AbstractZipCompressor implements ZipCompressor {
             throw new UncheckedIOException(message, e);
         }
     }
+
+    @Override
+    public boolean isZip64Supported() {
+        return zip64Mode != Zip64Mode.Never;
+    }
 }

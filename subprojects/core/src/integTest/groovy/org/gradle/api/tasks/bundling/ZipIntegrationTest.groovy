@@ -84,7 +84,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         theZip.assertFileContent('file1.txt', "dir1/file1.txt")
     }
 
-    def legacyZipSupport() {
+    def zip64Support() {
         given:
         createTestFiles()
         buildFile << '''
@@ -93,7 +93,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir2'
                 destinationDir = buildDir
                 archiveName = 'test.zip'
-                zip64 = false
+                zip64 = true
             }
             '''
         when:

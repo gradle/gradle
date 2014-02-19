@@ -29,10 +29,11 @@ import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
-    private boolean allowZip64 = true;
+    private boolean allowZip64;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
+        allowZip64 = false;
     }
 
     protected ZipCompressor getCompressor() {

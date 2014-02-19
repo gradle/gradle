@@ -35,10 +35,12 @@ import java.io.File;
 public class ZipCopyAction implements CopyAction {
     private final File zipFile;
     private final ZipCompressor compressor;
+    private int fileCount;
 
     public ZipCopyAction(File zipFile, ZipCompressor compressor) {
         this.zipFile = zipFile;
         this.compressor = compressor;
+        fileCount = 0;
     }
 
     public WorkResult execute(final CopyActionProcessingStream stream) {
@@ -80,6 +82,11 @@ public class ZipCopyAction implements CopyAction {
                 archiveEntry.setTime(fileDetails.getLastModified());
                 archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getMode());
                 zipOutStr.putNextEntry(archiveEntry);
+                fileCount++;
+                if (fileCount > 65535 && !compressor.isZip64Supported()) {
+                    throw new RuntimeException(
+                        "Tried to create a zip with too many files. Please set zip64=true.");
+                }
                 fileDetails.copyTo(zipOutStr);
                 zipOutStr.closeEntry();
             } catch (Exception e) {
