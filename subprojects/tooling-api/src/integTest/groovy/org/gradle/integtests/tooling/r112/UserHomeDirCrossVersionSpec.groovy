@@ -41,6 +41,10 @@ class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
         }
         toolingApi.withConnection { connection ->
             BuildLauncher build = connection.newBuild();
+            if (targetDist.version.compareTo(targetDist.version.version('1.0-milestone-7')) > 0) {
+                build.setJvmArguments('-Xmx32m')
+            }
+            build.withArguments('-Dorg.gradle.daemon.idletimeout=120000')
             build.forTasks("gradleBuild");
             build.standardOutput = baos
             build.run()
