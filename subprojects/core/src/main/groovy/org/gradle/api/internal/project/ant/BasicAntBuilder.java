@@ -94,4 +94,9 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder {
         }
         return value;
     }
+
+    public void close() {
+        getProject().fireBuildFinished(null);
+    }
+
 }

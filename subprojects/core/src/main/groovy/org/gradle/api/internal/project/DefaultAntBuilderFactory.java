@@ -19,10 +19,12 @@ import org.apache.tools.ant.BuildListener;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 
 public class DefaultAntBuilderFactory implements Factory<AntBuilder> {
     private final BuildListener buildListener;
     private final Project project;
+    private final CompositeStoppable stoppable = new CompositeStoppable();
 
     public DefaultAntBuilderFactory(BuildListener buildListener, Project project) {
         this.buildListener = buildListener;
@@ -32,8 +34,13 @@ public class DefaultAntBuilderFactory implements Factory<AntBuilder> {
     public DefaultAntBuilder create() {
         DefaultAntBuilder antBuilder = new DefaultAntBuilder(project);
         antBuilder.getProject().setBaseDir(project.getProjectDir());
-        antBuilder.getProject().removeBuildListener((BuildListener) antBuilder.getProject().getBuildListeners().get(0));
+        antBuilder.getProject().removeBuildListener(antBuilder.getProject().getBuildListeners().get(0));
         antBuilder.getProject().addBuildListener(buildListener);
+        stoppable.add(antBuilder);
         return antBuilder;
+    }
+
+    public void close() {
+        stoppable.stop();
     }
 }
