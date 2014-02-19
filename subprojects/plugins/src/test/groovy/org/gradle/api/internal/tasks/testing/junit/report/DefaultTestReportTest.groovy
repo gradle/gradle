@@ -126,6 +126,7 @@ class DefaultTestReportTest extends Specification {
         index.assertHasDuration("2.000s")
         index.assertHasOverallResult("success")
         index.assertHasNoFailedTests()
+        index.assertHasNoIgnoredTests()
 
         def passingPackageDetails = index.packageDetails("org.gradle.passing");
         passingPackageDetails.assertNumberOfTests(1);
@@ -183,6 +184,9 @@ class DefaultTestReportTest extends Specification {
         index.assertHasOverallResult("failures")
 
         index.assertHasFailedTest('classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed', 'failed')
+
+        index.assertHasIgnoredTest('classes/org.gradle.ignoring.SomeIgnoredSomePassed', 'ignored')
+        index.assertHasIgnoredTest('classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed', 'ignored')
 
         def passingPackageDetails = index.packageDetails("org.gradle.passing");
         passingPackageDetails.assertNumberOfTests(2);
@@ -262,6 +266,8 @@ class DefaultTestReportTest extends Specification {
         passingPackageFile.assertHasFailures(0)
         passingPackageFile.assertHasSuccessRate(100)
         passingPackageFile.assertHasDuration("2.000s")
+        passingPackageFile.assertHasNoFailedTests()
+        passingPackageFile.assertHasNoIgnoredTests()
         passingPackageFile.assertHasLinkTo('../index', 'all')
 
         def passedClassDetails = passingPackageFile.classDetails("Passed");
@@ -288,6 +294,8 @@ class DefaultTestReportTest extends Specification {
         ignoredPackageFile.assertHasIgnored(1)
         ignoredPackageFile.assertHasSuccessRate(100)
         ignoredPackageFile.assertHasDuration("2.000s")
+        passingPackageFile.assertHasNoFailedTests()
+        ignoredPackageFile.assertHasIgnoredTest('../classes/org.gradle.ignoring.SomeIgnoredSomePassed', 'ignored')
         ignoredPackageFile.assertHasLinkTo('../index', 'all')
 
         def someIgnoredClassDetails = ignoredPackageFile.classDetails("SomeIgnoredSomePassed");
@@ -306,6 +314,7 @@ class DefaultTestReportTest extends Specification {
         failingPackageFile.assertHasSuccessRate(50)
         failingPackageFile.assertHasDuration("3.000s")
         failingPackageFile.assertHasFailedTest('../classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed', 'failed')
+        failingPackageFile.assertHasIgnoredTest('../classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed', 'ignored')
         failingPackageFile.assertHasLinkTo('../index', 'all')
 
         def someFailedClassDetails = failingPackageFile.classDetails("SomeIgnoredSomePassedSomeFailed");

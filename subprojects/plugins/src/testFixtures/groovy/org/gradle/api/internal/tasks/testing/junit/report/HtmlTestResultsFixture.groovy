@@ -96,6 +96,11 @@ class HtmlTestResultsFixture {
         assert tab.isEmpty()
     }
 
+    void assertHasNoIgnoredTests() {
+        def tab = findTab('Ignored tests')
+        assert tab.isEmpty()
+    }
+
     void assertHasNoNavLinks() {
         assert findTab('Packages').isEmpty()
     }
@@ -106,6 +111,12 @@ class HtmlTestResultsFixture {
 
     void assertHasFailedTest(String target, String testName) {
         def tab = findTab('Failed tests')
+        assert tab != null
+        assert tab.select("a[href=${target}.html#$testName]").find { it.text() == testName }
+    }
+
+    void assertHasIgnoredTest(String target, String testName) {
+        def tab = findTab('Ignored tests')
         assert tab != null
         assert tab.select("a[href=${target}.html#$testName]").find { it.text() == testName }
     }
