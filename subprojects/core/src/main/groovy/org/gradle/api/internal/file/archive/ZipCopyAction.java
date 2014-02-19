@@ -85,7 +85,7 @@ public class ZipCopyAction implements CopyAction {
                 fileCount++;
                 if (fileCount > 65535 && !compressor.isZip64Supported()) {
                     throw new RuntimeException(
-                        "Tried to create a zip with too many files. Please set zip64=true.");
+                        "Tried to create a zip with too many files. Please add jar.zip64=true to your build.gradle");
                 }
                 fileDetails.copyTo(zipOutStr);
                 zipOutStr.closeEntry();
