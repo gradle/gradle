@@ -17,6 +17,9 @@ if "%DIRNAME%" == "" set DIRNAME=.\
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%${appHomeRelativePath}
 
+@rem Set the working directory to %APP_HOME%
+cd %APP_HOME%
+
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
 
