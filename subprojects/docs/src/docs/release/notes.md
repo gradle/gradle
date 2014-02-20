@@ -128,6 +128,7 @@ We would like to thank the following community members for making contributions 
 * [Kamil Szymański](https://github.com/kamilszymanski) - documentation improvements
 * [Jakub Kubryński](https://github.com/jkubrynski) - handling of empty string proxy system property values
 * [Lee Symes](https://github.com/leesdolphin) & [Greg Temchenko](https://github.com/soid) - fix skipped test representation in JUnit XML result files [GRADLE-2731]
+* [Ivan Vyshnevskyi](https://github.com/sainaen) - Fixes to HTML test report
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
