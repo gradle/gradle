@@ -156,4 +156,40 @@ ant.importBuild('build.xml')
         failure.assertHasDescription('Execution failed for task \':target1\'.')
         failure.assertHasCause('broken')
     }
+
+    @Test
+    public void targetDependenciesAreOrderedBasedOnDeclarationSequence() {
+        testFile('build.xml') << """
+<project>
+    <target name='a' depends='d,c,b'/>
+    <target name='b'/>
+    <target name='c'/>
+    <target name='d'/>
+    <target name='e' depends='g,f'/>
+    <target name='f'/>
+    <target name='g'/>
+    <target name='h' depends='i'/>
+    <target name='i'/>
+</project>
+"""
+        testFile('build.gradle') << """
+ant.importBuild('build.xml')
+"""
+        inTestDirectory().withTasks('a', 'e', 'h').run().assertTasksExecuted(':d', ':c', ':b', ':a', ':g', ':f', ':e', ':i', ':h')
+    }
+
+    @Test
+    public void targetDependenciesOrderDoesNotCreateCycle() {
+        testFile('build.xml') << """
+<project>
+    <target name='a' depends='c,b'/>
+    <target name='b'/>
+    <target name='c' depends='b'/>
+</project>
+"""
+        testFile('build.gradle') << """
+ant.importBuild('build.xml')
+"""
+        inTestDirectory().withTasks('a').run().assertTasksExecuted(':b', ':c', ':a')
+    }
 }
