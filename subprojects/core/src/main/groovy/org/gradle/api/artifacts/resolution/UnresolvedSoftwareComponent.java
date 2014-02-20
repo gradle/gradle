@@ -15,18 +15,9 @@
  */
 package org.gradle.api.artifacts.resolution;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-import java.util.Set;
-
-/**
- * The result of executing an artifact resolution query.
- *
- * @since 1.12
- */
-@Incubating
-public interface ArtifactResolutionQueryResult {
-    Set<? extends SoftwareComponent> getComponents();
-    <T extends SoftwareComponent<?>> Set<T> getComponents(Class<T> type);
-    Set<UnresolvedSoftwareComponent> getUnresolvedComponents();
+public interface UnresolvedSoftwareComponent {
+    ComponentIdentifier getId();
+    Throwable getFailure();
 }

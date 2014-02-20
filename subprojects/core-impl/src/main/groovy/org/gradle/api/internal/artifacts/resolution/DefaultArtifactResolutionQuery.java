@@ -67,7 +67,6 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         Multimap<ComponentIdentifier, JvmLibraryArtifact> jvmLibraryArtifacts = ArrayListMultimap.create();
         LenientConfiguration lenientConfiguration = configuration.getResolvedConfiguration().getLenientConfiguration();
         Set<ResolvedArtifact> resolvedArtifacts = lenientConfiguration.getArtifacts(Specs.satisfyAll());
-        // TODO: handle resolution failures (lenientConfiguration.getUnresolvedModuleDependencies)
 
         for (ResolvedArtifact artifact : resolvedArtifacts) {
             ModuleComponentIdentifier componentId = toComponentIdentifier(artifact.getModuleVersion().getId());
@@ -79,7 +78,12 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             jvmLibraries.add(new DefaultJvmLibrary(entry.getKey(), ImmutableList.copyOf(entry.getValue())));
         }
 
-        return new DefaultArtifactResolutionQueryResult(jvmLibraries);
+        Set<UnresolvedSoftwareComponent> unresolvedComponents = Sets.newHashSet();
+        for (UnresolvedDependency dependency : lenientConfiguration.getUnresolvedModuleDependencies()) {
+            unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(toComponentIdentifier(dependency.getSelector()), dependency.getProblem()));
+        }
+
+        return new DefaultArtifactResolutionQueryResult(jvmLibraries, unresolvedComponents);
     }
 
     private List<Dependency> createArtifactDependencies() {
@@ -100,6 +104,10 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
     private ModuleComponentIdentifier toComponentIdentifier(ModuleVersionIdentifier moduleId) {
         return new DefaultModuleComponentIdentifier(moduleId.getGroup(), moduleId.getName(), moduleId.getVersion());
+    }
+
+    private ModuleComponentIdentifier toComponentIdentifier(ModuleVersionSelector selector) {
+        return new DefaultModuleComponentIdentifier(selector.getGroup(), selector.getName(), selector.getVersion());
     }
 
     private JvmLibraryArtifact toJvmLibraryArtifact(ResolvedArtifact artifact) {
