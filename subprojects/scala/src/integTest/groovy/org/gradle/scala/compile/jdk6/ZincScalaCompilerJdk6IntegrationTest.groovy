@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.scala.compile.BasicScalaCompilerIntegrationTest
 import org.junit.Rule
 
-@TargetVersions(["2.8.2", "2.9.2", "2.10.0"])
+@TargetVersions(["2.8.2", "2.9.2", "2.10.0", "2.10.3"])
 class ZincScalaCompilerJdk6IntegrationTest extends BasicScalaCompilerIntegrationTest {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 

@@ -49,7 +49,7 @@ class ScalaBasePlugin implements Plugin<Project> {
 
     static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime"
 
-    private static final String DEFAULT_ZINC_VERSION = "0.2.1"
+    private static final String DEFAULT_ZINC_VERSION = "0.3.0"
 
     private final FileResolver fileResolver
 
