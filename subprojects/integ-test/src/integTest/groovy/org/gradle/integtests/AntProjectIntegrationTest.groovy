@@ -205,4 +205,18 @@ ant.importBuild('build.xml')
 """
         inTestDirectory().withTasks('a').runWithFailure().assertHasCause("Imported Ant target 'a' depends on target or task 'b' which does not exist")
     }
+
+    @Test
+    public void canHandleDependencyOrderingBetweenNonExistentTasks() {
+        testFile('build.xml') << """
+<project>
+    <target name='a' depends='b,c'/>
+</project>
+"""
+        testFile('build.gradle') << """
+ant.importBuild('build.xml')
+"""
+        // Testing that we don't get some obscure error message trying to set c.shouldRunAfter b
+        inTestDirectory().withTasks('a').runWithFailure().assertHasCause("Imported Ant target 'a' depends on target or task 'b' which does not exist")
+    }
 }
