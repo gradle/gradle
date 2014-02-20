@@ -146,6 +146,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Incremental Scala compilation
+
+The version of 'zinc' tool that Gradle uses to perform incremental scala compilation has been upgraded to a newer version (0.3.0).
+This might be a breaking change for users who explicitly configured some low version of zinc in their build scripts (there should be very little such users, if any).
+
 ### Changes to incubating native support
 
 * '-Xlinker' is no longer automatically added to linker args for GCC or Clang. If you want to pass an argument directly to 'ld' you need to add this escape yourself.
