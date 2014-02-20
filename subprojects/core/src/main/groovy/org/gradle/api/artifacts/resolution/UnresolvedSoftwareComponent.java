@@ -15,11 +15,15 @@
  */
 package org.gradle.api.artifacts.resolution;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
  * A software component that couldn't be resolved.
+ *
+ * @since 1.12
  */
+@Incubating
 public interface UnresolvedSoftwareComponent {
     /**
      * Returns the ID of the component.
