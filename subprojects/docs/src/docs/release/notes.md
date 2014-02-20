@@ -146,6 +146,7 @@ We would like to thank the following community members for making contributions 
 * [Marcin Erdmann](https://github.com/erdi) - dependency ordering of imported ant targets [GRADLE-1102]
 * [Vincent Cantin](https://github.com/green-coder) - documentation improvements
 * [“Big Guy”](https://github.com/big-guy) - Support for developing Gradle in Eclipse
+* [Matthew Michihara](https://github.com/matthewmichihara) - Documentation improvements
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
