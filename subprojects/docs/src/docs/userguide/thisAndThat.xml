@@ -66,6 +66,8 @@
         <para>With the <filename>gradle.properties</filename> files you can also set system properties. If a property
             in such a file has the prefix <literal>systemProp.</literal> the property and its value are added to the 
             system properties, without the prefix.
+            In a multi project build, <literal>systemProp.</literal> properties set in any project except the root will be ignored.
+            That is, only <literal>systemProp.</literal> in the root project's <filename>gradle.properties</filename> file will be set as system properties.
         </para>
         <sample id="properties" dir="userguide/tutorial/properties" title="Setting properties with a gradle.properties file">
             <sourcefile file="gradle.properties"/>
