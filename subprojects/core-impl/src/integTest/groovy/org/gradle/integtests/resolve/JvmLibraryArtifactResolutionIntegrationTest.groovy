@@ -23,11 +23,11 @@ class JvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyReso
 
     def setup() {
         server.start()
-        module.allowAll()
     }
 
     def "resolve sources artifacts"() {
         artifacts("sources", "javadoc")
+        module.allowAll()
 
         buildFile <<
 """
@@ -70,6 +70,7 @@ task verify << {
 
     def "resolve javadoc artifacts"() {
         artifacts("sources", "javadoc")
+        module.allowAll()
 
         buildFile <<
 """
@@ -112,6 +113,7 @@ task verify << {
 
     def "resolve all artifacts"() {
         artifacts("sources", "javadoc")
+        module.allowAll()
 
         buildFile <<
 """
@@ -150,8 +152,10 @@ task verify << {
         succeeds("verify")
     }
 
-    def "resolve partially existing artifacts"() {
-        artifacts("sources")
+    def "resolve artifacts of non-existing component"() {
+        server.expectGetMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom")
+        server.expectHeadMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar")
+        server.expectHeadMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar")
 
         buildFile <<
 """
@@ -164,7 +168,40 @@ repositories {
 task verify << {
     def result = dependencies.createArtifactResolutionQuery()
         .forComponent("some.group", "some-artifact", "1.0")
-        .withArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
+        .withArtifacts(JvmLibrary)
+        .execute()
+
+    assert result.components.empty
+    assert result.unresolvedComponents.size() == 1
+    for (component in result.unresolvedComponents) {
+        assert component.id.group == "some.group"
+        assert component.id.module == "some-artifact"
+        assert component.id.version == "1.0"
+        assert component.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
+    }
+}
+"""
+
+        expect:
+        succeeds("verify")
+    }
+
+    def "resolve partially missing artifacts"() {
+        artifacts("sources")
+        module.allowAll()
+
+        buildFile <<
+                """
+import org.gradle.api.artifacts.resolution.*
+
+repositories {
+    maven { url "$repo.uri" }
+}
+
+task verify << {
+    def result = dependencies.createArtifactResolutionQuery()
+        .forComponent("some.group", "some-artifact", "1.0")
+        .withArtifacts(JvmLibrary)
         .execute()
 
     def components = result.components
@@ -192,10 +229,12 @@ task verify << {
         succeeds("verify")
     }
 
-    def "resolve artifacts of non-existing component"() {
-        server.allowGetOrHeadMissing("/repo/some/group/other-artifact/1.0/other-artifact-1.0.pom")
-        server.allowGetOrHeadMissing("/repo/some/group/other-artifact/1.0/other-artifact-1.0-sources.jar")
-        server.allowGetOrHeadMissing("/repo/some/group/other-artifact/1.0/other-artifact-1.0-javadoc.jar")
+    // TODO: artifact resolution error needs to be discoverable, but LenientConfiguration
+    // doesn't expose this kind of error
+    def "resolve partially broken artifacts"() {
+        artifacts("sources")
+        server.expectGetBroken("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar")
+        module.allowAll()
 
         buildFile <<
 """
@@ -207,18 +246,28 @@ repositories {
 
 task verify << {
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponent("some.group", "other-artifact", "1.0")
-        .withArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
+        .forComponent("some.group", "some-artifact", "1.0")
+        .withArtifacts(JvmLibrary)
         .execute()
 
-    assert result.components.empty
-    assert result.unresolvedComponents.size() == 1
-    for (component in result.unresolvedComponents) {
+    def components = result.components
+    assert components.size() == 1
+    for (component in components) {
         assert component.id.group == "some.group"
-        assert component.id.module == "other-artifact"
+        assert component.id.module == "some-artifact"
         assert component.id.version == "1.0"
-        assert component.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
+        assert component.allArtifacts.size() == 1
+        assert component instanceof JvmLibrary
+
+        assert component.sourcesArtifacts.size() == 1
+        def sourceArtifact = component.sourcesArtifacts.iterator().next()
+        assert sourceArtifact instanceof JvmLibrarySourcesArtifact
+        assert sourceArtifact.file.name == "some-artifact-1.0-sources.jar"
+
+        assert component.javadocArtifacts.empty
     }
+
+    assert result.unresolvedComponents.empty
 }
 """
 
