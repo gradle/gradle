@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
 import org.gradle.api.tasks.testing.TestOutputEvent
+import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 
 class AggregateTestResultsProviderTest extends Specification {
@@ -40,6 +41,7 @@ class AggregateTestResultsProviderTest extends Specification {
         then:
         1 * provider1.visitClasses(_) >> { Action a -> a.execute(class1) }
         1 * provider2.visitClasses(_) >> { Action a -> a.execute(class2) }
+        // TODO(radimk): should not assume order
         1 * action.execute(_) >> { TestClassResult r ->
             assert r.id == 1
             assert r.className == 'class-1'
@@ -90,7 +92,7 @@ class AggregateTestResultsProviderTest extends Specification {
         1 * provider2.writeAllOutput(12, TestOutputEvent.Destination.StdOut, writer)
     }
 
-    def "discards duplicate classes"() {
+    def "processes duplicate classes"() {
         def action = Mock(Action)
         def class1 = Stub(TestClassResult) {
             getClassName() >> 'class-1'
@@ -111,4 +113,70 @@ class AggregateTestResultsProviderTest extends Specification {
         }
         0 * action._
     }
+
+    def "merge methods in duplicate classes"() {
+        def action = Mock(Action)
+        def class1 = Stub(TestClassResult) {
+            getClassName() >> 'class-1'
+            getResults() >> Collections.singletonList(new TestMethodResult(101, 'methodFoo', TestResult.ResultType.SUCCESS, 10, 123456))
+        }
+        def class2 = Stub(TestClassResult) {
+            getClassName() >> 'class-1'
+            getResults() >> Collections.singletonList(new TestMethodResult(101, 'methodFoo', TestResult.ResultType.FAILURE, 100, 123678))
+        }
+
+        when:
+        provider.visitClasses(action)
+
+        then:
+        1 * provider1.visitClasses(_) >> { Action a -> a.execute(class1) }
+        1 * provider2.visitClasses(_) >> { Action a -> a.execute(class2) }
+        1 * action.execute(_) >> { TestClassResult r ->
+            assert r.id == 1
+            assert r.className == 'class-1'
+            assert r.results.any { TestMethodResult m ->
+                m.name == 'methodFoo' && m.resultType == TestResult.ResultType.SUCCESS
+            }
+            assert r.results.any { TestMethodResult m ->
+                m.name == 'methodFoo' && m.resultType == TestResult.ResultType.FAILURE
+            }
+        }
+        0 * action._
+    }
+
+    def "maps class ids to original id when fetching test output for merged classes"() {
+        def writer = Stub(Writer)
+        def class1 = Stub(TestClassResult) {
+            getId() >> 12
+            getClassName() >> 'class-1'
+        }
+        def class2 = Stub(TestClassResult) {
+            getId() >> 12
+            getClassName() >> 'class-1'
+        }
+
+        when:
+        provider.visitClasses(Stub(Action))
+
+        then:
+        1 * provider1.visitClasses(_) >> { Action a -> a.execute(class1) }
+        1 * provider2.visitClasses(_) >> { Action a -> a.execute(class2) }
+
+        when:
+        provider.hasOutput(1, TestOutputEvent.Destination.StdOut)
+        provider.writeAllOutput(1, TestOutputEvent.Destination.StdOut, writer)
+        provider.writeTestOutput(1, 11, TestOutputEvent.Destination.StdOut, writer)
+        provider.writeNonTestOutput(1, TestOutputEvent.Destination.StdOut, writer)
+
+        then:
+        1 * provider1.hasOutput(12, TestOutputEvent.Destination.StdOut)
+        1 * provider1.writeAllOutput(12, TestOutputEvent.Destination.StdOut, writer)
+        1 * provider1.writeTestOutput(12, 11, TestOutputEvent.Destination.StdOut, writer)
+        1 * provider1.writeNonTestOutput(12, TestOutputEvent.Destination.StdOut, writer)
+        1 * provider2.hasOutput(12, TestOutputEvent.Destination.StdOut)
+        1 * provider2.writeAllOutput(12, TestOutputEvent.Destination.StdOut, writer)
+        1 * provider2.writeTestOutput(12, 11, TestOutputEvent.Destination.StdOut, writer)
+        1 * provider2.writeNonTestOutput(12, TestOutputEvent.Destination.StdOut, writer)
+    }
+
 }

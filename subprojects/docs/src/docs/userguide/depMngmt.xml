@@ -328,7 +328,7 @@
                 <title>Depending on modules with multiple artifacts</title>
                 As mentioned earlier, a Maven module has only one artifact. Hence, when your project depends on a Maven module, it's obvious what its artifact is.
                 With Gradle or Ivy, the case is different. Ivy's dependency descriptor (<filename>ivy.xml</filename>) can declare multiple artifacts.
-                For more information, see the Ivy reference for<filename>ivy.xml</filename>.
+                For more information, see the Ivy reference for <filename>ivy.xml</filename>.
                 In Gradle, when you declare a dependency on an Ivy module, you actually declare a dependency on the <literal>default</literal> configuration of that module.
                 So the actual set of artifacts (typically jars) you depend on is the set of artifacts that are associated with the
                 <literal>default</literal> configuration of that module. Here are some situations where this matters:

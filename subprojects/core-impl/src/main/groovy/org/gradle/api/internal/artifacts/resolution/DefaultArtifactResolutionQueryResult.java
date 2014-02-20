@@ -19,14 +19,17 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.resolution.ArtifactResolutionQueryResult;
 import org.gradle.api.artifacts.resolution.SoftwareComponent;
+import org.gradle.api.artifacts.resolution.UnresolvedSoftwareComponent;
 
 import java.util.Set;
 
 public class DefaultArtifactResolutionQueryResult implements ArtifactResolutionQueryResult {
     private final Set<? extends SoftwareComponent<?>> components;
+    private final Set<UnresolvedSoftwareComponent> unresolvedComponents;
 
-    public DefaultArtifactResolutionQueryResult(Set<? extends SoftwareComponent<?>> components) {
+    public DefaultArtifactResolutionQueryResult(Set<? extends SoftwareComponent<?>> components, Set<UnresolvedSoftwareComponent> unresolvedComponents) {
         this.components = components;
+        this.unresolvedComponents = unresolvedComponents;
     }
 
     public Set<? extends SoftwareComponent<?>> getComponents() {
@@ -35,5 +38,9 @@ public class DefaultArtifactResolutionQueryResult implements ArtifactResolutionQ
 
     public <T extends SoftwareComponent<?>> Set<T> getComponents(final Class<T> type) {
         return Sets.newHashSet(Iterables.filter(components, type));
+    }
+
+    public Set<UnresolvedSoftwareComponent> getUnresolvedComponents() {
+        return unresolvedComponents;
     }
 }

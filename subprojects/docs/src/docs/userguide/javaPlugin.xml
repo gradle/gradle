@@ -1353,9 +1353,9 @@
             </sample>
 
             <para>You should note that the <literal>TestReport</literal> type combines the results from multiple test
-                tasks, but it does not aggregate the results of individual test classes. This means that if a given test class is executed by
-                multiple test tasks, then the test report will include only one execution of that class and discard the other executions of that
-                class. This will be addressed in a future Gradle version.
+                tasks and needs to aggregate the results of individual test classes. This means that if a given test class is executed by
+                multiple test tasks, then the test report will include executions of that class, but it can be hard to distinguish individual
+                executions of that class and their output.
             </para>
             <section id="testNgParameterizedReporting">
                 <title>TestNG parameterized methods and reporting</title>
