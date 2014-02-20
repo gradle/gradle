@@ -119,6 +119,20 @@ This change is described as follows:
 
 No changes are necessary to build scripts or Continuous Integration server configuration to accommodate this change.
 
+### Ordering of dependencies in imported Ant builds
+
+The ordering of Ant target dependencies is now respected when possible.
+This may cause tasks of imported Ant builds to executed in a different order from this version of Gradle on.
+
+Given…
+
+    <target name='a' depends='d,c,b'/>
+
+A shouldRunAfter [task ordering](userguide/more_about_tasks.html#sec:ordering_tasks) will be applied to the dependencies so that,
+`c.shouldRunAfter d` and `b.shouldRunAfter c`.
+
+This is in alignment with Ant's ordering of target dependencies.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -129,6 +143,7 @@ We would like to thank the following community members for making contributions 
 * [Jakub Kubryński](https://github.com/jkubrynski) - handling of empty string proxy system property values
 * [Lee Symes](https://github.com/leesdolphin) & [Greg Temchenko](https://github.com/soid) - fix skipped test representation in JUnit XML result files [GRADLE-2731]
 * [Ivan Vyshnevskyi](https://github.com/sainaen) - Fixes to HTML test report
+* [Marcin Erdmann](https://github.com/erdi) - dependency ordering of imported ant targets [GRADLE-1102]
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
