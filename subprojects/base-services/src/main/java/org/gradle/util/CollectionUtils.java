@@ -17,8 +17,8 @@ package org.gradle.util;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.internal.Transformers;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Transformers;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -179,11 +179,14 @@ public abstract class CollectionUtils {
                 return Collections.singletonList(null);
             }
 
+            // Casts to Class below are to workaround Eclipse compiler bug
+            // See: https://github.com/gradle/gradle/pull/200
+
             if (thing.getClass().isArray()) {
                 Object[] thingArray = (Object[]) thing;
                 List<T> list = new ArrayList<T>(thingArray.length);
                 for (Object thingThing : thingArray) {
-                    list.addAll(flattenCollections(type, thingThing));
+                    list.addAll(flattenCollections((Class) type, thingThing));
                 }
                 return list;
             }
@@ -192,7 +195,7 @@ public abstract class CollectionUtils {
                 Collection<?> collection = (Collection<?>) thing;
                 List<T> list = new ArrayList<T>();
                 for (Object element : collection) {
-                    list.addAll(flattenCollections(type, element));
+                    list.addAll(flattenCollections((Class) type, element));
                 }
                 return list;
             }
@@ -201,7 +204,7 @@ public abstract class CollectionUtils {
         } else {
             List<T> list = new ArrayList<T>();
             for (Object thing : things) {
-                list.addAll(flattenCollections(type, thing));
+                list.addAll(flattenCollections((Class) type, thing));
             }
             return list;
         }
@@ -240,16 +243,16 @@ public abstract class CollectionUtils {
     public static <T> List<T> intersection(Collection<? extends Collection<T>> availableValuesByDescriptor) {
         List<T> result = new ArrayList<T>();
         Iterator<? extends Collection<T>> iterator = availableValuesByDescriptor.iterator();
-        if(iterator.hasNext()){
+        if (iterator.hasNext()) {
             Collection<T> firstSet = iterator.next();
             result.addAll(firstSet);
-            while(iterator.hasNext()){
+            while (iterator.hasNext()) {
                 Collection<T> next = iterator.next();
                 result.retainAll(next);
             }
         }
         return result;
-        
+
     }
 
     public static <T> List<T> toList(T[] things) {

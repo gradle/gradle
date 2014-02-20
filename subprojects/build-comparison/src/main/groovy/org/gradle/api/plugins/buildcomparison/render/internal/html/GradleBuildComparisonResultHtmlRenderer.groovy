@@ -281,7 +281,7 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
         }
     }
 
-    String name(BuildOutcomeComparisonResult<?> comparisonResult) {
+    String name(BuildOutcomeComparisonResult<? extends BuildOutcome> comparisonResult) {
         comparisonResult.compared.source.name
     }
 
