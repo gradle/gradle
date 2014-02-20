@@ -192,4 +192,17 @@ ant.importBuild('build.xml')
 """
         inTestDirectory().withTasks('a').run().assertTasksExecuted(':b', ':c', ':a')
     }
+
+    @Test
+    public void unknownDependencyProducesUsefulMessage() {
+        testFile('build.xml') << """
+<project>
+    <target name='a' depends='b'/>
+</project>
+"""
+        testFile('build.gradle') << """
+ant.importBuild('build.xml')
+"""
+        inTestDirectory().withTasks('a').runWithFailure().assertHasCause("Imported Ant target 'a' depends on target or task 'b' which does not exist")
+    }
 }
