@@ -23,17 +23,18 @@ import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.PropertyHelper;
 import org.apache.tools.ant.Target;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.ant.AntTarget;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
@@ -111,6 +112,26 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
             AntTarget task = gradleProject.getTasks().create(target.getName(), AntTarget.class);
             task.setTarget(target);
             task.setBaseDir(baseDir);
+            addDependencyOrdering(target.getDependencies());
+        }
+    }
+
+    private void addDependencyOrdering(Enumeration<String> dependencies) {
+        TaskContainer tasks = gradleProject.getTasks();
+        String previous = null;
+        for (final String dependency : Collections.list(dependencies)) {
+            if (previous != null) {
+                final String finalPrevious = previous;
+                tasks.all(new Action<Task>() {
+                    public void execute(Task task) {
+                        if (task.getName().equals(dependency)) {
+                            task.shouldRunAfter(finalPrevious);
+                        }
+                    }
+                });
+            }
+
+            previous = dependency;
         }
     }
 
