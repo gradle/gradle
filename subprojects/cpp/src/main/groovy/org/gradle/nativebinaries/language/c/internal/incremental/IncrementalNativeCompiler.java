@@ -26,8 +26,8 @@ import java.io.File;
 public class IncrementalNativeCompiler extends AbstractIncrementalNativeCompiler {
     private final Compiler<NativeCompileSpec> delegateCompiler;
 
-    public IncrementalNativeCompiler(TaskInternal task, IncludesParser includesParser, Iterable<File> includes, CacheRepository cacheRepository, Compiler<NativeCompileSpec> delegateCompiler) {
-        super(task, includesParser, includes, cacheRepository);
+    public IncrementalNativeCompiler(TaskInternal task, SourceIncludesParser sourceIncludesParser, Iterable<File> includes, CacheRepository cacheRepository, Compiler<NativeCompileSpec> delegateCompiler) {
+        super(task, sourceIncludesParser, includes, cacheRepository);
         this.delegateCompiler = delegateCompiler;
     }
 

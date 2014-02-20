@@ -28,8 +28,8 @@ import java.io.File;
 public class CleanCompilingNativeCompiler extends AbstractIncrementalNativeCompiler {
     private final Compiler<NativeCompileSpec> delegateCompiler;
 
-    public CleanCompilingNativeCompiler(TaskInternal task, IncludesParser includesParser, Iterable<File> includes, CacheRepository cacheRepository, Compiler<NativeCompileSpec> delegateCompiler) {
-        super(task, includesParser, includes, cacheRepository);
+    public CleanCompilingNativeCompiler(TaskInternal task, SourceIncludesParser sourceIncludesParser, Iterable<File> includes, CacheRepository cacheRepository, Compiler<NativeCompileSpec> delegateCompiler) {
+        super(task, sourceIncludesParser, includes, cacheRepository);
         this.delegateCompiler = delegateCompiler;
     }
 

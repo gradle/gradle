@@ -16,12 +16,15 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class FileState implements Serializable {
-    private List<SourceDependency> dependencies = new ArrayList<SourceDependency>();
     private byte[] hash;
+    // TODO:DAZ We should cache the source includes separately, shared by all compile tasks.
+    // The resolved includes should continue to be cached per compile task.
+    private SourceIncludes sourceIncludes;
+    private Set<ResolvedInclude> resolvedIncludes = new HashSet<ResolvedInclude>();
 
     public byte[] getHash() {
         return hash;
@@ -31,12 +34,19 @@ public class FileState implements Serializable {
         this.hash = hash;
     }
 
-    public List<SourceDependency> getDependencies() {
-        return dependencies;
+    public SourceIncludes getIncludes() {
+        return sourceIncludes;
     }
 
-    public void setDependencies(List<SourceDependency> files) {
-        this.dependencies.clear();
-        this.dependencies.addAll(files);
+    public void setIncludes(SourceIncludes sourceIncludes) {
+        this.sourceIncludes = sourceIncludes;
+    }
+
+    public Set<ResolvedInclude> getResolvedIncludes() {
+        return resolvedIncludes;
+    }
+
+    public void setResolvedIncludes(Set<ResolvedInclude> resolvedIncludes) {
+        this.resolvedIncludes = resolvedIncludes;
     }
 }

@@ -29,14 +29,16 @@ public class IncrementalCompileProcessor {
     private static final String PREVIOUS_FILES = "previous";
     private final PersistentIndexedCache<File, FileState> fileStateCache;
     private final PersistentIndexedCache<String, List<File>> previousSourcesCache;
-    private final SourceDependencyParser dependencyParser;
+    private final SourceIncludesParser sourceIncludesParser;
+    private final SourceIncludesResolver sourceIncludesResolver;
     private final FileSnapshotter snapshotter;
 
-    public IncrementalCompileProcessor(PersistentIndexedCache<File, FileState> fileStateCache, PersistentIndexedCache<String, List<File>> previousSourcesCache, SourceDependencyParser dependencyParser,
+    public IncrementalCompileProcessor(PersistentIndexedCache<File, FileState> fileStateCache, PersistentIndexedCache<String, List<File>> previousSourcesCache, SourceIncludesResolver sourceIncludesResolver, SourceIncludesParser sourceIncludesParser,
                                        FileSnapshotter snapshotter) {
         this.fileStateCache = fileStateCache;
         this.previousSourcesCache = previousSourcesCache;
-        this.dependencyParser = dependencyParser;
+        this.sourceIncludesResolver = sourceIncludesResolver;
+        this.sourceIncludesParser = sourceIncludesParser;
         this.snapshotter = snapshotter;
     }
 
@@ -58,17 +60,18 @@ public class IncrementalCompileProcessor {
         return new DefaultIncrementalCompilation(result.getModifiedSources(), result.getRemovedSources());
     }
 
-    private void purgeRemoved(File removed, IncrementalCompileFiles result) {
-        FileState state = fileStateCache.get(removed);
-        if (state == null || result.getTouchedSources().contains(removed)) {
+    private void purgeRemoved(File removedSource, IncrementalCompileFiles result) {
+        FileState state = fileStateCache.get(removedSource);
+        if (state == null || result.getTouchedSources().contains(removedSource)) {
             return;
         }
 
-        fileStateCache.remove(removed);
+        fileStateCache.remove(removedSource);
 
-        for (SourceDependency sourceDependency : state.getDependencies()) {
-            if (!sourceDependency.isUnknown()) {
-                purgeRemoved(sourceDependency.getFile(), result);
+        // TODO:DAZ This isn't right: need to keep previous classpath, or previous resolution
+        for (ResolvedInclude resolvedInclude : resolveIncludes(removedSource, state.getIncludes())) {
+            if (!resolvedInclude.isUnknown()) {
+                purgeRemoved(resolvedInclude.getFile(), result);
             }
         }
     }
@@ -113,14 +116,29 @@ public class IncrementalCompileProcessor {
             }
 
             byte[] currentHash = snapshotter.snapshot(file).getHash();
+            // TODO:DAZ Cache resolved include files separately from parsed includes, and reuse the parse cache between different variants/components
+            Set<ResolvedInclude> resolvedIncludes;
             if (hasChanged(state, currentHash)) {
+                SourceIncludes sourceIncludes = sourceIncludesParser.parseIncludes(file);
+                resolvedIncludes = resolveIncludes(file, sourceIncludes);
+
                 changed = true;
                 state.setHash(currentHash);
-                state.setDependencies(dependencyParser.parseDependencies(file));
+                state.setIncludes(sourceIncludes);
+                state.setResolvedIncludes(resolvedIncludes);
                 saveState(file, state);
+            } else {
+                resolvedIncludes = resolveIncludes(file, state.getIncludes());
+
+                // Compare the previous resolved includes with resolving now.
+                if (!state.getResolvedIncludes().equals(resolvedIncludes)) {
+                    changed = true;
+                    state.setResolvedIncludes(resolvedIncludes);
+                    saveState(file, state);
+                }
             }
 
-            for (SourceDependency dep : state.getDependencies()) {
+            for (ResolvedInclude dep : resolvedIncludes) {
                 if (dep.isUnknown()) {
                     LOGGER.info(String.format("Cannot determine changed state of included '%s' in source file '%s'. Assuming changed.", dep.getInclude(), file.getName()));
                     changed = true;
@@ -158,5 +176,9 @@ public class IncrementalCompileProcessor {
         public Set<File> getTouchedSources() {
             return processed.keySet();
         }
+    }
+
+    private Set<ResolvedInclude> resolveIncludes(File file, SourceIncludes sourceIncludes) {
+        return sourceIncludesResolver.resolveIncludes(file, sourceIncludes);
     }
 }

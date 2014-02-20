@@ -16,15 +16,8 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import java.io.File;
-import java.util.List;
+import java.util.Set;
 
-public interface IncludesParser {
-
-    Includes parseIncludes(File sourceFile);
-
-    interface Includes {
-        List<String> getQuotedIncludes();
-        List<String> getSystemIncludes();
-        List<String> getMacroIncludes();
-    }
+public interface SourceIncludesResolver {
+    Set<ResolvedInclude> resolveIncludes(File sourceFile, SourceIncludes includes);
 }

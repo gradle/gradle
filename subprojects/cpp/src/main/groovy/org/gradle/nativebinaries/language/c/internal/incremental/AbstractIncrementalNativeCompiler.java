@@ -38,14 +38,14 @@ import java.util.List;
 
 abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
     private final TaskInternal task;
-    private final IncludesParser includesParser;
+    private final SourceIncludesParser sourceIncludesParser;
     private final CacheRepository cacheRepository;
     private Iterable<File> includes;
 
-    protected AbstractIncrementalNativeCompiler(TaskInternal task, IncludesParser includesParser, Iterable<File> includes, CacheRepository cacheRepository) {
+    protected AbstractIncrementalNativeCompiler(TaskInternal task, SourceIncludesParser sourceIncludesParser, Iterable<File> includes, CacheRepository cacheRepository) {
         this.task = task;
         this.includes = includes;
-        this.includesParser = includesParser;
+        this.sourceIncludesParser = sourceIncludesParser;
         this.cacheRepository = cacheRepository;
     }
 
@@ -74,12 +74,12 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
         // TODO:DAZ This doesn't need to be an indexed cache: need PersistentCache.createStateCache()
         PersistentIndexedCache<String, List<File>> listCache = createCache(cache, "previous", String.class, new DefaultSerializer<List<File>>());
 
-        DefaultSourceDependencyParser dependencyParser = new DefaultSourceDependencyParser(includesParser, CollectionUtils.toList(includes));
+        DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
 
         // TODO:DAZ Inject a factory, and come up with a common abstraction for TaskArtifactStateCacheAccess and PersistentCache
         FileSnapshotter snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cache);
 
-        return new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, snapshotter);
+        return new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, sourceIncludesParser, snapshotter);
     }
 
     private PersistentCache openCache(TaskInternal task) {

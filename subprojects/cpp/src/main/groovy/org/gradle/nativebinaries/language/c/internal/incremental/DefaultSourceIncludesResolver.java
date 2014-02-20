@@ -19,25 +19,23 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
-public class DefaultSourceDependencyParser implements SourceDependencyParser {
-    private final IncludesParser includesParser;
+public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private final List<File> includePaths;
 
-    public DefaultSourceDependencyParser(IncludesParser includesParser, List<File> includePaths) {
-        this.includesParser = includesParser;
+    public DefaultSourceIncludesResolver(List<File> includePaths) {
         this.includePaths = includePaths;
     }
 
-    public List<SourceDependency> parseDependencies(File sourceFile) {
-        List<SourceDependency> dependencies = new ArrayList<SourceDependency>();
-        IncludesParser.Includes includes = includesParser.parseIncludes(sourceFile);
-
+    public Set<ResolvedInclude> resolveIncludes(File sourceFile, SourceIncludes includes) {
+        Set<ResolvedInclude> dependencies = new LinkedHashSet<ResolvedInclude>();
         searchForDependencies(dependencies, prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes());
         searchForDependencies(dependencies, includePaths, includes.getSystemIncludes());
         if (!includes.getMacroIncludes().isEmpty()) {
-            dependencies.add(new SourceDependency(includes.getMacroIncludes().get(0), null));
+            dependencies.add(new ResolvedInclude(includes.getMacroIncludes().get(0), null));
         }
 
         return dependencies;
@@ -50,19 +48,19 @@ public class DefaultSourceDependencyParser implements SourceDependencyParser {
         return quotedSearchPath;
     }
 
-    private void searchForDependencies(List<SourceDependency> dependencies, List<File> searchPath, List<String> includes) {
+    private void searchForDependencies(Set<ResolvedInclude> dependencies, List<File> searchPath, List<String> includes) {
         for (String include : includes) {
             searchForDependency(dependencies, searchPath, include);
         }
     }
 
-    private void searchForDependency(List<SourceDependency> dependencies, List<File> searchPath, String include) {
+    private void searchForDependency(Set<ResolvedInclude> dependencies, List<File> searchPath, String include) {
         for (File searchDir : searchPath) {
             File candidate = new File(searchDir, include);
             // TODO:DAZ This means that we'll never detect changed files if they are not on the defined include path
             if (candidate.isFile()) {
-                dependencies.add(new SourceDependency(include, GFileUtils.canonicalise(candidate)));
-                break;
+                dependencies.add(new ResolvedInclude(include, GFileUtils.canonicalise(candidate)));
+                return;
             }
         }
     }

@@ -21,6 +21,7 @@ import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.internal.hash.HashUtil
 import org.gradle.messaging.serialize.DefaultSerializer
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule
@@ -30,12 +31,13 @@ class IncrementalCompileProcessorTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def cacheDir = tmpDir.createDir("cache")
-    def dependencyParser = Mock(SourceDependencyParser)
+    def includesParser = Mock(SourceIncludesParser)
+    def dependencyParser = Mock(SourceIncludesResolver)
     def cacheFactory = new InMemoryCacheFactory()
     def fileSnapshotter = Stub(FileSnapshotter)
     def stateCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new DefaultSerializer<FileState>())
     def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new DefaultSerializer<List<File>>())
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, fileSnapshotter)
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, includesParser, fileSnapshotter)
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -45,27 +47,36 @@ class IncrementalCompileProcessorTest extends Specification {
     def dep4 = sourceFile("dep4")
     def sourceFiles
 
+    Map<TestFile, List<ResolvedInclude>> graph = [:]
+    List<TestFile> modified = []
+
     def setup() {
         fileSnapshotter.snapshot(_) >> { File file ->
             return Stub(FileSnapshotter.FileSnapshot) {
                 getHash() >> HashUtil.sha1(file).asByteArray()
             }
         }
-    }
 
-    def initialFiles() {
         // S1 - D1 \
         //    \ D2  \
         //           D3
         // S2 ------/
         //    \ D4
 
-        1 * dependencyParser.parseDependencies(source1) >> deps(dep1, dep2)
-        1 * dependencyParser.parseDependencies(source2) >> deps(dep3, dep4)
-        1 * dependencyParser.parseDependencies(dep1) >> deps(dep3)
-        1 * dependencyParser.parseDependencies(dep2) >> []
-        1 * dependencyParser.parseDependencies(dep3) >> []
-        1 * dependencyParser.parseDependencies(dep4) >> []
+        graph[source1] = deps(dep1, dep2)
+        graph[source2] = deps(dep3, dep4)
+        graph[dep1] = deps(dep3)
+        graph[dep2] = []
+        graph[dep3] = []
+        graph[dep4] = []
+    }
+
+    def initialFiles() {
+
+        graph.keySet().each { TestFile sourceFile ->
+            parse(sourceFile)
+            resolve(sourceFile)
+        }
 
         sourceFiles = [source1, source2]
         with (state) {
@@ -74,15 +85,58 @@ class IncrementalCompileProcessorTest extends Specification {
         }
     }
 
+    def parse(TestFile sourceFile) {
+        final Set<ResolvedInclude> deps = graph[sourceFile]
+        SourceIncludes includes = includes(deps)
+        1 * includesParser.parseIncludes(sourceFile) >> includes
+    }
+
+    def resolve(TestFile sourceFile) {
+        Set<ResolvedInclude> deps = graph[sourceFile]
+        SourceIncludes includes = includes(deps)
+        1 * dependencyParser.resolveIncludes(sourceFile, includes) >> deps
+    }
+
+    private static SourceIncludes includes(Set<ResolvedInclude> deps) {
+        def includes = new DefaultSourceIncludes()
+        includes.addAll(deps.collect { '<' + it.file.name + '>' })
+        return includes
+    }
+
+    def added(TestFile sourceFile) {
+        modified << sourceFile
+        graph[sourceFile] = []
+    }
+
+    def sourceAdded(TestFile sourceFile, def deps = []) {
+        sourceFiles << sourceFile
+        modified << sourceFile
+        graph[sourceFile] = deps
+    }
+
+    def modified(TestFile sourceFile, def deps = null) {
+        modified << sourceFile
+        sourceFile << "More text"
+        if (deps != null) {
+            graph[sourceFile] = deps
+        }
+    }
+
+    def sourceRemoved(TestFile sourceFile) {
+        sourceFiles.remove(sourceFile)
+    }
+
+    def dependencyRemoved(TestFile sourceFile) {
+        graph.remove(sourceFile)
+        sourceFile.delete()
+    }
+
     def "detects unchanged source files"() {
         given:
         initialFiles()
 
         expect:
-        with (state) {
-            recompile == []
-            removed == []
-        }
+        checkCompile recompiled: [], removed: []
     }
 
     def "detects new source files"() {
@@ -91,14 +145,10 @@ class IncrementalCompileProcessorTest extends Specification {
 
         when:
         def file3 = sourceFile("file3")
-        sourceFiles << file3
-        1 * dependencyParser.parseDependencies(file3) >> []
+        sourceAdded(file3)
 
         then:
-        with (state) {
-            recompile == [file3]
-            removed == []
-        }
+        checkCompile recompiled: [file3], removed: []
     }
 
     def "detects removed source file"() {
@@ -106,13 +156,10 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        sourceFiles.remove(source2)
+        sourceRemoved(source2)
 
         then:
-        with (state) {
-            recompile == []
-            removed == [source2]
-        }
+        checkCompile recompiled: [], removed: [source2]
 
         and:
         cached dep3
@@ -124,13 +171,10 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        sourceFiles.remove(source1)
+        sourceRemoved(source1)
 
         then:
-        with (state) {
-            recompile == []
-            removed == [source1]
-        }
+        checkCompile recompiled: [], removed: [source1]
 
         and:
         uncached dep1, dep2
@@ -142,14 +186,10 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        source2 << "More text"
-        1 * dependencyParser.parseDependencies(source2) >> deps(dep3, dep4)
+        modified(source2)
 
         then:
-        with (state) {
-            recompile == [source2]
-            removed == []
-        }
+        checkCompile recompiled: [source2], removed: []
 
         and:
         cached dep3, dep4
@@ -160,14 +200,10 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        dep4 << "More text"
-        1 * dependencyParser.parseDependencies(dep4) >> []
+        modified(dep4)
 
         then:
-        with (state) {
-            recompile == [source2]
-            removed == []
-        }
+        checkCompile recompiled: [source2], removed: []
     }
 
     def "detects dependency file removed"() {
@@ -175,13 +211,10 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        dep4.delete()
+        dependencyRemoved(dep4)
 
         then:
-        with (state) {
-            recompile == [source2]
-            removed == []
-        }
+        checkCompile recompiled: [source2], removed: []
     }
 
     def "detects shared dependency file changed"() {
@@ -189,14 +222,10 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        dep3 << "More text"
-        1 * dependencyParser.parseDependencies(dep3) >> []
+        modified(dep3)
 
         then:
-        with (state) {
-            recompile == [source1, source2]
-            removed == []
-        }
+        checkCompile recompiled: [source1, source2], removed: []
     }
 
     def "detects source file change with new dependencies"() {
@@ -204,20 +233,36 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        source2 << "More text"
         def dep5 = sourceFile("dep5")
-        1 * dependencyParser.parseDependencies(source2) >> deps(dep3, dep4, dep5)
-        1 * dependencyParser.parseDependencies(dep5) >> []
+        added(dep5)
+        modified(source2, deps(dep3, dep4, dep5))
 
         then:
-        with (state) {
-            recompile == [source2]
-            removed == []
-        }
+        checkCompile recompiled: [source2], removed: []
 
         when:
-        dep5 << "changed"
-        1 * dependencyParser.parseDependencies(dep5) >> []
+        modified(dep5)
+
+        then:
+        checkCompile recompiled: [source2], removed: []
+    }
+
+    def "detects unchanged source file change with different resolved dependencies"() {
+        given:
+        initialFiles()
+
+        when:
+        def dep5 = sourceFile("dep5")
+        graph[dep5] = []
+
+        resolve(source1)
+        resolve(dep1)
+        resolve(dep2)
+        resolve(dep3)
+        parse(dep5)
+        resolve(dep5)
+
+        1 * dependencyParser.resolveIncludes(source2, includes(deps(dep3, dep4))) >> deps(dep3, dep5)
 
         then:
         with (state) {
@@ -231,26 +276,18 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        dep4 << "More text"
         def dep5 = sourceFile("dep5")
-        1 * dependencyParser.parseDependencies(dep4) >> deps(dep5)
-        1 * dependencyParser.parseDependencies(dep5) >> []
+        modified(dep4, deps(dep5))
+        added(dep5)
 
         then:
-        with (state) {
-            recompile == [source2]
-            removed == []
-        }
+        checkCompile recompiled: [source2], removed: []
 
         when:
-        dep5 << "changed"
-        1 * dependencyParser.parseDependencies(dep5) >> []
+        modified(dep5)
 
         then:
-        with (state) {
-            recompile == [source2]
-            removed == []
-        }
+        checkCompile recompiled: [source2], removed: []
     }
 
     def "detects dependency file change adding dependency cycle"() {
@@ -258,14 +295,10 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        dep3 << "More text"
-        1 * dependencyParser.parseDependencies(dep3) >> deps(dep1)
+        modified(dep3, deps(dep1))
 
         then:
-        with (state) {
-            recompile == [source1, source2]
-            removed == []
-        }
+        checkCompile recompiled: [source1, source2], removed: []
     }
 
     def "detects shared dependency file changed with new dependency"() {
@@ -273,25 +306,18 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        dep3 << "More text"
         def dep5 = sourceFile("dep5")
-        1 * dependencyParser.parseDependencies(dep3) >> deps(dep5)
-        1 * dependencyParser.parseDependencies(dep5) >> []
+        modified(dep3, deps(dep5))
+        added(dep5)
 
         then:
-        with (state) {
-            recompile == [source1, source2]
-            removed == []
-        }
+        checkCompile recompiled: [source1, source2], removed: []
+
         when:
-        dep5 << "changed"
-        1 * dependencyParser.parseDependencies(dep5) >> []
+        modified(dep5)
 
         then:
-        with (state) {
-            recompile == [source1, source2]
-            removed == []
-        }
+        checkCompile recompiled: [source1, source2], removed: []
     }
 
     def "detects changed dependency with new source file including that dependency"() {
@@ -299,18 +325,12 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        dep4 << "change"
-        1 * dependencyParser.parseDependencies(dep4) >> []
-
         def file3 = sourceFile("file3")
-        sourceFiles = [file3, source1, source2]
-        1 * dependencyParser.parseDependencies(file3) >> deps(dep4)
+        sourceAdded(file3, deps(dep4))
+        modified(dep4)
 
         then:
-        with (state) {
-            recompile == [file3, source2]
-            removed == []
-        }
+        checkCompile recompiled: [source2, file3], removed: []
     }
 
     def "detects source file removed then readded"() {
@@ -318,44 +338,35 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        sourceFiles.remove(source2)
+        sourceRemoved(source2)
 
         then:
-        with (state) {
-            recompile == []
-            removed == [source2]
-        }
+        checkCompile recompiled: [], removed: [source2]
 
         when:
-        sourceFiles.add(source2)
-        1 * dependencyParser.parseDependencies(source2) >> []
+        sourceAdded(source2, [])
+        graph.remove(dep4)
+        dependencyRemoved(dep4)
 
         then:
-        with (state) {
-            recompile == [source2]
-            removed == []
-        }
+        checkCompile recompiled: [source2], removed: []
     }
 
     def "handles source file that is also a dependency"() {
         given:
         initialFiles()
 
-        and:
-        dep2 << "changed"
-        1 * dependencyParser.parseDependencies(dep2) >> deps(source2)
-        with (state) {
-            recompile == [source1]
-        }
-
         when:
-        dep4 << "changed"
-        1 * dependencyParser.parseDependencies(dep4) >> []
+        modified(dep2, deps(source2))
 
         then:
-        with (state) {
-            recompile == [source1, source2]
-        }
+        checkCompile recompiled: [source1], removed: []
+
+        when:
+        modified(dep4)
+
+        then:
+        checkCompile recompiled: [source1, source2], removed: []
     }
 
     def "reports source file changed to dependency as removed"() {
@@ -363,26 +374,37 @@ class IncrementalCompileProcessorTest extends Specification {
         initialFiles()
 
         when:
-        dep2 << "added dep"
-        1 * dependencyParser.parseDependencies(dep2) >> deps(source2)
-
-        and:
-        sourceFiles.remove(source2)
+        modified(dep2, deps(source2))
+        sourceRemoved(source2)
 
         then:
-        with (state) {
-            recompile == [source1]
-            removed == [source2]
-        }
+        checkCompile recompiled: [source1], removed: [source2]
 
         when:
         sourceFiles.add(source2)
 
         then:
+        checkCompile recompiled: [source2], removed: []
+    }
+
+    def checkCompile(Map<String, List<File>> args) {
+        parseAndResolve()
         with (state) {
-            recompile == [source2]
-            removed == []
+            assert recompile == args['recompiled']
+            assert removed == args['removed']
         }
+        return true
+    }
+
+    def parseAndResolve() {
+        modified.each {
+            parse(it)
+        }
+        modified.clear()
+        graph.keySet().each { TestFile sourceFile ->
+            resolve(sourceFile)
+        }
+        true
     }
 
     def getState() {
@@ -407,7 +429,7 @@ class IncrementalCompileProcessorTest extends Specification {
         tmpDir.createFile(name) << "initial text"
     }
 
-    def deps(File... dep) {
-        dep.collect {new SourceDependency(it.name, it)}
+    Set<ResolvedInclude> deps(File... dep) {
+        dep.collect {new ResolvedInclude(it.name, it)} as Set
     }
 }

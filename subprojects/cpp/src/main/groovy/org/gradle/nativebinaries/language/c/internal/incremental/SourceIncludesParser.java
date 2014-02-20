@@ -16,8 +16,9 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import java.io.File;
-import java.util.List;
 
-public interface SourceDependencyParser {
-    List<SourceDependency> parseDependencies(File sourceFile);
+public interface SourceIncludesParser {
+
+    SourceIncludes parseIncludes(File sourceFile);
+
 }

@@ -28,20 +28,20 @@ import java.io.File;
 public class IncrementalCompilerBuilder {
     private final TaskInternal task;
     private final CacheRepository cacheRepository;
-    private final IncludesParser includesParser;
+    private final SourceIncludesParser sourceIncludesParser;
     private boolean cleanCompile;
     private Iterable<File> includes;
 
     public IncrementalCompilerBuilder(CacheRepository cacheRepository, TaskInternal task) {
         this.task = task;
-        this.includesParser = createIncludesParser(task);
+        this.sourceIncludesParser = createIncludesParser(task);
         this.cacheRepository = cacheRepository;
     }
 
-    private static IncludesParser createIncludesParser(TaskInternal task) {
+    private static SourceIncludesParser createIncludesParser(TaskInternal task) {
         CSourceParser sourceParser = new RegexBackedCSourceParser();
         boolean importsAreIncludes = ObjectiveCCompile.class.isAssignableFrom(task.getClass()) || ObjectiveCppCompile.class.isAssignableFrom(task.getClass());
-        return new DefaultIncludesParser(sourceParser, importsAreIncludes);
+        return new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
     }
 
     public IncrementalCompilerBuilder withCleanCompile() {
@@ -62,10 +62,10 @@ public class IncrementalCompilerBuilder {
     }
 
     private Compiler<NativeCompileSpec> createIncrementalCompiler(Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        return new IncrementalNativeCompiler(task, includesParser, includes, cacheRepository, compiler);
+        return new IncrementalNativeCompiler(task, sourceIncludesParser, includes, cacheRepository, compiler);
     }
 
     private Compiler<NativeCompileSpec> createCleaningCompiler(Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        return new CleanCompilingNativeCompiler(task, includesParser, includes, cacheRepository, compiler);
+        return new CleanCompilingNativeCompiler(task, sourceIncludesParser, includes, cacheRepository, compiler);
     }
 }

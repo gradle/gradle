@@ -30,7 +30,7 @@ class CleanCompilingNativeCompilerTest extends Specification {
     def incrementalCompileProcessor = Mock(IncrementalCompileProcessor)
     def task = Mock(TaskInternal)
     def outputs = Mock(TaskOutputsInternal)
-    def includesParser = Mock(IncludesParser);
+    def includesParser = Mock(SourceIncludesParser);
     def compiler = new CleanCompilingNativeCompiler(task, includesParser, null, null, delegateCompiler)
 
     def "cleans outputs and delegates spec for compilation"() {

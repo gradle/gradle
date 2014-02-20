@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultSourceDependencyParserTest extends Specification {
+class DefaultSourceIncludesResolverTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def testDirectory = temporaryFolder.testDirectory
@@ -28,11 +28,12 @@ class DefaultSourceDependencyParserTest extends Specification {
     def quotedIncludes = []
     def systemIncludes = []
     def macroIncludes = []
-    def includesParser = Mock(IncludesParser)
+    def includesParser = Mock(SourceIncludesParser)
+    def includes
     def includePaths = []
 
     def setup() {
-        def includes = Mock(IncludesParser.Includes)
+        includes = Mock(SourceIncludes)
         includesParser.parseIncludes(sourceFile) >> includes
         includes.getQuotedIncludes() >> quotedIncludes
         includes.getSystemIncludes() >> systemIncludes
@@ -44,7 +45,7 @@ class DefaultSourceDependencyParserTest extends Specification {
     }
 
     def getDependencies() {
-        return new DefaultSourceDependencyParser(includesParser, includePaths).parseDependencies(sourceFile)
+        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes) as List
     }
 
     def "handles source file with no includes"() {
@@ -148,6 +149,6 @@ class DefaultSourceDependencyParserTest extends Specification {
     }
 
     def dep(File dependencyFile) {
-        return new SourceDependency(dependencyFile.name, dependencyFile)
+        return new ResolvedInclude(dependencyFile.name, dependencyFile)
     }
 }

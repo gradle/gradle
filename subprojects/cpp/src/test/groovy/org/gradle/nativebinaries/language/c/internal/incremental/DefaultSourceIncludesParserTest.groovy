@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.language.c.internal.incremental
 import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.CSourceParser
 import spock.lang.Specification
 
-class DefaultIncludesParserTest extends Specification {
+class DefaultSourceIncludesParserTest extends Specification {
     def sourceParser = Mock(CSourceParser)
     def sourceDetails = Mock(CSourceParser.SourceDetails)
 
@@ -28,7 +28,7 @@ class DefaultIncludesParserTest extends Specification {
         def file = new File("test")
 
         when:
-        def includesParser = new DefaultIncludesParser(sourceParser, false)
+        def includesParser = new DefaultSourceIncludesParser(sourceParser, false)
 
         1 * sourceParser.parseSource(file) >> sourceDetails
         1 * sourceDetails.includes >> ['"quoted"', '<system>', 'DEFINED']
@@ -49,7 +49,7 @@ class DefaultIncludesParserTest extends Specification {
         def file = new File("test")
 
         when:
-        def includesParser = new DefaultIncludesParser(sourceParser, true)
+        def includesParser = new DefaultSourceIncludesParser(sourceParser, true)
 
         1 * sourceParser.parseSource(file) >> sourceDetails
         1 * sourceDetails.includes >> ['"quoted"', '<system>', 'DEFINED']

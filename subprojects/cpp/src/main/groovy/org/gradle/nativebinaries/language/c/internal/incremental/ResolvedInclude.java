@@ -18,11 +18,11 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 import java.io.File;
 import java.io.Serializable;
 
-public class SourceDependency implements Serializable {
+public class ResolvedInclude implements Serializable {
     private final String include;
     private final File dependencyFile;
 
-    public SourceDependency(String include, File dependencyFile) {
+    public ResolvedInclude(String include, File dependencyFile) {
         this.include = include;
         this.dependencyFile = dependencyFile;
     }
@@ -41,7 +41,7 @@ public class SourceDependency implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Source dependency '%s'", include);
+        return String.format("Resolved include '%s'", include);
     }
 
     @Override
@@ -49,11 +49,11 @@ public class SourceDependency implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof SourceDependency)) {
+        if (!(o instanceof ResolvedInclude)) {
             return false;
         }
 
-        SourceDependency that = (SourceDependency) o;
+        ResolvedInclude that = (ResolvedInclude) o;
 
         return include.equals(that.include)
                 && (dependencyFile == null ? that.dependencyFile == null : dependencyFile.equals(that.dependencyFile));
