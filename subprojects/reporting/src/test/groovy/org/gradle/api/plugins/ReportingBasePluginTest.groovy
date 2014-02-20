@@ -16,8 +16,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.plugins.ReportingBasePlugin
-import org.gradle.api.plugins.ReportingBasePluginConvention
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -25,20 +23,20 @@ import spock.lang.Specification
 public class ReportingBasePluginTest extends Specification {
 
     Project project = TestUtil.createRootProject();
-    
+
     def setup() {
         project.plugins.apply(ReportingBasePlugin)
     }
-    
+
     def addsTasksAndConventionToProject() {
         expect:
         project.convention.plugins.get("reportingBase") instanceof ReportingBasePluginConvention
     }
-    
+
     def "adds reporting extension"() {
         expect:
         project.reporting instanceof ReportingExtension
-        
+
         project.configure(project) {
             reporting {
                 baseDir "somewhere"
