@@ -28,7 +28,7 @@ public class TestMethodResult {
     private long duration;
     private long endTime;
     private List<TestFailure> failures = new ArrayList<TestFailure>();
-    private List<TestIgnore> ignored = new ArrayList<TestIgnore>();
+    private boolean ignored = false;
 
     public TestMethodResult(long id, String name) {
         this.id = id;
@@ -58,8 +58,8 @@ public class TestMethodResult {
         return this;
     }
 
-    public TestMethodResult addIgnore() {
-        this.ignored.add(new TestIgnore());
+    public TestMethodResult setIgnored() {
+        this.ignored = true;
         return this;
     }
 
@@ -75,7 +75,7 @@ public class TestMethodResult {
         return failures;
     }
 
-    public List<TestIgnore> getIgnored() {
+    public boolean isIgnored() {
         return ignored;
     }
 

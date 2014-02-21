@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing
 import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestFailure
-import org.gradle.api.internal.tasks.testing.junit.result.TestIgnore
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.tasks.testing.TestOutputEvent
@@ -125,7 +124,7 @@ class BuildableTestResultsProvider implements TestResultsProvider {
 
         long duration
         List<TestFailure> failures = []
-        List<TestIgnore> ignored = []
+        boolean ignored
 
         TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
 
@@ -144,7 +143,7 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         }
         
         void ignore() {
-            ignored.add(new TestIgnore())
+            ignored = true
             resultType = TestResult.ResultType.SKIPPED
         }
 

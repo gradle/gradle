@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
-import org.gradle.api.internal.tasks.testing.junit.result.TestIgnore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +26,8 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
     private final long duration;
     final ClassTestResults classResults;
     final List<TestFailure> failures = new ArrayList<TestFailure>();
-    final List<TestIgnore> ignored = new ArrayList<TestIgnore>();
     final String name;
+    boolean ignored = false;
 
     public TestResult(String name, long duration, ClassTestResults classResults) {
         this.name = name;
@@ -49,20 +48,22 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return String.format("Test %s", name);
     }
 
+    @Override
     public ResultType getResultType() {
-        if (!ignored.isEmpty()) {
+        if (ignored) {
             return ResultType.SKIPPED;
         }
         return failures.isEmpty() ? ResultType.SUCCESS : ResultType.FAILURE;
     }
 
+    @Override
     public long getDuration() {
         return duration;
     }
 
     @Override
     public String getFormattedDuration() {
-        return !ignored.isEmpty() ? "-" : super.getFormattedDuration();
+        return ignored ? "-" : super.getFormattedDuration();
     }
 
     public ClassTestResults getClassResults() {
@@ -73,7 +74,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return failures;
     }
 
-    public List<TestIgnore> getIgnored() {
+    public boolean isIgnored() {
         return ignored;
     }
 
@@ -82,9 +83,9 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         failures.add(failure);
     }
 
-    public void addIgnored(TestIgnore ignore) {
+    public void setIgnored() {
         classResults.ignored(this);
-        ignored.add(ignore);
+        ignored = true;
     }
 
     public int compareTo(TestResult testResult) {
