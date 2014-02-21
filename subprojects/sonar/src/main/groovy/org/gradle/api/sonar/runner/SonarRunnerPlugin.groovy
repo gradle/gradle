@@ -187,6 +187,7 @@ class SonarRunnerPlugin implements Plugin<Project> {
             File testResultsDir = project.test.reports.junitXml.destination
             File testResultsValue = testResultsDir.exists() ? testResultsDir : null
             properties["sonar.surefire.reportsPath"] = testResultsValue
+            // added due to http://issues.gradle.org/browse/GRADLE-3005
             properties["sonar.junit.reportsPath"] = testResultsValue
 
             project.plugins.withType(JacocoPlugin) {
