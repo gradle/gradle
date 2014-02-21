@@ -88,7 +88,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             // Build configuration for GradleWorkerMain
             List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
             Object id = idGenerator.generateId();
-            String displayName = String.format("Gradle Worker %s", id);
+            String displayName = getBaseName() + " " + id;
 
             WorkerFactory workerFactory;
             if (isLoadApplicationInSystemClassLoader()) {
