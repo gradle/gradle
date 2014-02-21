@@ -145,7 +145,7 @@ We would like to thank the following community members for making contributions 
 * [Ivan Vyshnevskyi](https://github.com/sainaen) - Fixes to HTML test report
 * [Marcin Erdmann](https://github.com/erdi) - dependency ordering of imported ant targets [GRADLE-1102]
 * [Vincent Cantin](https://github.com/green-coder) - documentation improvements
-* [“Big Guy”](https://github.com/big-guy) - Support for developing Gradle in Eclipse
+* [Sterling Greene](https://github.com/big-guy) - Support for developing Gradle in Eclipse
 * [Matthew Michihara](https://github.com/matthewmichihara) - Documentation improvements
 * [Andrew Oberstar](https://github.com/ajoberstar) - Improved Sonar support on Java 1.5 [GRADLE-3005]
 
