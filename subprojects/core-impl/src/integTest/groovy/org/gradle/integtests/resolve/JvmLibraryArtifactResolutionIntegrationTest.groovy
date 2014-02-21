@@ -186,6 +186,46 @@ task verify << {
         succeeds("verify")
     }
 
+    def "resolve non-existing artifacts of existing component"() {
+        artifacts("sources", "javadoc")
+        server.expectGetMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar")
+        server.expectGetMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar")
+        module.allowAll()
+
+        buildFile <<
+"""
+import org.gradle.api.artifacts.resolution.*
+
+repositories {
+    maven { url "$repo.uri" }
+}
+
+task verify << {
+    def result = dependencies.createArtifactResolutionQuery()
+        .forComponent("some.group", "some-artifact", "1.0")
+        .withArtifacts(JvmLibrary)
+        .execute()
+
+    assert result.components.size() == 1
+    for (component in components) {
+        assert component.id.group == "some.group"
+        assert component.id.module == "some-artifact"
+        assert component.id.version == "1.0"
+        assert component instanceof JvmLibrary
+
+        assert component.allArtifacts.empty
+        assert component.sourceArtifacts.empty
+        assert component.javadocArtifacts.empty
+    }
+
+    assert result.unresolvedComponents.empty
+}
+"""
+
+        expect:
+        succeeds("verify")
+    }
+
     def "resolve partially missing artifacts"() {
         artifacts("sources")
         module.allowAll()

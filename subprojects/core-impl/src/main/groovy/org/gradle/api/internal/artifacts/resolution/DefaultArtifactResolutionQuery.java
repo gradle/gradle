@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.resolution;
 
 import com.google.common.collect.*;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.resolution.*;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
@@ -64,23 +63,27 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         Configuration configuration = configurationContainer.detachedConfiguration(
                 artifactDependencies.toArray(new Dependency[artifactDependencies.size()]));
 
-        Multimap<ComponentIdentifier, JvmLibraryArtifact> jvmLibraryArtifacts = ArrayListMultimap.create();
         LenientConfiguration lenientConfiguration = configuration.getResolvedConfiguration().getLenientConfiguration();
-        Set<ResolvedArtifact> resolvedArtifacts = lenientConfiguration.getArtifacts(Specs.satisfyAll());
 
-        for (ResolvedArtifact artifact : resolvedArtifacts) {
+        Set<UnresolvedSoftwareComponent> unresolvedComponents = Sets.newHashSet();
+        Set<ModuleComponentIdentifier> unresolvedComponentIds = Sets.newHashSet();
+        for (UnresolvedDependency dependency : lenientConfiguration.getUnresolvedModuleDependencies()) {
+            ModuleComponentIdentifier id = toComponentIdentifier(dependency.getSelector());
+            unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(id, dependency.getProblem()));
+            unresolvedComponentIds.add(id);
+        }
+
+        Multimap<ModuleComponentIdentifier, JvmLibraryArtifact> jvmLibraryArtifacts = ArrayListMultimap.create();
+        for (ResolvedArtifact artifact : lenientConfiguration.getArtifacts(Specs.satisfyAll())) {
             ModuleComponentIdentifier componentId = toComponentIdentifier(artifact.getModuleVersion().getId());
             jvmLibraryArtifacts.put(componentId, toJvmLibraryArtifact(artifact));
         }
 
         Set<JvmLibrary> jvmLibraries = Sets.newHashSet();
-        for (Map.Entry<ComponentIdentifier, Collection<JvmLibraryArtifact>> entry : jvmLibraryArtifacts.asMap().entrySet()) {
-            jvmLibraries.add(new DefaultJvmLibrary(entry.getKey(), ImmutableList.copyOf(entry.getValue())));
-        }
-
-        Set<UnresolvedSoftwareComponent> unresolvedComponents = Sets.newHashSet();
-        for (UnresolvedDependency dependency : lenientConfiguration.getUnresolvedModuleDependencies()) {
-            unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(toComponentIdentifier(dependency.getSelector()), dependency.getProblem()));
+        // make sure that resolved components w/o any resolved artifacts are included in the result
+        Set<ModuleComponentIdentifier> resolvedComponentIds = Sets.difference(componentIds, unresolvedComponentIds);
+        for (ModuleComponentIdentifier id : resolvedComponentIds) {
+            jvmLibraries.add(new DefaultJvmLibrary(id, ImmutableList.copyOf(jvmLibraryArtifacts.get(id))));
         }
 
         return new DefaultArtifactResolutionQueryResult(jvmLibraries, unresolvedComponents);
