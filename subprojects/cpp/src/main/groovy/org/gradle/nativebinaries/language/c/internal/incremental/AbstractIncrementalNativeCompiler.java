@@ -24,8 +24,8 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.DefaultSerializer;
@@ -34,7 +34,6 @@ import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.List;
 
 abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
     private final TaskInternal task;
@@ -70,16 +69,15 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
     }
 
     private IncrementalCompileProcessor createProcessor(Iterable<File> includes, PersistentCache cache) {
-        PersistentIndexedCache<File, FileState> stateCache = createCache(cache, "state", File.class, new DefaultSerializer<FileState>(FileState.class.getClassLoader()));
         // TODO:DAZ This doesn't need to be an indexed cache: need PersistentCache.createStateCache()
-        PersistentIndexedCache<String, List<File>> listCache = createCache(cache, "previous", String.class, new DefaultSerializer<List<File>>());
+        PersistentIndexedCache<String, CompilationState> listCache = createCache(cache, "previous", new DefaultSerializer<CompilationState>());
 
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
 
         // TODO:DAZ Inject a factory, and come up with a common abstraction for TaskArtifactStateCacheAccess and PersistentCache
         FileSnapshotter snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cache);
 
-        return new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, sourceIncludesParser, snapshotter);
+        return new IncrementalCompileProcessor(listCache, dependencyParser, sourceIncludesParser, snapshotter);
     }
 
     private PersistentCache openCache(TaskInternal task) {
@@ -89,8 +87,8 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
                 .open();
     }
 
-    private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, Serializer<V> fileStateDefaultSerializer) {
-        return cache.createCache(new PersistentIndexedCacheParameters<U, V>(name, keyType, fileStateDefaultSerializer));
+    private <V> PersistentIndexedCache<String, V> createCache(PersistentCache cache, String name, Serializer<V> fileStateDefaultSerializer) {
+        return cache.createCache(new PersistentIndexedCacheParameters<String, V>(name, String.class, fileStateDefaultSerializer));
     }
 
 }

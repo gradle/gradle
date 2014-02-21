@@ -19,10 +19,8 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class FileState implements Serializable {
+public class CompilationFileState implements Serializable {
     private byte[] hash;
-    // TODO:DAZ We should cache the source includes separately, shared by all compile tasks.
-    // The resolved includes should continue to be cached per compile task.
     private SourceIncludes sourceIncludes;
     private Set<ResolvedInclude> resolvedIncludes = new HashSet<ResolvedInclude>();
 
@@ -38,7 +36,7 @@ public class FileState implements Serializable {
         return sourceIncludes;
     }
 
-    public void setIncludes(SourceIncludes sourceIncludes) {
+    public void setSourceIncludes(SourceIncludes sourceIncludes) {
         this.sourceIncludes = sourceIncludes;
     }
 

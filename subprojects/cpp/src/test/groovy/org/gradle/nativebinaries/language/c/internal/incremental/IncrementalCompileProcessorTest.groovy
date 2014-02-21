@@ -35,9 +35,8 @@ class IncrementalCompileProcessorTest extends Specification {
     def dependencyParser = Mock(SourceIncludesResolver)
     def cacheFactory = new InMemoryCacheFactory()
     def fileSnapshotter = Stub(FileSnapshotter)
-    def stateCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new DefaultSerializer<FileState>())
-    def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new DefaultSerializer<List<File>>())
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, includesParser, fileSnapshotter)
+    def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new DefaultSerializer<CompilationState>())
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(listCache, dependencyParser, includesParser, fileSnapshotter)
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -124,6 +123,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def sourceRemoved(TestFile sourceFile) {
         sourceFiles.remove(sourceFile)
+        graph.remove(sourceFile)
     }
 
     def dependencyRemoved(TestFile sourceFile) {
@@ -157,13 +157,10 @@ class IncrementalCompileProcessorTest extends Specification {
 
         when:
         sourceRemoved(source2)
+        graph.remove(dep4)
 
         then:
         checkCompile recompiled: [], removed: [source2]
-
-        and:
-        cached dep3
-        uncached dep4
     }
 
     def "detects removed source file with multiple dependencies"() {
@@ -172,13 +169,11 @@ class IncrementalCompileProcessorTest extends Specification {
 
         when:
         sourceRemoved(source1)
+        graph.remove(dep1)
+        graph.remove(dep2)
 
         then:
         checkCompile recompiled: [], removed: [source1]
-
-        and:
-        uncached dep1, dep2
-        cached dep3, dep4
     }
 
     def "detects source file changed"() {
@@ -190,9 +185,6 @@ class IncrementalCompileProcessorTest extends Specification {
 
         then:
         checkCompile recompiled: [source2], removed: []
-
-        and:
-        cached dep3, dep4
     }
 
     def "detects dependency file changed"() {
@@ -339,14 +331,13 @@ class IncrementalCompileProcessorTest extends Specification {
 
         when:
         sourceRemoved(source2)
+        graph.remove(dep4)
 
         then:
         checkCompile recompiled: [], removed: [source2]
 
         when:
         sourceAdded(source2, [])
-        graph.remove(dep4)
-        dependencyRemoved(dep4)
 
         then:
         checkCompile recompiled: [source2], removed: []
@@ -375,7 +366,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
         when:
         modified(dep2, deps(source2))
-        sourceRemoved(source2)
+        sourceFiles.remove(source2)
 
         then:
         checkCompile recompiled: [source1], removed: [source2]
@@ -409,20 +400,6 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def getState() {
         incrementalCompileProcessor.processSourceFiles(sourceFiles)
-    }
-
-    def cached(File... files) {
-        files.each {
-            assert stateCache.get(it) != null
-        }
-        true
-    }
-
-    def uncached(File... files) {
-        files.each {
-            assert stateCache.get(it) == null
-        }
-        true
     }
 
     def sourceFile(def name) {
