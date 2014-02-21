@@ -28,6 +28,8 @@ import static java.util.Collections.emptyMap;
 
 public class IvyUtil {
 
+    private static final Object MODULE_ID_LOCK = new Object(); //see GRADLE-3027
+
     public static ModuleRevisionId createModuleRevisionId(Module module) {
         return createModuleRevisionId(module.getGroup(), module.getName(), module.getVersion());
     }
@@ -57,10 +59,14 @@ public class IvyUtil {
     }
 
     public static ModuleRevisionId createModuleRevisionId(String org, String name, String branch, String revConstraint, Map extraAttributes, boolean replaceNullBranchWithDefault) {
-        return ModuleRevisionId.newInstance(org, name, branch, revConstraint, extraAttributes, replaceNullBranchWithDefault);
+        synchronized (MODULE_ID_LOCK) {
+            return ModuleRevisionId.newInstance(org, name, branch, revConstraint, extraAttributes, replaceNullBranchWithDefault);
+        }
     }
 
     public static ModuleId createModuleId(String org, String name) {
-        return ModuleId.newInstance(org, name);
+        synchronized (MODULE_ID_LOCK) {
+            return ModuleId.newInstance(org, name);
+        }
     }
 }
