@@ -338,8 +338,8 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         assert containsLine(result.getOutput(), "START [tests] [Test Run]");
         assert containsLine(result.getOutput(), "FINISH [tests] [Test Run] [FAILURE] [4]");
 
-        assert containsLine(result.getOutput(), "START [test process 'Gradle Worker 1'] [Gradle Worker 1]");
-        assert containsLine(result.getOutput(), "FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1] [FAILURE] [4]");
+        assert containsLine(result.getOutput(), "START [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]");
+        assert containsLine(result.getOutput(), "FINISH [process 'Gradle Test Executor 1'] [Gradle Test Executor 1] [FAILURE] [4]");
 
         assert containsLine(result.getOutput(), "START [test class SomeOtherTest] [SomeOtherTest]");
         assert containsLine(result.getOutput(), "FINISH [test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]");

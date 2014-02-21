@@ -55,8 +55,8 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
 
         assert containsLine(result.getOutput(), "START [tests] [Test Run]");
         assert containsLine(result.getOutput(), "FINISH [tests] [Test Run]");
-        assert containsLine(result.getOutput(), "START [test process 'Gradle Worker 1'] [Gradle Worker 1]");
-        assert containsLine(result.getOutput(), "FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1]");
+        assert containsLine(result.getOutput(), "START [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]");
+        assert containsLine(result.getOutput(), "FINISH [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]");
         assert containsLine(result.getOutput(), "START [test 'Gradle test'] [Gradle test]");
         assert containsLine(result.getOutput(), "FINISH [test 'Gradle test'] [Gradle test]");
         assert containsLine(result.getOutput(), "START [test method pass(SomeTest)] [pass]");
