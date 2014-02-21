@@ -102,7 +102,7 @@ public class InstallExecutable extends DefaultTask {
         final destination = getDestinationDir()
         final File executable = getExecutable()
 
-        installToDir(new File(destination, "lib"))
+        installToDir(new File(destination, "lib"), true)
 
         StringBuilder toolChainPath = new StringBuilder()
         if (toolChain in Gcc) {
@@ -129,13 +129,24 @@ ENDLOCAL
         final destination = getDestinationDir()
         final executable = getExecutable()
 
-        installToDir(new File(destination, "lib"))
+        installToDir(new File(destination, "lib"), false)
+
+        final Set<String> libFolders = new LinkedHashSet<String>();
+        for (File libFile : getLibs()) {
+            libFolders.add(libFile.getParent());
+        }
+
+        final StringBuilder ldLibraryPath = new StringBuilder()
+        for (String libFolder : libFolders) {
+            ldLibraryPath.append(libFolder).append(":")
+        }        
+        ldLibraryPath.setLength(ldLibraryPath.length()-1)
 
         runScript.text = """
 #/bin/sh
 APP_BASE_NAME=`dirname "\$0"`
-export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
-export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
+export DYLD_LIBRARY_PATH="${ldLibraryPath}"
+export LD_LIBRARY_PATH="${ldLibraryPath}"
 exec "\$APP_BASE_NAME/lib/${executable.name}" \"\$@\"
 """
 
@@ -143,12 +154,14 @@ exec "\$APP_BASE_NAME/lib/${executable.name}" \"\$@\"
         fileSystem.chmod(runScript, 0755)
     }
 
-    private void installToDir(File binaryDir) {
+    private void installToDir(File binaryDir, boolean installLibs) {
         fileOperations.sync(new Action<CopySpec>() {
             void execute(CopySpec copySpec) {
                 copySpec.into(binaryDir)
                 copySpec.from(getExecutable())
-                copySpec.from(getLibs())
+                if (installLibs) {
+                    copySpec.from(getLibs())
+                }
             }
         })
     }
