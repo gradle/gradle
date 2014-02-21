@@ -70,11 +70,31 @@ approximately 2 years old as of the Gradle 2.0 release.
 * Remove unused `IllegalOperationAtExecutionTimeException`.
 * Remove unused `AntJavadoc`.
 
-# Candidates
+## Reset deprecation warnings
 
-The following stories are candidates to be included in Gradle 2.0. They have not been scheduled yet:
+* Remove most calls to `DeprecationLogger.whileDisabled()`
 
 ## All Gradle scripts use UTF-8 encoding
+
+* Change Gradle script parsing to assume UTF-8 encoding.
+
+## Archive tasks + base plugin
+
+* Move defaults for output directory to the tasks and remove from base plugin.
+* Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with the default for another
+  archive task.
+
+## Test output directories
+
+The current defaults for the outputs of tasks of type `Test` conflict with each other:
+
+* Change the default result and report directory for the `Test` type to include the task's name, so that the default
+  does not conflict with the default for another `Test` task.
+* Change the default TestNG output directory.
+
+# Candidates
+
+The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 2.0.
 
 ## Remove `group` and `status` from project
 
@@ -112,20 +132,6 @@ There are several inconsistencies and confusing behaviours in the copy tasks and
 * Change the default duplicatesStrategy to `fail` or perhaps `warn`.
 * Change the `Ear` type so that the generated descriptor takes precedence over a descriptor in the main content, similar to the manifest for `Jar` and the
   web XML for `War`.
-
-## Archive tasks + base plugin
-
-* Move defaults for output directory to the tasks and remove from base plugin.
-* Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with the default for another
-  archive task.
-
-## Test output directories
-
-The current defaults for the outputs of tasks of type `Test` conflict with each other:
-
-* Change the default result and report directory for the `Test` type to include the task's name, so that the default
-  does not conflict with the default for another `Test` task.
-* Change the default TestNG output directory.
 
 ## Remove old dependency result graph
 
