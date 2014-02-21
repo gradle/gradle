@@ -235,7 +235,10 @@ This story changes the `idea` and `eclipse` plugins to use the resolution result
 
 This story improves the convention used to locate the source and Javadocs to cover some common Ivy conventions.
 
-TBD
+### Open issues
+
+* How can the artifact resolution API tell whether it's dealing with Maven or Ivy modules, so that it can apply a suitable strategy
+  for finding sources and javadoc artifacts? (Currently, the API only receives component IDs as input.)
 
 ## Story: Source and Javadoc artifacts are exposed for a local Java component
 
