@@ -61,6 +61,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId;
+
 /**
  * Copied from org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser into Gradle codebase.
  */
@@ -332,7 +334,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         protected DependencyDescriptor getDefaultConfMappingDescriptor() {
             if (defaultConfMappingDescriptor == null) {
-                defaultConfMappingDescriptor = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("", "", ""), false);
+                defaultConfMappingDescriptor = new DefaultDependencyDescriptor(createModuleRevisionId("", "", ""), false);
                 parseDepsConfs(defaultConfMapping, defaultConfMappingDescriptor, false, false);
             }
             return defaultConfMappingDescriptor;
@@ -681,12 +683,12 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             DefaultModuleDescriptor descriptor = getMd();
             ModuleRevisionId currentMrid = descriptor.getModuleRevisionId();
 
-            ModuleRevisionId mergedMrid = IvyUtil.createModuleRevisionId(
-                mergeValue(parentMrid.getOrganisation(), currentMrid.getOrganisation()),
-                currentMrid.getName(),
-                mergeValue(parentMrid.getBranch(), currentMrid.getBranch()),
-                mergeValue(parentMrid.getRevision(), currentMrid.getRevision()),
-                mergeValues(parentMrid.getQualifiedExtraAttributes(), currentMrid.getQualifiedExtraAttributes())
+            ModuleRevisionId mergedMrid = createModuleRevisionId(
+                    mergeValue(parentMrid.getOrganisation(), currentMrid.getOrganisation()),
+                    currentMrid.getName(),
+                    mergeValue(parentMrid.getBranch(), currentMrid.getBranch()),
+                    mergeValue(parentMrid.getRevision(), currentMrid.getRevision()),
+                    mergeValues(parentMrid.getQualifiedExtraAttributes(), currentMrid.getQualifiedExtraAttributes())
             );
 
             descriptor.setModuleRevisionId(mergedMrid);
@@ -743,8 +745,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation,
                 String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
-            ModuleId parentModuleId = new ModuleId(parentOrganisation, parentModule);
-            ModuleRevisionId parentMrid = new ModuleRevisionId(parentModuleId, parentRevision);
+            ModuleRevisionId parentMrid = createModuleRevisionId(parentOrganisation, parentModule, parentRevision);
             Artifact pomArtifact = DefaultArtifact.newIvyArtifact(parentMrid, new Date());
             ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(pomArtifact);
             LocallyAvailableExternalResource externalResource = parseContext.getArtifact(artifactIdentifier);
@@ -873,19 +874,19 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String[] ignoredAttributeNames = DEPENDENCY_REGULAR_ATTRIBUTES;
             Map extraAttributes = getExtraAttributes(attributes, ignoredAttributeNames);
 
-            ModuleRevisionId revId = IvyUtil.createModuleRevisionId(org, name, branch, rev, extraAttributes);
+            ModuleRevisionId revId = createModuleRevisionId(org, name, branch, rev, extraAttributes);
             ModuleRevisionId dynamicId;
             if ((revConstraint == null) && (branchConstraint == null)) {
                 // no dynamic constraints defined, so dynamicId equals revId
-                dynamicId = IvyUtil.createModuleRevisionId(org, name, branch, rev, extraAttributes, false);
+                dynamicId = createModuleRevisionId(org, name, branch, rev, extraAttributes, false);
             } else {
                 if (branchConstraint == null) {
                     // this situation occurs when there was no branch defined
                     // in the original dependency descriptor. So the dynamicId
                     // shouldn't contain a branch neither
-                    dynamicId = IvyUtil.createModuleRevisionId(org, name, null, revConstraint, extraAttributes, false);
+                    dynamicId = createModuleRevisionId(org, name, null, revConstraint, extraAttributes, false);
                 } else {
-                    dynamicId = IvyUtil.createModuleRevisionId(org, name, branchConstraint, revConstraint, extraAttributes);
+                    dynamicId = createModuleRevisionId(org, name, branchConstraint, revConstraint, extraAttributes);
                 }
             }
 
@@ -961,7 +962,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String revision = substitute(attributes.getValue("revision"));
             String branch = substitute(attributes.getValue("branch"));
             Map extraAttributes = getExtraAttributes(attributes, new String[]{"organisation", "module", "revision", "status", "publication", "branch", "namespace", "default", "resolver"});
-            getMd().setModuleRevisionId(IvyUtil.createModuleRevisionId(org, module, branch, revision, extraAttributes));
+            getMd().setModuleRevisionId(createModuleRevisionId(org, module, branch, revision, extraAttributes));
 
             getMd().setStatus(elvis(substitute(attributes.getValue("status")), "integration"));
             getMd().setDefault(Boolean.valueOf(substitute(attributes.getValue("default"))));

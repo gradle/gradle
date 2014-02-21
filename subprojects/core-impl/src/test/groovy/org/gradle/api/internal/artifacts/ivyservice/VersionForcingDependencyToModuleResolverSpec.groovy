@@ -15,18 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import spock.lang.Specification
+
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId
 
 class VersionForcingDependencyToModuleResolverSpec extends Specification {
     final target = Mock(DependencyToModuleVersionIdResolver)
     final resolvedVersion = Mock(ModuleVersionIdResolveResult)
-    final forced = new ModuleRevisionId(new ModuleId('group', 'module'), 'forced')
+    final forced = createModuleRevisionId('group', 'module', 'forced')
 
     def "passes through dependency when it does not match any rule"() {
         def dep = dependency('org', 'module', '1.0')

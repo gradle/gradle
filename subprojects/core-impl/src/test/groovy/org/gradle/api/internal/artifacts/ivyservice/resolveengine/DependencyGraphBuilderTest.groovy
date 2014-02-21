@@ -40,6 +40,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId
 
 class DependencyGraphBuilderTest extends Specification {
     final ConfigurationInternal configuration = Mock()
@@ -841,7 +842,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def revision(String name, String revision = '1.0') {
-        DefaultModuleDescriptor descriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("group", name), revision), "release", new Date())
+        DefaultModuleDescriptor descriptor = new DefaultModuleDescriptor(createModuleRevisionId("group", name, revision), "release", new Date())
         ModuleVersionMetaData metaData = new ModuleDescriptorAdapter(descriptor)
         config(metaData, 'default')
         descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
@@ -898,7 +899,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def brokenSelector(Map<String, ?> args = [:], ModuleVersionMetaData from, String to) {
-        def descriptor = dependsOn(args, from.descriptor, IvyUtil.createModuleRevisionId("group", to, "1.0"))
+        def descriptor = dependsOn(args, from.descriptor, createModuleRevisionId("group", to, "1.0"))
         ModuleVersionIdResolveResult result = Mock()
         (0..1) * dependencyResolver.resolve({it.descriptor == descriptor}) >> result
         _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
@@ -908,7 +909,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def dependsOn(Map<String, ?> args = [:], DefaultModuleDescriptor from, ModuleRevisionId to) {
         ModuleDependency moduleDependency = Mock()
-        def dependencyId = args.revision ? new ModuleRevisionId(to.moduleId, args.revision) : to
+        def dependencyId = args.revision ? createModuleRevisionId(to.moduleId.organisation, to.moduleId.name, args.revision) : to
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
         def descriptor = new EnhancedDependencyDescriptor(moduleDependency, from, dependencyId, force, false, transitive)

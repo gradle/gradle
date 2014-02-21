@@ -26,6 +26,8 @@ import spock.lang.Specification
 
 import java.text.SimpleDateFormat
 
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId
+
 class IvyXmlModuleDescriptorWriterTest extends Specification {
 
     private @Rule TestNameTestDirectoryProvider temporaryFolder;
@@ -83,7 +85,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
 
     def "does not evaluate dependency descriptor mediators"() {
         given:
-        ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance('org.test', 'projectA', '2.0')
+        ModuleRevisionId moduleRevisionId = createModuleRevisionId('org.test', 'projectA', '2.0')
         ModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId)
         ModuleId moduleId = new ModuleId('org.test', 'projectA')
         DependencyDescriptorMediator mediator = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId)
