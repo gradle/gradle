@@ -299,4 +299,51 @@ allprojects {
         String content = getFile(project: 'master', 'master.ipr').text
         assert content.count('filepath="$PROJECT_DIR$/api/api.iml"') == 1
     }
+
+    @Test
+    void buildsCorrectModuleDependenciesWithScopes() {
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << """
+include 'api'
+include 'impl'
+include 'app'
+"""
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+
+project(':impl') {
+    dependencies {
+        compile project(':api')
+    }
+}
+
+project(':app') {
+    dependencies {
+        compile project(':api')
+        testCompile project(':impl')
+        runtime project(':impl')
+    }
+}
+"""
+
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+        def iml = parseFile(project: 'master/app', print: true, 'app.iml')
+
+        //then
+        assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
+
+        def orderEntries = iml.component.orderEntry
+        assert orderEntries.any { it.@type == 'module' &&
+                it.'@module-name'.text().contains ('api') }
+        assert orderEntries.any { it.@type == 'module' && it.@scope == 'RUNTIME' &&
+                it.'@module-name'.text().contains ('impl') }
+        assert orderEntries.any { it.@type == 'module' && it.@scope == 'TEST' &&
+                it.'@module-name'.text().contains ('impl') }
+    }
 }
