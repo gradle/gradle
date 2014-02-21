@@ -91,9 +91,9 @@ import org.gradle.testing.jacoco.plugins.JacocoPlugin
  *     <dt>sonar.libraries
  *     <dd>sourceSets.main.runtimeClasspath (filtering to only include files; {@code rt.jar} added if necessary)
  *     <dt>sonar.surefire.reportsPath
- *     <dd>test.testResultsDir (if the directory exists) -- for Java Ecosystem &lt;1.5
+ *     <dd>test.testResultsDir (if the directory exists)
  *     <dt>sonar.junit.reportsPath
- *     <dd>test.testResultsDir (if the directory exists) -- for Java Ecosystem &gt;=1.5
+ *     <dd>test.testResultsDir (if the directory exists)
  * </dl>
  */
 @Incubating
