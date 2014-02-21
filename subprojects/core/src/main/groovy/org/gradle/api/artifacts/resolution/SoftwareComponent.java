@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 /**
  * A software component with resolved artifacts.
  *
+ * Implementations have the following equals contract:
+ * {@code other != null && getClass() == other.getClass() && getId().equals(other.getId());}
+ *
  * @param <T> the type of software artifact belonging to this component
  *
  * @since 1.12
