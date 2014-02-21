@@ -40,6 +40,7 @@ public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory
 
     public <R extends Serializable, P extends Serializable> RhinoWorkerHandle<R, P> create(Iterable<File> rhinoClasspath, RhinoWorkerSpec<R, P> workerSpec, LogLevel logLevel, Action<JavaExecSpec> javaExecSpecAction) {
         WorkerProcessBuilder builder = workerProcessBuilderFactory.create();
+        builder.setBaseName("Gradle Rhino Worker");
         builder.setLogLevel(logLevel);
         builder.applicationClasspath(rhinoClasspath);
         builder.sharedPackages("org.mozilla.javascript");

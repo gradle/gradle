@@ -53,7 +53,7 @@ public class CompilerDaemonStarter {
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
         javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(workingDir);
-        WorkerProcess process = builder.worker(new CompilerDaemonServer()).build();
+        WorkerProcess process = builder.worker(new CompilerDaemonServer()).setBaseName("Gradle Compiler Daemon").build();
         process.start();
 
         CompilerDaemonServerProtocol server = process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
