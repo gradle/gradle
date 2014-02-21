@@ -71,7 +71,6 @@ class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
         }
         toolingApi.withConnection { connection ->
             BuildLauncher build = connection.newBuild();
-            build.withArguments('-Dorg.gradle.daemon.idletimeout=120000')
             build.forTasks("gradleBuild");
             build.standardOutput = baos
             build.run()
