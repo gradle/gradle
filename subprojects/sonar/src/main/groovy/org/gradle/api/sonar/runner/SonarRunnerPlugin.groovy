@@ -91,7 +91,9 @@ import org.gradle.testing.jacoco.plugins.JacocoPlugin
  *     <dt>sonar.libraries
  *     <dd>sourceSets.main.runtimeClasspath (filtering to only include files; {@code rt.jar} added if necessary)
  *     <dt>sonar.surefire.reportsPath
- *     <dd>test.testResultsDir (if the directory exists)
+ *     <dd>test.testResultsDir (if the directory exists) -- for Java Ecosystem &lt;1.5
+ *     <dt>sonar.junit.reportsPath
+ *     <dd>test.testResultsDir (if the directory exists) -- for Java Ecosystem &gt;=1.5
  * </dl>
  */
 @Incubating
@@ -183,7 +185,10 @@ class SonarRunnerPlugin implements Plugin<Project> {
             properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory } ?: null
             properties["sonar.libraries"] = getLibraries(main)
             File testResultsDir = project.test.reports.junitXml.destination
-            properties["sonar.surefire.reportsPath"] = testResultsDir.exists() ? testResultsDir : null
+            File testResultsValue = testResultsDir.exists() ? testResultsDir : null
+            properties["sonar.surefire.reportsPath"] = testResultsValue
+            // added due to http://issues.gradle.org/browse/GRADLE-3005
+            properties["sonar.junit.reportsPath"] = testResultsValue
 
             project.plugins.withType(JacocoPlugin) {
                 properties["sonar.jacoco.reportPath"] = project.test.jacoco.destinationFile.exists() ? project.test.jacoco.destinationFile : null

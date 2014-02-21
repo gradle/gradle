@@ -181,6 +181,7 @@ class SonarRunnerPluginTest extends Specification {
         properties["sonar.binaries"].contains(new File(parentProject.buildDir, "out") as String)
         properties["sonar.libraries"].contains(new File(parentProject.projectDir, "lib/SomeLib.jar") as String)
         properties["sonar.surefire.reportsPath"] == new File(parentProject.buildDir, "test-results") as String
+        properties["sonar.junit.reportsPath"] == new File(parentProject.buildDir, "test-results") as String
     }
 
     def "only adds existing directories"() {
@@ -194,6 +195,7 @@ class SonarRunnerPluginTest extends Specification {
         !properties.containsKey("sonar.binaries")
         properties.containsKey("sonar.libraries") == (Jvm.current().getRuntimeJar() != null)
         !properties.containsKey("sonar.surefire.reportsPath")
+        !properties.containsKey("sonar.junit.reportsPath")
     }
 
     def "adds empty 'sonar.sources' property if no sources exist (because Sonar Runner 2.0 always expects this property to be set)"() {
