@@ -202,21 +202,27 @@ for (jvmLibrary in result.getComponents(JvmLibrary)) { // separate type for each
 }
 ```
 
-#### Resolve jvm libraries together with their main and source artifacts, inspect artifact resolution failures
+#### Resolve jvm libraries together with their main and source artifacts, inspect component resolution failures
 
 ```
 def componentIds = ... // ComponentIdentifier's whose artifacts are to be resolved. Can be obtained from `configuration.incoming` API.
 def result = dependencies.createArtifactResolutionQuery()
   .forComponents(componentIds)
-  .forArtifacts(JvmLibrary, JvmLibraryMainArtifact, JvmLibrarySourceArtifact)
+  .forArtifacts(JvmLibrary) // shorthand for resolving all of the component's artifacts
   .execute()
-for (componentResult in result.getComponentResults()) { // same representation for all types of components
-  for (artifactResult in componentResult.getUnresolvedArtifactResults) { // same representation for all types of artifacts
-    println artifactResult.id
-    println artifactResult.failure
+for (component in result.unresolvedComponents) { // same representation for all components
+    println component.id
+    println component.failure
   }
 }
 ```
+
+### Open issues
+
+* API for artifact download failures
+* How to implement API for artifact download failures (`LenientConfiguration` only exposes module resolution failures)
+* How to determine what the main artifacts of a `JvmLibrary` component are (or more specifically, how to deal with Maven artifacts with classifiers;
+  the current API just provides the component ID). Resolving main artifacts isn't required for this story, but is related.
 
 ## Story: IDE plugins use the resolution result to determine library source and Javadoc artifacts
 
