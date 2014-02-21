@@ -606,7 +606,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 parent = parseOtherIvyFileOnFileSystem(location);
 
                 //verify that the parsed descriptor is the correct parent module.
-                ModuleId expected = new ModuleId(parentOrganisation, parentModule);
+                ModuleId expected = IvyUtil.createModuleId(parentOrganisation, parentModule);
                 ModuleId pid = parent.getModuleRevisionId().getModuleId();
                 if (!expected.equals(pid)) {
                     LOGGER.warn("Ignoring parent Ivy file " + location + "; expected " + expected + " but found " + pid);
@@ -1055,14 +1055,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
-                ArtifactId aid = new ArtifactId(new ModuleId(org, module), name, type, ext);
+                ArtifactId aid = new ArtifactId(IvyUtil.createModuleId(org, module), name, type, ext);
                 Map extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultIncludeRule(aid, matcher, extraAttributes);
             } else { // _state == ARTIFACT_EXCLUDE || EXCLUDE
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
-                ArtifactId aid = new ArtifactId(new ModuleId(org, module), name, type, ext);
+                ArtifactId aid = new ArtifactId(IvyUtil.createModuleId(org, module), name, type, ext);
                 Map extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultExcludeRule(aid, matcher, extraAttributes);
             }

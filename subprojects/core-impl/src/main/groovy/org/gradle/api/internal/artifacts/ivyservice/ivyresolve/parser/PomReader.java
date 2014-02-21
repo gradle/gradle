@@ -469,7 +469,7 @@ public class PomReader implements PomParent {
                         String groupId = getFirstChildText((Element) node, GROUP_ID);
                         String artifactId = getFirstChildText((Element) node, ARTIFACT_ID);
                         if ((groupId != null) && (artifactId != null)) {
-                            exclusions.add(ModuleId.newInstance(groupId, artifactId));
+                            exclusions.add(IvyUtil.createModuleId(groupId, artifactId));
                         }
                     }
                 }

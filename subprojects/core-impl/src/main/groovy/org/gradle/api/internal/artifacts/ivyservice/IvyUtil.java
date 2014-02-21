@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
@@ -55,5 +56,9 @@ public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(String org, String name, String branch, String revConstraint, Map extraAttributes, boolean replaceNullBranchWithDefault) {
         return ModuleRevisionId.newInstance(org, name, branch, revConstraint, extraAttributes, replaceNullBranchWithDefault);
+    }
+
+    public static ModuleId createModuleId(String org, String name) {
+        return ModuleId.newInstance(org, name);
     }
 }

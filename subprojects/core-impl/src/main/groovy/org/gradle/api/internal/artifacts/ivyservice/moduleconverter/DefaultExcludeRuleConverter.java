@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
 import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.util.GUtil;
 
 public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
@@ -28,7 +28,7 @@ public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
         String org = GUtil.elvis(excludeRule.getGroup(), PatternMatcher.ANY_EXPRESSION);
         String module = GUtil.elvis(excludeRule.getModule(), PatternMatcher.ANY_EXPRESSION);
         DefaultExcludeRule ivyExcludeRule = new DefaultExcludeRule(new ArtifactId(
-                new ModuleId(org, module), PatternMatcher.ANY_EXPRESSION,
+                IvyUtil.createModuleId(org, module), PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION),
                 ExactPatternMatcher.INSTANCE, null);

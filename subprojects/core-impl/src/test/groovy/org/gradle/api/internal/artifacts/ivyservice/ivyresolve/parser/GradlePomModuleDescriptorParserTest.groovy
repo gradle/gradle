@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ArtifactRevisionId
-import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
@@ -29,6 +28,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
+
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 
 class GradlePomModuleDescriptorParserTest extends Specification {
     @Rule
@@ -196,7 +197,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
         dep.moduleConfigurations == ['test']
         dep.allExcludeRules.length == 1
-        dep.allExcludeRules.first().id.moduleId == ModuleId.newInstance('group-three', 'artifact-three')
+        dep.allExcludeRules.first().id.moduleId == createModuleId('group-three', 'artifact-three')
         hasDefaultDependencyArtifact(dep)
     }
 

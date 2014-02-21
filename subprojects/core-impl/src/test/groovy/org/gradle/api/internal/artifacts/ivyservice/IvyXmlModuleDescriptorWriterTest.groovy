@@ -26,6 +26,7 @@ import spock.lang.Specification
 
 import java.text.SimpleDateFormat
 
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId
 
 class IvyXmlModuleDescriptorWriterTest extends Specification {
@@ -87,7 +88,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         given:
         ModuleRevisionId moduleRevisionId = createModuleRevisionId('org.test', 'projectA', '2.0')
         ModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId)
-        ModuleId moduleId = new ModuleId('org.test', 'projectA')
+        ModuleId moduleId = createModuleId('org.test', 'projectA')
         DependencyDescriptorMediator mediator = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId)
         moduleDescriptor.addDependencyDescriptorMediator(moduleId, new ExactPatternMatcher(), mediator)
         assert moduleDescriptor.allDependencyDescriptorMediators.allRules.size() == 1
