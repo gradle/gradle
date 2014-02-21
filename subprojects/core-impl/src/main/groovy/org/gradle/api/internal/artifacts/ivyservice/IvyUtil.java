@@ -24,6 +24,8 @@ import org.gradle.util.GUtil;
 
 import java.util.Map;
 
+import static java.util.Collections.emptyMap;
+
 public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(Module module) {
@@ -35,15 +37,15 @@ public class IvyUtil {
     }
 
     public static ModuleRevisionId createModuleRevisionId(String group, String name, String version) {
-        return ModuleRevisionId.newInstance(emptyStringIfNull(group), name, emptyStringIfNull(version));
+        return createModuleRevisionId(emptyStringIfNull(group), name, null, emptyStringIfNull(version), emptyMap());
     }
 
     public static ModuleRevisionId createModuleRevisionId(ModuleVersionIdentifier id) {
-        return ModuleRevisionId.newInstance(id.getGroup(), id.getName(), id.getVersion());
+        return createModuleRevisionId(id.getGroup(), id.getName(), id.getVersion());
     }
 
     public static ModuleRevisionId createModuleRevisionId(ModuleRevisionId revId, String version) {
-        return ModuleRevisionId.newInstance(revId, version);
+        return createModuleRevisionId(revId.getOrganisation(), revId.getName(), revId.getBranch(), version, revId.getQualifiedExtraAttributes());
     }
 
     private static String emptyStringIfNull(String value) {
