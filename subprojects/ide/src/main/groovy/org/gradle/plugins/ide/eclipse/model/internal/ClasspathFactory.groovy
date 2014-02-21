@@ -50,7 +50,7 @@ class ClasspathFactory {
     private final ClasspathEntryBuilder librariesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
             dependenciesExtractor.extractRepoFileDependencies(
-                    classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
+                    classpath.project.dependencies, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
             .each { IdeExtendedRepoFileDependency it ->
                 entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath, it.id)
             }
