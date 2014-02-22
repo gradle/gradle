@@ -28,7 +28,6 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.util.CollectionUtils;
@@ -70,7 +69,7 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
 
     private IncrementalCompileProcessor createProcessor(Iterable<File> includes, PersistentCache cache) {
         // TODO:DAZ This doesn't need to be an indexed cache: need PersistentCache.createStateCache()
-        PersistentIndexedCache<String, CompilationState> listCache = createCache(cache, "previous", new DefaultSerializer<CompilationState>());
+        PersistentIndexedCache<String, CompilationState> listCache = createCache(cache, "previous", new CompilationStateSerializer());
 
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
 

@@ -21,18 +21,18 @@ import java.util.Set;
 
 public class CompilationFileState implements Serializable {
     private byte[] hash;
-    private SourceIncludes sourceIncludes;
+    private SourceIncludes sourceIncludes = new DefaultSourceIncludes();
     private Set<ResolvedInclude> resolvedIncludes = new HashSet<ResolvedInclude>();
+
+    public CompilationFileState(byte[] hash) {
+        this.hash = hash;
+    }
 
     public byte[] getHash() {
         return hash;
     }
 
-    public void setHash(byte[] hash) {
-        this.hash = hash;
-    }
-
-    public SourceIncludes getIncludes() {
+    public SourceIncludes getSourceIncludes() {
         return sourceIncludes;
     }
 

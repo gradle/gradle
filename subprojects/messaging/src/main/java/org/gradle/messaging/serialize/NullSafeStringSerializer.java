@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.messaging.serialize;
 
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(":plugins")
-    compile project(":ide")
-    compile libraries.commons_io
-    integTestRuntime project(":maven")
-}
+public class NullSafeStringSerializer implements Serializer<String> {
+    public String read(Decoder decoder) throws Exception {
+        return decoder.readNullableString();
+    }
 
-
-integTestTasks.all {
-    if (isWindows && systemProperties['org.gradle.integtest.executer'] == "embedded") {
-        systemProperties['org.gradle.integtest.executer'] =  "forking"
+    public void write(Encoder encoder, String value) throws Exception {
+        encoder.writeNullableString(value);
     }
 }
-
-useTestFixtures()
-useTestFixtures(project: ":messaging")
-useTestFixtures(sourceSet: "testFixtures")
-
-//useClassycle()

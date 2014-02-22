@@ -17,14 +17,11 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CompilationState implements Serializable {
-    private List<File> sourceInputs = new ArrayList<File>();
-    private Map<File, CompilationFileState> fileStates = new HashMap<File, CompilationFileState>();
+    List<File> sourceInputs = new ArrayList<File>();
+    Map<File, CompilationFileState> fileStates = new HashMap<File, CompilationFileState>();
 
     public List<File> getSourceInputs() {
         return sourceInputs;

@@ -20,7 +20,6 @@ import org.gradle.api.internal.changedetection.state.FileSnapshotter
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.internal.hash.HashUtil
-import org.gradle.messaging.serialize.DefaultSerializer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
@@ -35,7 +34,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def dependencyParser = Mock(SourceIncludesResolver)
     def cacheFactory = new InMemoryCacheFactory()
     def fileSnapshotter = Stub(FileSnapshotter)
-    def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new DefaultSerializer<CompilationState>())
+    def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new CompilationStateSerializer())
     def incrementalCompileProcessor = new IncrementalCompileProcessor(listCache, dependencyParser, includesParser, fileSnapshotter)
 
     def source1 = sourceFile("source1")
