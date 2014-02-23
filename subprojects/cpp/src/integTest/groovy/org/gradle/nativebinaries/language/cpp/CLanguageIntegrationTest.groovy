@@ -108,7 +108,6 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         helloWorldApp.writeSources(file("src/main"))
 
         when:
-        executer.withArgument("--info")
         run "mainExecutable"
 
         then:
@@ -122,6 +121,35 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         '"with space"'                     | 'with space'
         '"with\\\\"quote\\\\"internal"'    | 'with"quote"internal'
         '"with \\\\"quote\\\\" and space"' | 'with "quote" and space'
+    }
+
+    def "compiler and linker args can contain quotes and spaces"() {
+        given:
+        buildFile << '''
+            executables {
+                main {
+                    binaries.all {
+                        // These are just some dummy arguments to test we don't blow up. Their effects are not verified.
+                        if (toolChain in VisualCpp) {
+                            cCompiler.args '/DVERSION="The version is \\'1.0\\'"'
+                            linker.args '/MANIFESTUAC:level=\\'asInvoker\\' uiAccess=\\'false\\''
+                        } else if (toolChain in Clang) {
+                            cCompiler.args '-frandom-seed="here is the \\'random\\' seed"'
+                            linker.args '-Wl,-client_name,"a \\'client\\' name"'
+                        } else {
+                            cCompiler.args '-frandom-seed="here is the \\'random\\' seed"'
+                            linker.args '-Wl,--auxiliary,"an \\'auxiliary\\' name"'
+                        }
+                    }
+                }
+            }
+        '''
+
+        and:
+        helloWorldApp.writeSources(file("src/main"))
+
+        expect:
+        succeeds "mainExecutable"
     }
 
     def "build fails when compilation fails"() {
