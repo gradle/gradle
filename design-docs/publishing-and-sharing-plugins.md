@@ -374,6 +374,10 @@ TBD - perhaps implement this using the bintray 'contact' UI plus some kind of re
 
 Retire the 'plugins' wiki page some point after this.
 
+## Story: Build author searches for plugins using Gradle command-line
+
+Introduce a plugin and implicit task that allows a build author to search for plugins from the central plugin repository, using the Gradle command-line.
+
 ## Story: Plugins declare dependencies on other plugins
 
 Should include dependencies on core plugins.
@@ -393,6 +397,13 @@ Authors should be able to test that their plugins are compatible with the new me
 - Provide mechanism to functionally test new plugin metadata (i.e. correctly declared dependencies on other plugins)
 
 (note: overlap with [design-docs/testing-user-build-logic.md](https://github.com/gradle/gradle/blob/master/design-docs/testing-user-build-logic.md))
+
+## Story: Build author searches for plugins using central Web UI
+
+Introduce a Web UI that allows a build author to search for and view basic details about available Gradle plugins. Backed by the meta-data hosted in the
+public Bintray repository.
+
+TBD - where hosted, how implemented, tested and deployed
 
 ## Story: Resolve plugins relative to Gradle distribution
 
@@ -420,7 +431,7 @@ Add a resolver that uses some convention to map plugin id to a build script.
         apply plugin: 'groovy-project'
     }
 
-## Story: Daemon reuses plugin implementation
+## Story: Daemon reuses plugin implementation across builds
 
 Cache the implementation ClassLoader across builds. More details in the [performance spec](performance.md).
 
@@ -447,7 +458,6 @@ These are yet to be mixed into the above plan:
 
 - conditional plugin application
 - need some way to tweak the resolve strategy for plugin component resolution.
-- declaring dependencies of a plugin on other plugins
 - configuring which repositories, possibly none, to use to resolve plugin declaration and to use to resolve implementation modules.
 - backwards compatibility wrt moving the core plugins. eg all core plugins are currently visible on every script compile classpath.
 - declare and expose only the API of the plugin
