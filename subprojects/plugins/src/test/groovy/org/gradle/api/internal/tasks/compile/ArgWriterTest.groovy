@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile
 
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -66,8 +65,6 @@ class ArgWriterTest extends Specification {
         writer.toString() == toPlatformLineSeparators('a\\\\b "a \\\\ bc"\n')
     }
 
-    // TODO:DAZ Work out how to avoid escaping file names on windows but still handle other args containing quotes and spaces
-    @Ignore
     def "does not escape characters in windows style"() {
         def argWriter = ArgWriter.windowsStyle(printWriter)
 

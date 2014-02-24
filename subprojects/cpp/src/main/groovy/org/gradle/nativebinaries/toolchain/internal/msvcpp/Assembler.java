@@ -29,6 +29,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
+
 class Assembler implements Compiler<AssembleSpec> {
 
     private final CommandLineTool<AssembleSpec> commandLineTool;
@@ -57,7 +59,7 @@ class Assembler implements Compiler<AssembleSpec> {
 
         public List<String> transform(AssembleSpec spec) {
             List<String> args = new ArrayList<String>();
-            args.addAll(spec.getAllArgs());
+            args.addAll(escapeUserArgs(spec.getAllArgs()));
             args.add("/nologo");
             args.add("/c");
             File outputFile = getOutputFilePath(spec);

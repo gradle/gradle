@@ -29,6 +29,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
+
 class LinkExeLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineTool<LinkerSpec> commandLineTool;
@@ -47,7 +49,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();
-            args.addAll(spec.getAllArgs());
+            args.addAll(escapeUserArgs(spec.getAllArgs()));
             args.add("/OUT:" + spec.getOutputFile().getAbsolutePath());
             args.add("/NOLOGO");
             if (spec instanceof SharedLibraryLinkerSpec) {
