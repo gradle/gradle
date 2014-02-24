@@ -77,6 +77,18 @@ Change the task visibility logic so that the lifecycle task of all `BuildableMod
 
 - Should other tasks for a `BuildableModelElement` be private, regardless of group attribute?
 
+### GRADLE-2017 - Correctly map libraries to IDEA dependency scope
+
+TBD
+
+#### Test cases
+
+- When using the tooling API to fetch the IDEA model or the `idea` task to generate the IDEA project files, verify that:
+    - When a java project has a dependency declared for `testCompile` and `runtime`, the dependency appears with `test` and `runtime` scopes only.
+    - When a java project has a dependency declared for `testRuntime` and `runtime`, the dependency appears with `runtime` scope only.
+    - When a java project has a dependency declared for `compile` and `testCompile`, the dependency appears with `compile` scope only.
+    - When a war project has a dependency declared for `providedCompile` and `compile`, the dependency appears with `provided` scope only.
+
 ## Feature - Tooling API client cancels an operation
 
 Add some way for a tooling API client to request that an operation be cancelled.
