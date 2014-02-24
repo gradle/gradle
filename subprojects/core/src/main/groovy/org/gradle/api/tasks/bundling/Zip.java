@@ -81,10 +81,22 @@ public class Zip extends AbstractArchiveTask {
     }
 
     /**
-     * Sets the support for Zip64.  Set this to false to support java 1.5 and older.
+     * Sets the support for Zip64.  Set this to true to support zip
+     * files with 64K files or more, or zip files of size 2GB or
+     * greater.  Note that any zip/jar files created with this flag
+     * set are not compatible with some legacy zip/jar readers,
+     * including some 1.5 (and earlier) JVMs.  This means that one
+     * should not enable this if one wants to support java 1.5 or
+     * older on all platforms.
      */
+    @Incubating
     public void setZip64(boolean allowZip64) {
         this.allowZip64 = allowZip64;
+    }
+
+    @Incubating
+    public boolean isZip64() {
+        return allowZip64;
     }
 
     /**
