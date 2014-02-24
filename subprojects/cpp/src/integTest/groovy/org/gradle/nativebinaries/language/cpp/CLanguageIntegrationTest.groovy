@@ -138,7 +138,8 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                             linker.args '-Wl,-client_name,"a \\'client\\' name"'
                         } else {
                             cCompiler.args '-frandom-seed="here is the \\'random\\' seed"'
-                            linker.args '-Wl,--auxiliary,"an \\'auxiliary\\' name"'
+                            // TODO:DAZ Find something that works on linux
+                            //linker.args '-Wl,--auxiliary,"an \\'auxiliary\\' name"'
                         }
                     }
                 }
