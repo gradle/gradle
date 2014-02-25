@@ -185,6 +185,25 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"));
     }
 
+    @Issue("http://issues.gradle.org/browse/GRADLE-2974")
+    @Issue("http://issues.gradle.org/browse/GRADLE-3031")
+    def 'excluding a task that is a dependency of multiple tasks'() {
+        settingsFile << "include 'sub'"
+        buildFile << """
+    task a
+    task b(dependsOn: a)
+    task c(dependsOn: a)
+    task d(dependsOn: [b, c])
+"""
+        file("sub/build.gradle") << """
+    task a
+"""
+
+        expect:
+        executer.withTasks("d").withArguments("-x", "a").run().assertTasksExecuted(":b", ":c", ":d");
+        executer.withTasks("b", "a").withArguments("-x", ":a").run().assertTasksExecuted(":b", ":sub:a");
+    }
+
     @Issue("http://issues.gradle.org/browse/GRADLE-2022")
     def tryingToInstantiateTaskDirectlyFailsWithGoodErrorMessage() {
         buildFile << """
