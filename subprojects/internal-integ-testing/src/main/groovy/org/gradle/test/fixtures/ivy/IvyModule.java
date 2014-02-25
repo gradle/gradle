@@ -44,6 +44,10 @@ public interface IvyModule extends Module {
 
     IvyModule withXml(Closure action);
 
+    IvyModule configuration(String name);
+
+    IvyModule configuration(Map<String, ?> options, String name);
+
     /**
      * Publishes ivy.xml plus all artifacts with different content (and size) to previous publication.
      */

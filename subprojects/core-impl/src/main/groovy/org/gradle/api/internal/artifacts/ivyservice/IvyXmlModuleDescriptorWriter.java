@@ -22,15 +22,25 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
+import org.gradle.internal.UncheckedException;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     public static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
+    private final Field dependencyConfigField;
+
+    public IvyXmlModuleDescriptorWriter() {
+        try {
+            dependencyConfigField = DefaultDependencyDescriptor.class.getDeclaredField("confs");
+        } catch (NoSuchFieldException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        dependencyConfigField.setAccessible(true);
+    }
 
     private void writeTo(ModuleDescriptor md, SimpleXmlWriter writer) throws IOException {
         writer.startElement("ivy-module");
@@ -65,7 +75,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    private static void printDependencies(ModuleDescriptor md, SimpleXmlWriter writer) throws IOException {
+    private void printDependencies(ModuleDescriptor md, SimpleXmlWriter writer) throws IOException {
         DependencyDescriptor[] dds = md.getDependencies();
         if (dds.length > 0) {
             writer.startElement("dependencies");
@@ -78,7 +88,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    protected static void printDependency(ModuleDescriptor md, DependencyDescriptor dep,
+    protected void printDependency(ModuleDescriptor md, DependencyDescriptor dep,
                                           SimpleXmlWriter writer) throws IOException {
         writer.startElement("dependency");
 
@@ -120,15 +130,32 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.endElement();
     }
 
-    private static String getConfMapping(DependencyDescriptor dep) {
+    private String getConfMapping(DependencyDescriptor dep) {
         StringBuilder confs = new StringBuilder();
         String[] modConfs = dep.getModuleConfigurations();
+
+        Map<String, List<String>> configMappings;
+        if (dep instanceof DefaultDependencyDescriptor) {
+            // The `getDependencyConfigurations()` implementation for DefaultDependencyDescriptor does some interpretation of the RHS of the configuration
+            // mappings, and gets it wrong for mappings such as '*->@' pr '*->#'. So, instead, reach into the descriptor and get the raw mappings out.
+            try {
+                configMappings = (Map<String, List<String>>) dependencyConfigField.get(dep);
+            } catch (IllegalAccessException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        } else {
+            configMappings = new HashMap<String, List<String>>();
+            for (String modConf : modConfs) {
+                configMappings.put(modConf, Arrays.asList(dep.getDependencyConfigurations(modConfs)));
+            }
+        }
+
         for (int j = 0; j < modConfs.length; j++) {
-            String[] depConfs = dep.getDependencyConfigurations(modConfs[j]);
+            List<String> depConfs = configMappings.get(modConfs[j]);
             confs.append(modConfs[j]).append("->");
-            for (int k = 0; k < depConfs.length; k++) {
-                confs.append(depConfs[k]);
-                if (k + 1 < depConfs.length) {
+            for (int k = 0; k < depConfs.size(); k++) {
+                confs.append(depConfs.get(k));
+                if (k + 1 < depConfs.size()) {
                     confs.append(",");
                 }
             }

@@ -76,6 +76,11 @@ class IvyHttpModule implements IvyModule, HttpModule {
         return this
     }
 
+    IvyHttpModule configuration(Map<String, ?> options = [:], String name) {
+        backingModule.configuration(options, name)
+        return this
+    }
+
     IvyHttpModule withXml(Closure action) {
         backingModule.withXml(action)
         return this
