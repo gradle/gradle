@@ -319,6 +319,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
                     <dependency name="mymodule2" conf="a->#"/>
                     <dependency name="mymodule2" conf="a->a;%->@"/>
                     <dependency name="mymodule2" conf="a->a;*,!a->b"/>
+                    <dependency name="mymodule2" conf="*->*"/>
+                    <dependency name="mymodule2" conf=""/>
+                    <dependency name="mymodule2"/>
                 </dependencies>
             </ivy-module>
         """
@@ -383,6 +386,94 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         dependency10.getDependencyConfigurations("a", "requested") == ["a", "b"]
         dependency10.getDependencyConfigurations("b") == ["b"]
         dependency10.getDependencyConfigurations("b", "requested") == ["b"]
+
+        def dependency11 = descriptor.dependencies[10]
+        dependency11.moduleConfigurations == ["*"]
+        dependency11.getDependencyConfigurations("a") == ["*"]
+        dependency11.getDependencyConfigurations("a", "requested") == ["*"]
+
+        def dependency12 = descriptor.dependencies[11]
+        dependency12.moduleConfigurations == ["*"]
+        dependency12.getDependencyConfigurations("a") == ["*"]
+        dependency12.getDependencyConfigurations("a", "requested") == ["*"]
+
+        def dependency13 = descriptor.dependencies[12]
+        dependency13.moduleConfigurations == ["*"]
+        dependency13.getDependencyConfigurations("a") == ["*"]
+        dependency13.getDependencyConfigurations("a", "requested") == ["*"]
+    }
+
+    def "parses dependency config mappings with defaults"() {
+        given:
+        def file = temporaryFolder.createFile("ivy.xml")
+        file.text = """
+           <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+                <info organisation="myorg"
+                      module="mymodule"
+                      revision="myrev">
+                </info>
+                <configurations>
+                    <conf name="a" />
+                    <conf name="b" />
+                    <conf name="c" />
+                </configurations>
+                <publications/>
+                <dependencies defaultconf="a" defaultconfmapping="a->a1;b->b1,b2">
+                    <dependency name="mymodule2"/>
+                    <dependency name="mymodule2" conf=""/>
+                    <dependency name="mymodule2" conf="a"/>
+                    <dependency name="mymodule2" conf="b"/>
+                    <dependency name="mymodule2" conf="a->other"/>
+                    <dependency name="mymodule2" conf="*->@"/>
+                    <dependency name="mymodule2" conf="c->other"/>
+                    <dependency name="mymodule2" conf="a->"/>
+                </dependencies>
+            </ivy-module>
+        """
+
+        when:
+        def descriptor = parser.parseMetaData(parseContext, file, false).descriptor
+
+        then:
+        def dependency1 = descriptor.dependencies[0]
+        dependency1.moduleConfigurations == ["a"]
+        dependency1.getDependencyConfigurations("a") == ["a1"]
+        dependency1.getDependencyConfigurations("a", "requested") == ["a1"]
+
+        def dependency2 = descriptor.dependencies[1]
+        dependency2.moduleConfigurations == ["a"]
+        dependency2.getDependencyConfigurations("a") == ["a1"]
+        dependency2.getDependencyConfigurations("a", "requested") == ["a1"]
+
+        def dependency3 = descriptor.dependencies[2]
+        dependency3.moduleConfigurations == ["a"]
+        dependency3.getDependencyConfigurations("a") == ["a1"]
+        dependency3.getDependencyConfigurations("a", "requested") == ["a1"]
+
+        def dependency4 = descriptor.dependencies[3]
+        dependency4.moduleConfigurations == ["b"]
+        dependency4.getDependencyConfigurations("b") == ["b1", "b2"]
+        dependency4.getDependencyConfigurations("b", "requested") == ["b1", "b2"]
+
+        def dependency5 = descriptor.dependencies[4]
+        dependency5.moduleConfigurations == ["a"]
+        dependency5.getDependencyConfigurations("a") == ["other"]
+        dependency5.getDependencyConfigurations("a", "requested") == ["other"]
+
+        def dependency6 = descriptor.dependencies[5]
+        dependency6.moduleConfigurations == ["*"]
+        dependency6.getDependencyConfigurations("a") == ["a"]
+        dependency6.getDependencyConfigurations("a", "requested") == ["a"]
+
+        def dependency7 = descriptor.dependencies[6]
+        dependency7.moduleConfigurations == ["c"]
+        dependency7.getDependencyConfigurations("c") == ["other"]
+        dependency7.getDependencyConfigurations("c", "requested") == ["other"]
+
+        def dependency8 = descriptor.dependencies[7]
+        dependency8.moduleConfigurations == ["a"]
+        dependency8.getDependencyConfigurations("a") == ["a1"]
+        dependency8.getDependencyConfigurations("a", "requested") == ["a1"]
     }
 
     def "parses artifact config mappings"() {
