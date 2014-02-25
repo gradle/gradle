@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
@@ -26,12 +26,9 @@ import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradlePublication;
 import org.gradle.tooling.internal.gradle.DefaultGradleTask;
-import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
-import org.gradle.tooling.internal.gradle.PartialGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -73,30 +70,12 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
         gradleProject.setTasks(tasks(gradleProject, project.getTasks()));
         gradleProject.setPublications(publications(project.getPath()));
-        gradleProject.setTaskSelectors(taskSelectors(gradleProject));
 
         for (DefaultGradleProject child : children) {
             child.setParent(gradleProject);
         }
 
         return gradleProject;
-    }
-
-    private List<DefaultGradleTaskSelector> taskSelectors(DefaultGradleProject owner) {
-        // TODO radim: extract service from TaskReportTask and reuse here
-        Set<DefaultGradleTaskSelector> taskSelectors = new HashSet<DefaultGradleTaskSelector>();
-        for (PartialGradleProject child : owner.getChildren()) {
-            for (DefaultGradleTask t : child.getTasks()) {
-                taskSelectors.add(new DefaultGradleTaskSelector()
-                        .setName(t.getName()));
-            }
-            for (DefaultGradleTaskSelector ts : child.getTaskSelectors()) {
-                taskSelectors.add(new DefaultGradleTaskSelector()
-                        .setName(ts.getName()));
-            }
-        }
-
-        return new ArrayList<DefaultGradleTaskSelector>(taskSelectors);
     }
 
     private List<DefaultGradleTask> tasks(DefaultGradleProject owner, TaskContainer tasks) {

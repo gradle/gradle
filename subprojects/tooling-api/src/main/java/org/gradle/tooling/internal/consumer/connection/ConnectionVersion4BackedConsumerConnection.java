@@ -17,13 +17,11 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Actions;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
 import org.gradle.tooling.internal.consumer.converters.PropertyHandlerFactory;
-import org.gradle.tooling.internal.consumer.converters.TaskSelectorsPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -134,9 +132,7 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         public ConnectionVersion4BackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ConnectionVersion4 delegate) {
             super(adapter, versionDetails, modelMapping);
             this.delegate = delegate;
-            mapper = Actions.composite(
-                    new PropertyHandlerFactory().forVersion(versionDetails),
-                    new TaskSelectorsPropertyHandlerFactory().forVersion(versionDetails));
+            mapper = new PropertyHandlerFactory().forVersion(versionDetails);
         }
 
         public <T> T produceModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
@@ -164,9 +160,7 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         }
 
         public <T> T produceModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
-            final Action<SourceObjectMapping> mapper = Actions.composite(
-                    new PropertyHandlerFactory().forVersion(versionDetails),
-                    new TaskSelectorsPropertyHandlerFactory().forVersion(versionDetails));
+            final Action<SourceObjectMapping> mapper = new PropertyHandlerFactory().forVersion(versionDetails);
             if (modelType == GradleProject.class && !versionDetails.isModelSupported(GradleProject.class)) {
                 //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
                 //this patch enables getting gradle tasks for target gradle version pre M5

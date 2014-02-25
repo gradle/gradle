@@ -28,7 +28,6 @@ public class PartialGradleProject implements GradleProjectIdentity, Serializable
     private PartialGradleProject parent;
     private List<? extends PartialGradleProject> children = new LinkedList<PartialGradleProject>();
     private List<DefaultGradleTask> tasks = new LinkedList<DefaultGradleTask>();
-    private List<DefaultGradleTaskSelector> taskSelectors = new LinkedList<DefaultGradleTaskSelector>();
 
     public PartialGradleProject() {}
 
@@ -78,15 +77,6 @@ public class PartialGradleProject implements GradleProjectIdentity, Serializable
 
     public PartialGradleProject setTasks(List<DefaultGradleTask> tasks) {
         this.tasks = tasks;
-        return this;
-    }
-
-    public Collection<DefaultGradleTaskSelector> getTaskSelectors() {
-        return taskSelectors;
-    }
-
-    public PartialGradleProject setTaskSelectors(List<DefaultGradleTaskSelector> taskSelectors) {
-        this.taskSelectors = taskSelectors;
         return this;
     }
 

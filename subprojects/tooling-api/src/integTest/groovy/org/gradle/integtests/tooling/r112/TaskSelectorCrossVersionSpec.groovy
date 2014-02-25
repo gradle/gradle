@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.UnknownModelException
-import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.TaskSelector
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -134,22 +133,5 @@ task t2 << {
         then:
         UnknownModelException e = thrown()
         e.message.contains('does not support building a model of type \'' + BuildInvocations.simpleName + '\'')
-    }
-
-    def "can request task selectors from obtained GradleProject model"() {
-        when:
-        GradleProject result = withConnection { it.getModel(GradleProject.class) }
-
-        then:
-        result.path == ':'
-        result.getTaskSelectors().find { it.name == 't1' } != null
-        result.findByPath(':b').getTaskSelectors().find { it.name == 't1' } != null
-        result.findByPath(':b:c').getTaskSelectors().find { it.name == 't1' } == null
-        result.getTaskSelectors().find { it.name == 't2' } != null
-        result.findByPath(':b').getTaskSelectors().find { it.name == 't2' } != null
-        result.findByPath(':b:c').getTaskSelectors().find { it.name == 't2' } == null
-        result.getTaskSelectors().find { it.name == 't3' } != null
-        result.findByPath(':b').getTaskSelectors().find { it.name == 't3' } == null
-        result.findByPath(':b:c').getTaskSelectors().find { it.name == 't3' } == null
     }
 }
