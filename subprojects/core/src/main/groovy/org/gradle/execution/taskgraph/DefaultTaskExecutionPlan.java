@@ -65,7 +65,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             TaskInfo node = graph.addNode(task);
             if (node.getMustNotRun()) {
                 requireWithDependencies(node);
-            } else {
+            } else if (filter.isSatisfiedBy(task)) {
                 node.require();
             }
             entryTasks.add(node);
@@ -121,7 +121,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
                 if (node.isRequired()) {
                     for (TaskInfo successor : node.getDependencySuccessors()) {
-                        successor.require();
+                        if (filter.isSatisfiedBy(successor.getTask())) {
+                            successor.require();
+                        }
                     }
                 } else {
                     tasksInUnknownState.add(node);
