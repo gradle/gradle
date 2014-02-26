@@ -193,13 +193,15 @@ This is in alignment with Ant's ordering of target dependencies.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Marcin Erdmann](https://github.com/erdi)
+    * dependency ordering of imported Ant targets [GRADLE-1102]
+    * fixes for excluding tasks [GRADLE-2974] & [GRADLE-3031]
 * [Jesse Glick](https://github.com/jglick) - enabling newlines in option values passed to build
 * [Zeeke](https://github.com/zeeke) - documentation improvements
 * [Kamil Szymański](https://github.com/kamilszymanski) - documentation improvements
 * [Jakub Kubryński](https://github.com/jkubrynski) - handling of empty string proxy system property values
 * [Lee Symes](https://github.com/leesdolphin) & [Greg Temchenko](https://github.com/soid) - fix skipped test representation in JUnit XML result files [GRADLE-2731]
 * [Ivan Vyshnevskyi](https://github.com/sainaen) - Fixes to HTML test report
-* [Marcin Erdmann](https://github.com/erdi) - dependency ordering of imported ant targets [GRADLE-1102]
 * [Vincent Cantin](https://github.com/green-coder) - documentation improvements
 * [Sterling Greene](https://github.com/big-guy) - Support for developing Gradle in Eclipse
 * [Matthew Michihara](https://github.com/matthewmichihara) - Documentation improvements
