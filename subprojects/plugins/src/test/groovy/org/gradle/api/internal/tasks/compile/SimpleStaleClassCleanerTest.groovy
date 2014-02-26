@@ -39,6 +39,9 @@ class SimpleStaleClassCleanerTest extends Specification {
         !file1.exists()
         !file2.exists()
         1 * outputs.previousFiles >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
+
+        and:
+        cleaner.didWork
     }
 
     def doesNotDeleteFilesWhichAreNotUnderTheDestinationDir() {
@@ -54,5 +57,21 @@ class SimpleStaleClassCleanerTest extends Specification {
         !file1.exists()
         file2.exists()
         1 * outputs.previousFiles >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
+
+        and:
+        cleaner.didWork
+    }
+
+    def reportsWhenNoWorkDone() {
+        cleaner.destinationDir = tmpDir.file('dir')
+
+        when:
+        cleaner.execute()
+
+        then:
+        1 * outputs.previousFiles >> { [iterator: { [].iterator() }] as FileCollection }
+
+        and:
+        !cleaner.didWork
     }
 }
