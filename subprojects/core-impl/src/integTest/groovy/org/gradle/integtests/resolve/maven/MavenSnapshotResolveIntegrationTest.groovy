@@ -143,6 +143,56 @@ task retrieve(type: Sync) {
         file('libs/projectB-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotB);
     }
 
+    def "can find and cache snapshots in Maven HTTP repository with artifact classifier"() {
+        server.start()
+        def repo1 = mavenHttpRepo("repo1")
+
+        given:
+        buildFile << """
+repositories {
+    maven {
+        url "${repo1.uri}"
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile "org.gradle.integtests.resolve:projectA:1.0-SNAPSHOT:tests"
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        and:
+        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
+        def classifierArtifact = projectA.artifact(classifier: "tests")
+        projectA.publish()
+
+        when:
+        projectA.metaData.expectGet()
+        projectA.pom.expectGet()
+        classifierArtifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT-tests.jar')
+        def snapshotA = file('libs/projectA-1.0-SNAPSHOT-tests.jar').snapshot()
+
+        when:
+        server.resetExpectations()
+        run 'retrieve'
+
+        then: "Everything is up to date"
+        skipped ':retrieve'
+        file('libs/projectA-1.0-SNAPSHOT-tests.jar').assertHasNotChangedSince(snapshotA);
+    }
+
     def "will detect changed snapshot artifacts when pom has not changed"() {
         server.start()
 

@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class MavenLatestResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def "latest selector works correctly when (only) release versions are present"() {
+    def "latest selector works correctly when no snapshot versions are present"() {
         given:
         mavenRepo().module('group', 'projectA', '1.0').publish()
         def highest = mavenRepo().module('group', 'projectA', '2.2').publish()
@@ -75,7 +75,7 @@ task retrieve(type: Sync) {
         buildFile << """
 configurations { compile }
 repositories { maven { url "${mavenRepo().uri}" } }
-dependencies { compile 'group:projectA:latest.release' }
+dependencies { compile 'group:projectA:latest.integration' }
 task retrieve(type: Sync) {
     from configurations.compile
     into 'build'
@@ -86,6 +86,6 @@ task retrieve(type: Sync) {
         runAndFail("retrieve")
 
         then:
-        failure.assertHasCause("Could not find any version that matches group:projectA:latest.release")
+        failure.assertHasCause("Could not find any version that matches group:projectA:latest.integration")
     }
 }
