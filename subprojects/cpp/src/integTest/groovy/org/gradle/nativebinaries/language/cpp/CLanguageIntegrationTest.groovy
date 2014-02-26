@@ -135,11 +135,12 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                             linker.args '/MANIFESTUAC:level=\\'asInvoker\\' uiAccess=\\'false\\''
                         } else if (toolChain in Clang) {
                             cCompiler.args '-frandom-seed="here is the \\'random\\' seed"'
-                            linker.args '-Wl,-client_name,"a \\'client\\' name"'
+                            // TODO:DAZ Find something that works here (for all our CI machines)
+                            // linker.args '-Wl,-client_name,"a \\'client\\' name"'
                         } else {
                             cCompiler.args '-frandom-seed="here is the \\'random\\' seed"'
                             // TODO:DAZ Find something that works on linux
-                            //linker.args '-Wl,--auxiliary,"an \\'auxiliary\\' name"'
+                            // linker.args '-Wl,--auxiliary,"an \\'auxiliary\\' name"'
                         }
                     }
                 }
