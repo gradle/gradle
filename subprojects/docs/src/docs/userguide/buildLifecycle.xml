@@ -118,9 +118,9 @@
                 </sample>
                 <para>The <literal>include</literal> method takes project paths as arguments.
                     The project path is assumed to be equal to the relative physical file system path.
-                    For example a path 'services:api' by default is mapped to a folder 'services/api'
-                    (relative from the project root). You only need to specify the leafs of the tree.
-                    This means that the inclusion of path 'services:hotels:api' will result in creating 3 projects:
+                    For example, a path 'services:api' is mapped by default to a folder 'services/api'
+                    (relative from the project root). You only need to specify the leaves of the tree.
+                    This means that the inclusion of the path 'services:hotels:api' will result in creating 3 projects:
                     'services', 'services:hotels' and 'services:hotels:api'.
                 </para>
             </section>

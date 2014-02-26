@@ -274,7 +274,7 @@
             <sourcefile file="build.gradle" snippet="assembler-args"/>
         </sample>
         <para>
-            The above example will apply the supplied configuration to all <literal>executable</literal> binaries built.
+            The example above will apply the supplied configuration to all <literal>executable</literal> binaries built.
         </para>
         <para>
             Similarly, settings can be specified to target binaries for a component that are of a particular type:
@@ -314,7 +314,7 @@
             <sourcefile file="build-resource-only-dll.gradle" snippet="resource-only-library"/>
         </sample>
         <para>
-            The above example also demonstrates the mechanism of passing extra command-line arguments to the resource compiler.
+            The example above also demonstrates the mechanism of passing extra command-line arguments to the resource compiler.
             The <literal>rcCompiler</literal> extension is of type <apilink class="org.gradle.nativebinaries.language.PreprocessingTool"/>.
         </para>
     </section>
@@ -437,7 +437,7 @@
                 <sourcefile file="build.gradle" snippet="flavors"/>
             </sample>
             <para>
-                In the above example, a library is defined with a 'english' and 'french' flavor. When compiling the 'french'
+                In the example above, a library is defined with a 'english' and 'french' flavor. When compiling the 'french'
                 variant, a separate macro is defined which leads to a different binary being produced.
             </para>
             <para>

@@ -187,7 +187,7 @@
             <sourcefile file="build.gradle" snippet="configure-distribution"/>
         </sample>
         <para>
-            In the above example, the content of the "<literal>src/readme</literal>" directory will be included in the distribution
+            In the example above, the content of the "<literal>src/readme</literal>" directory will be included in the distribution
             (along with the files in the "<literal>src/dist/main</literal>" directory which are added by default).
         </para>
         <para>

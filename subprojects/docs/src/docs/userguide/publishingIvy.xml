@@ -264,7 +264,7 @@
             The “<literal>ivy-publish</literal>” plugin automatically wires in one <apilink class="org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor" /> task
             for each registered <apilink class="org.gradle.api.publish.ivy.IvyPublication" />.
             This task is given a name based on the name of the publication:  "<literal>generateDescriptorFileFor«<emphasis>NAME OF PUBLICATION</emphasis>»Publication</literal>".
-            So in the above example where the publication is named "<literal>ivyJava</literal>", the task will be named "<literal>generateDescriptorFileForIvyJavaPublication</literal>".
+            So in the example above where the publication is named "<literal>ivyJava</literal>", the task will be named "<literal>generateDescriptorFileForIvyJavaPublication</literal>".
         </para>
         <para>
             You can specify where the generated Ivy file will be located by setting the <literal>destination</literal> property on the generate task.
@@ -279,7 +279,7 @@
                 The “<literal>ivy-publish</literal>” plugin leverages some experimental support for late plugin configuration,
                 and the <literal>GenerateIvyDescriptor</literal> task will not be constructed until the publishing extension is configured.
                 The simplest way to ensure that the publishing plugin is configured when you attempt to access the <literal>GenerateIvyDescriptor</literal> task
-                is to place the access inside a <literal>publishing</literal> block, as the above example demonstrates.
+                is to place the access inside a <literal>publishing</literal> block, as the example above demonstrates.
             </para>
             <para>
                 The same applies to any attempt to access publication-specific tasks like <apilink class="org.gradle.api.publish.ivy.tasks.PublishToIvyRepository" />.

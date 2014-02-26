@@ -130,7 +130,7 @@
         <para>
             In this example, we configure the <literal>greet</literal> task <literal>destination</literal> property as a closure, which is evaluated with
             the <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method to turn the return value of the closure into a file object
-            at the last minute. You will notice that in the above example we specify the <literal>greetingFile</literal> property value after we have 
+            at the last minute. You will notice that in the example above we specify the <literal>greetingFile</literal> property value after we have 
             configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then 
             resolving that value when reading the property.
         </para>
