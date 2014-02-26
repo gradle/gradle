@@ -132,6 +132,10 @@ public class GUtil {
 
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
         for (Iterable<? extends V> src : srcs) {
+            if (src == null) {
+                continue;
+            }
+
             for (V v : src) {
                 dest.add(v);
             }
