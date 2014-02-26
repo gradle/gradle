@@ -30,7 +30,7 @@ allows us to implement new features and remove some internal complexity.
 * Change the `FlatDirRepository` implementation so that it no longer uses a `DependencyResolver` implementation.
 * Remove Ivy version from the output of `gradle -v`.
 
-## Gradle Open API
+## Remove the Gradle Open API
 
 Now that we have reasonable tooling support via the tooling API, remove the Open API.
 
@@ -43,9 +43,7 @@ Now that we have reasonable tooling support via the tooling API, remove the Open
 The public API for launching Gradle is now the tooling API. The `GradleBuild` task can also be used.
 
 * Replace internal usages of the static `GradleLauncher` methods.
-* Remove the `GradleLauncher` type from the public API.
-* Remove the public `StartParameter` constructor.
-* Change `StartParameter` into an interface.
+* Move the `GradleLauncher` type from the public API to an internal package.
 
 ## Remove tooling API support for Gradle 1.1 clients and earlier
 
@@ -56,7 +54,7 @@ will not be able to invoke Gradle 2.0 or later.
 * The model implementations no longer need to implement `ProjectVersion3` or the protocol interfaces.
 * Add integration test coverage.
 
-## Remove tooling API support for Gradle version 1.0-milestone-7 and earlier
+## Remove tooling API support for Gradle providers 1.0-milestone-7 and earlier
 
 Gradle 1.0-milestone-8 was release on 14th feb 2012. This change means that tooling will not be able to run builds using Gradle versions more than
 approximately 2 years old as of the Gradle 2.0 release.
@@ -78,19 +76,24 @@ approximately 2 years old as of the Gradle 2.0 release.
 
 * Change Gradle script parsing to assume UTF-8 encoding.
 
+## Upgrade to most recent Groovy 2.x
+
+* Change the version of Groovy exposed via the Gradle API to most recent Groovy 2.x.
+
 ## Archive tasks + base plugin
 
-* Move defaults for output directory to the tasks and remove from base plugin.
-* Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with the default for another
-  archive task.
+* Move defaults for output directory and other attributes from the base plugin to an implicitly applied plugin, so that they are applied to all instances.
+* Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with the default for any other archive task.
 
 ## Test output directories
 
 The current defaults for the outputs of tasks of type `Test` conflict with each other:
 
 * Change the default result and report directory for the `Test` type to include the task's name, so that the default
-  does not conflict with the default for another `Test` task.
+  does not conflict with the default for any other `Test` task.
 * Change the default TestNG output directory.
+
+## Rename this spec
 
 # Candidates
 
@@ -197,6 +200,11 @@ Extension objects have been available for over 2 years and are now an establishe
 * Remove `SelfResolvingDependency.resolve()` methods. These should be internal and invoked only as part of resolution.
 * Remove `ClientModule` and replace with consumer-side component meta-data rules.
 * Remove `ExternalModuleDependency.changing`. Use component meta-data rules instead.
+
+## Invocation API tidy-ups
+
+* Remove the public `StartParameter` constructor.
+* Change `StartParameter` into an interface.
 
 ## Misc API tidy-ups
 
