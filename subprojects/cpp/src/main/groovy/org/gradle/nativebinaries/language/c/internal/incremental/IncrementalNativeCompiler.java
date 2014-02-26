@@ -16,9 +16,10 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
+import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.cache.CacheRepository;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
@@ -26,8 +27,9 @@ import java.io.File;
 public class IncrementalNativeCompiler extends AbstractIncrementalNativeCompiler {
     private final Compiler<NativeCompileSpec> delegateCompiler;
 
-    public IncrementalNativeCompiler(TaskInternal task, SourceIncludesParser sourceIncludesParser, Iterable<File> includes, CacheRepository cacheRepository, Compiler<NativeCompileSpec> delegateCompiler) {
-        super(task, sourceIncludesParser, includes, cacheRepository);
+    public IncrementalNativeCompiler(TaskInternal task, SourceIncludesParser sourceIncludesParser, Iterable<File> includes,
+                                     TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, Compiler<NativeCompileSpec> delegateCompiler) {
+        super(task, sourceIncludesParser, includes, cacheAccess, fileSnapshotter);
         this.delegateCompiler = delegateCompiler;
     }
 

@@ -16,7 +16,7 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentStateCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,13 +26,12 @@ import java.util.*;
 public class IncrementalCompileProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(IncrementalCompileProcessor.class);
 
-    private static final String PREVIOUS_FILES = "previous";
-    private final PersistentIndexedCache<String, CompilationState> previousCompileStateCache;
+    private final PersistentStateCache<CompilationState> previousCompileStateCache;
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
     private final FileSnapshotter snapshotter;
 
-    public IncrementalCompileProcessor(PersistentIndexedCache<String, CompilationState> previousCompileStateCache, SourceIncludesResolver sourceIncludesResolver, SourceIncludesParser sourceIncludesParser,
+    public IncrementalCompileProcessor(PersistentStateCache<CompilationState> previousCompileStateCache, SourceIncludesResolver sourceIncludesResolver, SourceIncludesParser sourceIncludesParser,
                                        FileSnapshotter snapshotter) {
         this.previousCompileStateCache = previousCompileStateCache;
         this.sourceIncludesResolver = sourceIncludesResolver;
@@ -41,14 +40,14 @@ public class IncrementalCompileProcessor {
     }
 
     public IncrementalCompilation processSourceFiles(Collection<File> sourceFiles) {
-        CompilationState previousCompileState = previousCompileStateCache.get(PREVIOUS_FILES);
+        CompilationState previousCompileState = previousCompileStateCache.get();
         final IncrementalCompileFiles result = new IncrementalCompileFiles(previousCompileState);
 
         for (File sourceFile : sourceFiles) {
             result.processSource(sourceFile);
         }
 
-        previousCompileStateCache.put(PREVIOUS_FILES, result.current);
+        previousCompileStateCache.set(result.current);
 
         return new DefaultIncrementalCompilation(result.getModifiedSources(), result.getRemovedSources());
     }

@@ -61,11 +61,12 @@ public class TaskExecutionServices {
         return new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, decorator);
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter) {
-        FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(
-                new CachingFileSnapshotter(
-                        new DefaultHasher(),
-                        cacheAccess), cacheAccess);
+    FileSnapshotter createFileSnapshotter(TaskArtifactStateCacheAccess cacheAccess) {
+        return new CachingFileSnapshotter(new DefaultHasher(), cacheAccess);
+    }
+
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter, FileSnapshotter fileSnapshotter) {
+        FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess);
 
         FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter, new RandomLongIdGenerator(), cacheAccess);
 
