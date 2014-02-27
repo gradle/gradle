@@ -16,18 +16,18 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
 import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
-import org.gradle.tooling.model.TaskSelector;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
     public boolean canBuild(String modelName) {
@@ -44,9 +44,9 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             selectors.add(new DefaultGradleTaskSelector().
                     setName(selectorName).
                     setTaskNames(Sets.newHashSet(aggregatedTasks.get(selectorName))).
-                    setDescription(project.getParent() != null ?
-                            String.format("%s:%s task selector", project.getPath(), selectorName) :
-                            String.format("%s task selector", selectorName)).
+                    setDescription(project.getParent() != null
+                            ? String.format("%s:%s task selector", project.getPath(), selectorName)
+                            : String.format("%s task selector", selectorName)).
                     setDisplayName(String.format("%s built in %s and subprojects.", selectorName, project.getName())));
         }
         return new DefaultBuildInvocations().setSelectors(selectors);
