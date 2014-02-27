@@ -27,6 +27,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateObjectiveCpp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
@@ -94,6 +95,7 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         testApp << [ new DuplicateObjectiveCBaseNamesTestApp(), new DuplicateObjectiveCppBaseNamesTestApp() ]
     }
 
+    @Ignore
     @RequiresInstalledToolChain(VisualCpp)
     def "windows-resources can have sourcefiles with same base name but different directories"() {
         setup:

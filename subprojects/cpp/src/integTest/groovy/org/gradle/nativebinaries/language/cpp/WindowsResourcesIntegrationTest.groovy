@@ -24,6 +24,7 @@ import spock.lang.Ignore
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
+@Ignore
 @RequiresInstalledToolChain(VisualCpp)
 class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
 
