@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
@@ -48,7 +48,7 @@ public abstract class AbstractConsumerConnection implements ConsumerConnection {
         return delegate;
     }
 
-    public abstract void configure(ConsumerConnectionParameters connectionParameters);
+    public abstract void configure(ConnectionParameters connectionParameters);
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw Exceptions.unsupportedFeature("execution of build actions provided by the tooling API client", getVersionDetails().getVersion(), "1.8");

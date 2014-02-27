@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.consumer.loader
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import spock.lang.Specification
 
 import java.util.concurrent.locks.Lock
@@ -31,7 +31,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
     def factory = Mock(ProgressLoggerFactory)
     def distro = Mock(Distribution)
     def logger = Mock(ProgressLogger)
-    def params = Mock(ConsumerConnectionParameters)
+    def params = Mock(ConnectionParameters)
 
     def loader = new SynchronizedToolingImplementationLoader(Mock(ToolingImplementationLoader))
 

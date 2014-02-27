@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.util.GradleVersion;
+
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
@@ -127,6 +129,10 @@ public class DefaultConnectionParameters implements ConnectionParameters {
 
     public TimeUnit getDaemonMaxIdleTimeUnits() {
         return daemonMaxIdleTimeUnits;
+    }
+
+    public String getConsumerVersion() {
+        return GradleVersion.current().getVersion();
     }
 
     public boolean getVerboseLogging() {

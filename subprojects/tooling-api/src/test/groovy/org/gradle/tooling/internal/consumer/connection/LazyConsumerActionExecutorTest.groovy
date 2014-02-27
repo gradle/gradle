@@ -16,10 +16,10 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.LoggingProvider
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import spock.lang.Specification
 
@@ -28,15 +28,11 @@ class LazyConsumerActionExecutorTest extends Specification {
     final ToolingImplementationLoader implementationLoader = Mock()
     final ConsumerOperationParameters params = Mock()
     final ConsumerAction<String> action = Mock()
-    final ConsumerConnectionParameters connectionParams = Mock()
+    final ConnectionParameters connectionParams = Mock()
     final ConsumerConnection consumerConnection = Mock()
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
-    final LazyConsumerActionExecutor connection = new LazyConsumerActionExecutor(distribution, implementationLoader, loggingProvider, false, null)
-
-    def setup() {
-        connection.connectionParameters = connectionParams
-    }
+    final LazyConsumerActionExecutor connection = new LazyConsumerActionExecutor(distribution, implementationLoader, loggingProvider, connectionParams)
 
     def createsConnectionOnDemandToBuildModel() {
         when:

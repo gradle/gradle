@@ -25,10 +25,10 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.*;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.slf4j.Logger;
@@ -48,9 +48,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         this.classLoader = classLoader;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerConnectionParameters connectionParameters) {
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
-        ClassLoader classLoader = createImplementationClassLoader(distribution, progressLoggerFactory, connectionParameters.getUserHomeDir());
+        ClassLoader classLoader = createImplementationClassLoader(distribution, progressLoggerFactory, connectionParameters.getGradleUserHomeDir());
         ServiceLocator serviceLocator = new ServiceLocator(classLoader);
         try {
             Factory<ConnectionVersion4> factory = serviceLocator.findFactory(ConnectionVersion4.class);

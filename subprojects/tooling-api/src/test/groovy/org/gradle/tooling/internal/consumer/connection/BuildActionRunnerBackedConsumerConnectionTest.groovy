@@ -20,7 +20,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
+import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
@@ -69,7 +69,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
     }
 
     def "configures connection"() {
-        def parameters = new ConsumerConnectionParameters(false, null)
+        def parameters = Stub(ConnectionParameters)
 
         when:
         connection.configure(parameters)

@@ -34,10 +34,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DistributionFactory {
-
-    public DistributionFactory() {
-    }
-
     /**
      * Returns the default distribution to use for the specified project.
      */
