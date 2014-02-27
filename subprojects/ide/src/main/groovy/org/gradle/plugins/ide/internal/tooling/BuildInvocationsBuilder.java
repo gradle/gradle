@@ -69,7 +69,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         return selectors;
     }
 
-    public Multimap<String, String> findTasks(Project project) {
+    private Multimap<String, String> findTasks(Project project) {
         Multimap<String, String> aggregatedTasks = ArrayListMultimap.create();
         for (Project child : project.getSubprojects()) {
             Multimap<String, String> childTasks = findTasks(child);

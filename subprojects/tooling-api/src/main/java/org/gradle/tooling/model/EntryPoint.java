@@ -36,7 +36,7 @@ public interface EntryPoint {
     String getName();
 
     /**
-     * Returns the description of this task, or {@code null} if it has no description.
+     * Returns the description of this entry point, or {@code null} if it has no description.
      *
      * @return The description of this task, or {@code null} if it has no description.
      * @since 1.12

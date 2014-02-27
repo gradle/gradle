@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.tooling.r112
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -86,18 +88,16 @@ task t2 << {
 
     @TargetGradleVersion(">=1.12")
     def "build task selectors"() {
-        OutputStream baos = new ByteArrayOutputStream()
         when:
         BuildInvocations projectSelectors = withConnection { connection ->
             connection.action(new FetchTaskSelectorsBuildAction('b')).run() }
         TaskSelector selector = projectSelectors.taskSelectors.find { it -> it.name == 't1'}
         def result = withBuild { BuildLauncher it ->
-            it.standardOutput = baos
             it.forEntryPoints(selector)
         }
 
         then:
-        result.standardOutput.contains('t1 in c')
+        new OutputScrapingExecutionResult(result.standardOutput, result.standardError).assertTasksExecuted(':b:c:t1')
         !result.standardOutput.contains('t1 in test')
     }
 

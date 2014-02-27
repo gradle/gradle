@@ -35,6 +35,8 @@ class BuildInvocationsBuilderTest extends Specification {
         child1a.tasks.create('t1', DefaultTask)
         child1b.tasks.create('t1', DefaultTask)
         child1b.tasks.create('t2', DefaultTask)
+        child1.tasks.create('t2', DefaultTask)
+        project.tasks.create('t3', DefaultTask)
     }
 
     def "can build model"() {
@@ -50,10 +52,10 @@ class BuildInvocationsBuilderTest extends Specification {
         model.taskSelectors.find { it.name == 't1' }?.tasks == t1Tasks as Set
 
         where:
-        startProject | selectorNames | t1Tasks
-        project      | ['t1', 't2']  | [':child1:child1a:t1', ':child1:child1b:t1']
-        child1       | ['t1', 't2']  | [':child1:child1a:t1', ':child1:child1b:t1']
-        child1a      | ['t1']        | [':child1:child1a:t1']
+        startProject | selectorNames       | t1Tasks
+        project      | ['t1', 't2', 't3']  | [':child1:child1a:t1', ':child1:child1b:t1']
+        child1       | ['t1', 't2']        | [':child1:child1a:t1', ':child1:child1b:t1']
+        child1a      | ['t1']              | [':child1:child1a:t1']
     }
 
     def "builds recursive model"() {
