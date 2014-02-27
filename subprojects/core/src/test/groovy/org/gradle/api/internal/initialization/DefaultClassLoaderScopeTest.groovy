@@ -53,7 +53,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     }
 
     ClassPath classPath(String... paths) {
-        new DefaultClassPath(paths.collect { file(it) } as Iterable<File>)
+        new DefaultClassPath(paths.collect { file(it).createDir() } as Iterable<File>)
     }
 
     def "locked scope with no modifications exports parent"() {
@@ -221,5 +221,21 @@ class DefaultClassLoaderScopeTest extends Specification {
         sibling.addLocal(classPath("c2")).is c2Local
         child.addLocal(classPath("c2")).is c2Local
         backingCache.size() == 3
+    }
+
+    def "pessimistic structure has parent visibility"() {
+        when:
+        file("root/root") << "foo"
+
+        then:
+        scope.scopeClassLoader.getResource("root").text == "foo"
+    }
+
+    def "optimised structure has parent visibility"() {
+        when:
+        file("root/root") << "foo"
+
+        then:
+        scope.lock().scopeClassLoader.getResource("root").text == "foo"
     }
 }

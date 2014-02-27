@@ -520,4 +520,35 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("A problem occurred evaluating root project 'tp'.")
         failure.assertHasCause("Plugin with id 'plugin' not found.")
     }
+
+    def "plugins added in root buildscript can be applied in subprojects"() {
+        given:
+        executer.withEagerClassLoaderCreationCheckDisabled()
+        pluginBuilder().addPlugin("project.task('foo')", "plugin").publishTo(mavenRepo.module("g", "a").artifactFile)
+
+        settingsFile << "include 'sub'"
+
+        buildScript """
+            buildscript {
+                repositories {
+                    maven { url "$mavenRepo.uri" }
+                }
+                dependencies {
+                    classpath "g:a:1.0"
+                }
+            }
+
+            apply plugin: 'plugin'
+
+            subprojects {
+                apply plugin: 'plugin'
+            }
+        """
+
+        when:
+        succeeds "sub:foo"
+
+        then:
+        ":sub:foo" in executedTasks
+    }
 }

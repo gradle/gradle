@@ -97,7 +97,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     private void createFlexibleLoaderStructure() {
         if (exportingClassLoader == null) {
-            exportingClassLoader = new MultiParentClassLoader();
+            exportingClassLoader = new MultiParentClassLoader(parent.getChildClassLoader());
         }
 
         localClassLoader = new MultiParentClassLoader(exportingClassLoader);
