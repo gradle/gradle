@@ -16,16 +16,25 @@
 
 package org.gradle.nativebinaries.language.objectivecpp.tasks
 import org.gradle.api.Incubating
-import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.cache.CacheRepository
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
 import org.gradle.nativebinaries.language.objectivecpp.internal.DefaultObjectiveCppCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
-import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
+import org.gradle.api.internal.tasks.compile.Compiler
+
+import javax.inject.Inject
+
 /**
  * Compiles Objective-C++ source files into object files.
  */
 @Incubating
 class ObjectiveCppCompile extends AbstractNativeCompileTask {
+    @Inject
+    ObjectiveCppCompile(CacheRepository cacheRepository) {
+        super(cacheRepository)
+    }
+
     @Override
     protected NativeCompileSpec createCompileSpec() {
         new DefaultObjectiveCppCompileSpec()

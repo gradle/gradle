@@ -26,7 +26,7 @@ class IncrementalNativeCompilerTest extends Specification {
     def delegateCompiler = Mock(org.gradle.api.internal.tasks.compile.Compiler)
     def incrementalCompileProcessor = Mock(IncrementalCompileProcessor)
     def includesParser = Mock(SourceIncludesParser);
-    def compiler = new IncrementalNativeCompiler(null, includesParser, null, null, null, delegateCompiler)
+    def compiler = new IncrementalNativeCompiler(null, includesParser, null, null, delegateCompiler)
 
     def "updates spec for incremental compilation"() {
         def spec = Mock(NativeCompileSpec)

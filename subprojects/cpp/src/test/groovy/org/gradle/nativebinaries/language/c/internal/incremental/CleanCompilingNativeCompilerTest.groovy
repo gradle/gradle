@@ -32,7 +32,7 @@ class CleanCompilingNativeCompilerTest extends Specification {
     def task = Mock(TaskInternal)
     def outputs = Mock(TaskOutputsInternal)
     def includesParser = Mock(SourceIncludesParser);
-    def compiler = new CleanCompilingNativeCompiler(task, includesParser, null, null, null, delegateCompiler)
+    def compiler = new CleanCompilingNativeCompiler(task, includesParser, null, null, delegateCompiler)
 
     def "cleans outputs and delegates spec for compilation"() {
         def spec = Mock(NativeCompileSpec)

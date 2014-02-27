@@ -16,30 +16,26 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.FileSnapshotter;
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.CSourceParser;
-import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.RegexBackedCSourceParser;
+import org.gradle.cache.CacheRepository;
+import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.*;
 import org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile;
 import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
+import org.gradle.api.internal.tasks.compile.Compiler;
 
 import java.io.File;
 
 public class IncrementalCompilerBuilder {
     private final TaskInternal task;
-    private final TaskArtifactStateCacheAccess cacheAccess;
+    private final CacheRepository cacheRepository;
     private final SourceIncludesParser sourceIncludesParser;
-    private final FileSnapshotter fileSnapshotter;
     private boolean cleanCompile;
     private Iterable<File> includes;
 
-    public IncrementalCompilerBuilder(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, TaskInternal task) {
+    public IncrementalCompilerBuilder(CacheRepository cacheRepository, TaskInternal task) {
         this.task = task;
         this.sourceIncludesParser = createIncludesParser(task);
-        this.cacheAccess = cacheAccess;
-        this.fileSnapshotter = fileSnapshotter;
+        this.cacheRepository = cacheRepository;
     }
 
     private static SourceIncludesParser createIncludesParser(TaskInternal task) {
@@ -66,10 +62,10 @@ public class IncrementalCompilerBuilder {
     }
 
     private Compiler<NativeCompileSpec> createIncrementalCompiler(Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        return new IncrementalNativeCompiler(task, sourceIncludesParser, includes, cacheAccess, fileSnapshotter, compiler);
+        return new IncrementalNativeCompiler(task, sourceIncludesParser, includes, cacheRepository, compiler);
     }
 
     private Compiler<NativeCompileSpec> createCleaningCompiler(Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        return new CleanCompilingNativeCompiler(task, sourceIncludesParser, includes, cacheAccess, fileSnapshotter, compiler);
+        return new CleanCompilingNativeCompiler(task, sourceIncludesParser, includes, cacheRepository, compiler);
     }
 }

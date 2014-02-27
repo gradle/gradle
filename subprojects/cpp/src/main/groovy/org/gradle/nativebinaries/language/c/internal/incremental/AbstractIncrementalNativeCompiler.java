@@ -17,12 +17,18 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
+import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.Serializer;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.util.CollectionUtils;
 
@@ -31,26 +37,28 @@ import java.io.File;
 abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
     private final TaskInternal task;
     private final SourceIncludesParser sourceIncludesParser;
-    private final TaskArtifactStateCacheAccess cacheAccess;
-    private final FileSnapshotter fileSnapshotter;
+    private final CacheRepository cacheRepository;
     private Iterable<File> includes;
 
-    protected AbstractIncrementalNativeCompiler(TaskInternal task, SourceIncludesParser sourceIncludesParser, Iterable<File> includes,
-                                                TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter) {
+    protected AbstractIncrementalNativeCompiler(TaskInternal task, SourceIncludesParser sourceIncludesParser, Iterable<File> includes, CacheRepository cacheRepository) {
         this.task = task;
         this.includes = includes;
         this.sourceIncludesParser = sourceIncludesParser;
-        this.cacheAccess = cacheAccess;
-        this.fileSnapshotter = fileSnapshotter;
+        this.cacheRepository = cacheRepository;
     }
 
     public WorkResult execute(final NativeCompileSpec spec) {
-        return cacheAccess.useCache("incremental compile", new Factory<WorkResult>() {
-            public WorkResult create() {
-                IncrementalCompileProcessor processor = createProcessor(includes);
-                return doIncrementalCompile(processor, spec);
-            }
-        });
+        final PersistentCache cache = openCache(task);
+        try {
+            return cache.useCache("incremental compile", new Factory<WorkResult>() {
+                public WorkResult create() {
+                    IncrementalCompileProcessor processor = createProcessor(includes, cache);
+                    return doIncrementalCompile(processor, spec);
+                }
+            });
+        } finally {
+            cache.close();
+        }
     }
 
     protected abstract WorkResult doIncrementalCompile(IncrementalCompileProcessor processor, NativeCompileSpec spec);
@@ -59,28 +67,27 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
         return task;
     }
 
-    private IncrementalCompileProcessor createProcessor(Iterable<File> includes) {
-        PersistentStateCache<CompilationState> compileStateCache = createCompileStateCache(task.getPath());
+    private IncrementalCompileProcessor createProcessor(Iterable<File> includes, PersistentCache cache) {
+        // TODO:DAZ This doesn't need to be an indexed cache: need PersistentCache.createStateCache()
+        PersistentIndexedCache<String, CompilationState> listCache = createCache(cache, "previous", new CompilationStateSerializer());
 
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
 
-        return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, fileSnapshotter);
+        // TODO:DAZ Inject a factory, and come up with a common abstraction for TaskArtifactStateCacheAccess and PersistentCache
+        FileSnapshotter snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cache);
+
+        return new IncrementalCompileProcessor(listCache, dependencyParser, sourceIncludesParser, snapshotter);
     }
 
-    private PersistentStateCache<CompilationState> createCompileStateCache(final String taskPath) {
-        final PersistentIndexedCache<String, CompilationState> stateIndexedCache = cacheAccess.createCache("compilationState", String.class, new CompilationStateSerializer());
-        return new PersistentStateCache<CompilationState>() {
-            public CompilationState get() {
-                return stateIndexedCache.get(taskPath);
-            }
-
-            public void set(CompilationState newValue) {
-                stateIndexedCache.put(taskPath, newValue);
-            }
-
-            public void update(UpdateAction<CompilationState> updateAction) {
-                throw new UnsupportedOperationException();
-            }
-        };
+    private PersistentCache openCache(TaskInternal task) {
+        return cacheRepository
+                .cache(task, "incrementalCompile")
+                .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
+                .open();
     }
+
+    private <V> PersistentIndexedCache<String, V> createCache(PersistentCache cache, String name, Serializer<V> fileStateDefaultSerializer) {
+        return cache.createCache(new PersistentIndexedCacheParameters<String, V>(name, String.class, fileStateDefaultSerializer));
+    }
+
 }

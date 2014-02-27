@@ -15,22 +15,27 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental
 
+import org.gradle.CacheUsage
 import org.gradle.api.internal.changedetection.state.FileSnapshotter
-import org.gradle.cache.PersistentStateCache
+import org.gradle.cache.internal.FileLockManager
+import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule
 import spock.lang.Specification
 
 class IncrementalCompileProcessorTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
+    def cacheDir = tmpDir.createDir("cache")
     def includesParser = Mock(SourceIncludesParser)
     def dependencyParser = Mock(SourceIncludesResolver)
+    def cacheFactory = new InMemoryCacheFactory()
     def fileSnapshotter = Stub(FileSnapshotter)
-    def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, dependencyParser, includesParser, fileSnapshotter)
+    def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new CompilationStateSerializer())
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(listCache, dependencyParser, includesParser, fileSnapshotter)
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -402,21 +407,5 @@ class IncrementalCompileProcessorTest extends Specification {
 
     Set<ResolvedInclude> deps(File... dep) {
         dep.collect {new ResolvedInclude(it.name, it)} as Set
-    }
-
-    class DummyPersistentStateCache implements PersistentStateCache<CompilationState> {
-        private CompilationState compilationState
-
-        CompilationState get() {
-            return compilationState
-        }
-
-        void set(CompilationState newValue) {
-            this.compilationState = newValue
-        }
-
-        void update(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
-
-        }
     }
 }
