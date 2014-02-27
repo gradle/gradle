@@ -17,7 +17,7 @@ package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
 
-import java.io.File;
+import java.util.Set;
 
 /**
  * Represents an entry point that uses task name to select tasks executed from a given context.
@@ -33,10 +33,9 @@ public interface TaskSelector extends EntryPoint {
     String getDisplayName();
 
     /**
-     * Returns the project directory used as a starting point for a build invoked by this
-     * task selector.
+     * Returns the set of tasks that will be built when a build with this selector is invoked.
      *
-     * @return The project directory associated with this task selector.
+     * @return Set of task names.
      */
-    File getProjectDir();
+    Set<String> getTasks();
 }

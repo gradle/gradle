@@ -16,16 +16,17 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
 import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
 import org.gradle.tooling.model.TaskSelector;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
@@ -37,19 +38,15 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         if (!canBuild(modelName)) {
             throw new GradleException("Unknown model name " + modelName);
         }
-        Set<String> taskSelectorNames = Sets.newHashSet();
-        for (Project child : project.getSubprojects()) {
-            DefaultBuildInvocations childBuildInvocations = buildAll(modelName, child);
-            for (TaskSelector ts : childBuildInvocations.getTaskSelectors()) {
-                taskSelectorNames.add(ts.getName());
-            }
-            taskSelectorNames.addAll(child.getTasks().getNames());
-        }
         List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
-        for (String selectorName : taskSelectorNames) {
+        Multimap<String, String> aggregatedTasks = findTasks(project);
+        for (String selectorName : aggregatedTasks.keySet()) {
             selectors.add(new DefaultGradleTaskSelector().
                     setName(selectorName).
-                    setProjectDir(project.getProjectDir()).
+                    setTaskNames(Sets.newHashSet(aggregatedTasks.get(selectorName))).
+                    setDescription(project.getParent() != null ?
+                            String.format("%s:%s task selector", project.getPath(), selectorName) :
+                            String.format("%s task selector", selectorName)).
                     setDisplayName(String.format("%s built in %s and subprojects.", selectorName, project.getName())));
         }
         return new DefaultBuildInvocations().setSelectors(selectors);
@@ -71,4 +68,17 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         }
         return selectors;
     }
+
+    public Multimap<String, String> findTasks(Project project) {
+        Multimap<String, String> aggregatedTasks = ArrayListMultimap.create();
+        for (Project child : project.getSubprojects()) {
+            Multimap<String, String> childTasks = findTasks(child);
+            aggregatedTasks.putAll(childTasks);
+        }
+        for (Task task : project.getTasks()) {
+            aggregatedTasks.put(task.getName(), task.getPath());
+        }
+        return aggregatedTasks;
+    }
+
 }

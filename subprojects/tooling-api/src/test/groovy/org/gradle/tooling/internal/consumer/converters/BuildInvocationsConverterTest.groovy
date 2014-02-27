@@ -17,22 +17,20 @@
 package org.gradle.tooling.internal.consumer.converters
 
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations
+import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
-import org.gradle.tooling.model.gradle.GradleScript
 import spock.lang.Specification
 
 class BuildInvocationsConverterTest extends Specification {
-
-    DefaultBuildInvocations builds;
-
     def "converts empty single project"() {
         setup:
         GradleProject project = gradleProject()
         _ * project.children >> ([] as DomainObjectSet)
+        _ * project.tasks >> ([] as DomainObjectSet)
         when:
-        builds = new BuildInvocationsConverter().convert(project)
+        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(project)
         then:
         builds.selectors.isEmpty()
     }
@@ -41,26 +39,65 @@ class BuildInvocationsConverterTest extends Specification {
         setup:
         GradleProject rootProject = gradleProject()
         GradleProject sub1 = gradleProject("sub1", ":sub1")
-        GradleTask sub1T1 = Mock(GradleTask)
-        GradleScript buildScript = Mock(GradleScript)
-        File buildFile = Mock(File)
+        GradleTask sub1T1 = gradleTask('t1', ':sub1:t1')
         _ * sub1.children >> ([] as DomainObjectSet)
         _ * sub1.tasks >> ([sub1T1] as DomainObjectSet)
         _ * rootProject.children >> ([sub1] as DomainObjectSet)
-        _ * rootProject.buildScript >> buildScript
-        _ * buildScript.sourceFile >> buildFile
-        _ * sub1T1.name >> 't1'
+        _ * rootProject.tasks >> ([] as DomainObjectSet)
         when:
-        builds = new BuildInvocationsConverter().convert(rootProject)
+        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(rootProject)
         then:
-        builds.taskSelectors.size() == 1
-        builds.taskSelectors.get(0).name == 't1'
+        builds.taskSelectors.size() == 2
+        builds.taskSelectors*.name as Set == ['t1'] as Set
     }
 
-    GradleProject gradleProject(projectName = "rootProject", path = ":") {
+    def "builds model with all selectors"() {
+        setup:
+        def project = gradleProject()
+        def child1 = gradleProject("child1", ":child1", project)
+        def child1a = gradleProject("child1a", ":child1:child1a", child1)
+        def child1b = gradleProject("child1b", ":child1:child1b", child1)
+        GradleTask t1a = gradleTask('t1', ':child1:child1a:t1')
+        GradleTask t1b = gradleTask('t1', ':child1:child1b:t1')
+        GradleTask t2b = gradleTask('t2', ':child1:child1b:t2')
+        _ * child1a.tasks >> ([t1a] as DomainObjectSet)
+        _ * child1b.tasks >> ([t1b, t2b] as DomainObjectSet)
+        _ * child1.tasks >> ([] as DomainObjectSet)
+        _ * project.tasks >> ([] as DomainObjectSet)
+        _ * child1a.children >> ([] as DomainObjectSet)
+        _ * child1b.children >> ([] as DomainObjectSet)
+        _ * child1.children >> ([child1a, child1b] as DomainObjectSet)
+        _ * project.children >> ([child1] as DomainObjectSet)
+
+        when:
+        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(project)
+
+        then:
+        builds.taskSelectors.find { DefaultGradleTaskSelector it ->
+            it.name == 't1' && it.description.startsWith("t1")
+        }?.tasks == [':child1:child1a:t1', ':child1:child1b:t1'] as Set
+        builds.taskSelectors.find { DefaultGradleTaskSelector it ->
+            it.name == 't1' && it.description.startsWith(":child1:t1")
+        }?.tasks == [':child1:child1a:t1', ':child1:child1b:t1'] as Set
+        builds.taskSelectors.find { DefaultGradleTaskSelector it ->
+            it.name == 't1' && it.description.startsWith(":child1:child1a:t1")
+        }?.tasks == [':child1:child1a:t1'] as Set
+        builds.taskSelectors*.name.each { it != null }
+        builds.taskSelectors*.description.each { it != null }
+        builds.taskSelectors*.displayName.each { it != null }
+    }
+
+    GradleProject gradleProject(projectName = "rootProject", path = ":", parent = null) {
         GradleProject gradleProject = Mock(GradleProject)
         _ * gradleProject.path >> path
         _ * gradleProject.name >> projectName
+        _ * gradleProject.parent >> parent
         gradleProject
+    }
+    GradleTask gradleTask(name, path) {
+        GradleTask task = Mock(GradleTask)
+        _ * task.name >> name
+        _ * task.path >> path
+        task
     }
 }

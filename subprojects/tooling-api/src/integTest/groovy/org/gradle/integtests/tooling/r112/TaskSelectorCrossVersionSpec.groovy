@@ -79,8 +79,9 @@ task t2 << {
         result != null
         result.keySet() == ['test', 'a', 'b', 'c'] as Set
         result['test'] == ['t1', 't2', 't3'] as Set
-        result['b'] == ['t1', 't2'] as Set
-        result['c'].isEmpty()
+        result['b'] == ['t1', 't2', 't3'] as Set
+        result['c'] == ['t1', 't2'] as Set
+        result['a'].isEmpty()
     }
 
     @TargetGradleVersion(">=1.12")
@@ -110,14 +111,21 @@ task t2 << {
 
         when:
         def selectors = model.taskSelectors.findAll { TaskSelector it ->
-            it.projectDir == projectDir
+            !it.description.startsWith(':')
         }
         then:
         selectors*.name as Set == ['t1', 't2', 't3'] as Set
 
         when:
         selectors = model.taskSelectors.findAll { TaskSelector it ->
-            it.projectDir == file('b')
+            it.description.startsWith(':b:') && !it.description.startsWith(':b:c:')
+        }
+        then:
+        selectors*.name as Set == ['t1', 't2', 't3'] as Set
+
+        when:
+        selectors = model.taskSelectors.findAll { TaskSelector it ->
+            it.description.startsWith(':b:c:')
         }
         then:
         selectors*.name as Set == ['t1', 't2'] as Set

@@ -100,11 +100,9 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     }
 
     def "can configure task selector build operation"() {
-        // TODO radim: can't build task selectors from different projects
-        File projectDir = Mock(File)
         TaskSelector ts = Mock(TaskSelector)
         _ * ts.name >> 'myTask'
-        _ * ts.projectDir >> projectDir
+        _ * ts.tasks >> [':a:myTask', ':b:myTask']
         ResultHandlerVersion1<Void> adaptedHandler
         ResultHandler<Void> handler = Mock()
         OutputStream stdout = Stub()
@@ -125,10 +123,9 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         }
         1 * connection.run(Void, _) >> {args ->
             ConsumerOperationParameters params = args[1]
-            assert params.tasks == ['myTask']
+            assert params.tasks as Set == [':a:myTask', ':b:myTask'] as Set
             assert params.standardOutput == stdout
             assert params.standardError == stderr
-            assert params.projectDir == projectDir
             return null
         }
         1 * handler.onComplete(null)

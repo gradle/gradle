@@ -26,11 +26,7 @@ import org.gradle.tooling.model.EntryPoint;
 import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.TaskSelector;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
     private final AsyncConsumerActionExecutor connection;
@@ -70,25 +66,17 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     public BuildLauncher forEntryPoints(Iterable<? extends EntryPoint> entryPoints) {
-        List<String> taskPaths = new ArrayList<String>();
+        Set<String> taskPaths = new HashSet<String>();
         for (EntryPoint task : entryPoints) {
             if (task instanceof Task) {
                 taskPaths.add(((Task) task).getPath());
             } else if (task instanceof TaskSelector) {
-                taskPaths.add(task.getName());
-                File selectorDir = ((TaskSelector) task).getProjectDir();
-                ConnectionParameters origConnectionParameters = connectionParamsBuilder.build();
-                if (!selectorDir.equals(origConnectionParameters.getProjectDir())) {
-                    connectionParamsBuilder.setProjectDir(selectorDir);
-                    if (Boolean.FALSE.equals(connectionParamsBuilder.build().isSearchUpwards())) {
-                        connectionParamsBuilder.setSearchUpwards(true);
-                    }
-                }
+                taskPaths.addAll(((TaskSelector) task).getTasks());
             } else {
                 throw new GradleException("Only Task or TaskSelector instances are supported.");
             }
         }
-        operationParamsBuilder.setTasks(taskPaths);
+        operationParamsBuilder.setTasks(new ArrayList<String>(taskPaths));
         return this;
     }
 
