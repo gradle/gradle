@@ -20,6 +20,68 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
+    def "can resolve snapshot versions with version range"() {
+        server.start()
+
+        given:
+        buildFile << """
+repositories {
+    maven {
+        url "${mavenHttpRepo.uri}"
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile group: "org.test", name: "projectA", version: "1.+"
+    compile group: "org.test", name: "projectB", version: "1.+"
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        when:
+        mavenHttpRepo.module("org.test", "projectA", "1.0").publish()
+        mavenHttpRepo.module("org.test", "projectA", "1.1-SNAPSHOT").publish()
+        def matchingA = mavenHttpRepo.module("org.test", "projectA", "1.1").publish()
+        mavenHttpRepo.module("org.test", "projectA", "2.0").publish()
+
+        mavenHttpRepo.module("org.test", "projectB", "1.1").publish()
+        def matchingB = mavenHttpRepo.module("org.test", "projectB", "1.2-SNAPSHOT").publish()
+        mavenHttpRepo.module("org.test", "projectB", "2.0").publish()
+
+        and:
+        mavenHttpRepo.expectMetaDataGet("org.test", "projectA")
+        matchingA.pom.expectGet()
+        matchingA.artifact.expectGet()
+
+        mavenHttpRepo.expectMetaDataGet("org.test", "projectB")
+        matchingB.metaData.expectGet()
+        matchingB.pom.expectGet()
+        matchingB.artifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.1.jar', 'projectB-1.2-SNAPSHOT.jar')
+        file('libs/projectA-1.1.jar').assertIsCopyOf(matchingA.artifactFile)
+        file('libs/projectB-1.2-SNAPSHOT.jar').assertIsCopyOf(matchingB.artifactFile)
+
+        when:
+        server.resetExpectations()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.1.jar', 'projectB-1.2-SNAPSHOT.jar')
+    }
+
     def "can resolve dynamic version declared in pom as transitive dependency from HTTP Maven repository"() {
         given:
         server.start()

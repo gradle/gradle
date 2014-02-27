@@ -296,17 +296,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 artifactId(artifactId)
                 version(allVersions.max())
                 versioning {
-                    if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-                        snapshot {
-                            timestamp(timestampFormat.format(publishTimestamp))
-                            buildNumber(publishCount)
-                            lastUpdated(updateFormat.format(publishTimestamp))
-                        }
-                    } else {
-                        versions {
-                            allVersions.each {currVersion ->
-                                version(currVersion)
-                            }
+                    versions {
+                        allVersions.each {currVersion ->
+                            version(currVersion)
                         }
                     }
                 }
