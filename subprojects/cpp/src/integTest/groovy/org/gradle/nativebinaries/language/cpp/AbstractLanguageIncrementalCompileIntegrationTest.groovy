@@ -32,6 +32,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
     TestFile sharedHeaderFile
     TestFile otherHeaderFile
     List<TestFile> otherSourceFiles = []
+    TestFile objectFileDir
 
     abstract IncrementalHelloWorldApp getHelloWorldApp();
 
@@ -60,6 +61,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         otherHeaderFile = file("src/main/headers/other.h") << """
             // Dummy header file
 """
+        objectFileDir = file("build/objectFiles/mainExecutable")
     }
 
     def "recompiles changed source file only"() {
@@ -359,7 +361,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         initialCompile()
 
         when:
-        file("build/objectFiles").deleteDir()
+        objectFileDir.deleteDir()
         and:
         run "mainExecutable"
 
@@ -452,17 +454,48 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         }
     }
 
+    def "incremental compile is not effected by other compile tasks"() {
+        given:
+        buildFile << """
+            executables {
+                other
+            }
+"""
+        app.writeSources(file("src/other"))
+
+        and:
+        initialCompile()
+
+        and:
+        // Completely independent compile task (state should be independent)
+        run "otherExecutable"
+
+        when:
+        sourceFile << """
+// Changed source file
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled sourceFile
+    }
+
+
     def initialCompile() {
         run "mainExecutable"
 
         // Set the last modified timestamp to zero for all object files
-        file("build/objectFiles").eachFileRecurse(FileType.FILES) { it.lastModified = 0 }
+        objectFileDir.eachFileRecurse(FileType.FILES) { it.lastModified = 0 }
     }
 
     def getRecompiledFiles() {
         // Get all of the object files that do not have a zero last modified timestamp
         def recompiled = []
-        file("build/objectFiles").eachFileRecurse(FileType.FILES) {
+        objectFileDir.eachFileRecurse(FileType.FILES) {
             if (it.lastModified() > 0) {
                 recompiled << FilenameUtils.removeExtension(it.name)
             }
