@@ -23,16 +23,20 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ModelBuilderBackedConsumerConnectionTest extends Specification {
     final metaData = Stub(ConnectionMetaDataVersion1)
@@ -159,5 +163,20 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
     }
 
     interface TestModelBuilder extends ModelBuilder, ConnectionVersion4, ConfigurableConnection {
+    }
+
+    @Unroll('VersionDetails for #versionString support expected models')
+    def "VersionDetails supports expected models"() {
+        when:
+        VersionDetails version = ModelBuilderBackedConsumerConnection.getVersionDetails(versionString)
+        def gradleVersion = GradleVersion.version(versionString)
+
+        then:
+        version.isModelSupported(GradleBuild) == gradleVersion.compareTo(GradleVersion.version("1.8")) >= 0
+        version.isModelSupported(BuildInvocations) == gradleVersion.compareTo(GradleVersion.version("1.11")) > 0
+        version.supportsGradleProjectModel() == gradleVersion.compareTo(GradleVersion.version("1.6")) >= 0
+
+        where:
+        versionString << ['1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12']
     }
 }
