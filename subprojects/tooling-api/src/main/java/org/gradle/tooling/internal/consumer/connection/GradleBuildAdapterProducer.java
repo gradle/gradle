@@ -34,7 +34,7 @@ public class GradleBuildAdapterProducer extends AbstractModelProducer {
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-        if (type.getName().equals(GradleBuild.class.getName()) && !versionDetails.isModelSupported(type)) {
+        if (type.getName().equals(GradleBuild.class.getName()) && !versionDetails.maySupportModel(type)) {
             GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);
             final DefaultGradleBuild convert = new GradleBuildConverter().convert(gradleProject);
             return adapter.adapt(type, convert);

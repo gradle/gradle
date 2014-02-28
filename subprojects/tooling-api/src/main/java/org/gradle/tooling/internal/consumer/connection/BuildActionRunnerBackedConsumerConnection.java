@@ -58,7 +58,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         }
 
         @Override
-        public boolean isModelSupported(Class<?> modelType) {
+        public boolean maySupportModel(Class<?> modelType) {
             return modelType.equals(ProjectOutcomes.class)
                     || modelType.equals(HierarchicalEclipseProject.class)
                     || modelType.equals(EclipseProject.class)
@@ -79,7 +79,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         }
 
         public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-            if (!versionDetails.isModelSupported(type)) {
+            if (!versionDetails.maySupportModel(type)) {
                 //don't bother asking the provider for this model
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
 

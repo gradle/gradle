@@ -37,7 +37,7 @@ class GradleBuildAdapterProducerTest extends Specification {
 
     def "passes request to delegate when supported GradleBuild is requested"() {
         setup:
-        1 * versionDetails.isModelSupported(GradleBuild.class) >> true
+        1 * versionDetails.maySupportModel(GradleBuild.class) >> true
         GradleBuild gradleBuild = Mock(GradleBuild)
         ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
         when:
@@ -49,7 +49,7 @@ class GradleBuildAdapterProducerTest extends Specification {
 
     def "requests GradleProject on delegate when unsupported GradleBuild requested"() {
         setup:
-        1 * versionDetails.isModelSupported(GradleBuild) >> false
+        1 * versionDetails.maySupportModel(GradleBuild) >> false
         GradleProject gradleProject = gradleProject()
         ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
         adapter.adapt(GradleProject, gradleProject) >> gradleProject
@@ -70,7 +70,7 @@ class GradleBuildAdapterProducerTest extends Specification {
         then:
         1 * delegate.produceModel(SomeModel, operationParameters) >> someModel
         returnValue == someModel
-        0 * versionDetails.isModelSupported(_)
+        0 * versionDetails.maySupportModel(_)
         0 * adapter.adapt(_, _)
     }
 

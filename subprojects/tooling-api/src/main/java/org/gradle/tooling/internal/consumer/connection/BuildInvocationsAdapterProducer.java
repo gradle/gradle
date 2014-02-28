@@ -36,8 +36,8 @@ public class BuildInvocationsAdapterProducer extends AbstractModelProducer {
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-        if (type.getName().equals(BuildInvocations.class.getName()) && !versionDetails.isModelSupported(type)) {
-            if (!versionDetails.isModelSupported(GradleBuild.class)) {
+        if (type.getName().equals(BuildInvocations.class.getName()) && !versionDetails.maySupportModel(type)) {
+            if (!versionDetails.maySupportModel(GradleBuild.class)) {
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }
             GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);

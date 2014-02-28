@@ -61,7 +61,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         }
 
         @Override
-        public boolean isModelSupported(Class<?> modelType) {
+        public boolean maySupportModel(Class<?> modelType) {
             return modelType != BuildInvocations.class
                     && modelType != GradleBuild.class;
         }
@@ -78,11 +78,11 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         }
 
         @Override
-        public boolean isModelSupported(Class<?> modelType) {
+        public boolean maySupportModel(Class<?> modelType) {
             if (modelType == GradleBuild.class) {
                 return true;
             }
-            return super.isModelSupported(modelType);
+            return super.maySupportModel(modelType);
         }
     }
 
@@ -92,11 +92,11 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         }
 
         @Override
-        public boolean isModelSupported(Class<?> modelType) {
+        public boolean maySupportModel(Class<?> modelType) {
             if (modelType == BuildInvocations.class) {
                 return true;
             }
-            return super.isModelSupported(modelType);
+            return super.maySupportModel(modelType);
         }
 
         @Override

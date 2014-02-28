@@ -55,17 +55,17 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         details.supportsGradleProjectModel()
 
         and:
-        details.isModelSupported(HierarchicalEclipseProject)
-        details.isModelSupported(EclipseProject)
-        details.isModelSupported(IdeaProject)
-        details.isModelSupported(BasicIdeaProject)
-        details.isModelSupported(GradleProject)
-        details.isModelSupported(BuildEnvironment)
-        details.isModelSupported(ProjectOutcomes)
-        details.isModelSupported(Void)
+        details.maySupportModel(HierarchicalEclipseProject)
+        details.maySupportModel(EclipseProject)
+        details.maySupportModel(IdeaProject)
+        details.maySupportModel(BasicIdeaProject)
+        details.maySupportModel(GradleProject)
+        details.maySupportModel(BuildEnvironment)
+        details.maySupportModel(ProjectOutcomes)
+        details.maySupportModel(Void)
 
         and:
-        !details.isModelSupported(CustomModel)
+        !details.maySupportModel(CustomModel)
     }
 
     def "configures connection"() {

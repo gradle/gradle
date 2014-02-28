@@ -31,7 +31,7 @@ public abstract class VersionDetails {
      * Returns true if this provider may support the given model type. Returns false if it is known that the
      * provider does not support the given model type and <em>should not</em> be asked to provide it.
      */
-    public boolean isModelSupported(Class<?> modelType) {
+    public boolean maySupportModel(Class<?> modelType) {
         return false;
     }
 
