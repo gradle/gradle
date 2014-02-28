@@ -115,14 +115,18 @@ class AggregateTestResultsProviderTest extends Specification {
     }
 
     def "merge methods in duplicate classes"() {
+        final long startTimeSooner = 122000
+        final long startTimeLater = 123000
         def action = Mock(Action)
         def class1 = Stub(TestClassResult) {
             getClassName() >> 'class-1'
             getResults() >> Collections.singletonList(new TestMethodResult(101, 'methodFoo', TestResult.ResultType.SUCCESS, 10, 123456))
+            getStartTime() >> startTimeLater
         }
         def class2 = Stub(TestClassResult) {
             getClassName() >> 'class-1'
             getResults() >> Collections.singletonList(new TestMethodResult(101, 'methodFoo', TestResult.ResultType.FAILURE, 100, 123678))
+            getStartTime() >> startTimeSooner
         }
 
         when:
@@ -134,6 +138,7 @@ class AggregateTestResultsProviderTest extends Specification {
         1 * action.execute(_) >> { TestClassResult r ->
             assert r.id == 1
             assert r.className == 'class-1'
+            assert r.startTime == startTimeSooner
             assert r.results.any { TestMethodResult m ->
                 m.name == 'methodFoo' && m.resultType == TestResult.ResultType.SUCCESS
             }

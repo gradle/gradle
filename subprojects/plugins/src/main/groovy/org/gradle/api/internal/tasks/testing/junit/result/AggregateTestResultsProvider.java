@@ -93,6 +93,9 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
             for (TestMethodResult result : delegate.getResults()) {
                 add(result);
             }
+            if (delegate.getStartTime() < getStartTime()) {
+                setStartTime(delegate.getStartTime());
+            }
         }
     }
 
