@@ -24,6 +24,11 @@ import spock.lang.Issue
 @TargetGradleVersion("current")
 class TestFilteringCrossVersionSpec extends ToolingApiSpecification {
 
+    def setup() {
+        // workaround for classloading problem
+        toolingApi.isEmbedded = false
+    }
+
     @Issue("GRADLE-2972")
     def "tooling api support test filtering when tasks configured via command line"() {
         buildFile << """
