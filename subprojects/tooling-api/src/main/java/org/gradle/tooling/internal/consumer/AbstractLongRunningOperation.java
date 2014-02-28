@@ -25,20 +25,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public abstract class AbstractLongRunningOperation<T extends LongRunningOperation> implements LongRunningOperation {
-    protected final DefaultConnectionParameters.Builder connectionParamsBuilder;
+    protected final ConnectionParameters connectionParameters;
     protected final ConsumerOperationParameters.Builder operationParamsBuilder;
 
     protected AbstractLongRunningOperation(ConnectionParameters parameters) {
-        connectionParamsBuilder = DefaultConnectionParameters.builder(parameters);
+        connectionParameters = parameters;
         operationParamsBuilder = ConsumerOperationParameters.builder();
     }
 
     protected abstract T getThis();
 
     protected final ConsumerOperationParameters getConsumerOperationParameters() {
-        ConnectionParameters connectionParameters = connectionParamsBuilder.build();
-        ConsumerOperationParameters operationParameters = operationParamsBuilder.setParameters(connectionParameters).build();
-        return operationParameters;
+        ConnectionParameters connectionParameters = this.connectionParameters;
+        return operationParamsBuilder.setParameters(connectionParameters).build();
     }
 
     public T withArguments(String... arguments) {
