@@ -16,7 +16,6 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 
 class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
@@ -25,37 +24,6 @@ class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.isEmbedded = false
     }
 
-    @ToolingApiVersion(">=1.0")
-    def "tooling api spawns a daemon in specified userHomeDir"() {
-        File userHomeDir = temporaryFolder.createDir('userhomedir')
-        projectDir.file('settings.gradle') << 'rootProject.name="test"'
-        projectDir.file('build.gradle') << """task gradleBuild(type: GradleBuild) << {
-    println 'userHomeDir=' + startParameter.gradleUserHomeDir
-}
-"""
-        ByteArrayOutputStream baos = new ByteArrayOutputStream()
-
-        when:
-        toolingApi.withConnector { connector ->
-            connector.useGradleUserHomeDir(userHomeDir)
-        }
-        toolingApi.withConnection { connection ->
-            BuildLauncher build = connection.newBuild();
-            if (targetDist.version.compareTo(targetDist.version.version('1.0-milestone-7')) > 0) {
-                build.setJvmArguments('-Xmx32m')
-            }
-            build.withArguments('-Dorg.gradle.daemon.idletimeout=120000')
-            build.forTasks("gradleBuild");
-            build.standardOutput = baos
-            build.run()
-        }
-        def output = baos.toString("UTF-8")
-
-        then:
-        output.contains('userHomeDir=' + userHomeDir.absolutePath)
-    }
-
-    @ToolingApiVersion("<1.0")
     def "tooling api spawns a daemon in specified userHomeDir against old toolingApi"() {
         File userHomeDir = temporaryFolder.createDir('userhomedir')
         projectDir.file('settings.gradle') << 'rootProject.name="test"'
@@ -69,6 +37,7 @@ class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.withConnector { connector ->
             connector.useGradleUserHomeDir(userHomeDir)
         }
+        // TODO radim: consider using smaller heap and shorter timeout when applicable to all supported versions
         toolingApi.withConnection { connection ->
             BuildLauncher build = connection.newBuild();
             build.forTasks("gradleBuild");
