@@ -166,7 +166,7 @@ class ConcurrentTestUtil extends ExternalResource {
         }
     }
 
-    private void onFailure(Throwable t) {
+    private void doOnFailure(Throwable t) {
         lock.lock()
         try {
             if (failureHandler != null) {
@@ -189,7 +189,7 @@ class ConcurrentTestUtil extends ExternalResource {
             LOG.info("Waiting for test threads to complete.")
             while (!threads.isEmpty()) {
                 if (!threadsChanged.awaitUntil(timeout)) {
-                    onFailure(new IllegalStateException("Timeout waiting for test threads to complete."))
+                    doOnFailure(new IllegalStateException("Timeout waiting for test threads to complete."))
                     break;
                 }
             }
@@ -235,7 +235,7 @@ class ConcurrentTestUtil extends ExternalResource {
         try {
             threads.remove(thread)
             if (failure) {
-                onFailure(failure)
+                doOnFailure(failure)
             }
             threadsChanged.signalAll()
         } finally {

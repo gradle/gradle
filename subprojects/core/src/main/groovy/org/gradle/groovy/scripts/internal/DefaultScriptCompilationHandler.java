@@ -91,10 +91,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                         return new ClassWriter(ClassWriter.COMPUTE_MAXS) {
                             // ignore the sourcePath that is given by Groovy (this is only the filename) and instead
                             // insert the full path if our script source has a source file
-                            @Override
-                            public void visitSource(String sourcePath, String debugInfo) {
-                                super.visitSource(source.getFileName(), debugInfo);
-                            }
+                            // commented because of build error with groovy 2
+//                            @Override
+//                            public void visitSource(String sourcePath, String debugInfo) {
+//                                super.visitSource(source.getFileName(), debugInfo);
+//                            }
                         };
                     }
                 };
