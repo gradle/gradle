@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.tooling.r112
 
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -97,8 +95,7 @@ task t2 << {
         }
 
         then:
-        new OutputScrapingExecutionResult(result.standardOutput, result.standardError).assertTasksExecuted(':b:c:t1')
-        !result.standardOutput.contains('t1 in test')
+        result.result.assertTasksExecuted(':b:c:t1')
     }
 
     // TODO retrofit to older version
