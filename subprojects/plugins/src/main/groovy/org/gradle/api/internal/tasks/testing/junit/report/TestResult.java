@@ -27,7 +27,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
     final ClassTestResults classResults;
     final List<TestFailure> failures = new ArrayList<TestFailure>();
     final String name;
-    boolean ignored = false;
+    boolean ignored;
 
     public TestResult(String name, long duration, ClassTestResults classResults) {
         this.name = name;

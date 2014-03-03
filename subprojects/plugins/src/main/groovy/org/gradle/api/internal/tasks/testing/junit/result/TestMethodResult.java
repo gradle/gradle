@@ -28,7 +28,7 @@ public class TestMethodResult {
     private long duration;
     private long endTime;
     private List<TestFailure> failures = new ArrayList<TestFailure>();
-    private boolean ignored = false;
+    private boolean ignored;
 
     public TestMethodResult(long id, String name) {
         this.id = id;
