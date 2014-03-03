@@ -5,7 +5,7 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin</td>
+                    <td>Default</td>
                 </tr>
             </thead>
             <tr>
@@ -15,6 +15,10 @@
             <tr>
                 <td>extension</td>
                 <td><literal>zip</literal></td>
+            </tr>
+            <tr>
+                <td>zip64</td>
+                <td><literal>false</literal></td>
             </tr>
         </table>
     </section>

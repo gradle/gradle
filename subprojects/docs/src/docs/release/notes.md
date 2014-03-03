@@ -125,6 +125,29 @@ The HTML test report now has a dedicated tab for ignored tests, at the overview 
 This makes it much easier to see which tests were ignored at a glance.
 Thanks to [Paul Merlin](https://github.com/eskatos) for this improvement.
 
+### Support for building large zips
+
+It is now possible to build zips with the [Zip64 extension](http://en.wikipedia.org/wiki/Zip_(file_format)#ZIP64), enabling building large zip files.
+
+```
+task largeZip(type: Zip) {
+    from 'lotsOfLargeFiles'
+    zip64 = true
+}
+```
+
+The zip standard does not support containing more than 65535 files, containing any file greater than 4GB or being greater than 4GB compressed.
+If your zip file meets any of these criteria, then the zip must be built with `zip64` set to `true` (it is `false` by default).
+
+However, not all Zip readers support the Zip64 extensions.
+Notably, the `ZipInputStream` JDK class does not support Zip64 for versions earlier than Java 7.
+
+Gradle will now fail the build if an attempt is made to build a zip file without the Zip64 extension that surpasses the file size and count limits.
+
+This flag also applies to all JARs, WARs, EARs and anything else that uses the Zip format.
+
+Thanks to [Jason Gauci](https://github.com/MisterTea) for this improvement.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -195,6 +218,14 @@ A shouldRunAfter [task ordering](userguide/more_about_tasks.html#sec:ordering_ta
 
 This is in alignment with Ant's ordering of target dependencies.
 
+### Invalid large zip files now fail the build
+
+If a zip file is built without the `zip64` flag (new in this release) set to true that surpasses the file size and count limits
+of the zip format, Gradle will now fail the build.
+Previously, it may have silently created an invalid zip.
+
+To allow the large zip to be correctly built, set the `zip64` property of the task to `true`.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -214,6 +245,7 @@ We would like to thank the following community members for making contributions 
 * [Andrew Oberstar](https://github.com/ajoberstar) - Improved Sonar support on Java 1.5 [GRADLE-3005]
 * [Mark Johnson](https://github.com/elucify) - documentation improvements
 * [Paul Merlin](https://github.com/eskatos) - ignored tests tab for HTML test report
+* [Jason Gauci](https://github.com/MisterTea) - Support for large zips
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

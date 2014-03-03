@@ -82,19 +82,25 @@ public class Zip extends AbstractArchiveTask {
     }
 
     /**
-     * Sets the support for Zip64.  Set this to true to support zip
-     * files with 64K files or more, or zip files of size 2GB or
-     * greater.  Note that any zip/jar files created with this flag
-     * set are not compatible with some legacy zip/jar readers,
-     * including some 1.5 (and earlier) JVMs.  This means that one
-     * should not enable this if one wants to support java 1.5 or
-     * older on all platforms.
+     * Enables building zips with more than 65535 files or bigger than 4GB.
+     *
+     * @see #isZip64()
      */
     @Incubating
     public void setZip64(boolean allowZip64) {
         this.allowZip64 = allowZip64;
     }
 
+    /**
+     * Whether the zip can contain more than 65535 files and/or support files greater than 4GB in size.
+     * <p>
+     * The standard zip format has hard limits on file size and count.
+     * The <a href="http://en.wikipedia.org/wiki/Zip_(file_format)#ZIP64">Zip64 format extension</a>
+     * practically removes these limits and is therefore required for building large zips.
+     * <p>
+     * However, not all Zip readers support the Zip64 extensions.
+     * Notably, the {@link java.util.zip.ZipInputStream} JDK class does not support Zip64 for versions earlier than Java 7.
+     */
     @Incubating
     public boolean isZip64() {
         return allowZip64;
