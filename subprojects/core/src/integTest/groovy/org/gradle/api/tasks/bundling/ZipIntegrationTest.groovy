@@ -84,6 +84,25 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         theZip.assertFileContent('file1.txt', "dir1/file1.txt")
     }
 
+    def zip64Support() {
+        given:
+        createTestFiles()
+        buildFile << '''
+            task zip(type: Zip) {
+                from 'dir1'
+                from 'dir2'
+                destinationDir = buildDir
+                archiveName = 'test.zip'
+                zip64 = true
+            }
+            '''
+        when:
+        run 'zip'
+
+        then:
+        def theZip = new ZipTestFixture(file('build/test.zip'))
+        theZip.hasDescendants('file1.txt', 'file2.txt')
+    }
 
     private def createTestFiles() {
         createDir('dir1', {

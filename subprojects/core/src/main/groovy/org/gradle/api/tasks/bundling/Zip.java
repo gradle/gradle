@@ -29,17 +29,27 @@ import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
+    private boolean allowZip64;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
+        allowZip64 = false;
     }
 
     protected ZipCompressor getCompressor() {
         switch(entryCompression) {
             case DEFLATED:
-                return ZipDeflatedCompressor.INSTANCE;
+                if(allowZip64) {
+                    return ZipDeflatedCompressor.INSTANCE_64;
+                } else {
+                    return ZipDeflatedCompressor.INSTANCE_32;
+                }
             case STORED:
-                return ZipStoredCompressor.INSTANCE;
+                if(allowZip64) {
+                    return ZipStoredCompressor.INSTANCE_64;
+                } else {
+                    return ZipStoredCompressor.INSTANCE_32;
+                }
             default:
                 throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
         }
@@ -68,6 +78,25 @@ public class Zip extends AbstractArchiveTask {
      */
     public void setEntryCompression(ZipEntryCompression entryCompression) {
         this.entryCompression = entryCompression;
+    }
+
+    /**
+     * Sets the support for Zip64.  Set this to true to support zip
+     * files with 64K files or more, or zip files of size 2GB or
+     * greater.  Note that any zip/jar files created with this flag
+     * set are not compatible with some legacy zip/jar readers,
+     * including some 1.5 (and earlier) JVMs.  This means that one
+     * should not enable this if one wants to support java 1.5 or
+     * older on all platforms.
+     */
+    @Incubating
+    public void setZip64(boolean allowZip64) {
+        this.allowZip64 = allowZip64;
+    }
+
+    @Incubating
+    public boolean isZip64() {
+        return allowZip64;
     }
 
     /**

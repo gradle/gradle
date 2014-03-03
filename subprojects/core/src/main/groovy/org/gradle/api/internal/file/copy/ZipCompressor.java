@@ -23,4 +23,6 @@ import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFacto
 public interface ZipCompressor extends ArchiveOutputStreamFactory {
 
     ZipOutputStream createArchiveOutputStream(File destination);
+
+    public boolean isZip64Supported();
 }

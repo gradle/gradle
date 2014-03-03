@@ -22,18 +22,28 @@ import org.gradle.api.UncheckedIOException;
 import java.io.File;
 
 abstract class AbstractZipCompressor implements ZipCompressor {
+    private Zip64Mode zip64Mode;
+
+    public AbstractZipCompressor(boolean allowZip64Mode) {
+      zip64Mode = allowZip64Mode?Zip64Mode.AsNeeded:Zip64Mode.Never;
+    }
 
     abstract public int getCompressedMethod();
 
     public ZipOutputStream createArchiveOutputStream(File destination) {
         try {
             ZipOutputStream outStream = new ZipOutputStream(destination);
-            outStream.setUseZip64(Zip64Mode.Never);
+            outStream.setUseZip64(zip64Mode);
             outStream.setMethod(getCompressedMethod());
             return outStream;
         } catch (Exception e) {
             String message = String.format("Unable to create ZIP output stream for file %s.", destination);
             throw new UncheckedIOException(message, e);
         }
+    }
+
+    @Override
+    public boolean isZip64Supported() {
+        return zip64Mode != Zip64Mode.Never;
     }
 }
