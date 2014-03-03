@@ -43,15 +43,15 @@ import java.util.*;
 public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshotter {
     private final FileCollectionSnapshotter snapshotter;
     private final IdGenerator<Long> idGenerator;
-    private TaskArtifactStateCacheAccess cacheAccess;
-    private final PersistentIndexedCache<String, Long> dirIdentiferCache;
+    private final TaskArtifactStateCacheAccess cacheAccess;
+    private final PersistentIndexedCache<String, Long> dirIdentifierCache;
 
     public OutputFilesCollectionSnapshotter(FileCollectionSnapshotter snapshotter, IdGenerator<Long> idGenerator,
                                             TaskArtifactStateCacheAccess cacheAccess) {
         this.snapshotter = snapshotter;
         this.idGenerator = idGenerator;
         this.cacheAccess = cacheAccess;
-        dirIdentiferCache = cacheAccess.createCache("outputFileStates", String.class, new LongSerializer());
+        dirIdentifierCache = cacheAccess.createCache("outputFileStates", String.class, new LongSerializer());
     }
 
     public void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry) {
@@ -72,13 +72,13 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
                 for (File file : theFiles) {
                     Long dirId;
                     if (file.exists()) {
-                        dirId = dirIdentiferCache.get(file.getAbsolutePath());
+                        dirId = dirIdentifierCache.get(file.getAbsolutePath());
                         if (dirId == null) {
                             dirId = idGenerator.generateId();
-                            dirIdentiferCache.put(file.getAbsolutePath(), dirId);
+                            dirIdentifierCache.put(file.getAbsolutePath(), dirId);
                         }
                     } else {
-                        dirIdentiferCache.remove(file.getAbsolutePath());
+                        dirIdentifierCache.remove(file.getAbsolutePath());
                         dirId = null;
                     }
                     snapshotDirIds.put(file.getAbsolutePath(), dirId);
