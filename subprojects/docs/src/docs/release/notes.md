@@ -206,6 +206,7 @@ We would like to thank the following community members for making contributions 
 * [Sterling Greene](https://github.com/big-guy) - Support for developing Gradle in Eclipse
 * [Matthew Michihara](https://github.com/matthewmichihara) - Documentation improvements
 * [Andrew Oberstar](https://github.com/ajoberstar) - Improved Sonar support on Java 1.5 [GRADLE-3005]
+* [Mark Johnson](https://github.com/elucify) - documentation improvements
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
