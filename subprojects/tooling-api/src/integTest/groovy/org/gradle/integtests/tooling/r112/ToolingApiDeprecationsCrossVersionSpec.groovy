@@ -57,7 +57,7 @@ task noop << {
         withConnection { ProjectConnection connection ->
             def modelBuilder = connection.model(EclipseProject)
             modelBuilder.standardOutput = output
-            def model = modelBuilder.get()
+            modelBuilder.get()
         }
 
         then:
@@ -88,7 +88,7 @@ task noop << {
         withConnection { ProjectConnection connection ->
             def modelBuilder = connection.model(GradleProject)
             modelBuilder.standardOutput = output
-            def model = modelBuilder.get()
+            modelBuilder.get()
         }
 
         then:
@@ -96,7 +96,7 @@ task noop << {
     }
 
     def deprecationMessageProvider(def version) {
-        "Connecting to Gradle build version " + version + " has been deprecated and is scheduled to be removed in Gradle 2.0"
+        "Connecting to Gradle version " + version + " from the Gradle tooling API has been deprecated and is scheduled to be removed in version 2.0 of the Gradle tooling API"
     }
 
     @ToolingApiVersion("<1.2")
@@ -139,7 +139,7 @@ task noop << {
         withConnection { ProjectConnection connection ->
             def modelBuilder = connection.model(EclipseProject)
             modelBuilder.standardOutput = output
-            def model = modelBuilder.get()
+            modelBuilder.get()
         }
 
         then:
@@ -154,7 +154,7 @@ task noop << {
         withConnection { ProjectConnection connection ->
             def modelBuilder = connection.model(EclipseProject)
             modelBuilder.standardOutput = output
-            def model = modelBuilder.get()
+            modelBuilder.get()
         }
 
         then:

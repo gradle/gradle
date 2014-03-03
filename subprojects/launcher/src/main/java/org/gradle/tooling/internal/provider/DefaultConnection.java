@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.*;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,8 +159,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         OutputStream out = parameters.getStandardOutput();
         if (out != null) {
             try {
-                out.write(("Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 2.0"
-                        + System.getProperty("line.separator")).getBytes());
+                out.write(String.format("Connection from tooling API older than version 1.2 %s%n", DeprecationLogger.getDeprecationMessage()).getBytes());
             } catch (IOException e) {
                 throw new RuntimeException("Cannot write to stream", e);
             }

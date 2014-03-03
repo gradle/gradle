@@ -36,7 +36,6 @@ import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -78,8 +77,7 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         OutputStream out = operationParameters.getStandardOutput();
         if (out != null) {
             try {
-                String deprecationMessage = String.format(
-                        "Connecting to Gradle build version %s %s%s", versionDetails.getVersion(), SingleMessageLogger.getDeprecationMessage(), System.getProperty("line.separator"));
+                String deprecationMessage = String.format("Connecting to Gradle version %s from the Gradle tooling API has been deprecated and is scheduled to be removed in version 2.0 of the Gradle tooling API%n", versionDetails.getVersion());
                 out.write(deprecationMessage.getBytes());
             } catch (IOException e) {
                 throw new RuntimeException("Cannot write to stream", e);

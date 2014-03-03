@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.m8
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.SystemProperties
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.junit.Assume
 
@@ -119,7 +120,7 @@ project.logger.debug("debug logging");
     }
 
     String filterToolingApiSpecific(String output) {
-        return output.replaceFirst("Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 2.0" + System.getProperty("line.separator"), "")
+        return output.replaceFirst("Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 2.0" + SystemProperties.lineSeparator, "")
     }
 
     void shouldNotContainProviderLogging(String output) {
