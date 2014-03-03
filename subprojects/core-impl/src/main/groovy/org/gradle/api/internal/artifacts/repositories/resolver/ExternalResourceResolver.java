@@ -195,7 +195,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         if (metaDataResource == null) {
             return null;
         }
-        MutableModuleVersionMetaData moduleVersionMetaData = getArtifactMetadata(dependency, artifactIdentifier, metaDataResource);
+        MutableModuleVersionMetaData moduleVersionMetaData = getArtifactMetadata(artifactIdentifier, metaDataResource);
 
         if (isCheckconsistency()) {
             ModuleVersionSelector requested = dependency.getRequested();
@@ -205,7 +205,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return moduleVersionMetaData;
     }
 
-    protected MutableModuleVersionMetaData getArtifactMetadata(DependencyMetaData dependency, ArtifactIdentifier artifactId, ExternalResource resource) {
+    protected MutableModuleVersionMetaData getArtifactMetadata(ArtifactIdentifier artifactId, ExternalResource resource) {
         ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(nestedResolver, this, artifactId.getModuleVersionIdentifier());
         LocallyAvailableExternalResource cachedResource;
         try {
