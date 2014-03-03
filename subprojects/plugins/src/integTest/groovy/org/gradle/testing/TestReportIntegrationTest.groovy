@@ -80,6 +80,89 @@ public class LoggingTest {
         htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
     }
 
+    def "merges report with duplicated classes and methods"() {
+        given:
+        buildFile << """
+$junitSetup
+test {
+    ignoreFailures true
+    useJUnit {
+        excludeCategories 'org.gradle.testing.SuperClassTests'
+        excludeCategories 'org.gradle.testing.SubClassTests'
+    }
+}
+
+task superTest(type: Test) {
+    ignoreFailures true
+    systemProperty 'category', 'super'
+    useJUnit {
+        includeCategories 'org.gradle.testing.SuperClassTests'
+    }
+}
+
+task subTest(type: Test) {
+    ignoreFailures true
+    systemProperty 'category', 'sub'
+    useJUnit {
+        includeCategories 'org.gradle.testing.SubClassTests'
+    }
+}
+
+task testReport(type: TestReport) {
+    destinationDir = file("\$buildDir/reports/allTests")
+    reportOn test, superTest, subTest
+    tasks.build.dependsOn testReport
+}
+"""
+
+        and:
+        file("src/test/java/org/gradle/testing/UnitTest.java") << """
+$testFilePrelude
+public class UnitTest {
+    @Test public void foo() {}
+}
+"""
+        file("src/test/java/org/gradle/testing/SuperTest.java") << """
+$testFilePrelude
+public class SuperTest {
+    @Category(SuperClassTests.class) @Test public void failing() {
+        fail("failing test");
+    }
+    @Category(SuperClassTests.class) @Test public void passing() {}
+}
+"""
+        file("src/test/java/org/gradle/testing/SubTest.java") << """
+$testFilePrelude
+public class SubTest {
+    @Category(SubClassTests.class) @Test public void onlySub() {
+        assertEquals("sub", System.getProperty("category"));
+    }
+    @Category(SubClassTests.class) @Test public void passing() {
+    }
+}
+"""
+        file("src/test/java/org/gradle/testing/SuperClassTests.java") << """
+$testFilePrelude
+public class SuperClassTests {
+}
+"""
+        file("src/test/java/org/gradle/testing/SubClassTests.java") << """
+$testFilePrelude
+public class SubClassTests extends SuperClassTests {
+}
+"""
+
+        when:
+        run "testReport"
+
+        then:
+        def htmlReport = new HtmlTestExecutionResult(testDirectory, 'build/reports/allTests')
+        htmlReport.testClass("org.gradle.testing.UnitTest").assertTestCount(1, 0, 0).assertTestPassed("foo")
+        htmlReport.testClass("org.gradle.testing.SuperTest").assertTestCount(2, 1, 0).assertTestPassed("passing")
+                .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing test'))
+        htmlReport.testClass("org.gradle.testing.SubTest").assertTestCount(4, 1, 0).assertTestPassed("passing") // onlySub is passing once and failing once
+    }
+
     @Issue("http://issues.gradle.org//browse/GRADLE-2821")
     def "test report task can handle test tasks that did not run tests"() {
         given:
@@ -323,6 +406,15 @@ public class LoggingTest {
         """
     }
 
+    String getTestFilePrelude() {
+        """
+package org.gradle.testing;
+
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+"""
+    }
     void failingTestClass(String name) {
         testClass(name, true)
     }
