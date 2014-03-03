@@ -119,6 +119,12 @@ def query = dependencies.createArtifactResolutionQuery()
 
 So far, only one component type (`JvmLibrary`) is available, but others will follow, also for platforms other than the JVM.
 
+### Easier to determine ignored tests in HTML test report
+
+The HTML test report now has a dedicated tab for ignored tests, at the overview and package level.
+This makes it much easier to see which tests were ignored at a glance.
+Thanks to [Paul Merlin](https://github.com/eskatos) for this improvement.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -207,6 +213,7 @@ We would like to thank the following community members for making contributions 
 * [Matthew Michihara](https://github.com/matthewmichihara) - Documentation improvements
 * [Andrew Oberstar](https://github.com/ajoberstar) - Improved Sonar support on Java 1.5 [GRADLE-3005]
 * [Mark Johnson](https://github.com/elucify) - documentation improvements
+* [Paul Merlin](https://github.com/eskatos) - ignored tests tab for HTML test report
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
