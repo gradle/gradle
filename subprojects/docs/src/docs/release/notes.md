@@ -1,3 +1,6 @@
+
+Gradle 1.12 will be the last release before Gradle 2.0
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -140,16 +143,13 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 * Using Tooling API to connect to provider using older distribution than Gradle 1.0-milestone-8 is now deprecated and scheduled for removal in version Gradle 2.0.
 * Using Tooling API client version older than 1.2 to connect to a provider from current distribution is now deprecated and scheduled for removal in version Gradle 2.0.
-<!--
-### Example deprecation
--->
 
 ## Potential breaking changes
 
 ### Incremental Scala compilation
 
 The version of 'zinc' tool that Gradle uses to perform incremental scala compilation has been upgraded to a newer version (0.3.0).
-This might be a breaking change for users who explicitly configured some low version of zinc in their build scripts (there should be very little such users, if any).
+This might be a breaking change for users who explicitly configured some low version of zinc in their build scripts (there should be very few such users, if any).
 
 ### Changes to incubating native support
 
@@ -158,7 +158,7 @@ This might be a breaking change for users who explicitly configured some low ver
 
 ### Change to treatment of poms with packaging 'pom'
 
-If you have a dependency who's pom has packaging of 'pom', Gradle now expects that there will always be an associated jar artifact and will fail to resolve if there is not.
+If you have a dependency whose pom has packaging of 'pom', Gradle now expects that there will always be an associated jar artifact and will fail to resolve if there is not.
 In particular, this means that you can not have a dependency with a pom that only declares further dependencies and has no artifacts itself.
 
 ### Change to JUnit XML file for skipped tests
