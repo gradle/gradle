@@ -123,7 +123,7 @@
             <output args="-q show"/>
         </sample>
         <para>
-            In the above example, we applied the Java plugin which, among other things, did the following:
+            In the example above, we applied the Java plugin which, among other things, did the following:
         </para>
         <itemizedlist>
             <listitem>Added a new domain object type: <apilink class="org.gradle.api.tasks.SourceSet" /></listitem>
@@ -131,7 +131,7 @@
             <listitem>Configured supporting tasks to use these properties to perform work</listitem>
         </itemizedlist>
         <para>
-            All of this happened during the <literal>apply plugin: "java"</literal> step. In the example above we <emphasis>changed</emphasis>
+            All of this happened during the <literal>apply plugin: "java"</literal> step. In the example above, we <emphasis>changed</emphasis>
             the desired location of the class files after this conventional configuration had been performed. Notice by the output with the example
             that the value for <literal>compileJava.destinationDir</literal> also changed to reflect the configuration change.
         </para>
@@ -143,7 +143,7 @@
         <para>
             This ability to configure properties of objects to reflect the value of another object's task at all times (i.e. even when it changes) is
             known as “<emphasis>convention mapping</emphasis>”. It allows Gradle to provide conciseness through convention-over-configuration and
-            sensible defaults yet not require complete reconfiguration if a conventional default needs to be changed. Without this, in the above example
+            sensible defaults yet not require complete reconfiguration if a conventional default needs to be changed. Without this, in the example above,
             we would have had to reconfigure every object that needs to work with the class files.
         </para>
     </section>
