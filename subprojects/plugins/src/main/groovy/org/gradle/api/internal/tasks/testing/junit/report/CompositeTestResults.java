@@ -25,8 +25,8 @@ public abstract class CompositeTestResults extends TestResultModel {
     private final CompositeTestResults parent;
     private int tests;
     private final Set<TestResult> failures = new TreeSet<TestResult>();
+    private final Set<TestResult> ignored = new TreeSet<TestResult>();
     private long duration;
-    private int ignored;
 
     protected CompositeTestResults(CompositeTestResults parent) {
         this.parent = parent;
@@ -80,11 +80,11 @@ public abstract class CompositeTestResults extends TestResultModel {
     }
 
     public int getIgnoredCount() {
-        return ignored;
+        return ignored.size();
     }
 
     public int getRunTestCount() {
-        return tests - ignored;
+        return tests - getIgnoredCount();
     }
 
     public long getDuration() {
@@ -98,6 +98,10 @@ public abstract class CompositeTestResults extends TestResultModel {
 
     public Set<TestResult> getFailures() {
         return failures;
+    }
+
+    public Set<TestResult> getIgnored() {
+        return ignored;
     }
 
     public ResultType getResultType() {
@@ -136,10 +140,10 @@ public abstract class CompositeTestResults extends TestResultModel {
         }
     }
 
-    protected void addIgnored() {
-        ignored++;
+    protected void ignored(TestResult ignoredTest) {
+        ignored.add(ignoredTest);
         if (parent != null) {
-            parent.addIgnored();
+            parent.ignored(ignoredTest);
         }
     }
 

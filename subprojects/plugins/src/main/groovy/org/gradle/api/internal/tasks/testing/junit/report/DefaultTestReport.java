@@ -58,7 +58,7 @@ public class DefaultTestReport implements TestReporter {
                 for (TestMethodResult collectedResult : collectedResults) {
                     final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
                     if (collectedResult.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
-                        testResult.ignored();
+                        testResult.setIgnored();
                     } else {
                         List<TestFailure> failures = collectedResult.getFailures();
                         for (TestFailure failure : failures) {

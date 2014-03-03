@@ -70,6 +70,28 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
         }
         htmlWriter.endElement();
     }
+    
+    protected void addIgnoredTab() {
+        if (!results.getIgnored().isEmpty()) {
+            addTab("Ignored tests", new ErroringAction<SimpleHtmlWriter>() {
+                public void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
+                    renderIgnoredTests(htmlWriter);
+                }
+            });
+        }
+    }
+
+    protected void renderIgnoredTests(SimpleHtmlWriter htmlWriter) throws IOException {
+        htmlWriter.startElement("ul").attribute("class", "linkList");
+        for (TestResult test : getResults().getIgnored()) {
+            htmlWriter.startElement("li");
+            htmlWriter.startElement("a").attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults()))).characters(test.getClassResults().getSimpleName()).endElement();
+            htmlWriter.characters(".");
+            htmlWriter.startElement("a").attribute("href", String.format("%s#%s", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())), test.getName())).characters(test.getName()).endElement();
+            htmlWriter.endElement();
+        }
+        htmlWriter.endElement();
+    }
 
     @Override
     protected String getTitle() {
