@@ -25,8 +25,6 @@ import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -37,7 +35,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.gradle.util.CollectionUtils.any;
 
 public class AggregateTestResultsProvider implements TestResultsProvider {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AggregateTestResultsProvider.class);
     private final Iterable<TestResultsProvider> providers;
     private Multimap<Long, DelegateProvider> classOutputProviders;
 
@@ -55,12 +52,12 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
                     OverlayedIdProxyingTestClassResult newTestResult = aggregatedTestResults.get(classResult.getClassName());
                     if (newTestResult != null) {
                         newTestResult.addTestClassResult(classResult);
-                        classOutputProviders.put(newTestResult.getId(), new DelegateProvider(classResult.getId(), provider));
                     } else {
                         long newId = newIdCounter.incrementAndGet();
-                        classOutputProviders.put(newId, new DelegateProvider(classResult.getId(), provider));
-                        aggregatedTestResults.put(classResult.getClassName(), new OverlayedIdProxyingTestClassResult(newId, classResult));
+                        newTestResult = new OverlayedIdProxyingTestClassResult(newId, classResult);
+                        aggregatedTestResults.put(classResult.getClassName(), newTestResult);
                     }
+                    classOutputProviders.put(newTestResult.getId(), new DelegateProvider(classResult.getId(), provider));
                 }
             });
         }
