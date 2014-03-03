@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.bundling;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.ZipCompressor;
@@ -23,7 +24,7 @@ import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 
 /**
  * Assembles a ZIP archive.
- * 
+ *
  * The default is to compress the contents of the zip.
  */
 public class Zip extends AbstractArchiveTask {
@@ -37,15 +38,15 @@ public class Zip extends AbstractArchiveTask {
     }
 
     protected ZipCompressor getCompressor() {
-        switch(entryCompression) {
+        switch (entryCompression) {
             case DEFLATED:
-                if(allowZip64) {
+                if (allowZip64) {
                     return ZipDeflatedCompressor.INSTANCE_64;
                 } else {
                     return ZipDeflatedCompressor.INSTANCE_32;
                 }
             case STORED:
-                if(allowZip64) {
+                if (allowZip64) {
                     return ZipStoredCompressor.INSTANCE_64;
                 } else {
                     return ZipStoredCompressor.INSTANCE_32;
@@ -69,7 +70,7 @@ public class Zip extends AbstractArchiveTask {
     public ZipEntryCompression getEntryCompression() {
         return entryCompression;
     }
-    
+
     /**
      * Sets the compression level of the entries of the archive. If set to {@link ZipEntryCompression#DEFLATED} (the default), each entry is
      * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
@@ -106,5 +107,6 @@ public class Zip extends AbstractArchiveTask {
      */
     @SuppressWarnings("UnusedDeclaration")
     @Deprecated
-    protected class ZipCopyActionImpl {}
+    protected class ZipCopyActionImpl {
+    }
 }
