@@ -22,6 +22,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryI
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestFile.Snapshot
 
 class NativeBinaryFixture {
     final TestFile file
@@ -36,11 +37,11 @@ class NativeBinaryFixture {
         file.toURI()
     }
 
-    TestFile.Snapshot snapshot() {
+    Snapshot snapshot() {
         file.snapshot()
     }
 
-    void assertHasChangedSince(TestFile.Snapshot snapshot) {
+    void assertHasChangedSince(Snapshot snapshot) {
         file.assertContentsHaveChangedSince(snapshot)
     }
 
