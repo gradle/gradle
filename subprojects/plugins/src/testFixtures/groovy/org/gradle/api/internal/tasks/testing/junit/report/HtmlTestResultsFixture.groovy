@@ -257,5 +257,10 @@ class HtmlTestResultsFixture {
             assert tableElement.select("tr > td:eq(2)").listIterator().any { Element it -> it.text() == expectedValue }
             assert tableElement.select("tr > td:eq(2)").hasClass(expectedClass)
         }
+
+        boolean hasResult(String expectedValue, String expectedClass) {
+            return tableElement.select("tr > td:eq(2)").listIterator().any { Element it -> it.text() == expectedValue } &&
+              tableElement.select("tr > td:eq(2)").hasClass(expectedClass)
+        }
     }
 }

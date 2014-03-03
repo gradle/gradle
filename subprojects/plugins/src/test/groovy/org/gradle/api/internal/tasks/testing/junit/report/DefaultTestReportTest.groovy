@@ -18,11 +18,9 @@ package org.gradle.api.internal.tasks.testing.junit.report
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
-import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
-import org.jsoup.nodes.Element
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -453,6 +451,7 @@ class DefaultTestReportTest extends Specification {
         then:
         def passedClassFile = results(reportDir.file('classes/org.gradle.aggregation.FooTest.html'))
         passedClassFile.assertHasTests(2)
+        passedClassFile.allTestDetails('first').size() == 2
         passedClassFile.assertHasFailures(0)
         passedClassFile.assertHasIgnored(0)
         passedClassFile.assertHasSuccessRate(100)
@@ -469,9 +468,11 @@ class DefaultTestReportTest extends Specification {
 
         def failingTestDetails = mixedClassFile.allTestDetails('second')
         failingTestDetails.any { HtmlTestResultsFixture.TestDetails it ->
-            it.tableElement.select("tr > td:eq(2)").text() == "failed"
-            it.tableElement.select("tr > td:eq(2)").hasClass('failures')
+            it.hasResult('failed', 'failures')
         }
+
+        def failingPackageFile = results(reportDir.file('packages/org.gradle.aggregation.html'))
+        failingPackageFile.assertHasFailedTest('../classes/org.gradle.aggregation.BarTest', 'second')
 
         mixedClassFile.assertHasFailure('second', 'something failed\n\nthis is the failure\nat someClass\n')
     }
@@ -487,6 +488,8 @@ class DefaultTestReportTest extends Specification {
         then:
         def passedClassFile = results(reportDir.file('classes/org.gradle.aggregation.FooTest.html'))
         passedClassFile.assertHasTests(2)
+        passedClassFile.testDetails('first').assertResult('passed', 'success')
+        passedClassFile.testDetails('firstAlternative').assertResult('passed', 'success')
         passedClassFile.assertHasFailures(0)
         passedClassFile.assertHasIgnored(0)
         passedClassFile.assertHasSuccessRate(100)
@@ -504,6 +507,9 @@ class DefaultTestReportTest extends Specification {
         def failingTestDetails = mixedClassFile.testDetails('secondAlternative')
         failingTestDetails.assertDuration("1.100s");
         failingTestDetails.assertResult("failed", "failures");
+
+        def failingPackageFile = results(reportDir.file('packages/org.gradle.aggregation.html'))
+        failingPackageFile.assertHasFailedTest('../classes/org.gradle.aggregation.BarTest', 'secondAlternative')
 
         mixedClassFile.assertHasFailure('secondAlternative', 'something failed\n\nthis is the failure\nat someClass\n')
     }
