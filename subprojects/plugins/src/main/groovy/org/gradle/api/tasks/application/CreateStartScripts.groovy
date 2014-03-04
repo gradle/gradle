@@ -61,6 +61,12 @@ public class CreateStartScripts extends ConventionTask {
     FileCollection classpath
 
     /**
+     * Additional class path for the application (useful for external properties file).
+     */
+    @InputFiles
+    FileCollection additionalClasspath
+
+    /**
      * Returns the name of the application's OPTS environment variable.
      */
     @Input
@@ -103,7 +109,8 @@ public class CreateStartScripts extends ConventionTask {
         generator.defaultJvmOpts = getDefaultJvmOpts()
         generator.optsEnvironmentVar = getOptsEnvironmentVar()
         generator.exitEnvironmentVar = getExitEnvironmentVar()
-        generator.classpath = getClasspath().collect { "lib/${it.name}" }
+        generator.classpath = getClasspath().collect { "lib/${it.name}" }        
+        generator.additionalClasspath = getAdditionalClasspath().collect { "${it.name}" }
         generator.scriptRelPath = "bin/${getUnixScript().name}"
         generator.generateUnixScript(getUnixScript())
         generator.generateWindowsScript(getWindowsScript())
