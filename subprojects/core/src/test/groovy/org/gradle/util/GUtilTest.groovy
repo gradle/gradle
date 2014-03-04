@@ -159,4 +159,13 @@ public class GUtilTest extends spock.lang.Specification {
         expect:
         asPath(["lib1.jar", "lib2.jar", new File("lib3.jar")]) == "lib1.jar${sep}lib2.jar${sep}lib3.jar"
     }
+
+    def "handle addition from null source"() {
+        given:
+        def dest = [1, 2]
+        def sources = [null] as Iterable[]
+
+        expect:
+        addToCollection(dest, sources) == dest
+    }
 }
