@@ -25,7 +25,7 @@ abstract class AbstractZipCompressor implements ZipCompressor {
     private Zip64Mode zip64Mode;
 
     public AbstractZipCompressor(boolean allowZip64Mode) {
-      zip64Mode = allowZip64Mode?Zip64Mode.AsNeeded:Zip64Mode.Never;
+        zip64Mode = allowZip64Mode ? Zip64Mode.AsNeeded : Zip64Mode.Never;
     }
 
     abstract public int getCompressedMethod();
@@ -42,7 +42,4 @@ abstract class AbstractZipCompressor implements ZipCompressor {
         }
     }
 
-    public boolean isZip64Supported() {
-        return zip64Mode != Zip64Mode.Never;
-    }
 }
