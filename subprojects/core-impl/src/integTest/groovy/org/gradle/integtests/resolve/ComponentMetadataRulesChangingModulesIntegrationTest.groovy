@@ -117,6 +117,19 @@ task resolve << {
 
         then:
         artifact.assertContentsHaveChangedSince(snapshot)
+
+        when:
+        buildFile << """
+dependencies.components.eachComponent { it.changing = false }
+"""
+        snapshot = artifact.snapshot()
+        server.resetExpectations()
+
+        and:
+        run("resolve")
+
+        then:
+        artifact.assertContentsHaveNotChangedSince(snapshot)
     }
 
     def "rule cannot make a dependency non-changing"() {
