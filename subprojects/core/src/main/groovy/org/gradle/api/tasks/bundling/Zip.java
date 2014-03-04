@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.bundling;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.ZipCompressor;
@@ -58,7 +59,8 @@ public class Zip extends AbstractArchiveTask {
 
     @Override
     protected CopyAction createCopyAction() {
-        return new ZipCopyAction(getArchivePath(), getCompressor());
+        DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
+        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry);
     }
 
     /**

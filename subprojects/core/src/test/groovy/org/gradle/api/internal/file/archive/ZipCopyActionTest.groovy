@@ -15,11 +15,15 @@
  */
 package org.gradle.api.internal.file.archive
 
+import org.apache.tools.zip.Zip64RequiredException
+import org.apache.tools.zip.ZipOutputStream
 import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal
 import org.gradle.api.internal.file.copy.ZipStoredCompressor
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -39,8 +43,8 @@ class ZipCopyActionTest extends Specification {
     TestFile zipFile
 
     def setup() {
-        zipFile = tmpDir.getTestDirectory().file("test.zip");
-        visitor = new ZipCopyAction(zipFile, ZipStoredCompressor.INSTANCE_32);
+        zipFile = tmpDir.getTestDirectory().file("test.zip")
+        visitor = new ZipCopyAction(zipFile, ZipStoredCompressor.INSTANCE_32, new DocumentationRegistry())
     }
 
     void createsZipFile() {
@@ -85,7 +89,7 @@ class ZipCopyActionTest extends Specification {
     void wrapsFailureToOpenOutputFile() {
         given:
         def invalidZipFile = tmpDir.createDir("test.zip")
-        visitor = new ZipCopyAction(invalidZipFile, ZipStoredCompressor.INSTANCE_32)
+        visitor = new ZipCopyAction(invalidZipFile, ZipStoredCompressor.INSTANCE_32, new DocumentationRegistry())
 
         when:
         visitor.execute(new CopyActionProcessingStream() {
@@ -97,6 +101,34 @@ class ZipCopyActionTest extends Specification {
         then:
         def e = thrown(Exception)
         e.message == String.format("Could not create ZIP '%s'.", zipFile)
+    }
+
+    void wrapsZip64Failure() {
+        given:
+        def zipOutputStream = Mock(ZipOutputStream)
+        zipOutputStream.close() >> {
+            throw new Zip64RequiredException("xyz")
+        }
+
+        def compressor = new ZipStoredCompressor(false) {
+            @Override
+            ZipOutputStream createArchiveOutputStream(File destination) {
+                zipOutputStream
+            }
+        }
+
+        def docRegistry = Mock(DocumentationRegistry)
+        1 * docRegistry.getDslRefForProperty(Zip, "zip64") >> "doc url"
+        0 * docRegistry._
+
+        visitor = new ZipCopyAction(zipFile, compressor, docRegistry)
+
+        when:
+        zip(file("file2"))
+
+        then:
+        def e = thrown(org.gradle.api.tasks.bundling.internal.Zip64RequiredException)
+        e.message == "xyz\n\nTo build this archive, please enable the zip64 extension.\nSee: doc url"
     }
 
     @Test

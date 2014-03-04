@@ -21,7 +21,7 @@ public class ZipStoredCompressor extends AbstractZipCompressor{
 
     public static final ZipCompressor INSTANCE_32 = new ZipStoredCompressor(false);
 
-    // Zip64 requires Java 1.6+ but supports zips with >65k files and >2G.
+    // Zip64 requires Java 1.7+ but supports zips with >65k files and >2G.
     public static final ZipCompressor INSTANCE_64 = new ZipStoredCompressor(true);
 
     public ZipStoredCompressor(boolean allowZip64Mode) {
