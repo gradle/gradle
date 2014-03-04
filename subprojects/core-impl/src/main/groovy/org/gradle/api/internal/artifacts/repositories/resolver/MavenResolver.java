@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
@@ -56,10 +55,10 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
-                         ModuleMetadataProcessor metadataProcessor, ResolverStrategy resolverStrategy) {
+                         ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
-                locallyAvailableResourceFinder, new GradlePomModuleDescriptorParser(), metadataProcessor, resolverStrategy);
+                locallyAvailableResourceFinder, new GradlePomModuleDescriptorParser(), resolverStrategy);
         transport.configureCacheManager(this);
 
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());

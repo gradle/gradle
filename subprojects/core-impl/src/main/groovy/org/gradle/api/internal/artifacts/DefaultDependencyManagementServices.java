@@ -75,7 +75,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     private static class DependencyResolutionScopeServices {
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
                                                           RepositoryTransportFactory repositoryTransportFactory, LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
-                                                          ModuleMetadataProcessor metadataProcessor, LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
+                                                          LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
                                                           ResolverStrategy resolverStrategy) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
@@ -83,7 +83,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     instantiator,
                     repositoryTransportFactory,
                     locallyAvailableResourceFinder,
-                    metadataProcessor,
                     legacyDependencyResolverRepositoryFactory,
                     resolverStrategy
             );

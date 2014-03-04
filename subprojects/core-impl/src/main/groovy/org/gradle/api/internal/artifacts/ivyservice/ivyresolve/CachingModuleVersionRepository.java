@@ -140,7 +140,8 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             case Resolved:
                 MutableModuleVersionMetaData metaData = result.getMetaData();
                 ModuleSource moduleSource = result.getModuleSource();
-                ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData.getRawMetaData(), moduleSource);
+                ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData, moduleSource);
+                metadataProcessor.process(metaData);
                 result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), dependency.isChanging() || metaData.isChanging(), moduleSource));
                 break;
             case Failed:
@@ -172,7 +173,8 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             }
             return;
         }
-        MutableModuleVersionMetaData metaData = processRawMetaData(cachedMetaData.getMetaData());
+        MutableModuleVersionMetaData metaData = cachedMetaData.getMetaData();
+        metadataProcessor.process(metaData);
         if (dependency.isChanging() || metaData.isChanging()) {
             if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
@@ -188,13 +190,6 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
         LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
         result.resolved(metaData, new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), cachedMetaData.getModuleSource()));
-    }
-
-    private MutableModuleVersionMetaData processRawMetaData(MutableModuleVersionMetaData rawMetaData) {
-        MutableModuleVersionMetaData metaData = rawMetaData.copy();
-        metaData.setRawMetaData(rawMetaData);
-        metadataProcessor.process(metaData);
-        return metaData;
     }
 
     public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {

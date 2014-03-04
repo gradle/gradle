@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.ArtifactIdentifier
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
@@ -35,7 +34,6 @@ class ExternalResourceResolverTest extends Specification {
     LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder = Mock()
     BuildableArtifactResolveResult result = Mock()
     MetaDataParser parser = Mock()
-    ModuleMetadataProcessor metadataProcessor = Mock()
     final ResolverStrategy resolverStrategy = Mock()
     ModuleVersionArtifactIdentifier artifactIdentifier = Stub() {
         getDisplayName() >> 'some-artifact'
@@ -49,7 +47,7 @@ class ExternalResourceResolverTest extends Specification {
 
     def setup() {
         //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
-        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, versionLister, locallyAvailableResourceFinder, parser, metadataProcessor, resolverStrategy])
+        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, versionLister, locallyAvailableResourceFinder, parser, resolverStrategy])
     }
 
     def reportsNotFoundArtifactResolveResult() {

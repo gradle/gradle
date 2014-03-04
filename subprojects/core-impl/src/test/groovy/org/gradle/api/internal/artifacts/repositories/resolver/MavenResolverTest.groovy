@@ -15,7 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
+
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -31,7 +31,6 @@ class MavenResolverTest extends Specification {
     def rootUri = URI.create("localhost:8081:/testrepo/")
     def locallyAvailableResourceFinder = Mock(LocallyAvailableResourceFinder)
     def parser = Mock(MetaDataParser)
-    def processor = Mock(ModuleMetadataProcessor)
     def resolverStrategy = Stub(ResolverStrategy)
 
     def setup() {
@@ -42,7 +41,7 @@ class MavenResolverTest extends Specification {
     def "setUseMavenMetaData '#value' adapts versionLister to #classname"() {
         setup:
         MavenResolver testresolver = new MavenResolver("test maven resolver", rootUri, repositoryTransport,
-                locallyAvailableResourceFinder, processor, resolverStrategy)
+                locallyAvailableResourceFinder, resolverStrategy)
         when:
         testresolver.setUseMavenMetadata(value)
         then:

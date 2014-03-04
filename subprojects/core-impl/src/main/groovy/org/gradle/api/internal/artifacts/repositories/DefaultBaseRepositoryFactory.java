@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
@@ -43,7 +42,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
-    private final ModuleMetadataProcessor metadataProcessor;
     private final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory;
     private final ResolverStrategy resolverStrategy;
 
@@ -52,7 +50,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
-                                        ModuleMetadataProcessor metadataProcessor,
                                         LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
                                         ResolverStrategy resolverStrategy) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
@@ -60,7 +57,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.instantiator = instantiator;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.metadataProcessor = metadataProcessor;
         this.legacyDependencyResolverRepositoryFactory = legacyDependencyResolverRepositoryFactory;
         this.resolverStrategy = resolverStrategy;
     }
@@ -89,12 +85,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
         return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, metadataProcessor, resolverStrategy);
+                locallyAvailableResourceFinder, resolverStrategy);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
         MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, metadataProcessor, resolverStrategy);
+                locallyAvailableResourceFinder, resolverStrategy);
         final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         mavenRepository.setUrl(localMavenRepository);
         return mavenRepository;
@@ -115,12 +111,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, instantiator, metadataProcessor, resolverStrategy);
+                locallyAvailableResourceFinder, instantiator, resolverStrategy);
     }
 
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, metadataProcessor, resolverStrategy
+                locallyAvailableResourceFinder, resolverStrategy
         );
     }
 

@@ -20,7 +20,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
@@ -40,13 +39,12 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
-    final ModuleMetadataProcessor metadataProcessor = Mock()
     final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory = Mock()
     final ResolverStrategy resolverStrategy = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
-            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder
-            , metadataProcessor, legacyDependencyResolverRepositoryFactory, resolverStrategy
+            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
+            legacyDependencyResolverRepositoryFactory, resolverStrategy
     )
 
     def testCreateResolverWithStringDescription() {

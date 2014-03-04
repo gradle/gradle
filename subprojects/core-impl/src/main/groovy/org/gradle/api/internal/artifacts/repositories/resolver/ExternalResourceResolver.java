@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
@@ -63,7 +62,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final MetaDataParser metaDataParser;
-    private final ModuleMetadataProcessor metadataProcessor;
 
     private List<String> ivyPatterns = new ArrayList<String>();
     private List<String> artifactPatterns = new ArrayList<String>();
@@ -90,14 +88,12 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
                                     VersionLister versionLister,
                                     LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
                                     MetaDataParser metaDataParser,
-                                    ModuleMetadataProcessor metadataProcessor,
                                     ResolverStrategy resolverStrategy) {
         this.name = name;
         this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.metaDataParser = metaDataParser;
-        this.metadataProcessor = metadataProcessor;
         this.resolverStrategy = resolverStrategy;
     }
 
@@ -214,8 +210,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             throw new UncheckedIOException(e);
         }
 
-        MutableModuleVersionMetaData rawMetaData =  metaDataParser.parseMetaData(context, cachedResource);
-        return processRawMetaData(rawMetaData);
+        MutableModuleVersionMetaData metaData =  metaDataParser.parseMetaData(context, cachedResource);
+        return processMetaData(metaData);
     }
 
     private MutableModuleVersionMetaData findDefaultArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
@@ -230,15 +226,12 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected MutableModuleVersionMetaData getDefaultMetaData(DependencyMetaData dependency) {
-        MutableModuleVersionMetaData rawMetaData = ModuleDescriptorAdapter.defaultForDependency(dependency);
-        return processRawMetaData(rawMetaData);
+        MutableModuleVersionMetaData metaData = ModuleDescriptorAdapter.defaultForDependency(dependency);
+        return processMetaData(metaData);
     }
 
-    private MutableModuleVersionMetaData processRawMetaData(MutableModuleVersionMetaData rawMetaData) {
-        rawMetaData.setChanging(isChanging(rawMetaData.getId().getVersion()));
-        MutableModuleVersionMetaData metaData = rawMetaData.copy();
-        metaData.setRawMetaData(rawMetaData);
-        metadataProcessor.process(metaData);
+    private MutableModuleVersionMetaData processMetaData(MutableModuleVersionMetaData metaData) {
+        metaData.setChanging(isChanging(metaData.getId().getVersion()));
         return metaData;
     }
 
@@ -252,9 +245,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
         if (!expectedId.getVersion().equals(metadata.getId().getVersion())) {
             errors.add("bad version: expected='" + expectedId.getVersion() + "' found='" + metadata.getId().getVersion() + "'");
-        }
-        if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
-            errors.add("bad status: '" + metadata.getStatus() + "'; ");
         }
         if (errors.size() > 0) {
             throw new MetaDataParseException(String.format("inconsistent module metadata found. Descriptor: %s Errors: %s",

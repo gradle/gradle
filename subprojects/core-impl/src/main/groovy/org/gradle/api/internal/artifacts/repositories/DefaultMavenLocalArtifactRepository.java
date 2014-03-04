@@ -19,7 +19,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
@@ -31,9 +30,9 @@ import java.net.URI;
 
 public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder, ModuleMetadataProcessor metadataProcessor,
+                                        LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
                                         ResolverStrategy resolverStrategy) {
-        super(fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, metadataProcessor, resolverStrategy);
+        super(fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, resolverStrategy);
     }
 
     protected MavenResolver createRealResolver() {
@@ -42,7 +41,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, getTransport(rootUri.getScheme()), getLocallyAvailableResourceFinder(), getMetadataProcessor(), getResolverStrategy());
+        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, getTransport(rootUri.getScheme()), getLocallyAvailableResourceFinder(), getResolverStrategy());
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl, null);
         }

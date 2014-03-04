@@ -20,7 +20,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
@@ -40,18 +39,15 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
-    private final ModuleMetadataProcessor metadataProcessor;
     private final ResolverStrategy resolverStrategy;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
                                             LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
-                                            ModuleMetadataProcessor metadataProcessor,
                                             ResolverStrategy resolverStrategy) {
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.metadataProcessor = metadataProcessor;
         this.resolverStrategy = resolverStrategy;
     }
 
@@ -91,7 +87,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         }
 
         IvyResolver resolver = new IvyResolver(getName(), transportFactory.createFileTransport(getName()),
-                locallyAvailableResourceFinder, metadataProcessor, false, resolverStrategy);
+                locallyAvailableResourceFinder, false, resolverStrategy);
         for (File root : dirs) {
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");
