@@ -27,7 +27,6 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 @ToolingApiVersion(">=1.12")
 class TaskSelectorCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
-        toolingApi.isEmbedded = false
         settingsFile << '''
 include 'a'
 include 'b'
