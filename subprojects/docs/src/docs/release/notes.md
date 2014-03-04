@@ -127,24 +127,21 @@ Thanks to [Paul Merlin](https://github.com/eskatos) for this improvement.
 
 ### Support for building large zips
 
-It is now possible to build zips with the [Zip64 extension](http://en.wikipedia.org/wiki/Zip_(file_format)#ZIP64), enabling building large zip files.
+It is now possible to build zips with the [Zip64 extension](http://en.wikipedia.org/wiki/Zip_\(file_format\)#ZIP64), enabling building large zip files.
 
-```
-task largeZip(type: Zip) {
-    from 'lotsOfLargeFiles'
-    zip64 = true
-}
-```
+    task largeZip(type: Zip) {
+        from 'lotsOfLargeFiles'
+        zip64 = true
+    }
 
 The zip standard does not support containing more than 65535 files, containing any file greater than 4GB or being greater than 4GB compressed.
-If your zip file meets any of these criteria, then the zip must be built with `zip64` set to `true` (it is `false` by default).
+If your zip file meets any of these criteria, then the zip must be built with the
+[`zip64` property](dsl/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:zip64) set to `true` (it is `false` by default).
+This flag also applies to all JARs, WARs, EARs and anything else that uses the Zip format.
 
 However, not all Zip readers support the Zip64 extensions.
 Notably, the `ZipInputStream` JDK class does not support Zip64 for versions earlier than Java 7.
-
-Gradle will now fail the build if an attempt is made to build a zip file without the Zip64 extension that surpasses the file size and count limits.
-
-This flag also applies to all JARs, WARs, EARs and anything else that uses the Zip format.
+This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
 
 Thanks to [Jason Gauci](https://github.com/MisterTea) for this improvement.
 

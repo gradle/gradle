@@ -102,6 +102,7 @@ public class Zip extends AbstractArchiveTask {
      * <p>
      * However, not all Zip readers support the Zip64 extensions.
      * Notably, the {@link java.util.zip.ZipInputStream} JDK class does not support Zip64 for versions earlier than Java 7.
+     * This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
      */
     @Incubating
     public boolean isZip64() {
