@@ -22,9 +22,9 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
 import org.gradle.tooling.model.EntryPoint;
 import org.gradle.tooling.model.Task;
-import org.gradle.tooling.model.TaskSelector;
 
 import java.util.*;
 
@@ -66,12 +66,12 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     public BuildLauncher forEntryPoints(Iterable<? extends EntryPoint> entryPoints) {
-        Set<String> taskPaths = new HashSet<String>();
+        Set<String> taskPaths = new LinkedHashSet<String>();
         for (EntryPoint task : entryPoints) {
             if (task instanceof Task) {
                 taskPaths.add(((Task) task).getPath());
-            } else if (task instanceof TaskSelector) {
-                taskPaths.addAll(((TaskSelector) task).getTasks());
+            } else if (task instanceof DefaultGradleTaskSelector) {
+                taskPaths.addAll(((DefaultGradleTaskSelector) task).getTasks());
             } else {
                 throw new GradleException("Only Task or TaskSelector instances are supported.");
             }
