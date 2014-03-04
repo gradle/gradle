@@ -18,8 +18,6 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.resolve.ComponentMetadataRulesStatusIntegrationTest
 import org.gradle.test.fixtures.ivy.IvyHttpRepository
 
-import static org.hamcrest.Matchers.containsString
-
 class IvyComponentMetadataRulesStatusIntegrationTest extends ComponentMetadataRulesStatusIntegrationTest {
     @Override
     IvyHttpRepository getRepo() {
@@ -62,7 +60,7 @@ dependencies {
     def "resolve fails if status doesn't match default status scheme"() {
         expect:
         fails 'resolve'
-        failure.assertThatCause(containsString("bad status: 'silver'"))
+        failure.assertHasCause(/Unexpected status 'silver' specified for org.test:projectA:1.0. Expected one of: [integration, milestone, release]/)
     }
 
     def "resolve fails if status doesn't match custom status scheme"() {
@@ -79,7 +77,7 @@ dependencies {
 
         expect:
         fails 'resolve'
-        failure.assertThatCause(containsString("bad status: 'silver'"))
+        failure.assertHasCause(/Unexpected status 'silver' specified for org.test:projectA:1.0. Expected one of: [gold, bronze]/)
     }
 
     def "rule can change status"() {
