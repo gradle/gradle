@@ -50,7 +50,4 @@ public class RegExpPatternStep implements PatternStep {
         return matcher.matches();
     }
 
-    public boolean isGreedy() {
-        return false;
-    }
 }

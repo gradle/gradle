@@ -16,23 +16,29 @@
 package org.gradle.api.internal.file.pattern;
 
 public class PatternStepFactory {
+    private static final AnyWildcardPatternStep ANY_WILDCARD_PATTERN_STEP = new AnyWildcardPatternStep();
+
     public static PatternStep getStep(String source, boolean caseSensitive) {
         if (source.length() == 0) {
             return new FixedPatternStep(source, caseSensitive);
         }
 
+        // Here, we try to avoid using the reg exp backed pattern step, as it is expensive in terms of performance and heap usage.
+        // There are 3 special cases we handle here:
+        // 1. '*'
+        // 2. '*' <literal>
+        // 3. <literal>
+        // Everything else uses a reg exp.
+
         // Handle '**' and '*some-pattern' special cases
         char ch = source.charAt(0);
         if (ch == '*') {
-            if (source.length() == 1) {
-                return new AnyWildcardPatternStep();
-            }
-            if (source.length() == 2 && source.charAt(1) == '*') {
-                return new GreedyPatternStep();
-            }
             int pos = 1;
             while (pos < source.length() && source.charAt(pos) == '*') {
                 pos++;
+            }
+            if (pos == source.length()) {
+                return ANY_WILDCARD_PATTERN_STEP;
             }
             for (int i = pos; i < source.length(); i++) {
                 ch = source.charAt(i);
@@ -47,6 +53,7 @@ public class PatternStepFactory {
         for (int i = 0; i < source.length(); i++) {
             ch = source.charAt(i);
             if (ch == '?' || ch == '*') {
+                // Too complicated - fall back to regexp
                 return new RegExpPatternStep(source, caseSensitive);
             }
         }

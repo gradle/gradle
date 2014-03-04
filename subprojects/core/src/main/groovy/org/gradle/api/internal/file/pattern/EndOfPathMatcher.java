@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.file.pattern;
 
-public class AnyWildcardPatternStep implements PatternStep{
-    public boolean matches(String candidate) {
-        return true;
+public class EndOfPathMatcher implements PathMatcher {
+    public int getMaxSegments() {
+        return 0;
     }
 
+    public int getMinSegments() {
+        return 0;
+    }
+
+    public boolean matches(String[] segments, int startIndex) {
+        return startIndex == segments.length;
+    }
+
+    public boolean isPrefix(String[] segments, int startIndex) {
+        return false;
+    }
 }

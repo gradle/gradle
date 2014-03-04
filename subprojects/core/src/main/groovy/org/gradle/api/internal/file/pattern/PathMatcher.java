@@ -16,21 +16,24 @@
 
 package org.gradle.api.internal.file.pattern;
 
-/**
- * A pattern step for a pattern segment a the common case with a '*' prefix on the pattern. e.g. '*.java'
- */
-public class WildcardPrefixPatternStep implements PatternStep {
-    private final String suffix;
-    private final boolean caseSensitive;
-    private final int suffixLength;
+public interface PathMatcher {
+    /**
+     * Returns the minimum number of segments a path must have to satisfy this matcher.
+     */
+    int getMinSegments();
 
-    public WildcardPrefixPatternStep(String suffix, boolean caseSensitive) {
-        this.suffix = suffix;
-        suffixLength = suffix.length();
-        this.caseSensitive = caseSensitive;
-    }
+    /**
+     * Returns the maximum number of segments a path must have to satisfy this matcher.
+     */
+    int getMaxSegments();
 
-    public boolean matches(String candidate) {
-        return candidate.regionMatches(!caseSensitive, candidate.length() - suffixLength, suffix, 0, suffixLength);
-    }
+    /**
+     * Returns true if the path starting at the given offset satisfies this pattern.
+     */
+    boolean matches(String[] segments, int startIndex);
+
+    /**
+     * Returns true if the path starting at the given offset could be satisfy this pattern if it contained additional segments at the end.
+     */
+    boolean isPrefix(String[] segments, int startIndex);
 }
