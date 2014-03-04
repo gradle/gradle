@@ -72,6 +72,7 @@ public class PomReader implements PomParent {
 
     private PomParent pomParent = new RootPomParent();
     private final Map<String, String> properties = new HashMap<String, String>();
+    private List<PomDependencyMgt> parsedDependencyMgts;
     private Map<MavenDependencyKey, PomDependencyMgt> dependencyMgts;
     private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
     private Map<MavenDependencyKey, PomDependencyData> dependencies;
@@ -366,24 +367,45 @@ public class PomReader implements PomParent {
     }
 
     /**
-     * Returns the dependency management elements declared in this POM.
+     * Parses the dependency management elements declared in this POM without removing the duplicates.
+     *
+     * @return Parsed dependency management elements
      */
-    public Map<MavenDependencyKey, PomDependencyMgt> getPomDependencyMgt() {
-        Map<MavenDependencyKey, PomDependencyMgt> depMgmtElements = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
-        Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
-        dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
-        if (dependenciesElement != null) {
-            NodeList childs = dependenciesElement.getChildNodes();
-            for (int i = 0; i < childs.getLength(); i++) {
-                Node node = childs.item(i);
-                if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-                    PomDependencyMgt pomDependencyMgt = new PomDependencyMgtElement((Element) node);
-                    MavenDependencyKey key = pomDependencyMgt.getId();
-                    depMgmtElements.put(key, pomDependencyMgt);
+    public List<PomDependencyMgt> parseDependencyMgt() {
+        if(parsedDependencyMgts == null) {
+            List<PomDependencyMgt> depMgmtElements = new ArrayList<PomDependencyMgt>();
+            Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
+            dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
+
+            if (dependenciesElement != null) {
+                NodeList childs = dependenciesElement.getChildNodes();
+                for (int i = 0; i < childs.getLength(); i++) {
+                    Node node = childs.item(i);
+                    if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
+                        depMgmtElements.add(new PomDependencyMgtElement((Element) node));
+                    }
                 }
             }
+
+            parsedDependencyMgts = depMgmtElements;
         }
-        return depMgmtElements;
+
+        return parsedDependencyMgts;
+    }
+
+    /**
+     * Returns the dependency management elements declared in this POM.
+     *
+     * @return Mapped dependency management elements
+     */
+    public Map<MavenDependencyKey, PomDependencyMgt> getPomDependencyMgt() {
+        Map<MavenDependencyKey, PomDependencyMgt> mappedDepMgmtElements = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
+
+        for(PomDependencyMgt dependencyMgt : parseDependencyMgt()) {
+            mappedDepMgmtElements.put(dependencyMgt.getId(), dependencyMgt);
+        }
+
+        return mappedDepMgmtElements;
     }
 
     public PomDependencyMgt findDependencyDefaults(MavenDependencyKey dependencyKey) {
