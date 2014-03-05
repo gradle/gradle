@@ -214,6 +214,18 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("a", "b")));
         assertThat(matcher, not(matchesFile("d", "a", "b")));
 
+        matcher = PatternMatcherFactory.getPatternMatcher(false, true, "**/*");
+        assertThat(matcher, matchesFile("a"));
+        assertThat(matcher, matchesFile("a", "b"));
+        assertThat(matcher, matchesFile("a", "b", "c"));
+        assertThat(matcher, not(matchesFile()));
+
+        matcher = PatternMatcherFactory.getPatternMatcher(false, true, "*/**");
+        assertThat(matcher, matchesFile("a"));
+        assertThat(matcher, matchesFile("a", "b"));
+        assertThat(matcher, matchesFile("a", "b", "c"));
+        assertThat(matcher, not(matchesFile()));
+
         matcher = PatternMatcherFactory.getPatternMatcher(false, true, "a/**/*");
         assertThat(matcher, matchesFile("a", "b"));
         assertThat(matcher, matchesFile("a", "b", "c"));
@@ -267,6 +279,20 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, matchesDir("a", "b", "c", "d"));
         assertThat(matcher, not(matchesDir("a", "c", "b", "c")));
         assertThat(matcher, not(matchesDir("d", "a", "b")));
+
+        matcher = PatternMatcherFactory.getPatternMatcher(true, true, "**/*");
+        assertThat(matcher, matchesDir());
+        assertThat(matcher, matchesDir("a"));
+        assertThat(matcher, matchesDir("a", "b"));
+        assertThat(matcher, matchesDir("a", "b", "c"));
+        assertThat(matcher, matchesDir("a", "b", "d", "c"));
+
+        matcher = PatternMatcherFactory.getPatternMatcher(true, true, "*/**");
+        assertThat(matcher, matchesDir());
+        assertThat(matcher, matchesDir("a"));
+        assertThat(matcher, matchesDir("a", "b"));
+        assertThat(matcher, matchesDir("a", "b", "c"));
+        assertThat(matcher, matchesDir("a", "b", "d", "c"));
 
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a/**/*");
         assertThat(matcher, matchesDir());
