@@ -68,7 +68,7 @@ task retrieve(type: Sync) {
     def "snapshot versions are considered integration status when using latest selector"() {
         given:
         server.start()
-        mavenHttpRepo.allowMetaDataGet('group', 'projectA')
+        mavenHttpRepo.getModuleMetaData('group', 'projectA').allowGetOrHead()
         mavenHttpRepo.module('group', 'projectA', '1.0').publish().allowAll()
         mavenHttpRepo.module('group', 'projectA', '1.2-SNAPSHOT').publish().allowAll()
 

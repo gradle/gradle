@@ -28,6 +28,10 @@ abstract class HttpResource {
         this.server = server
     }
 
+    void allowGetOrHead() {
+        server.allowGetOrHead(getPath(), file)
+
+    }
     void expectGet() {
         server.expectGet(getPath(), file)
     }

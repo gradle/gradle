@@ -55,11 +55,11 @@ task retrieve(type: Sync) {
         mavenHttpRepo.module("org.test", "projectB", "2.0").publish()
 
         and:
-        mavenHttpRepo.expectMetaDataGet("org.test", "projectA")
+        mavenHttpRepo.getModuleMetaData("org.test", "projectA").expectGet()
         matchingA.pom.expectGet()
         matchingA.artifact.expectGet()
 
-        mavenHttpRepo.expectMetaDataGet("org.test", "projectB")
+        mavenHttpRepo.getModuleMetaData("org.test", "projectB").expectGet()
         matchingB.metaData.expectGet()
         matchingB.pom.expectGet()
         matchingB.artifact.expectGet()
@@ -112,7 +112,7 @@ task retrieve(type: Sync) {
         projectA.getArtifact().expectGet()
         projectB.pom.expectGet()
         projectB.getArtifact().expectGet()
-        mavenHttpRepo.expectMetaDataGet("org.test", "projectC")
+        mavenHttpRepo.getModuleMetaData("org.test", "projectC").expectGet()
         projectC.pom.expectGet()
         projectC.getArtifact().expectGet()
 
@@ -154,7 +154,7 @@ task retrieve(type: Sync) {
     """
 
         when:
-        mavenHttpRepo.expectMetaDataGetMissing("org.test", "projectA")
+        mavenHttpRepo.getModuleMetaData("org.test", "projectA").expectGetMissing()
         mavenHttpRepo.expectDirectoryListGet("org.test", "projectA")
         projectA.pom.expectGet()
         projectA.getArtifact().expectGet()
@@ -200,11 +200,11 @@ task retrieve(type: Sync) {
         """
 
         when:
-        repo1.expectMetaDataGet("group", "projectA")
+        repo1.getModuleMetaData("group", "projectA").expectGet()
         projectA1.pom.expectGet()
         projectA1.getArtifact().expectGet()
 
-        repo2.expectMetaDataGet("group", "projectA")
+        repo2.getModuleMetaData("group", "projectA")expectGet()
         projectA2.pom.expectGetBroken()
 
         and:
@@ -215,7 +215,7 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        repo2.expectMetaDataGet("group", "projectA")
+        repo2.getModuleMetaData("group", "projectA").expectGet()
         projectA2.pom.expectGet()
         projectA2.artifact.expectGet()
 

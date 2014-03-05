@@ -35,13 +35,12 @@ repositories {
     }
 
     def setup() {
-        repo.allowMetaDataGet("org.test", "moduleA")
+        moduleA.rootMetaData.allowGetOrHead()
     }
 
     def "snapshot dependencies have changing flag initialized to true"() {
         def moduleB = repo.module("org.test", "moduleB", "1.0-SNAPSHOT").publish()
         moduleB.allowAll()
-        repo.allowMetaDataGet("org.test", "moduleB")
 
         buildFile <<
 """
