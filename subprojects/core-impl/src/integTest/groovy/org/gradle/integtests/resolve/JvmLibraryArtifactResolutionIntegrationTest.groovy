@@ -26,8 +26,8 @@ class JvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyReso
     }
 
     def "resolve sources artifacts"() {
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar", module.getArtifactFile(classifier: "sources"))
+        module.pom.expectGet()
+        module.getArtifact(classifier: "sources").expectGet()
 
         publishArtifacts("sources", "javadoc")
 
@@ -70,8 +70,8 @@ task verify << {
 
     def "resolve javadoc artifacts"() {
         publishArtifacts("sources", "javadoc")
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar", module.getArtifactFile(classifier: "javadoc"))
+        module.pom.expectGet()
+        module.artifact(classifier: "javadoc").expectGet()
 
         buildFile <<
 """
@@ -112,9 +112,9 @@ task verify << {
 
     def "resolve all artifacts"() {
         publishArtifacts("sources", "javadoc")
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar", module.getArtifactFile(classifier: "sources"))
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar", module.getArtifactFile(classifier: "javadoc"))
+        module.pom.expectGet()
+        module.artifact(classifier: "sources").expectGet()
+        module.artifact(classifier: "javadoc").expectGet()
 
         buildFile <<
 """
@@ -152,9 +152,9 @@ task verify << {
     }
 
     def "resolve artifacts of non-existing component"() {
-        server.expectGetMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom")
-        server.expectHeadMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar")
-        server.expectHeadMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar")
+        module.pom.expectGetMissing()
+        module.artifact(classifier: "sources").expectHeadMissing()
+        module.artifact(classifier: "javadoc").expectHeadMissing()
 
         buildFile <<
 """
@@ -185,9 +185,9 @@ task verify << {
 
     def "resolve non-existing artifacts of existing component"() {
         publishArtifacts("sources", "javadoc")
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
-        server.expectGetMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar")
-        server.expectGetMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar")
+        module.pom.expectGet()
+        module.artifact(classifier: "sources").expectGetMissing()
+        module.artifact(classifier: "javadoc").expectGetMissing()
 
         buildFile <<
 """
@@ -223,9 +223,9 @@ task verify << {
 
     def "resolve partially missing artifacts"() {
         publishArtifacts("sources")
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar", module.getArtifactFile(classifier: "sources"))
-        server.expectGetMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar")
+        module.pom.expectGet()
+        module.artifact(classifier: "sources").expectGet()
+        module.artifact(classifier: "javadoc").expectGetMissing()
 
         buildFile <<
                 """
@@ -268,9 +268,9 @@ task verify << {
     // doesn't expose this kind of error
     def "resolve partially broken artifacts"() {
         publishArtifacts("sources")
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
-        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar", module.getArtifactFile(classifier: "sources"))
-        server.expectGetBroken("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar")
+        module.pom.expectGet()
+        module.artifact(classifier: "sources").expectGet()
+        module.artifact(classifier: "javadoc").expectGetBroken()
 
         buildFile <<
 """
