@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.HttpRepository
