@@ -23,7 +23,6 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
-import spock.lang.Ignore
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 // TODO:DAZ Test incremental
@@ -226,7 +225,6 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         executableBuilt(app)
     }
 
-    @Ignore
     @RequiresInstalledToolChain(VisualCpp)
     def "generator task produces windows resources"() {
         given:

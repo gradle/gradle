@@ -25,7 +25,6 @@ import org.gradle.nativebinaries.test.cunit.CUnitTestResults
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
@@ -171,7 +170,6 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     }
 
 
-    @Ignore
     @RequiresInstalledToolChain(VisualCpp)
     def "win rc"() {
         given:
