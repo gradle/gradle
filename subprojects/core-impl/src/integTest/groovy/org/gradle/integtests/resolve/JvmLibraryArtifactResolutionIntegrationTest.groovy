@@ -26,8 +26,10 @@ class JvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyReso
     }
 
     def "resolve sources artifacts"() {
-        artifacts("sources", "javadoc")
-        module.allowAll()
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar", module.getArtifactFile(classifier: "sources"))
+
+        publishArtifacts("sources", "javadoc")
 
         buildFile <<
 """
@@ -67,8 +69,9 @@ task verify << {
     }
 
     def "resolve javadoc artifacts"() {
-        artifacts("sources", "javadoc")
-        module.allowAll()
+        publishArtifacts("sources", "javadoc")
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar", module.getArtifactFile(classifier: "javadoc"))
 
         buildFile <<
 """
@@ -108,8 +111,10 @@ task verify << {
     }
 
     def "resolve all artifacts"() {
-        artifacts("sources", "javadoc")
-        module.allowAll()
+        publishArtifacts("sources", "javadoc")
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar", module.getArtifactFile(classifier: "sources"))
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar", module.getArtifactFile(classifier: "javadoc"))
 
         buildFile <<
 """
@@ -179,10 +184,10 @@ task verify << {
     }
 
     def "resolve non-existing artifacts of existing component"() {
-        artifacts("sources", "javadoc")
+        publishArtifacts("sources", "javadoc")
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
         server.expectGetMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar")
         server.expectGetMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar")
-        module.allowAll()
 
         buildFile <<
 """
@@ -217,8 +222,10 @@ task verify << {
     }
 
     def "resolve partially missing artifacts"() {
-        artifacts("sources")
-        module.allowAll()
+        publishArtifacts("sources")
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar", module.getArtifactFile(classifier: "sources"))
+        server.expectGetMissing("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar")
 
         buildFile <<
                 """
@@ -260,9 +267,10 @@ task verify << {
     // TODO: artifact resolution error needs to be discoverable, but LenientConfiguration
     // doesn't expose this kind of error
     def "resolve partially broken artifacts"() {
-        artifacts("sources")
+        publishArtifacts("sources")
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0.pom", module.pomFile)
+        server.expectGet("/repo/some/group/some-artifact/1.0/some-artifact-1.0-sources.jar", module.getArtifactFile(classifier: "sources"))
         server.expectGetBroken("/repo/some/group/some-artifact/1.0/some-artifact-1.0-javadoc.jar")
-        module.allowAll()
 
         buildFile <<
 """
@@ -301,7 +309,7 @@ task verify << {
         succeeds("verify")
     }
 
-    private artifacts(String... classifiers) {
+    private publishArtifacts(String... classifiers) {
         for (classifier in classifiers) {
             module.artifact(classifier: classifier)
         }
