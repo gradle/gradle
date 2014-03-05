@@ -31,8 +31,6 @@ class JvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyReso
 
         buildFile <<
 """
-import org.gradle.api.artifacts.resolution.*
-
 repositories {
     maven { url "$repo.uri" }
 }
@@ -74,8 +72,6 @@ task verify << {
 
         buildFile <<
 """
-import org.gradle.api.artifacts.resolution.*
-
 repositories {
     maven { url "$repo.uri" }
 }
@@ -117,8 +113,6 @@ task verify << {
 
         buildFile <<
 """
-import org.gradle.api.artifacts.resolution.*
-
 repositories {
     maven { url "$repo.uri" }
 }
@@ -159,8 +153,6 @@ task verify << {
 
         buildFile <<
 """
-import org.gradle.api.artifacts.resolution.*
-
 repositories {
     maven { url "$repo.uri" }
 }
@@ -194,8 +186,6 @@ task verify << {
 
         buildFile <<
 """
-import org.gradle.api.artifacts.resolution.*
-
 repositories {
     maven { url "$repo.uri" }
 }
@@ -232,8 +222,6 @@ task verify << {
 
         buildFile <<
                 """
-import org.gradle.api.artifacts.resolution.*
-
 repositories {
     maven { url "$repo.uri" }
 }
@@ -278,8 +266,6 @@ task verify << {
 
         buildFile <<
 """
-import org.gradle.api.artifacts.resolution.*
-
 repositories {
     maven { url "$repo.uri" }
 }
