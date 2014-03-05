@@ -47,7 +47,15 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      * The Checkstyle configuration file to use.
      */
     @InputFile
-    File configFile
+    @Optional
+    File configFile = null
+
+    /**
+     * The Checkstyle configuration URL to use
+     */
+    @Input
+    @Optional
+    String configURL = null
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration
@@ -156,21 +164,43 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     @TaskAction
     public void run() {
         def propertyName = "org.gradle.checkstyle.violations"
+
+        if (getConfigFile() == null && getConfigURL() == null) {
+            setConfigFile(new File('config/checkstyle/checkstyle.xml'))
+        }
+
         antBuilder.withClasspath(getCheckstyleClasspath()).execute {
             ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
 
-            ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
-                getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                getClasspath().addToAntBuilder(ant, 'classpath')
-                if (showViolations) {
-                    formatter(type: 'plain', useFile: false)
-                }
-                if (reports.xml.enabled) {
-                    formatter(type: 'xml', toFile: reports.xml.destination)
-                }
+            if (getConfigURL() == null) {
+                ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
+                    getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                    getClasspath().addToAntBuilder(ant, 'classpath')
+                    if (showViolations) {
+                        formatter(type: 'plain', useFile: false)
+                    }
+                    if (reports.xml.enabled) {
+                        formatter(type: 'xml', toFile: reports.xml.destination)
+                    }
 
-                getConfigProperties().each { key, value ->
-                    property(key: key, value: value.toString())
+                    getConfigProperties().each { key, value ->
+                        property(key: key, value: value.toString())
+                    }
+                }
+            } else {
+                ant.checkstyle(configURL: getConfigURL(), failOnViolation: false, failureProperty: propertyName) {
+                    getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                    getClasspath().addToAntBuilder(ant, 'classpath')
+                    if (showViolations) {
+                        formatter(type: 'plain', useFile: false)
+                    }
+                    if (reports.xml.enabled) {
+                        formatter(type: 'xml', toFile: reports.xml.destination)
+                    }
+
+                    getConfigProperties().each { key, value ->
+                        property(key: key, value: value.toString())
+                    }
                 }
             }
 
