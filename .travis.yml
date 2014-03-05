@@ -1,4 +1,7 @@
 language: java
 jdk:
   - oraclejdk7
-script: "./gradlew pullRequestValidation -q"
+script:
+  - ./gradlew pullRequestValidation
+env:
+  - TERM=dumb
