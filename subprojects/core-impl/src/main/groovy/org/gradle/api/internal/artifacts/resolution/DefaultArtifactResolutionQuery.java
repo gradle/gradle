@@ -37,11 +37,6 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         this.configurationContainer = configurationContainer;
     }
 
-    public ArtifactResolutionQuery forComponent(String group, String module, String version) {
-        componentIds.add(new DefaultModuleComponentIdentifier(group, module, version));
-        return this;
-    }
-
     public ArtifactResolutionQuery forComponents(Set<ModuleComponentIdentifier> componentIds) {
         this.componentIds.addAll(componentIds);
         return this;

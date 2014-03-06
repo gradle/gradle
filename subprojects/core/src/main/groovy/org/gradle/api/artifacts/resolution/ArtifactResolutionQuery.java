@@ -27,7 +27,6 @@ import java.util.Set;
  */
 @Incubating
 public interface ArtifactResolutionQuery {
-    ArtifactResolutionQuery forComponent(String group, String module, String version);
     ArtifactResolutionQuery forComponents(Set<ModuleComponentIdentifier> componentIds);
     <T extends SoftwareArtifact, U extends SoftwareComponent<T>> ArtifactResolutionQuery withArtifacts(Class<U> componentType, Class<T>... artifactTypes);
     ArtifactResolutionQueryResult execute();
