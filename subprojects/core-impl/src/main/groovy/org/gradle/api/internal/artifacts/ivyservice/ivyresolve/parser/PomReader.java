@@ -72,10 +72,10 @@ public class PomReader implements PomParent {
 
     private PomParent pomParent = new RootPomParent();
     private final Map<String, String> properties = new HashMap<String, String>();
-    private List<PomDependencyMgt> parsedDependencyMgts;
-    private Map<MavenDependencyKey, PomDependencyMgt> dependencyMgts;
+    private List<PomDependencyMgt> declaredDependencyMgts;
+    private Map<MavenDependencyKey, PomDependencyMgt> resolvedDependencyMgts;
     private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
-    private Map<MavenDependencyKey, PomDependencyData> dependencies;
+    private Map<MavenDependencyKey, PomDependencyData> resolvedDependencies;
 
     private final Element projectElement;
     private final Element parentElement;
@@ -189,7 +189,7 @@ public class PomReader implements PomParent {
     }
 
     public void addImportedDependencyMgts(Map<MavenDependencyKey, PomDependencyMgt> inherited) {
-        if (dependencyMgts != null) {
+        if (resolvedDependencyMgts != null) {
             throw new IllegalStateException("Cannot add imported dependency management elements after dependency management elements have been resolved for this POM.");
         }
         importedDependencyMgts.putAll(inherited);
@@ -316,10 +316,10 @@ public class PomReader implements PomParent {
      * Returns all dependencies for this POM, including those inherited from parent POMs.
      */
     public Map<MavenDependencyKey, PomDependencyData> getDependencies() {
-        if (dependencies == null) {
-            dependencies = resolveDependencies();
+        if (resolvedDependencies == null) {
+            resolvedDependencies = resolveDependencies();
         }
-        return dependencies;
+        return resolvedDependencies;
     }
 
     private Map<MavenDependencyKey, PomDependencyData> resolveDependencies() {
@@ -351,18 +351,19 @@ public class PomReader implements PomParent {
      * Returns all dependency management elements for this POM, including those inherited from parent and imported POMs.
      */
     public Map<MavenDependencyKey, PomDependencyMgt> getDependencyMgt() {
-        if(dependencyMgts == null) {
-            dependencyMgts = resolveDependencyMgt();
+        if(resolvedDependencyMgts == null) {
+            resolvedDependencyMgts = resolveDependencyMgt();
         }
-
-        return dependencyMgts;
+        return resolvedDependencyMgts;
     }
 
     private Map<MavenDependencyKey, PomDependencyMgt> resolveDependencyMgt() {
         Map<MavenDependencyKey, PomDependencyMgt> dependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
         dependencies.putAll(pomParent.getDependencyMgt());
         dependencies.putAll(importedDependencyMgts);
-        dependencies.putAll(getPomDependencyMgt());
+        for(PomDependencyMgt dependencyMgt : parseDependencyMgt()) {
+            dependencies.put(dependencyMgt.getId(), dependencyMgt);
+        }
         return dependencies;
     }
 
@@ -372,7 +373,7 @@ public class PomReader implements PomParent {
      * @return Parsed dependency management elements
      */
     public List<PomDependencyMgt> parseDependencyMgt() {
-        if(parsedDependencyMgts == null) {
+        if(declaredDependencyMgts == null) {
             List<PomDependencyMgt> depMgmtElements = new ArrayList<PomDependencyMgt>();
             Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
             dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
@@ -387,25 +388,10 @@ public class PomReader implements PomParent {
                 }
             }
 
-            parsedDependencyMgts = depMgmtElements;
+            declaredDependencyMgts = depMgmtElements;
         }
 
-        return parsedDependencyMgts;
-    }
-
-    /**
-     * Returns the dependency management elements declared in this POM.
-     *
-     * @return Mapped dependency management elements
-     */
-    public Map<MavenDependencyKey, PomDependencyMgt> getPomDependencyMgt() {
-        Map<MavenDependencyKey, PomDependencyMgt> mappedDepMgmtElements = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
-
-        for(PomDependencyMgt dependencyMgt : parseDependencyMgt()) {
-            mappedDepMgmtElements.put(dependencyMgt.getId(), dependencyMgt);
-        }
-
-        return mappedDepMgmtElements;
+        return declaredDependencyMgts;
     }
 
     public PomDependencyMgt findDependencyDefaults(MavenDependencyKey dependencyKey) {
