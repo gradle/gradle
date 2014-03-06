@@ -24,8 +24,7 @@ ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsW
 
 import org.gradle.util.GradleVersion
 
-def removeOldVersionsFromDir(File dir, boolean onlySnapshots = false) {
-    def current = GradleVersion.version(gradle.gradleVersion)
+def removeOldVersionsFromDir(File dir, def shouldDelete) {
     if (dir.directory) {
         for (File cacheDir: dir.listFiles()) {
             if (!cacheDir.name.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
@@ -39,8 +38,9 @@ def removeOldVersionsFromDir(File dir, boolean onlySnapshots = false) {
                 // Ignore
                 continue
             }
-            if (cacheVersion.baseVersion < current.baseVersion && (!onlySnapshots || cacheVersion.snapshot)) {
-                println "Removing old cache directory ${cacheDir}"
+
+            if (shouldDelete(cacheVersion)) {
+                println "Removing old cache directory : ${cacheDir}"
                 delete(cacheDir)
             }
         }
@@ -49,10 +49,26 @@ def removeOldVersionsFromDir(File dir, boolean onlySnapshots = false) {
 
 task cleanUpCaches {
     doLast {
-        removeOldVersionsFromDir(rootProject.file("buildSrc/.gradle"))
-        removeOldVersionsFromDir(rootProject.file(".gradle"))
-        removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/caches"), true)
-        removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/daemon"), true)
+        def executingVersion = GradleVersion.version(gradle.gradleVersion)
+
+        def versionProps = readBuildReceipt("${rootProject.buildDir}/${buildReceiptFileName}")
+        def testedVersion = GradleVersion.version(versionProps.versionNumber)
+
+        // Expire .gradle cache where major version is older than executing version
+        def expireTaskCache = { def candidateVersion ->
+            return candidateVersion.baseVersion < executingVersion.baseVersion
+        }
+
+        // Expire intTestImage cache snapshots that are older than the tested version
+        def expireIntegTestCache = { def candidateVersion ->
+            return candidateVersion.snapshot && candidateVersion < testedVersion
+        }
+
+        removeOldVersionsFromDir(rootProject.file("buildSrc/.gradle"), expireTaskCache)
+        removeOldVersionsFromDir(rootProject.file(".gradle"), expireTaskCache)
+        removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/caches"), expireIntegTestCache)
+        removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/daemon"), expireIntegTestCache)
+        removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/wrapper/dists"), expireIntegTestCache)
     }
 }
 
