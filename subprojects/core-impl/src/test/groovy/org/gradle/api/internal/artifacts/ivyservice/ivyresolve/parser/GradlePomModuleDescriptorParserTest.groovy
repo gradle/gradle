@@ -15,33 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ArtifactRevisionId
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 
-class GradlePomModuleDescriptorParserTest extends Specification {
-    @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser()
-    final parseContext = Mock(DescriptorParseContext)
-    TestFile pomFile
-
-    def "setup"() {
-        pomFile = tmpDir.file('foo')
-    }
-
+class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescriptorParserTest {
     def "parses simple pom"() {
         given:
         pomFile << """
@@ -2136,41 +2116,5 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.5')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
-    }
-
-    private ModuleDescriptor parsePom() {
-        parseMetaData().descriptor
-    }
-
-    private MutableModuleVersionMetaData parseMetaData() {
-        parser.parseMetaData(parseContext, pomFile, true)
-    }
-
-    private void hasArtifact(ModuleDescriptor descriptor, String name, String type, String ext, String classifier = null) {
-        assert descriptor.allArtifacts.length == 1
-        def artifact = descriptor.allArtifacts.first()
-        assert artifact.id == artifactId(descriptor.moduleRevisionId, name, type, ext)
-        assert artifact.extraAttributes['classifier'] == classifier
-    }
-
-    private void hasDefaultDependencyArtifact(DependencyDescriptor descriptor) {
-        assert descriptor.allDependencyArtifacts.length == 0
-    }
-
-    private void hasDependencyArtifact(DependencyDescriptor descriptor, String name, String type, String ext, String classifier = null) {
-        assert descriptor.allDependencyArtifacts.length == 1
-        def artifact = descriptor.allDependencyArtifacts.first()
-        assert artifact.name == name
-        assert artifact.type == type
-        assert artifact.ext == ext
-        assert artifact.extraAttributes['classifier'] == classifier
-    }
-
-    private ModuleRevisionId moduleId(String group, String name, String version) {
-        IvyUtil.createModuleRevisionId(group, name, version)
-    }
-
-    private ArtifactRevisionId artifactId(ModuleRevisionId moduleId, String name, String type, String ext) {
-        ArtifactRevisionId.newInstance(moduleId, name, type, ext)
     }
 }

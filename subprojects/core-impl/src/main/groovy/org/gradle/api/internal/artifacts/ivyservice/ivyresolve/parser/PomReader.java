@@ -24,6 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -69,10 +70,16 @@ public class PomReader implements PomParent {
     private static final String RELOCATION = "relocation";
     private static final String PROPERTIES = "properties";
     private static final String TYPE = "type";
+    private static final String PROFILES = "profiles";
+    private static final String PROFILE = "profile";
+    private static final String PROFILE_ID = "id";
+    private static final String PROFILE_ACTIVATION = "activation";
+    private static final String PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT = "activeByDefault";
 
     private PomParent pomParent = new RootPomParent();
     private final Map<String, String> properties = new HashMap<String, String>();
     private List<PomDependencyMgt> declaredDependencyMgts;
+    private List<PomProfile> declaredActivePomProfiles;
     private Map<MavenDependencyKey, PomDependencyMgt> resolvedDependencyMgts;
     private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
     private Map<MavenDependencyKey, PomDependencyData> resolvedDependencies;
@@ -99,6 +106,7 @@ public class PomReader implements PomParent {
 
         setDefaultParentGavProperties();
         setPomProperties();
+        setActiveProfileProperties();
     }
 
     public void setPomParent(PomParent pomParent) {
@@ -117,6 +125,17 @@ public class PomReader implements PomParent {
     private void setPomProperties() {
         for(Map.Entry<String, String> pomProperty : getPomProperties().entrySet()) {
             setProperty(pomProperty.getKey(), pomProperty.getValue());
+        }
+    }
+
+    /**
+     * Sets properties for all active profiles. Properties from an active profile override existing POM properties.
+     */
+    private void setActiveProfileProperties() {
+        for(PomProfile activePomProfile : parseActivePomProfiles()) {
+            for(Map.Entry<String, String> property : activePomProfile.getProperties().entrySet()) {
+                properties.put(property.getKey(), property.getValue());
+            }
         }
     }
 
@@ -499,12 +518,65 @@ public class PomReader implements PomParent {
         }
     }
 
+    public class PomProfileElement implements PomProfile {
+        private final Element element;
+
+        PomProfileElement(Element element) {
+            this.element = element;
+        }
+
+        public String getId() {
+            String id = getFirstChildText(element, PROFILE_ID);
+            return replaceProps(id);
+        }
+
+        public Map<String, String> getProperties() {
+            return getPomProperties(element);
+        }
+    }
+
+    /**
+     * Parses all active profiles that can be found in POM.
+     *
+     * @return Active POM profiles
+     */
+    private List<PomProfile> parseActivePomProfiles() {
+        if(declaredActivePomProfiles == null) {
+            List<PomProfile> activePomProfiles = new ArrayList<PomProfile>();
+            Element profilesElement = getFirstChildElement(projectElement, PROFILES);
+
+            if(profilesElement != null) {
+                for(Element profileElement : getAllChilds(profilesElement)) {
+                    if(PROFILE.equals(profileElement.getNodeName())) {
+                        Element activationElement = getFirstChildElement(profileElement, PROFILE_ACTIVATION);
+
+                        if(activationElement != null) {
+                            String activeByDefault = getFirstChildText(activationElement, PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT);
+
+                            if(activeByDefault != null && "true".equals(activeByDefault)) {
+                                activePomProfiles.add(new PomProfileElement(profileElement));
+                            }
+                        }
+                    }
+                }
+            }
+
+            declaredActivePomProfiles = activePomProfiles;
+        }
+
+        return declaredActivePomProfiles;
+    }
+
     /**
      * @return the content of the properties tag into the pom.
      */
     public Map<String, String> getPomProperties() {
+        return getPomProperties(projectElement);
+    }
+
+    private Map<String, String> getPomProperties(Element parentElement) {
         Map<String, String> pomProperties = new HashMap<String, String>();
-        Element propsEl = getFirstChildElement(projectElement, PROPERTIES);
+        Element propsEl = getFirstChildElement(parentElement, PROPERTIES);
         if (propsEl != null) {
             propsEl.normalize();
         }
