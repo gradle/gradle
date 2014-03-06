@@ -60,7 +60,7 @@ public class EarPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPlugins().apply(BasePlugin.class);
 
-        final EarPluginConvention earPluginConvention = instantiator.newInstance(EarPluginConvention.class, fileResolver);
+        final EarPluginConvention earPluginConvention = instantiator.newInstance(EarPluginConvention.class, fileResolver, instantiator);
         project.getConvention().getPlugins().put("ear", earPluginConvention);
         earPluginConvention.setLibDirName("lib");
         earPluginConvention.setAppDirName("src/main/application");

@@ -15,10 +15,13 @@
  */
 package org.gradle.plugins.ear
 
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.ConfigureUtil
+
+import javax.inject.Inject
 
 public class EarPluginConvention {
 
@@ -26,6 +29,11 @@ public class EarPluginConvention {
      * The name of the application directory, relative to the project directory. Default is "src/main/application".
      */
     String appDirName
+
+    @Inject
+    public EarPluginConvention(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     public void setAppDirName(String appDirName) {
         this.appDirName = appDirName
@@ -61,10 +69,13 @@ public class EarPluginConvention {
     DeploymentDescriptor deploymentDescriptor
 
     private final FileResolver fileResolver
+    private final Instantiator instantiator
 
-    def EarPluginConvention(FileResolver fileResolver) {
+    @Inject
+    public EarPluginConvention(FileResolver fileResolver, Instantiator instantiator) {
+        this.instantiator = instantiator
         this.fileResolver = fileResolver
-        deploymentDescriptor = new DefaultDeploymentDescriptor(fileResolver)
+        deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor.class, fileResolver, instantiator)
         deploymentDescriptor.readFrom "$appDirName/META-INF/$deploymentDescriptor.fileName"
     }
 
@@ -79,7 +90,8 @@ public class EarPluginConvention {
      */
     public EarPluginConvention deploymentDescriptor(Closure configureClosure) {
         if (!deploymentDescriptor) {
-            deploymentDescriptor = new DefaultDeploymentDescriptor(fileResolver)
+            deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor.class,fileResolver, instantiator)
+            assert deploymentDescriptor != null
         }
         ConfigureUtil.configure(configureClosure, deploymentDescriptor)
         return this

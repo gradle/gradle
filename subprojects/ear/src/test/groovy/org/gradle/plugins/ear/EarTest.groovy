@@ -16,8 +16,10 @@
 
 package org.gradle.plugins.ear
 
+import org.gradle.api.Action
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
+import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
 import org.junit.Before
 import org.junit.Test
@@ -46,7 +48,7 @@ class EarTest extends AbstractArchiveTaskTest {
 
     @Test
     public void testDeploymentDescriptor() {
-        ear.deploymentDescriptor = new DefaultDeploymentDescriptor(null)
+        ear.deploymentDescriptor = new DefaultDeploymentDescriptor(null,instantiator)
         checkDeploymentDescriptor()
     }
 
@@ -68,7 +70,11 @@ class EarTest extends AbstractArchiveTaskTest {
             module("my.jar", "java")
             webModule("my.war", "/")
             securityRole "admin"
-            securityRole "superadmin"
+            securityRole({ role->
+                role.roleName="superadmin"
+                role.description="Super Admin Role"
+            } as Action<EarSecurityRole>)
+
             withXml { provider ->
                 //just adds an action
             }
@@ -90,6 +96,7 @@ class EarTest extends AbstractArchiveTaskTest {
         assertEquals(2, d.securityRoles.size())
         assertEquals("admin", (d.securityRoles as List)[0].roleName)
         assertEquals("superadmin", (d.securityRoles as List)[1].roleName)
+        assertEquals("Super Admin Role", (d.securityRoles as List)[1].description)
         assertEquals(1, d.transformer.actions.size())
     }
 }
