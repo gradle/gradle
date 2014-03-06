@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * Data used for {@link org.gradle.tooling.model.TaskSelector}.
  */
-public class DefaultGradleTaskSelector implements TaskSelector, Serializable {
+public class DefaultGradleTaskSelector implements TaskSelector, TaskListingTaskSelector, Serializable {
     private String name;
     private String displayName;
     private String description;
@@ -70,7 +70,7 @@ public class DefaultGradleTaskSelector implements TaskSelector, Serializable {
 
     @Override
     public String toString() {
-        return "GradleTaskSelector{"
+        return "DefaultGradleTaskSelector{"
                 + "name='" + name + "' "
                 + "description='" + description + "'}";
     }

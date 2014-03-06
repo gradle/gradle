@@ -22,9 +22,10 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
+import org.gradle.tooling.internal.gradle.TaskListingTaskSelector;
 import org.gradle.tooling.model.EntryPoint;
 import org.gradle.tooling.model.Task;
+import org.gradle.tooling.model.TaskSelector;
 
 import java.util.*;
 
@@ -67,13 +68,14 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
 
     public BuildLauncher forEntryPoints(Iterable<? extends EntryPoint> entryPoints) {
         Set<String> taskPaths = new LinkedHashSet<String>();
-        for (EntryPoint task : entryPoints) {
-            if (task instanceof Task) {
-                taskPaths.add(((Task) task).getPath());
-            } else if (task instanceof DefaultGradleTaskSelector) {
-                taskPaths.addAll(((DefaultGradleTaskSelector) task).getTasks());
-            } else {
-                throw new GradleException("Only Task or TaskSelector instances are supported.");
+        for (EntryPoint entryPoint : entryPoints) {
+            if (entryPoint instanceof Task) {
+                taskPaths.add(((Task) entryPoint).getPath());
+            } else if (entryPoint instanceof TaskListingTaskSelector) {
+                taskPaths.addAll(((TaskListingTaskSelector) entryPoint).getTasks());
+            } else if (!(entryPoint instanceof TaskSelector)) {
+                throw new GradleException("Only Task or TaskSelector instances are supported: "
+                        + (entryPoint != null ? entryPoint.getClass() : "null"));
             }
         }
         operationParamsBuilder.setTasks(new ArrayList<String>(taskPaths));
