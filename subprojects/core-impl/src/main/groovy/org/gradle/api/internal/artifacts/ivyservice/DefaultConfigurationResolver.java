@@ -42,6 +42,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     public ResolverResults resolve(ConfigurationInternal configuration) throws ResolveException {
         List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-        return resolver.resolve(configuration, resolutionAwareRepositories, metadataProcessor);
+        ResolverResults results = new ResolverResults();
+        resolver.resolve(configuration, resolutionAwareRepositories, metadataProcessor, results);
+        return results;
     }
 }

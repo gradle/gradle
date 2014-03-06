@@ -22,14 +22,14 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import spock.lang.Specification
 
 class ResolverResultsSpec extends Specification {
-
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private resolutionResult = Mock(ResolutionResult)
     private fatalFailure = Mock(ResolveException)
+    private results = new ResolverResults()
 
     def "does not provide ResolutionResult in case of fatal failure"() {
         when:
-        def results = new ResolverResults(resolvedConfiguration, fatalFailure)
+        results.failed(resolvedConfiguration, fatalFailure)
 
         then:
         results.resolvedConfiguration
@@ -43,7 +43,7 @@ class ResolverResultsSpec extends Specification {
 
     def "provides resolve results"() {
         when:
-        def results = new ResolverResults(resolvedConfiguration, resolutionResult)
+        results.resolved(resolvedConfiguration, resolutionResult)
 
         then:
         results.resolvedConfiguration == resolvedConfiguration

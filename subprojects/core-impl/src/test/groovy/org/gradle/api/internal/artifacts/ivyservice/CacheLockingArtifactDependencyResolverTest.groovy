@@ -34,15 +34,12 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
         ResolverResults resolverResults = Mock()
 
         when:
-        def results = resolver.resolve(configuration, repositories, metadataProcessor)
+        resolver.resolve(configuration, repositories, metadataProcessor, resolverResults)
 
         then:
-        results == resolverResults
-
-        and:
-        1 * lockingManager.useCache("resolve $configuration", !null) >> {
-            it[1].create()
+        1 * lockingManager.useCache("resolve $configuration", !null) >> { String s, Runnable r ->
+            r.run()
         }
-        1 * target.resolve(configuration, repositories, metadataProcessor) >> resolverResults
+        1 * target.resolve(configuration, repositories, metadataProcessor, resolverResults)
     }
 }

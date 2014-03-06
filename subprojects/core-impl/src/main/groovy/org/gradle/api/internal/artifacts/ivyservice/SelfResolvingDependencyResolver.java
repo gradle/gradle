@@ -38,16 +38,17 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
         this.resolver = resolver;
     }
 
-    public ResolverResults resolve(ConfigurationInternal configuration,
-                                   List<? extends ResolutionAwareRepository> repositories,
-                                   ModuleMetadataProcessor metadataProcessor) throws ResolveException {
-        ResolverResults results = resolver.resolve(configuration, repositories, metadataProcessor);
+    public void resolve(ConfigurationInternal configuration,
+                        List<? extends ResolutionAwareRepository> repositories,
+                        ModuleMetadataProcessor metadataProcessor,
+                        ResolverResults results) throws ResolveException {
+        resolver.resolve(configuration, repositories, metadataProcessor, results);
         ResolvedConfiguration resolvedConfiguration = results.getResolvedConfiguration();
         Set<Dependency> dependencies = configuration.getAllDependencies();
         CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
         SelfResolvingFilesProvider provider = new SelfResolvingFilesProvider(resolveContext, dependencies);
 
-        return results.withResolvedConfiguration(new FilesAggregatingResolvedConfiguration(resolvedConfiguration, provider));
+        results.withResolvedConfiguration(new FilesAggregatingResolvedConfiguration(resolvedConfiguration, provider));
     }
 
     protected static class SelfResolvingFilesProvider {

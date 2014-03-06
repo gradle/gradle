@@ -21,39 +21,44 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 
 public class ResolverResults {
-
-    private final ResolvedConfiguration resolvedConfiguration;
-    private final ResolutionResult resolutionResult;
-    private final ResolveException fatalFailure;
-
-    public ResolverResults(ResolvedConfiguration resolvedConfiguration, ResolveException fatalFailure) {
-        this(resolvedConfiguration, null, fatalFailure);
-    }
-
-    public ResolverResults(ResolvedConfiguration resolvedConfiguration, ResolutionResult resolutionResult) {
-        this(resolvedConfiguration, resolutionResult, null);
-    }
-
-    private ResolverResults(ResolvedConfiguration resolvedConfiguration, ResolutionResult resolutionResult, ResolveException fatalFailure) {
-        this.resolvedConfiguration = resolvedConfiguration;
-        this.resolutionResult = resolutionResult;
-        this.fatalFailure = fatalFailure;
-    }
+    private ResolvedConfiguration resolvedConfiguration;
+    private ResolutionResult resolutionResult;
+    private ResolveException fatalFailure;
 
     //old model, slowly being replaced by the new model
     public ResolvedConfiguration getResolvedConfiguration() {
+        assertHasResult();
         return resolvedConfiguration;
     }
 
     //new model
     public ResolutionResult getResolutionResult() {
+        assertHasResult();
         if (fatalFailure != null) {
             throw fatalFailure;
         }
         return resolutionResult;
     }
 
-    public ResolverResults withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
-        return new ResolverResults(resolvedConfiguration, resolutionResult);
+    private void assertHasResult() {
+        if (resolvedConfiguration == null) {
+            throw new IllegalStateException("Resolution result has not been attached.");
+        }
+    }
+
+    public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
+        this.resolvedConfiguration = resolvedConfiguration;
+    }
+
+    public void resolved(ResolvedConfiguration resolvedConfiguration, ResolutionResult resolutionResult) {
+        this.resolvedConfiguration = resolvedConfiguration;
+        this.resolutionResult = resolutionResult;
+        this.fatalFailure = null;
+    }
+
+    public void failed(ResolvedConfiguration resolvedConfiguration, ResolveException failure) {
+        this.resolvedConfiguration = resolvedConfiguration;
+        this.resolutionResult = null;
+        this.fatalFailure = failure;
     }
 }

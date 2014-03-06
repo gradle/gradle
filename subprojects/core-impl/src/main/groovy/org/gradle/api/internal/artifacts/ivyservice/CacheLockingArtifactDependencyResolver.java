@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.internal.Factory;
 
 import java.util.List;
 
@@ -34,12 +33,13 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
         this.resolver = resolver;
     }
 
-    public ResolverResults resolve(final ConfigurationInternal configuration,
+    public void resolve(final ConfigurationInternal configuration,
                                    final List<? extends ResolutionAwareRepository> repositories,
-                                   final ModuleMetadataProcessor metadataProcessor) throws ResolveException {
-        return lockingManager.useCache(String.format("resolve %s", configuration), new Factory<ResolverResults>() {
-            public ResolverResults create() {
-                return resolver.resolve(configuration, repositories, metadataProcessor);
+                                   final ModuleMetadataProcessor metadataProcessor,
+                                   final ResolverResults results) throws ResolveException {
+        lockingManager.useCache(String.format("resolve %s", configuration), new Runnable() {
+            public void run() {
+                resolver.resolve(configuration, repositories, metadataProcessor, results);
             }
         });
     }

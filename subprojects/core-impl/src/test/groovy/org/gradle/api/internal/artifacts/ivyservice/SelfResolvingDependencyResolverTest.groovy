@@ -40,17 +40,17 @@ public class SelfResolvingDependencyResolverTest extends Specification {
     private repositories = [Mock(ResolutionAwareRepository)]
     private dependencies = Mock(DependencySet)
     private metadataProcessor = Stub(ModuleMetadataProcessor)
-
+    private results = new ResolverResults()
     private resolver = new SelfResolvingDependencyResolver(delegate);
 
     void "returns correct resolved configuration"() {
         given:
-        delegate.resolve(configuration, repositories, metadataProcessor) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
+        delegate.resolve(configuration, repositories, metadataProcessor, results) >> { results.resolved(resolvedConfiguration, Mock(ResolutionResult)) }
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> true
 
         when:
-        def results = resolver.resolve(configuration, repositories, metadataProcessor)
+        resolver.resolve(configuration, repositories, metadataProcessor, results)
 
         then:
         def conf = (SelfResolvingDependencyResolver.FilesAggregatingResolvedConfiguration) results.resolvedConfiguration
@@ -62,12 +62,12 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "uses configuration transitive setting"() {
         given:
-        delegate.resolve(configuration, repositories, metadataProcessor) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
+        delegate.resolve(configuration, repositories, metadataProcessor, results) >> { results.resolved(resolvedConfiguration, Mock(ResolutionResult)) }
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> false
 
         when:
-        def results = resolver.resolve(configuration, repositories, metadataProcessor)
+        resolver.resolve(configuration, repositories, metadataProcessor, results)
 
         then:
         def conf = (SelfResolvingDependencyResolver.FilesAggregatingResolvedConfiguration) results.resolvedConfiguration
@@ -76,12 +76,12 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "delegates to provided resolved configuration"() {
         given:
-        delegate.resolve(configuration, repositories, metadataProcessor) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
+        delegate.resolve(configuration, repositories, metadataProcessor, results) >> { results.resolved(resolvedConfiguration, Mock(ResolutionResult)) }
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> true
 
         when:
-        def results = resolver.resolve(configuration, repositories, metadataProcessor)
+        resolver.resolve(configuration, repositories, metadataProcessor, results)
         results.resolvedConfiguration.getFirstLevelModuleDependencies(Specs.satisfyAll())
         results.resolvedConfiguration.getResolvedArtifacts()
         results.resolvedConfiguration.hasError()
