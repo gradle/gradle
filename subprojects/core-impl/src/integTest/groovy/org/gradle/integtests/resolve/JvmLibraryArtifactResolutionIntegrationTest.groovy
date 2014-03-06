@@ -33,13 +33,15 @@ class JvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyReso
 
         buildFile <<
 """
+import org.gradle.api.internal.artifacts.component.*
+
 repositories {
     maven { url "$repo.uri" }
 }
 
 task verify << {
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponent("some.group", "some-artifact", "1.0")
+        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
         .withArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
         .execute()
 
@@ -75,13 +77,15 @@ task verify << {
 
         buildFile <<
 """
+import org.gradle.api.internal.artifacts.component.*
+
 repositories {
     maven { url "$repo.uri" }
 }
 
 task verify << {
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponent("some.group", "some-artifact", "1.0")
+        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
         .withArtifacts(JvmLibrary, JvmLibraryJavadocArtifact)
         .execute()
 
@@ -118,13 +122,15 @@ task verify << {
 
         buildFile <<
 """
+import org.gradle.api.internal.artifacts.component.*
+
 repositories {
     maven { url "$repo.uri" }
 }
 
 task verify << {
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponent("some.group", "some-artifact", "1.0")
+        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
         .withArtifacts(JvmLibrary)
         .execute()
 
@@ -158,13 +164,15 @@ task verify << {
 
         buildFile <<
 """
+import org.gradle.api.internal.artifacts.component.*
+
 repositories {
     maven { url "$repo.uri" }
 }
 
 task verify << {
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponent("some.group", "some-artifact", "1.0")
+        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
         .withArtifacts(JvmLibrary)
         .execute()
 
@@ -191,13 +199,15 @@ task verify << {
 
         buildFile <<
 """
+import org.gradle.api.internal.artifacts.component.*
+
 repositories {
     maven { url "$repo.uri" }
 }
 
 task verify << {
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponent("some.group", "some-artifact", "1.0")
+        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
         .withArtifacts(JvmLibrary)
         .execute()
 
@@ -228,14 +238,16 @@ task verify << {
         module.artifact(classifier: "javadoc").expectGetMissing()
 
         buildFile <<
-                """
+"""
+import org.gradle.api.internal.artifacts.component.*
+
 repositories {
     maven { url "$repo.uri" }
 }
 
 task verify << {
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponent("some.group", "some-artifact", "1.0")
+        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
         .withArtifacts(JvmLibrary)
         .execute()
 
@@ -274,13 +286,15 @@ task verify << {
 
         buildFile <<
 """
+import org.gradle.api.internal.artifacts.component.*
+
 repositories {
     maven { url "$repo.uri" }
 }
 
 task verify << {
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponent("some.group", "some-artifact", "1.0")
+        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
         .withArtifacts(JvmLibrary)
         .execute()
 
