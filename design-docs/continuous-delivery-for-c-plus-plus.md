@@ -1260,7 +1260,7 @@ ability to all command-line based tool chains. It also permits the configuration
 ### Implementation
 
 * Add `CommandLineToolInvocation` extends `org.gradle.nativebinaries.Tool` with read-write String property `executable`.
-* Rename `GccTool` to `CommandLineTool` and change to have `eachInvocation(Action<CommandLineToolInvocation>)` in place of `withArguments`
+* Rename `GccTool` to `CommandLineTool` and change to have `withInvocation(Action<CommandLineToolInvocation>)` in place of `withArguments`
 * Remove tool-specific getters from `Gcc`, and instead make `Gcc` serve as a NamedDomainObjectSet of `CommandLineTool` instances.
     * Continue to register a `CommandLineTool` for every supported language.
 * Allow the `eachInvocation` method to override the default executable to use.
@@ -1273,18 +1273,18 @@ ability to all command-line based tool chains. It also permits the configuration
     model {
         toolChains {
             gcc(Gcc) {
-                cppCompiler.eachInvocation {
+                cppCompiler.withInvocation {
                     args.replace("-m32", "-march=i386")
                 }
-                cCompiler.eachInvocation {
+                cCompiler.withInvocation {
                     executable "gcc-custom"
                 }
-                linker.eachInvocation {
+                linker.withInvocation {
                     ...
                 }
             }
             visualCpp(VisualCpp) {
-                cppCompiler.eachInvocation {
+                cppCompiler.withInvocation {
                    ...
                 }
             }
@@ -1302,7 +1302,7 @@ ability to all command-line based tool chains. It also permits the configuration
 * Only to register a `CommandLineTool` for languages that are supported by build.
    * Need to make it easy to have centralised tool chain configuration that works regardless of languages in effect.
 
-## Story: Improved DSL for mapping native binary model to tool-chain command-line arguments
+## Story: Improved DSL for platform-specific tool chain configuration
 
 The Gradle model for native binaries will describe the concepts of Build Type and Platform in abstract terms, not specific
 to a particular tool chain. It is the job of the tool chain to map these concepts to concrete command-line arguments where possible.
