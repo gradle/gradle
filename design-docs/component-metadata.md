@@ -98,7 +98,7 @@ Note: For this story, the metadata rules do not apply to components resolved fro
     * Use a meta-data rule to set the statuses of each version so that version 1 is selected.
     * Change the meta-data rule so that version 2 is selected instead.
 
-## Declare a module as "changing"
+## Declare a module as "changing" via rule
 
 The `componentMetadata` rule should allow to declare a component as "changing". This effectively makes Ivy changing patterns a first-class Gradle concept. Example:
 
@@ -131,6 +131,133 @@ Add a "changing" property to `ComponentMetadataDetails`.
 * Verify that `details.changing` is initialized to false for:
     * Static dependency
     * Dynamic dependency (that is, the dependency may refer to different components over time, but the components themselves do not change)
+
+## Use Ivy extra attributes to determine status of module
+
+This story makes extra attributes defined in ivy.xml files available to component metadata rules, on request.
+
+A rule should declare that these extra attributes form an input to the rule, in which case they will be provided.
+While this is perhaps not important for Ivy extra attributes, which are cheap to determine, this will be more important for
+Artifactory properties (see below).
+
+A medium-term goal is to sync the Component Metadata Rules DSL with the new general-purpose Rules DSL. So the same mechanism will be
+used for implementing rules to apply configuration to a native binary and rules to process custom metadata attributes. This story should
+simply attempt to introduce a DSL to declare such rules.
+
+### User visible changes
+
+Option1: Typed ComponentMetadataDetails:
+
+    componentMetadata {
+        eachComponent { IvyModuleMetadataDetails details ->
+            if (details.ivyExtraAttributes['my-custom-attribute'] == 'value') {
+                details.status == 'release'
+            }
+        }
+    }
+
+Option2: Additional parameters:
+
+    componentMetadata {
+        eachComponent { ComponentMetadataDetails details, IvyExtraAttributes ivyAttributes ->
+            if (ivyAttributes['my-custom-attribute'] == 'value') {
+                details.status == 'release'
+            }
+        }
+    }
+
+Option3: Limit rule applicability (this might be useful in addition to one of the above):
+
+    componentMetadata {
+        eachComponent.withType(IvyModule) {
+            if (it.ivyAttributes['my-custom-attribute'] == 'value') {
+                it.status == 'release'
+            }
+        }
+    }
+
+    // This could later be extended with
+    eachComponent.withType(IvyModule).matching({ group == 'myorg' }) {
+        // custom rule that only applies to my internal modules
+    }
+
+### Implementation
+
+* Add a model for Ivy-specific module metadata and make this available via `ModuleVersionMetaData`
+    * The actual values should already be available (and cached) via the underlying Ivy ModuleDescriptor
+    * The API should assume that a number of custom domain metadata elements may be present
+* For any rule defined that requires Ivy extra attributes to be processed, then Ivy extra attributes will be made available as per the DSL chosen
+
+### Test coverage
+
+* Publish with arbitrary extra attributes, and ensure these are available in resolve.
+* Publish again with changed values:
+    * Original values are take from cache
+    * New values are obtained when changing module is refreshed
+* Component metadata rule does not have access to ivy extra attributes if not declared as rule input
+* Component metadata rule is not evaluated for non-ivy module when rule declares ivy attributes as input
+* Resolve with rule that does not have ivy extra attributes as input. Modify rule to include those inputs and resolve again
+  Attributes are made available to rule (extra HTTP requests are OK, but not required).
+
+## Use Artifactory properties to determine status of module
+
+This story makes it possible to access published Artifactory properties from within a Component Metadata Rule:
+http://www.jfrog.com/confluence/display/RTF/Properties.
+
+If rule declares that it requires custom Artifactory properties as an input, these properties will be read, cached and provided to the rule.
+
+For now, Artifactory properties will be treated like other metadata in terms of caching (ie: will be updated when changing module is refreshed).
+
+### User visible changes
+
+    apply plugin: 'artifactory-properties'
+
+    componentMetadata {
+        eachComponent { ComponentMetadataDetails details, ArtifactoryProperties props ->
+            if (props['my-custom-attribute'] == 'value') {
+                details.status == 'release'
+            }
+        }
+    }
+
+### Implementation
+
+#### Notes
+
+* Property access is described here: http://www.jfrog.com/confluence/display/RTF/Artifactory+REST+API#ArtifactoryRESTAPI-ItemProperties
+* Implementation should be in a plugin that is optionally applied. Can access internal apis.
+
+#### Plan
+
+TBD
+
+### Test cases
+
+* Artifactory properties are available to rule that declares them as input (both Ivy and Maven repositories)
+* Artifactory properties are not available to a rule that does not declare them as input
+* Artifactory properties are not downloaded if no rule declares them as input
+* Artifactory properties are cached, and are updated when a changing module is refreshed.
+* If an (unchanging) module is resolved initially without requiring Artifactory properties,
+  a new rule that requires the properties will trigger download of these properties in a subsequent resolve.
+
+### Open issues
+
+* For caching, do we:
+    1. Hack these values into the cache Ivy module descriptor
+    2. Persist these separately
+    3. Introduce a new internal module persistence format?
+* Introduce public APIs so that this could be produced/maintained by JFrog
+* Integrate with rule infrastructure
+
+## Allow 'pipeline' metadata to be treated a 'changing' with a non-changing module
+
+Sometimes certain metadata about a component is updated over time, while the component itself does not change.
+An example is metadata added to the component as it travels through a build or QA pipeline, like "Passed the stage 1 tests", or "Approved for release".
+
+Publishing a different component multiple times with the same id is not generally a good idea (changing module), but updating 'ancillary'
+metadata like this is important for composing a sophisticated build pipeline.
+
+This story will allow the pipeline metadata for a component to be treated as 'changing', while the module metadata is not.
 
 ## GRADLE-2903 - Component metadata respects changes to metadata rule implementation
 
