@@ -77,8 +77,8 @@ public class SelectiveCompilation {
                     }
                 }
                 if (name.endsWith(".jar")) {
-                    JarDeltaProvider delta = new JarDeltaProvider(inputFile);
-                    if (delta.isRebuildNeeded()) {
+                    JarDelta delta = new JarDeltaProvider().getDelta(inputFile);
+                    if (delta.isFullRebuildNeeded()) {
                         //for example, a source annotation in the dependency jar has changed
                         //or it's a change in a 3rd party jar
                         rebuildNeeded = "change to " + inputFile + " requires full rebuild";

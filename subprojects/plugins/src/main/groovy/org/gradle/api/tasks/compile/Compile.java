@@ -114,7 +114,7 @@ public class Compile extends AbstractCompile {
         Clock clock = new Clock();
         FileCollection sourceToCompile = selectiveCompilation.getSource();
         performCompilation(sourceToCompile, selectiveCompilation.getClasspath(), compiler);
-        LOG.lifecycle("{} - compilation took {}", getPath(), clock.getTime());
+        LOG.lifecycle("{} - incremental compilation took {}", getPath(), clock.getTime());
         selectiveCompilation.compilationComplete();
         return true;
     }

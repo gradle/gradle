@@ -21,20 +21,19 @@ import java.util.List;
 
 public class JarDeltaProvider {
 
-    private List<String> changedSource;
+    public JarDelta getDelta(final File inputFile) {
+        final File classDelta = new File(inputFile + "-class-delta.bin");
 
-    public JarDeltaProvider(File jarFile) {
-        File classDelta = new File(jarFile + "-class-delta.bin");
-        if (classDelta.isFile()) {
-            changedSource = (List<String>) DummySerializer.readFrom(classDelta);
-        }
-    }
+        return new JarDelta() {
+            private List<String> changedClasses = (classDelta.isFile())? (List<String>) DummySerializer.readFrom(classDelta) : null;
 
-    public boolean isRebuildNeeded() {
-        return changedSource == null;
-    }
+            public boolean isFullRebuildNeeded() {
+                return changedClasses == null;
+            }
 
-    public Iterable<String> getChangedClasses() {
-        return changedSource;
+            public Iterable<String> getChangedClasses() {
+                return changedClasses;
+            }
+        };
     }
 }
