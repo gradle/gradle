@@ -101,7 +101,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                                 DefaultBuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
                                 moduleResolveResult.getArtifactResolver().resolve(new DefaultModuleVersionArtifactMetaData(moduleResolveResult.getId(), artifact), artifactResolveResult);
                                 if (artifactResolveResult.getFailure() != null) {
-                                    // TODO
+                                    int x = 1; // TODO
                                 } else {
                                     jvmLibraryArtifacts.add(new DefaultJvmLibraryJavadocArtifact(artifactResolveResult.getFile()));
                                 }
@@ -110,7 +110,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                                 DefaultBuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
                                 moduleResolveResult.getArtifactResolver().resolve(new DefaultModuleVersionArtifactMetaData(moduleResolveResult.getId(), artifact), artifactResolveResult);
                                 if (artifactResolveResult.getFailure() != null) {
-                                    // TODO
+                                    int x = 1; // TODO
                                 } else {
                                     jvmLibraryArtifacts.add(new DefaultJvmLibrarySourcesArtifact(artifactResolveResult.getFile()));
                                 }
