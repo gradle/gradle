@@ -91,7 +91,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
     }
 
-    public Configuration detachedConfiguration(Dependency... dependencies) {
+    public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(
