@@ -15,18 +15,32 @@
  */
 package org.gradle.api.internal.artifacts.resolution;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.resolution.ArtifactResolutionQuery;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ArtifactResolutionQueryFactory;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 
 public class DefaultArtifactResolutionQueryFactory implements ArtifactResolutionQueryFactory {
-    private final ConfigurationContainer configurationContainer;
+    private final ConfigurationContainerInternal configurationContainer;
+    private final RepositoryHandler repositoryHandler;
+    private final ResolveIvyFactory ivyFactory;
+    private final ModuleMetadataProcessor metadataProcessor;
+    private final CacheLockingManager cacheLockingManager;
 
-    public DefaultArtifactResolutionQueryFactory(ConfigurationContainer configurationContainer) {
+    public DefaultArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
+                                                 ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor,
+                                                 CacheLockingManager cacheLockingManager) {
         this.configurationContainer = configurationContainer;
+        this.repositoryHandler = repositoryHandler;
+        this.ivyFactory = ivyFactory;
+        this.metadataProcessor = metadataProcessor;
+        this.cacheLockingManager = cacheLockingManager;
     }
 
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
-        return new DefaultArtifactResolutionQuery(configurationContainer);
+        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataProcessor, cacheLockingManager);
     }
 }

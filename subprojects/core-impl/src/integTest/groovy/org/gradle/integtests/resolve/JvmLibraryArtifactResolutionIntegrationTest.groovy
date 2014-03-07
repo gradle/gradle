@@ -159,8 +159,7 @@ task verify << {
 
     def "resolve artifacts of non-existing component"() {
         module.pom.expectGetMissing()
-        module.artifact(classifier: "sources").expectHeadMissing()
-        module.artifact(classifier: "javadoc").expectHeadMissing()
+        module.artifact.expectHeadMissing()
 
         buildFile <<
 """
@@ -276,8 +275,7 @@ task verify << {
         succeeds("verify")
     }
 
-    // TODO: artifact resolution error needs to be discoverable, but LenientConfiguration
-    // doesn't expose this kind of error
+    // TODO: artifact resolution error needs to be discoverable
     def "resolve partially broken artifacts"() {
         publishArtifacts("sources")
         module.pom.expectGet()
