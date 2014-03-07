@@ -69,6 +69,11 @@ public class JavaExecHandleBuilderTest extends Specification {
         "UTF-16"      | "UTF-16"
     }
 
+    def "detects null entries early"() {
+        when: builder.args(1, null)
+        then: thrown(IllegalArgumentException)
+    }
+
     private String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {
         return "-Dfile.encoding=$encoding"
     }
