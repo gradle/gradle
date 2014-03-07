@@ -16,7 +16,7 @@
 package org.gradle.api.artifacts.resolution;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 import java.util.Set;
 
@@ -27,7 +27,7 @@ import java.util.Set;
  */
 @Incubating
 public interface ArtifactResolutionQuery {
-    ArtifactResolutionQuery forComponents(Set<ModuleComponentIdentifier> componentIds);
+    ArtifactResolutionQuery forComponents(Set<? extends ComponentIdentifier> componentIds);
     <T extends SoftwareArtifact, U extends SoftwareComponent<T>> ArtifactResolutionQuery withArtifacts(Class<U> componentType, Class<T>... artifactTypes);
     ArtifactResolutionQueryResult execute();
 }
