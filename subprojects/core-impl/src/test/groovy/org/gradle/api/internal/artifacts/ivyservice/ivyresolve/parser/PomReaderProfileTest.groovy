@@ -332,4 +332,321 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         assertResolvedPomDependency(keyDep1, 'version-two')
         assertResolvedPomDependency(keyDep2, 'version-three')
     }
+
+    def "get dependencies management without properties from active profile"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 1
+        activePomProfiles[0].getDependencyMgts().size() == 1
+        assertResolvedPomDependencyManagement(key, 'version-two')
+    }
+
+    def "get dependencies management with properties from active profile"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <groupId.prop>group-two</groupId.prop>
+                <artifactId.prop>artifact-two</artifactId.prop>
+                <version.prop>version-two</version.prop>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>\${groupId.prop}</groupId>
+                        <artifactId>\${artifactId.prop}</artifactId>
+                        <version>\${version.prop}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 1
+        activePomProfiles[0].getDependencyMgts().size() == 1
+        assertResolvedPomDependencyManagement(key, 'version-two')
+    }
+
+    def "finds dependency default if declared in active profile"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-three</artifactId>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+
+        then:
+        pomReader.getDependencyMgt().size() == 1
+        assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
+        pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
+        !pomReader.findDependencyDefaults(keyGroupThree)
+    }
+
+    def "uses dependency default from active profile over POM dependency default"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>version-two</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-three</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+
+        then:
+        pomReader.getDependencyMgt().size() == 1
+        assertResolvedPomDependencyManagement(keyGroupTwo, 'version-three')
+        pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
+    }
+
+    def "finds dependency default if declared in multiple active profiles"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-three</artifactId>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+        <profile>
+            <id>profile-2</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-three</artifactId>
+                        <version>version-three</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+
+        then:
+        pomReader.getDependencyMgt().size() == 2
+        assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
+        pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
+        assertResolvedPomDependencyManagement(keyGroupThree, 'version-three')
+        pomReader.findDependencyDefaults(keyGroupThree) == pomReader.dependencyMgt[keyGroupThree]
+    }
+
+    def "finds dependency default if declared in parent POM active profile"() {
+        when:
+        String parentPom = """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-two</groupId>
+    <artifactId>artifact-two</artifactId>
+    <version>version-two</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        PomReader parentPomReader = createPomReader('parent-pom.xml', parentPom)
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-two</groupId>
+        <artifactId>artifact-two</artifactId>
+        <version>version-two</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-four</groupId>
+            <artifactId>artifact-four</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>group-five</groupId>
+            <artifactId>artifact-five</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader.setPomParent(parentPomReader)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+
+        then:
+        pomReader.getDependencyMgt().size() == 1
+        assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
+        pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
+        !pomReader.findDependencyDefaults(keyGroupThree)
+    }
 }

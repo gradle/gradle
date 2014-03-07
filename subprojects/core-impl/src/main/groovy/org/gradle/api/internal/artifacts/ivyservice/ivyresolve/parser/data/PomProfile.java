@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data;
 
+import java.util.List;
 import java.util.Map;
 
 public interface PomProfile {
     String getId();
     Map<String, String> getProperties();
+    List<PomDependencyMgt> getDependencyMgts();
 }

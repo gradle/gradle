@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
+
 class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModuleDescriptorParserTest {
     def "pom with project coordinates defined by active profile properties"() {
         given:
@@ -237,6 +239,280 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         descriptor.dependencies.length == 1
         def dep = descriptor.dependencies.first()
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+    }
+
+    def "uses dependency management section in active profile to provide default values for a dependency"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>1.2</version>
+                        <scope>test</scope>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>group-three</groupId>
+                                <artifactId>artifact-three</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['test']
+        dep.allExcludeRules.length == 1
+        dep.allExcludeRules.first().id.moduleId == createModuleId('group-three', 'artifact-three')
+        hasDefaultDependencyArtifact(dep)
+    }
+
+    def "uses parent pom dependency management section in active profile to provide default values for a dependency"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>1.2</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact(_) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+    }
+
+    def "uses grand parent pom dependency management section in active profile to provide default values for a dependency"() {
+        given:
+        def grandParent = tmpDir.file("grandparent.xml") << """
+<project>
+    <groupId>different-group</groupId>
+    <artifactId>grandparent</artifactId>
+    <version>different-version</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>1.2</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>different-group</groupId>
+        <artifactId>grandparent</artifactId>
+        <version>different-version</version>
+    </parent>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+    }
+
+    def "uses dependency management section from imported POM in active profile"() {
+        given:
+        def imported = tmpDir.file("imported.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>different-group</groupId>
+    <artifactId>imported</artifactId>
+    <version>different-version</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>1.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>different-group</groupId>
+                        <artifactId>imported</artifactId>
+                        <version>different-version</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
     }

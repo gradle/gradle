@@ -393,24 +393,36 @@ public class PomReader implements PomParent {
      */
     public List<PomDependencyMgt> parseDependencyMgt() {
         if(declaredDependencyMgts == null) {
-            List<PomDependencyMgt> depMgmtElements = new ArrayList<PomDependencyMgt>();
-            Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
-            dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
+            List<PomDependencyMgt> dependencyMgts = getDependencyMgt(projectElement);
 
-            if (dependenciesElement != null) {
-                NodeList childs = dependenciesElement.getChildNodes();
-                for (int i = 0; i < childs.getLength(); i++) {
-                    Node node = childs.item(i);
-                    if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-                        depMgmtElements.add(new PomDependencyMgtElement((Element) node));
-                    }
+            for(PomProfile pomProfile : parseActivePomProfiles()) {
+                for(PomDependencyMgt dependencyMgt : pomProfile.getDependencyMgts()) {
+                    dependencyMgts.add(dependencyMgt);
                 }
             }
 
-            declaredDependencyMgts = depMgmtElements;
+            declaredDependencyMgts = dependencyMgts;
         }
 
         return declaredDependencyMgts;
+    }
+
+    private List<PomDependencyMgt> getDependencyMgt(Element parentElement) {
+        List<PomDependencyMgt> depMgmtElements = new ArrayList<PomDependencyMgt>();
+        Element dependenciesElement = getFirstChildElement(parentElement, DEPENDENCY_MGT);
+        dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
+
+        if (dependenciesElement != null) {
+            NodeList childs = dependenciesElement.getChildNodes();
+            for (int i = 0; i < childs.getLength(); i++) {
+                Node node = childs.item(i);
+                if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
+                    depMgmtElements.add(new PomDependencyMgtElement((Element) node));
+                }
+            }
+        }
+
+        return depMgmtElements;
     }
 
     public PomDependencyMgt findDependencyDefaults(MavenDependencyKey dependencyKey) {
@@ -520,6 +532,7 @@ public class PomReader implements PomParent {
 
     public class PomProfileElement implements PomProfile {
         private final Element element;
+        private List<PomDependencyMgt> declaredDependencyMgts;
 
         PomProfileElement(Element element) {
             this.element = element;
@@ -532,6 +545,14 @@ public class PomReader implements PomParent {
 
         public Map<String, String> getProperties() {
             return getPomProperties(element);
+        }
+
+        public List<PomDependencyMgt> getDependencyMgts() {
+            if(declaredDependencyMgts == null) {
+                declaredDependencyMgts = getDependencyMgt(element);
+            }
+
+            return declaredDependencyMgts;
         }
     }
 
