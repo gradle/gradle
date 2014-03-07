@@ -35,15 +35,15 @@ import java.util.Set;
 public class SelectiveCompilation {
     private final FileCollection source;
     private final FileCollection classpath;
-    private File classDeltaCache;
+    private final JarDeltaProvider jarDeltaProvider;
     private SelectiveJavaCompiler compiler;
     private static final Logger LOG = Logging.getLogger(SelectiveCompilation.class);
     private String rebuildNeeded;
     private boolean compilationNeeded = true;
 
     public SelectiveCompilation(IncrementalTaskInputs inputs, FileTree source, FileCollection compileClasspath, final File compileDestination,
-                                final ClassDependencyInfoSerializer dependencyInfoSerializer, final File classDeltaCache, final SelectiveJavaCompiler compiler, Iterable<File> sourceDirs) {
-        this.classDeltaCache = classDeltaCache;
+                                final ClassDependencyInfoSerializer dependencyInfoSerializer, final JarDeltaProvider jarDeltaProvider, final SelectiveJavaCompiler compiler, Iterable<File> sourceDirs) {
+        this.jarDeltaProvider = jarDeltaProvider;
         this.compiler = compiler;
 
         Clock clock = new Clock();
@@ -77,7 +77,7 @@ public class SelectiveCompilation {
                     }
                 }
                 if (name.endsWith(".jar")) {
-                    JarDelta delta = new JarDeltaProvider().getDelta(inputFile);
+                    JarDelta delta = jarDeltaProvider.getDelta(inputFile);
                     if (delta.isFullRebuildNeeded()) {
                         //for example, a source annotation in the dependency jar has changed
                         //or it's a change in a 3rd party jar
@@ -122,8 +122,7 @@ public class SelectiveCompilation {
 
     public void compilationComplete() {
         if (rebuildNeeded == null) {
-            classDeltaCache.getParentFile().mkdirs();
-            DummySerializer.writeTargetTo(classDeltaCache, compiler.getChangedSources());
+            jarDeltaProvider.rememberDelta(compiler.getChangedSources());
         }
     }
 

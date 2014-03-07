@@ -21,8 +21,18 @@ import java.util.List;
 
 public class JarDeltaProvider {
 
+    private File classDeltaCache;
+
+    public JarDeltaProvider(File projectJar) {
+        this.classDeltaCache = new File(classDeltaCacheFile(projectJar));
+    }
+
+    private static String classDeltaCacheFile(File projectJar) {
+        return projectJar + "-class-delta.bin";
+    }
+
     public JarDelta getDelta(final File inputFile) {
-        final File classDelta = new File(inputFile + "-class-delta.bin");
+        final File classDelta = new File(classDeltaCacheFile(inputFile));
 
         return new JarDelta() {
             private List<String> changedClasses = (classDelta.isFile())? (List<String>) DummySerializer.readFrom(classDelta) : null;
@@ -35,5 +45,10 @@ public class JarDeltaProvider {
                 return changedClasses;
             }
         };
+    }
+
+    public void rememberDelta(List<String> changedSources) {
+        classDeltaCache.getParentFile().mkdirs();
+        DummySerializer.writeTargetTo(classDeltaCache, changedSources);
     }
 }

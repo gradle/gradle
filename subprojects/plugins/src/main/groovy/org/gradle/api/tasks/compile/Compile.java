@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilationSupport;
+import org.gradle.api.internal.tasks.compile.incremental.JarDeltaProvider;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveJavaCompiler;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
@@ -104,7 +105,7 @@ public class Compile extends AbstractCompile {
 
         SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler);
         SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, getSource(), getClasspath(), getDestinationDir(),
-                getDependencyInfoSerializer(), getClassDeltaCache(), compiler, sourceDirs);
+                getDependencyInfoSerializer(), getJarDeltaProvider(), compiler, sourceDirs);
 
         if (!selectiveCompilation.getCompilationNeeded()) {
             LOG.lifecycle("{} does not require recompilation. Skipping the compiler.", getPath());
@@ -151,10 +152,10 @@ public class Compile extends AbstractCompile {
         setDidWork(result.getDidWork());
     }
 
-    private File getClassDeltaCache() {
+    private JarDeltaProvider getJarDeltaProvider() {
         //hack, needs fixing
         Jar jar = (Jar) getProject().getTasks().getByName("jar");
-        return new File(jar.getArchivePath() + "-class-delta.bin");
+        return new JarDeltaProvider(jar.getArchivePath());
     }
 
     @OutputDirectory
