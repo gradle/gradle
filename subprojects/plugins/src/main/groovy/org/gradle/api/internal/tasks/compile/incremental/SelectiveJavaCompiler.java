@@ -29,12 +29,13 @@ import java.util.List;
 
 public class SelectiveJavaCompiler implements Compiler<JavaCompileSpec> {
     private Compiler<JavaCompileSpec> compiler;
+    private final OutputClassMapper outputClassMapper;
     private List<File> staleClasses = new LinkedList<File>();
     private final static Logger LOG = Logging.getLogger(SelectiveJavaCompiler.class);
-    private List<String> changedSources = new LinkedList<String>();
 
-    public SelectiveJavaCompiler(Compiler<JavaCompileSpec> compiler) {
+    public SelectiveJavaCompiler(Compiler<JavaCompileSpec> compiler, OutputClassMapper outputClassMapper) {
         this.compiler = compiler;
+        this.outputClassMapper = outputClassMapper;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
@@ -47,15 +48,15 @@ public class SelectiveJavaCompiler implements Compiler<JavaCompileSpec> {
     }
 
     public void addStaleClass(JavaSourceClass source) {
+        //TODO SF remove
         staleClasses.add(source.getOutputFile());
-        changedSources.add(source.getClassName());
+    }
+
+    public void addStaleClass(String className) {
+        staleClasses.add(outputClassMapper.getOutputFile(className));
     }
 
     public List<File> getStaleClasses() {
         return staleClasses;
-    }
-
-    public List<String> getChangedSources() {
-        return changedSources;
     }
 }

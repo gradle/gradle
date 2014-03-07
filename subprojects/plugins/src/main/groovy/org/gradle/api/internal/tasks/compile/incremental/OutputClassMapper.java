@@ -16,6 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-public interface JarDelta {
-    Iterable<String> getChangedClasses();
+import java.io.File;
+
+public class OutputClassMapper {
+    public OutputClassMapper(File destinationDir) {
+    }
+
+    public File getOutputFile(String className) {
+        throw new RuntimeException("not implemented yet");
+    }
 }

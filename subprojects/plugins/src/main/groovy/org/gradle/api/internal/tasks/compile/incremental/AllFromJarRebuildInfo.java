@@ -16,10 +16,23 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import java.io.File;
+import org.gradle.api.file.FileTree;
 
-public class JarSnapshotCache {
+import java.util.Set;
 
-    public JarSnapshotCache(File sharedJarSnapshotCache) {
+public class AllFromJarRebuildInfo extends DefaultRebuildInfo {
+    AllFromJarRebuildInfo(FileTree jarContents) {
+        super(false, classesInJar(jarContents));
+    }
+
+    private static Set<String> classesInJar(FileTree jarContents) {
+        throw new RuntimeException("not implemented yet");
+//        Set<String> classes = new HashSet<String>();
+//        for (File file : jarContents) {
+//            if (file.getName().endsWith(".class")) {
+//                classes.add(file.getName().replaceAll("/", ".").substring() replaceAll("\\.class", "") )
+//            }
+//        }
+//        return classes;
     }
 }

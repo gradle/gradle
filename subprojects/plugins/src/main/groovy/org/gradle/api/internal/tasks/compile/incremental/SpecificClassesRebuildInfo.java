@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-public interface JarDelta {
-    Iterable<String> getChangedClasses();
+public class SpecificClassesRebuildInfo extends DefaultRebuildInfo {
+    public SpecificClassesRebuildInfo(JarDelta jarDelta) {
+        super(false, jarDelta.getChangedClasses());
+    }
 }

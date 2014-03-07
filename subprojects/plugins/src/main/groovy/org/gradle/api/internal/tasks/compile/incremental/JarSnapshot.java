@@ -16,6 +16,17 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-public interface JarDelta {
-    Iterable<String> getChangedClasses();
+import org.gradle.api.internal.file.FileOperations;
+
+import java.io.File;
+
+public class JarSnapshot {
+
+    public JarSnapshot(File jar, FileOperations fileOperations) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public JarDelta compareToJar(File file) {
+        throw new RuntimeException("not implemented");
+    }
 }

@@ -19,11 +19,13 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.api.tasks.util.PatternSet;
@@ -35,15 +37,16 @@ import java.util.Set;
 public class SelectiveCompilation {
     private final FileCollection source;
     private final FileCollection classpath;
-    private final JarSnapshotCache jarSnapshotCache;
+    private final JarSnapshotFeeder jarSnapshotFeeder;
     private SelectiveJavaCompiler compiler;
     private static final Logger LOG = Logging.getLogger(SelectiveCompilation.class);
-    private String rebuildNeeded;
+    private String fullRebuildNeeded;
     private boolean compilationNeeded = true;
 
     public SelectiveCompilation(IncrementalTaskInputs inputs, FileTree source, FileCollection compileClasspath, final File compileDestination,
-                                final ClassDependencyInfoSerializer dependencyInfoSerializer, final JarSnapshotCache jarSnapshotCache, final SelectiveJavaCompiler compiler, Iterable<File> sourceDirs) {
-        this.jarSnapshotCache = jarSnapshotCache;
+                                final ClassDependencyInfoSerializer dependencyInfoSerializer, final JarSnapshotCache jarSnapshotCache, final SelectiveJavaCompiler compiler,
+                                Iterable<File> sourceDirs, final FileOperations operations) {
+        this.jarSnapshotFeeder = new JarSnapshotFeeder(jarSnapshotCache);
         this.compiler = compiler;
 
         Clock clock = new Clock();
@@ -56,7 +59,7 @@ public class SelectiveCompilation {
         final PatternSet changedSourceOnly = new PatternSet();
         inputs.outOfDate(new Action<InputFileDetails>() {
             public void execute(InputFileDetails inputFileDetails) {
-                if (rebuildNeeded != null) {
+                if (fullRebuildNeeded != null) {
                     return;
                 }
                 File inputFile = inputFileDetails.getFile();
@@ -67,7 +70,7 @@ public class SelectiveCompilation {
                     changedSourceOnly.include(source.getRelativePath());
                     Set<String> actualDependents = dependencyInfo.getActualDependents(source.getClassName());
                     if (actualDependents == null) {
-                        rebuildNeeded = "change to " + source.getClassName() + " requires full rebuild";
+                        fullRebuildNeeded = "change to " + source.getClassName() + " requires full rebuild";
                         return;
                     }
                     for (String d : actualDependents) {
@@ -77,27 +80,19 @@ public class SelectiveCompilation {
                     }
                 }
                 if (name.endsWith(".jar")) {
-                    JarDelta delta = jarSnapshotCache.jarChanged(inputFile);
-                    if (delta.isFullRebuildNeeded()) {
-                        //for example, a source annotation in the dependency jar has changed
-                        //or it's a change in a 3rd party jar
-                        rebuildNeeded = "change to " + inputFile + " requires full rebuild";
+                    FileTree jarContents = operations.zipTree(inputFileDetails.getFile());
+                    JarChangeProcessor processor = new JarChangeProcessor(jarSnapshotFeeder);
+                    RebuildInfo info = processor.processJarChange(inputFileDetails, jarContents);
+                    if (info.isFullRebuildRequired()) {
+                        fullRebuildNeeded = "change to " + inputFile + " requires full rebuild";
                         return;
                     }
-                    Iterable<String> classes = delta.getChangedClasses();
-                    for (String c : classes) {
-                        Set<String> actualDependents = dependencyInfo.getActualDependents(c);
-                        for (String d : actualDependents) {
-                            JavaSourceClass dSource = mapper.toJavaSourceClass(d);
-                            compiler.addStaleClass(dSource);
-                            changedSourceOnly.include(dSource.getRelativePath());
-                        }
-                    }
+                    info.configureCompilation(changedSourceOnly, compiler, dependencyInfo);
                 }
             }
         });
-        if (rebuildNeeded != null) {
-            LOG.lifecycle("Stale classes detection completed in {}. Rebuild needed: {}.", clock.getTime(), rebuildNeeded);
+        if (fullRebuildNeeded != null) {
+            LOG.lifecycle("Stale classes detection completed in {}. Rebuild needed: {}.", clock.getTime(), fullRebuildNeeded);
             this.classpath = compileClasspath;
             this.source = source;
             return;
@@ -105,7 +100,7 @@ public class SelectiveCompilation {
         inputs.removed(new Action<InputFileDetails>() {
             public void execute(InputFileDetails inputFileDetails) {
                 compiler.addStaleClass(mapper.toJavaSourceClass(inputFileDetails.getFile()));
-                //TODO needs to schedule for recompilation all dependencies of this class
+                //TODO SF needs to schedule for recompilation all dependencies of this class. What's the difference with inputs.outOfDate(details.removed?).
             }
         });
         //since we're compiling selectively we need to include the classes compiled previously
@@ -120,11 +115,12 @@ public class SelectiveCompilation {
         LOG.lifecycle("Stale classes detection completed in {}. Stale classes: {}, Compile include patterns: {}, Files to delete: {}", clock.getTime(), compiler.getStaleClasses().size(), changedSourceOnly.getIncludes(), compiler.getStaleClasses());
     }
 
-    public void compilationComplete(boolean compilationSuccessful) {
-//        jarSnapshotCache.rememberJarSnapshots(compilationSuccessful, classpath);
-        if (rebuildNeeded == null) {
-            jarSnapshotCache.rememberDelta(compiler.getChangedSources());
-        }
+    public void compilationComplete() {
+        jarSnapshotFeeder.storeJarSnapshots(classpath.filter(new Spec<File>() {
+            public boolean isSatisfiedBy(File element) {
+                return element.getName().endsWith(".jar");
+            }
+        }).getFiles());
     }
 
     public FileCollection getSource() {

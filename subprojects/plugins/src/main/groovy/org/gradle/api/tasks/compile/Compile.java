@@ -20,20 +20,20 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilationSupport;
-import org.gradle.api.internal.tasks.compile.incremental.JarSnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.SelectiveCompilation;
-import org.gradle.api.internal.tasks.compile.incremental.SelectiveJavaCompiler;
+import org.gradle.api.internal.tasks.compile.incremental.*;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.*;
-import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Factory;
 import org.gradle.util.Clock;
@@ -103,9 +103,9 @@ public class Compile extends AbstractCompile {
 
         SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
 
-        SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler);
+        SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler, new OutputClassMapper(getDestinationDir()));
         SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, getSource(), getClasspath(), getDestinationDir(),
-                getDependencyInfoSerializer(), getJarSnapshotCache(), compiler, sourceDirs);
+                getDependencyInfoSerializer(), getJarSnapshotCache(), compiler, sourceDirs, (FileOperations) getProject());
 
         if (!selectiveCompilation.getCompilationNeeded()) {
             LOG.lifecycle("{} does not require recompilation. Skipping the compiler.", getPath());
@@ -113,15 +113,9 @@ public class Compile extends AbstractCompile {
         }
 
         Clock clock = new Clock();
-        FileCollection sourceToCompile = selectiveCompilation.getSource();
-        try {
-            performCompilation(sourceToCompile, selectiveCompilation.getClasspath(), compiler);
-            selectiveCompilation.compilationComplete(true);
-        } catch (Throwable t) {
-            selectiveCompilation.compilationComplete(false);
-        } finally {
-            LOG.lifecycle("{} - incremental compilation took {}", getPath(), clock.getTime());
-        }
+        performCompilation(selectiveCompilation.getSource(), selectiveCompilation.getClasspath(), compiler);
+        selectiveCompilation.compilationComplete();
+        LOG.lifecycle("{} - incremental compilation took {}", getPath(), clock.getTime());
 
         return true;
     }
@@ -160,8 +154,7 @@ public class Compile extends AbstractCompile {
 
     private JarSnapshotCache getJarSnapshotCache() {
         //hack, needs fixing
-        Jar jar = (Jar) getProject().getTasks().getByName("jar");
-        return new JarSnapshotCache(jar.getArchivePath());
+        return new JarSnapshotCache(new File(getProject().getRootProject().getProjectDir(), ".gradle/jar-snapshot-cache.bin"));
     }
 
     @OutputDirectory

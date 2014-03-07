@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-public interface JarDelta {
-    Iterable<String> getChangedClasses();
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
+import org.gradle.api.tasks.util.PatternSet;
+
+interface RebuildInfo {
+    boolean isFullRebuildRequired();
+    void configureCompilation(PatternSet changedSourceOnly, SelectiveJavaCompiler compiler, ClassDependencyInfo dependencyInfo);
 }
