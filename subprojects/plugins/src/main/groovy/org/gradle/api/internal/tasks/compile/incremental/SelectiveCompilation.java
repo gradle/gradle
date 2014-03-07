@@ -35,15 +35,15 @@ import java.util.Set;
 public class SelectiveCompilation {
     private final FileCollection source;
     private final FileCollection classpath;
-    private final JarDeltaProvider jarDeltaProvider;
+    private final JarSnapshotCache jarSnapshotCache;
     private SelectiveJavaCompiler compiler;
     private static final Logger LOG = Logging.getLogger(SelectiveCompilation.class);
     private String rebuildNeeded;
     private boolean compilationNeeded = true;
 
     public SelectiveCompilation(IncrementalTaskInputs inputs, FileTree source, FileCollection compileClasspath, final File compileDestination,
-                                final ClassDependencyInfoSerializer dependencyInfoSerializer, final JarDeltaProvider jarDeltaProvider, final SelectiveJavaCompiler compiler, Iterable<File> sourceDirs) {
-        this.jarDeltaProvider = jarDeltaProvider;
+                                final ClassDependencyInfoSerializer dependencyInfoSerializer, final JarSnapshotCache jarSnapshotCache, final SelectiveJavaCompiler compiler, Iterable<File> sourceDirs) {
+        this.jarSnapshotCache = jarSnapshotCache;
         this.compiler = compiler;
 
         Clock clock = new Clock();
@@ -77,7 +77,7 @@ public class SelectiveCompilation {
                     }
                 }
                 if (name.endsWith(".jar")) {
-                    JarDelta delta = jarDeltaProvider.getDelta(inputFile);
+                    JarDelta delta = jarSnapshotCache.jarChanged(inputFile);
                     if (delta.isFullRebuildNeeded()) {
                         //for example, a source annotation in the dependency jar has changed
                         //or it's a change in a 3rd party jar
@@ -120,9 +120,10 @@ public class SelectiveCompilation {
         LOG.lifecycle("Stale classes detection completed in {}. Stale classes: {}, Compile include patterns: {}, Files to delete: {}", clock.getTime(), compiler.getStaleClasses().size(), changedSourceOnly.getIncludes(), compiler.getStaleClasses());
     }
 
-    public void compilationComplete() {
+    public void compilationComplete(boolean compilationSuccessful) {
+//        jarSnapshotCache.rememberJarSnapshots(compilationSuccessful, classpath);
         if (rebuildNeeded == null) {
-            jarDeltaProvider.rememberDelta(compiler.getChangedSources());
+            jarSnapshotCache.rememberDelta(compiler.getChangedSources());
         }
     }
 

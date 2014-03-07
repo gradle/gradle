@@ -19,11 +19,11 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import java.io.File;
 import java.util.List;
 
-public class JarDeltaProvider {
+public class JarSnapshotCache {
 
     private File classDeltaCache;
 
-    public JarDeltaProvider(File projectJar) {
+    public JarSnapshotCache(File projectJar) {
         this.classDeltaCache = new File(classDeltaCacheFile(projectJar));
     }
 
@@ -31,7 +31,7 @@ public class JarDeltaProvider {
         return projectJar + "-class-delta.bin";
     }
 
-    public JarDelta getDelta(final File inputFile) {
+    public JarDelta jarChanged(final File inputFile) {
         final File classDelta = new File(classDeltaCacheFile(inputFile));
 
         return new JarDelta() {

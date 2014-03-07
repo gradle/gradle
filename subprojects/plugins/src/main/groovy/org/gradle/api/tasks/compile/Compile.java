@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilationSupport;
-import org.gradle.api.internal.tasks.compile.incremental.JarDeltaProvider;
+import org.gradle.api.internal.tasks.compile.incremental.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.SelectiveJavaCompiler;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
@@ -105,7 +105,7 @@ public class Compile extends AbstractCompile {
 
         SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler);
         SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, getSource(), getClasspath(), getDestinationDir(),
-                getDependencyInfoSerializer(), getJarDeltaProvider(), compiler, sourceDirs);
+                getDependencyInfoSerializer(), getJarSnapshotCache(), compiler, sourceDirs);
 
         if (!selectiveCompilation.getCompilationNeeded()) {
             LOG.lifecycle("{} does not require recompilation. Skipping the compiler.", getPath());
@@ -114,9 +114,15 @@ public class Compile extends AbstractCompile {
 
         Clock clock = new Clock();
         FileCollection sourceToCompile = selectiveCompilation.getSource();
-        performCompilation(sourceToCompile, selectiveCompilation.getClasspath(), compiler);
-        LOG.lifecycle("{} - incremental compilation took {}", getPath(), clock.getTime());
-        selectiveCompilation.compilationComplete();
+        try {
+            performCompilation(sourceToCompile, selectiveCompilation.getClasspath(), compiler);
+            selectiveCompilation.compilationComplete(true);
+        } catch (Throwable t) {
+            selectiveCompilation.compilationComplete(false);
+        } finally {
+            LOG.lifecycle("{} - incremental compilation took {}", getPath(), clock.getTime());
+        }
+
         return true;
     }
 
@@ -152,10 +158,10 @@ public class Compile extends AbstractCompile {
         setDidWork(result.getDidWork());
     }
 
-    private JarDeltaProvider getJarDeltaProvider() {
+    private JarSnapshotCache getJarSnapshotCache() {
         //hack, needs fixing
         Jar jar = (Jar) getProject().getTasks().getByName("jar");
-        return new JarDeltaProvider(jar.getArchivePath());
+        return new JarSnapshotCache(jar.getArchivePath());
     }
 
     @OutputDirectory
