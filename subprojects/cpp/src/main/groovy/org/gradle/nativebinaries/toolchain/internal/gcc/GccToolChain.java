@@ -21,9 +21,9 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.GccTool;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionResult;
@@ -45,7 +45,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     private final Transformer<GccVersionResult, File> versionDeterminer;
 
-    private String version;
+    private GccVersionResult version;
 
     public GccToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
         super(name, operatingSystem, fileResolver, execActionFactory, new GccToolRegistry(operatingSystem));
@@ -66,21 +66,13 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     }
 
     @Override
-    protected void checkAvailable(ToolChainAvailability availability) {
-        super.checkAvailable(availability);
-        determineVersion(availability);
-    }
-
-    private void determineVersion(ToolChainAvailability availability) {
-        CommandLineToolSearchResult cppCompiler = tools.locate(ToolType.CPP_COMPILER);
-        if (cppCompiler.isAvailable()) {
-            GccVersionResult result = versionDeterminer.transform(cppCompiler.getTool());
-            availability.mustBeAvailable(result);
-            if (result.isAvailable()) {
-                version = result.getVersion();
-                LOGGER.info("Found {} with version {}", ToolType.CPP_COMPILER.getToolName(), version);
-            }
+    protected void initTools(ToolChainAvailability availability) {
+        if (version == null) {
+            CommandLineToolSearchResult cCompiler = tools.locate(ToolType.C_COMPILER);
+            version = versionDeterminer.transform(cCompiler.getTool());
+            LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), version);
         }
+        availability.mustBeAvailable(version);
     }
 
     public GccTool getCppCompiler() {
@@ -104,7 +96,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     }
 
     protected boolean canUseCommandFile() {
-        String[] components = version.split("\\.");
+        String[] components = version.getVersion().split("\\.");
         int majorVersion;
         try {
             majorVersion = Integer.valueOf(components[0]);

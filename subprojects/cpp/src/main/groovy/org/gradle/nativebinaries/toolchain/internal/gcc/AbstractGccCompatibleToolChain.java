@@ -26,6 +26,7 @@ import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -62,10 +63,16 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
     }
 
-    @Override
-    protected void checkAvailable(ToolChainAvailability availability) {
-        for (ToolType key : ToolType.values()) {
-            availability.mustBeAvailable(tools.locate(key));
+    protected void initTools(ToolChainAvailability availability) {
+        for (ToolType type : ToolType.values()) {
+            tools.locate(type);
+        }
+        boolean found = false;
+        for (ToolType type : Arrays.asList(ToolType.C_COMPILER, ToolType.CPP_COMPILER, ToolType.OBJECTIVEC_COMPILER, ToolType.OBJECTIVECPP_COMPILER)) {
+            found |= tools.locate(type).isAvailable();
+        }
+        if (!found) {
+            availability.mustBeAvailable(tools.locate(ToolType.C_COMPILER));
         }
     }
 
@@ -75,12 +82,13 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
     }
 
     public PlatformToolChain target(Platform targetPlatform) {
-        ToolChainAvailability result = new ToolChainAvailability();
-        result.mustBeAvailable(getAvailability());
         TargetPlatformConfiguration platformConfiguration = getPlatformConfiguration(targetPlatform);
+        ToolChainAvailability result = new ToolChainAvailability();
         if (platformConfiguration == null) {
             result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
+            return new UnavailablePlatformToolChain(result);
         }
+        initTools(result);
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolChain(result);
         }

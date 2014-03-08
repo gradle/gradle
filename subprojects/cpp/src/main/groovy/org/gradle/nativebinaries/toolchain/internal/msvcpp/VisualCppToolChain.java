@@ -53,6 +53,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private File windowsSdkDir;
     private VisualCppInstall visualCpp;
     private WindowsSdk windowsSdk;
+    private ToolChainAvailability availability;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
@@ -67,8 +68,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         return "Visual Studio";
     }
 
-    @Override
-    protected void checkAvailable(ToolChainAvailability availability) {
+    private void checkAvailable(ToolChainAvailability availability) {
         if (!operatingSystem.isWindows()) {
             availability.unavailable("Visual Studio is not available on this operating system.");
             return;
@@ -99,6 +99,14 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public void setWindowsSdkDir(Object windowsSdkDirPath) {
         this.windowsSdkDir = resolve(windowsSdkDirPath);
+    }
+
+    private ToolChainAvailability getAvailability() {
+        if (availability == null) {
+            availability = new ToolChainAvailability();
+            checkAvailable(availability);
+        }
+        return availability;
     }
 
     public PlatformToolChain target(Platform targetPlatform) {

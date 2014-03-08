@@ -25,7 +25,6 @@ public abstract class AbstractToolChain implements ToolChainInternal {
     private final String name;
     protected final OperatingSystem operatingSystem;
     private final FileResolver fileResolver;
-    private ToolChainAvailability availability;
 
     protected AbstractToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver) {
         this.name = name;
@@ -48,19 +47,9 @@ public abstract class AbstractToolChain implements ToolChainInternal {
         return getDisplayName();
     }
 
-    protected ToolChainAvailability getAvailability() {
-        if (availability == null) {
-            availability = new ToolChainAvailability();
-            checkAvailable(availability);
-        }
-        return availability;
-    }
-
     public String getOutputType() {
         return String.format("%s-%s", getName(), operatingSystem.getName());
     }
-
-    protected abstract void checkAvailable(ToolChainAvailability availability);
 
     public String getExecutableName(String executablePath) {
         return operatingSystem.getExecutableName(executablePath);

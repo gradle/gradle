@@ -17,7 +17,9 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.util.TreeVisitor;
 
@@ -143,7 +145,9 @@ public class ToolRegistry {
         }
 
         public File getTool() {
-            throw new UnsupportedOperationException();
+            TreeFormatter formatter = new TreeFormatter();
+            explain(formatter);
+            throw new GradleException(formatter.toString());
         }
 
         public boolean isAvailable() {

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc
+
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.text.TreeFormatter
@@ -35,42 +36,75 @@ import static ArchitectureInternal.InstructionSet.X86
 class AbstractGccCompatibleToolChainTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def execActionFactory = Mock(ExecActionFactory)
-    def toolRegistry = Mock(ToolRegistry)
+    def toolRegistry = Stub(ToolRegistry)
     def tool = Stub(CommandLineToolSearchResult) {
         isAvailable() >> true
     }
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolRegistry)
     def platform = Stub(Platform)
 
-    def "is unavailable if not all tools can be found"() {
-        def missing = Stub(CommandLineToolSearchResult) {
-            isAvailable() >> false
-            explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c++ compiler not found") }
-        }
+    def "is unavailable when platform is not known and is not the default platform"() {
+        given:
+        platform.name >> 'unknown'
 
-        when:
+        expect:
         def platformToolChain = toolChain.target(platform)
-
-        then:
-        toolRegistry.locate(ToolType.CPP_COMPILER) >> missing
-        toolRegistry.locate(_) >> tool
-
-        and:
         !platformToolChain.available
-        getMessage(platformToolChain) == "c++ compiler not found"
+        getMessage(platformToolChain) == "Don't know how to build for platform 'unknown'."
     }
 
-    def "is available when all tools can be found and building for default platform"() {
+    def "is unavailable when no language tools can be found and building for default platform"() {
+        def missing = Stub(CommandLineToolSearchResult) {
+            isAvailable() >> false
+            explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c compiler not found") }
+        }
+
         given:
-        toolRegistry.locate(_) >> tool
         platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
-        when:
-        def platformToolChain = toolChain.target(platform)
+        and:
+        toolRegistry.locate(ToolType.C_COMPILER) >> missing
+        toolRegistry.locate(ToolType.CPP_COMPILER) >> missing
+        toolRegistry.locate(ToolType.OBJECTIVEC_COMPILER) >> missing
+        toolRegistry.locate(ToolType.OBJECTIVECPP_COMPILER) >> missing
+        toolRegistry.locate(_) >> tool
 
-        then:
-        platformToolChain.available
+        expect:
+        def platformToolChain = toolChain.target(platform)
+        !platformToolChain.available
+        getMessage(platformToolChain) == "c compiler not found"
+    }
+
+    def "is available when any language tool can be found and building for default platform"() {
+        def missing = Stub(CommandLineToolSearchResult) {
+            isAvailable() >> false
+        }
+
+        given:
+        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
+
+        and:
+        toolRegistry.locate(ToolType.CPP_COMPILER) >> missing
+        toolRegistry.locate(_) >> tool
+
+        expect:
+        toolChain.target(platform).available
+    }
+
+    def "is available when any language tool can be found and platform configuration registered for platform"() {
+        def platformConfig = Mock(TargetPlatformConfiguration)
+
+        given:
+        toolRegistry.locate(_) >> tool
+        platformConfig.supportsPlatform(platform) >> true
+
+        and:
+        toolChain.addPlatformConfiguration(platformConfig)
+
+        expect:
+        toolChain.target(platform).available
     }
 
     def "supplies no additional arguments to target native binary for tool chain default"() {

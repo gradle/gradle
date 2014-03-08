@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc
 
+import org.gradle.api.GradleException
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.toolchain.internal.ToolType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -106,5 +107,23 @@ class ToolRegistryTest extends Specification {
         then:
         1 * visitor.node("Could not find C compiler 'cc' in system path.")
         0 * visitor._
+    }
+
+    def "cannot use an unavailable tool"() {
+        given:
+        os.findInPath("cc") >> null
+
+        when:
+        def result = registry.locate(ToolType.C_COMPILER)
+
+        then:
+        !result.available
+
+        when:
+        result.getTool()
+
+        then:
+        GradleException e = thrown()
+        e.message == "Could not find C compiler 'cc' in system path."
     }
 }
