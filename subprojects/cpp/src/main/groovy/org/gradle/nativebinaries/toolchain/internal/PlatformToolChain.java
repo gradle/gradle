@@ -21,7 +21,7 @@ import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 
-public interface PlatformToolChain {
+public interface PlatformToolChain extends ToolSearchResult {
     <T extends BinaryToolSpec> Compiler<T> createCppCompiler();
 
     <T extends BinaryToolSpec> Compiler<T> createCCompiler();

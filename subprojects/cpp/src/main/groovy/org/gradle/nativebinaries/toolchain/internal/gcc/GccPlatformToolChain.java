@@ -32,6 +32,7 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.util.TreeVisitor;
 
 import java.util.List;
 
@@ -46,6 +47,13 @@ class GccPlatformToolChain implements PlatformToolChain {
         this.tools = tools;
         this.platformConfiguration = platformConfiguration;
         this.useCommandFile = useCommandFile;
+    }
+
+    public boolean isAvailable() {
+        return true;
+    }
+
+    public void explain(TreeVisitor<? super String> visitor) {
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {

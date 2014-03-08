@@ -75,11 +75,16 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
     }
 
     public PlatformToolChain target(Platform targetPlatform) {
-        assertAvailable();
+        ToolChainAvailability result = new ToolChainAvailability();
+        result.mustBeAvailable(getAvailability());
         TargetPlatformConfiguration platformConfiguration = getPlatformConfiguration(targetPlatform);
         if (platformConfiguration == null) {
-            throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
+            result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
         }
+        if (!result.isAvailable()) {
+            return new UnavailablePlatformToolChain(result);
+        }
+
         return new GccPlatformToolChain(tools, execActionFactory, platformConfiguration, canUseCommandFile());
     }
 
@@ -94,15 +99,6 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
 
     protected boolean canUseCommandFile() {
         return true;
-    }
-
-    public ToolSearchResult canTargetPlatform(final Platform targetPlatform) {
-        ToolChainAvailability result = new ToolChainAvailability();
-        result.mustBeAvailable(getAvailability());
-        if (getPlatformConfiguration(targetPlatform) == null) {
-            result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
-        }
-        return result;
     }
 
     private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {

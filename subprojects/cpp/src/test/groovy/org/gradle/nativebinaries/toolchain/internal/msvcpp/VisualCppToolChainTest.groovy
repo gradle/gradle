@@ -18,8 +18,10 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -74,21 +76,21 @@ class VisualCppToolChainTest extends Specification {
         availability.unavailableMessage == 'Visual Studio is not available on this operating system.'
     }
 
-    def "is unavailable when visual studio installation cannot be located"() {
+    def "is not available when visual studio installation cannot be located"() {
         when:
         visualStudioLookup.available >> false
         visualStudioLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("vs install not found anywhere") }
         windowsSdkLookup.available >> false
 
         and:
-        def result = toolChain.canTargetPlatform(Stub(Platform))
+        def result = toolChain.target(Stub(Platform))
 
         then:
         !result.available
-        result.unavailableMessage == "vs install not found anywhere"
+        getMessage(result) == "vs install not found anywhere"
     }
 
-    def "is unavailable when windows SDK cannot be located"() {
+    def "is not available when windows SDK cannot be located"() {
         when:
         visualStudioLookup.available >> true
 
@@ -96,11 +98,11 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
 
         and:
-        def result = toolChain.canTargetPlatform(Stub(Platform))
+        def result = toolChain.target(Stub(Platform))
 
         then:
         !result.available
-        result.unavailableMessage == "sdk not found anywhere"
+        getMessage(result) == "sdk not found anywhere"
     }
 
     def "is not available when visual studio installation and windows SDK can be located and visual studio install does not support target platform"() {
@@ -116,11 +118,11 @@ class VisualCppToolChainTest extends Specification {
         visualCpp.isSupportedPlatform(platform) >> false
 
         and:
-        def availability = toolChain.canTargetPlatform(platform)
+        def result = toolChain.target(platform)
 
         then:
-        !availability.available
-        availability.unavailableMessage == "Don't know how to build for platform 'platform'."
+        !result.available
+        getMessage(result) == "Don't know how to build for platform 'platform'."
     }
 
     def "is available when visual studio installation and windows SDK can be located and visual studio install supports target platform"() {
@@ -136,10 +138,10 @@ class VisualCppToolChainTest extends Specification {
         visualCpp.isSupportedPlatform(platform) >> true
 
         and:
-        def availability = toolChain.canTargetPlatform(platform)
+        def platformToolChain = toolChain.target(platform)
 
         then:
-        availability.available
+        platformToolChain.available
     }
 
     def "uses provided installDir and windowsSdkDir for location"() {
@@ -194,5 +196,11 @@ class VisualCppToolChainTest extends Specification {
 
     def createFile(String name) {
         file(name).createFile()
+    }
+
+    def getMessage(ToolSearchResult result) {
+        def formatter = new TreeFormatter()
+        result.explain(formatter)
+        return formatter.toString()
     }
 }

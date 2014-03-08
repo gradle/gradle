@@ -16,11 +16,13 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
 import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
 import org.gradle.nativebinaries.platform.internal.DefaultOperatingSystem
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
 import org.gradle.nativebinaries.toolchain.internal.ToolType
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.Requires
@@ -37,9 +39,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def tool = Stub(CommandLineToolSearchResult) {
         isAvailable() >> true
     }
-    def os = Mock(OperatingSystem)
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolRegistry)
-    def platform = Mock(Platform)
+    def platform = Stub(Platform)
 
     def "is unavailable if not all tools can be found"() {
         def missing = Stub(CommandLineToolSearchResult) {
@@ -48,26 +49,28 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         }
 
         when:
-        def availability = toolChain.getAvailability()
+        def platformToolChain = toolChain.target(platform)
 
         then:
         toolRegistry.locate(ToolType.CPP_COMPILER) >> missing
         toolRegistry.locate(_) >> tool
 
         and:
-        !availability.available
-        availability.unavailableMessage == "c++ compiler not found"
+        !platformToolChain.available
+        getMessage(platformToolChain) == "c++ compiler not found"
     }
 
-    def "is available if all tools can be found"() {
+    def "is available when all tools can be found and building for default platform"() {
         given:
         toolRegistry.locate(_) >> tool
+        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
         when:
-        def availability = toolChain.getAvailability()
+        def platformToolChain = toolChain.target(platform)
 
         then:
-        availability.available
+        platformToolChain.available
     }
 
     def "supplies no additional arguments to target native binary for tool chain default"() {
@@ -77,8 +80,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
         then:
-        toolChain.canTargetPlatform(platform).available
-
         with(toolChain.getPlatformConfiguration(platform)) {
             linkerArgs == []
             cppCompilerArgs == []
@@ -92,11 +93,11 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def "supplies args for supported architecture"() {
         when:
         toolRegistry.locate(_) >> tool
-        platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.getArchitecture() >> new DefaultArchitecture(arch, instructionSet, registerSize)
+        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.architecture >> new DefaultArchitecture(arch, instructionSet, registerSize)
 
         then:
-        toolChain.canTargetPlatform(platform).available
+        toolChain.target(platform).available
 
         with(toolChain.getPlatformConfiguration(platform)) {
             linkerArgs == [linkerArg]
@@ -120,11 +121,11 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def "supplies args for supported architecture for i386 architecture on windows"() {
         when:
         toolRegistry.locate(_) >> tool
-        platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.getArchitecture() >> new DefaultArchitecture("i386", X86, 32)
+        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.architecture >> new DefaultArchitecture("i386", X86, 32)
 
         then:
-        toolChain.canTargetPlatform(platform).available
+        toolChain.target(platform).available
 
         with(toolChain.getPlatformConfiguration(platform)) {
             linkerArgs == ["-m32"]
@@ -137,20 +138,20 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     @Requires(TestPrecondition.WINDOWS)
     def "cannot target x86_64 architecture on windows"() {
-        when:
+        given:
         toolRegistry.locate(_) >> tool
 
         and:
         platform.getName() >> "x64"
-        platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
-        platform.getArchitecture() >> new DefaultArchitecture("x64", X86, 64)
+        platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.architecture >> new DefaultArchitecture("x64", X86, 64)
 
-        and:
-        toolChain.target(platform)
+        when:
+        def platformToolChain = toolChain.target(platform)
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "Tool chain test cannot build for platform: x64"
+        !platformToolChain.available
+        getMessage(platformToolChain) == "Tool chain test cannot build for platform: x64"
     }
 
     def "uses supplied platform configurations in order to target binary"() {
@@ -169,10 +170,16 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platformConfig2.supportsPlatform(platform) >> true
 
         then:
-        toolChain.canTargetPlatform(platform).available
+        toolChain.target(platform).available
 
         and:
         toolChain.getPlatformConfiguration(platform) == platformConfig2
+    }
+
+    def getMessage(ToolSearchResult result) {
+        def formatter = new TreeFormatter()
+        result.explain(formatter)
+        return formatter.toString()
     }
 
     static class TestToolChain extends AbstractGccCompatibleToolChain {

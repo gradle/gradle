@@ -56,12 +56,6 @@ public abstract class AbstractToolChain implements ToolChainInternal {
         return availability;
     }
 
-    protected void assertAvailable() {
-        if (!getAvailability().isAvailable()) {
-            throw new IllegalStateException(String.format("%s is not available: %s", getDisplayName(), getAvailability().getUnavailableMessage()));
-        }
-    }
-
     public String getOutputType() {
         return String.format("%s-%s", getName(), operatingSystem.getName());
     }

@@ -32,6 +32,7 @@ import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.util.TreeVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,25 +102,15 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     public PlatformToolChain target(Platform targetPlatform) {
-        checkPlatform(targetPlatform);
-
-        return new VisualCppPlatformToolChain(visualCpp, windowsSdk, targetPlatform);
-    }
-
-    private void checkPlatform(Platform targetPlatform) {
-        assertAvailable();
-        if (!canTargetPlatform(targetPlatform).isAvailable()) {
-            throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
-        }
-    }
-
-    public ToolSearchResult canTargetPlatform(Platform targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
         if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
             result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
         }
-        return result;
+        if (!result.isAvailable()) {
+            return new UnavailablePlatformToolChain(result);
+        }
+        return new VisualCppPlatformToolChain(visualCpp, windowsSdk, targetPlatform);
     }
 
     @Override
@@ -136,6 +127,13 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             this.visualCpp = visualCpp;
             this.sdk = sdk;
             this.targetPlatform = targetPlatform;
+        }
+
+        public boolean isAvailable() {
+            return true;
+        }
+
+        public void explain(TreeVisitor<? super String> visitor) {
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {

@@ -73,18 +73,18 @@ class DefaultToolChainRegistryTest extends Specification {
         unavailableToolChain("test2", "not me")
         unavailableToolChain("test3", "not me either")
 
-        when:
+        given:
         registry.registerDefaultToolChain("test", TestToolChain)
         registry.registerDefaultToolChain("test2", TestToolChain)
         registry.registerDefaultToolChain("test3", TestToolChain)
         registry.addDefaultToolChains()
 
-        then:
-        registry.size() == 3
+        and:
+        def tc = registry.getForPlatform(platform)
+        def result = tc.target(platform)
 
         when:
-        def tc = registry.getForPlatform(platform)
-        tc.target(platform)
+        result.createCCompiler()
 
         then:
         GradleException e = thrown()
@@ -149,19 +149,26 @@ class DefaultToolChainRegistryTest extends Specification {
     }
 
     def availableToolChain(String name) {
+        PlatformToolChain platformToolChain = Stub(PlatformToolChain) {
+            _ * isAvailable() >> true
+        }
         TestToolChain testToolChain = Mock(TestToolChain) {
             _ * getName() >> name
-            _ * canTargetPlatform(platform) >> new ToolChainAvailability()
+            _ * target(platform) >> platformToolChain
         }
         factory.create(name) >> testToolChain
         return testToolChain
     }
 
     def unavailableToolChain(String name, String message = "Not available") {
+        PlatformToolChain platformToolChain = Stub(PlatformToolChain) {
+            _ * isAvailable() >> false
+            _ * explain(_) >> { it[0].node(message) }
+        }
         TestToolChain testToolChain = Mock(TestToolChain) {
             _ * getName() >> name
             _ * getDisplayName() >> "Tool chain '$name'"
-            _ * canTargetPlatform(platform) >> new ToolChainAvailability().unavailable(message)
+            _ * target(platform) >> platformToolChain
         }
         factory.create(name) >> testToolChain
         return testToolChain

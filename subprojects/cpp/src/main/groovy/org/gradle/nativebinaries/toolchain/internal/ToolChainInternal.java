@@ -20,9 +20,10 @@ import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 
 public interface ToolChainInternal extends ToolChain {
+    /**
+     * Locates the tools that can target the given platform.
+     */
     PlatformToolChain target(Platform targetPlatform);
-
-    ToolSearchResult canTargetPlatform(Platform targetPlatform);
 
     // TODO:DAZ These are platform-specific
     String getExecutableName(String executablePath);
