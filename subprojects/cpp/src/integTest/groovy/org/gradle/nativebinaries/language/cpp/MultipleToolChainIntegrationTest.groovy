@@ -88,7 +88,7 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
             model {
                 toolChains {
                     bad(Gcc) {
-                        linker.executable = "does_not_exist"
+                        cCompiler.executable = "does_not_exist"
                     }
                 }
             }

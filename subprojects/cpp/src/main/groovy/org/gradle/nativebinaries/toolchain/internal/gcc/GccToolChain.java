@@ -40,7 +40,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     private final Transformer<GccVersionResult, File> versionDeterminer;
 
-    private GccVersionResult version;
+    private GccVersionResult versionResult;
 
     public GccToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
         super(name, operatingSystem, fileResolver, execActionFactory, new GccToolRegistry(operatingSystem));
@@ -62,21 +62,25 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     @Override
     protected void initTools(ToolChainAvailability availability) {
-        if (version == null) {
+        if (versionResult == null) {
             CommandLineToolSearchResult cCompiler = tools.locate(ToolType.C_COMPILER);
-            version = versionDeterminer.transform(cCompiler.getTool());
-            LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), version);
+            availability.mustBeAvailable(cCompiler);
+            if (!cCompiler.isAvailable()) {
+                return;
+            }
+            versionResult = versionDeterminer.transform(cCompiler.getTool());
+            LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), versionResult);
         }
-        availability.mustBeAvailable(version);
+        availability.mustBeAvailable(versionResult);
     }
 
     protected boolean canUseCommandFile() {
-        String[] components = version.getVersion().split("\\.");
+        String[] components = versionResult.getVersion().split("\\.");
         int majorVersion;
         try {
             majorVersion = Integer.valueOf(components[0]);
         } catch (NumberFormatException e) {
-            throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", version), e);
+            throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", versionResult), e);
         }
         return majorVersion >= 4;
     }

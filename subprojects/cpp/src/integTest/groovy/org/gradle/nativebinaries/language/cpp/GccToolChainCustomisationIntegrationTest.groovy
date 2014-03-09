@@ -21,7 +21,6 @@ import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
-import org.hamcrest.Matchers
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.GccCompatible
 
@@ -176,41 +175,6 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
 
         then:
         executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
-    }
-
-    def "can build when language tools that are not required are not available"() {
-        when:
-        buildFile << """
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        cppCompiler.executable = 'does-not-exist'
-                    }
-                }
-            }
-"""
-        succeeds "mainExecutable"
-
-        then:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
-    }
-
-    def "fails when required tool is not available"() {
-        when:
-        buildFile << """
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        cCompiler.executable = 'does-not-exist'
-                    }
-                }
-            }
-"""
-        fails "mainExecutable"
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("Could not find C compiler 'does-not-exist'"))
     }
 
     def wrapperTool(TestFile script, String executable, String... additionalArgs) {
