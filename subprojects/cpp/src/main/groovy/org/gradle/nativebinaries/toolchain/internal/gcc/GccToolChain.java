@@ -15,14 +15,10 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.Gcc;
-import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
@@ -32,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Compiler adapter for GCC.
@@ -75,26 +70,6 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
         availability.mustBeAvailable(version);
     }
 
-    public GccTool getCppCompiler() {
-        return new DefaultTool(ToolType.CPP_COMPILER);
-    }
-
-    public GccTool getCCompiler() {
-        return new DefaultTool(ToolType.C_COMPILER);
-    }
-
-    public GccTool getAssembler() {
-        return new DefaultTool(ToolType.ASSEMBLER);
-    }
-
-    public GccTool getLinker() {
-        return new DefaultTool(ToolType.LINKER);
-    }
-
-    public GccTool getStaticLibArchiver() {
-        return new DefaultTool(ToolType.STATIC_LIB_ARCHIVER);
-    }
-
     protected boolean canUseCommandFile() {
         String[] components = version.getVersion().split("\\.");
         int majorVersion;
@@ -105,27 +80,4 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
         }
         return majorVersion >= 4;
     }
-
-    private class DefaultTool implements GccTool {
-        private final ToolType toolType;
-
-        private DefaultTool(ToolType toolType) {
-            this.toolType = toolType;
-        }
-
-        public String getExecutable() {
-            return tools.getExeName(toolType);
-        }
-
-        public void setExecutable(String file) {
-            tools.setExeName(toolType, file);
-        }
-
-        // TODO:DAZ Decorate class and use an action parameter
-        public void withArguments(Closure arguments) {
-            Action<List<String>> action = new ClosureBackedAction<List<String>>(arguments);
-            tools.addArgsAction(toolType, action);
-        }
-    }
-
 }

@@ -38,29 +38,4 @@ public interface Gcc extends PlatformConfigurableToolChain {
      * @param pathEntries The path values to append. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      */
     void path(Object... pathEntries);
-
-    /**
-     * The C++ compiler.
-     */
-    GccTool getCCompiler();
-
-    /**
-     * The C compiler.
-     */
-    GccTool getCppCompiler();
-
-    /**
-     * The assembler.
-     */
-    GccTool getAssembler();
-
-    /**
-     * The linker.
-     */
-    GccTool getLinker();
-
-    /**
-     * The static library archiver.
-     */
-    GccTool getStaticLibArchiver();
 }

@@ -155,6 +155,10 @@ The following profile metadata is parsed and evaluated:
 * Properties elements
 * Dependency management elements
 
+### Customise Clang tool chain
+
+TODO - You can now configure the Clang tool chain in the same way as the GCC tool chain, using the `cCompiler`, `cppCompiler` etc properties.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

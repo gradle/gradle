@@ -15,10 +15,14 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
+import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.*;
@@ -107,6 +111,53 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
 
     protected boolean canUseCommandFile() {
         return true;
+    }
+
+    public GccTool getCppCompiler() {
+        return new DefaultTool(ToolType.CPP_COMPILER);
+    }
+
+    public GccTool getCCompiler() {
+        return new DefaultTool(ToolType.C_COMPILER);
+    }
+
+    // This is here to allow using this property from Groovy as `cCompiler`
+    public GccTool getcCompiler() {
+        return new DefaultTool(ToolType.C_COMPILER);
+    }
+
+    public GccTool getAssembler() {
+        return new DefaultTool(ToolType.ASSEMBLER);
+    }
+
+    public GccTool getLinker() {
+        return new DefaultTool(ToolType.LINKER);
+    }
+
+    public GccTool getStaticLibArchiver() {
+        return new DefaultTool(ToolType.STATIC_LIB_ARCHIVER);
+    }
+
+    private class DefaultTool implements GccTool {
+        private final ToolType toolType;
+
+        private DefaultTool(ToolType toolType) {
+            this.toolType = toolType;
+        }
+
+        public String getExecutable() {
+            return tools.getExeName(toolType);
+        }
+
+        public void setExecutable(String file) {
+            tools.setExeName(toolType, file);
+        }
+
+        // TODO:DAZ Decorate class and use an action parameter
+        public void withArguments(Closure arguments) {
+            Action<List<String>> action = new ClosureBackedAction<List<String>>(arguments);
+            tools.addArgsAction(toolType, action);
+        }
     }
 
     private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {
