@@ -25,4 +25,6 @@ public enum ToolChainRequirement {
     VisualCpp2013,
     // Any available GCC implementation (including mingw, cygwin, but not clang)
     Gcc,
+    // Any available GCC compatible implementation (including mingw, cygwin, and clang)
+    GccCompatible
 }

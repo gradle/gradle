@@ -16,30 +16,24 @@
 
 package org.gradle.nativebinaries.language.cpp
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
-import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.ToolChainCandidate
-import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
+import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorldApp
 
-import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.Gcc
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.GccCompatible
 
-@RequiresInstalledToolChain(Gcc)
-class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
-    def AvailableToolChains.InstalledToolChain gcc
+@RequiresInstalledToolChain(GccCompatible)
+class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
 
     def setup() {
-        gcc = findGcc()
-
         buildFile << """
             apply plugin: 'cpp'
             apply plugin: 'c'
 
             model {
                 toolChains {
-                    ${gcc.buildScriptConfig}
+                    ${toolChain.buildScriptConfig}
                 }
             }
 
@@ -59,25 +53,12 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
         helloWorldApp.library.writeSources(file("src/hello"))
     }
 
-    def findGcc() {
-        for (ToolChainCandidate candidate : AvailableToolChains.toolChains) {
-            if (candidate instanceof AvailableToolChains.InstalledGcc) {
-                return candidate
-            }
-        }
-        throw new IllegalStateException("No GCC found")
-    }
-
-    def ExecutableFixture executable(Object path) {
-        return gcc.executable(file(path))
-    }
-
     def "can add binary configuration to target a platform"() {
         when:
         buildFile << """
             model {
                 toolChains {
-                    ${gcc.id} {
+                    ${toolChain.id} {
                         addPlatformConfiguration(new ArmArchitecture())
                     }
                 }
@@ -142,7 +123,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             model {
                 toolChains {
-                    ${gcc.id} {
+                    ${toolChain.id} {
                         cppCompiler.withArguments { args ->
                             Collections.replaceAll(args, "CUSTOM", "-O3")
                         }
