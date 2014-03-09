@@ -16,19 +16,21 @@
 
 package org.gradle.nativebinaries.language.cpp
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
+import org.gradle.test.fixtures.file.TestFile
+import org.hamcrest.Matchers
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.GccCompatible
 
 @RequiresInstalledToolChain(GccCompatible)
 class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def helloWorldApp = new CppCallingCHelloWorldApp()
+    def helloWorldApp = new CHelloWorldApp()
 
     def setup() {
         buildFile << """
-            apply plugin: 'cpp'
             apply plugin: 'c'
 
             model {
@@ -78,7 +80,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                 }
 
                 List<String> getCppCompilerArgs() {
-                    ["-m32", "-DFRENCH"]
+                    []
                 }
 
                 List<String> getCCompilerArgs() {
@@ -124,11 +126,8 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
             model {
                 toolChains {
                     ${toolChain.id} {
-                        cppCompiler.withArguments { args ->
-                            Collections.replaceAll(args, "CUSTOM", "-O3")
-                        }
-                        CCompiler.withArguments { args ->
-                            Collections.replaceAll(args, "CUSTOM", "-O3")
+                        cCompiler.withArguments { args ->
+                            Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
                         }
                         linker.withArguments { args ->
                             args.remove "CUSTOM"
@@ -140,7 +139,6 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                 }
             }
             binaries.all {
-                cppCompiler.args "CUSTOM"
                 cCompiler.args "CUSTOM"
                 linker.args "CUSTOM"
             }
@@ -152,6 +150,75 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         succeeds "mainExecutable"
 
         then:
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+    }
+
+    def "can configure tool executables"() {
+        def binDir = testDirectory.createDir("bin")
+        wrapperTool(binDir.file("c-compiler"), toolChain.CCompiler, "-DFRENCH")
+        wrapperTool(binDir.file("static-lib"), toolChain.staticLibArchiver)
+        wrapperTool(binDir.file("linker"), toolChain.linker)
+
+        when:
+        buildFile << """
+            model {
+                toolChains {
+                    ${toolChain.id} {
+                        path file('${binDir.toURI()}')
+                        cCompiler.executable = 'c-compiler'
+                        staticLibArchiver.executable = 'static-lib'
+                        linker.executable = 'linker'
+                    }
+                }
+            }
+"""
+        succeeds "mainExecutable"
+
+        then:
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+    }
+
+    def "can build when language tools that are not required are not available"() {
+        when:
+        buildFile << """
+            model {
+                toolChains {
+                    ${toolChain.id} {
+                        cppCompiler.executable = 'does-not-exist'
+                    }
+                }
+            }
+"""
+        succeeds "mainExecutable"
+
+        then:
         executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+    }
+
+    def "fails when required tool is not available"() {
+        when:
+        buildFile << """
+            model {
+                toolChains {
+                    ${toolChain.id} {
+                        cCompiler.executable = 'does-not-exist'
+                    }
+                }
+            }
+"""
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertThatCause(Matchers.startsWith("Could not find C compiler 'does-not-exist'"))
+    }
+
+    def wrapperTool(TestFile script, String executable, String... additionalArgs) {
+        if (OperatingSystem.current().windows) {
+            script.text = "${executable} ${additionalArgs.join(' ')} %*"
+        } else {
+            script.text = "${executable} ${additionalArgs.join(' ')} \"\$@\""
+            script.permissions = "rwxr--r--"
+        }
     }
 }

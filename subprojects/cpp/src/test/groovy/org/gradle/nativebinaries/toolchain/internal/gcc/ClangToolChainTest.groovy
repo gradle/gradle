@@ -32,7 +32,7 @@ class ClangToolChainTest extends Specification {
     def "has default tool names"() {
         expect:
         toolChain.cppCompiler.executable == "clang++"
-        toolChain.CCompiler.executable == "clang"
+        toolChain.cCompiler.executable == "clang"
         toolChain.assembler.executable == "as"
         toolChain.linker.executable == "clang++"
         toolChain.staticLibArchiver.executable == "ar"

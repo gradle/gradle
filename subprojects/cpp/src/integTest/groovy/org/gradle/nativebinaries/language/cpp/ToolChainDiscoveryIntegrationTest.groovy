@@ -61,7 +61,7 @@ class ToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegr
     def "uses correct tool chain when explicitly configured"() {
         given:
         buildFile << """
-            apply plugin: CppPlugin
+            apply plugin: 'cpp'
 
             model {
                 toolChains {

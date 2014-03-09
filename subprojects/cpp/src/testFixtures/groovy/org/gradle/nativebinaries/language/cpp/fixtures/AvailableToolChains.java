@@ -289,7 +289,30 @@ public class AvailableToolChains {
         }
     }
 
-    public static class InstalledGcc extends InstalledToolChain {
+    public static abstract class GccCompatibleToolChain extends InstalledToolChain {
+        protected GccCompatibleToolChain(String displayName) {
+            super(displayName);
+        }
+
+        protected String find(String tool) {
+            if (getPathEntries().isEmpty()) {
+                return tool;
+            }
+            return new File(getPathEntries().get(0), tool).getAbsolutePath();
+        }
+
+        public String getLinker() {
+            return getCCompiler();
+        }
+
+        public String getStaticLibArchiver() {
+            return find("ar");
+        }
+
+        public abstract String getCCompiler();
+    }
+
+    public static class InstalledGcc extends GccCompatibleToolChain {
         public InstalledGcc(String name) {
             super(name);
         }
@@ -306,6 +329,11 @@ public class AvailableToolChains {
                 config += String.format("%s.path file('%s')", getId(), pathEntry.toURI());
             }
             return config;
+        }
+
+        @Override
+        public String getCCompiler() {
+            return find("gcc");
         }
 
         public String getInstanceDisplayName() {
@@ -405,7 +433,7 @@ public class AvailableToolChains {
         }
     }
 
-    public static class InstalledClang extends InstalledToolChain {
+    public static class InstalledClang extends GccCompatibleToolChain {
         public InstalledClang() {
             super("clang");
         }
@@ -418,6 +446,11 @@ public class AvailableToolChains {
         @Override
         public String getBuildScriptConfig() {
             return "clang(Clang)";
+        }
+
+        @Override
+        public String getCCompiler() {
+            return find("clang");
         }
 
         public String getInstanceDisplayName() {

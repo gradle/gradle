@@ -27,7 +27,7 @@ import java.util.List;
 @Incubating
 public interface Gcc extends PlatformConfigurableToolChain {
     /**
-     * The paths setting required for executing the tool chain.
+     * The path required for executing the tool chain.
      * These are used to locate tools for this tool chain, and are prepended to the system PATH when executing these tools.
      */
     List<File> getPath();
