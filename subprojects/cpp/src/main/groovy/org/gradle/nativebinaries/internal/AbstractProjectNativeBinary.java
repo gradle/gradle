@@ -30,7 +30,6 @@ import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -50,7 +49,6 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     private final Platform targetPlatform;
     private final BuildType buildType;
     private final NativeDependencyResolver resolver;
-    private File outputDir;
     private boolean buildable;
 
     protected AbstractProjectNativeBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
@@ -101,14 +99,6 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
 
     public BuildType getBuildType() {
         return buildType;
-    }
-
-    protected File getBinaryOutputDir() {
-        return new File(outputDir, namingScheme.getOutputDirectoryBase());
-    }
-
-    public void setOutputDir(File outputDir) {
-        this.outputDir = outputDir;
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {

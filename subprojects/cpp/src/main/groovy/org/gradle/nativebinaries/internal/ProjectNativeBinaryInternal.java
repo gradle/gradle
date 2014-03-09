@@ -28,8 +28,6 @@ import java.util.Collection;
 public interface ProjectNativeBinaryInternal extends ProjectNativeBinary, BinaryInternal {
     File getPrimaryOutput();
 
-    void setOutputDir(File binariesDir);
-
     Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);
 
     void setBuildable(boolean buildable);
