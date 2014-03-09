@@ -18,8 +18,10 @@ package org.gradle.plugins.ide.internal.resolver;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.plugins.ide.internal.resolver.model.*;
+import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
+import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
+import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
+import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 
 import java.util.List;
 
@@ -57,21 +59,4 @@ public interface IdeDependencyResolver {
      */
     List<IdeLocalFileDependency> getIdeLocalFileDependencies(Configuration configuration);
 
-    /**
-     * Gets IDE source dependencies for a given configuration.
-     *
-     * @param configuration Configuration
-     * @param configurationContainer Configuration container
-     * @return List of IDE repository file dependencies
-     */
-    List<IdeRepoFileDependency> getIdeSourceDependencies(Configuration configuration, ConfigurationContainer configurationContainer);
-
-    /**
-     * Gets IDE Javadoc dependencies for a given configuration.
-     *
-     * @param configuration Configuration
-     * @param configurationContainer Configuration container
-     * @return List of IDE repository file dependencies
-     */
-    List<IdeRepoFileDependency> getIdeJavadocDependencies(Configuration configuration, ConfigurationContainer configurationContainer);
 }
