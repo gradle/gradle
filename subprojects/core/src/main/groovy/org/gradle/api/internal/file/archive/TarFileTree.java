@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.gradle.internal.hash.HashUtil;
@@ -158,6 +159,26 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         public int getMode() {
             return entry.getMode() & 0777;
         }
+
+        public boolean copyTo(File target) {
+            try {
+                if (isSymbolicLink() && FileSystems.getDefault().tryCreateSymbolicLink(target, new File(entry.getLinkName()))) {
+                    InputStream in = open();
+                    while(in.read() >= 0) {
+                        in.skip(in.available());
+                    }
+                    return true;
+                }
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
+            }
+            return super.copyTo(target);
+        }
+
+        public boolean isSymbolicLink() {
+            return entry.isSymbolicLink();
+        }
+
     }
 
     private static class NoCloseTarInputStream extends TarInputStream {
