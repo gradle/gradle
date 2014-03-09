@@ -79,7 +79,31 @@ Change the task visibility logic so that the lifecycle task of all `BuildableMod
 
 ### GRADLE-2017 - Correctly map libraries to IDEA dependency scope
 
-TBD
+A new model will be available for defining IDEA scopes: these scopes will formed by combining and excluding Gradle configurations and other scopes.
+The model can statically restrict the available scopes to 'compile', 'runtime', 'provided' and 'test'.
+
+- scope `provided` should default to empty, or `configurations.providedCompile` when the war plugin is applied.
+- scope `compile` should default to `configurations.compile` minus scope `provided`.
+- scope `runtime` should default to `configurations.runtime` minus scope `compile`.
+- scope `test` should default to (`configurations.testCompile minus scope `compile`) union (`configurations.testRuntime` minus scope `runtime`).
+
+#### User visible changes
+
+TODO: Example DSL
+
+The new DSL (and model defaults) will be used to configure an IDEA module when the current `scopes` map has not been altered by the user.
+Once the new DSL is stabilised we will deprecate and remove the `scopes` map.
+
+#### Implementation
+
+- Add `ResolvableComponents` which represents a set of requirements that can be resolved into a graph or set of `Components`
+- Add an implementation of `ResolvableComponents` that wraps a `Configuration` instance
+- Add an implementation of `ResolvableComponents` that can combine other `ResolvableComponents` as required for the Idea scope DSL
+- Update each method on `IdeDependenciesExtractor`so that it takes a `ResolvableComponents` parameter in place of the
+  current `Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations`.
+    - For now, these methods can simply unpack the `ResolvableComponents` to a set of added and excluded configurations.
+    - The current scope map DSL should be mapped to the new API
+- Add domain classes as required for the new Idea scopes DSL, with appropriate defaults.
 
 #### Test cases
 
@@ -88,6 +112,15 @@ TBD
     - When a java project has a dependency declared for `testRuntime` and `runtime`, the dependency appears with `runtime` scope only.
     - When a java project has a dependency declared for `compile` and `testCompile`, the dependency appears with `compile` scope only.
     - When a war project has a dependency declared for `providedCompile` and `compile`, the dependency appears with `provided` scope only.
+- Current defaults are used when the `scopes` maps is configured by user
+- User is informed of failure when both `scopes` map and new DSL are configured.
+
+#### Open issues
+
+- Similar new DSL for the Eclipse model (except that it’s much simpler).
+- ArtifactResolutionQuery API takes a `ResolvableComponents` as input
+    - Include JvmLibrary main artifact in query results
+    - Replace `IdeDependenciesExtractor.extractRepoFileDependencies` with single ArtifactResolutionQuery
 
 ## Feature - Tooling API client cancels an operation
 
