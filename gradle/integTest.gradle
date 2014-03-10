@@ -24,16 +24,21 @@ ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsW
 
 import org.gradle.util.GradleVersion
 
-def removeOldVersionsFromDir(File dir, def shouldDelete) {
+def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
+
         for (File cacheDir: dir.listFiles()) {
-            if (!cacheDir.name.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
+            if (!cacheDir.name.startsWith(dirPrefix) || !cacheDir.name.endsWith(dirSuffix)) {
+                continue
+            }
+            def dirVersion = cacheDir.name.substring(dirPrefix.length(), cacheDir.name.length() - dirSuffix.length())
+            if (!dirVersion.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
                 continue
             }
 
             def cacheVersion
             try {
-                cacheVersion = GradleVersion.version(cacheDir.name)
+                cacheVersion = GradleVersion.version(dirVersion)
             } catch (IllegalArgumentException e) {
                 // Ignore
                 continue
@@ -68,7 +73,8 @@ task cleanUpCaches {
         removeOldVersionsFromDir(rootProject.file(".gradle"), expireTaskCache)
         removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/caches"), expireIntegTestCache)
         removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/daemon"), expireIntegTestCache)
-        removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/wrapper/dists"), expireIntegTestCache)
+        removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/wrapper/dists"), expireIntegTestCache, "gradle-", "-bin")
+        delete(rootProject.file("intTestHomeDir/worker-1/wrapper/dists/dist"))
     }
 }
 
