@@ -777,6 +777,24 @@ configurations.all {
         "remote first" | false
     }
 
+    def "fails with reasonable error message when no cached version list in offline mode"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.+'
+}
+"""
+        when:
+        executer.withArgument "--offline"
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause "Could not resolve all dependencies for configuration ':compile'."
+        failure.assertHasCause "No cached version of group:projectA:1.+ available for offline mode."
+    }
+
     def checkResolve(Map edges) {
         assert succeeds('checkDeps')
         resolve.expectGraph {
