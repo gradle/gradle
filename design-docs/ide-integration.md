@@ -85,7 +85,7 @@ The model can statically restrict the available scopes to 'compile', 'runtime', 
 - scope `provided` should default to empty, or `configurations.providedCompile` when the war plugin is applied.
 - scope `compile` should default to `configurations.compile` minus scope `provided`.
 - scope `runtime` should default to `configurations.runtime` minus scope `compile`.
-- scope `test` should default to (`configurations.testCompile minus scope `compile`) union (`configurations.testRuntime` minus scope `runtime`).
+- scope `test` should default to (`configurations.testCompile` minus scope `compile`) union (`configurations.testRuntime` minus scope `runtime`).
 
 #### User visible changes
 
@@ -93,6 +93,23 @@ TODO: Example DSL
 
 The new DSL (and model defaults) will be used to configure an IDEA module when the current `scopes` map has not been altered by the user.
 Once the new DSL is stabilised we will deprecate and remove the `scopes` map.
+
+Initial proposal for the new DSL is to support complete scope definition ...
+
+```
+    ideaScope.TEST.build {
+      filtered(base: configurations.testCompile, excluded: configurations.compile)
+      filtered(base: configurations.testRuntime, excluded: configurations.runtime)
+    }
+```
+
+... or to append to previously defined set of items for this scope like ...
+
+```
+    ideaScope.TEST.append {
+      configurations.integTestCompile
+    }
+```
 
 #### Implementation
 
