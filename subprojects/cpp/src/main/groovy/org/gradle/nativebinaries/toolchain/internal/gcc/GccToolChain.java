@@ -63,12 +63,15 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     @Override
     protected void initTools(ToolChainAvailability availability) {
         if (versionResult == null) {
-            CommandLineToolSearchResult cCompiler = tools.locate(ToolType.C_COMPILER);
-            availability.mustBeAvailable(cCompiler);
-            if (!cCompiler.isAvailable()) {
+            CommandLineToolSearchResult compiler = tools.locate(ToolType.C_COMPILER);
+            if (!compiler.isAvailable()) {
+                compiler = tools.locate(ToolType.CPP_COMPILER);
+            }
+            availability.mustBeAvailable(compiler);
+            if (!compiler.isAvailable()) {
                 return;
             }
-            versionResult = versionDeterminer.transform(cCompiler.getTool());
+            versionResult = versionDeterminer.transform(compiler.getTool());
             LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), versionResult);
         }
         availability.mustBeAvailable(versionResult);
