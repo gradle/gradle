@@ -23,6 +23,10 @@ import org.gradle.test.fixtures.file.TestFile;
 import java.util.Map;
 
 public interface IvyModule extends Module {
+    String getOrganisation();
+    String getModule();
+    String getRevision();
+
     TestFile getIvyFile();
 
     TestFile getJarFile();
