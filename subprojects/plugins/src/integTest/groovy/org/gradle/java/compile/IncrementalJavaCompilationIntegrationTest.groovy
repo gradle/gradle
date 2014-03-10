@@ -17,7 +17,6 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -201,7 +200,6 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         changedFiles.containsAll(['WithConst', 'AnotherPersonImpl', 'PersonImpl', 'Person'])
     }
 
-    @Ignore("under construction")
     def "understands inter-project dependencies"() {
         settingsFile << "include 'api'"
         buildFile << "dependencies { compile project(':api') }"

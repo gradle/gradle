@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental
 
-import java.io.File;
+import spock.lang.Specification
 
-public class OutputClassMapper {
+class OutputClassMapperTest extends Specification {
 
-    private File destinationDir;
-
-    public OutputClassMapper(File destinationDir) {
-        this.destinationDir = destinationDir;
-    }
-
-    public File getOutputFile(String className) {
-        return new File(destinationDir, className.replaceAll("\\.", "/").concat(".class")); //TODO SF duplicated
+    def "maps output classes"() {
+        expect:
+        new OutputClassMapper(new File("root")).getOutputFile("Foo") == new File("root/Foo.class")
+        new OutputClassMapper(new File("root")).getOutputFile("com.org.Bar") == new File("root/com/org/Bar.class")
     }
 }

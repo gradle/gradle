@@ -16,20 +16,42 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.file.FileTree;
-import org.gradle.api.tasks.incremental.InputFileDetails;
-
 import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class JarSnapshotFeeder {
-    public JarSnapshotFeeder(JarSnapshotCache jarSnapshotCache) {
+
+    private final JarSnapshotCache jarSnapshotCache;
+    private final Set<File> changedJars = new HashSet<File>();
+    private final JarSnapshotter jarSnapshotter;
+
+    public JarSnapshotFeeder(JarSnapshotCache jarSnapshotCache, JarSnapshotter jarSnapshotter) {
+        this.jarSnapshotCache = jarSnapshotCache;
+        this.jarSnapshotter = jarSnapshotter;
     }
 
-    public JarSnapshot changedJar(InputFileDetails jarFileDetails, FileTree jarContents) {
-        throw new RuntimeException("not implemented");
+    public JarSnapshot changedJar(File jarFile) {
+        JarSnapshot snapshot = jarSnapshotCache.getSnapshot(jarFile);
+        changedJars.add(jarFile);
+        return snapshot;
     }
 
-    public void storeJarSnapshots(Set<File> files) {
+    public void storeJarSnapshots(Iterable<JarArchive> jars) {
+        Map<File, JarSnapshot> newSnapshots = new HashMap<File, JarSnapshot>();
+        for (JarArchive jar : jars) {
+            if (!changedJars.contains(jar.file) && jarSnapshotCache.getSnapshot(jar.file) != null) {
+                //if jar was not changed and the the snapshot already exists, skip
+                continue;
+            }
+            newSnapshots.put(jar.file, jarSnapshotter.createSnapshot(jar.contents));
+        }
+        jarSnapshotCache.putSnapshots(newSnapshots);
+    }
+
+    public JarSnapshot createSnapshot(JarArchive jarArchive) {
+        return jarSnapshotter.createSnapshot(jarArchive.contents);
     }
 }

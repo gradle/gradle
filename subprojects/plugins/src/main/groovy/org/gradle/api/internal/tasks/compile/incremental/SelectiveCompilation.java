@@ -21,11 +21,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.api.tasks.util.PatternSet;
@@ -42,11 +42,13 @@ public class SelectiveCompilation {
     private static final Logger LOG = Logging.getLogger(SelectiveCompilation.class);
     private String fullRebuildNeeded;
     private boolean compilationNeeded = true;
+    private final FileOperations operations;
 
     public SelectiveCompilation(IncrementalTaskInputs inputs, FileTree source, FileCollection compileClasspath, final File compileDestination,
                                 final ClassDependencyInfoSerializer dependencyInfoSerializer, final JarSnapshotCache jarSnapshotCache, final SelectiveJavaCompiler compiler,
                                 Iterable<File> sourceDirs, final FileOperations operations) {
-        this.jarSnapshotFeeder = new JarSnapshotFeeder(jarSnapshotCache);
+        this.operations = operations;
+        this.jarSnapshotFeeder = new JarSnapshotFeeder(jarSnapshotCache, new JarSnapshotter(new DefaultHasher()));
         this.compiler = compiler;
 
         Clock clock = new Clock();
@@ -80,9 +82,9 @@ public class SelectiveCompilation {
                     }
                 }
                 if (name.endsWith(".jar")) {
-                    FileTree jarContents = operations.zipTree(inputFileDetails.getFile());
+                    JarArchive jarArchive = new JarArchive(inputFileDetails.getFile(), operations.zipTree(inputFileDetails.getFile()));
                     JarChangeProcessor processor = new JarChangeProcessor(jarSnapshotFeeder);
-                    RebuildInfo info = processor.processJarChange(inputFileDetails, jarContents);
+                    RebuildInfo info = processor.processJarChange(inputFileDetails, jarArchive);
                     if (info.isFullRebuildRequired()) {
                         fullRebuildNeeded = "change to " + inputFile + " requires full rebuild";
                         return;
@@ -113,14 +115,6 @@ public class SelectiveCompilation {
             this.source = source.matching(changedSourceOnly);
         }
         LOG.lifecycle("Stale classes detection completed in {}. Stale classes: {}, Compile include patterns: {}, Files to delete: {}", clock.getTime(), compiler.getStaleClasses().size(), changedSourceOnly.getIncludes(), compiler.getStaleClasses());
-    }
-
-    public void compilationComplete() {
-        jarSnapshotFeeder.storeJarSnapshots(classpath.filter(new Spec<File>() {
-            public boolean isSatisfiedBy(File element) {
-                return element.getName().endsWith(".jar");
-            }
-        }).getFiles());
     }
 
     public FileCollection getSource() {

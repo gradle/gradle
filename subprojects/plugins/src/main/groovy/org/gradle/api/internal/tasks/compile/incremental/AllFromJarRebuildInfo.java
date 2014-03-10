@@ -17,22 +17,25 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class AllFromJarRebuildInfo extends DefaultRebuildInfo {
-    AllFromJarRebuildInfo(FileTree jarContents) {
-        super(false, classesInJar(jarContents));
+    AllFromJarRebuildInfo(JarArchive jarContents) {
+        super(false, classesInJar(jarContents.contents));
     }
 
     private static Set<String> classesInJar(FileTree jarContents) {
-        throw new RuntimeException("not implemented yet");
-//        Set<String> classes = new HashSet<String>();
-//        for (File file : jarContents) {
-//            if (file.getName().endsWith(".class")) {
-//                classes.add(file.getName().replaceAll("/", ".").substring() replaceAll("\\.class", "") )
-//            }
-//        }
-//        return classes;
+        final Set<String> out = new HashSet<String>();
+        jarContents.visit(new FileVisitor() {
+            public void visitDir(FileVisitDetails dirDetails) {}
+            public void visitFile(FileVisitDetails fileDetails) {
+                out.add(fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", ""));
+            }
+        });
+        return out;
     }
 }

@@ -13,20 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.internal.file.FileOperations;
+import java.io.Serializable;
+import java.util.*;
 
-import java.io.File;
+class JarSnapshot implements Serializable {
 
-public class JarSnapshot {
+    final Map<String, byte[]> classHashes;
 
-    public JarSnapshot(File jar, FileOperations fileOperations) {
-        throw new RuntimeException("not implemented");
+    JarSnapshot(Map<String, byte[]> classHashes) {
+        this.classHashes = classHashes;
     }
 
-    public JarDelta compareToJar(File file) {
-        throw new RuntimeException("not implemented");
+    JarDelta compareToSnapshot(JarSnapshot other) {
+        final List<String> changedClasses = new LinkedList<String>();
+        for (String thisCls : classHashes.keySet()) {
+            byte[] hash = other.classHashes.get(thisCls);
+            if (hash == null || !Arrays.equals(hash, classHashes.get(thisCls))) {
+                changedClasses.add(thisCls);
+            }
+        }
+        return new JarDelta() {
+            public Collection<String> getChangedClasses() {
+                return changedClasses;
+            }
+        };
     }
 }

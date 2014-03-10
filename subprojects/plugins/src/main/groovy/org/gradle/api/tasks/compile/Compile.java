@@ -16,11 +16,14 @@
 
 package org.gradle.api.tasks.compile;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.Compiler;
@@ -30,6 +33,7 @@ import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyIn
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -59,6 +63,7 @@ public class Compile extends AbstractCompile {
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
     private final Compiler<JavaCompileSpec> javaCompiler;
+    private final IncrementalCompilationSupport incrementalCompilation;
 
     public Compile() {
         if (!(this instanceof JavaCompile)) {
@@ -71,15 +76,33 @@ public class Compile extends AbstractCompile {
         JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, antBuilderFactory, inProcessCompilerFactory, compilerDaemonManager);
         javaCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
         cleaningCompiler = new CleaningJavaCompiler(javaCompiler, antBuilderFactory, getOutputs());
+        JarSnapshotFeeder jarSnapshotFeeder = new JarSnapshotFeeder(getJarSnapshotCache(), new JarSnapshotter(new DefaultHasher()));
+        incrementalCompilation = new IncrementalCompilationSupport(jarSnapshotFeeder);
     }
+
+    private FileCollection compileClasspath; //TODO SF remove this hack
 
     @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {
         if (!maybeCompileIncrementally(inputs)) {
             compile();
         }
-        new IncrementalCompilationSupport().compilationComplete(compileOptions,
-                new ClassDependencyInfoExtractor(getDestinationDir()), getDependencyInfoSerializer());
+        incrementalCompilation.compilationComplete(compileOptions,
+                new ClassDependencyInfoExtractor(getDestinationDir()),
+                getDependencyInfoSerializer(), jarsOnClasspath());
+    }
+
+    private Iterable<JarArchive> jarsOnClasspath() {
+        Iterable<JarArchive> jarArchives = Iterables.transform(compileClasspath.filter(new Spec<File>() {
+            public boolean isSatisfiedBy(File element) {
+                return element.getName().endsWith(".jar");
+            }
+        }), new Function<File, JarArchive>() {
+            public JarArchive apply(File input) {
+                return new JarArchive(input, getProject().zipTree(input));
+            }
+        });
+        return jarArchives;
     }
 
     private ClassDependencyInfoSerializer getDependencyInfoSerializer() {
@@ -114,7 +137,6 @@ public class Compile extends AbstractCompile {
 
         Clock clock = new Clock();
         performCompilation(selectiveCompilation.getSource(), selectiveCompilation.getClasspath(), compiler);
-        selectiveCompilation.compilationComplete();
         LOG.lifecycle("{} - incremental compilation took {}", getPath(), clock.getTime());
 
         return true;
@@ -150,6 +172,7 @@ public class Compile extends AbstractCompile {
         spec.setCompileOptions(compileOptions);
         WorkResult result = compiler.execute(spec);
         setDidWork(result.getDidWork());
+        compileClasspath = classpath;
     }
 
     private JarSnapshotCache getJarSnapshotCache() {

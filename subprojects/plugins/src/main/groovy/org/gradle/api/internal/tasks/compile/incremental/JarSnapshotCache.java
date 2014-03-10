@@ -17,9 +17,37 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
+//TODO SF this obviously needs to be replaced with a proper cache
 public class JarSnapshotCache {
 
+    private File sharedJarSnapshotCache;
+    private Map<File, JarSnapshot> snapshots;
+
     public JarSnapshotCache(File sharedJarSnapshotCache) {
+        this.sharedJarSnapshotCache = sharedJarSnapshotCache;
+    }
+
+    public JarSnapshot getSnapshot(File jar) {
+        init();
+        return snapshots.get(jar);
+    }
+
+    public void putSnapshots(Map<File, JarSnapshot> newSnapshots) {
+        init();
+        this.snapshots.putAll(newSnapshots);
+        DummySerializer.writeTargetTo(sharedJarSnapshotCache, this.snapshots);
+    }
+
+    private void init() {
+        if (snapshots == null) {
+            if (sharedJarSnapshotCache.isFile()) {
+                snapshots = (Map) DummySerializer.readFrom(sharedJarSnapshotCache);
+            } else {
+                snapshots = new HashMap<File, JarSnapshot>();
+            }
+        }
     }
 }

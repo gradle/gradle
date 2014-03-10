@@ -27,14 +27,25 @@ import org.gradle.util.Clock;
 public class IncrementalCompilationSupport {
 
     private static final Logger LOG = Logging.getLogger(IncrementalCompilationSupport.class);
+    private JarSnapshotFeeder jarSnapshotFeeder;
+
+    public IncrementalCompilationSupport(JarSnapshotFeeder jarSnapshotFeeder) {
+        this.jarSnapshotFeeder = jarSnapshotFeeder;
+    }
 
     public void compilationComplete(CompileOptions options,
-                                    ClassDependencyInfoExtractor extractor, ClassDependencyInfoSerializer serializer) {
+                                    ClassDependencyInfoExtractor extractor,
+                                    ClassDependencyInfoSerializer serializer,
+                                    Iterable<JarArchive> jarsOnClasspath) {
         if (options.isIncremental()) {
             Clock clock = new Clock();
             ClassDependencyInfo info = extractor.extractInfo("");
             serializer.writeInfo(info);
             LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), serializer);
+
+            clock = new Clock();
+            jarSnapshotFeeder.storeJarSnapshots(jarsOnClasspath);
+            LOG.lifecycle("Wrote jar snapshots in {}.", clock.getTime());
         }
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-public interface JarDelta {
-    Iterable<String> getChangedClasses();
+import java.util.Collection;
+
+interface JarDelta {
+    Collection<String> getChangedClasses();
 }

@@ -25,24 +25,28 @@ import spock.lang.Subject
 
 class IncrementalCompilationSupportTest extends Specification {
 
-    @Subject support = new IncrementalCompilationSupport()
     def options = Mock(CompileOptions)
     def extractor = Mock(ClassDependencyInfoExtractor)
     def serializer = Mock(ClassDependencyInfoSerializer)
+    def feeder = Mock(JarSnapshotFeeder)
+
+    @Subject support = new IncrementalCompilationSupport(feeder)
 
     def "analyzes class dependencies when incremental"() {
         options.incremental >> true
+        def jars = [Mock(JarArchive)]
 
-        when: support.compilationComplete(options, extractor, serializer)
+        when: support.compilationComplete(options, extractor, serializer, jars)
         then:
         1 * extractor.extractInfo("") >> Stub(ClassDependencyInfo)
         1 * serializer.writeInfo(_ as ClassDependencyInfo)
+        1 * feeder.storeJarSnapshots(jars)
     }
 
     def "does nothing when not incremental"() {
         options.incremental >> false
 
-        when: support.compilationComplete(options, extractor, serializer)
+        when: support.compilationComplete(options, extractor, serializer, [])
         then: 0 * extractor._
     }
 }

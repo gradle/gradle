@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.tasks.util.PatternSet;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -28,9 +29,9 @@ class DefaultRebuildInfo implements RebuildInfo {
     static final RebuildInfo FULL_REBUILD = new DefaultRebuildInfo(true, Collections.<String>emptyList());
 
     private boolean fullRebuildRequired;
-    private Iterable<String> changedClassesInJar;
+    protected final Collection<String> changedClassesInJar;
 
-    DefaultRebuildInfo(boolean fullRebuildRequired, Iterable<String> changedClassesInJar) {
+    DefaultRebuildInfo(boolean fullRebuildRequired, Collection<String> changedClassesInJar) {
         this.fullRebuildRequired = fullRebuildRequired;
         this.changedClassesInJar = changedClassesInJar;
     }

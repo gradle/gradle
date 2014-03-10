@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 public class JarChangeProcessor {
@@ -28,15 +27,15 @@ public class JarChangeProcessor {
     }
 
     //TODO SF coverage
-    public RebuildInfo processJarChange(InputFileDetails jarChangeDetails, FileTree jarContents) {
-        JarSnapshot existing = jarSnapshotFeeder.changedJar(jarChangeDetails, jarContents);
+    public RebuildInfo processJarChange(InputFileDetails jarChangeDetails, JarArchive jarArchive) {
+        JarSnapshot existing = jarSnapshotFeeder.changedJar(jarChangeDetails.getFile());
         if (jarChangeDetails.isAdded()) {
             return DefaultRebuildInfo.NOTHING_TO_REBUILD;
         }
 
         if (jarChangeDetails.isRemoved()) {
             if (existing != null) {
-                return new AllFromJarRebuildInfo(jarContents);
+                return new AllFromJarRebuildInfo(jarArchive);
             } else {
                 return DefaultRebuildInfo.FULL_REBUILD;
             }
@@ -44,10 +43,11 @@ public class JarChangeProcessor {
 
         if (jarChangeDetails.isModified()) {
             if (existing != null) {
-                JarDelta jarDelta = existing.compareToJar(jarChangeDetails.getFile());
+                JarSnapshot newSnapshot = jarSnapshotFeeder.createSnapshot(jarArchive);
+                JarDelta jarDelta = existing.compareToSnapshot(newSnapshot);
                 return new SpecificClassesRebuildInfo(jarDelta);
             } else {
-                return new AllFromJarRebuildInfo(jarContents);
+                return new AllFromJarRebuildInfo(jarArchive);
             }
         }
 
