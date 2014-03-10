@@ -185,7 +185,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         then:
         !platformToolChain.available
-        getMessage(platformToolChain) == "Tool chain test cannot build for platform: x64"
+        getMessage(platformToolChain) == "Don't know how to build for platform 'x64'."
     }
 
     def "uses supplied platform configurations in order to target binary"() {
