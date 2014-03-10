@@ -154,9 +154,9 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
 
     def "can configure tool executables"() {
         def binDir = testDirectory.createDir("bin")
-        wrapperTool(binDir.file("c-compiler"), toolChain.CCompiler, "-DFRENCH")
-        wrapperTool(binDir.file("static-lib"), toolChain.staticLibArchiver)
-        wrapperTool(binDir.file("linker"), toolChain.linker)
+        wrapperTool(binDir, "c-compiler", toolChain.CCompiler, "-DFRENCH")
+        wrapperTool(binDir, "static-lib", toolChain.staticLibArchiver)
+        wrapperTool(binDir, "linker", toolChain.linker)
 
         when:
         buildFile << """
@@ -177,12 +177,14 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
     }
 
-    def wrapperTool(TestFile script, String executable, String... additionalArgs) {
+    def wrapperTool(TestFile binDir, String wrapperName, String executable, String... additionalArgs) {
+        def script = binDir.file(OperatingSystem.current().getExecutableName(wrapperName))
         if (OperatingSystem.current().windows) {
             script.text = "${executable} ${additionalArgs.join(' ')} %*"
         } else {
             script.text = "${executable} ${additionalArgs.join(' ')} \"\$@\""
             script.permissions = "rwxr--r--"
         }
+        return script
     }
 }
