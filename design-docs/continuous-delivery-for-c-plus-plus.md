@@ -1252,6 +1252,58 @@ This story moves definition and configuration of the source sets for a component
 
 # Later Milestones
 
+## Story: Improved DSL for platform-specific tool chain configuration (Part 1)
+
+The Gradle model for native binaries will describe the concepts of Build Type and Platform in abstract terms, not specific
+to a particular tool chain. It is the job of the tool chain to map these concepts to concrete command-line arguments where possible.
+
+This story improves the mechanism whereby a tool chain supplies arguments specific to a Platform for compiling/linking etc, and makes
+this consistent with the way that tool arguments are configured in a tool chain. A future story will improve this mechanism.
+
+### Implementation
+
+* Split `ConfigurableToolChain` (with the GccTool methods) out of `PlatformConfigurableToolChain`
+* Replace `PlatformConfigurableToolChain.addPlatformConfiguration` with `PlatformConfigurableToolChain.target(Platform..., Action<ConfigurableToolChain>)`
+* Replace the built-in `TargetPlatformConfiguration` actions with `Action<ConfigurableToolChain>`
+* If `PlatformConfigurableToolChain.target()` is called on a tool chain, then the default target configurations are removed.
+
+### User visible changes
+
+    model {
+        toolChains {
+            gcc(Gcc) {
+                // Default platform support is _replaced_ by configured support
+
+                // Build for 'platforms.sparc' with no additional arguments
+                target(platforms.sparc)
+
+                // Build for 'platforms-ultrasparc' with different executable
+                target(platforms.ultrasparc) {
+                    cppCompiler.executable "foo-bar"
+                }
+
+                // Build for any windows platform with these args
+                target(platforms.matching { operatingSystem == operatingSystems.windows } ) {
+                    cppCompiler.withArguments { args ->
+                        args.replace("foo", "bar")
+                        args.add("-m32")
+                    }
+                }
+            }
+        }
+    }
+
+### Test cases
+
+* Configure a GCC tool chain that creates x86 binaries when targeting amd64
+* Configure a GCC tool chain that cannot create x86 binaries
+* Configure a GCC tool chain that always uses a custom compiler arg when targeting x86
+
+### Open issues
+
+* When no Platform architecture/os is defined, assume the current platform architecture/os, not the tool chain default.
+    * This will require detecting the current platform, and supplying the correct tool chain arguments when building.
+
 ## Story: Improved DSL for tool chain configuration
 
 This story improves the DSL for tweaking arguments for a command-line tool that is part of a tool chain, and extends this
@@ -1301,71 +1353,6 @@ ability to all command-line based tool chains. It also permits the configuration
 
 * Only to register a `CommandLineTool` for languages that are supported by build.
    * Need to make it easy to have centralised tool chain configuration that works regardless of languages in effect.
-
-## Story: Improved DSL for platform-specific tool chain configuration
-
-The Gradle model for native binaries will describe the concepts of Build Type and Platform in abstract terms, not specific
-to a particular tool chain. It is the job of the tool chain to map these concepts to concrete command-line arguments where possible.
-
-This story improves the mechanism whereby a tool chain supplies arguments specific to a Platform for compiling/linking etc, and provides
-a mechanism for providing similar mapping for Build Type.
-
-### Implementation
-
-* Add `PlatformToolInvocationAction` and `CommandLineTool.forPlatform(PlatformToolInvocationAction)`
-* Add `<T extends CompileSpec> Compiler<T> createCompiler(Class<T> compilerType)` to `CommandLineTool`. The type is fixed for a particular tool.
-* Replace `ToolChain.targetPlatform(Platform)` with new mechanism using `CommandLineTool.forPlatform`, so that platform specification is
-  applied at the tool-level, rather than the tool-chain-level.
-    * Each `CommandLineTool` will have a list of `PlatformToolInvocationAction` instances. The first of these will contain the built-in mapping.
-    * Given a target platform, all `PlatformToolInvocationAction`s will be applied to an invocation
-    * At the end of this process, if there is an executable file specified on the invocation, the platform is buildable.
-* Platform actions should be applied to invocation prior to user args and other build model arguments
-* Add a sample, user-guide documentation and note the breaking change in the release notes.
-
-### User visible changes
-
-    interface PlatformToolInvocationAction {
-        Platform getPlatform()
-        void withInvocation(Action<CommandLineToolInvocation>)
-    }
-
-    model {
-        toolChains {
-            gcc(Gcc) {
-                cppCompiler.forPlatform {
-                    // Override built-in config: uses default executable
-                    if (platform.architecture.amd64) {
-                        withInvocation {
-                            args "-march", "special"
-                        }
-                    }
-
-                    // Add support for a custom platform (cross-compiler exe)
-                    if (platform.architecture.sparc) {
-                        withInvocation {
-                            executable "g++-sparc"
-                            args "-march", "sparc"
-                        }
-                    }
-
-                    // Disable support for a built-in platform
-                    if (platform.architecture.x86) {
-                        withInvocation {
-                            executable null
-                        }
-                    }
-                }
-            }
-
-### Test cases
-
-* Configure a GCC tool chain that creates x86 binaries for amd64 and vice-versa
-* Configure a GCC tool chain that is unable to create x86 binaries
-
-### Open issues
-
-* When no Platform architecture/os is defined, assume the current platform architecture/os, not the tool chain default.
-    * This will require detecting the current platform, and supplying the correct tool chain arguments when building.
 
 ## Story: Only use gcc/g++ front-ends for GCC tool chain
 
