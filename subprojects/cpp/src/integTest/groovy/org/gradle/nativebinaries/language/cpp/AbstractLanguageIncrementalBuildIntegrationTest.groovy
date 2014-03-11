@@ -140,6 +140,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         if (toolChain.visualCpp) {
             executedAndNotSkipped ":linkMainExecutable"
             executedAndNotSkipped ":mainExecutable"
+        } else if(objectiveCWithAslr()){
+            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkMainExecutable"
             skipped ":mainExecutable"
@@ -193,6 +196,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         if (toolChain.visualCpp) {
             executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
+        } else if(objectiveCWithAslr()){
+            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
@@ -207,8 +213,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         headerFile << """
 // Comment added to the end of the header file
 """
-
-        sleep(1000)
         run "mainExecutable"
 
         then:
@@ -219,10 +223,22 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         if (toolChain.visualCpp) {
             executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
+        } else if(objectiveCWithAslr()){
+             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+             executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
         }
+    }
+
+    // compiling Objective-C and Objective-Cpp with clang generates
+    // random different object files (related to ASLR settings) 
+    // We saw this behaviour only on linux so far. 
+    boolean objectiveCWithAslr() {
+        return (sourceType == "Objc" || sourceType == "Objcpp") &&
+                OperatingSystem.current().isLinux() && 
+                toolChain.displayName == "clang"
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

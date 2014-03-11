@@ -23,7 +23,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorld
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Assume
+import spock.lang.Ignore
 
 @Requires(TestPrecondition.NOT_WINDOWS)
 class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest{
@@ -32,13 +32,7 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguage
         multiPlatformsAvailable = OperatingSystem.current().isMacOsX();
     }
 
-    def setup(){
-        //temporally don't run clang on linux until we figured out why the clang compiler
-        // creates different objectfiles
-        Assume.assumeTrue(OperatingSystem.current().isMacOsX() || toolChain.displayName != "clang")
-    }
-
-    //@Ignore("Demos a problem with clang on ubuntu creating randomly differerent object files")
+    @Ignore("Demos a problem with clang on ubuntu creating randomly differerent object files")
     def "generates always exactly same object file"() {
         setup:
         def recordings = []
@@ -75,7 +69,6 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguage
         then:
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
-
 
         skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
         skipped ":linkMainExecutable", ":mainExecutable"
