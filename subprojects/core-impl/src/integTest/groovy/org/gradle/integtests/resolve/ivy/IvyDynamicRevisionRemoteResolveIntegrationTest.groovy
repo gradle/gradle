@@ -792,7 +792,7 @@ dependencies {
         then:
         fails "checkDeps"
         failure.assertHasCause "Could not resolve all dependencies for configuration ':compile'."
-        failure.assertHasCause "No cached version of group:projectA:1.+ available for offline mode."
+        failure.assertHasCause "No cached version listing for group:projectA:1.+ available for offline mode."
     }
 
     def checkResolve(Map edges) {
