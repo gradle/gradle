@@ -83,7 +83,7 @@ public class DefaultCachePolicySpec extends Specification {
         })
 
         then:
-        cachePolicy.mustRefreshDynamicVersion(null, null, 2 * SECOND)
+        cachePolicy.mustRefreshVersionList(null, null, 2 * SECOND)
     }
 
     def "applies useCachedResult for dynamic versions"() {
@@ -95,7 +95,7 @@ public class DefaultCachePolicySpec extends Specification {
         })
 
         then:
-        !cachePolicy.mustRefreshDynamicVersion(null, null, 2 * SECOND)
+        !cachePolicy.mustRefreshVersionList(null, null, 2 * SECOND)
     }
 
     def "applies cacheFor rules for dynamic versions"() {
@@ -110,16 +110,17 @@ public class DefaultCachePolicySpec extends Specification {
         hasDynamicVersionTimeout(100 * SECOND)
     }
 
-    def "provides details of cached dynamic version"() {
+    def "provides details of cached version list"() {
         expect:
         cachePolicy.eachDependency(new Action<DependencyResolutionControl>() {
             void execute(DependencyResolutionControl t) {
-                assertId(t.request, 'g', 'n', 'v')
-                assertId(t.cachedResult, 'group', 'name', 'version')
+                assert t.request.group == 'g'
+                assert t.request.name == 'n'
+                assertId(t.cachedResult.iterator().next(), 'group', 'name', 'version')
                 t.refresh()
             }
         })
-        cachePolicy.mustRefreshDynamicVersion(moduleSelector('g', 'n', 'v'), moduleIdentifier('group', 'name', 'version'), 0)
+        cachePolicy.mustRefreshVersionList(moduleIdentifier('g', 'n', 'v').module, [moduleIdentifier('group', 'name', 'version')] as Set, 0)
     }
 
     def "provides details of cached module"() {
@@ -211,10 +212,10 @@ public class DefaultCachePolicySpec extends Specification {
 
     private def hasDynamicVersionTimeout(int timeout) {
         def moduleId = moduleIdentifier('group', 'name', 'version')
-        assert !cachePolicy.mustRefreshDynamicVersion(null, moduleId, 100)
-        assert !cachePolicy.mustRefreshDynamicVersion(null, moduleId, timeout);
-        assert !cachePolicy.mustRefreshDynamicVersion(null, moduleId, timeout - 1)
-        cachePolicy.mustRefreshDynamicVersion(null, moduleId, timeout + 1)
+        assert !cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, 100)
+        assert !cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, timeout);
+        assert !cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, timeout - 1)
+        cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, timeout + 1)
     }
 
     private def hasChangingModuleTimeout(int timeout) {

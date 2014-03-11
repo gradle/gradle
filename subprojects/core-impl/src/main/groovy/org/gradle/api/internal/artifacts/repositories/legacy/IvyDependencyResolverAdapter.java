@@ -87,7 +87,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
             if (revision == null) {
                 result.noVersions();
             } else {
-                result.listed(new DefaultModuleVersions(revision.getId().getRevision()));
+                result.listed(new DefaultModuleVersionListing(revision.getId().getRevision()));
             }
         } catch (ParseException e) {
             throw UncheckedException.throwAsUncheckedException(e);

@@ -20,15 +20,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestSt
 import java.util.List;
 import java.util.Set;
 
-public interface ModuleVersions {
+public interface ModuleVersionListing {
 
-    Set<AvailableVersion> getVersions();
+    Set<Versioned> getVersions();
 
     boolean isEmpty();
 
-    List<AvailableVersion> sortLatestFirst(LatestStrategy latestStrategy);
-
-    interface AvailableVersion extends Versioned {
-    }
-
+    List<Versioned> sortLatestFirst(LatestStrategy latestStrategy);
 }

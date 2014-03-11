@@ -15,19 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersions;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionListing;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 class DefaultCachedModuleVersionList implements ModuleVersionsCache.CachedModuleVersionList {
-    private final ModuleVersions moduleVersions;
+    private final ModuleVersionListing moduleVersions;
     private final long ageMillis;
 
     public DefaultCachedModuleVersionList(ModuleVersionsCacheEntry entry, BuildCommencedTimeProvider timeProvider) {
-        this.moduleVersions = entry.moduleVersions;
+        this.moduleVersions = entry.moduleVersionListing;
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
     }
 
-    public ModuleVersions getModuleVersions() {
+    public ModuleVersionListing getModuleVersions() {
         return moduleVersions;
     }
 

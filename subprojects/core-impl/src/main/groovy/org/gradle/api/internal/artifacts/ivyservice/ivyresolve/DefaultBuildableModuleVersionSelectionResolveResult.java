@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 public class DefaultBuildableModuleVersionSelectionResolveResult implements BuildableModuleVersionSelectionResolveResult {
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
-    private ModuleVersions versions;
+    private ModuleVersionListing versions;
 
     private void reset(State state) {
         this.state = state;
@@ -32,7 +32,7 @@ public class DefaultBuildableModuleVersionSelectionResolveResult implements Buil
         return state;
     }
 
-    public ModuleVersions getVersions() throws ModuleVersionResolveException {
+    public ModuleVersionListing getVersions() throws ModuleVersionResolveException {
         return versions;
     }
 
@@ -40,19 +40,19 @@ public class DefaultBuildableModuleVersionSelectionResolveResult implements Buil
         return failure;
     }
 
-    public void listed(ModuleVersions versions) {
+    public void listed(ModuleVersionListing versions) {
         reset(State.Listed);
         this.versions = versions;
     }
 
     public void noVersions() {
         reset(State.Listed);
-        this.versions = new DefaultModuleVersions();
+        this.versions = new DefaultModuleVersionListing();
     }
 
     public void probablyNoVersions() {
         reset(State.ProbablyEmpty);
-        this.versions = new DefaultModuleVersions();
+        this.versions = new DefaultModuleVersionListing();
     }
 
     public void failed(ModuleVersionResolveException failure) {

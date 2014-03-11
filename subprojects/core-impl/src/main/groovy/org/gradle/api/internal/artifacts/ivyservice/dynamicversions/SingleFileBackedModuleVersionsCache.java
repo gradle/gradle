@@ -18,9 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultModuleVersions;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultModuleVersionListing;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersions;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionListing;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
@@ -54,7 +55,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
         return cacheLockingManager.createCache("module-versions", new ModuleKeySerializer(), new ModuleVersionsCacheEntrySerializer());
     }
 
-    public void cacheModuleVersionList(ModuleVersionRepository repository, ModuleIdentifier moduleId, ModuleVersions listedVersions) {
+    public void cacheModuleVersionList(ModuleVersionRepository repository, ModuleIdentifier moduleId, ModuleVersionListing listedVersions) {
         LOGGER.debug("Caching version list in module versions cache: Using '{}' for '{}'", listedVersions, moduleId);
         getCache().put(createKey(repository, moduleId), createEntry(listedVersions));
     }
@@ -71,7 +72,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
         return new ModuleKey(repository.getId(), moduleId);
     }
 
-    private ModuleVersionsCacheEntry createEntry(ModuleVersions listedVersions) {
+    private ModuleVersionsCacheEntry createEntry(ModuleVersionListing listedVersions) {
         return new ModuleVersionsCacheEntry(listedVersions, timeProvider.getCurrentTime());
     }
 
@@ -117,9 +118,9 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
     private static class ModuleVersionsCacheEntrySerializer implements Serializer<ModuleVersionsCacheEntry> {
 
         public void write(Encoder encoder, ModuleVersionsCacheEntry value) throws Exception {
-            Set<ModuleVersions.AvailableVersion> versions = value.moduleVersions.getVersions();
+            Set<Versioned> versions = value.moduleVersionListing.getVersions();
             encoder.writeInt(versions.size());
-            for (ModuleVersions.AvailableVersion version : versions) {
+            for (Versioned version : versions) {
                 encoder.writeString(version.getVersion());
             }
             encoder.writeLong(value.createTimestamp);
@@ -127,7 +128,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
 
         public ModuleVersionsCacheEntry read(Decoder decoder) throws Exception {
             int size = decoder.readInt();
-            DefaultModuleVersions versions = new DefaultModuleVersions();
+            DefaultModuleVersionListing versions = new DefaultModuleVersionListing();
             for (int i = 0; i < size; i++) {
                 versions.add(decoder.readString());
             }

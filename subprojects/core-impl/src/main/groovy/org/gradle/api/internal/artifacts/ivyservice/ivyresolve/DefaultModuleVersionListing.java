@@ -24,21 +24,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultModuleVersions implements ModuleVersions {
-    private final Set<AvailableVersion> versions = new HashSet<AvailableVersion>();
+public class DefaultModuleVersionListing implements ModuleVersionListing {
+    private final Set<Versioned> versions = new HashSet<Versioned>();
 
-    public DefaultModuleVersions(String version) {
+    public DefaultModuleVersionListing(String version) {
         add(version);
     }
 
-    public DefaultModuleVersions() {
+    public DefaultModuleVersionListing() {
     }
 
     public void add(String version) {
         versions.add(new DefaultAvailableVersion(version));
     }
 
-    public Set<AvailableVersion> getVersions() {
+    public Set<Versioned> getVersions() {
         return versions;
     }
 
@@ -46,8 +46,8 @@ public class DefaultModuleVersions implements ModuleVersions {
         return versions.isEmpty();
     }
 
-    public List<AvailableVersion> sortLatestFirst(LatestStrategy latestStrategy) {
-        List<AvailableVersion> sorted = latestStrategy.sort(versions);
+    public List<Versioned> sortLatestFirst(LatestStrategy latestStrategy) {
+        List<Versioned> sorted = latestStrategy.sort(versions);
         Collections.reverse(sorted);
         return sorted;
     }
@@ -61,7 +61,7 @@ public class DefaultModuleVersions implements ModuleVersions {
         }).toString();
     }
 
-    private static class DefaultAvailableVersion implements AvailableVersion {
+    private static class DefaultAvailableVersion implements Versioned {
         private final String version;
 
         public DefaultAvailableVersion(String version) {

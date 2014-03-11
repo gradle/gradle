@@ -38,7 +38,7 @@ public interface BuildableModuleVersionSelectionResolveResult {
      *
      * @throws org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException If the resolution was not successful.
      */
-    ModuleVersions getVersions() throws ModuleVersionResolveException;
+    ModuleVersionListing getVersions() throws ModuleVersionResolveException;
 
     @Nullable
     ModuleVersionResolveException getFailure();
@@ -46,7 +46,7 @@ public interface BuildableModuleVersionSelectionResolveResult {
     /**
      * Marks the module as having been listed to have the specified versions available.
      */
-    void listed(ModuleVersions versions);
+    void listed(ModuleVersionListing versions);
 
     /**
      * Marks the module as having no versions available.

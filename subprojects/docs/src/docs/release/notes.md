@@ -237,6 +237,16 @@ Previously, it may have silently created an invalid zip.
 
 To allow the large zip to be correctly built, set the `zip64` property of the task to `true`.
 
+### Change to incubating (undocumented) mechanism for controlling caching of dynamic versions
+
+An experimental, undocumented API exists for controlling the cache behaviour for dynamic versions.
+The underlying caching mechanism has changed, and this experimental API has changed so that:
+
+* `DependencyResolutionControl.getRequest()` now returns a `ModuleIdentifier` instead of a `ModuleVersionSelector`.
+* `DependencyResolutionControl.getCachedResult()` now returns `Set<ModuleVersionIdentifier>` (all matching versions) instead of a single `ModuleVersionIdentifier`.
+
+Use of this API is not recommended and it will be removed in the future.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
