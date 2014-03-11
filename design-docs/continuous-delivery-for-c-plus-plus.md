@@ -1252,7 +1252,7 @@ This story moves definition and configuration of the source sets for a component
 
 # Later Milestones
 
-## Story: Improved DSL for platform-specific tool chain configuration (Part 1)
+## Story: Improved DSL for platform-specific tool chain configuration
 
 The Gradle model for native binaries will describe the concepts of Build Type and Platform in abstract terms, not specific
 to a particular tool chain. It is the job of the tool chain to map these concepts to concrete command-line arguments where possible.
