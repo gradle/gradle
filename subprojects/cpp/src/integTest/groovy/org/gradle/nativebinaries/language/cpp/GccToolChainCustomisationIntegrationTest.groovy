@@ -21,6 +21,8 @@ import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.GccCompatible
 
@@ -152,6 +154,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can configure tool executables"() {
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "c-compiler", toolChain.CCompiler, "-DFRENCH")
