@@ -21,7 +21,7 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.TaskSelector;
 
 /**
- * A model providing access to {@link org.gradle.tooling.model.EntryPoint}s that can be used
+ * A model providing access to {@link org.gradle.tooling.model.Launchable}s that can be used
  * to initiate Gradle build.
  *
  * @since 1.12

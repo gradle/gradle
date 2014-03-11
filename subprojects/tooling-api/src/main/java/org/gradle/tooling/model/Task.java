@@ -20,9 +20,11 @@ import org.gradle.api.Nullable;
 /**
  * Represents a task which is executable by Gradle.
  *
+ * <p>Note: {@code Task} extends {@code Launchable} since 1.12.</p>
+ *
  * @since 1.0-milestone-3
  */
-public interface Task extends EntryPoint {
+public interface Task extends Launchable {
     /**
      * Returns the path of this task. This is a fully qualified unique name for this task.
      *

@@ -18,15 +18,15 @@ package org.gradle.tooling.model;
 import org.gradle.api.Incubating;
 
 /**
- * Represents an entry point that uses task name to select tasks executed from a given context.
+ * Represents a launchable that uses task name to select tasks executed from a given context.
  *
  * @since 1.12
  */
 @Incubating
-public interface TaskSelector extends EntryPoint {
+public interface TaskSelector extends Launchable {
     /**
      * Returns the display name.
-     * @return Display name of the task
+     * @return Display name of the selector.
      */
     String getDisplayName();
 }

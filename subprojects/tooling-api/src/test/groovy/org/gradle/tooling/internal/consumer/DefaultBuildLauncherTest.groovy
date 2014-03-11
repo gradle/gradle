@@ -25,8 +25,8 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
-import org.gradle.tooling.model.EntryPoint
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.Launchable
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.TaskSelector
 
@@ -112,7 +112,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         when:
         launcher.standardOutput = stdout
         launcher.standardError = stderr
-        launcher.forEntryPoints(ts)
+        launcher.forLaunchables(ts)
         launcher.run(handler)
 
         then:
@@ -152,7 +152,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         when:
         launcher.standardOutput = stdout
         launcher.standardError = stderr
-        launcher.forEntryPoints(ts1, ts2, ts3)
+        launcher.forLaunchables(ts1, ts2, ts3)
         launcher.run(handler)
 
         then:
@@ -273,11 +273,11 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         operation.runBuild.end > instant.failureAvailable
     }
 
-    def "rejects unknown EntryPoint"() {
-        EntryPoint task = Mock(EntryPoint)
+    def "rejects unknown Launchable"() {
+        Launchable task = Mock(Launchable)
 
         when:
-        launcher.forEntryPoints(task)
+        launcher.forLaunchables(task)
 
         then:
         def e = thrown(GradleException)

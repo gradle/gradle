@@ -18,7 +18,7 @@ package org.gradle.tooling;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
-import org.gradle.tooling.model.EntryPoint;
+import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
 import java.io.File;
@@ -107,24 +107,24 @@ public interface BuildLauncher extends LongRunningOperation {
     BuildLauncher forTasks(Iterable<? extends Task> tasks);
 
     /**
-     * Sets the entry points to be executed. If no entries are specified, the project's default tasks are executed.
+     * Sets the launchables to execute. If no entries are specified, the project's default tasks are executed.
      *
-     * @param entryPoints The entry points to be executed.
+     * @param launchables The launchables for this build.
      * @return this
      * @since 1.12
      */
     @Incubating
-    BuildLauncher forEntryPoints(EntryPoint... entryPoints);
+    BuildLauncher forLaunchables(Launchable... launchables);
 
     /**
-     * Sets the entry points to be executed. If no entries are specified, the project's default tasks are executed.
+     * Sets the launchables to execute. If no entries are specified, the project's default tasks are executed.
      *
-     * @param entryPoints The entry points to be executed.
+     * @param launchables The launchables for this build.
      * @return this
      * @since 1.12
      */
     @Incubating
-    BuildLauncher forEntryPoints(Iterable<? extends EntryPoint> entryPoints);
+    BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables);
 
     /**
      * {@inheritDoc}

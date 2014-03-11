@@ -23,7 +23,7 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.gradle.TaskListingTaskSelector;
-import org.gradle.tooling.model.EntryPoint;
+import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.TaskSelector;
 
@@ -62,20 +62,20 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
         return this;
     }
 
-    public BuildLauncher forEntryPoints(EntryPoint... entryPoints) {
-        return forEntryPoints(Arrays.asList(entryPoints));
+    public BuildLauncher forLaunchables(Launchable... launchables) {
+        return forLaunchables(Arrays.asList(launchables));
     }
 
-    public BuildLauncher forEntryPoints(Iterable<? extends EntryPoint> entryPoints) {
+    public BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables) {
         Set<String> taskPaths = new LinkedHashSet<String>();
-        for (EntryPoint entryPoint : entryPoints) {
-            if (entryPoint instanceof Task) {
-                taskPaths.add(((Task) entryPoint).getPath());
-            } else if (entryPoint instanceof TaskListingTaskSelector) {
-                taskPaths.addAll(((TaskListingTaskSelector) entryPoint).getTasks());
-            } else if (!(entryPoint instanceof TaskSelector)) {
+        for (Launchable launchable : launchables) {
+            if (launchable instanceof Task) {
+                taskPaths.add(((Task) launchable).getPath());
+            } else if (launchable instanceof TaskListingTaskSelector) {
+                taskPaths.addAll(((TaskListingTaskSelector) launchable).getTasks());
+            } else if (!(launchable instanceof TaskSelector)) {
                 throw new GradleException("Only Task or TaskSelector instances are supported: "
-                        + (entryPoint != null ? entryPoint.getClass() : "null"));
+                        + (launchable != null ? launchable.getClass() : "null"));
             }
         }
         operationParamsBuilder.setTasks(new ArrayList<String>(taskPaths));

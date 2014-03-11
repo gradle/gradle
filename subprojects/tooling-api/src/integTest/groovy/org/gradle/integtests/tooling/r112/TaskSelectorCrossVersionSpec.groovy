@@ -90,7 +90,7 @@ task t2 << {
             connection.action(new FetchTaskSelectorsBuildAction('b')).run() }
         TaskSelector selector = projectSelectors.taskSelectors.find { it -> it.name == 't1'}
         def result = withBuild { BuildLauncher it ->
-            it.forEntryPoints(selector)
+            it.forLaunchables(selector)
         }
 
         then:
@@ -106,7 +106,7 @@ task t2 << {
         TaskSelector selector = model.taskSelectors.find { TaskSelector it ->
             it.name == 't1' && it.description.startsWith(':b:') && !it.description.startsWith(':b:c:') }
         def result = withBuild { BuildLauncher it ->
-            it.forEntryPoints(selector)
+            it.forLaunchables(selector)
         }
 
         then:
