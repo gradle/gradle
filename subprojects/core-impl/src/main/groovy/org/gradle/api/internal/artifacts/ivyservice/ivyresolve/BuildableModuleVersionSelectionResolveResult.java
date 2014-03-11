@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 public interface BuildableModuleVersionSelectionResolveResult {
 
     static enum State {
-        Listed, ProbablyEmpty, Failed, Unknown
+        Listed, ProbablyListed, Failed, Unknown
     }
 
     /**
@@ -49,14 +49,9 @@ public interface BuildableModuleVersionSelectionResolveResult {
     void listed(ModuleVersionListing versions);
 
     /**
-     * Marks the module as having no versions available.
-     */
-    void noVersions();
-
-    /**
      * Marks the module as probably having no versions available.
      */
-    void probablyNoVersions();
+    void probablyListed(ModuleVersionListing versions);
 
     /**
      * Marks the list as failed with the given exception.

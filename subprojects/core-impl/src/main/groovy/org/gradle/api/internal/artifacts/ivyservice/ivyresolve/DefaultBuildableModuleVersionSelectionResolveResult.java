@@ -45,14 +45,9 @@ public class DefaultBuildableModuleVersionSelectionResolveResult implements Buil
         this.versions = versions;
     }
 
-    public void noVersions() {
-        reset(State.Listed);
-        this.versions = new DefaultModuleVersionListing();
-    }
-
-    public void probablyNoVersions() {
-        reset(State.ProbablyEmpty);
-        this.versions = new DefaultModuleVersionListing();
+    public void probablyListed(ModuleVersionListing versions) {
+        reset(State.ProbablyListed);
+        this.versions = versions;
     }
 
     public void failed(ModuleVersionResolveException failure) {

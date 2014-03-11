@@ -90,7 +90,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         try {
             ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);
             if (revision == null) {
-                result.noVersions();
+                result.listed(new DefaultModuleVersionListing());
             } else {
                 result.listed(new DefaultModuleVersionListing(revision.getId().getRevision()));
             }

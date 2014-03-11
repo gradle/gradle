@@ -101,16 +101,12 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             if (cachePolicy.mustRefreshVersionList(moduleId, versions, cachedModuleVersionList.getAgeMillis())) {
                 LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
             } else {
-                if (versionList.isEmpty()) {
-                    if (cachedModuleVersionList.getAgeMillis() == 0) {
-                        // Verified since the start of this build, assume still missing
-                        result.noVersions();
-                    } else {
-                        // Was missing last time we checked
-                        result.probablyNoVersions();
-                    }
-                } else {
+                if (cachedModuleVersionList.getAgeMillis() == 0) {
+                    // Verified since the start of this build, assume still missing
                     result.listed(versionList);
+                } else {
+                    // Was missing last time we checked
+                    result.probablyListed(versionList);
                 }
             }
         }

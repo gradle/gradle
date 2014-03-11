@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
-
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.ivy.IvyHttpModule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -699,9 +697,8 @@ configurations.all {
         }
     }
 
-    // TODO:DAZ Fix this
-    @Ignore("This doesn't yet work: not sure if it did before...")
-    def "looks for missing dynamic version in remote repo before failing due to missing"() {
+    @Unroll
+    def "checks remote for dynamic version before failing due to #scenario"() {
         given:
         useRepository ivyHttpRepo
         buildFile << """
@@ -713,7 +710,11 @@ dependencies {
 
         when: "no version > 2"
         ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        if (isMissing) {
+            ivyHttpRepo.expectDirectoryListGetMissing("group", "projectA")
+        } else {
+            ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        }
 
         then:
         fails "checkDeps"
@@ -727,6 +728,11 @@ dependencies {
 
         then:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
+
+        where:
+        scenario | isMissing
+        "module missing in cache listing" | true
+        "no valid version in cache listing" | false
     }
 
     @Unroll

@@ -263,8 +263,10 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
                 case Failed:
                     resolveResult.failed(selectionResult.getFailure());
                     break;
-                case ProbablyEmpty:
-                    resolveResult.probablyMissing();
+                case ProbablyListed:
+                    if (!resolveDependency(dependency, moduleAccess)) {
+                        resolveResult.probablyMissing();
+                    }
                     break;
                 case Listed:
                     if (!resolveDependency(dependency, moduleAccess)) {
