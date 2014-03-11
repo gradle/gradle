@@ -17,16 +17,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ArtifactIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.cache.*;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
@@ -106,8 +104,8 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         });
     }
 
-    public boolean mustRefreshDynamicVersion(ModuleVersionSelector selector, ModuleVersionIdentifier moduleId, long ageMillis) {
-        CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(selector, moduleId, ageMillis);
+    public boolean mustRefreshVersionList(final ModuleIdentifier moduleIdentifier, Set<ModuleVersionIdentifier> matchingVersions, long ageMillis) {
+        CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(moduleIdentifier, matchingVersions, ageMillis);
 
         for (Action<? super DependencyResolutionControl> rule : dependencyCacheRules) {
             rule.execute(dependencyResolutionControl);
@@ -210,9 +208,9 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         }
     }
 
-    private class CachedDependencyResolutionControl extends AbstractResolutionControl<ModuleVersionSelector, ModuleVersionIdentifier> implements DependencyResolutionControl {
-        private CachedDependencyResolutionControl(ModuleVersionSelector request, ModuleVersionIdentifier cachedVersion, long ageMillis) {
-            super(request, cachedVersion, ageMillis);
+    private class CachedDependencyResolutionControl extends AbstractResolutionControl<ModuleIdentifier, Set<ModuleVersionIdentifier>> implements DependencyResolutionControl {
+        private CachedDependencyResolutionControl(ModuleIdentifier request, Set<ModuleVersionIdentifier> result, long ageMillis) {
+            super(request, result, ageMillis);
         }
     }
 

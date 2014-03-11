@@ -17,14 +17,15 @@ package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 import java.io.File;
+import java.util.Set;
 
 public interface CachePolicy {
-    boolean mustRefreshDynamicVersion(ModuleVersionSelector selector, ModuleVersionIdentifier moduleId, long ageMillis);
+    boolean mustRefreshVersionList(ModuleIdentifier selector, Set<ModuleVersionIdentifier> moduleVersions, long ageMillis);
 
     boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, ModuleRevisionId moduleRevisionId, long ageMillis);
 

@@ -34,11 +34,13 @@ import org.gradle.api.internal.externalresource.cached.CachedArtifact;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
 
@@ -85,13 +87,16 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
     public void localListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
-        ModuleIdentifier moduleId = moduleExtractor.transform(requested);
+        final ModuleIdentifier moduleId = moduleExtractor.transform(requested);
         ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
         if (cachedModuleVersionList != null) {
-            ModuleVersions versionList = cachedModuleVersionList.getModuleVersions();
-
-            ModuleVersionIdentifier requestedId = new DefaultModuleVersionIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
-            if (cachePolicy.mustRefreshDynamicVersion(requested, requestedId, cachedModuleVersionList.getAgeMillis())) {
+            ModuleVersionListing versionList = cachedModuleVersionList.getModuleVersions();
+            Set<ModuleVersionIdentifier> versions = CollectionUtils.collect(versionList.getVersions(), new Transformer<ModuleVersionIdentifier, Versioned>() {
+                public ModuleVersionIdentifier transform(Versioned original) {
+                    return new DefaultModuleVersionIdentifier(moduleId, original.getVersion());
+                }
+            });
+            if (cachePolicy.mustRefreshVersionList(moduleId, versions, cachedModuleVersionList.getAgeMillis())) {
                 LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
             } else {
                 if (versionList.isEmpty()) {
@@ -114,7 +119,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         switch (result.getState()) {
             case Listed:
                 ModuleIdentifier moduleId = moduleExtractor.transform(dependency.getRequested());
-                ModuleVersions versionList = result.getVersions();
+                ModuleVersionListing versionList = result.getVersions();
                 moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
                 break;
             case Failed:
