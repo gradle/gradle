@@ -38,11 +38,7 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     }
 
     public void resolve(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result) {
-        try {
-            resolver.resolve(module, artifactType, result);
-        } catch (Throwable t) {
-            throw new AssertionError(String.format("Unexpected exception when resolving artifacts of type %s for component %s",
-                    artifactType.getName(), module.getComponentId()), t);
-        }
+        // if this throws, it's a bug
+        resolver.resolve(module, artifactType, result);
     }
 }
