@@ -21,22 +21,22 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.Clang;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.AbstractGccCompatibleToolChain;
-import org.gradle.nativebinaries.toolchain.internal.gcc.ToolRegistry;
+import org.gradle.nativebinaries.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
 
 public class ClangToolChain extends AbstractGccCompatibleToolChain implements Clang {
     public static final String DEFAULT_NAME = "clang";
 
     public ClangToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
-        super(name, operatingSystem, fileResolver, execActionFactory, new ToolRegistry(operatingSystem));
+        super(name, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem));
 
-        tools.setExeName(ToolType.CPP_COMPILER, "clang++");
-        tools.setExeName(ToolType.C_COMPILER, "clang");
-        tools.setExeName(ToolType.OBJECTIVECPP_COMPILER, "clang++");
-        tools.setExeName(ToolType.OBJECTIVEC_COMPILER, "clang");
-        tools.setExeName(ToolType.ASSEMBLER, "as");
-        tools.setExeName(ToolType.LINKER, "clang++");
-        tools.setExeName(ToolType.STATIC_LIB_ARCHIVER, "ar");
+        registerTool(ToolType.CPP_COMPILER, "clang++");
+        registerTool(ToolType.C_COMPILER, "clang");
+        registerTool(ToolType.OBJECTIVECPP_COMPILER, "clang++");
+        registerTool(ToolType.OBJECTIVEC_COMPILER, "clang");
+        registerTool(ToolType.ASSEMBLER, "as");
+        registerTool(ToolType.LINKER, "clang++");
+        registerTool(ToolType.STATIC_LIB_ARCHIVER, "ar");
     }
 
     @Override

@@ -17,13 +17,14 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativebinaries.toolchain.internal.tools.ToolSearchPath;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-class GccToolRegistry extends ToolRegistry {
-    public GccToolRegistry(OperatingSystem operatingSystem) {
+class GccToolSearchPath extends ToolSearchPath {
+    public GccToolSearchPath(OperatingSystem operatingSystem) {
         super(operatingSystem);
     }
 

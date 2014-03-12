@@ -35,8 +35,8 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final CommandLineTool<T> commandLineTool;
     private final ArgsTransformer<T> argsTransfomer;
 
-    public NativeCompiler(CommandLineTool<T> commandLineTool, Action<List<String>> argsAction, ArgsTransformer<T> argsTransformer, boolean useCommandFile) {
-        argsTransformer = new UserArgsTransformer<T>(argsTransformer, argsAction);
+    public NativeCompiler(CommandLineTool<T> commandLineTool, Action<List<String>> toolChainArgsAction, ArgsTransformer<T> argsTransformer, boolean useCommandFile) {
+        argsTransformer = new PostTransformActionArgsTransformer<T>(argsTransformer, toolChainArgsAction);
         if (useCommandFile) {
             argsTransformer = new GccOptionsFileArgTransformer<T>(argsTransformer);
         }

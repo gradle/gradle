@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain.internal.gcc
+package org.gradle.nativebinaries.toolchain.internal.tools
 
 import org.gradle.api.GradleException
 import org.gradle.internal.os.OperatingSystem
@@ -24,14 +24,10 @@ import org.gradle.util.TreeVisitor
 import org.junit.Rule
 import spock.lang.Specification
 
-class ToolRegistryTest extends Specification {
+class ToolSearchPathTest extends Specification {
     @Rule def TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def os = Stub(OperatingSystem)
-    def registry = new ToolRegistry(os)
-
-    def setup() {
-        registry.setExeName(ToolType.C_COMPILER, "cc")
-    }
+    def registry = new ToolSearchPath(os)
 
     def "finds executable in system path"() {
         def file = tmpDir.createFile("cc.bin")
@@ -40,7 +36,7 @@ class ToolRegistryTest extends Specification {
         os.findInPath("cc") >> file
 
         when:
-        def result = registry.locate(ToolType.C_COMPILER)
+        def result = registry.locate(ToolType.C_COMPILER, "cc")
 
         then:
         result.available
@@ -55,7 +51,7 @@ class ToolRegistryTest extends Specification {
         registry.setPath([file.parentFile])
 
         when:
-        def result = registry.locate(ToolType.C_COMPILER)
+        def result = registry.locate(ToolType.C_COMPILER, "cc")
 
         then:
         result.available
@@ -72,7 +68,7 @@ class ToolRegistryTest extends Specification {
         registry.setPath([dir1, dir2])
 
         when:
-        def result = registry.locate(ToolType.C_COMPILER)
+        def result = registry.locate(ToolType.C_COMPILER, "cc")
 
         then:
         !result.available
@@ -96,7 +92,7 @@ class ToolRegistryTest extends Specification {
         os.findInPath("cc") >> null
 
         when:
-        def result = registry.locate(ToolType.C_COMPILER)
+        def result = registry.locate(ToolType.C_COMPILER, "cc")
 
         then:
         !result.available
@@ -114,7 +110,7 @@ class ToolRegistryTest extends Specification {
         os.findInPath("cc") >> null
 
         when:
-        def result = registry.locate(ToolType.C_COMPILER)
+        def result = registry.locate(ToolType.C_COMPILER, "cc")
 
         then:
         !result.available

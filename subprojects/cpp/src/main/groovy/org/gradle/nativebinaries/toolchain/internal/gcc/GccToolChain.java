@@ -43,16 +43,16 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     private GccVersionResult versionResult;
 
     public GccToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
-        super(name, operatingSystem, fileResolver, execActionFactory, new GccToolRegistry(operatingSystem));
+        super(name, operatingSystem, fileResolver, execActionFactory, new GccToolSearchPath(operatingSystem));
         this.versionDeterminer = new GccVersionDeterminer(execActionFactory);
 
-        tools.setExeName(ToolType.CPP_COMPILER, "g++");
-        tools.setExeName(ToolType.C_COMPILER, "gcc");
-        tools.setExeName(ToolType.OBJECTIVECPP_COMPILER, "g++");
-        tools.setExeName(ToolType.OBJECTIVEC_COMPILER, "gcc");
-        tools.setExeName(ToolType.ASSEMBLER, "as");
-        tools.setExeName(ToolType.LINKER, "g++");
-        tools.setExeName(ToolType.STATIC_LIB_ARCHIVER, "ar");
+        registerTool(ToolType.CPP_COMPILER, "g++");
+        registerTool(ToolType.C_COMPILER, "gcc");
+        registerTool(ToolType.OBJECTIVECPP_COMPILER, "g++");
+        registerTool(ToolType.OBJECTIVEC_COMPILER, "gcc");
+        registerTool(ToolType.ASSEMBLER, "as");
+        registerTool(ToolType.LINKER, "g++");
+        registerTool(ToolType.STATIC_LIB_ARCHIVER, "ar");
     }
 
     @Override
@@ -63,9 +63,9 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     @Override
     protected void initTools(ToolChainAvailability availability) {
         if (versionResult == null) {
-            CommandLineToolSearchResult compiler = tools.locate(ToolType.C_COMPILER);
+            CommandLineToolSearchResult compiler = locate(ToolType.C_COMPILER);
             if (!compiler.isAvailable()) {
-                compiler = tools.locate(ToolType.CPP_COMPILER);
+                compiler = locate(ToolType.CPP_COMPILER);
             }
             availability.mustBeAvailable(compiler);
             if (!compiler.isAvailable()) {

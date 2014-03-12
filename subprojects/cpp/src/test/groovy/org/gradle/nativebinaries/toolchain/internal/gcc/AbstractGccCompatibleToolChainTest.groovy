@@ -25,6 +25,7 @@ import org.gradle.nativebinaries.platform.internal.DefaultOperatingSystem
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration
 import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
 import org.gradle.nativebinaries.toolchain.internal.ToolType
+import org.gradle.nativebinaries.toolchain.internal.tools.ToolSearchPath
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -36,11 +37,11 @@ import static ArchitectureInternal.InstructionSet.X86
 class AbstractGccCompatibleToolChainTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def execActionFactory = Mock(ExecActionFactory)
-    def toolRegistry = Stub(ToolRegistry)
+    def toolSearchPath = Stub(ToolSearchPath)
     def tool = Stub(CommandLineToolSearchResult) {
         isAvailable() >> true
     }
-    def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolRegistry)
+    def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolSearchPath)
     def platform = Stub(Platform)
 
     def "is unavailable when platform is not known and is not the default platform"() {
@@ -64,11 +65,10 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
         and:
-        toolRegistry.locate(ToolType.C_COMPILER) >> missing
-        toolRegistry.locate(ToolType.CPP_COMPILER) >> missing
-        toolRegistry.locate(ToolType.OBJECTIVEC_COMPILER) >> missing
-        toolRegistry.locate(ToolType.OBJECTIVECPP_COMPILER) >> missing
-        toolRegistry.locate(_) >> tool
+        toolSearchPath.locate(ToolType.C_COMPILER, "gcc") >> missing
+        toolSearchPath.locate(ToolType.CPP_COMPILER, "g++") >> missing
+        toolSearchPath.locate(ToolType.OBJECTIVEC_COMPILER, "gcc") >> missing
+        toolSearchPath.locate(ToolType.OBJECTIVECPP_COMPILER, "g++") >> missing
 
         expect:
         def platformToolChain = toolChain.target(platform)
@@ -86,8 +86,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.architecture >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
         and:
-        toolRegistry.locate(ToolType.CPP_COMPILER) >> missing
-        toolRegistry.locate(_) >> tool
+        toolSearchPath.locate(ToolType.CPP_COMPILER, "g++") >> missing
+        toolSearchPath.locate(_, _) >> tool
 
         expect:
         toolChain.target(platform).available
@@ -97,7 +97,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         def platformConfig = Mock(TargetPlatformConfiguration)
 
         given:
-        toolRegistry.locate(_) >> tool
+        toolSearchPath.locate(_, _) >> tool
         platformConfig.supportsPlatform(platform) >> true
 
         and:
@@ -109,7 +109,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     def "supplies no additional arguments to target native binary for tool chain default"() {
         when:
-        toolRegistry.locate(_) >> tool
+        toolSearchPath.locate(_, _) >> tool
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
@@ -126,7 +126,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "supplies args for supported architecture"() {
         when:
-        toolRegistry.locate(_) >> tool
+        toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.architecture >> new DefaultArchitecture(arch, instructionSet, registerSize)
 
@@ -154,7 +154,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     @Requires(TestPrecondition.WINDOWS)
     def "supplies args for supported architecture for i386 architecture on windows"() {
         when:
-        toolRegistry.locate(_) >> tool
+        toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.architecture >> new DefaultArchitecture("i386", X86, 32)
 
@@ -173,7 +173,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     @Requires(TestPrecondition.WINDOWS)
     def "cannot target x86_64 architecture on windows"() {
         given:
-        toolRegistry.locate(_) >> tool
+        toolSearchPath.locate(_, _) >> tool
 
         and:
         platform.getName() >> "x64"
@@ -192,7 +192,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         def platformConfig1 = Mock(TargetPlatformConfiguration)
         def platformConfig2 = Mock(TargetPlatformConfiguration)
         when:
-        toolRegistry.locate(_) >> tool
+        toolSearchPath.locate(_, _) >> tool
         platform.getOperatingSystem() >> new DefaultOperatingSystem("other", OperatingSystem.SOLARIS)
 
         and:
@@ -217,8 +217,16 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     static class TestToolChain extends AbstractGccCompatibleToolChain {
-        TestToolChain(String name, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolRegistry tools) {
+        TestToolChain(String name, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools) {
             super(name, OperatingSystem.current(), fileResolver, execActionFactory, tools)
+
+            registerTool(ToolType.CPP_COMPILER, "g++");
+            registerTool(ToolType.C_COMPILER, "gcc");
+            registerTool(ToolType.OBJECTIVECPP_COMPILER, "g++");
+            registerTool(ToolType.OBJECTIVEC_COMPILER, "gcc");
+            registerTool(ToolType.ASSEMBLER, "as");
+            registerTool(ToolType.LINKER, "ld");
+            registerTool(ToolType.STATIC_LIB_ARCHIVER, "ar");
         }
 
         @Override

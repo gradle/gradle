@@ -48,7 +48,7 @@ class Assembler implements Compiler<AssembleSpec> {
         CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
             ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile, spec.getObjectFileDir(), outputFileSuffix);
-            arguments = new UserArgsTransformer<AssembleSpec>(arguments, argsAction);
+            arguments = new PostTransformActionArgsTransformer<AssembleSpec>(arguments, argsAction);
             WorkResult result = commandLineAssembler.withArguments(arguments).execute(spec);
             didWork = didWork || result.getDidWork();
         }

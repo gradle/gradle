@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.nativebinaries.toolchain.internal.gcc;
+package org.gradle.nativebinaries.toolchain.internal.tools;
 
 import org.gradle.api.Action;
-import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.GccTool;
+import org.gradle.nativebinaries.toolchain.internal.ToolType;
 
 import java.util.List;
 
-class CCompiler extends NativeCompiler<CCompileSpec> {
+public interface GccToolInternal extends GccTool {
 
-    public CCompiler(CommandLineTool<CCompileSpec> commandLineTool, Action<List<String>> toolChainArgsAction, boolean useCommandFile) {
-        super(commandLineTool, toolChainArgsAction, new CCompileArgsTransformer(), useCommandFile);
-    }
+    ToolType getToolType();
 
-    private static class CCompileArgsTransformer extends GccCompilerArgsTransformer<CCompileSpec> {
-        protected String getLanguage() {
-            return "c";
-        }
-    }
+    Action<List<String>> getArgAction();
 }

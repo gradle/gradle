@@ -15,9 +15,6 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.platform.Platform;
@@ -26,6 +23,7 @@ import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.*;
+import org.gradle.nativebinaries.toolchain.internal.tools.*;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
@@ -41,15 +39,16 @@ import static java.util.Collections.emptyList;
  */
 public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain implements PlatformConfigurableToolChain {
     private final ExecActionFactory execActionFactory;
-    protected final ToolRegistry tools;
+    private final ToolSearchPath toolSearchPath;
+    private final DefaultToolRegistry toolRegistry = new DefaultToolRegistry();
 
     private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
     private int configInsertLocation;
 
-    public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolRegistry tools) {
+    public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath toolSearchPath) {
         super(name, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
-        this.tools = tools;
+        this.toolSearchPath = toolSearchPath;
 
         addPlatformConfiguration(new ToolChainDefaultArchitecture());
         addPlatformConfiguration(new Intel32Architecture());
@@ -57,26 +56,39 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         configInsertLocation = 0;
     }
 
+    protected GccTool getTool(ToolType toolType) {
+        return toolRegistry.getTool(toolType);
+    }
+
+    protected void registerTool(ToolType type, String defaultExecutable) {
+        toolRegistry.register(type, defaultExecutable);
+    }
+
+    protected CommandLineToolSearchResult locate(ToolType type) {
+        GccTool gccTool = getTool(type);
+        return toolSearchPath.locate(type, gccTool.getExecutable());
+    }
+
     public List<File> getPath() {
-        return tools.getPath();
+        return toolSearchPath.getPath();
     }
 
     public void path(Object... pathEntries) {
         for (Object path : pathEntries) {
-            tools.path(resolve(path));
+            toolSearchPath.path(resolve(path));
         }
     }
 
     protected void initTools(ToolChainAvailability availability) {
         for (ToolType type : ToolType.values()) {
-            tools.locate(type);
+            locate(type);
         }
         boolean found = false;
         for (ToolType type : Arrays.asList(ToolType.C_COMPILER, ToolType.CPP_COMPILER, ToolType.OBJECTIVEC_COMPILER, ToolType.OBJECTIVECPP_COMPILER)) {
-            found |= tools.locate(type).isAvailable();
+            found |= locate(type).isAvailable();
         }
         if (!found) {
-            availability.mustBeAvailable(tools.locate(ToolType.C_COMPILER));
+            availability.mustBeAvailable(locate(ToolType.C_COMPILER));
         }
     }
 
@@ -97,7 +109,9 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
             return new UnavailablePlatformToolChain(result);
         }
 
-        return new GccPlatformToolChain(tools, execActionFactory, platformConfiguration, canUseCommandFile());
+        // Target the tools for the platform
+        ToolRegistry platformTools = new PlatformToolRegistry(toolRegistry, platformConfiguration);
+        return new GccPlatformToolChain(toolSearchPath, platformTools, execActionFactory, canUseCommandFile());
     }
 
     protected TargetPlatformConfiguration getPlatformConfiguration(Platform targetPlatform) {
@@ -114,52 +128,29 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
     }
 
     public GccTool getCppCompiler() {
-        return new DefaultTool(ToolType.CPP_COMPILER);
+        return getTool(ToolType.CPP_COMPILER);
     }
 
     public GccTool getCCompiler() {
-        return new DefaultTool(ToolType.C_COMPILER);
+        return getTool(ToolType.C_COMPILER);
     }
 
     // This is here to allow using this property from Groovy as `cCompiler`
     public GccTool getcCompiler() {
-        return new DefaultTool(ToolType.C_COMPILER);
+        return getTool(ToolType.C_COMPILER);
     }
 
     public GccTool getAssembler() {
-        return new DefaultTool(ToolType.ASSEMBLER);
+        return getTool(ToolType.ASSEMBLER);
     }
 
     public GccTool getLinker() {
-        return new DefaultTool(ToolType.LINKER);
+        return getTool(ToolType.LINKER);
     }
 
     public GccTool getStaticLibArchiver() {
-        return new DefaultTool(ToolType.STATIC_LIB_ARCHIVER);
+        return getTool(ToolType.STATIC_LIB_ARCHIVER);
     }
-
-    private class DefaultTool implements GccTool {
-        private final ToolType toolType;
-
-        private DefaultTool(ToolType toolType) {
-            this.toolType = toolType;
-        }
-
-        public String getExecutable() {
-            return tools.getExeName(toolType);
-        }
-
-        public void setExecutable(String file) {
-            tools.setExeName(toolType, file);
-        }
-
-        // TODO:DAZ Decorate class and use an action parameter
-        public void withArguments(Closure arguments) {
-            Action<List<String>> action = new ClosureBackedAction<List<String>>(arguments);
-            tools.addArgsAction(toolType, action);
-        }
-    }
-
     private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {
         public boolean supportsPlatform(Platform targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()

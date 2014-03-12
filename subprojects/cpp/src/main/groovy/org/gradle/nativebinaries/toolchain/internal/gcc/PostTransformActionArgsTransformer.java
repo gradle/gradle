@@ -22,11 +22,11 @@ import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import java.util.ArrayList;
 import java.util.List;
 
-class UserArgsTransformer<T extends BinaryToolSpec> implements ArgsTransformer<T> {
+class PostTransformActionArgsTransformer<T extends BinaryToolSpec> implements ArgsTransformer<T> {
     private final ArgsTransformer<T> delegate;
     private final Action<List<String>> userTransformer;
 
-    UserArgsTransformer(ArgsTransformer<T> delegate, Action<List<String>> userTransformer) {
+    PostTransformActionArgsTransformer(ArgsTransformer<T> delegate, Action<List<String>> userTransformer) {
         this.delegate = delegate;
         this.userTransformer = userTransformer;
     }
