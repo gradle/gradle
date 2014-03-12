@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 public class IdeaDependenciesProviderTest extends Specification {
     private final DefaultProject project = TestUtil.createRootProject()
-    // private final Project childProject = TestUtil.createChildProject(project, "child", new File("."))
+    private final DefaultProject childProject = TestUtil.createChildProject(project, "child", new File("."))
 
     def "no dependencies test"() {
         applyPluginToProjects()
@@ -59,8 +59,47 @@ public class IdeaDependenciesProviderTest extends Specification {
         result.findAll { it.scope == 'TEST' }.size() == 1
     }
 
+    def "compile dependency on child project"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+        childProject.apply(plugin: 'java')
+
+        def dependenciesProvider = new IdeaDependenciesProvider()
+        def module = project.ideaModule.module // Mock(IdeaModule)
+        module.offline = true
+
+        when:
+        project.dependencies.add('compile', childProject)
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        result.size() == 1
+        result.findAll { it.scope == 'COMPILE' }.size() == 1
+    }
+
+    def "test and runtime scope for the same dependency"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+
+        def dependenciesProvider = new IdeaDependenciesProvider()
+        def module = project.ideaModule.module // Mock(IdeaModule)
+        module.offline = true
+
+        when:
+        project.dependencies.add('compile', project.files('lib/foo-api.jar'))
+        project.dependencies.add('testCompile', project.files('lib/foo-impl.jar'))
+        project.dependencies.add('runtime', project.files('lib/foo-impl.jar'))
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        result.size() == 3
+        result.findAll { it.scope == 'COMPILE' }.size() == 1
+        result.findAll { it.scope == 'TEST' }.size() == 1
+        result.findAll { it.scope == 'RUNTIME' }.size() == 1
+    }
+
     private applyPluginToProjects() {
         project.apply plugin: IdeaPlugin
-        // childProject.apply plugin: IdeaPlugin
+        childProject.apply plugin: IdeaPlugin
     }
 }
