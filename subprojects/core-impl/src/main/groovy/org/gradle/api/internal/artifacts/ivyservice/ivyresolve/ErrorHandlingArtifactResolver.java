@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableMultipleArtifactResolveResult;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     private final ArtifactResolver resolver;
@@ -31,6 +34,15 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
             resolver.resolve(artifact, result);
         } catch (Throwable t) {
             result.failed(new ArtifactResolveException(artifact.getId(), t));
+        }
+    }
+
+    public void resolve(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result) {
+        try {
+            resolver.resolve(module, artifactType, result);
+        } catch (Throwable t) {
+            throw new AssertionError(String.format("Unexpected exception when resolving artifacts of type %s for component %s",
+                    artifactType.getName(), module.getComponentId()), t);
         }
     }
 }

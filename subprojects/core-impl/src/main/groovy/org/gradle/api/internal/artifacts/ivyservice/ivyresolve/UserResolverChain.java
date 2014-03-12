@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
@@ -26,10 +27,7 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 // TODO:DAZ This needs to be broken up
 public class UserResolverChain implements DependencyToModuleVersionResolver {
@@ -169,6 +167,20 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
 
         public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
             delegate.resolve(artifact, result, moduleSource);
+        }
+
+        public void resolve(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result) {
+            Set<ModuleVersionArtifactMetaData> artifacts = delegate.getCandidateArtifacts(moduleMetadata, artifactType);
+            for (ModuleVersionArtifactMetaData artifact : artifacts) {
+                DefaultBuildableArtifactResolveResult singleResult = new DefaultBuildableArtifactResolveResult();
+                try {
+                    resolve(artifact, singleResult);
+                } catch(Throwable t) {
+                    // can't call up to ErrorHandlingArtifactResolver#resolve, so we'll have to handle errors ourselves
+                    singleResult.failed(new ArtifactResolveException(artifact.getId(), t));
+                }
+                result.addResult(artifact.getId(), singleResult);
+            }
         }
     }
 

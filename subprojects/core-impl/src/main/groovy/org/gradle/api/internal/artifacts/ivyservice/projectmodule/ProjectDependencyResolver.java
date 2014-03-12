@@ -17,13 +17,11 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 
 import java.util.Set;
 
@@ -68,6 +66,11 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
             } else {
                 result.notFound(artifact.getId());
             }
+        }
+
+        public void resolve(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result) {
+            // TODO: how to handle this?
+            throw new UnsupportedOperationException("TODO");
         }
     }
 }
