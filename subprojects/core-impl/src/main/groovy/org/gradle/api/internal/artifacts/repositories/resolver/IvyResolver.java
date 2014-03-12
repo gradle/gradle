@@ -18,13 +18,21 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
+import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.Set;
 
 public class IvyResolver extends ExternalResourceResolver implements PatternBasedResolver {
 
@@ -60,5 +68,19 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     public void addDescriptorLocation(URI baseUri, String pattern) {
         String descriptorPattern = transport.convertToPath(baseUri) + pattern;
         addIvyPattern(descriptorPattern);
+    }
+
+    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
+        if (artifactType == JvmLibraryJavadocArtifact.class) {
+            ConfigurationMetaData configuration = module.getConfiguration("javadoc");
+            return configuration != null ? configuration.getArtifacts() : Collections.<ModuleVersionArtifactMetaData>emptySet();
+        }
+
+        if (artifactType == JvmLibrarySourcesArtifact.class) {
+            ConfigurationMetaData configuration = module.getConfiguration("sources");
+            return configuration != null ? configuration.getArtifacts() : Collections.<ModuleVersionArtifactMetaData>emptySet();
+        }
+
+        throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
     }
 }
