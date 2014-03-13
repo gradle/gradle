@@ -338,6 +338,8 @@ TBD - maybe don't change `forTasks()` but instead add an `execute(Iterable<? ext
     - Task is present in target project but no subprojects
     - Task is present in target project and some subprojects
 - Executing a task selector when task is also present in subprojects runs all the matching tasks, for the above cases.
+- Can execute a task selector from a child project. Verify the tasks from the child project are executed.
+- Can execute task selectors from multiple projects.
 - Executing a task (as an `EntryPoint`) when task is also present in subprojects run the specified task only and nothing from subprojects.
 - Can request the entry points for all target Gradle versions.
 

@@ -89,7 +89,7 @@ This story changes the `idea` and `eclipse` plugins to use the resolution result
 
 ## Story: Dependency resolution result exposes a consumer that is not a module version
 
-This story exposes different kinds of consumers for a dependency graph.
+This story exposes different kinds of consumers for a dependency graph. The consumer is represented as the root of the dependency resolution result.
 
 - Result `root.id` should return a `ProjectComponentIdentifier` when a project configuration is resolved.
 - Result `root.id` should return an opaque `ComponentIdentifier` implementation when any other kind of configuration is resolved.
@@ -455,6 +455,11 @@ Allow some substitutions to be expressed declaratively, rather than imperatively
 - Get meta-data of a component
 - Get certain artifacts of a component. Includes meta-data artifacts
 
+## Story: Resolution result exposes excluded dependencies
+
+TBD
+
 # Open issues
 
 - When resolving a pre-built component, fail if the specified file does not exist/has not been built (if buildable).
+

@@ -1267,6 +1267,8 @@ this consistent with the way that tool arguments are configured in a tool chain.
 * Replace `PlatformConfigurableToolChain.addPlatformConfiguration` with `PlatformConfigurableToolChain.target(Platform..., Action<ConfigurableToolChain>)`
 * Replace the built-in `TargetPlatformConfiguration` actions with `Action<ConfigurableToolChain>`
 * If `PlatformConfigurableToolChain.target()` is called on a tool chain, then the default target configurations are removed.
+* Documentation describes how to define a new platform.
+* Documentation describes how to configure a tool for an existing platform.
 
 ### User visible changes
 
