@@ -30,6 +30,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+
     @Rule TestResources resources = new TestResources(temporaryFolder)
     def app = new CHelloWorldApp()
 
@@ -50,15 +51,19 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
                     }
                 }
             }
+        """
+        settingsFile << "rootProject.name = 'test'"
+    }
 
+    private void useStandardConfig() {
+        buildFile << """
             libraries {
                 hello {}
             }
             binaries.withType(TestSuiteExecutableBinary) {
                 lib library: "cunit", linkage: "static"
             }
-        """
-        settingsFile << "rootProject.name = 'test'"
+"""
     }
 
     private def getCunitPlatform() {
@@ -93,6 +98,40 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "can build and run cunit test suite"() {
         given:
         useConventionalSourceLocations()
+        useStandardConfig()
+
+        when:
+        run "runHelloTestCUnitExe"
+
+        then:
+        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
+                              ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+
+        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
+        testResults.suiteNames == ['hello test']
+        testResults.suites['hello test'].passingTests == ['test_sum']
+        testResults.suites['hello test'].failingTests == []
+        testResults.checkTestCases(1, 1, 0)
+        testResults.checkAssertions(3, 3, 0)
+    }
+
+    def "can configure via testSuite component"() {
+        given:
+        useConventionalSourceLocations()
+
+        buildFile << """
+            libraries {
+                hello {}
+            }
+            testSuites {
+                helloTest {
+                    binaries.all {
+                        lib library: "cunit", linkage: "static"
+                    }
+                }
+            }
+"""
 
         when:
         run "runHelloTestCUnitExe"
@@ -113,6 +152,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "can supply cCompiler macro to cunit sources"() {
         given:
         useConventionalSourceLocations()
+        useStandardConfig()
 
         when:
         buildFile << """
@@ -130,6 +170,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can configure location of cunit test sources"() {
         given:
+        useStandardConfig()
         app.library.writeSources(file("src/hello"))
         app.cunitTests.writeSources(file("src/alternateHelloTest"))
 
@@ -149,8 +190,31 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
     }
 
+    def "can configure location of cunit test sources before component is declared"() {
+        given:
+        app.library.writeSources(file("src/hello"))
+        app.cunitTests.writeSources(file("src/alternateHelloTest"))
+
+        when:
+        buildFile << """
+            sources {
+                helloTest {
+                    cunit(CSourceSet) {
+                        source.srcDir "src/alternateHelloTest/cunit"
+                    }
+                }
+            }
+"""
+        useStandardConfig()
+
+        then:
+        succeeds "runHelloTestCUnitExe"
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+    }
+
     def "variant-dependent sources are included in test binary"() {
         given:
+        useStandardConfig()
         app.library.headerFiles*.writeToDir(file("src/hello"))
         app.cunitTests.writeSources(file("src/helloTest"))
         app.library.sourceFiles*.writeToDir(file("src/variant"))
@@ -176,6 +240,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can configure variant-dependent test sources"() {
         given:
+        useStandardConfig()
         app.library.writeSources(file("src/hello"))
         app.cunitTests.writeSources(file("src/variantTest"))
 
@@ -201,6 +266,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "test suite skipped after successful run"() {
         given:
+        useStandardConfig()
         useConventionalSourceLocations()
         run "runHelloTestCUnitExe"
 
@@ -213,6 +279,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can build and run cunit failing test suite"() {
         when:
+        useStandardConfig()
         useFailingTestSources()
         fails "runHelloTestCUnitExe"
 
@@ -238,6 +305,7 @@ There were test failures:
 
     def "build does not break for failing tests if ignoreFailures is true"() {
         when:
+        useStandardConfig()
         useFailingTestSources()
         buildFile << """
     tasks.withType(RunTestExecutable) {
@@ -259,6 +327,7 @@ There were test failures:
 
     def "test suite not skipped after failing run"() {
         given:
+        useStandardConfig()
         useFailingTestSources()
         fails "runHelloTestCUnitExe"
 
@@ -271,6 +340,7 @@ There were test failures:
 
     def "creates visual studio solution and project for cunit test suite"() {
         given:
+        useStandardConfig()
         useConventionalSourceLocations()
         buildFile.text = "apply plugin: 'visual-studio'\n" + buildFile.text
 

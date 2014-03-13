@@ -35,11 +35,11 @@ public class ConfigureCUnitTestSources {
     public void apply(CUnitTestSuite cUnitTestSuite) {
         FunctionalSourceSet suiteSourceSet = createSuiteSources(cUnitTestSuite);
 
-        CSourceSet launcherSources = suiteSourceSet.create("cunitLauncher", CSourceSet.class);
+        CSourceSet launcherSources = suiteSourceSet.maybeCreate("cunitLauncher", CSourceSet.class);
         cUnitTestSuite.source(launcherSources);
         createCUnitLauncherTask(cUnitTestSuite, launcherSources);
 
-        CSourceSet testSources = suiteSourceSet.create("cunit", CSourceSet.class);
+        CSourceSet testSources = suiteSourceSet.maybeCreate("cunit", CSourceSet.class);
         cUnitTestSuite.source(testSources);
         testSources.lib(launcherSources);
 
