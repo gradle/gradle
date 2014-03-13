@@ -78,9 +78,9 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         for (LibraryBinary library : configuration.binary.dependentBinaries) {
             if (library instanceof ProjectNativeBinaryInternal) {
                 VisualStudioProjectConfiguration libraryConfiguration = vsProjectResolver.lookupProjectConfiguration(library);
-                configurations.add(libraryConfiguration)
-
-                addDependentConfigurations(configurations, libraryConfiguration)
+                if (configurations.add(libraryConfiguration)) {
+                    addDependentConfigurations(configurations, libraryConfiguration)
+                }
             }
         }
     }
