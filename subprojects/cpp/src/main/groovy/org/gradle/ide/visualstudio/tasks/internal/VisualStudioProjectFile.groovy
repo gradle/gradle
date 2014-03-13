@@ -59,11 +59,14 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         configNode.appendNode("Platform", configuration.platformName)
         final configCondition = "'\$(Configuration)|\$(Platform)'=='${configuration.name}'"
 
+        def vsOutputDir = ".vs\\${configuration.project.name}\\\$(Configuration)"
         Node defaultProps = xml.Import.find({ it.'@Project' == '$(VCTargetsPath)\\Microsoft.Cpp.Default.props'}) as Node
         defaultProps + {
             PropertyGroup(Label: "Configuration", Condition: configCondition) {
                 ConfigurationType(configuration.type)
                 UseDebugLibraries(configuration.debug)
+                OutDir(vsOutputDir)
+                IntDir(vsOutputDir)
             }
         }
 
