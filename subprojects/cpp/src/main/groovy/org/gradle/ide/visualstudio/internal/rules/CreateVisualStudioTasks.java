@@ -44,7 +44,8 @@ public class CreateVisualStudioTasks extends ModelRule {
 
             // Lifecycle task for component
             ProjectNativeComponent component = vsSolution.getComponent();
-            Task lifecycleTask = tasks.create(component.getName() + "VisualStudio").dependsOn(vsSolution);
+            Task lifecycleTask = tasks.maybeCreate(component.getName() + "VisualStudio");
+            lifecycleTask.dependsOn(vsSolution);
             lifecycleTask.setGroup("IDE");
             lifecycleTask.setDescription(String.format("Generates the Visual Studio solution for %s.", component));
         }

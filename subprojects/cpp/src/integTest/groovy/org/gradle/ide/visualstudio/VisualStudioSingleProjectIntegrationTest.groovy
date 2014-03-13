@@ -88,7 +88,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    def "create visual studio solution for single shared library"() {
+    def "create visual studio solution for shared and library"() {
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
@@ -97,7 +97,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     }
 """
         and:
-        run "mainVisualStudio"
+        run "mainDllVisualStudio"
 
         then:
         executedAndNotSkipped ":mainDllVisualStudio"
@@ -118,6 +118,57 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
+    def "create visual studio solution for static library"() {
+        when:
+        app.library.writeSources(file("src/main"))
+        buildFile << """
+    libraries {
+        main {
+        }
+    }
+"""
+        and:
+        run "mainLibVisualStudio"
+
+        then:
+        executedAndNotSkipped ":mainLibVisualStudio"
+
+        and:
+        final projectFile = projectFile("mainLib.vcxproj")
+        projectFile.assertHasComponentSources(app.library, "src/main")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+        projectFile.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers")
+
+        and:
+        final mainSolution = solutionFile("mainLib.sln")
+        mainSolution.assertHasProjects("mainLib")
+        mainSolution.assertReferencesProject(projectFile, projectConfigurations)
+    }
+
+    def "lifecycle task creates visual studio solution for buildable static and shared libraries"() {
+        when:
+        app.library.writeSources(file("src/main"))
+        buildFile << """
+    libraries {
+        both {}
+        staticOnly {
+            binaries.withType(SharedLibraryBinary) {
+                buildable false
+            }
+        }
+    }
+"""
+        and:
+        run "bothVisualStudio", "staticOnlyVisualStudio"
+
+        then:
+        executedAndNotSkipped ":bothDllVisualStudio", ":bothLibVisualStudio", ":staticOnlyLibVisualStudio"
+
+        and:
+        file("staticOnlyLib.sln").assertExists()
+        file("staticOnlyDll.sln").assertDoesNotExist()
+    }
+
     def "create visual studio solution for defined static library"() {
         when:
         app.library.writeSources(file("src/main"))
@@ -131,7 +182,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     }
 """
         and:
-        run "mainVisualStudio"
+        run "mainLibVisualStudio"
 
         then:
         executedAndNotSkipped ":mainLibVisualStudio"
