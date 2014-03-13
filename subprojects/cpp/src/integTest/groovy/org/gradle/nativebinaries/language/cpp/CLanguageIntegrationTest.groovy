@@ -21,6 +21,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import spock.lang.Issue
 import spock.lang.Unroll
 
+// TODO:DAZ Some of these tests should apply to all single-language integration tests
 class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CHelloWorldApp()
@@ -79,6 +80,28 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
             executables {
                 main {}
             }
+"""
+
+        when:
+        run "mainExecutable"
+
+        then:
+        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        mainExecutable.assertExists()
+        mainExecutable.exec().out == helloWorldApp.englishOutput
+    }
+
+    def "uses headers co-located with sources"() {
+        given:
+        // Write headers so they sit with sources
+        helloWorldApp.allFiles.each {
+            it.writeToFile(file("src/main/c/${it.name}"))
+        }
+        buildFile << """
+    executables {
+        main {}
+    }
+    sources.main.c.source.include "**/*.c"
 """
 
         when:

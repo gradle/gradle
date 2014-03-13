@@ -106,6 +106,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         sources.each { LanguageSourceSet sourceSet ->
             if (sourceSet instanceof HeaderExportingSourceSet) {
                 allHeaders.addAll sourceSet.exportedHeaders.files
+                allHeaders.addAll sourceSet.implicitHeaders.files
             }
         }
         return allHeaders as List

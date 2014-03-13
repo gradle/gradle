@@ -60,12 +60,13 @@ class DefaultVisualStudioProjectTest extends Specification {
         def file1 = Mock(File)
         def file2 = Mock(File)
         def file3 = Mock(File)
-        def sourceSet1 = headerSourceSet(file1, file2)
-        def sourceSet2 = headerSourceSet(file3)
+        def file4 = Mock(File)
+        def sourceSet1 = headerSourceSet([file1, file2])
+        def sourceSet2 = headerSourceSet([file3], [file4])
         vsProject.source([sourceSet1, sourceSet2])
 
         then:
-        vsProject.headerFiles == [file1, file2, file3]
+        vsProject.headerFiles == [file1, file2, file3, file4]
     }
 
     def "has consistent uuid for same mapped component"() {
@@ -99,12 +100,16 @@ class DefaultVisualStudioProjectTest extends Specification {
         return sourceSet
     }
 
-    private HeaderExportingSourceSet headerSourceSet(File... files) {
-        def allFiles = files as Set
+    private HeaderExportingSourceSet headerSourceSet(List<File> exportedHeaders, List<File> implicitHeaders = []) {
+        def exportedHeaderFiles = exportedHeaders as Set
+        def implicitHeaderFiles = implicitHeaders as Set
         def sourceSet = Mock(HeaderExportingSourceSet)
         def sourceDirs = Mock(SourceDirectorySet)
         1 * sourceSet.exportedHeaders >> sourceDirs
-        1 * sourceDirs.files >> allFiles
+        1 * sourceDirs.files >> exportedHeaderFiles
+        def implicitHeaderSet = Mock(SourceDirectorySet)
+        1 * sourceSet.implicitHeaders >> implicitHeaderSet
+        1 * implicitHeaderSet.files >> implicitHeaderFiles
         return sourceSet
     }
 }

@@ -41,6 +41,9 @@ public class ApplySourceSetConventions implements Action<ProjectInternal> {
                 if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
                     headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", functionalSourceSet.getName()));
                 }
+
+                headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
+                headerSourceSet.getImplicitHeaders().include("**/*.h");
             }
         }
     }

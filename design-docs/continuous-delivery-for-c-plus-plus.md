@@ -1164,6 +1164,7 @@ This story introduces a set of headers that are visible to all source files in a
 
 - Default location for public headers.
 - Language specific public headers. Eg include these headers when compiling C in a consuming component, and these additional headers when compiling C++.
+- Update the generated Visual Studio project so that different header sets are grouped within distinct "filters".
 
 ### Story: Configure the source sets of a component in the component definition
 

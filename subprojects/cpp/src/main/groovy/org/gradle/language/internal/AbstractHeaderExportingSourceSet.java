@@ -31,10 +31,12 @@ public abstract class AbstractHeaderExportingSourceSet extends AbstractLanguageS
         implements HeaderExportingSourceSet, LanguageSourceSet {
 
     private final DefaultSourceDirectorySet exportedHeaders;
+    private final DefaultSourceDirectorySet implicitHeaders;
 
     public AbstractHeaderExportingSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project, String typeName, SourceDirectorySet source) {
         super(name, parent, typeName, source);
         this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", project.getFileResolver());
+        this.implicitHeaders = new DefaultSourceDirectorySet("implicit headers", project.getFileResolver());
     }
 
     public SourceDirectorySet getExportedHeaders() {
@@ -43,5 +45,9 @@ public abstract class AbstractHeaderExportingSourceSet extends AbstractLanguageS
 
     public void exportedHeaders(Action<? super SourceDirectorySet> config) {
         config.execute(getExportedHeaders());
+    }
+
+    public SourceDirectorySet getImplicitHeaders() {
+        return implicitHeaders;
     }
 }

@@ -44,11 +44,15 @@ public class SourceFile {
 
     public TestFile writeToDir(TestFile base) {
         TestFile file = base.file(path, name);
+        writeToFile(file);
+        return file;
+    }
+
+    public void writeToFile(TestFile file) {
         if (file.exists()) {
             file.write("");
         }
         file.write(content);
-        return file;
     }
 
     public String withPath(String basePath) {

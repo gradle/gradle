@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
+
+import org.gradle.ide.visualstudio.fixtures.FiltersFile
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.internal.os.OperatingSystem
@@ -544,6 +546,30 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         solutionFile("mainExe.sln").assertHasProjects("mainExe")
     }
 
+    def "visual studio project includes headers co-located with sources"() {
+        when:
+        // Write headers so they sit with sources
+        app.allFiles.each {
+            it.writeToFile(file("src/main/cpp/${it.name}"))
+        }
+        buildFile << """
+    executables {
+        main {}
+    }
+    sources.main.cpp.source.include "**/*.cpp"
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        executedAndNotSkipped ":mainExeVisualStudio"
+
+        and:
+        final projectFile = projectFile("mainExe.vcxproj")
+        assert projectFile.sourceFiles == ['build.gradle'] + app.sourceFiles.collect({"src/main/cpp/${it.name}"}).sort()
+        assert projectFile.headerFiles == app.headerFiles.collect({"src/main/cpp/${it.name}"}).sort()
+    }
+
     def "visual studio solution with header-only library"() {
         given:
         def app = new CppHelloWorldApp()
@@ -745,6 +771,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
     private ProjectFile projectFile(String path) {
         return new ProjectFile(file(path))
+    }
+
+    private FiltersFile filtersFile(String path) {
+        return new FiltersFile(file(path))
     }
 
     private static String filePath(String... paths) {
