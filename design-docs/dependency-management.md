@@ -237,11 +237,7 @@ This story improves the convention used to locate the source and Javadocs to cov
 
 ### User visible changes
 
-Certain source/javadoc artifacts that were not automatically linked into an IDE project will now be successfully downloaded and linked:
-
-* Artifacts contained in a 'sources' configuration in ivy.xml (or 'javadocs')
-* Artifacts with a 'source' type in ivy.xml (or 'javadoc')
-* Artifacts following the maven naming convention, and not declared in ivy.xml
+Source artifacts contained in a 'sources' configuration in ivy.xml will be now be automatically downloaded and linked into an IDE project. Similar for javadoc artifacts in a 'javadoc' configuration.
 
 ### Implementation
 
@@ -264,19 +260,11 @@ Certain source/javadoc artifacts that were not automatically linked into an IDE 
     * Resolve source/javadoc artifacts from Ivy repository
     * Report on artifacts that are defined in ivy metadata but not found
     * Report on artifacts that are defined in ivy metadata where download fails
-* Fall back to maven convention if no artifacts defined in custom ivy convention
-* Resolve source/javadoc artifacts by maven conventions where no ivy convention can be used:
-    * Flatdir repository
-    * Ivy repository with no metadata: jar-only
-    * Ivy module with no source/javadoc artifacts defined in metadata
+* Resolve source/javadoc artifacts by maven conventions when resolving from a Flatdir repository
 
 ### Open issues
 
-* If the files defined by a ivy-specific scheme are not available, should we then use the maven convention to look for artifacts? For backward compatibililty we could either:
-    * Try the maven scheme, trying the ivy-specific scheme if not found?
-    * Try both, and use the union. Possibly emit a deprecation warning for artifacts located via Maven scheme that are not also found via ivy scheme.
-* If we find a conventional 'sources' configuration that doesn't declare any artifacts, does that indicate "no artifacts"? Or do we still try the maven scheme in this case? (ie is missing configuration different from empty configuration?)
-* Should we fail resolution for an artifact that is declared in an ivy configuration but cannot be downloaded? Is this different from the maven scheme, where the artifact may or may not actually exist?
+* If the ivy source/javadoc configurations are not defined, should we then use the maven convention to look for artifacts?
 
 ## Story: Source and Javadoc artifacts are exposed for a local Java component
 
