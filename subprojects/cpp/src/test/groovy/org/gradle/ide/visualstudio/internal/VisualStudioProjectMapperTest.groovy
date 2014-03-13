@@ -41,8 +41,8 @@ class VisualStudioProjectMapperTest extends Specification {
         executableBinary = createExecutableBinary("exeBinaryName", buildTypeOne, platformOne)
         executableBinary.namingScheme >> namingScheme
 
-        executable.baseName >> "exeName"
-        library.baseName >> "libName"
+        executable.name >> "exeName"
+        library.name >> "libName"
 
         flavorOne.name >> "flavorOne"
         buildTypeOne.name >> "buildTypeOne"

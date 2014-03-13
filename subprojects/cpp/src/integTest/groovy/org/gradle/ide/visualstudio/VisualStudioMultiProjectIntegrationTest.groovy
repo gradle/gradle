@@ -169,9 +169,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         project(":greet") {
             apply plugin: "cpp"
             libraries {
-                main {
-                    baseName = 'greet'
-                }
+                main {}
             }
         }
         """
@@ -182,11 +180,11 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         then:
         final exeProject = projectFile("exe/exe_mainExe.vcxproj")
         final helloProject = projectFile("lib/lib_mainDll.vcxproj")
-        final greetProject = projectFile("greet/greet_greetLib.vcxproj")
+        final greetProject = projectFile("greet/greet_mainLib.vcxproj")
         final mainSolution = solutionFile("exe/exe_mainExe.sln")
 
         and:
-        mainSolution.assertHasProjects("exe_mainExe", "lib_mainDll", "greet_greetLib")
+        mainSolution.assertHasProjects("exe_mainExe", "lib_mainDll", "greet_mainLib")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(helloProject, projectConfigurations)
         mainSolution.assertReferencesProject(greetProject, projectConfigurations)

@@ -29,7 +29,7 @@ import java.util.List;
 public class VisualStudioProjectMapper {
 
     public ProjectConfigurationNames mapToConfiguration(ProjectNativeBinary nativeBinary) {
-        String projectName = projectPrefix(nativeBinary) + baseName(nativeBinary) + projectSuffix(nativeBinary);
+        String projectName = projectPrefix(nativeBinary) + componentName(nativeBinary) + projectSuffix(nativeBinary);
         String configurationName = getConfigurationName(nativeBinary);
         return new ProjectConfigurationNames(projectName, configurationName, "Win32");
     }
@@ -51,8 +51,8 @@ public class VisualStudioProjectMapper {
         return projectPath.substring(1).replace(":", "_") + "_";
     }
 
-    private String baseName(ProjectNativeBinary nativeBinary) {
-        return nativeBinary.getComponent().getBaseName();
+    private String componentName(ProjectNativeBinary nativeBinary) {
+        return nativeBinary.getComponent().getName();
     }
 
     private String projectSuffix(ProjectNativeBinary nativeBinary) {
