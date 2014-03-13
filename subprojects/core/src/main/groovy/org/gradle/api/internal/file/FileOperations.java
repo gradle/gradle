@@ -22,7 +22,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 
@@ -60,7 +59,7 @@ public interface FileOperations {
 
     CopySpec copySpec(Closure closure);
 
-    CopySpecInternal copySpec(Action<? super CopySpec> action);
+    CopySpec copySpec(Action<? super CopySpec> action);
 
     WorkResult copy(Closure closure);
 

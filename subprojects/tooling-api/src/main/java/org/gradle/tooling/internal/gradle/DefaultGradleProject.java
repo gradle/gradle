@@ -20,10 +20,13 @@ import org.gradle.tooling.internal.protocol.InternalGradleProject;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultGradleProject extends PartialGradleProject implements InternalGradleProject, Serializable, GradleProjectIdentity {
     private DefaultGradleScript buildScript = new DefaultGradleScript();
+    private List<DefaultGradlePublication> publications = Collections.emptyList();
 
     public DefaultGradleProject() {}
 
@@ -66,5 +69,14 @@ public class DefaultGradleProject extends PartialGradleProject implements Intern
     @Override
     public DefaultGradleProject findByPath(String path) {
         return (DefaultGradleProject) super.findByPath(path);
+    }
+
+    public Collection<DefaultGradlePublication> getPublications() {
+        return publications;
+    }
+
+    public DefaultGradleProject setPublications(List<DefaultGradlePublication> publications) {
+        this.publications = publications;
+        return this;
     }
 }

@@ -16,10 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -35,13 +32,10 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
-    final ModuleMetadataProcessor metadataProcessor = Mock()
-    final VersionMatcher versionMatcher = Mock()
-    final LatestStrategy latestStrategy = Mock()
     final ResolverStrategy resolverStrategy = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(
-            resolver, credentials, transportFactory, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy)
+            resolver, credentials, transportFactory, locallyAvailableResourceFinder, resolverStrategy)
     final ProgressLoggerFactory progressLoggerFactory = Mock()
 
     def "creates local repository"() {

@@ -40,7 +40,7 @@ class ObjectiveCNativeBinariesPluginTest extends AbstractNativeBinariesPluginTes
 
     @Override
     String getPluginName() {
-        return "objectiveC"
+        return "objc"
     }
 
 }

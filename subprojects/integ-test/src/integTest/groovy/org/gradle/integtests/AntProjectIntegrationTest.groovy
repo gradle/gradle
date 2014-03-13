@@ -156,4 +156,67 @@ ant.importBuild('build.xml')
         failure.assertHasDescription('Execution failed for task \':target1\'.')
         failure.assertHasCause('broken')
     }
+
+    @Test
+    public void targetDependenciesAreOrderedBasedOnDeclarationSequence() {
+        testFile('build.xml') << """
+<project>
+    <target name='a' depends='d,c,b'/>
+    <target name='b'/>
+    <target name='c'/>
+    <target name='d'/>
+    <target name='e' depends='g,f'/>
+    <target name='f'/>
+    <target name='g'/>
+    <target name='h' depends='i'/>
+    <target name='i'/>
+</project>
+"""
+        testFile('build.gradle') << """
+ant.importBuild('build.xml')
+"""
+        inTestDirectory().withTasks('a', 'e', 'h').run().assertTasksExecuted(':d', ':c', ':b', ':a', ':g', ':f', ':e', ':i', ':h')
+    }
+
+    @Test
+    public void targetDependenciesOrderDoesNotCreateCycle() {
+        testFile('build.xml') << """
+<project>
+    <target name='a' depends='c,b'/>
+    <target name='b'/>
+    <target name='c' depends='b'/>
+</project>
+"""
+        testFile('build.gradle') << """
+ant.importBuild('build.xml')
+"""
+        inTestDirectory().withTasks('a').run().assertTasksExecuted(':b', ':c', ':a')
+    }
+
+    @Test
+    public void unknownDependencyProducesUsefulMessage() {
+        testFile('build.xml') << """
+<project>
+    <target name='a' depends='b'/>
+</project>
+"""
+        testFile('build.gradle') << """
+ant.importBuild('build.xml')
+"""
+        inTestDirectory().withTasks('a').runWithFailure().assertHasCause("Imported Ant target 'a' depends on target or task 'b' which does not exist")
+    }
+
+    @Test
+    public void canHandleDependencyOrderingBetweenNonExistentTasks() {
+        testFile('build.xml') << """
+<project>
+    <target name='a' depends='b,c'/>
+</project>
+"""
+        testFile('build.gradle') << """
+ant.importBuild('build.xml')
+"""
+        // Testing that we don't get some obscure error message trying to set c.shouldRunAfter b
+        inTestDirectory().withTasks('a').runWithFailure().assertHasCause("Imported Ant target 'a' depends on target or task 'b' which does not exist")
+    }
 }

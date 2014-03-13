@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
@@ -26,11 +27,9 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
+// TODO:DAZ This needs to be broken up
 public class UserResolverChain implements DependencyToModuleVersionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
@@ -73,7 +72,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
     private ModuleResolution findLatestModule(DependencyMetaData dependency, Collection<Throwable> failures) {
         LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
         for (LocalAwareModuleVersionRepository repository : moduleVersionRepositories) {
-            queue.add(new RepositoryResolveState(repository));
+            queue.add(createRepositoryResolveState(repository, dependency));
         }
         LinkedList<RepositoryResolveState> missing = new LinkedList<RepositoryResolveState>();
 
@@ -89,6 +88,13 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
         return findLatestModule(dependency, queue, failures, missing);
     }
 
+    private RepositoryResolveState createRepositoryResolveState(LocalAwareModuleVersionRepository repository, DependencyMetaData dependency) {
+        if (versionMatcher.isDynamic(dependency.getRequested().getVersion())) {
+            return new DynamicVersionRepositoryResolveState(repository);
+        }
+        return new StaticVersionRepositoryResolveState(repository);
+    }
+
     private ModuleResolution findLatestModule(DependencyMetaData dependency, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
         boolean isStaticVersion = !versionMatcher.isDynamic(dependency.getRequested().getVersion());
         ModuleResolution best = null;
@@ -100,7 +106,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
                 failures.add(t);
                 continue;
             }
-            switch (request.descriptor.getState()) {
+            switch (request.resolveResult.getState()) {
                 case Missing:
                     break;
                 case ProbablyMissing:
@@ -116,14 +122,14 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
                     }
                     break;
                 case Resolved:
-                    ModuleResolution moduleResolution = new ModuleResolution(request.repository, request.descriptor.getMetaData(), request.descriptor.getModuleSource());
+                    ModuleResolution moduleResolution = new ModuleResolution(request.repository, request.resolveResult.getMetaData(), request.resolveResult.getModuleSource());
                     if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
                         return moduleResolution;
                     }
                     best = chooseBest(best, moduleResolution);
                     break;
                 default:
-                    throw new IllegalStateException("Unexpected state for resolution: " + request.descriptor.getState());
+                    throw new IllegalStateException("Unexpected state for resolution: " + request.resolveResult.getState());
             }
         }
 
@@ -162,34 +168,151 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
         public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
             delegate.resolve(artifact, result, moduleSource);
         }
+
+        public void resolve(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result) {
+            Set<ModuleVersionArtifactMetaData> artifacts = delegate.getCandidateArtifacts(moduleMetadata, artifactType);
+            for (ModuleVersionArtifactMetaData artifact : artifacts) {
+                DefaultBuildableArtifactResolveResult singleResult = new DefaultBuildableArtifactResolveResult();
+                try {
+                    resolve(artifact, singleResult);
+                } catch(Throwable t) {
+                    // can't call up to ErrorHandlingArtifactResolver#resolve, so we'll have to handle errors ourselves
+                    singleResult.failed(new ArtifactResolveException(artifact.getId(), t));
+                }
+                result.addResult(artifact.getId(), singleResult);
+            }
+        }
     }
 
-    private static class RepositoryResolveState {
+    public static abstract class RepositoryResolveState {
         final LocalAwareModuleVersionRepository repository;
-        final DefaultBuildableModuleVersionMetaDataResolveResult descriptor = new DefaultBuildableModuleVersionMetaDataResolveResult();
-
+        final DefaultBuildableModuleVersionSelectionResolveResult selectionResult = new DefaultBuildableModuleVersionSelectionResolveResult();
+        final DefaultBuildableModuleVersionMetaDataResolveResult resolveResult = new DefaultBuildableModuleVersionMetaDataResolveResult();
         boolean searchedLocally;
         boolean searchedRemotely;
 
-        private RepositoryResolveState(LocalAwareModuleVersionRepository repository) {
+        public RepositoryResolveState(LocalAwareModuleVersionRepository repository) {
             this.repository = repository;
         }
 
         void resolve(DependencyMetaData dependency) {
             if (!searchedLocally) {
                 searchedLocally = true;
-                repository.getLocalDependency(dependency, descriptor);
+                process(dependency, new LocalModuleAccess());
             } else {
                 searchedRemotely = true;
-                repository.getDependency(dependency, descriptor);
+                process(dependency, new RemoteModuleAccess());
             }
-            if (descriptor.getState() == BuildableModuleVersionMetaDataResolveResult.State.Failed) {
-                throw descriptor.getFailure();
+            if (resolveResult.getState() == BuildableModuleVersionMetaDataResolveResult.State.Failed) {
+                throw resolveResult.getFailure();
             }
         }
 
+        protected abstract void process(DependencyMetaData dependency, ModuleAccess localModuleAccess);
+
         public boolean canMakeFurtherAttempts() {
             return !searchedRemotely;
+        }
+
+        protected interface ModuleAccess {
+            void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result);
+            void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
+        }
+
+        protected class LocalModuleAccess implements ModuleAccess {
+            public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+                repository.localListModuleVersions(dependency, result);
+            }
+
+            public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+                repository.getLocalDependency(dependency, result);
+            }
+        }
+
+        protected class RemoteModuleAccess implements ModuleAccess {
+            public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+                repository.listModuleVersions(dependency, result);
+            }
+
+            public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+                repository.getDependency(dependency, result);
+            }
+        }
+    }
+
+    private class StaticVersionRepositoryResolveState extends RepositoryResolveState {
+
+        public StaticVersionRepositoryResolveState(LocalAwareModuleVersionRepository repository) {
+            super(repository);
+        }
+
+        protected void process(DependencyMetaData dependency, ModuleAccess moduleAccess) {
+            moduleAccess.getDependency(dependency, resolveResult);
+        }
+    }
+
+    private class DynamicVersionRepositoryResolveState extends RepositoryResolveState {
+
+        public DynamicVersionRepositoryResolveState(LocalAwareModuleVersionRepository repository) {
+            super(repository);
+        }
+
+        protected void process(DependencyMetaData dependency, ModuleAccess moduleAccess) {
+            moduleAccess.listModuleVersions(dependency, selectionResult);
+            switch (selectionResult.getState()) {
+                case Failed:
+                    resolveResult.failed(selectionResult.getFailure());
+                    break;
+                case ProbablyListed:
+                    if (!resolveDependency(dependency, moduleAccess)) {
+                        resolveResult.probablyMissing();
+                    }
+                    break;
+                case Listed:
+                    if (!resolveDependency(dependency, moduleAccess)) {
+                        resolveResult.missing();
+                    }
+            }
+        }
+
+        private boolean resolveDependency(DependencyMetaData dependency, ModuleAccess moduleAccess) {
+            if (versionMatcher.needModuleMetadata(dependency.getRequested().getVersion())) {
+                return getBestMatchingDependencyWithMetaData(dependency, moduleAccess);
+            } else {
+                return getBestMatchingDependency(dependency, moduleAccess);
+            }
+        }
+
+        private boolean getBestMatchingDependency(DependencyMetaData dependency, ModuleAccess moduleAccess) {
+            ModuleVersionSelector selector = dependency.getRequested();
+            for (Versioned candidate : selectionResult.getVersions().sortLatestFirst(latestStrategy)) {
+                if (versionMatcher.accept(selector.getVersion(), candidate.getVersion())) {
+                    moduleAccess.getDependency(dependency.withRequestedVersion(candidate.getVersion()), resolveResult);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean getBestMatchingDependencyWithMetaData(DependencyMetaData dependency, ModuleAccess moduleAccess) {
+            ModuleVersionSelector selector = dependency.getRequested();
+            for (Versioned candidate : selectionResult.getVersions().sortLatestFirst(latestStrategy)) {
+                // Resolve the metadata
+                DependencyMetaData moduleVersionDependency = dependency.withRequestedVersion(candidate.getVersion());
+                moduleAccess.getDependency(moduleVersionDependency, resolveResult);
+                if (resolveResult.getState() != BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+                    // Couldn't load listed module
+                    LOGGER.warn("Could not load metadata for '{}' of listed module '{}' - ignoring.", candidate, selector);
+                    resolveResult.reset();
+                    return true;
+                }
+                if (versionMatcher.accept(selector.getVersion(), resolveResult.getMetaData())) {
+                    // We already resolved the correct module.
+                    return true;
+                }
+                resolveResult.reset();
+            }
+            return false;
         }
     }
 

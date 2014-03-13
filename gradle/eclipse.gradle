@@ -11,6 +11,13 @@ allprojects { project->
                     classpath.entries.removeAll { it.path.contains("$project.name/build") && it.kind=='lib' }
                 }
             }
+            jdt {
+                file.withProperties { properties ->
+                    //Eclipse's view of projects treat circular dependencies as errors by default
+                    //Treat these as warnings for now
+                    properties["org.eclipse.jdt.core.circularClasspath"] = "warning"
+                }
+            }
         }
     }
 }

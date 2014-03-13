@@ -15,15 +15,24 @@
  */
 package org.gradle.api.plugins;
 
+import org.apache.maven.project.MavenProject;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.artifacts.maven.MavenResolver;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -32,6 +41,7 @@ import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.tasks.Upload;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -54,14 +64,22 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
 
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final FileResolver fileResolver;
+    private final ProjectPublicationRegistry publicationRegistry;
+    private final ProjectConfigurationActionContainer configurationActionContainer;
+
+    private Project project;
 
     @Inject
-    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver) {
+    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver,
+                       ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
+        this.publicationRegistry = publicationRegistry;
+        this.configurationActionContainer = configurationActionContainer;
     }
 
     public void apply(final ProjectInternal project) {
+        this.project = project;
         project.getPlugins().apply(BasePlugin.class);
 
         DefaultMavenFactory mavenFactory = new DefaultMavenFactory();
@@ -74,14 +92,9 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 project.getConfigurations(),
                 pluginConvention.getConf2ScopeMappings());
 
-        project.getTasks().withType(Upload.class, new Action<Upload>() {
-            public void execute(Upload upload) {
-                RepositoryHandler repositories = upload.getRepositories();
-                DefaultRepositoryHandler handler = (DefaultRepositoryHandler) repositories;
-                DefaultMavenRepositoryHandlerConvention repositoryConvention = new DefaultMavenRepositoryHandlerConvention(handler, deployerFactory);
-                new DslObject(repositories).getConvention().getPlugins().put("maven", repositoryConvention);
-            }
-        });
+        configureUploadTasks(deployerFactory);
+        configureUploadArchivesTask();
+
         PluginContainer plugins = project.getPlugins();
         plugins.withType(JavaPlugin.class, new Action<JavaPlugin>() {
             public void execute(JavaPlugin javaPlugin) {
@@ -92,6 +105,38 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         plugins.withType(WarPlugin.class, new Action<WarPlugin>() {
             public void execute(WarPlugin warPlugin) {
                 configureWarScopeMappings(project.getConfigurations(), pluginConvention.getConf2ScopeMappings());
+            }
+        });
+    }
+
+    private void configureUploadTasks(final DefaultDeployerFactory deployerFactory) {
+        project.getTasks().withType(Upload.class, new Action<Upload>() {
+            public void execute(Upload upload) {
+                RepositoryHandler repositories = upload.getRepositories();
+                DefaultRepositoryHandler handler = (DefaultRepositoryHandler) repositories;
+                DefaultMavenRepositoryHandlerConvention repositoryConvention = new DefaultMavenRepositoryHandlerConvention(handler, deployerFactory);
+                new DslObject(repositories).getConvention().getPlugins().put("maven", repositoryConvention);
+            }
+        });
+    }
+
+    private void configureUploadArchivesTask() {
+        configurationActionContainer.add(new Action<Project>() {
+            public void execute(Project project) {
+                Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
+                if (uploadArchives == null) { return; }
+
+                ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
+                ModuleInternal module = configuration.getModule();
+                for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
+                    MavenPom pom = resolver.getPom();
+                    ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(
+                            pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID) ? module.getGroup() : pom.getGroupId(),
+                            pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID) ? module.getName() : pom.getArtifactId(),
+                            pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION) ? module.getVersion() : pom.getVersion()
+                    );
+                    publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(publicationId));
+                }
             }
         });
     }

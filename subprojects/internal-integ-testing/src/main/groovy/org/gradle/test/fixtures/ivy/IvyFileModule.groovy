@@ -16,6 +16,7 @@
 package org.gradle.test.fixtures.ivy
 
 import org.apache.ivy.core.IvyPatternHelper
+import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.internal.xml.XmlTransformer
@@ -110,12 +111,12 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     TestFile getIvyFile() {
-        def path = IvyPatternHelper.substitute(ivyPattern, ModuleRevisionId.newInstance(organisation, module, revision))
+        def path = IvyPatternHelper.substitute(ivyPattern, new ModuleRevisionId(new ModuleId(organisation, module), revision))
         return moduleDir.file(path)
     }
 
     TestFile getJarFile() {
-        def path = IvyPatternHelper.substitute(artifactPattern, ModuleRevisionId.newInstance(organisation, module, revision), null, "jar", "jar")
+        def path = IvyPatternHelper.substitute(artifactPattern, new ModuleRevisionId(new ModuleId(organisation, module), revision), null, "jar", "jar")
         return moduleDir.file(path)
     }
 

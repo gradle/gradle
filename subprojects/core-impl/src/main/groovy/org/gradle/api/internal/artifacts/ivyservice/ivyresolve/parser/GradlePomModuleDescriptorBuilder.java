@@ -24,6 +24,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
@@ -175,7 +176,7 @@ public class GradlePomModuleDescriptorBuilder {
 
     public void setModuleRevId(ModuleRevisionId mrid, String group, String module, String version) {
         this.mrid = mrid;
-        ivyModuleDescriptor.setModuleRevisionId(ModuleRevisionId.newInstance(group, module, version));
+        ivyModuleDescriptor.setModuleRevisionId(IvyUtil.createModuleRevisionId(group, module, version));
 
         if ((version == null) || version.endsWith("SNAPSHOT")) {
             ivyModuleDescriptor.setStatus("integration");
@@ -201,11 +202,7 @@ public class GradlePomModuleDescriptorBuilder {
     public void addMainArtifact(String artifactId, String packaging) {
         if ("pom".equals(packaging)) {
             DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, "jar", "jar");
-            ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(artifact);
-            if (parserSettings.artifactExists(artifactIdentifier)) {
-                ivyModuleDescriptor.addArtifact("master", artifact);
-            }
-
+            ivyModuleDescriptor.addArtifact("master", artifact);
             return;
         }
 
@@ -235,7 +232,7 @@ public class GradlePomModuleDescriptorBuilder {
         }
 
         String version = determineVersion(dep);
-        ModuleRevisionId moduleRevId = ModuleRevisionId.newInstance(dep.getGroupId(), dep.getArtifactId(), version);
+        ModuleRevisionId moduleRevId = IvyUtil.createModuleRevisionId(dep.getGroupId(), dep.getArtifactId(), version);
 
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/net/jini/jsk-platform/2.1/jsk-platform-2.1.pom
@@ -303,9 +300,8 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     /**
-     * Determines the version of a dependency. Uses the specified version if declared for the as coordinate. If the version is not declared, try to resolve it
-     * from the dependency management section. In case the version cannot be resolved with any of these methods, throw an exception of type
-     * {@see org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.UnresolvedDependencyVersionException}.
+     * Determines the version of a dependency. Uses the specified version if declared for the as coordinate. If the version is not declared, try to resolve it from the dependency management section.
+     * In case the version cannot be resolved with any of these methods, throw an exception of type {@see org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.UnresolvedDependencyVersionException}.
      *
      * @param dependency Dependency
      * @return Resolved dependency version
@@ -314,7 +310,7 @@ public class GradlePomModuleDescriptorBuilder {
         String version = dependency.getVersion();
         version = (version == null || version.length() == 0) ? getDefaultVersion(dependency) : version;
 
-        if(version == null) {
+        if (version == null) {
             throw new UnresolvedDependencyVersionException(dependency.getId());
         }
 

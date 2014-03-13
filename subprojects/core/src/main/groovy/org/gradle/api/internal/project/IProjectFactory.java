@@ -17,10 +17,11 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 /**
  * Creates a {@link ProjectInternal} implementation.
  */
 public interface IProjectFactory {
-    ProjectInternal createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle);
+    ProjectInternal createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope classLoaderScope);
 }

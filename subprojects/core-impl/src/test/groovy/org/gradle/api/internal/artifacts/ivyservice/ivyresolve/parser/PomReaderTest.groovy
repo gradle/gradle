@@ -16,34 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.apache.ivy.core.module.descriptor.License
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt
-import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
-import org.gradle.internal.resource.local.LocallyAvailableResource
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
 import org.xml.sax.SAXParseException
 import spock.lang.Issue
-import spock.lang.Specification
 
-class PomReaderTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    PomReader pomReader
-    TestFile pomFile
-    LocallyAvailableExternalResource locallyAvailableExternalResource
-
-    def setup() {
-        pomFile = tmpDir.file('pom.xml')
-        pomFile.createFile()
-        LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
-        locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI().toURL().toString(), locallyAvailableResource)
-    }
-
+class PomReaderTest extends AbstractPomReaderTest {
     def "parse POM with invalid XML"() {
         when:
         pomFile << """
@@ -551,7 +529,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == ModuleRevisionId.newInstance('group-one', 'artifact-one', 'version-one')
+        pomReader.relocation == IvyUtil.createModuleRevisionId('group-one', 'artifact-one', 'version-one')
     }
 
     def "Parse relocated POM with provided group ID"() {
@@ -582,7 +560,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == ModuleRevisionId.newInstance('group-two', 'artifact-one', 'version-one')
+        pomReader.relocation == IvyUtil.createModuleRevisionId('group-two', 'artifact-one', 'version-one')
     }
 
     def "Parse relocated POM with provided group ID and artifact ID"() {
@@ -614,7 +592,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == ModuleRevisionId.newInstance('group-two', 'artifact-two', 'version-one')
+        pomReader.relocation == IvyUtil.createModuleRevisionId('group-two', 'artifact-two', 'version-one')
     }
 
     def "Parse relocated POM with all provided coordinates"() {
@@ -647,7 +625,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == ModuleRevisionId.newInstance('group-two', 'artifact-two', 'version-two')
+        pomReader.relocation == IvyUtil.createModuleRevisionId('group-two', 'artifact-two', 'version-two')
     }
 
     @Issue("GRADLE-2938")
@@ -836,34 +814,5 @@ class PomReaderTest extends Specification {
         assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
         pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
         !pomReader.findDependencyDefaults(keyGroupThree)
-    }
-
-    private void assertResolvedPomDependency(MavenDependencyKey key, String version) {
-        assert pomReader.dependencies.containsKey(key)
-        PomDependencyData dependency = pomReader.dependencies[key]
-        assertPomDependencyValues(key, version, dependency)
-    }
-
-    private void assertResolvedPomDependencyManagement(MavenDependencyKey key, String version) {
-        assert pomReader.dependencyMgt.containsKey(key)
-        PomDependencyMgt dependency = pomReader.dependencyMgt[key]
-        assertPomDependencyValues(key, version, dependency)
-    }
-
-    private void assertPomDependencyValues(MavenDependencyKey key, String version, PomDependencyMgt dependency) {
-        assert dependency.groupId == key.groupId
-        assert dependency.artifactId == key.artifactId
-        assert dependency.type == key.type
-        assert dependency.classifier == key.classifier
-        assert dependency.version == version
-    }
-
-    private PomReader createPomReader(String pomFileName, String pomDefinition) {
-        TestFile pomFile = tmpDir.file(pomFileName)
-        pomFile.createFile()
-        pomFile << pomDefinition
-        LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
-        LocallyAvailableExternalResource locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI().toURL().toString(), locallyAvailableResource)
-        return new PomReader(locallyAvailableExternalResource)
     }
 }

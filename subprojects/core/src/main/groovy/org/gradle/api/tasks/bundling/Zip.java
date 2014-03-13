@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.bundling;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.ZipCompressor;
@@ -23,23 +25,33 @@ import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 
 /**
  * Assembles a ZIP archive.
- * 
+ *
  * The default is to compress the contents of the zip.
  */
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
+    private boolean allowZip64;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
+        allowZip64 = false;
     }
 
     protected ZipCompressor getCompressor() {
-        switch(entryCompression) {
+        switch (entryCompression) {
             case DEFLATED:
-                return ZipDeflatedCompressor.INSTANCE;
+                if (allowZip64) {
+                    return ZipDeflatedCompressor.INSTANCE_64;
+                } else {
+                    return ZipDeflatedCompressor.INSTANCE_32;
+                }
             case STORED:
-                return ZipStoredCompressor.INSTANCE;
+                if (allowZip64) {
+                    return ZipStoredCompressor.INSTANCE_64;
+                } else {
+                    return ZipStoredCompressor.INSTANCE_32;
+                }
             default:
                 throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
         }
@@ -47,7 +59,8 @@ public class Zip extends AbstractArchiveTask {
 
     @Override
     protected CopyAction createCopyAction() {
-        return new ZipCopyAction(getArchivePath(), getCompressor());
+        DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
+        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry);
     }
 
     /**
@@ -59,7 +72,7 @@ public class Zip extends AbstractArchiveTask {
     public ZipEntryCompression getEntryCompression() {
         return entryCompression;
     }
-    
+
     /**
      * Sets the compression level of the entries of the archive. If set to {@link ZipEntryCompression#DEFLATED} (the default), each entry is
      * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
@@ -71,11 +84,38 @@ public class Zip extends AbstractArchiveTask {
     }
 
     /**
+     * Enables building zips with more than 65535 files or bigger than 4GB.
+     *
+     * @see #isZip64()
+     */
+    @Incubating
+    public void setZip64(boolean allowZip64) {
+        this.allowZip64 = allowZip64;
+    }
+
+    /**
+     * Whether the zip can contain more than 65535 files and/or support files greater than 4GB in size.
+     * <p>
+     * The standard zip format has hard limits on file size and count.
+     * The <a href="http://en.wikipedia.org/wiki/Zip_(file_format)#ZIP64">Zip64 format extension</a>
+     * practically removes these limits and is therefore required for building large zips.
+     * <p>
+     * However, not all Zip readers support the Zip64 extensions.
+     * Notably, the {@link java.util.zip.ZipInputStream} JDK class does not support Zip64 for versions earlier than Java 7.
+     * This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
+     */
+    @Incubating
+    public boolean isZip64() {
+        return allowZip64;
+    }
+
+    /**
      * DO NOT REMOVE.
      *
      * Do not use - kept for binary compatibility.
      */
     @SuppressWarnings("UnusedDeclaration")
     @Deprecated
-    protected class ZipCopyActionImpl {}
+    protected class ZipCopyActionImpl {
+    }
 }

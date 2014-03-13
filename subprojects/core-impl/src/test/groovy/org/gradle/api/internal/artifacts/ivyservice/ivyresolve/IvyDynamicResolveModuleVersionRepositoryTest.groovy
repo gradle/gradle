@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
@@ -62,7 +62,7 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
     def dependency(String revConstraint = '1.0') {
         def dep = Mock(DependencyMetaData)
         def descriptor = Mock(DependencyDescriptor)
-        _ * descriptor.dynamicConstraintDependencyRevisionId >> ModuleRevisionId.newInstance('org', 'module', revConstraint)
+        _ * descriptor.dynamicConstraintDependencyRevisionId >> IvyUtil.createModuleRevisionId('org', 'module', revConstraint)
         _ * dep.descriptor >> descriptor
         return dep
     }

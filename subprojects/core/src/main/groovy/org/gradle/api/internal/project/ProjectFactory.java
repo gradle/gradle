@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
@@ -27,12 +28,14 @@ import java.io.File;
 
 public class ProjectFactory implements IProjectFactory {
     private final Instantiator instantiator;
+    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public ProjectFactory(Instantiator instantiator) {
+    public ProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
         this.instantiator = instantiator;
+        this.projectRegistry = projectRegistry;
     }
 
-    public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle) {
+    public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope classLoaderScope) {
         File buildFile = projectDescriptor.getBuildFile();
         ScriptSource source;
         if (!buildFile.exists()) {
@@ -47,12 +50,14 @@ public class ProjectFactory implements IProjectFactory {
                 projectDescriptor.getProjectDir(),
                 source,
                 gradle,
-                gradle.getServiceRegistryFactory());
+                gradle.getServiceRegistryFactory(),
+                classLoaderScope
+                );
 
         if (parent != null) {
             parent.addChildProject(project);
         }
-        gradle.getProjectRegistry().addProject(project);
+        projectRegistry.addProject(project);
 
         return project;
     }

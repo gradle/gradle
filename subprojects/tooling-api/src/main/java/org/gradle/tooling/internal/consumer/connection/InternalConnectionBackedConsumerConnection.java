@@ -58,7 +58,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
         }
 
         @Override
-        public boolean isModelSupported(Class<?> modelType) {
+        public boolean maySupportModel(Class<?> modelType) {
             return modelType.equals(Void.class)
                     || modelType.equals(HierarchicalEclipseProject.class)
                     || modelType.equals(EclipseProject.class)
@@ -78,7 +78,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
         }
 
         public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-            if (!versionDetails.isModelSupported(type)) {
+            if (!versionDetails.maySupportModel(type)) {
                 //don't bother asking the provider for this model
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }

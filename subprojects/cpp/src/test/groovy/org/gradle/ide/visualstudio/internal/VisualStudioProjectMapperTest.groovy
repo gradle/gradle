@@ -15,43 +15,34 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.BinaryNamingScheme
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.platform.Architecture
 import org.gradle.nativebinaries.platform.Platform
-import org.gradle.nativebinaries.platform.PlatformContainer
 import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser
 import spock.lang.Specification
 
 class VisualStudioProjectMapperTest extends Specification {
-    def flavors = Mock(FlavorContainer)
-    def platforms = Mock(PlatformContainer)
-    def mapper = new VisualStudioProjectMapper(flavors, platforms)
+    def mapper = new VisualStudioProjectMapper()
 
     def executable = Mock(ExecutableInternal)
     ExecutableBinaryInternal executableBinary
-    ExecutableBinaryInternal executableBinary2
     def library = Mock(LibraryInternal)
+    def namingScheme = Mock(BinaryNamingScheme)
 
     def flavorOne = Mock(Flavor)
     def buildTypeOne = Mock(BuildType)
     def buildTypeTwo = Mock(BuildType)
     def platformOne = Mock(Platform)
 
-    def sourceOne = Mock(LanguageSourceSet)
-    def extraSource = Mock(LanguageSourceSet)
-
     def setup() {
-        executableBinary = createExecutableBinary("exeBinaryName", buildTypeOne, platformOne, [sourceOne])
-        executableBinary2 = createExecutableBinary("exeBinaryTwoName", buildTypeTwo, platformOne, [sourceOne])
+        executableBinary = createExecutableBinary("exeBinaryName", buildTypeOne, platformOne)
+        executableBinary.namingScheme >> namingScheme
 
-        executable.source >> source([sourceOne])
-        executable.baseName >> "exeName"
-        library.baseName >> "libName"
+        executable.name >> "exeName"
+        library.name >> "libName"
 
         flavorOne.name >> "flavorOne"
         buildTypeOne.name >> "buildTypeOne"
@@ -62,9 +53,8 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def "maps executable binary to visual studio project"() {
         when:
-        executable.chooseFlavors(flavors) >> [flavorOne]
-        executable.choosePlatforms(platforms) >> [platformOne]
-        executable.getBinaries() >> new DefaultDomainObjectSet<NativeBinary>(NativeBinary, [executableBinary])
+        executable.projectPath >> ":"
+        namingScheme.variantDimensions >> []
 
         then:
         checkNames executableBinary, "exeNameExe", 'buildTypeOne', 'Win32'
@@ -75,101 +65,50 @@ class VisualStudioProjectMapperTest extends Specification {
         def sharedLibraryBinary = libraryBinary(SharedLibraryBinaryInternal)
         def staticLibraryBinary = libraryBinary(StaticLibraryBinaryInternal)
 
-        library.chooseFlavors(flavors) >> [flavorOne]
-        library.choosePlatforms(platforms) >> [platformOne]
-        library.source >> source([sourceOne])
-        library.getBinaries() >> new DefaultDomainObjectSet<NativeBinary>(NativeBinary, [sharedLibraryBinary, staticLibraryBinary])
+        library.projectPath >> ":"
+        namingScheme.variantDimensions >> []
 
         then:
         checkNames sharedLibraryBinary, "libNameDll", 'buildTypeOne', 'Win32'
         checkNames staticLibraryBinary, "libNameLib", 'buildTypeOne', 'Win32'
     }
 
-    def "maps different configuration names for native binaries that have different build types"() {
+    def "includes project path in visual studio project name"() {
         when:
-        executable.chooseFlavors(flavors) >> [flavorOne]
-        executable.choosePlatforms(platforms) >> [platformOne]
-        executable.getBinaries() >> new DefaultDomainObjectSet<NativeBinary>(NativeBinary, [executableBinary, executableBinary2])
-
-        then:
-        checkNames executableBinary, "exeNameExe", "buildTypeOne", "Win32"
-        checkNames executableBinary2, "exeNameExe", "buildTypeTwo", "Win32"
-    }
-
-    def "maps different project names for native component that have multiple flavors"() {
-        when:
-        1 * executable.chooseFlavors(flavors) >> [flavorOne, new DefaultFlavor("flavorTwo")]
-        executable.choosePlatforms(platforms) >> [platformOne]
-        executable.getBinaries() >> new DefaultDomainObjectSet<NativeBinary>(NativeBinary, [executableBinary, executableBinary2])
-
-        then:
-        checkNames executableBinary, "flavorOneExeNameExe", 'buildTypeOne', 'Win32'
-    }
-
-    def "maps different project names for native binaries that have different sources for platform"() {
-        when:
-        def platformTwo = Mock(Platform)
-        platformTwo.name >> "platformTwo"
-        platformTwo.architecture >> arch("i386")
-
-        def executableBinaryExtra = createExecutableBinary("exeBinaryExtra", buildTypeOne, platformTwo, [sourceOne, extraSource])
-        def executableBinaryExtra2 = createExecutableBinary("exeBinaryExtraTwo", buildTypeTwo, platformTwo, [sourceOne, extraSource])
+        executable.projectPath >> ":subproject:name"
 
         and:
-        executable.chooseFlavors(flavors) >> [flavorOne]
-        executable.choosePlatforms(platforms) >> [platformOne]
-        executable.getBinaries() >> new DefaultDomainObjectSet<NativeBinary>(NativeBinary, [executableBinary, executableBinary2, executableBinaryExtra, executableBinaryExtra2])
+        namingScheme.variantDimensions >> []
 
         then:
-        checkNames executableBinary, "platformOneExeNameExe", 'buildTypeOne', 'Win32'
-        checkNames executableBinary2, "platformOneExeNameExe", 'buildTypeTwo', 'Win32'
-        checkNames executableBinaryExtra, "platformTwoExeNameExe", 'buildTypeOne', 'Win32'
-        checkNames executableBinaryExtra2, "platformTwoExeNameExe", 'buildTypeTwo', 'Win32'
+        checkNames executableBinary, "subproject_name_exeNameExe", 'buildTypeOne', 'Win32'
     }
 
-    def "maps same project name for native component that has multiple platforms with different architectures"() {
+    def "uses single variant dimension for configuration name where not empty"() {
         when:
-        def platformTwo = Mock(Platform)
-        platformTwo.name >> "platformTwo"
-        platformTwo.architecture >> arch("amd64")
-        def platformTwoBinary = createExecutableBinary("platformTwoBinary", buildTypeOne, platformTwo, [sourceOne])
-
-        and:
-        executable.chooseFlavors(flavors) >> [flavorOne]
-        executable.choosePlatforms(platforms) >> [platformOne, platformTwo]
-        executable.binaries >> new DefaultDomainObjectSet<NativeBinary>(NativeBinary, [executableBinary, platformTwoBinary])
+        executable.projectPath >> ":"
+        namingScheme.variantDimensions >> ["flavorOne"]
 
         then:
-        platformOne.architecture != platformTwo.architecture
-        checkNames executableBinary, "exeNameExe", "buildTypeOne", "Win32"
-        checkNames platformTwoBinary, "exeNameExe", "buildTypeOne", "x64"
+        checkNames executableBinary, "exeNameExe", 'flavorOne', 'Win32'
     }
 
-    def "maps different configuration names for native component that has multiple platforms with same architecture"() {
+    def "includes variant dimensions in configuration where component has multiple dimensions"() {
         when:
-        def platformTwo = Mock(Platform)
-        platformTwo.architecture >> arch("i386")
-        platformTwo.name >> "platformTwo"
-        def platformTwoBinary = createExecutableBinary("platformTwoBinary", buildTypeOne, platformTwo, [sourceOne])
-
-        and:
-        executable.chooseFlavors(flavors) >> [flavorOne]
-        executable.choosePlatforms(platforms) >> [platformOne, platformTwo]
-        executable.binaries >> new DefaultDomainObjectSet<NativeBinary>(NativeBinary, [executableBinary, platformTwoBinary])
+        executable.projectPath >> ":"
+        namingScheme.variantDimensions >> ["platformOne", "buildTypeOne", "flavorOne"]
 
         then:
-        checkNames executableBinary, "exeNameExe", "platformOneBuildTypeOne", "Win32"
-        checkNames platformTwoBinary, "exeNameExe", "platformTwoBuildTypeOne", "Win32"
+        checkNames executableBinary, "exeNameExe", 'platformOneBuildTypeOneFlavorOne', 'Win32'
     }
 
-    private def createExecutableBinary(String binaryName, def buildType, def platform, def sources) {
+    private def createExecutableBinary(String binaryName, def buildType, def platform) {
         def binary = Mock(ExecutableBinaryInternal)
         binary.name >> binaryName
         binary.component >> executable
         binary.buildType >> buildType
         binary.flavor >> flavorOne
         binary.targetPlatform >> platform
-        binary.source >> source(sources)
         return binary
     }
 
@@ -185,17 +124,13 @@ class VisualStudioProjectMapperTest extends Specification {
         return ArchitectureNotationParser.parser().parseNotation(name)
     }
 
-    private DefaultDomainObjectSet<LanguageSourceSet> source(List sources) {
-        new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet, sources)
-    }
-
     private libraryBinary(Class<? extends LibraryBinary> type) {
         def binary = Mock(type)
         binary.component >> library
         binary.flavor >> flavorOne
         binary.targetPlatform >> platformOne
         binary.buildType >> buildTypeOne
-        binary.source >> source([sourceOne])
+        binary.namingScheme >> namingScheme
         return binary
     }
 

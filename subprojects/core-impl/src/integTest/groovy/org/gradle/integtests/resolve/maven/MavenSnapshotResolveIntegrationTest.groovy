@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenHttpModule
 import spock.lang.Ignore
+import spock.lang.Issue
 
 class MavenSnapshotResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -140,6 +141,56 @@ task retrieve(type: Sync) {
         result.assertTaskSkipped(':retrieve')
         file('libs/projectA-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotA);
         file('libs/projectB-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotB);
+    }
+
+    def "can find and cache snapshots in Maven HTTP repository with artifact classifier"() {
+        server.start()
+        def repo1 = mavenHttpRepo("repo1")
+
+        given:
+        buildFile << """
+repositories {
+    maven {
+        url "${repo1.uri}"
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile "org.gradle.integtests.resolve:projectA:1.0-SNAPSHOT:tests"
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        and:
+        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
+        def classifierArtifact = projectA.artifact(classifier: "tests")
+        projectA.publish()
+
+        when:
+        projectA.metaData.expectGet()
+        projectA.pom.expectGet()
+        classifierArtifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT-tests.jar')
+        def snapshotA = file('libs/projectA-1.0-SNAPSHOT-tests.jar').snapshot()
+
+        when:
+        server.resetExpectations()
+        run 'retrieve'
+
+        then: "Everything is up to date"
+        skipped ':retrieve'
+        file('libs/projectA-1.0-SNAPSHOT-tests.jar').assertHasNotChangedSince(snapshotA);
     }
 
     def "will detect changed snapshot artifacts when pom has not changed"() {
@@ -510,6 +561,83 @@ project('second') {
         then:
         downloadedJarFile.assertHasChangedSince(initialDownloadJarFileSnapshot)
         downloadedJarFile.assertIsCopyOf(module.artifactFile)
+    }
+
+    @Issue("GRADLE-3017")
+    def "resolves changed metadata in snapshot dependency"() {
+        given:
+        server.start()
+
+        def projectB1 = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
+        def projectB2 = mavenHttpRepo.module('group', 'projectB', '2.0').publish()
+        def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").dependsOn('group', 'projectB', '1.0').publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations {
+    compile {
+        if (project.hasProperty('bypassCache')) {
+            resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+        }
+    }
+}
+dependencies {
+    compile 'group:projectA:1.0-SNAPSHOT'
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        projectA.pom.expectGet()
+        projectA.metaData.expectGet()
+        projectA.artifact.expectGet()
+        projectB1.pom.expectGet()
+        projectB1.artifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
+
+        when: "Project A is published with changed dependencies"
+        server.resetExpectations()
+        projectA = projectA.dependsOn('group', 'projectB', '2.0').publish()
+
+        and: "Resolve with caching"
+        run 'retrieve'
+
+        then: "Gets original ProjectA metadata from cache"
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
+
+        when: "Resolve without cache"
+        projectA.metaData.expectGet()
+        projectA.pom.expectHead()
+        projectA.pom.sha1.expectGet()
+        projectA.pom.expectGet()
+        projectA.artifact.expectHead()
+        projectB2.pom.expectGet()
+        projectB2.artifact.expectGet()
+
+        and:
+        executer.withArguments("-PbypassCache")
+        run 'retrieve'
+
+        then: "Gets updated metadata"
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
+
+        when: "Resolve with caching"
+        server.resetExpectations()
+        run 'retrieve'
+
+        then: "Gets updated metadata from cache"
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
     private expectModuleServed(MavenHttpModule module) {

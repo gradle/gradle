@@ -15,8 +15,10 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
+import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
 import java.io.File;
@@ -103,6 +105,26 @@ public interface BuildLauncher extends LongRunningOperation {
      * @since 1.0-milestone-3
      */
     BuildLauncher forTasks(Iterable<? extends Task> tasks);
+
+    /**
+     * Sets the launchables to execute. If no entries are specified, the project's default tasks are executed.
+     *
+     * @param launchables The launchables for this build.
+     * @return this
+     * @since 1.12
+     */
+    @Incubating
+    BuildLauncher forLaunchables(Launchable... launchables);
+
+    /**
+     * Sets the launchables to execute. If no entries are specified, the project's default tasks are executed.
+     *
+     * @param launchables The launchables for this build.
+     * @return this
+     * @since 1.12
+     */
+    @Incubating
+    BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables);
 
     /**
      * {@inheritDoc}

@@ -296,17 +296,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 artifactId(artifactId)
                 version(allVersions.max())
                 versioning {
-                    if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-                        snapshot {
-                            timestamp(timestampFormat.format(publishTimestamp))
-                            buildNumber(publishCount)
-                            lastUpdated(updateFormat.format(publishTimestamp))
-                        }
-                    } else {
-                        versions {
-                            allVersions.each {currVersion ->
-                                version(currVersion)
-                            }
+                    versions {
+                        allVersions.each {currVersion ->
+                            version(currVersion)
                         }
                     }
                 }
@@ -319,18 +311,20 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     MavenModule publish() {
 
         publishPom()
+
         artifacts.each { artifact ->
             publishArtifact(artifact)
         }
-        publishArtifact([:])
+        if (type != 'pom') {
+            publishArtifact([:])
+        }
+
         return this
     }
 
     File publishArtifact(Map<String, ?> artifact) {
         def artifactFile = artifactFile(artifact)
-        if (type == 'pom') {
-            return artifactFile
-        }
+
         publish(artifactFile) { Writer writer ->
             writer << "${artifactFile.name} : $artifactContent"
         }

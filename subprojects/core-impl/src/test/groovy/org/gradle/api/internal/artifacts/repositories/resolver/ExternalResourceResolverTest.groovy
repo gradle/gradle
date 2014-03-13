@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
+import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
@@ -34,12 +31,9 @@ class ExternalResourceResolverTest extends Specification {
     String name = "TestResolver"
     ExternalResourceRepository repository = Mock()
     VersionLister versionLister = Mock()
-    LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder = Mock()
+    LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder = Mock()
     BuildableArtifactResolveResult result = Mock()
     MetaDataParser parser = Mock()
-    ModuleMetadataProcessor metadataProcessor = Mock()
-    VersionMatcher versionMatcher = Mock()
-    LatestStrategy latestStrategy = Mock()
     final ResolverStrategy resolverStrategy = Mock()
     ModuleVersionArtifactIdentifier artifactIdentifier = Stub() {
         getDisplayName() >> 'some-artifact'
@@ -53,7 +47,7 @@ class ExternalResourceResolverTest extends Specification {
 
     def setup() {
         //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
-        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, versionLister, locallyAvailableResourceFinder, parser, metadataProcessor, resolverStrategy, versionMatcher, latestStrategy])
+        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, versionLister, locallyAvailableResourceFinder, parser, resolverStrategy])
     }
 
     def reportsNotFoundArtifactResolveResult() {
@@ -113,16 +107,16 @@ class ExternalResourceResolverTest extends Specification {
     }
 
     def artifactIsMissing() {
-        resolver.download(_) >> null
+        resolver.download(_, _) >> null
     }
 
     def downloadIsFailing(IOException failure) {
-        resolver.download(_) >> {
+        resolver.download(_, _) >> {
             throw failure
         }
     }
 
     def artifactCanBeResolved() {
-        resolver.download(_) >> downloadedFile
+        resolver.download(_, _) >> downloadedFile
     }
 }

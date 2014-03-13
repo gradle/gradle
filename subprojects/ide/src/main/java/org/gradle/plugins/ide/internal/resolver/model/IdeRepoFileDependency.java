@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@ import java.io.File;
 
 public class IdeRepoFileDependency extends IdeDependency {
     private final File file;
-    private File sourceFile;
-    private File javadocFile;
     private ModuleVersionIdentifier id;
 
     public IdeRepoFileDependency(Configuration declaredConfiguration, File file) {
@@ -34,22 +32,6 @@ public class IdeRepoFileDependency extends IdeDependency {
 
     public File getFile() {
         return file;
-    }
-
-    public File getSourceFile() {
-        return sourceFile;
-    }
-
-    public void setSourceFile(File sourceFile) {
-        this.sourceFile = sourceFile;
-    }
-
-    public File getJavadocFile() {
-        return javadocFile;
-    }
-
-    public void setJavadocFile(File javadocFile) {
-        this.javadocFile = javadocFile;
     }
 
     public ModuleVersionIdentifier getId() {

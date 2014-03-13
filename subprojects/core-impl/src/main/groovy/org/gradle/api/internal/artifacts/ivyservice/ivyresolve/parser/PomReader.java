@@ -21,8 +21,10 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -68,12 +70,19 @@ public class PomReader implements PomParent {
     private static final String RELOCATION = "relocation";
     private static final String PROPERTIES = "properties";
     private static final String TYPE = "type";
+    private static final String PROFILES = "profiles";
+    private static final String PROFILE = "profile";
+    private static final String PROFILE_ID = "id";
+    private static final String PROFILE_ACTIVATION = "activation";
+    private static final String PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT = "activeByDefault";
 
     private PomParent pomParent = new RootPomParent();
     private final Map<String, String> properties = new HashMap<String, String>();
-    private Map<MavenDependencyKey, PomDependencyMgt> dependencyMgts;
+    private List<PomDependencyMgt> declaredDependencyMgts;
+    private List<PomProfile> declaredActivePomProfiles;
+    private Map<MavenDependencyKey, PomDependencyMgt> resolvedDependencyMgts;
     private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
-    private Map<MavenDependencyKey, PomDependencyData> dependencies;
+    private Map<MavenDependencyKey, PomDependencyData> resolvedDependencies;
 
     private final Element projectElement;
     private final Element parentElement;
@@ -97,6 +106,7 @@ public class PomReader implements PomParent {
 
         setDefaultParentGavProperties();
         setPomProperties();
+        setActiveProfileProperties();
     }
 
     public void setPomParent(PomParent pomParent) {
@@ -115,6 +125,17 @@ public class PomReader implements PomParent {
     private void setPomProperties() {
         for(Map.Entry<String, String> pomProperty : getPomProperties().entrySet()) {
             setProperty(pomProperty.getKey(), pomProperty.getValue());
+        }
+    }
+
+    /**
+     * Sets properties for all active profiles. Properties from an active profile override existing POM properties.
+     */
+    private void setActiveProfileProperties() {
+        for(PomProfile activePomProfile : parseActivePomProfiles()) {
+            for(Map.Entry<String, String> property : activePomProfile.getProperties().entrySet()) {
+                properties.put(property.getKey(), property.getValue());
+            }
         }
     }
 
@@ -187,7 +208,7 @@ public class PomReader implements PomParent {
     }
 
     public void addImportedDependencyMgts(Map<MavenDependencyKey, PomDependencyMgt> inherited) {
-        if (dependencyMgts != null) {
+        if (resolvedDependencyMgts != null) {
             throw new IllegalStateException("Cannot add imported dependency management elements after dependency management elements have been resolved for this POM.");
         }
         importedDependencyMgts.putAll(inherited);
@@ -306,7 +327,7 @@ public class PomReader implements PomParent {
             relocGroupId = relocGroupId == null ? getGroupId() : relocGroupId;
             relocArtId = relocArtId == null ? getArtifactId() : relocArtId;
             relocVersion = relocVersion == null ? getVersion() : relocVersion;
-            return ModuleRevisionId.newInstance(relocGroupId, relocArtId, relocVersion);
+            return IvyUtil.createModuleRevisionId(relocGroupId, relocArtId, relocVersion);
         }
     }
 
@@ -314,10 +335,10 @@ public class PomReader implements PomParent {
      * Returns all dependencies for this POM, including those inherited from parent POMs.
      */
     public Map<MavenDependencyKey, PomDependencyData> getDependencies() {
-        if (dependencies == null) {
-            dependencies = resolveDependencies();
+        if (resolvedDependencies == null) {
+            resolvedDependencies = resolveDependencies();
         }
-        return dependencies;
+        return resolvedDependencies;
     }
 
     private Map<MavenDependencyKey, PomDependencyData> resolveDependencies() {
@@ -349,39 +370,58 @@ public class PomReader implements PomParent {
      * Returns all dependency management elements for this POM, including those inherited from parent and imported POMs.
      */
     public Map<MavenDependencyKey, PomDependencyMgt> getDependencyMgt() {
-        if(dependencyMgts == null) {
-            dependencyMgts = resolveDependencyMgt();
+        if(resolvedDependencyMgts == null) {
+            resolvedDependencyMgts = resolveDependencyMgt();
         }
-
-        return dependencyMgts;
+        return resolvedDependencyMgts;
     }
 
     private Map<MavenDependencyKey, PomDependencyMgt> resolveDependencyMgt() {
         Map<MavenDependencyKey, PomDependencyMgt> dependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
         dependencies.putAll(pomParent.getDependencyMgt());
         dependencies.putAll(importedDependencyMgts);
-        dependencies.putAll(getPomDependencyMgt());
+        for(PomDependencyMgt dependencyMgt : parseDependencyMgt()) {
+            dependencies.put(dependencyMgt.getId(), dependencyMgt);
+        }
         return dependencies;
     }
 
     /**
-     * Returns the dependency management elements declared in this POM.
+     * Parses the dependency management elements declared in this POM without removing the duplicates.
+     *
+     * @return Parsed dependency management elements
      */
-    public Map<MavenDependencyKey, PomDependencyMgt> getPomDependencyMgt() {
-        Map<MavenDependencyKey, PomDependencyMgt> depMgmtElements = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
-        Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
+    public List<PomDependencyMgt> parseDependencyMgt() {
+        if(declaredDependencyMgts == null) {
+            List<PomDependencyMgt> dependencyMgts = getDependencyMgt(projectElement);
+
+            for(PomProfile pomProfile : parseActivePomProfiles()) {
+                for(PomDependencyMgt dependencyMgt : pomProfile.getDependencyMgts()) {
+                    dependencyMgts.add(dependencyMgt);
+                }
+            }
+
+            declaredDependencyMgts = dependencyMgts;
+        }
+
+        return declaredDependencyMgts;
+    }
+
+    private List<PomDependencyMgt> getDependencyMgt(Element parentElement) {
+        List<PomDependencyMgt> depMgmtElements = new ArrayList<PomDependencyMgt>();
+        Element dependenciesElement = getFirstChildElement(parentElement, DEPENDENCY_MGT);
         dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
+
         if (dependenciesElement != null) {
             NodeList childs = dependenciesElement.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {
                 Node node = childs.item(i);
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-                    PomDependencyMgt pomDependencyMgt = new PomDependencyMgtElement((Element) node);
-                    MavenDependencyKey key = pomDependencyMgt.getId();
-                    depMgmtElements.put(key, pomDependencyMgt);
+                    depMgmtElements.add(new PomDependencyMgtElement((Element) node));
                 }
             }
         }
+
         return depMgmtElements;
     }
 
@@ -468,7 +508,7 @@ public class PomReader implements PomParent {
                         String groupId = getFirstChildText((Element) node, GROUP_ID);
                         String artifactId = getFirstChildText((Element) node, ARTIFACT_ID);
                         if ((groupId != null) && (artifactId != null)) {
-                            exclusions.add(ModuleId.newInstance(groupId, artifactId));
+                            exclusions.add(IvyUtil.createModuleId(groupId, artifactId));
                         }
                     }
                 }
@@ -490,12 +530,74 @@ public class PomReader implements PomParent {
         }
     }
 
+    public class PomProfileElement implements PomProfile {
+        private final Element element;
+        private List<PomDependencyMgt> declaredDependencyMgts;
+
+        PomProfileElement(Element element) {
+            this.element = element;
+        }
+
+        public String getId() {
+            String id = getFirstChildText(element, PROFILE_ID);
+            return replaceProps(id);
+        }
+
+        public Map<String, String> getProperties() {
+            return getPomProperties(element);
+        }
+
+        public List<PomDependencyMgt> getDependencyMgts() {
+            if(declaredDependencyMgts == null) {
+                declaredDependencyMgts = getDependencyMgt(element);
+            }
+
+            return declaredDependencyMgts;
+        }
+    }
+
+    /**
+     * Parses all active profiles that can be found in POM.
+     *
+     * @return Active POM profiles
+     */
+    private List<PomProfile> parseActivePomProfiles() {
+        if(declaredActivePomProfiles == null) {
+            List<PomProfile> activePomProfiles = new ArrayList<PomProfile>();
+            Element profilesElement = getFirstChildElement(projectElement, PROFILES);
+
+            if(profilesElement != null) {
+                for(Element profileElement : getAllChilds(profilesElement)) {
+                    if(PROFILE.equals(profileElement.getNodeName())) {
+                        Element activationElement = getFirstChildElement(profileElement, PROFILE_ACTIVATION);
+
+                        if(activationElement != null) {
+                            String activeByDefault = getFirstChildText(activationElement, PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT);
+
+                            if(activeByDefault != null && "true".equals(activeByDefault)) {
+                                activePomProfiles.add(new PomProfileElement(profileElement));
+                            }
+                        }
+                    }
+                }
+            }
+
+            declaredActivePomProfiles = activePomProfiles;
+        }
+
+        return declaredActivePomProfiles;
+    }
+
     /**
      * @return the content of the properties tag into the pom.
      */
     public Map<String, String> getPomProperties() {
+        return getPomProperties(projectElement);
+    }
+
+    private Map<String, String> getPomProperties(Element parentElement) {
         Map<String, String> pomProperties = new HashMap<String, String>();
-        Element propsEl = getFirstChildElement(projectElement, PROPERTIES);
+        Element propsEl = getFirstChildElement(parentElement, PROPERTIES);
         if (propsEl != null) {
             propsEl.normalize();
         }

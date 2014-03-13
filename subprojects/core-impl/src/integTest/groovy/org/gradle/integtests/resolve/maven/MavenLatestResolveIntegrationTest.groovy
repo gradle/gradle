@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class MavenLatestResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def "latest selector works correctly when (only) release versions are present"() {
+    def "latest selector works correctly when no snapshot versions are present"() {
         given:
         mavenRepo().module('group', 'projectA', '1.0').publish()
         def highest = mavenRepo().module('group', 'projectA', '2.2').publish()
@@ -65,17 +65,18 @@ task retrieve(type: Sync) {
         failure.assertHasCause("Could not find any version that matches group:projectA:latest.foo.")
     }
 
-    // describes the actual (not the desired) behavior
-    def "latest selector doesn't work correctly if highest version is snapshot"() {
+    def "snapshot versions are considered integration status when using latest selector"() {
         given:
-        def moduleA = mavenRepo().module('group', 'projectA', '1.0').publish()
-        def moduleAA = mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publish()
+        server.start()
+        mavenHttpRepo.getModuleMetaData('group', 'projectA').allowGetOrHead()
+        mavenHttpRepo.module('group', 'projectA', '1.0').publish().allowAll()
+        mavenHttpRepo.module('group', 'projectA', '1.2-SNAPSHOT').publish().allowAll()
 
         and:
         buildFile << """
 configurations { compile }
-repositories { maven { url "${mavenRepo().uri}" } }
-dependencies { compile 'group:projectA:latest.release' }
+repositories { maven { url "${mavenHttpRepo.uri}" } }
+dependencies { compile 'group:projectA:latest.${status}' }
 task retrieve(type: Sync) {
     from configurations.compile
     into 'build'
@@ -83,9 +84,15 @@ task retrieve(type: Sync) {
 """
 
         when:
-        runAndFail("retrieve")
+        run "retrieve"
 
         then:
-        failure.assertHasCause("Could not find any version that matches group:projectA:latest.release")
+        file("build").assertHasDescendants(latest)
+
+        where:
+        status        | latest
+        "release"     | "projectA-1.0.jar"
+        "milestone"   | "projectA-1.0.jar"
+        "integration" | "projectA-1.2-SNAPSHOT.jar"
     }
 }

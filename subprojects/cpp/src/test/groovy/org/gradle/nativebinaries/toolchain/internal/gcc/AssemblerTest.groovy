@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc
 
 import org.gradle.api.Action
+import org.gradle.internal.hash.HashUtil
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
 import org.gradle.process.internal.ExecAction
@@ -32,7 +33,7 @@ class AssemblerTest extends Specification {
     def execActionFactory = Mock(ExecActionFactory)
     Action<List<String>> argAction = Mock(Action)
     CommandLineTool<AssembleSpec> commandLineTool = new CommandLineTool<AssembleSpec>("assembler", executable, execActionFactory)
-    Assembler assembler = new Assembler(commandLineTool, argAction);
+    Assembler assembler = new Assembler(commandLineTool, argAction, ".o");
 
     def "assembles each source file independently"() {
         given:
@@ -42,32 +43,41 @@ class AssemblerTest extends Specification {
         def execAction1 = Mock(ExecAction)
         def execAction2 = Mock(ExecAction)
 
+        def sourceOne = testDir.file("one.s")
+        def sourceTwo = testDir.file("two.s")
+
         when:
         AssembleSpec assembleSpec = Mock(AssembleSpec)
         assembleSpec.getObjectFileDir() >> objectFileDir
         assembleSpec.getAllArgs() >> ["-firstArg", "-secondArg"]
-        assembleSpec.getSourceFiles() >> [testDir.file("one.s"), testDir.file("two.s")]
+        assembleSpec.getSourceFiles() >> [sourceOne, sourceTwo]
 
         and:
         assembler.execute(assembleSpec)
 
         then:
-        1 * argAction.execute(["-firstArg", "-secondArg", "-o", "one.o", testDir.file("one.s").absolutePath])
+        1 * argAction.execute(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceOne), sourceOne.absolutePath])
         1 * execActionFactory.newExecAction() >> execAction1
         1 * execAction1.executable(executable)
         1 * execAction1.workingDir(objectFileDir)
-        1 * execAction1.args(["-firstArg", "-secondArg", "-o", "one.o", testDir.file("one.s").absolutePath])
+        1 * execAction1.args(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceOne), sourceOne.absolutePath])
         1 * execAction1.environment([:])
         1 * execAction1.execute()
         0 * execAction1._
 
-        1 * argAction.execute(["-firstArg", "-secondArg", "-o", "two.o", testDir.file("two.s").absolutePath])
+        1 * argAction.execute(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceTwo), sourceTwo.absolutePath])
         1 * execActionFactory.newExecAction() >> execAction2
         1 * execAction2.executable(executable)
         1 * execAction2.workingDir(objectFileDir)
-        1 * execAction2.args(["-firstArg", "-secondArg", "-o", "two.o", testDir.file("two.s").absolutePath])
+        1 * execAction2.args(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceTwo), sourceTwo.absolutePath])
         1 * execAction2.environment([:])
         1 * execAction2.execute()
         0 * execAction2._
+    }
+
+    String outputFilePathFor(File objectFileRoot, File sourceFile) {
+        String relativeObjectFilePath = "${HashUtil.createCompactMD5(sourceFile.absolutePath)}/${sourceFile.name - ".s"}.o"
+        String outputFilePath = new File(objectFileRoot, relativeObjectFilePath).absolutePath;
+        outputFilePath
     }
 }

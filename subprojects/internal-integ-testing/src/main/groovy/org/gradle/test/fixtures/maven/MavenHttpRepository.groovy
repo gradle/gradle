@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.test.fixtures.maven
 
+import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 
 /**
  * A fixture for dealing with remote HTTP Maven repositories.
  */
-class MavenHttpRepository {
+class MavenHttpRepository implements MavenRepository, HttpRepository {
     private final HttpServer server
     private final MavenFileRepository backingRepository
     private final String contextPath
@@ -41,14 +40,8 @@ class MavenHttpRepository {
         return new URI("http://localhost:${server.port}${contextPath}")
     }
 
-    void expectMetaDataGet(String groupId, String artifactId) {
-        def path = "${groupId.replace('.', '/')}/$artifactId/maven-metadata.xml"
-        server.expectGet("$contextPath/$path", backingRepository.getRootDir().file(path))
-    }
-
-    void expectMetaDataGetMissing(String groupId, String artifactId) {
-        def path = "${groupId.replace('.', '/')}/$artifactId/maven-metadata.xml"
-        server.expectGetMissing("$contextPath/$path")
+    HttpResource getModuleMetaData(String groupId, String artifactId) {
+        return module(groupId, artifactId).rootMetaData
     }
 
     void expectDirectoryListGet(String groupId, String artifactId) {

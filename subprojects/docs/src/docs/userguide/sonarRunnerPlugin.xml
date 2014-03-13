@@ -180,6 +180,10 @@
                 <td>sonar.surefire.reportsPath</td>
                 <td>test.testResultsDir (if the directory exists)</td>
             </tr>
+            <tr>
+                <td>sonar.junit.reportsPath</td>
+                <td>test.testResultsDir (if the directory exists)</td>
+            </tr>
         </table>
     </section>
 

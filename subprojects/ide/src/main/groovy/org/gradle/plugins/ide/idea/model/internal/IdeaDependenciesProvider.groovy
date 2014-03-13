@@ -68,7 +68,7 @@ class IdeaDependenciesProvider {
 
         if (!ideaModule.offline) {
             def repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
-                    ideaModule.project.configurations, scopeMap.plus, scopeMap.minus, 
+                    ideaModule.project.dependencies, scopeMap.plus, scopeMap.minus,
                     ideaModule.downloadSources, ideaModule.downloadJavadoc)
 
             repoFileDependencies.each {

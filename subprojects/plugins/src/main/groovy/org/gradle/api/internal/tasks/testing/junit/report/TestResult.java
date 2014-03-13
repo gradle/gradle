@@ -27,7 +27,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
     final ClassTestResults classResults;
     final List<TestFailure> failures = new ArrayList<TestFailure>();
     final String name;
-    private boolean ignored;
+    boolean ignored;
 
     public TestResult(String name, long duration, ClassTestResults classResults) {
         this.name = name;
@@ -48,6 +48,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return String.format("Test %s", name);
     }
 
+    @Override
     public ResultType getResultType() {
         if (ignored) {
             return ResultType.SKIPPED;
@@ -55,6 +56,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return failures.isEmpty() ? ResultType.SUCCESS : ResultType.FAILURE;
     }
 
+    @Override
     public long getDuration() {
         return duration;
     }
@@ -72,13 +74,17 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return failures;
     }
 
+    public boolean isIgnored() {
+        return ignored;
+    }
+
     public void addFailure(TestFailure failure) {
         classResults.failed(this);
         failures.add(failure);
     }
 
-    public void ignored() {
-        classResults.addIgnored();
+    public void setIgnored() {
+        classResults.ignored(this);
         ignored = true;
     }
 

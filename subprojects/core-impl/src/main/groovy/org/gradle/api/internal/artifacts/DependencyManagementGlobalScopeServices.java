@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
@@ -32,6 +34,10 @@ class DependencyManagementGlobalScopeServices {
 
     ExcludeRuleConverter createExcludeRuleConverter() {
         return new DefaultExcludeRuleConverter();
+    }
+
+    ComponentIdentifierFactory createComponentIdentifierFactory() {
+        return new DefaultComponentIdentifierFactory();
     }
 
     ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
@@ -59,13 +65,15 @@ class DependencyManagementGlobalScopeServices {
     ResolveLocalComponentFactory createResolveModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,
                                                                             ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
                                                                             DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                                            ExcludeRuleConverter excludeRuleConverter) {
+                                                                            ExcludeRuleConverter excludeRuleConverter,
+                                                                            ComponentIdentifierFactory componentIdentifierFactory) {
         return new ResolveLocalComponentFactory(
                 moduleDescriptorFactory,
                 configurationsToModuleDescriptorConverter,
                 new DefaultDependenciesToModuleDescriptorConverter(
                         dependencyDescriptorFactory,
-                        excludeRuleConverter));
+                        excludeRuleConverter),
+                componentIdentifierFactory);
 
     }
 

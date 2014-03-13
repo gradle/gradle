@@ -85,7 +85,7 @@ class TestNGOptions extends TestFrameworkOptions {
     Set<String> listeners = new LinkedHashSet<String>()
 
     /**
-     * The parallel mode to use for running the tests - either methods or tests.
+     * The parallel mode to use for running the tests - one of the following modes: methods, tests, classes or instances.
      *
      * Not required.
      *
@@ -172,8 +172,13 @@ class TestNGOptions extends TestFrameworkOptions {
      */
     void suites(String... suiteFiles) {
         suiteFiles.each {
-            suiteXmlFiles.add(new File(projectDir, it))
+            suiteXmlFiles.add(new File(this.getProjectDir(), it))
         }
+    }
+
+    //needed otherwise GRADLE-3020
+    protected File getProjectDir() {
+        return projectDir;
     }
 
     /**

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
@@ -37,7 +37,7 @@ public interface RepositoryArtifactCache {
      * @param resource The artifact resource
      * @return The cached resource
      */
-    LocallyAvailableExternalResource downloadAndCacheArtifactFile(ArtifactRevisionId artifactId, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException;
+    LocallyAvailableExternalResource downloadAndCacheArtifactFile(ArtifactIdentifier artifactId, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException;
 
     interface ExternalResourceDownloader {
         public void download(ExternalResource resource, File dest) throws IOException;

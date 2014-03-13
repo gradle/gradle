@@ -15,15 +15,42 @@
  */
 package org.gradle.ide.visualstudio.tasks
 import org.gradle.api.Incubating
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
-import org.gradle.ide.visualstudio.tasks.internal.AbsoluteFileNameTransformer
+import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioProjectFile
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 
 @Incubating
 class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
     private DefaultVisualStudioProject visualStudioProject
+
+    @Input
+    String gradleExe
+
+    @Input @Optional
+    String gradleArgs
+
+    void initGradleCommand() {
+        final File gradlew = project.getRootProject().file("gradlew.bat");
+        conventionMapping.map("gradleExe") {
+            def rootDir = transformer.transform(project.rootDir)
+            def args = ""
+            if (rootDir != ".") {
+                args = " -p \"${rootDir}\""
+            }
+            if (gradlew.isFile()) {
+                return transformer.transform(gradlew) + args
+            }
+            return "gradle" + args
+        }
+    }
+
+    def getTransformer() {
+        return RelativeFileNameTransformer.forFile(project.rootDir, visualStudioProject.projectFile.location)
+    }
 
     void setVisualStudioProject(VisualStudioProject vsProject) {
         this.visualStudioProject = vsProject as DefaultVisualStudioProject
@@ -45,13 +72,14 @@ class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> 
 
     @Override
     protected VisualStudioProjectFile create() {
-        return new VisualStudioProjectFile(xmlTransformer, new AbsoluteFileNameTransformer())
+        return new VisualStudioProjectFile(xmlTransformer, transformer)
     }
 
     @Override
     protected void configure(VisualStudioProjectFile projectFile) {
         DefaultVisualStudioProject vsProject = visualStudioProject
 
+        projectFile.gradleCommand = buildGradleCommand()
         projectFile.setProjectUuid(vsProject.uuid)
         vsProject.sourceFiles.each {
             projectFile.addSourceFile(it)
@@ -67,12 +95,18 @@ class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> 
             projectFile.addConfiguration(it)
         }
 
-        vsProject.projectReferences.each { DefaultVisualStudioProject projectReference ->
-            projectFile.addProjectReference(projectReference)
-        }
-
         vsProject.projectFile.xmlActions.each {
             xmlTransformer.addAction(it)
+        }
+    }
+
+    private buildGradleCommand() {
+        String exe = getGradleExe()
+        String args = getGradleArgs()
+        if (args == null || args.trim().length() == 0) {
+            return exe
+        } else {
+            return exe + " " + args.trim()
         }
     }
 }

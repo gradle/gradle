@@ -27,7 +27,7 @@ import java.util.List;
 @Incubating
 public interface Gcc extends PlatformConfigurableToolChain {
     /**
-     * The paths setting required for executing the tool chain.
+     * The path required for executing the tool chain.
      * These are used to locate tools for this tool chain, and are prepended to the system PATH when executing these tools.
      */
     List<File> getPath();
@@ -38,29 +38,4 @@ public interface Gcc extends PlatformConfigurableToolChain {
      * @param pathEntries The path values to append. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      */
     void path(Object... pathEntries);
-
-    /**
-     * The C++ compiler.
-     */
-    GccTool getCCompiler();
-
-    /**
-     * The C compiler.
-     */
-    GccTool getCppCompiler();
-
-    /**
-     * The assembler.
-     */
-    GccTool getAssembler();
-
-    /**
-     * The linker.
-     */
-    GccTool getLinker();
-
-    /**
-     * The static library archiver.
-     */
-    GccTool getStaticLibArchiver();
 }

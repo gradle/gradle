@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.util.GFileUtils;
@@ -57,9 +58,10 @@ public class GroovyCompile extends AbstractCompile {
         DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, antBuilderFactory, inProcessCompilerFactory, compilerDaemonManager);
         GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, antBuilder, classPathRegistry, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory);
-        compiler = new IncrementalGroovyCompiler(delegatingCompiler, getOutputs());
+        compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
     }
 
+    @TaskAction
     protected void compile() {
         checkGroovyClasspathIsNonEmpty();
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec();

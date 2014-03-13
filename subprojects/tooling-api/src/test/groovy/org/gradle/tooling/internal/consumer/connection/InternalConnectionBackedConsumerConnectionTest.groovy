@@ -55,18 +55,18 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         details.supportsGradleProjectModel()
 
         and:
-        details.isModelSupported(HierarchicalEclipseProject)
-        details.isModelSupported(EclipseProject)
-        details.isModelSupported(IdeaProject)
-        details.isModelSupported(BasicIdeaProject)
-        details.isModelSupported(GradleProject)
-        details.isModelSupported(BuildEnvironment)
-        details.isModelSupported(Void)
+        details.maySupportModel(HierarchicalEclipseProject)
+        details.maySupportModel(EclipseProject)
+        details.maySupportModel(IdeaProject)
+        details.maySupportModel(BasicIdeaProject)
+        details.maySupportModel(GradleProject)
+        details.maySupportModel(BuildEnvironment)
+        details.maySupportModel(Void)
 
         and:
-        !details.isModelSupported(ProjectOutcomes)
-        !details.isModelSupported(CustomModel)
-        !details.isModelSupported(GradleBuild)
+        !details.maySupportModel(ProjectOutcomes)
+        !details.maySupportModel(CustomModel)
+        !details.maySupportModel(GradleBuild)
     }
 
     def "builds GradleBuild model by converting GradleProject"() {

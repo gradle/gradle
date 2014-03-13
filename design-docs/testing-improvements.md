@@ -177,6 +177,15 @@ Test output is associated with the correct test when test cases are run concurre
 
 ## Story: HTML test report shows output per test
 
+- Need to fix `AggregateTestResultsProvider` as it does not correctly associate a given test execution with the correct provider.
+
+### Test cases
+
+- Test task executes a test suite that executes the same class and method multiple times, generating different output each time. Verify that HTML and Junit XML associate
+the correct output with each test execution.
+- Multiple test tasks execute the same test suite, generating different output each time. Verify that the `TestReportTask` generates an HTML that associates the correct
+output with each test execution.
+
 ## Story: HTML test report shows aggregated output (out + err)
 
 Introduce a timeline of the test execution that visualizes the output and error logging of the tests for a class:

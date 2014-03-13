@@ -18,32 +18,26 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.ProjectNativeBinary;
 
 public class VisualStudioSolutionRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioSolution> {
     private final FileResolver fileResolver;
-    private final VisualStudioProjectRegistry localProjects;
     private final VisualStudioProjectResolver projectResolver;
 
-    public VisualStudioSolutionRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver, VisualStudioProjectRegistry localProjects, Instantiator instantiator) {
+    public VisualStudioSolutionRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver, Instantiator instantiator) {
         super(DefaultVisualStudioSolution.class, instantiator);
         this.fileResolver = fileResolver;
-        this.localProjects = localProjects;
         this.projectResolver = projectResolver;
     }
 
-    public DefaultVisualStudioSolution addSolution(ProjectNativeBinary nativeBinary) {
-        DefaultVisualStudioSolution solution = createSolution(nativeBinary);
+    public void addSolution(DefaultVisualStudioProject visualStudioProject) {
+        for (DefaultVisualStudioSolution solution : this) {
+            if (solution.getRootProject() == visualStudioProject) {
+                return;
+            }
+        }
+
+        DefaultVisualStudioSolution solution = getInstantiator().newInstance(
+                DefaultVisualStudioSolution.class, visualStudioProject, fileResolver, projectResolver, getInstantiator());
         add(solution);
-        return solution;
-    }
-
-    private DefaultVisualStudioSolution createSolution(ProjectNativeBinary nativeBinary) {
-        return getInstantiator().newInstance(DefaultVisualStudioSolution.class,
-                rootConfiguration(nativeBinary), nativeBinary, fileResolver, projectResolver, getInstantiator());
-    }
-
-    private VisualStudioProjectConfiguration rootConfiguration(ProjectNativeBinary nativeBinary) {
-        return localProjects.getProjectConfiguration(nativeBinary);
     }
 }

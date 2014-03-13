@@ -28,4 +28,6 @@ public interface PluginResolver {
     @Nullable
     PluginResolution resolve(PluginRequest pluginRequest);
 
+    String getDescriptionForNotFoundMessage();
+
 }

@@ -16,12 +16,14 @@
 package org.gradle.api.artifacts.cache;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+
+import java.util.Set;
 
 /**
  * Command methods for controlling dependency resolution via the DSL.
  */
 @Incubating
-public interface DependencyResolutionControl extends ResolutionControl<ModuleVersionSelector, ModuleVersionIdentifier> {
+public interface DependencyResolutionControl extends ResolutionControl<ModuleIdentifier, Set<ModuleVersionIdentifier>> {
 }

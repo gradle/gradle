@@ -24,6 +24,8 @@ import org.gradle.api.specs.Spec;
 
 import java.util.*;
 
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId;
+
 /**
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
  *
@@ -299,7 +301,7 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
                 }
             } else if (spec2 instanceof ModuleNameSpec) {
                 ModuleNameSpec moduleNameSpec = (ModuleNameSpec) spec2;
-                merged.add(new ModuleIdSpec(ModuleId.newInstance(spec1.group, moduleNameSpec.module)));
+                merged.add(new ModuleIdSpec(createModuleId(spec1.group, moduleNameSpec.module)));
             } else if (spec2 instanceof ModuleIdSpec) {
                 ModuleIdSpec moduleIdSpec = (ModuleIdSpec) spec2;
                 if (moduleIdSpec.moduleId.getOrganisation().equals(spec1.group)) {

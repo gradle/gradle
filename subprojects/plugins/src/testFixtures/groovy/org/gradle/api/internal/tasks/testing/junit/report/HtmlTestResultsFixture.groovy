@@ -96,6 +96,11 @@ class HtmlTestResultsFixture {
         assert tab.isEmpty()
     }
 
+    void assertHasNoIgnoredTests() {
+        def tab = findTab('Ignored tests')
+        assert tab.isEmpty()
+    }
+
     void assertHasNoNavLinks() {
         assert findTab('Packages').isEmpty()
     }
@@ -106,6 +111,12 @@ class HtmlTestResultsFixture {
 
     void assertHasFailedTest(String target, String testName) {
         def tab = findTab('Failed tests')
+        assert tab != null
+        assert tab.select("a[href=${target}.html#$testName]").find { it.text() == testName }
+    }
+
+    void assertHasIgnoredTest(String target, String testName) {
+        def tab = findTab('Ignored tests')
         assert tab != null
         assert tab.select("a[href=${target}.html#$testName]").find { it.text() == testName }
     }
@@ -132,10 +143,15 @@ class HtmlTestResultsFixture {
         new HtmlTestResultsFixture.TestDetails(testElement)
     }
 
+    List<HtmlTestResultsFixture.TestDetails> allTestDetails(String testName) {
+        def testElements = findAllTestDetails(testName)
+        assert testElements != null
+        testElements.collect { new HtmlTestResultsFixture.TestDetails(it) }
+    }
 
     void assertHasFailure(String testName, String stackTrace) {
-        def detailsRow = findTestDetails(testName)
-        assert detailsRow.select("tr > td:eq(2)").text() == 'failed'
+        def detailsRows = findAllTestDetails(testName)
+        assert detailsRows.any { it.select("tr > td:eq(2)").text() == 'failed' }
         def tab = findTab('Failed tests')
         assert tab != null && !tab.isEmpty()
         assert tab.select("pre").find { it.text() == stackTrace.trim() }
@@ -145,6 +161,12 @@ class HtmlTestResultsFixture {
         def tab = findTab('Tests')
         def anchor = tab.select("TD").find { it.text() == testName }
         return anchor?.parent()
+    }
+
+    private def findAllTestDetails(String testName) {
+        def tab = findTab('Tests')
+        def anchors = tab.select("TD").findAll { it.text() == testName }
+        return anchors.collect { it?.parent() }
     }
 
     private def findPackageDetails(String packageName) {
@@ -232,8 +254,13 @@ class HtmlTestResultsFixture {
         }
 
         void assertResult(String expectedValue, String expectedClass) {
-            assert tableElement.select("tr > td:eq(2)").text() == expectedValue
+            assert tableElement.select("tr > td:eq(2)").listIterator().any { Element it -> it.text() == expectedValue }
             assert tableElement.select("tr > td:eq(2)").hasClass(expectedClass)
+        }
+
+        boolean hasResult(String expectedValue, String expectedClass) {
+            return tableElement.select("tr > td:eq(2)").listIterator().any { Element it -> it.text() == expectedValue } &&
+              tableElement.select("tr > td:eq(2)").hasClass(expectedClass)
         }
     }
 }

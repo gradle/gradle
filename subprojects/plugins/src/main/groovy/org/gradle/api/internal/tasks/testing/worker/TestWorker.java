@@ -54,7 +54,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     public void execute(final WorkerProcessContext workerProcessContext) {
-        LOGGER.info("{} executing tests.", workerProcessContext.getDisplayName());
+        LOGGER.info("{} started executing tests.", workerProcessContext.getDisplayName());
 
         completed = new CountDownLatch(1);
 

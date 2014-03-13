@@ -30,6 +30,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static java.lang.String.format;
+
 public class DefaultWorkerProcess implements WorkerProcess {
     private final static Logger LOGGER = Logging.getLogger(DefaultWorkerProcess.class);
     private final Lock lock = new ReentrantLock();
@@ -134,7 +136,10 @@ public class DefaultWorkerProcess implements WorkerProcess {
             while (connection == null && running) {
                 try {
                     if (!condition.awaitUntil(connectExpiry)) {
-                        throw new ExecException(String.format("Timeout after waiting %.1f seconds for %s (%s, running: %s) to connect.", ((double) connectTimeout) / 1000, execHandle, execHandle.getState(), running));
+                        throw new ExecException(format("Unable to connect to the child process '%s'.\n"
+                                + "It is likely that the child process have crashed - please find the stack trace in the build log.\n"
+                                + "This exception might occur when the build machine is extremely loaded.\n"
+                                + "The connection attempt hit a timeout after %.1f seconds (last known process state: %s, running: %s).", execHandle, ((double) connectTimeout) / 1000, execHandle.getState(), running));
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
@@ -144,7 +149,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
                 throw UncheckedException.throwAsUncheckedException(processFailure);
             }
             if (connection == null) {
-                throw new ExecException(String.format("Never received a connection from %s.", execHandle));
+                throw new ExecException(format("Never received a connection from %s.", execHandle));
             }
         } finally {
             lock.unlock();

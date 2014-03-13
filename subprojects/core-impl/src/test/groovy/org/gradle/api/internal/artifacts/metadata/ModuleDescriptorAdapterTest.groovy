@@ -19,12 +19,12 @@
 package org.gradle.api.internal.artifacts.metadata
 
 import org.apache.ivy.core.module.descriptor.*
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import spock.lang.Specification
 
 class ModuleDescriptorAdapterTest extends Specification {
@@ -44,8 +44,8 @@ class ModuleDescriptorAdapterTest extends Specification {
     }
 
     def "builds and caches the dependency meta-data from the module descriptor"() {
-        def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
-        def dependency2 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        def dependency1 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
+        def dependency2 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
 
         given:
         moduleDescriptor.dependencies >> ([dependency1, dependency2] as DependencyDescriptor[])
@@ -96,15 +96,15 @@ class ModuleDescriptorAdapterTest extends Specification {
     def "builds and caches dependencies for a configuration"() {
         def config = Stub(Configuration)
         def parent = Stub(Configuration)
-        def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        def dependency1 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
         dependency1.addDependencyConfiguration("conf", "a")
-        def dependency2 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        def dependency2 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
         dependency2.addDependencyConfiguration("*", "b")
-        def dependency3 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        def dependency3 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
         dependency3.addDependencyConfiguration("super", "c")
-        def dependency4 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        def dependency4 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
         dependency4.addDependencyConfiguration("other", "d")
-        def dependency5 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        def dependency5 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
         dependency5.addDependencyConfiguration("%", "e")
 
         given:

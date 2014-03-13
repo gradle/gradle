@@ -15,16 +15,19 @@
  */
 
 package org.gradle.ide.visualstudio.fixtures
-
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
 class SolutionFile {
+    TestFile file
     String content
     Map<String, ProjectReference> projects = [:]
 
     SolutionFile(TestFile solutionFile) {
         assert solutionFile.exists()
+        this.file = solutionFile
+        assert TextUtil.convertLineSeparators(solutionFile.text, TextUtil.windowsLineSeparator) == solutionFile.text : "Solution file contains non-windows line separators"
+
         content = TextUtil.normaliseLineSeparators(solutionFile.text)
 
         content.findAll(~/(?m)^Project\(\"\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}\"\) = \"(\w+)\", \"([^\"]*)\", \"\{([\w\-]+)\}\"$/, {
@@ -37,16 +40,12 @@ class SolutionFile {
         return true
     }
 
-    def assertReferencesProject(ProjectFile expectedProject, List<String> configurations) {
+    def assertReferencesProject(ProjectFile expectedProject, Collection<String> configurations) {
         assertReferencesProject(expectedProject, configurations.collectEntries {[(it):it]})
     }
 
     def assertReferencesProject(ProjectFile expectedProject, Map<String, String> configurations) {
         assertReferencesProject(expectedProject.name, expectedProject, configurations)
-    }
-
-    def assertReferencesProject(String projectName, ProjectFile expectedProject) {
-        assertReferencesProject(projectName, expectedProject, ["debug|Win32":"debug|Win32"])
     }
 
     def assertReferencesProject(String projectName, ProjectFile expectedProject, Map<String, String> configurations) {
@@ -74,7 +73,7 @@ class SolutionFile {
 
         Map<String, String> getConfigurations() {
             def configurations = [:]
-            content.eachMatch(~/\{${rawUuid}\}\.(\w+\|\w+)\.ActiveCfg = (\w+\|\w+)/, {
+            content.eachMatch(~/\{${rawUuid}\}\.(\w+)\|\w+\.ActiveCfg = (\w+)\|\w+/, {
                 configurations[it[1]] = it[2]
             })
             return configurations

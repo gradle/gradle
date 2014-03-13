@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.language.c.internal.incremental
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -30,7 +31,8 @@ class CleanCompilingNativeCompilerTest extends Specification {
     def incrementalCompileProcessor = Mock(IncrementalCompileProcessor)
     def task = Mock(TaskInternal)
     def outputs = Mock(TaskOutputsInternal)
-    def compiler = new CleanCompilingNativeCompiler(task, null, null, delegateCompiler)
+    def includesParser = Mock(SourceIncludesParser);
+    def compiler = new CleanCompilingNativeCompiler(task, includesParser, null, null, null, delegateCompiler)
 
     def "cleans outputs and delegates spec for compilation"() {
         def spec = Mock(NativeCompileSpec)
@@ -50,16 +52,17 @@ class CleanCompilingNativeCompilerTest extends Specification {
         0 * compilation._
 
         and:
-        compiler.doIncrementalCompile(incrementalCompileProcessor, spec)
+        def result = compiler.doIncrementalCompile(incrementalCompileProcessor, spec)
 
         then:
         1 * spec.getObjectFileDir() >> outputFile.parentFile
         1 * task.getOutputs() >> outputs
         1 * outputs.previousFiles >> new SimpleFileCollection(outputFile)
         0 * spec._
-        1 * delegateCompiler.execute(spec)
+        1 * delegateCompiler.execute(spec) >> new SimpleWorkResult(false)
 
         and:
+        result.didWork
         outputFile.assertDoesNotExist()
     }
 }

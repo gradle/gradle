@@ -1,4 +1,3 @@
-
 This specification is a proposal for a deep reworking of the Gradle dependency management and publication model.
 
 # Why?
@@ -46,89 +45,7 @@ A component instance with an associated (group, module, version) identifier.
 
 # Implementation plan
 
-## Story: Dependency resolution result produces a graph of component instances instead of a graph of module versions (DONE)
-
-Currently, the output of dependency resolution is effectively a graph of module versions. There are a number of issues with this approach.
-One fundamental problem is that not all of the things that participate in dependency resolution are modules in a repository nor
-are they necessarily all versioned. This series of stories changes dependency resolution so that it can deal with things which are not module versions.
-
-The approach here is to introduce the more general concept of a component and base dependency resolution on this concept. Then, different
-types of components will later be introduced to model the different kinds of things that participate in dependency resolution.
-
-In this story, the dependency resolution result is changed so that it produces a graph of component instances, rather than a graph of module versions.
-
-1. Rename `ResolvedModuleVersionResult` to `ResolvedComponentResult`.
-    - Rename the `allModuleVersions` methods on `ResolutionResult` to `allComponents`.
-2. Rename `ModuleVersionSelectionReason` to `ComponentSelectionReason`.
-3. Introduce a `org.gradle.api.artifacts.component.ComponentIdentifier` type.
-    - `displayName` property returns some arbitrary human-consumable value.
-4. Introduce a `ModuleComponentIdentifier` type that extends `ComponentIdentifier` and add an internal implementation.
-    - `group` property
-    - `name` property
-    - `version` property
-5. Introduce a `org.gradle.api.artifacts.component.ComponentSelector` type.
-    - `displayName` property returns some arbitrary human-consumable value.
-6. Introduce a `ModuleComponentSelector` type that extends `ComponentSelector` and add an internal implementation.
-    - `group` property
-    - `name` property
-    - `version` property
-7. Change `ResolvedComponentResult`:
-    - Change `getId()` to return a `ComponentIdentifier`. Implementation should return a `ModuleComponentIdentifier` implementation.
-    - Add `ModuleVersionIdentifier getModuleVersion()`. Mark method as `@Nullable`. Implementation should return the same as
-      value as `getId()` for this story.
-8. Change the methods of `DependencyResult` and `UnresolvedDependencyResult` to use `ComponentSelector` instead of `ModuleVersionSelector`.
-
-### Test coverage
-
-- Nothing beyond some unit tests for the new methods and types.
-
-## Story: Dependency resolution result exposes local component instances (DONE)
-
-This story changes the dependency resolution model to distinguish between component instances that are produced by the build and those that are
-produced outside the build. This will allow IDE integrations to map dependencies by exposing this information about the source of a component
-instance.
-
-This story also changes the dependency resolution model so that local component instances are no longer treated as module versions. Instead, a local project
-path will be used to identify these instances. For now, every local component instance will have an associated (group, module, version) identifier.
-
-1. Introduce a `ProjectComponentIdentifier` type that extends `ComponentIdentifier` and add a private implementation.
-    - `project` property, as the project path.
-    - `displayName` should be something like `project :path`.
-2. Change `ModuleVersionMetaData` to add a `ComponentIdentifier getComponentId()` method.
-    - Default should be a `ModuleComponentIdentifier` with the same attributes as `getId()`.
-    - For project components (as resolved by `ProjectDependencyResolver`) this should return a `ProjectComponentIdentifier` instance.
-3. Change `ResolvedComponentResult` implementations so that:
-    - `getId()` returns the identifier from `ModuleVersionMetaData.getComponentId()`.
-    - `getModuleVersion()` returns a `ModuleVersionIdentifier` with the same attributes as `ModuleVersionMetaData.getId()`.
-4. Introduce `ProjectComponentSelector` type that extends `ComponentSelector` and add a private implementation.
-    - `project` property, as the project path.
-5. Change `DependencyMetaData` to add a `ComponentSelector getSelector()`
-    - Default should be a `ModuleComponentSelector` with the same attributes as `getRequested()`.
-    - For project dependencies this should return a `ProjectComponentSelector` instance.
-
-This will allow a consumer to extract the external and project components as follows:
-
-    def result = configurations.compile.incoming.resolutionResult
-    def projectComponents = result.root.dependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }
-    def externalComponents = result.root.dependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }
-
-### Test coverage
-
-- Need to update the existing tests for the dependency report tasks, as they will now render different values for project dependencies.
-- Update existing integration test cases so that, for the resolution result:
-    - for the root component
-        - `id` is a `ProjectComponentIdentifier` with `project` value referring to the consuming project.
-        - `moduleVersion` is a `ModuleVersionIdentifier` with correct `group`, `module`, `version` values.
-    - for a project dependency
-        - `requested` is a `ProjectComponentSelector` with `project` value referring to the target project.
-    - for a resolved project component
-        - `id` is a `ProjectComponentIdentifier` with `project` value referring to the target project.
-        - `moduleVersion` is a `ModuleVersionIdentifier` with correct `group`, `module`, `version` values.
-    - for an external dependency:
-        - `requested` is a `ModuleComponentSelector` with correct `group`, `module`, `version` values.
-    - for an external module component:
-        - `id` is a `ModuleComponentIdentifier` with correct `group`, `module`, `version` values.
-        - `moduleVersion` has the same attributes as `id`.
+See also the completed stories in [dependency-management.md](done/dependency-management.md).
 
 ## Story: Dependency reports indicate the source of a component
 
@@ -136,18 +53,18 @@ The dependency reporting will change to give some indication of the source of th
 
 For an external component instance, this will be unchanged:
 
-+- group:name:1.2<br>
-+- group:other:1.3 -> group:other:1.3.1
+    +- group:name:1.2
+    +- group:other:1.3 -> group:other:1.3.1
 
 For a local component that is not a module version, this will look something like:
 
-+- project :some:path<br>
-+- project :some:path -> group:other:1.2
+    +- project :some:path
+    +- project :some:path -> group:other:1.2
 
 For a local component that is a module version, this will look something like
 
-+- project :some:path (group:name:1.2)<br>
-+- project :some:path (group:name:1.2) -> group:other:1.2
+    +- project :some:path (group:name:1.2)
+    +- project :some:path (group:name:1.2) -> group:other:1.2
 
 1. Change the `RenderableDependency` hierarchy to use the component id and module version id, if not null.
 2. Update the the dependency report tests as appropriate.
@@ -163,16 +80,12 @@ The HTML dependency report should change in a similar way.
     - There are a mix of external and project dependencies in the graph
     - There are a mix of external and project dependencies in the graph and the `--dependency` option is used.
 
-## Story: IDE plugins use dependency resolution result to determine IDE classpaths
+## Story: IDE plugins use dependency resolution result to determine IDE class paths
 
 This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE project classpath.
 
 - Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
   external dependencies.
-
-### Open issues
-
-- No way to locate artifacts for a component, have to use the component's module version id and match up with the artifact's module version id.
 
 ## Story: Dependency resolution result exposes a consumer that is not a module version
 
@@ -185,6 +98,9 @@ This story exposes different kinds of consumers for a dependency graph.
     - This implementation should use the configuration's display name for the component display name.
 - When there is a project dependency in the graph that refers to the root, the selected component for the dependency should be the same instance
   as `root`.
+- Some internal refactoring to push components down further:
+    - Rename internal class `ModuleVersionSelection` and its methods.
+    - Change `ResolutionResultBuilder` and its implementations to use component id rather than module version id as the key for the graph node.
 
 ### Test coverage
 
@@ -204,10 +120,168 @@ This story exposes different kinds of consumers for a dependency graph.
 - Convenience for selecting things with a given id type or selector type?
 - Rename `DependencyResult` to use 'requirement' instead of 'dependency'.
 - Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
-- Internal changes to push components down further:
-    - Rename internal class `ModuleVersionSelection` and its methods.
-    - Change `ResolutionResultBuilder` and its implementations to use component id rather than module version id as the key for the node.
 - Extract a `ModuleComponentMetadataDetails` out of `ComponentMetadataDetails` and use `ComponentIdentifier` instead of `ModuleVersionIdentifier` as id.
+
+## Story: Allow the artifacts for a component instance to be queried
+
+Currently, there is no way to determine which artifacts in a resolution result are associated with a given component. The artifacts are currently exposed
+as `ResolvedArtifact` instances. These artifacts have a module version identifier associated with them, which is used to match against the component's
+module version identifier. This only work when the component has a module version associated with it, which is not always the case.
+
+TBD: provide some API to query the artifacts associated for a given component instance in a resolution result.
+
+- It should be possible to query only the graph and not the artifacts. This should not download any artifacts.
+- It should be possible to query the artifacts as a single batch, so that, for example, we will be able to resolve and download artifacts
+      in parallel.
+- The API should expose download failures.
+- A component may have zero or more artifacts associated with it.
+
+### Test cases
+
+- Can query the artifacts of an external component.
+- Can query the artifacts of a project component.
+- Can query those artifacts that could not be resolved or downloaded.
+- Caching is applied as appropriate.
+
+## Story: IDE plugins use the resolution result to determine library artifacts
+
+This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
+
+- Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
+  external artifacts.
+
+## Story: Dependency resolution resolves all artifacts as a batch
+
+Change dependency resolution implementation to resolve all artifacts as a single batch, when any artifact is requested.
+
+- Use progress logging to report on the batch resolution progress.
+
+## Story: Profile report displays artifact resolution time
+
+TBD
+
+## Story: Allow the source and Javadoc artifacts for an external Java library to be queried
+
+This story introduces an API which allows the source and Javadoc artifacts for a Java library to be queried
+
+- Should be possible to query the artifacts as a single batch, so that, for example, we will be able to resolve and download artifacts
+  in parallel.
+- The API should expose download failures.
+- A component may have zero or more source artifacts associated with it.
+- A component may have zero or more Javadoc artifacts associated with it.
+- Should introduce the concept of a Java library to the result.
+- Should have something in common with the story to expose component artifacts, above.
+- Initial implementation should use the Maven style convention to currently used by the IDE plugins. The a later story will improve this for Ivy repositories.
+
+### Test cases
+
+- Query the source artifacts only
+- Query the Javadoc artifacts only
+- Query which artifacts could not be resolved or downloaded.
+- Caching is applied as appropriate.
+
+### API design proposals
+
+#### Resolve and iterate over all jvm libraries, without resolving artifacts
+
+Not supported because this API is all about resolving artifacts.
+
+#### Resolve jvm libraries together with their main and source artifacts, iterate over artifacts
+
+```
+def componentIds = ... // ComponentIdentifier's whose artifacts are to be resolved. Can be obtained from `configuration.incoming` API.
+def result = dependencies.createArtifactResolutionQuery()
+  .forComponents(componentIds)
+  .forArtifacts(JvmLibrary, JvmLibraryMainArtifact, JvmLibrarySourceArtifact)
+  .execute()
+for (jvmLibrary in result.getComponents(JvmLibrary)) { // separate type for each type of component
+  for (artifact in jvmLibrary.artifacts) { // separate type for each type of artifact
+    println artifact.id
+    println artifact.file
+  }
+}
+```
+
+#### Resolve jvm libraries together with their main and source artifacts, inspect component resolution failures
+
+```
+def componentIds = ... // ComponentIdentifier's whose artifacts are to be resolved. Can be obtained from `configuration.incoming` API.
+def result = dependencies.createArtifactResolutionQuery()
+  .forComponents(componentIds)
+  .forArtifacts(JvmLibrary) // shorthand for resolving all of the component's artifacts
+  .execute()
+for (component in result.unresolvedComponents) { // same representation for all components
+    println component.id
+    println component.failure
+  }
+}
+```
+
+### Open issues
+
+* API for artifact download failures
+* How to implement API for artifact download failures (`LenientConfiguration` only exposes module resolution failures)
+* How to determine what the main artifacts of a `JvmLibrary` component are (or more specifically, how to deal with Maven artifacts with classifiers;
+  the current API just provides the component ID). Resolving main artifacts isn't required for this story, but is related.
+
+## Story: IDE plugins use the resolution result to determine library source and Javadoc artifacts
+
+This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
+
+- Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the source and Javadoc artifacts.
+- Should ignore project components.
+
+## Story: Dependency resolution uses conventional schemes to locate source and Javadoc artifacts for Ivy modules
+
+This story improves the convention used to locate the source and Javadocs to cover some common Ivy conventions.
+
+### User visible changes
+
+Certain source/javadoc artifacts that were not automatically linked into an IDE project will now be successfully downloaded and linked:
+
+* Artifacts contained in a 'sources' configuration in ivy.xml (or 'javadocs')
+* Artifacts with a 'source' type in ivy.xml (or 'javadoc')
+* ??? Other conventions ???
+
+### Implementation
+
+* Make it possible to use ResolveIvyFactory to create a DependencyToModuleVersionResolver without a configuration: use a default ResolutionStrategy and supplied name.
+* Create a `DependencyMetaData` for each supplied `ModuleComponentIdentifier`, and use this to obtain the ModuleVersionMetaData for the component.
+    * Fail for any other types of `ComponentIdentifier`
+* Add a new method: `ArtifactResolver.resolve(ModuleVersionMetaData, Class<? extends JvmLibraryArtifact>, BuildableMultipleArtifactResolveResult)`
+    * Note that this is a transitional API: long term the second parameter may be generalised in some way
+    * `BuildableMultipleArtifactResolveResult` allows the collection of multiple downloaded artifacts of the type, or multiple failures, or a combination.
+* Add a method to `ModuleVersionRepository` that provides the `ModuleVersionArtifactMetaData` for candidate artifacts
+  given a particular ModuleVersionMetaData + JvmLibraryArtifact class.
+    * This method should not require remote access to the repository.
+    * For `MavenResolver` and `IvyDependencyResolverAdapter`, this would return artifacts defined with the appropriate classifiers.
+    * For `IvyResolver`, this would inspect the `ModuleVersionMetaData` to determine the candidate artifacts.
+    * This method should be used to implement the new `resolve` method on `UserResolverChain.ModuleVersionRepositoryArtifactResolverAdapter`.
+
+### Test cases
+
+* For each defined ivy convention:
+    * Resolve source/javadoc artifacts from Ivy repository
+    * Report on artifacts that are defined in ivy metadata but not found
+    * Report on artifacts that are defined in ivy metadata where download fails
+* Fall back to maven convention if no artifacts defined in custom ivy convention
+* Resolve source/javadoc artifacts by maven conventions where no ivy convention can be used:
+    * Flatdir repository
+    * Ivy repository with no metadata: jar-only
+    * Ivy module with no source/javadoc artifacts defined in metadata
+
+### Open issues
+
+* If the files defined by a ivy-specific scheme are not available, should we then use the maven convention to look for artifacts?
+  Or, for backward-compatibility should we first use the maven scheme, trying the ivy-specific scheme if not found?
+
+## Story: Source and Javadoc artifacts are exposed for a local Java component
+
+TBD
+
+## Story: Source and Javadoc artifacts are published for a Java component
+
+This story changes the `ivy-publish` and `maven-publish` plugins to publish the source and Javadocs for a Java component.
 
 ## Story: Dependency resolution result exposes local component instances that are not module versions
 
@@ -217,16 +291,9 @@ have an associated module version identifier.
 1. Change `ModuleVersionMetaData` to add a `ModuleVersionIdentifier getExternalId()`
     - Initially return the same as `getId()`
     - Change the implementation of `ResolvedComponentResult.getModuleVersion()` to return this value.
-2. Add a private `ProjectPublicationRegistry` service, which collects the outgoing publications for each project. This replaces `ProjectModuleRegistry`.
-   This service is basically a map from project path to something that can produce the component meta data for that project.
-    - When a project is configured, register an implicit component with a null `externalId`.
-    - When an `Upload` task is configured with an ivy repository, register a component with `externalId` = `(project.group, project.name, project.version)`
-    - When an `Upload` task is configured with a `MavenDeployer`, register a component with `externalId` = `(deployer.pom.groupId, deployer.pom.artifactId, deployer.pom.version)`
-    - When an `IvyPublication` is defined, register a component with `externalId` taken from the publication.
-    - When an `MavenPublication` is defined, register a component with `externalId` taken from the publication.
-3. Change `ProjectDependencyResolver` to use this service to determine the identifier and metadata for a project dependency.
-4. Change the dependency tasks so that they handle a component with null `moduleVersion`.
-5. Merge `ProjectDependencyPublicationResolver` into the `ProjectPublicationRegistry` service.
+2. Change `ProjectDependencyResolver` to use the `ProjectPublicationRegistry` service to determine the identifier and metadata for a project dependency, if any.
+3. Change the dependency reporting to handle a component with null `moduleVersion`.
+4. Merge `ProjectDependencyPublicationResolver` into the `ProjectPublicationRegistry` service.
 
 ### Test cases
 
@@ -249,6 +316,23 @@ have an associated module version identifier.
 * Rename and garbage collect internal types.
 * Maybe don't use the new publication stuff until project dependencies are resolved to a component within the project, or until the engine understands multiple
   IDs for conflict resolution.
+
+## Story: Model self resolving dependencies as component instances
+
+Expose self-resolving dependencies as component instances in the resolution result. This will make these dependencies visible via the dependency
+reports.
+
+- Merge the special case resolution algorithm for self-resolving dependencies into the general purpose resolution algorithm.
+- Introduce a new type of component identifier to represent a file-only component.
+- Update dependency reporting to understand this kind of component identifier.
+- Change the IDE dependency extraction so that it uses the resolution result to extract local file dependencies, rather than using the input `Dependency` set.
+
+### Test coverage
+
+- Ensure that the int test coverage for the dependency report, dependency insight report and HTML dependency report all verify that the report can be used
+  with a mix of project, external and file dependencies.
+- Verify that when a local component is replaced by an external component (via conflict resolution or dependency substitution) then none of the files
+  from the local component are included in the result. For example, when a local component includes some file dependency declarations.
 
 ## Story: User guide describes the dependency management problem in terms of components
 
@@ -291,23 +375,6 @@ This story starts to push the resolution mechanism introduced in the above story
 native binary dependencies will be converted to self-resolving dependencies which are then fed into the dependency management engine.
 
 This story is simply a refactoring. No new user-visible behaviour will be added.
-
-## Story: Model self resolving dependencies as component instances
-
-Expose self-resolving dependencies as component instances in the resolution result. This will make these dependencies visible via the dependency
-reports.
-
-- Merge the special case resolution algorithm for self-resolving dependencies into the general purpose resolution algorithm.
-- Introduce a new type of component identifier to represent a file-only component.
-- Update reporting to understand this kind of component identifier.
-- Change the IDE dependency extraction so that it uses the resolution result to extract local file dependencies, rather than using the input `Dependency` set.
-
-### Test coverage
-
-- Ensure that the int test coverage for the dependency report, dependency insight report and HTML dependency report all verify that the report can be used
-  with a mix of project, external and file dependencies.
-- Verify that when a local component is replaced by an external component (via conflict resolution or dependency substitution) then none of the files
-  from the local component are included in the result. For example, when a local component includes some file dependency declarations.
 
 ## Story: Native component dependencies are visible in the dependency reports
 

@@ -16,16 +16,18 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
+import org.gradle.internal.os.OperatingSystem
 
-class ObjectiveCppHelloWorldApp extends HelloWorldApp {
+
+class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     SourceFile getMainSource() {
-        return sourceFile("objectiveCpp", "main.mm", """
+        return sourceFile("objcpp", "main.mm", """
             // Simple hello world app
             #define __STDC_LIMIT_MACROS
             #include <stdint.h>
             #import <Foundation/Foundation.h>
-            #import "hello.h"
+            #include "hello.h"
 
             int main (int argc, const char * argv[])
             {
@@ -51,7 +53,7 @@ class ObjectiveCppHelloWorldApp extends HelloWorldApp {
     }
 
     List<SourceFile> librarySources = [
-            sourceFile("objectiveCpp", "hello.mm", """
+            sourceFile("objcpp", "hello.mm", """
             #define __STDC_LIMIT_MACROS
             #include <stdint.h>
             #include "hello.h"
@@ -76,12 +78,69 @@ class ObjectiveCppHelloWorldApp extends HelloWorldApp {
                 #endif
             }
         """),
-            sourceFile("objectiveCpp", "sum.mm", """
+            sourceFile("objcpp", "sum.mm", """
             #include "hello.h"
-
             int DLL_FUNC sum(int a, int b) {
                 return a + b;
             }
         """)
     ]
+
+    @Override
+    SourceFile getAlternateMainSource() {
+        return sourceFile("objcpp", "main.mm", """
+            // Simple hello world app
+            #define __STDC_LIMIT_MACROS
+            #include <stdint.h>
+            #import <Foundation/Foundation.h>
+            #import <iostream>
+            #import "hello.h"
+
+            int main (int argc, const char * argv[])
+            {
+                std::cout << "${HELLO_WORLD} ${HELLO_WORLD}" << std::endl;
+                return 0;
+            }
+        """);
+    }
+
+    String alternateOutput = "${HELLO_WORLD} ${HELLO_WORLD}\n"
+
+
+    @Override
+    List<SourceFile> getAlternateLibrarySources() {
+        return [
+            sourceFile("objcpp", "hello.mm", """
+            #define __STDC_LIMIT_MACROS
+            #include <stdint.h>
+            #include <iostream>
+            #include "hello.h"
+
+            void DLL_FUNC sayHello() {
+                std::cout << "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}" << std::endl;
+            }
+        """),
+        sourceFile("objcpp", "sum.mm", """
+            #include "hello.h"
+            int DLL_FUNC sum(int a, int b) {
+                return a + b;
+            }
+        """)]
+    }
+
+    String alternateLibraryOutput = "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\n12"
+
+    public String getExtraConfiguration() {
+        def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
+        return """
+            binaries.all {
+                objcppCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                linker.args $linkerArgs
+            }
+        """
+    }
+    @Override
+    List<String> getPluginList() {
+        ['objective-cpp']
+    }
 }

@@ -18,18 +18,19 @@ package org.gradle.nativebinaries.language.c.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.changedetection.state.FileSnapshotter
+import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
+import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
-import org.gradle.cache.CacheRepository
 import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompilerBuilder
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
-import org.gradle.api.internal.tasks.compile.Compiler
 
 import javax.inject.Inject
 /**
@@ -92,8 +93,9 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     List<String> compilerArgs
 
     @Inject
-    AbstractNativeCompileTask(CacheRepository cacheRepository) {
-        incrementalCompilerBuilder = new IncrementalCompilerBuilder(cacheRepository, this)
+    AbstractNativeCompileTask() {
+        incrementalCompilerBuilder = new IncrementalCompilerBuilder(services.get(TaskArtifactStateCacheAccess),
+                                                                    services.get(FileSnapshotter), this)
         includes = project.files()
         source = project.files()
     }

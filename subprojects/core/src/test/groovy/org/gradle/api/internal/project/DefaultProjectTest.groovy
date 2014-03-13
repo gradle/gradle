@@ -31,7 +31,10 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
+import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.initialization.DefaultClassLoaderCache
+import org.gradle.api.internal.initialization.RootClassLoaderScope
+import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
@@ -64,7 +67,7 @@ import java.text.FieldPosition
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-@RunWith (JMock.class)
+@RunWith(JMock.class)
 class DefaultProjectTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
@@ -105,6 +108,8 @@ class DefaultProjectTest {
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
 
+    ClassLoaderScope rootProjectClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, new DefaultClassLoaderCache()).createChild()
+
     @Before
     void setUp() {
         rootDir = new File("/path/root").absoluteFile
@@ -142,16 +147,16 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).getFactory(AntBuilder); will(returnValue(antBuilderFactoryMock))
             allowing(serviceRegistryMock).get(PluginContainer); will(returnValue(pluginContainerMock))
             allowing(serviceRegistryMock).get(ScriptHandler); will(returnValue(scriptHandlerMock))
-            allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
             allowing(serviceRegistryMock).get(LoggingManagerInternal); will(returnValue(loggingManagerMock))
             allowing(serviceRegistryMock).get(StandardOutputCapture); will(returnValue(context.mock(StandardOutputCapture)))
             allowing(serviceRegistryMock).get(ProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
-            allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: { -> "file resolver" }] as FileResolver))
+            allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: {-> "file resolver" }] as FileResolver))
             allowing(serviceRegistryMock).get(Instantiator); will(returnValue(instantiatorMock))
             allowing(serviceRegistryMock).get(FileOperations); will(returnValue(fileOperationsMock))
             allowing(serviceRegistryMock).get(ProcessOperations); will(returnValue(processOperationsMock))
-            allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
+            allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: {-> "script plugin factory" }] as ScriptPluginFactory))
+            allowing(serviceRegistryMock).get(ScriptHandlerFactory); will(returnValue([toString: {-> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get(ProjectConfigurationActionContainer); will(returnValue(configureActions))
             ModelRegistry modelRegistry = context.mock(ModelRegistry)
             ignoring(modelRegistry)
@@ -165,12 +170,13 @@ class DefaultProjectTest {
 
         // TODO - don't decorate the project objects
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
-        project = classGenerator.newInstance(DefaultProject.class, 'root', null, rootDir, script, build, projectServiceRegistryFactoryMock);
-        child1 = classGenerator.newInstance(DefaultProject.class, "child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock)
+        project = classGenerator.newInstance(DefaultProject.class, 'root', null, rootDir, script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope);
+        def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild()
+        child1 = classGenerator.newInstance(DefaultProject.class, "child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock, child1ClassLoaderScope)
         project.addChildProject(child1)
-        childchild = classGenerator.newInstance(DefaultProject.class, "childchild", child1, new File("childchild"), script, build, projectServiceRegistryFactoryMock)
+        childchild = classGenerator.newInstance(DefaultProject.class, "childchild", child1, new File("childchild"), script, build, projectServiceRegistryFactoryMock, child1ClassLoaderScope.createChild())
         child1.addChildProject(childchild)
-        child2 = classGenerator.newInstance(DefaultProject.class, "child2", project, new File("child2"), script, build, projectServiceRegistryFactoryMock)
+        child2 = classGenerator.newInstance(DefaultProject.class, "child2", project, new File("child2"), script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope.createChild())
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
@@ -179,7 +185,8 @@ class DefaultProjectTest {
 
     //TODO please move more coverage to NewDefaultProjectTest
 
-  @Test void testScriptClasspath() {
+    @Test
+    void testScriptClasspath() {
         context.checking {
             one(scriptHandlerMock).getRepositories()
         }
@@ -188,7 +195,8 @@ class DefaultProjectTest {
         }
     }
 
-    @Test void testProject() {
+    @Test
+    void testProject() {
         assertSame project, child1.parent
         assertSame project, child1.rootProject
         checkProject(project, null, 'root', rootDir)
@@ -216,7 +224,8 @@ class DefaultProjectTest {
         assert project.components.is(softwareComponentsMock)
     }
 
-    @Test public void testNullVersionAndStatus() {
+    @Test
+    public void testNullVersionAndStatus() {
         project.version = 'version'
         project.status = 'status'
         assertEquals('version', project.version)
@@ -227,7 +236,8 @@ class DefaultProjectTest {
         assertEquals(Project.DEFAULT_STATUS, project.status)
     }
 
-    @Test void testGetGroup() {
+    @Test
+    void testGetGroup() {
         assertThat(project.getGroup(), equalTo(''))
         assertThat(childchild.getGroup(), equalTo('root.child1'))
 
@@ -238,7 +248,8 @@ class DefaultProjectTest {
         assertThat(child1.getGroup(), equalTo('root'))
     }
 
-    @Test public void testExecutesActionBeforeEvaluation() {
+    @Test
+    public void testExecutesActionBeforeEvaluation() {
         Action<Project> listener = context.mock(Action)
         context.checking {
             one(listener).execute(project)
@@ -247,7 +258,8 @@ class DefaultProjectTest {
         project.projectEvaluationBroadcaster.beforeEvaluate(project)
     }
 
-    @Test public void testExecutesActionAfterEvaluation() {
+    @Test
+    public void testExecutesActionAfterEvaluation() {
         Action<Project> listener = context.mock(Action)
         context.checking {
             one(listener).execute(project)
@@ -256,7 +268,8 @@ class DefaultProjectTest {
         project.projectEvaluationBroadcaster.afterEvaluate(project, null)
     }
 
-    @Test public void testExecutesClosureBeforeEvaluation() {
+    @Test
+    public void testExecutesClosureBeforeEvaluation() {
         TestClosure listener = context.mock(TestClosure)
         context.checking {
             one(listener).call(project)
@@ -266,7 +279,8 @@ class DefaultProjectTest {
         project.projectEvaluationBroadcaster.beforeEvaluate(project)
     }
 
-    @Test public void testExecutesClosureAfterEvaluation() {
+    @Test
+    public void testExecutesClosureAfterEvaluation() {
         TestClosure listener = context.mock(TestClosure)
         context.checking {
             one(listener).call(project)
@@ -276,38 +290,42 @@ class DefaultProjectTest {
         project.projectEvaluationBroadcaster.afterEvaluate(project, null)
     }
 
-    @Test void testEvaluate() {
+    @Test
+    void testEvaluate() {
         context.checking {
             one(projectEvaluator).evaluate(project, project.state)
         }
         assertSame(project, project.evaluate())
     }
 
-    @Test void testUsePluginWithString() {
+    @Test
+    void testUsePluginWithString() {
         context.checking {
             one(pluginContainerMock).apply('someplugin'); will(returnValue([:] as Plugin))
         }
         project.apply(plugin: 'someplugin')
     }
 
-    @Test void testUsePluginWithClass() {
+    @Test
+    void testUsePluginWithClass() {
         context.checking {
             one(pluginContainerMock).apply(Plugin); will(returnValue([:] as Plugin))
         }
         project.apply(plugin: Plugin)
     }
 
-    @Test void testEvaluationDependsOn() {
+    @Test
+    void testEvaluationDependsOn() {
         boolean mockReader2Finished = false
         boolean mockReader1Called = false
-        final ProjectEvaluator mockReader1 = [evaluate: {DefaultProject project, state ->
+        final ProjectEvaluator mockReader1 = [evaluate: { DefaultProject project, state ->
             project.evaluationDependsOn(child1.path)
             assertTrue(mockReader2Finished)
             mockReader1Called = true
             testScript
         }] as ProjectEvaluator
         final ProjectEvaluator mockReader2 = [
-                evaluate: {DefaultProject project, state ->
+                evaluate: { DefaultProject project, state ->
                     mockReader2Finished = true
                     testScript
                 }] as ProjectEvaluator
@@ -323,7 +341,7 @@ class DefaultProjectTest {
         boolean child1MockReaderFinished = false
         boolean child2MockReaderFinished = false
         boolean mockReader1Called = false
-        final ProjectEvaluator mockReader1 = [evaluate: {DefaultProject project, state ->
+        final ProjectEvaluator mockReader1 = [evaluate: { DefaultProject project, state ->
             project.evaluationDependsOnChildren()
             assertTrue(child1MockReaderFinished)
             assertTrue(child2MockReaderFinished)
@@ -331,12 +349,12 @@ class DefaultProjectTest {
             testScript
         }] as ProjectEvaluator
         final ProjectEvaluator mockReader2 = [
-                evaluate: {DefaultProject project, state ->
+                evaluate: { DefaultProject project, state ->
                     child1MockReaderFinished = true
                     testScript
                 }] as ProjectEvaluator
         final ProjectEvaluator mockReader3 = [
-                evaluate: {DefaultProject project, state ->
+                evaluate: { DefaultProject project, state ->
                     child2MockReaderFinished = true
                     testScript
                 }] as ProjectEvaluator
@@ -347,21 +365,24 @@ class DefaultProjectTest {
         assertTrue mockReader1Called
     }
 
-    @Test (expected = InvalidUserDataException) void testEvaluationDependsOnWithNullArgument() {
+    @Test(expected = InvalidUserDataException)
+    void testEvaluationDependsOnWithNullArgument() {
         project.evaluationDependsOn(null)
     }
 
-    @Test (expected = InvalidUserDataException) void testEvaluationDependsOnWithEmptyArgument() {
+    @Test(expected = InvalidUserDataException)
+    void testEvaluationDependsOnWithEmptyArgument() {
         project.evaluationDependsOn('')
     }
 
-    @Test (expected = CircularReferenceException) void testEvaluationDependsOnWithCircularDependency() {
-        final ProjectEvaluator mockReader1 = [evaluate: {DefaultProject project, ProjectState state ->
+    @Test(expected = CircularReferenceException)
+    void testEvaluationDependsOnWithCircularDependency() {
+        final ProjectEvaluator mockReader1 = [evaluate: { DefaultProject project, ProjectState state ->
             state.executing = true
             project.evaluationDependsOn(child1.path)
             testScript
         }] as ProjectEvaluator
-        final ProjectEvaluator mockReader2 = [evaluate: {DefaultProject project, ProjectState state ->
+        final ProjectEvaluator mockReader2 = [evaluate: { DefaultProject project, ProjectState state ->
             state.executing = true
             project.evaluationDependsOn(project.path)
             testScript
@@ -371,9 +392,10 @@ class DefaultProjectTest {
         project.evaluate()
     }
 
-    @Test void testDependsOnWithNoEvaluation() {
+    @Test
+    void testDependsOnWithNoEvaluation() {
         boolean mockReaderCalled = false
-        final ProjectEvaluator mockReader = [evaluateProject: {DefaultProject project ->
+        final ProjectEvaluator mockReader = [evaluateProject: { DefaultProject project ->
             mockReaderCalled = true
             testScript
         }] as ProjectEvaluator
@@ -385,9 +407,10 @@ class DefaultProjectTest {
         assertEquals([child1, child2] as Set, project.dependsOnProjects)
     }
 
-    @Test void testDependsOn() {
+    @Test
+    void testDependsOn() {
         boolean mockReaderCalled = false
-        final ProjectEvaluator mockReader = [evaluate: {DefaultProject project, state ->
+        final ProjectEvaluator mockReader = [evaluate: { DefaultProject project, state ->
             mockReaderCalled = true
             testScript
         }] as ProjectEvaluator
@@ -398,7 +421,8 @@ class DefaultProjectTest {
 
     }
 
-    @Test void testChildrenDependsOnMe() {
+    @Test
+    void testChildrenDependsOnMe() {
         project.childrenDependOnMe()
         assertTrue(child1.dependsOnProjects.contains(project))
         assertTrue(child2.dependsOnProjects.contains(project))
@@ -406,7 +430,8 @@ class DefaultProjectTest {
         assertEquals(1, child2.dependsOnProjects.size())
     }
 
-    @Test void testDependsOnChildren() {
+    @Test
+    void testDependsOnChildren() {
         context.checking {
             never(projectEvaluator).evaluate(child1, child1.state)
         }
@@ -418,7 +443,8 @@ class DefaultProjectTest {
         assertEquals(2, project.dependsOnProjects.size())
     }
 
-    @Test void testDependsOnChildrenIncludingEvaluate() {
+    @Test
+    void testDependsOnChildrenIncludingEvaluate() {
         context.checking {
             one(projectEvaluator).evaluate(child1, child1.state)
             one(projectEvaluator).evaluate(child2, child2.state)
@@ -429,25 +455,30 @@ class DefaultProjectTest {
         assertEquals(2, project.dependsOnProjects.size())
     }
 
-    @Test (expected = InvalidUserDataException) void testDependsOnWithNullPath() {
+    @Test(expected = InvalidUserDataException)
+    void testDependsOnWithNullPath() {
         project.dependsOn(null)
     }
 
-    @Test (expected = InvalidUserDataException) void testDependsOnWithEmptyPath() {
+    @Test(expected = InvalidUserDataException)
+    void testDependsOnWithEmptyPath() {
         project.dependsOn('')
     }
 
-    @Test (expected = UnknownProjectException) void testDependsOnWithUnknownParentPath() {
+    @Test(expected = UnknownProjectException)
+    void testDependsOnWithUnknownParentPath() {
         project.dependsOn(child1.path + 'XXX')
     }
 
-    @Test (expected = UnknownProjectException) void testDependsOnWithUnknownProjectPath() {
+    @Test(expected = UnknownProjectException)
+    void testDependsOnWithUnknownProjectPath() {
         project.dependsOn(child1.name + 'XXX')
     }
 
-    @Test void testAddAndGetChildProject() {
-        ProjectInternal child1 = ['getName': {-> 'child1'}] as ProjectInternal
-        ProjectInternal child2 = ['getName': {-> 'child2'}] as ProjectInternal
+    @Test
+    void testAddAndGetChildProject() {
+        ProjectInternal child1 = ['getName': {-> 'child1' }] as ProjectInternal
+        ProjectInternal child2 = ['getName': {-> 'child2' }] as ProjectInternal
 
         project.addChildProject(child1)
         assertEquals(2, project.childProjects.size())
@@ -458,30 +489,36 @@ class DefaultProjectTest {
         assertSame(child2, project.childProjects.child2)
     }
 
-    @Test public void testDefaultTasks() {
+    @Test
+    public void testDefaultTasks() {
         project.defaultTasks("a", "b");
         assertEquals(["a", "b"], project.getDefaultTasks())
         project.defaultTasks("c");
         assertEquals(["c"], project.getDefaultTasks())
     }
 
-    @Test (expected = InvalidUserDataException) public void testDefaultTasksWithNull() {
+    @Test(expected = InvalidUserDataException)
+    public void testDefaultTasksWithNull() {
         project.defaultTasks(null);
     }
 
-    @Test (expected = InvalidUserDataException) public void testDefaultTasksWithSingleNullValue() {
+    @Test(expected = InvalidUserDataException)
+    public void testDefaultTasksWithSingleNullValue() {
         project.defaultTasks("a", null);
     }
 
-    @Test void testCanAccessTaskAsAProjectProperty() {
+    @Test
+    void testCanAccessTaskAsAProjectProperty() {
         assertThat(project.someTask, sameInstance(testTask))
     }
 
-    @Test (expected = MissingPropertyException) void testPropertyShortCutForTaskCallWithNonExistingTask() {
+    @Test(expected = MissingPropertyException)
+    void testPropertyShortCutForTaskCallWithNonExistingTask() {
         project.unknownTask
     }
 
-    @Test (expected = MissingMethodException) void testMethodShortCutForTaskCallWithNonExistingTask() {
+    @Test(expected = MissingMethodException)
+    void testMethodShortCutForTaskCallWithNonExistingTask() {
         project.unknownTask([dependsOn: '/task2'])
     }
 
@@ -494,12 +531,14 @@ class DefaultProjectTest {
 
     }
 
-    @Test void testPath() {
+    @Test
+    void testPath() {
         assertEquals(Project.PATH_SEPARATOR + "child1", child1.path)
         assertEquals(Project.PATH_SEPARATOR, project.path)
     }
 
-    @Test void testGetProject() {
+    @Test
+    void testGetProject() {
         assertSame(project, project.project(Project.PATH_SEPARATOR))
         assertSame(child1, project.project(Project.PATH_SEPARATOR + "child1"))
         assertSame(child1, project.project("child1"))
@@ -507,7 +546,8 @@ class DefaultProjectTest {
         assertSame(child1, childchild.project(Project.PATH_SEPARATOR + "child1"))
     }
 
-    @Test void testGetProjectWithUnknownAbsolutePath() {
+    @Test
+    void testGetProjectWithUnknownAbsolutePath() {
         try {
             project.project(Project.PATH_SEPARATOR + "unknownchild")
             fail()
@@ -516,7 +556,8 @@ class DefaultProjectTest {
         }
     }
 
-    @Test void testGetProjectWithUnknownRelativePath() {
+    @Test
+    void testGetProjectWithUnknownRelativePath() {
         try {
             project.project("unknownchild")
             fail()
@@ -525,15 +566,18 @@ class DefaultProjectTest {
         }
     }
 
-    @Test (expected = InvalidUserDataException) void testGetProjectWithEmptyPath() {
+    @Test(expected = InvalidUserDataException)
+    void testGetProjectWithEmptyPath() {
         project.project("")
     }
 
-    @Test (expected = InvalidUserDataException) void testGetProjectWithNullPath() {
+    @Test(expected = InvalidUserDataException)
+    void testGetProjectWithNullPath() {
         project.project(null)
     }
 
-    @Test void testFindProject() {
+    @Test
+    void testFindProject() {
         assertSame(project, project.findProject(Project.PATH_SEPARATOR))
         assertSame(child1, project.findProject(Project.PATH_SEPARATOR + "child1"))
         assertSame(child1, project.findProject("child1"))
@@ -541,15 +585,18 @@ class DefaultProjectTest {
         assertSame(child1, childchild.findProject(Project.PATH_SEPARATOR + "child1"))
     }
 
-    @Test void testFindProjectWithUnknownAbsolutePath() {
+    @Test
+    void testFindProjectWithUnknownAbsolutePath() {
         assertNull(project.findProject(Project.PATH_SEPARATOR + "unknownchild"))
     }
 
-    @Test void testFindProjectWithUnknownRelativePath() {
+    @Test
+    void testFindProjectWithUnknownRelativePath() {
         assertNull(project.findProject("unknownChild"))
     }
 
-    @Test void testGetProjectWithClosure() {
+    @Test
+    void testGetProjectWithClosure() {
         String newPropValue = 'someValue'
         assert child1.is(project.project("child1") {
             newProp = newPropValue
@@ -557,7 +604,8 @@ class DefaultProjectTest {
         assertEquals(child1.newProp, newPropValue)
     }
 
-    @Test void testGetAllTasksRecursive() {
+    @Test
+    void testGetAllTasksRecursive() {
         Task projectTask = TestUtil.createTask(DefaultTask.class)
         Task child1Task = TestUtil.createTask(DefaultTask.class)
         Task child2Task = TestUtil.createTask(DefaultTask.class)
@@ -582,7 +630,8 @@ class DefaultProjectTest {
         assertEquals(expectedMap, project.getAllTasks(true))
     }
 
-    @Test void testGetAllTasksNonRecursive() {
+    @Test
+    void testGetAllTasksNonRecursive() {
         Task projectTask = TestUtil.createTask(DefaultTask.class)
 
         Map expectedMap = new TreeMap()
@@ -596,7 +645,8 @@ class DefaultProjectTest {
         assertEquals(expectedMap, project.getAllTasks(false))
     }
 
-    @Test void testGetTasksByNameRecursive() {
+    @Test
+    void testGetTasksByNameRecursive() {
         Task projectTask = TestUtil.createTask(DefaultTask.class)
         Task child1Task = TestUtil.createTask(DefaultTask.class)
 
@@ -610,7 +660,8 @@ class DefaultProjectTest {
         assertEquals([projectTask, child1Task] as Set, project.getTasksByName('task', true))
     }
 
-    @Test void testGetTasksByNameNonRecursive() {
+    @Test
+    void testGetTasksByNameNonRecursive() {
         Task projectTask = TestUtil.createTask(DefaultTask.class)
 
         context.checking {
@@ -620,15 +671,18 @@ class DefaultProjectTest {
         assertEquals([projectTask] as Set, project.getTasksByName('task', false))
     }
 
-    @Test (expected = InvalidUserDataException) void testGetTasksWithEmptyName() {
+    @Test(expected = InvalidUserDataException)
+    void testGetTasksWithEmptyName() {
         project.getTasksByName('', true)
     }
 
-    @Test (expected = InvalidUserDataException) void testGetTasksWithNullName() {
+    @Test(expected = InvalidUserDataException)
+    void testGetTasksWithNullName() {
         project.getTasksByName(null, true)
     }
 
-    @Test void testGetTasksWithUnknownName() {
+    @Test
+    void testGetTasksWithUnknownName() {
         context.checking {
             allowing(taskContainerMock).findByName('task'); will(returnValue(null))
         }
@@ -639,7 +693,7 @@ class DefaultProjectTest {
 
     private List addTestTaskToAllProjects(String name) {
         List tasks = []
-        project.allprojects.each {Project project ->
+        project.allprojects.each { Project project ->
             tasks << addTestTask(project, name)
         }
         tasks
@@ -649,9 +703,10 @@ class DefaultProjectTest {
         new DefaultTask(project, name)
     }
 
-    @Test void testMethodMissing() {
+    @Test
+    void testMethodMissing() {
         boolean closureCalled = false
-        Closure testConfigureClosure = {closureCalled = true}
+        Closure testConfigureClosure = { closureCalled = true }
         project.someTask(testConfigureClosure)
         assert closureCalled
 
@@ -671,7 +726,8 @@ def scriptMethod(Closure closure) {
         TestUtil.createScript(code)
     }
 
-    @Test void testSetPropertyAndPropertyMissingWithProjectProperty() {
+    @Test
+    void testSetPropertyAndPropertyMissingWithProjectProperty() {
         String propertyName = 'propName'
         String expectedValue = 'somevalue'
 
@@ -680,7 +736,8 @@ def scriptMethod(Closure closure) {
         assertEquals(expectedValue, child1."$propertyName")
     }
 
-    @Test void testPropertyMissingWithExistingConventionProperty() {
+    @Test
+    void testPropertyMissingWithExistingConventionProperty() {
         String propertyName = 'conv'
         String expectedValue = 'somevalue'
         project.convention.plugins.test = new TestConvention()
@@ -690,7 +747,8 @@ def scriptMethod(Closure closure) {
         assertEquals(expectedValue, child1."$propertyName")
     }
 
-    @Test void testSetPropertyAndPropertyMissingWithConventionProperty() {
+    @Test
+    void testSetPropertyAndPropertyMissingWithConventionProperty() {
         String expectedValue = 'somevalue'
         project.convention.plugins.test = new TestConvention()
         project.conv = expectedValue
@@ -699,7 +757,8 @@ def scriptMethod(Closure closure) {
         assertEquals(expectedValue, child1.conv)
     }
 
-    @Test void testSetPropertyAndPropertyMissingWithProjectAndConventionProperty() {
+    @Test
+    void testSetPropertyAndPropertyMissingWithProjectAndConventionProperty() {
         String propertyName = 'archivesBaseName'
         String expectedValue = 'somename'
 
@@ -711,18 +770,20 @@ def scriptMethod(Closure closure) {
         assertEquals('someothername', project.convention."$propertyName")
     }
 
-    @Test void testPropertyMissingWithNullProperty() {
+    @Test
+    void testPropertyMissingWithNullProperty() {
         project.nullProp = null
         assertNull(project.nullProp)
         assert project.hasProperty('nullProp')
     }
 
-    @Test (expected = MissingPropertyException)
+    @Test(expected = MissingPropertyException)
     public void testPropertyMissingWithUnknownProperty() {
         project.unknownProperty
     }
 
-    @Test void testHasProperty() {
+    @Test
+    void testHasProperty() {
         assertTrue(project.hasProperty('name'))
         String propertyName = 'beginIndex'
         assertFalse(project.hasProperty(propertyName))
@@ -734,12 +795,13 @@ def scriptMethod(Closure closure) {
         assertTrue(child1.hasProperty(propertyName))
     }
 
-    @Test void testProperties() {
+    @Test
+    void testProperties() {
         context.checking {
             allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue({} as ModuleInternal))
             ignoring(fileOperationsMock)
             ignoring(taskContainerMock)
-            allowing(serviceRegistryMock).get(ServiceRegistryFactory); will (returnValue({} as ServiceRegistryFactory))
+            allowing(serviceRegistryMock).get(ServiceRegistryFactory); will(returnValue({} as ServiceRegistryFactory))
         }
         project.additional = 'additional'
 
@@ -749,38 +811,45 @@ def scriptMethod(Closure closure) {
         assertSame(properties['someTask'], testTask)
     }
 
-    @Test void testAdditionalPropertiesAreInheritable() {
+    @Test
+    void testAdditionalPropertiesAreInheritable() {
         project.somename = 'somevalue'
         assertTrue(project.inheritedScope.hasProperty('somename'))
         assertEquals(project.inheritedScope.getProperty('somename'), 'somevalue')
     }
 
-    @Test void testConventionPropertiesAreInheritable() {
+    @Test
+    void testConventionPropertiesAreInheritable() {
         project.convention.plugins.test = new TestConvention()
         project.convention.plugins.test.conv = 'somevalue'
         assertTrue(project.inheritedScope.hasProperty('conv'))
         assertEquals(project.inheritedScope.getProperty('conv'), 'somevalue')
     }
 
-    @Test void testInheritedPropertiesAreInheritable() {
+    @Test
+    void testInheritedPropertiesAreInheritable() {
         project.somename = 'somevalue'
         assertTrue(child1.inheritedScope.hasProperty('somename'))
         assertEquals(child1.inheritedScope.getProperty('somename'), 'somevalue')
     }
 
-    @Test void testGetProjectProperty() {
+    @Test
+    void testGetProjectProperty() {
         assert project.is(project.getProject())
     }
 
-    @Test void testAllprojectsField() {
+    @Test
+    void testAllprojectsField() {
         assertEquals(getListWithAllProjects(), project.allprojects)
     }
 
-    @Test void testChildren() {
+    @Test
+    void testChildren() {
         assertEquals(getListWithAllChildProjects(), project.subprojects)
     }
 
-    @Test void testBuildDir() {
+    @Test
+    void testBuildDir() {
         File dir = new File(rootDir, 'dir')
         context.checking {
             one(fileOperationsMock).file(Project.DEFAULT_BUILD_DIR_NAME)
@@ -796,7 +865,8 @@ def scriptMethod(Closure closure) {
         assertEquals(dir, child1.buildDir)
     }
 
-    @Test public void testDir() {
+    @Test
+    public void testDir() {
         Task dirTask1 = TestUtil.createTask(Directory.class)
         Task dirTask12 = TestUtil.createTask(Directory.class)
         Task dirTask123 = TestUtil.createTask(Directory.class)
@@ -811,7 +881,8 @@ def scriptMethod(Closure closure) {
         assertSame(dirTask123, project.dir('dir1/dir2/dir3'));
     }
 
-    @Test public void testDirWithExistingParentDirTask() {
+    @Test
+    public void testDirWithExistingParentDirTask() {
         Task dirTask1 = TestUtil.createTask(Directory.class)
         context.checking {
             one(taskContainerMock).findByName('dir1'); will(returnValue(null))
@@ -828,7 +899,8 @@ def scriptMethod(Closure closure) {
         assertSame(dirTask14, project.dir('dir1/dir4'))
     }
 
-    @Test public void testDirWithConflictingNonDirTask() {
+    @Test
+    public void testDirWithConflictingNonDirTask() {
         Task dirTask14 = TestUtil.createTask(DefaultTask.class)
 
         Task dirTask1 = TestUtil.createTask(Directory.class)
@@ -846,54 +918,64 @@ def scriptMethod(Closure closure) {
         }
     }
 
-    @Test void testCachingOfAnt() {
+    @Test
+    void testCachingOfAnt() {
         assertSame(testAntBuilder, project.ant)
         assert project.ant.is(project.ant)
     }
 
-    @Test void testAnt() {
-        Closure configureClosure = {fileset(dir: 'dir', id: 'fileset')}
+    @Test
+    void testAnt() {
+        Closure configureClosure = { fileset(dir: 'dir', id: 'fileset') }
         project.ant(configureClosure)
         assertThat(project.ant.project.getReference('fileset'), instanceOf(FileSet))
     }
 
-    @Test void testCreateAntBuilder() {
+    @Test
+    void testCreateAntBuilder() {
         assertSame testAntBuilder, project.createAntBuilder()
     }
 
-    @Test void testCompareTo() {
+    @Test
+    void testCompareTo() {
         assertThat(project, lessThan(child1))
         assertThat(child1, lessThan(child2))
         assertThat(child1, lessThan(childchild))
         assertThat(child2, lessThan(childchild))
     }
 
-    @Test void testDepthCompare() {
+    @Test
+    void testDepthCompare() {
         assertTrue(project.depthCompare(child1) < 0)
         assertTrue(child1.depthCompare(project) > 0)
         assertTrue(child1.depthCompare(child2) == 0)
     }
 
-    @Test void testDepth() {
+    @Test
+    void testDepth() {
         assertTrue(project.depth == 0)
         assertTrue(child1.depth == 1)
         assertTrue(child2.depth == 1)
         assertTrue(childchild.depth == 2)
     }
 
-    @Test void testSubprojects() {
+    @Test
+    void testSubprojects() {
         checkConfigureProject('subprojects', listWithAllChildProjects)
     }
 
-    @Test void testAllprojects() {
+    @Test
+    void testAllprojects() {
         checkConfigureProject('allprojects', listWithAllProjects)
     }
 
-    @Test void testConfigureProjects() {
+    @Test
+    void testConfigureProjects() {
         checkConfigureProject('configure', [project, child1] as Set)
     }
 
-    @Test void testHasUsefulToString() {
+    @Test
+    void testHasUsefulToString() {
         assertEquals('root project \'root\'', project.toString())
         assertEquals('project \':child1\'', child1.toString())
         assertEquals('project \':child1:childchild\'', childchild.toString())
@@ -908,9 +990,9 @@ def scriptMethod(Closure closure) {
                     }
         } else {
             project."$configureMethod"(
-            {
-                testSubProp = propValue
-            })
+                    {
+                        testSubProp = propValue
+                    })
         }
 
         projectsToCheck.each {
@@ -927,11 +1009,13 @@ def scriptMethod(Closure closure) {
         assertEquals(expectedPoint, actualPoint)
     }
 
-    @Test(expected = ReadOnlyPropertyException) void setName() {
+    @Test(expected = ReadOnlyPropertyException)
+    void setName() {
         project.name = "someNewName"
     }
 
-    @Test void testGetModule() {
+    @Test
+    void testGetModule() {
         ModuleInternal moduleDummyResolve = new ProjectBackedModule(project)
         context.checking {
             allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue(moduleDummyResolve))
@@ -939,26 +1023,30 @@ def scriptMethod(Closure closure) {
         assertThat(project.getModule(), equalTo(moduleDummyResolve))
     }
 
-    @Test void convertsAbsolutePathToAbsolutePath() {
+    @Test
+    void convertsAbsolutePathToAbsolutePath() {
         assertThat(project.absoluteProjectPath(':'), equalTo(':'))
         assertThat(project.absoluteProjectPath(':other'), equalTo(':other'))
         assertThat(child1.absoluteProjectPath(':'), equalTo(':'))
         assertThat(child1.absoluteProjectPath(':other'), equalTo(':other'))
     }
 
-    @Test void convertsRelativePathToAbsolutePath() {
+    @Test
+    void convertsRelativePathToAbsolutePath() {
         assertThat(project.absoluteProjectPath('task'), equalTo(':task'))
         assertThat(project.absoluteProjectPath('sub:other'), equalTo(':sub:other'))
         assertThat(child1.absoluteProjectPath('task'), equalTo(':child1:task'))
         assertThat(child1.absoluteProjectPath('sub:other'), equalTo(':child1:sub:other'))
     }
 
-    @Test void convertsRelativePathToRelativePath() {
+    @Test
+    void convertsRelativePathToRelativePath() {
         assertThat(project.relativeProjectPath('task'), equalTo('task'))
         assertThat(project.relativeProjectPath('sub:other'), equalTo('sub:other'))
     }
 
-    @Test void convertsAbsolutePathToRelativePath() {
+    @Test
+    void convertsAbsolutePathToRelativePath() {
         assertThat(project.relativeProjectPath(':'), equalTo(':'))
         assertThat(project.relativeProjectPath(':task'), equalTo('task'))
         assertThat(project.relativeProjectPath(':sub:other'), equalTo('sub:other'))
@@ -968,7 +1056,8 @@ def scriptMethod(Closure closure) {
         assertThat(child1.relativeProjectPath(':sub:other'), equalTo(':sub:other'))
     }
 
-    @Test void createsADomainObjectContainer() {
+    @Test
+    void createsADomainObjectContainer() {
         def container = context.mock(FactoryNamedDomainObjectContainer)
         context.checking {
             allowing(instantiatorMock).newInstance(withParam(equalTo(FactoryNamedDomainObjectContainer)), withParam(notNullValue()))
@@ -976,14 +1065,14 @@ def scriptMethod(Closure closure) {
         }
         assertThat(project.container(String.class), sameInstance(container))
         assertThat(project.container(String.class, context.mock(NamedDomainObjectFactory.class)), sameInstance(container))
-        assertThat(project.container(String.class, { }), sameInstance(container))
+        assertThat(project.container(String.class, {}), sameInstance(container))
     }
 
 }
 
 class TaskContainerDynamicObject {
     Task someTask
-    
+
     def someTask(Closure closure) {
         closure.call()
     }

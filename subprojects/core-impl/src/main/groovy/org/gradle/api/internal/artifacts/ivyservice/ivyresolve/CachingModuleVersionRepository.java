@@ -16,55 +16,62 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
 
 public class CachingModuleVersionRepository implements LocalAwareModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleVersionRepository.class);
 
-    private final ModuleResolutionCache moduleResolutionCache;
+    private final ModuleVersionsCache moduleVersionsCache;
     private final ModuleMetaDataCache moduleMetaDataCache;
     private final CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex;
-    private final DependencyToModuleVersionResolver resolver;
 
     private final CachePolicy cachePolicy;
 
     private final ModuleVersionRepository delegate;
     private final BuildCommencedTimeProvider timeProvider;
+    private final ModuleMetadataProcessor metadataProcessor;
+    private final Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor;
 
-    public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleMetaDataCache moduleMetaDataCache,
+    public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                           CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
-                                          DependencyToModuleVersionResolver resolver,
-                                          CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider) {
+                                          CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
+                                          ModuleMetadataProcessor metadataProcessor, Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor) {
         this.delegate = delegate;
         this.moduleMetaDataCache = moduleMetaDataCache;
-        this.moduleResolutionCache = moduleResolutionCache;
+        this.moduleVersionsCache = moduleVersionsCache;
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
-        this.resolver = resolver;
         this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
+        this.metadataProcessor = metadataProcessor;
+        this.moduleExtractor = moduleExtractor;
     }
 
     public String getId() {
@@ -80,9 +87,48 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return "Caching " + delegate.toString();
     }
 
+    public void localListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        ModuleVersionSelector requested = dependency.getRequested();
+        final ModuleIdentifier moduleId = moduleExtractor.transform(requested);
+        ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
+        if (cachedModuleVersionList != null) {
+            ModuleVersionListing versionList = cachedModuleVersionList.getModuleVersions();
+            Set<ModuleVersionIdentifier> versions = CollectionUtils.collect(versionList.getVersions(), new Transformer<ModuleVersionIdentifier, Versioned>() {
+                public ModuleVersionIdentifier transform(Versioned original) {
+                    return new DefaultModuleVersionIdentifier(moduleId, original.getVersion());
+                }
+            });
+            if (cachePolicy.mustRefreshVersionList(moduleId, versions, cachedModuleVersionList.getAgeMillis())) {
+                LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
+            } else {
+                if (cachedModuleVersionList.getAgeMillis() == 0) {
+                    // Verified since the start of this build, assume still missing
+                    result.listed(versionList);
+                } else {
+                    // Was missing last time we checked
+                    result.probablyListed(versionList);
+                }
+            }
+        }
+    }
+
+    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        delegate.listModuleVersions(dependency, result);
+        switch (result.getState()) {
+            case Listed:
+                ModuleIdentifier moduleId = moduleExtractor.transform(dependency.getRequested());
+                ModuleVersionListing versionList = result.getVersions();
+                moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
+                break;
+            case Failed:
+                break;
+            default:
+                throw new IllegalStateException("Unexpected state on listModuleVersions: " + result.getState());
+        }
+    }
+
     public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        DependencyMetaData resolvedDependency = maybeUseCachedDynamicVersion(delegate, dependency);
-        lookupModuleInCache(delegate, resolvedDependency, result);
+        lookupModuleInCache(delegate, dependency, result);
     }
 
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
@@ -96,10 +142,10 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
                 break;
             case Resolved:
                 MutableModuleVersionMetaData metaData = result.getMetaData();
-                moduleResolutionCache.cacheModuleResolution(delegate, dependency.getRequested(), metaData.getId());
                 ModuleSource moduleSource = result.getModuleSource();
                 ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData, moduleSource);
-                result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging() || dependency.isChanging(), moduleSource));
+                metadataProcessor.process(metaData);
+                result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), dependency.isChanging() || metaData.isChanging(), moduleSource));
                 break;
             case Failed:
                 break;
@@ -108,26 +154,10 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
     }
 
-    private DependencyMetaData maybeUseCachedDynamicVersion(ModuleVersionRepository repository, DependencyMetaData original) {
-        ModuleVersionSelector requested = original.getRequested();
-        ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = moduleResolutionCache.getCachedModuleResolution(repository, requested);
-        if (cachedModuleResolution != null && cachedModuleResolution.isDynamicVersion()) {
-            ModuleVersionIdentifier resolvedVersion = cachedModuleResolution.getResolvedVersion();
-            if (cachePolicy.mustRefreshDynamicVersion(requested, resolvedVersion, cachedModuleResolution.getAgeMillis())) {
-                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, repository.getName());
-                return original;
-            } else {
-                LOGGER.debug("Found resolved revision in dynamic revision cache of '{}': Using '{}' for '{}'", repository.getName(), cachedModuleResolution.getResolvedVersion(), requested);
-                return original.withRequestedVersion(DefaultModuleVersionSelector.newSelector(resolvedVersion.getGroup(), resolvedVersion.getName(), resolvedVersion.getVersion()));
-            }
-        }
-        return original;
-    }
-
-    public void lookupModuleInCache(ModuleVersionRepository repository, DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+    private void lookupModuleInCache(ModuleVersionRepository repository, DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         ModuleRevisionId resolvedModuleVersionId = dependency.getDescriptor().getDependencyRevisionId();
         ModuleVersionIdentifier moduleVersionIdentifier = newId(resolvedModuleVersionId);
-        ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.getCachedModuleDescriptor(repository, moduleVersionIdentifier, resolver);
+        ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.getCachedModuleDescriptor(repository, moduleVersionIdentifier);
         if (cachedMetaData == null) {
             return;
         }
@@ -146,7 +176,9 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             }
             return;
         }
-        if (cachedMetaData.getMetaData().isChanging() || dependency.isChanging()) {
+        MutableModuleVersionMetaData metaData = cachedMetaData.getMetaData();
+        metadataProcessor.process(metaData);
+        if (dependency.isChanging() || metaData.isChanging()) {
             if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
                 return;
@@ -160,7 +192,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
 
         LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
-        result.resolved(cachedMetaData.getMetaData(), new CachingModuleSource(cachedMetaData.getDescriptorHash(), cachedMetaData.getMetaData().isChanging(), cachedMetaData.getModuleSource()));
+        result.resolved(metaData, new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), cachedMetaData.getModuleSource()));
     }
 
     public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
@@ -197,6 +229,10 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         } else {
             artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, result.getFile(), descriptorHash);
         }
+    }
+
+    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
+        return delegate.getCandidateArtifacts(module, artifactType);
     }
 
     static class CachingModuleSource implements ModuleSource {

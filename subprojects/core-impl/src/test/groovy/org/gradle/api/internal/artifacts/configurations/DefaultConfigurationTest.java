@@ -332,8 +332,10 @@ public class DefaultConfigurationTest {
 
     private void prepareResolve(final ResolvedConfiguration resolvedConfiguration, final boolean withErrors) {
         context.checking(new Expectations() {{
+            ResolverResults result = new ResolverResults();
+            result.resolved(resolvedConfiguration, context.mock(ResolutionResult.class));
             allowing(dependencyResolver).resolve(configuration);
-            will(returnValue(new ResolverResults(resolvedConfiguration, context.mock(ResolutionResult.class))));
+            will(returnValue(result));
             allowing(resolvedConfiguration).hasError();
             will(returnValue(withErrors));
         }});

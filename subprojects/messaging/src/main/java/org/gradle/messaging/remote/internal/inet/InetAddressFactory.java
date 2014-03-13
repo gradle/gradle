@@ -34,7 +34,6 @@ public class InetAddressFactory {
     private final Object lock = new Object();
     private List<InetAddress> localAddresses;
     private List<InetAddress> remoteAddresses;
-    private Collection<InetAddress> allAddresses;
 
     /**
      * Determines the name of the local machine.
@@ -54,7 +53,7 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                return allAddresses.contains(address);
+                return localAddresses.contains(address);
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not determine the IP addresses for this machine.", e);
@@ -113,14 +112,13 @@ public class InetAddressFactory {
 
         localAddresses = new ArrayList<InetAddress>();
         remoteAddresses = new ArrayList<InetAddress>();
-        allAddresses = new HashSet<InetAddress>();
 
         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
         while (interfaces.hasMoreElements()) {
             NetworkInterface networkInterface = interfaces.nextElement();
             LOGGER.debug("Adding IP addresses for network interface {}", networkInterface.getName());
             try {
-                Boolean isLoopbackInterface = null;
+                Boolean isLoopbackInterface;
                 try {
                     isLoopbackInterface = loopbackMethod == null ? null : (Boolean) loopbackMethod.invoke(networkInterface);
                 } catch (InvocationTargetException e) {
@@ -135,7 +133,6 @@ public class InetAddressFactory {
                 Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
                 while (candidates.hasMoreElements()) {
                     InetAddress candidate = candidates.nextElement();
-                    allAddresses.add(candidate);
                     if (isLoopbackInterface == null) {
                         // Don't know if this is a loopback interface or not
                         if (candidate.isLoopbackAddress()) {

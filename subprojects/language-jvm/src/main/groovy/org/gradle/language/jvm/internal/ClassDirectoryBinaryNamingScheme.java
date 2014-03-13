@@ -20,6 +20,9 @@ import org.gradle.api.Nullable;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.util.GUtil;
 
+import java.util.Collections;
+import java.util.List;
+
 class ClassDirectoryBinaryNamingScheme implements BinaryNamingScheme {
     private final String baseName;
     private final String collapsedName;
@@ -35,6 +38,10 @@ class ClassDirectoryBinaryNamingScheme implements BinaryNamingScheme {
 
     public String getDescription() {
         return String.format("classes '%s'", baseName);
+    }
+
+    public List<String> getVariantDimensions() {
+        return Collections.emptyList();
     }
 
     public String getLifecycleTaskName() {

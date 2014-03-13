@@ -22,7 +22,7 @@ import java.io.File;
 public enum CacheLayout {
     ROOT(null, "modules", 2),
     FILE_STORE(ROOT, "files", 1),
-    META_DATA(ROOT, "metadata", 2);
+    META_DATA(ROOT, "metadata", 3);
 
     private final String name;
     private final CacheLayout parent;

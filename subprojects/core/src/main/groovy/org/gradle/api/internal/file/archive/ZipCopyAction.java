@@ -16,12 +16,14 @@
 package org.gradle.api.internal.file.archive;
 
 import org.apache.tools.zip.UnixStat;
+import org.apache.tools.zip.Zip64RequiredException;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.internal.IoActions;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
@@ -29,16 +31,20 @@ import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.internal.IoActions;
 
 import java.io.File;
 
 public class ZipCopyAction implements CopyAction {
     private final File zipFile;
     private final ZipCompressor compressor;
+    private final DocumentationRegistry documentationRegistry;
 
-    public ZipCopyAction(File zipFile, ZipCompressor compressor) {
+    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry) {
         this.zipFile = zipFile;
         this.compressor = compressor;
+        this.documentationRegistry = documentationRegistry;
     }
 
     public WorkResult execute(final CopyActionProcessingStream stream) {
@@ -50,11 +56,19 @@ public class ZipCopyAction implements CopyAction {
             throw new GradleException(String.format("Could not create ZIP '%s'.", zipFile), e);
         }
 
-        IoActions.withResource(zipOutStr, new Action<ZipOutputStream>() {
-            public void execute(ZipOutputStream outputStream) {
-                stream.process(new StreamAction(outputStream));
+        try {
+            IoActions.withResource(zipOutStr, new Action<ZipOutputStream>() {
+                public void execute(ZipOutputStream outputStream) {
+                    stream.process(new StreamAction(outputStream));
+                }
+            });
+        } catch (UncheckedIOException e) {
+            if (e.getCause() instanceof Zip64RequiredException) {
+                throw new org.gradle.api.tasks.bundling.internal.Zip64RequiredException(
+                        String.format("%s\n\nTo build this archive, please enable the zip64 extension.\nSee: %s", e.getCause().getMessage(), documentationRegistry.getDslRefForProperty(Zip.class, "zip64"))
+                );
             }
-        });
+        }
 
         return new SimpleWorkResult(true);
     }

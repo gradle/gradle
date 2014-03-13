@@ -23,10 +23,7 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.project.DefaultIsolatedAntBuilder
-import org.gradle.api.internal.project.IProjectFactory
-import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.api.internal.project.ProjectFactory
+import org.gradle.api.internal.project.*
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
@@ -39,11 +36,8 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory
 import org.gradle.initialization.*
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
-import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.invocation.BuildClassLoaderRegistry
-import org.gradle.invocation.DefaultBuildClassLoaderRegistry
 import org.gradle.listener.DefaultListenerManager
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
@@ -84,6 +78,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(FileResolver) >> Stub(FileResolver)
         parent.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
         parent.get(CacheFactory) >> Stub(CacheFactory)
+        parent.get(DocumentationRegistry) >> new DocumentationRegistry()
     }
 
     def delegatesToParentForUnknownService() {
@@ -125,6 +120,25 @@ public class BuildScopeServicesTest extends Specification {
         registry instanceof GradleScopeServices
     }
 
+    def "closing the registry closes gradle scoped services, closing project services"() {
+        given:
+        GradleInternal gradle = Mock()
+        def gradleRegistry = registry.get(ServiceRegistryFactory).createFor(gradle)
+        def project = Mock(ProjectInternal)
+        def projectRegistry = gradleRegistry.get(ServiceRegistryFactory).createFor(project)
+
+        expect:
+        !gradleRegistry.closed
+        !projectRegistry.closed
+
+        when:
+        registry.close()
+
+        then:
+        gradleRegistry.closed
+        projectRegistry.closed
+    }
+
     def canCreateServicesForASettingsInstance() {
         setup:
         SettingsInternal settings = Mock()
@@ -158,7 +172,6 @@ public class BuildScopeServicesTest extends Specification {
     def providesAnInitScriptHandler() {
         setup:
         allowGetCoreImplClassLoader()
-        expectScriptClassLoaderCreated()
         expectListenerManagerCreated()
         allowGetGradleDistributionLocator()
 
@@ -171,7 +184,6 @@ public class BuildScopeServicesTest extends Specification {
         setup:
         allowGetCoreImplClassLoader()
         expectListenerManagerCreated()
-        expectScriptClassLoaderCreated()
         expect:
         assertThat(registry.get(ScriptPluginFactory), instanceOf(DefaultScriptPluginFactory))
         assertThat(registry.get(ScriptPluginFactory), sameInstance(registry.get(ScriptPluginFactory)))
@@ -181,7 +193,6 @@ public class BuildScopeServicesTest extends Specification {
         setup:
         allowGetCoreImplClassLoader()
         expectListenerManagerCreated()
-        expectScriptClassLoaderCreated()
         expect:
         assertThat(registry.get(SettingsProcessor), instanceOf(PropertiesLoadingSettingsProcessor))
         assertThat(registry.get(SettingsProcessor), sameInstance(registry.get(SettingsProcessor)))
@@ -254,10 +265,14 @@ public class BuildScopeServicesTest extends Specification {
         assertThat(registry.get(ProfileEventAdapter), sameInstance(registry.get(ProfileEventAdapter)))
     }
 
-    def providesABuildClassLoaderRegistry() {
-        expect:
-        assertThat(registry.get(BuildClassLoaderRegistry), instanceOf(DefaultBuildClassLoaderRegistry))
-        assertThat(registry.get(BuildClassLoaderRegistry), sameInstance(registry.get(BuildClassLoaderRegistry)))
+    def "provides a project registry"() {
+        when:
+        def projectRegistry = registry.get(ProjectRegistry)
+        def secondRegistry = registry.get(ProjectRegistry)
+
+        then:
+        projectRegistry instanceof DefaultProjectRegistry
+        projectRegistry sameInstance(secondRegistry)
     }
 
     private <T> T expectParentServiceLocated(Class<T> type) {
@@ -276,10 +291,6 @@ public class BuildScopeServicesTest extends Specification {
 
     private void allowGetCoreImplClassLoader() {
         classLoaderRegistry.getCoreImplClassLoader() >> new ClassLoader() {}
-    }
-
-    private void expectScriptClassLoaderCreated() {
-        1 * classLoaderRegistry.gradleApiClassLoader >> new MultiParentClassLoader()
     }
 
     private void allowGetGradleDistributionLocator() {

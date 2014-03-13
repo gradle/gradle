@@ -15,32 +15,44 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
+import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class MavenResolver extends ExternalResourceResolver implements PatternBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
@@ -53,12 +65,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     private final MavenMetadataLoader mavenMetaDataLoader;
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
-                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                         ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher,
-                         LatestStrategy latestStrategy, ResolverStrategy resolverStrategy) {
+                         LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
+                         ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
-                locallyAvailableResourceFinder, new GradlePomModuleDescriptorParser(), metadataProcessor, resolverStrategy, versionMatcher, latestStrategy);
+                locallyAvailableResourceFinder, new GradlePomModuleDescriptorParser(), resolverStrategy);
         transport.configureCacheManager(this);
 
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
@@ -74,57 +85,47 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         updatePatterns();
     }
 
-    protected void getDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
-        if (isSnapshotVersion(dd)) {
-            getSnapshotDependency(dd, result);
-        } else {
-            super.getDependency(dd, result);
-        }
-    }
-
-    private void getSnapshotDependency(DependencyDescriptor dd, BuildableModuleVersionMetaDataResolveResult result) {
-        final ModuleRevisionId dependencyRevisionId = dd.getDependencyRevisionId();
-        final String uniqueSnapshotVersion = findUniqueSnapshotVersion(dependencyRevisionId);
-        if (uniqueSnapshotVersion != null) {
-            DependencyDescriptor enrichedDependencyDescriptor = enrichDependencyDescriptorWithSnapshotVersionInfo(dd, dependencyRevisionId, uniqueSnapshotVersion);
-            findStaticDependency(enrichedDependencyDescriptor, result);
-            if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
-                result.setModuleSource(new TimestampedModuleSource(uniqueSnapshotVersion));
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+        if (isSnapshotVersion(dependency)) {
+            final TimestampedModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(dependency.getDescriptor().getDependencyRevisionId());
+            if (uniqueSnapshotVersion != null) {
+                resolveUniqueSnapshotDependency(dependency, result, uniqueSnapshotVersion);
+                return;
             }
-        } else {
-            findStaticDependency(dd, result);
+        }
+
+        resolveStaticDependency(dependency, result, createArtifactResolver());
+    }
+
+    private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result, TimestampedModuleSource snapshotSource) {
+        resolveStaticDependency(dependency, result, createArtifactResolver(snapshotSource));
+        if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+            result.setModuleSource(snapshotSource);
         }
     }
 
-    private DependencyDescriptor enrichDependencyDescriptorWithSnapshotVersionInfo(DependencyDescriptor dd, ModuleRevisionId dependencyRevisionId, String uniqueSnapshotVersion) {
-        Map<String, String> extraAttributes = new HashMap<String, String>(1);
-        extraAttributes.put("timestamp", uniqueSnapshotVersion);
-        final ModuleRevisionId newModuleRevisionId = ModuleRevisionId.newInstance(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision(), extraAttributes);
-        return dd.clone(newModuleRevisionId);
+    private boolean isSnapshotVersion(DependencyMetaData dd) {
+        return dd.getRequested().getVersion().endsWith("SNAPSHOT");
     }
 
-    private boolean isSnapshotVersion(DependencyDescriptor dd) {
-        return dd.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT");
-    }
-
-    protected File download(Artifact artifact, ModuleSource moduleSource) throws IOException {
+    protected File download(ArtifactIdentifier artifactId, ModuleSource moduleSource) throws IOException {
         if (moduleSource instanceof TimestampedModuleSource) {
-            TimestampedModuleSource timestampedModuleSource = (TimestampedModuleSource) moduleSource;
-            String timestampedVersion = timestampedModuleSource.getTimestampedVersion();
-            return downloadTimestampedVersion(artifact, timestampedVersion);
+            return downloadArtifact(artifactId, createArtifactResolver((TimestampedModuleSource) moduleSource));
         } else {
-            return download(artifact);
+            return downloadArtifact(artifactId, createArtifactResolver());
         }
     }
 
-    private File downloadTimestampedVersion(Artifact artifact, String timestampedVersion) throws IOException {
-        final ModuleRevisionId artifactModuleRevisionId = artifact.getModuleRevisionId();
-        final ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(artifactModuleRevisionId.getOrganisation(),
-                artifactModuleRevisionId.getName(),
-                artifactModuleRevisionId.getRevision(),
-                WrapUtil.toMap("timestamp", timestampedVersion));
-        final Artifact artifactWithResolvedModuleRevisionId = DefaultArtifact.cloneWithAnotherMrid(artifact, moduleRevisionId);
-        return download(artifactWithResolvedModuleRevisionId);
+    private ArtifactResolver createArtifactResolver(TimestampedModuleSource timestampedModuleSource) {
+        final String timestampedVersion = timestampedModuleSource.getTimestampedVersion();
+        Transformer<String, String> patternTransformer = new Transformer<String, String>() {
+            public String transform(String original) {
+                return original.replaceFirst("\\-\\[revision\\]", "-" + timestampedVersion);
+            }
+        };
+        return new ArtifactResolver(
+                CollectionUtils.collect(getIvyPatterns(), patternTransformer),
+                CollectionUtils.collect(getArtifactPatterns(), patternTransformer));
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {
@@ -160,17 +161,17 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     @Override
-    protected Artifact getMetaDataArtifactFor(ModuleRevisionId moduleRevisionId) {
+    protected ArtifactIdentifier getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
         if (isUsepoms()) {
-            ArtifactRevisionId artifactRevisionId = ArtifactRevisionId.newInstance(moduleRevisionId, moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
-            return new DefaultArtifact(artifactRevisionId, null, null, true);
+            return new DefaultArtifactIdentifier(moduleVersionIdentifier, moduleVersionIdentifier.getName(), "pom", "pom", null);
         }
 
         return null;
     }
 
-    private String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
-        Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, new Date());
+    private TimestampedModuleSource findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
+        ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
+        DefaultArtifactIdentifier pomArtifact = new DefaultArtifactIdentifier(moduleVersionIdentifier, moduleVersionIdentifier.getName(), "pom", "pom", null);
         String metadataLocation = toResourcePattern(getWholePattern()).toModuleVersionPath(pomArtifact) + "/maven-metadata.xml";
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
@@ -179,7 +180,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             String rev = moduleRevisionId.getRevision();
             rev = rev.substring(0, rev.length() - "SNAPSHOT".length());
             rev = rev + mavenMetadata.timestamp + "-" + mavenMetadata.buildNumber;
-            return rev;
+            return new TimestampedModuleSource(rev);
         }
         return null;
     }
@@ -253,6 +254,24 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         if (!compatible) {
             throw new IllegalArgumentException("Cannot set m2compatible = false on mavenRepo.");
         }
+    }
+
+    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
+        if (artifactType == JvmLibraryJavadocArtifact.class) {
+            return createArtifactMetaData(module, "javadoc", "javadoc");
+        }
+
+        if (artifactType == JvmLibrarySourcesArtifact.class) {
+            return createArtifactMetaData(module, "source", "sources");
+        }
+
+        throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
+    }
+
+    private Set<ModuleVersionArtifactMetaData> createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {
+        Artifact artifact = new DefaultArtifact(module.getDescriptor().getModuleRevisionId(), null,
+                module.getId().getName(), type, "jar", ImmutableMap.of("m:classifier", classifier));
+        return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), artifact));
     }
 
     protected static class TimestampedModuleSource implements ModuleSource {

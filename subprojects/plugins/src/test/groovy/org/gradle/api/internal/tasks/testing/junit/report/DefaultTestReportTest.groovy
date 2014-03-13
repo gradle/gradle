@@ -16,8 +16,8 @@
 package org.gradle.api.internal.tasks.testing.junit.report
 
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
+import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
-import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
@@ -90,7 +90,7 @@ class DefaultTestReportTest extends Specification {
                 }
                 testcase("ignored") {
                     duration = 1000;
-                    resultType = TestResult.ResultType.SKIPPED
+                    ignore()
                 }
             }
             testClassResult("org.gradle.failing.SomeIgnoredSomePassedSomeFailed") {
@@ -99,7 +99,7 @@ class DefaultTestReportTest extends Specification {
                 }
                 testcase("ignored") {
                     duration = 1000;
-                    resultType = TestResult.ResultType.SKIPPED
+                    ignore()
                 }
                 testcase("failed") {
                     duration = 1000;
@@ -126,6 +126,7 @@ class DefaultTestReportTest extends Specification {
         index.assertHasDuration("2.000s")
         index.assertHasOverallResult("success")
         index.assertHasNoFailedTests()
+        index.assertHasNoIgnoredTests()
 
         def passingPackageDetails = index.packageDetails("org.gradle.passing");
         passingPackageDetails.assertNumberOfTests(1);
@@ -183,6 +184,9 @@ class DefaultTestReportTest extends Specification {
         index.assertHasOverallResult("failures")
 
         index.assertHasFailedTest('classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed', 'failed')
+
+        index.assertHasIgnoredTest('classes/org.gradle.ignoring.SomeIgnoredSomePassed', 'ignored')
+        index.assertHasIgnoredTest('classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed', 'ignored')
 
         def passingPackageDetails = index.packageDetails("org.gradle.passing");
         passingPackageDetails.assertNumberOfTests(2);
@@ -262,6 +266,8 @@ class DefaultTestReportTest extends Specification {
         passingPackageFile.assertHasFailures(0)
         passingPackageFile.assertHasSuccessRate(100)
         passingPackageFile.assertHasDuration("2.000s")
+        passingPackageFile.assertHasNoFailedTests()
+        passingPackageFile.assertHasNoIgnoredTests()
         passingPackageFile.assertHasLinkTo('../index', 'all')
 
         def passedClassDetails = passingPackageFile.classDetails("Passed");
@@ -288,6 +294,8 @@ class DefaultTestReportTest extends Specification {
         ignoredPackageFile.assertHasIgnored(1)
         ignoredPackageFile.assertHasSuccessRate(100)
         ignoredPackageFile.assertHasDuration("2.000s")
+        passingPackageFile.assertHasNoFailedTests()
+        ignoredPackageFile.assertHasIgnoredTest('../classes/org.gradle.ignoring.SomeIgnoredSomePassed', 'ignored')
         ignoredPackageFile.assertHasLinkTo('../index', 'all')
 
         def someIgnoredClassDetails = ignoredPackageFile.classDetails("SomeIgnoredSomePassed");
@@ -306,6 +314,7 @@ class DefaultTestReportTest extends Specification {
         failingPackageFile.assertHasSuccessRate(50)
         failingPackageFile.assertHasDuration("3.000s")
         failingPackageFile.assertHasFailedTest('../classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed', 'failed')
+        failingPackageFile.assertHasIgnoredTest('../classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed', 'ignored')
         failingPackageFile.assertHasLinkTo('../index', 'all')
 
         def someFailedClassDetails = failingPackageFile.classDetails("SomeIgnoredSomePassedSomeFailed");
@@ -394,6 +403,115 @@ class DefaultTestReportTest extends Specification {
         failingTestDetails.assertResult("failed", "failures");
 
         failingClassFile.assertHasFailure('failed', 'something failed\n\nthis is the failure\nat someClass\n')
+    }
+
+    TestResultsProvider aggregatedBuildResultsRun1() {
+        buildResults {
+            testClassResult("org.gradle.aggregation.FooTest") {
+                testcase("first") {
+                    duration = 1000;
+                }
+            }
+            testClassResult("org.gradle.aggregation.BarTest") {
+                testcase("second") {
+                    duration = 1000;
+                    stdout "this is\nstandard output"
+                    stderr "this is\nstandard error"
+                }
+            }
+        }
+    }
+
+    TestResultsProvider aggregatedBuildResultsRun2(methodNameSuffix = "") {
+        buildResults {
+            testClassResult("org.gradle.aggregation.FooTest") {
+                testcase("first" + methodNameSuffix) {
+                    duration = 1000;
+                }
+            }
+            testClassResult("org.gradle.aggregation.BarTest") {
+                testcase("second" + methodNameSuffix) {
+                    duration = 1100;
+                    stdout "failed on second run\nstandard output"
+                    stderr "failed on second run\nstandard error"
+                    failure("something failed", "this is the failure\nat someClass")
+                }
+            }
+        }
+    }
+
+    def aggregateSameTestsRunWithDifferentResults() {
+        given:
+        def firstTestResults = aggregatedBuildResultsRun1()
+        def secondTestResults = aggregatedBuildResultsRun2()
+
+        when:
+        report.generateReport(new AggregateTestResultsProvider([firstTestResults, secondTestResults]), reportDir)
+
+        then:
+        def passedClassFile = results(reportDir.file('classes/org.gradle.aggregation.FooTest.html'))
+        passedClassFile.assertHasTests(2)
+        passedClassFile.allTestDetails('first').size() == 2
+        passedClassFile.assertHasFailures(0)
+        passedClassFile.assertHasIgnored(0)
+        passedClassFile.assertHasSuccessRate(100)
+        passedClassFile.assertHasLinkTo('../index', 'all')
+        passedClassFile.assertHasLinkTo('../packages/org.gradle.aggregation', 'org.gradle.aggregation')
+
+        def mixedClassFile = results(reportDir.file('classes/org.gradle.aggregation.BarTest.html'))
+        mixedClassFile.assertHasTests(2)
+        mixedClassFile.assertHasFailures(1)
+        mixedClassFile.assertHasIgnored(0)
+        mixedClassFile.assertHasSuccessRate(50)
+        mixedClassFile.assertHasLinkTo('../index', 'all')
+        mixedClassFile.assertHasLinkTo('../packages/org.gradle.aggregation', 'org.gradle.aggregation')
+
+        def failingTestDetails = mixedClassFile.allTestDetails('second')
+        failingTestDetails.any { HtmlTestResultsFixture.TestDetails it ->
+            it.hasResult('failed', 'failures')
+        }
+
+        def failingPackageFile = results(reportDir.file('packages/org.gradle.aggregation.html'))
+        failingPackageFile.assertHasFailedTest('../classes/org.gradle.aggregation.BarTest', 'second')
+
+        mixedClassFile.assertHasFailure('second', 'something failed\n\nthis is the failure\nat someClass\n')
+    }
+
+    def aggregateSameTestsDifferentMethodsRunWithDifferentResults() {
+        given:
+        def firstTestResults = aggregatedBuildResultsRun1()
+        def secondTestResults = aggregatedBuildResultsRun2('Alternative')
+
+        when:
+        report.generateReport(new AggregateTestResultsProvider([firstTestResults, secondTestResults]), reportDir)
+
+        then:
+        def passedClassFile = results(reportDir.file('classes/org.gradle.aggregation.FooTest.html'))
+        passedClassFile.assertHasTests(2)
+        passedClassFile.testDetails('first').assertResult('passed', 'success')
+        passedClassFile.testDetails('firstAlternative').assertResult('passed', 'success')
+        passedClassFile.assertHasFailures(0)
+        passedClassFile.assertHasIgnored(0)
+        passedClassFile.assertHasSuccessRate(100)
+        passedClassFile.assertHasLinkTo('../index', 'all')
+        passedClassFile.assertHasLinkTo('../packages/org.gradle.aggregation', 'org.gradle.aggregation')
+
+        def mixedClassFile = results(reportDir.file('classes/org.gradle.aggregation.BarTest.html'))
+        mixedClassFile.assertHasTests(2)
+        mixedClassFile.assertHasFailures(1)
+        mixedClassFile.assertHasIgnored(0)
+        mixedClassFile.assertHasSuccessRate(50)
+        mixedClassFile.assertHasLinkTo('../index', 'all')
+        mixedClassFile.assertHasLinkTo('../packages/org.gradle.aggregation', 'org.gradle.aggregation')
+
+        def failingTestDetails = mixedClassFile.testDetails('secondAlternative')
+        failingTestDetails.assertDuration("1.100s");
+        failingTestDetails.assertResult("failed", "failures");
+
+        def failingPackageFile = results(reportDir.file('packages/org.gradle.aggregation.html'))
+        failingPackageFile.assertHasFailedTest('../classes/org.gradle.aggregation.BarTest', 'secondAlternative')
+
+        mixedClassFile.assertHasFailure('secondAlternative', 'something failed\n\nthis is the failure\nat someClass\n')
     }
 
     def reportsOnClassesInDefaultPackage() {

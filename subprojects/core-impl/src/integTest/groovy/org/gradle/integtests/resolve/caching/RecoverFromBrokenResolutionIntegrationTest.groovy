@@ -252,6 +252,59 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
         file('libs/projectA-1.0.jar').assertIsCopyOf(ivyModule.jarFile)
     }
 
+    def "can run offline mode after connection problem with repo when using ivy dynamic version"() {
+        given:
+        def ivyRepo = ivyHttpRepo("ivyRepo")
+        def ivyModule = ivyRepo.module("group", "projectA", "1.1")
+        ivyModule.publish()
+        and:
+        buildFile << """
+                  repositories {
+                       ivy { url '${ivyRepo.uri}' }
+                  }
+                  configurations {
+                      compile
+                  }
+                  configurations.all {
+                      resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+                  }
+                  dependencies {
+                      compile group:'group', name:'projectA', version:'1.+'
+                  }
+
+                  task retrieve(type: Sync) {
+                      into 'libs'
+                      from configurations.compile
+                  }"""
+        when:
+        ivyModule.repository.expectDirectoryListGet('group', 'projectA')
+        ivyModule.ivy.expectGet()
+        ivyModule.jar.expectGet()
+
+        then:
+        run 'retrieve'
+
+        when:
+        server.resetExpectations()
+        int port = server.port
+        server.stop()
+        then:
+        fails 'retrieve'
+
+        and:
+        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasCause("Could not list versions using Ivy pattern 'http://localhost:${port}/ivyRepo/[organisation]/[module]/[revision]/ivy-[revision].xml")
+        failure.assertHasCause("Connection to http://localhost:${port} refused")
+
+        when:
+        server.resetExpectations()
+        then:
+        executer.withArgument("--offline")
+        run 'retrieve'
+        and:
+        file('libs/projectA-1.1.jar').assertIsCopyOf(ivyModule.jarFile)
+    }
+
     def moduleAvailableViaHttp() {
         module.metaData.expectGet()
         module.pom.expectGet()

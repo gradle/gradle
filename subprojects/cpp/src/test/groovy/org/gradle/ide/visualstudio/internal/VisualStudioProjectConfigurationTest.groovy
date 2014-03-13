@@ -30,6 +30,7 @@ import org.gradle.nativebinaries.NativeDependencySet
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.language.PreprocessingTool
 import org.gradle.nativebinaries.platform.Platform
 import spock.lang.Specification
@@ -37,7 +38,7 @@ import spock.lang.Specification
 class VisualStudioProjectConfigurationTest extends Specification {
     final flavor = new DefaultFlavor("flavor1")
     def flavors = new DefaultFlavorContainer(new DirectInstantiator())
-    def exe = Mock(Executable) {
+    def exe = Mock(ExecutableInternal) {
         getFlavors() >> flavors
     }
     def extensions = Mock(ExtensionContainer)
@@ -48,9 +49,10 @@ class VisualStudioProjectConfigurationTest extends Specification {
         getComponent() >> exe
         getTargetPlatform() >> platform
     }
-    def configuration = new VisualStudioProjectConfiguration(null, "configName", "platformName" , exeBinary, "Application")
+    def configuration = new VisualStudioProjectConfiguration(null, "configName", "platformName", exeBinary)
     def cppCompiler = Mock(PreprocessingTool)
     def cCompiler = Mock(PreprocessingTool)
+    def rcCompiler = Mock(PreprocessingTool)
 
     def "setup"() {
         flavors.add(flavor)
@@ -66,16 +68,19 @@ class VisualStudioProjectConfigurationTest extends Specification {
     def "configuration tasks are binary tasks"() {
         when:
         exeBinary.name >> "exeBinary"
+        exeBinary.component >> exe
+        exe.projectPath >> ":project-path"
 
         then:
-        configuration.buildTask == "exeBinary"
-        configuration.cleanTask == "cleanExeBinary"
+        configuration.buildTask == ":project-path:exeBinary"
+        configuration.cleanTask == ":project-path:clean"
     }
 
     def "compiler defines are taken from cpp compiler configuration"() {
         when:
         1 * extensions.findByName('cCompiler') >> null
         1 * extensions.findByName('cppCompiler') >> cppCompiler
+        1 * extensions.findByName('rcCompiler') >> null
         cppCompiler.macros >> [foo: "bar", empty: null]
 
         then:
@@ -86,16 +91,29 @@ class VisualStudioProjectConfigurationTest extends Specification {
         when:
         1 * extensions.findByName('cCompiler') >> cCompiler
         1 * extensions.findByName('cppCompiler') >> null
+        1 * extensions.findByName('rcCompiler') >> null
         cCompiler.macros >> [foo: "bar", another: null]
 
         then:
         configuration.compilerDefines == ["foo=bar", "another"]
     }
 
-    def "compiler defines are taken from cpp and c compiler configurations combined"() {
+    def "resource defines are taken from rcCompiler config"() {
+        when:
+        1 * extensions.findByName('cCompiler') >> null
+        1 * extensions.findByName('cppCompiler') >> null
+        1 * extensions.findByName('rcCompiler') >> rcCompiler
+        rcCompiler.macros >> [foo: "bar", empty: null]
+
+        then:
+        configuration.compilerDefines == ["foo=bar", "empty"]
+    }
+
+    def "compiler defines are taken from cpp, c and rc compiler configurations combined"() {
         when:
         1 * extensions.findByName('cppCompiler') >> null
         1 * extensions.findByName('cCompiler') >> null
+        1 * extensions.findByName('rcCompiler') >> null
 
         then:
         configuration.compilerDefines == []
@@ -103,28 +121,13 @@ class VisualStudioProjectConfigurationTest extends Specification {
         when:
         1 * extensions.findByName('cCompiler') >> cCompiler
         1 * extensions.findByName('cppCompiler') >> cppCompiler
+        1 * extensions.findByName('rcCompiler') >> rcCompiler
         cCompiler.macros >> [_c: null]
         cppCompiler.macros >> [foo: "bar", _cpp: null]
+        rcCompiler.macros >> [rc: "defined", rc_empty: null]
 
         then:
-        configuration.compilerDefines == ["_c", "foo=bar", "_cpp"]
-    }
-
-    def "resource defines are taken from rcCompiler config"() {
-        def rcCompiler = Mock(PreprocessingTool)
-
-        when:
-        1 * extensions.findByName('rcCompiler') >> null
-
-        then:
-        configuration.resourceDefines == []
-
-        when:
-        1 * extensions.findByName('rcCompiler') >> rcCompiler
-        rcCompiler.macros >> [foo: "bar", empty: null]
-
-        then:
-        configuration.resourceDefines == ["foo=bar", "empty"]
+        configuration.compilerDefines == ["_c", "foo=bar", "_cpp", "rc=defined", "rc_empty"]
     }
 
     def "include paths include component headers"() {
@@ -187,6 +190,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         return deps
     }
 
+    interface ExecutableInternal extends Executable, ProjectNativeComponentInternal {}
     interface TestExecutableBinary extends ProjectNativeBinaryInternal, ExecutableBinary, ExtensionAware {}
 
 }

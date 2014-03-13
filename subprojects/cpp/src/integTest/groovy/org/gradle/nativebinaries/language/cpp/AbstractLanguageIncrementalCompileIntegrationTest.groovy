@@ -15,12 +15,15 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
 import groovy.io.FileType
 import org.apache.commons.io.FilenameUtils
+import org.gradle.internal.hash.HashUtil
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
+import spock.lang.Unroll
 
 abstract class AbstractLanguageIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     IncrementalHelloWorldApp app
@@ -29,6 +32,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
     TestFile sharedHeaderFile
     TestFile otherHeaderFile
     List<TestFile> otherSourceFiles = []
+    TestFile objectFileDir
 
     abstract IncrementalHelloWorldApp getHelloWorldApp();
 
@@ -41,6 +45,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         compileTask = ":compileMainExecutableMain${sourceType}"
 
         buildFile << app.pluginScript
+        buildFile << app.extraConfiguration
         buildFile << """
             executables {
                 main {}
@@ -56,6 +61,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         otherHeaderFile = file("src/main/headers/other.h") << """
             // Dummy header file
 """
+        objectFileDir = file("build/objectFiles/mainExecutable")
     }
 
     def "recompiles changed source file only"() {
@@ -116,6 +122,44 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         recompiled sourceFile
     }
 
+    def "source is always recompiled if it includes header via macro"() {
+        given:
+        sourceFile << """
+            #define MY_HEADER "${otherHeaderFile.name}"
+            #include MY_HEADER
+"""
+
+        and:
+        initialCompile()
+
+        when:
+        otherHeaderFile << """
+            // Some extra content
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled sourceFile
+
+        // TODO:DAZ Remove this behaviour
+        when: "Header that is NOT included is changed"
+        file("src/main/headers/notIncluded.h") << """
+            // Dummy header file
+"""
+        and:
+        run "mainExecutable"
+
+        then: "Source is still recompiled"
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled sourceFile
+    }
+
     def "recompiles source file when transitively included header file is changed"() {
         given:
         def transitiveHeaderFile = file("src/main/headers/transitive.h") << """
@@ -150,7 +194,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         initialCompile()
 
         and:
-        final newFile = file("src/main/${app.sourceType}/changed.h")
+        final newFile = file("src/main/headers/changed.h")
         newFile << sharedHeaderFile.text
         sharedHeaderFile.delete()
 
@@ -178,9 +222,108 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         noneRecompiled()
     }
 
+    @Unroll
+    def "does not recompile when include path has #testCase"() {
+        given:
+        initialCompile()
+
+        file("src/additional-headers/other.h") << """
+    // extra header file that is not included in source
+"""
+        file("src/replacement-headers/${sharedHeaderFile.name}") << """
+    // replacement header file that is included in source
+"""
+
+        when:
+        buildFile << """
+            sources.main.${app.sourceType} {
+                exportedHeaders {
+                    srcDirs ${headerDirs}
+                }
+            }
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        skipped compileTask
+        noneRecompiled()
+
+        where:
+        testCase                       | headerDirs
+        "extra header dir after"       | '"src/main/headers", "src/additional-headers"'
+        "extra header dir before"      | '"src/additional-headers", "src/main/headers"'
+        "replacement header dir after" | '"src/main/headers", "src/replacement-headers"'
+    }
+
+    def "recompiles when include path is changed so that replacement header file occurs before previous header"() {
+        given:
+        initialCompile()
+
+        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text
+
+        when:
+        buildFile << """
+            sources.main.${app.sourceType}  {
+                exportedHeaders {
+                    srcDirs "src/replacement-headers", "src/main/headers"
+                }
+            }
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled allSources
+    }
+
+    def "recompiles when replacement header file is added before previous header to existing include path"() {
+        given:
+        buildFile << """
+            sources.main.${app.sourceType} {
+                exportedHeaders {
+                    srcDirs "src/replacement-headers", "src/main/headers"
+                }
+            }
+"""
+        initialCompile()
+
+        when:
+        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text
+
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled allSources
+    }
+
+    def "recompiles when replacement header file is added to source directory"() {
+        given:
+        initialCompile()
+
+        when:
+        sourceFile.parentFile.file(sharedHeaderFile.name) << sharedHeaderFile.text
+
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled allSources
+    }
+
     def "recompiles all source files and removes stale outputs when compiler arg changes"() {
         given:
-        def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceType}")
+        def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
         extraSource << sourceFile.text.replaceAll("main", "main2")
 
         initialCompile()
@@ -213,12 +356,28 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         outputFile(extraSource).assertDoesNotExist()
     }
 
+    def "recompiles all source files when generated object files are removed"() {
+        given:
+        initialCompile()
+
+        when:
+        objectFileDir.deleteDir()
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled allSources
+    }
+
     def "removes output file when source file is renamed"() {
         given:
         initialCompile()
 
         when:
-        final newFile = file("src/main/${app.sourceType}/changed.${app.sourceType}")
+        final newFile = file("src/main/${app.sourceType}/changed.${app.sourceExtension}")
         newFile << sourceFile.text
         sourceFile.delete()
 
@@ -232,7 +391,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
     def "removes output file when source file is removed"() {
         given:
-        def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceType}")
+        def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
         extraSource << sourceFile.text.replaceAll("main", "main2")
 
         initialCompile()
@@ -272,7 +431,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         // Stale object files are removed when a new file is added to the source set
         when:
-        def newSource = file("src/main/${app.sourceType}/newfile.${app.sourceType}") << """
+        def newSource = file("src/main/${app.sourceType}/newfile.${app.sourceExtension}") << """
             #include <stdio.h>
 
             int main () {
@@ -295,17 +454,48 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         }
     }
 
+    def "incremental compile is not effected by other compile tasks"() {
+        given:
+        buildFile << """
+            executables {
+                other
+            }
+"""
+        app.writeSources(file("src/other"))
+
+        and:
+        initialCompile()
+
+        and:
+        // Completely independent compile task (state should be independent)
+        run "otherExecutable"
+
+        when:
+        sourceFile << """
+// Changed source file
+"""
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        recompiled sourceFile
+    }
+
+
     def initialCompile() {
         run "mainExecutable"
 
         // Set the last modified timestamp to zero for all object files
-        file("build/objectFiles").eachFileRecurse(FileType.FILES) { it.lastModified = 0 }
+        objectFileDir.eachFileRecurse(FileType.FILES) { it.lastModified = 0 }
     }
 
     def getRecompiledFiles() {
         // Get all of the object files that do not have a zero last modified timestamp
         def recompiled = []
-        file("build/objectFiles").eachFileRecurse(FileType.FILES) {
+        objectFileDir.eachFileRecurse(FileType.FILES) {
             if (it.lastModified() > 0) {
                 recompiled << FilenameUtils.removeExtension(it.name)
             }
@@ -333,6 +523,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
     def outputFile(TestFile sourceFile) {
         final baseName = FilenameUtils.removeExtension(sourceFile.name)
-        return objectFile("build/objectFiles/mainExecutable/main${sourceType}/${baseName}")
+        String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
+        return objectFile("build/objectFiles/mainExecutable/main${sourceType}/$compactMD5/${baseName}")
     }
 }

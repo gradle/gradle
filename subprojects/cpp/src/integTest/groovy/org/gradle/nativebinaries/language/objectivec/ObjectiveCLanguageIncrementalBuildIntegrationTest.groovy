@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.language.objectivec
 
+import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.AbstractLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
@@ -25,38 +26,39 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
 @Requires(TestPrecondition.NOT_WINDOWS)
-@Ignore
 class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest{
 
     def setupSpec(){
         multiPlatformsAvailable = OperatingSystem.current().isMacOsX();
     }
 
-    // TODO Rene: same configuration as in ObjectiveCLanguageIntegrationTest; Move into a fixture
-    def "setup"() {
-        def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
-        buildFile << """
-            binaries.all {
-                if (toolChain in Gcc) {
-                    objectiveCCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                }
+    @Ignore("Demos a problem with clang on ubuntu creating randomly differerent object files")
+    def "generates always exactly same object file"() {
+        setup:
+        def recordings = []
+        def invocation =  10
+        when:
+        invocation.times{
+            run "cleanCompileHelloSharedLibraryHello$sourceType", "compileHelloSharedLibraryHello$sourceType"
+            def oldHash= HashUtil.sha1(objectFileFor(librarySourceFiles[0], "build/objectFiles/helloSharedLibrary/hello$sourceType")).asCompactString()
 
-                if (toolChain in Clang) {
-                    objectiveCCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                }
-
-                linker.args $linkerArgs
-            }
-        """
+            //to ensure it's not a timestamp issue
+            sleep(1000)
+            run "cleanCompileHelloSharedLibraryHello$sourceType", "compileHelloSharedLibraryHello$sourceType"
+            def newHash = HashUtil.sha1(objectFileFor(librarySourceFiles[0], "build/objectFiles/helloSharedLibrary/hello$sourceType")).asCompactString()
+            recordings << (oldHash == newHash)
+        }
+        then:
+        recordings.findAll{ it }.size() != 0 // not everytime the .o file differs -> not a timestamp issue
+        recordings.findAll{ it }.size() == invocation
     }
 
-    def "recompiles binary when #statement header file changes"() {
-        println sourceFile.text
-        sourceFile.text = sourceFile.text.replaceFirst('#import "hello.h"', "#$statement \"hello.h\"")
-        println sourceFile.text
+    def "recompiles binary when imported header file changes"() {
+        sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
 
         given:
         run "installMainExecutable"
+
 
         when:
         headerFile << """
@@ -68,12 +70,13 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguage
         executedAndNotSkipped libraryCompileTask
         executedAndNotSkipped mainCompileTask
 
-
-        skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
-        skipped ":linkMainExecutable", ":mainExecutable"
-
-        where:
-        statement << ["include", "import"]
+        if(objectiveCWithAslr()){
+            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executed ":linkMainExecutable", ":mainExecutable"
+        } else {
+            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            skipped ":linkMainExecutable", ":mainExecutable"
+        }
     }
 
     @Override

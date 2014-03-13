@@ -179,7 +179,7 @@
 }
         </programlisting>
         <para>
-            The above example configures a comparison between two different projects using two different Gradle versions.
+            The example above configures a comparison between two different projects using two different Gradle versions.
         </para>
         <section>
             <title>Trying Gradle upgrades</title>

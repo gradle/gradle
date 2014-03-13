@@ -16,13 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+
+import java.util.Set;
 
 class CachedRepository implements LocalAwareModuleVersionRepository {
     final DependencyMetadataCache cache;
@@ -41,6 +46,14 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
 
     public String getName() {
         return delegate.getName();
+    }
+
+    public void localListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        delegate.localListModuleVersions(dependency, result);
+    }
+
+    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        delegate.listModuleVersions(dependency, result);
     }
 
     public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
@@ -63,5 +76,9 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
             delegate.resolve(artifact, result, moduleSource);
             cache.newArtifact(artifactId, result);
         }
+    }
+
+    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
+        return delegate.getCandidateArtifacts(module, artifactType);
     }
 }

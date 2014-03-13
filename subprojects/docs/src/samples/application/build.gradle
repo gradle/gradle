@@ -9,6 +9,10 @@ version = '1.0.2'
 mainClassName = "org.gradle.sample.Main"
 // END SNIPPET mainClassName-conf
 
+// START SNIPPET application-defaultjvmargs
+applicationDefaultJvmArgs = ["-Dgreeting.language=en"]
+// END SNIPPET application-defaultjvmargs
+
 // START SNIPPET distribution-spec
 task createDocs {
     def docs = file("$buildDir/docs")

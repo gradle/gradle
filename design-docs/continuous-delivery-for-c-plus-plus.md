@@ -569,6 +569,7 @@ The implementation will also remove stale object files.
 ### Open issues
 
 - Need to handle `#import` with Visual C++, which may reference a `.tld` file.
+- Should not parse headers that we deem to be unchanging: 'system' libraries, unchanging repository libraries, etc.
 
 ## Story: Modify command line arguments for binary tool prior to execution
 
@@ -758,8 +759,6 @@ Here's an example:
 
 ### Open issues
 
-- Fix domain object container DSL so that creation on method missing only applies to the innermost container. For back-compatibility
-  may only do this for model {} block.
 - Provide instance instead of name to selector DSL: `platforms.win32`. This will require that executables are created in a model rule.
 - Selector DSL to choose all platforms with a particular operating system or architecture.
 - Accept a collection of values to make it easy to use flavors.matching({}) or buildTypes.matching({})
@@ -972,7 +971,6 @@ from the same sources that link against different implementation libraries.
 
 ### Open issues
 
-- Allow access to prebuilt libraries in another project?
 - Allow these to be set as toolchain specific linker args (ie -l and -L) as well.
 - Sources of prebuilt libs
 - Dependencies of prebuilt libs
@@ -980,6 +978,7 @@ from the same sources that link against different implementation libraries.
 - System libraries
 - Convert 'dependency' syntax to add to this container?
 - Fix paths in linker: don't link with absolute path
+- Make it easier to define a pattern for actual file locations
 
 ## Story: Allow source sets to be generated
 
@@ -1000,8 +999,6 @@ from the same sources that link against different implementation libraries.
 
 ## Story: Support CUnit test execution
 
-### Use cases
-
 ### Implementation
 
 Generally, C++ test frameworks compile and link a test launcher executable, which is then run to execute the tests.
@@ -1010,18 +1007,14 @@ To implement this:
 * Define a test source set and associated tasks to compile, link and run the test executable.
 * It should be possible to run the tests for all architectures supported by the current machine.
 * Generate the test launcher source and compile it into the executable.
-* It would be nice to generate a test launcher that is integrated with Gradle's test eventing.
-* It would be nice to generate a test launcher that runs test cases detected from the test source (as we do for JUnit and TestNG tests).
 
 ### Open issues
 
 * Need a `unitTest` lifecycle task, plus a test execution task for each variant of the unit tests.
-* Unit test executable needs to link with the object files that would be linked into the main executable.
-* Need to exclude the `main` method.
-
-## Story: Generate HTML reports for CUnit test output
-
-
+* Need to exclude the `main` method from unit test sources.
+* Generate a test launcher that is integrated with Gradle's test eventing.
+* Automatically detect and register tests in test source files; don't require them to be explicitly registered. (Similar to JUnit and TestNG tests).
+* Generate nice HTML reports for CUnit test output
 
 # Bugfixes
 
@@ -1039,14 +1032,14 @@ To implement this:
 
 ### Test cases
 
-* C source set includes files with the same name in different directories.
-* C++ source set includes files with the same name in different directories.
-* Objective-C source set includes files with the same name in different directories.
-* Objective-C++ source set includes files with the same name in different directories.
-* Assemble source set includes files with the same name in different directories.
-* Windows resource source set includes files with the same name in different directories.
-* C, C++, Objective-C and Objective-C++ source sets include files with the same base name (eg there's a `foo.c`, `foo.cpp`, `foo.m` and `foo.mm` in the same directory)
-* Removes stale outputs when source file is moved to a different directory
+* C source set includes files with the same name in different directories. (✓)
+* C++ source set includes files with the same name in different directories. (✓)
+* Objective-C source set includes files with the same name in different directories.(✓)
+* Objective-C++ source set includes files with the same name in different directories. (✓)
+* Assemble source set includes files with the same name in different directories. (✓)
+* Windows resource source set includes files with the same name in different directories. (✓)
+* C, C++, Objective-C and Objective-C++ source sets include files with the same base name (eg there's a `foo.c`, `foo.cpp`, `foo.m` and `foo.mm` in the same directory) (✓, apart from objc/cpp)
+* Removes stale outputs when source file is moved to a different directory (✓)
 
 # Milestone 4
 
@@ -1059,6 +1052,18 @@ To implement this:
 ## Feature: Flexible source sets
 
 A sequence of stories to make source sets much more flexible, and to improve the conventions of the source sets for a component:
+
+### Story: Language source sets filter source files by file extension
+
+This story introduces applies some default extensions to each language source set.
+
+- For each language (C, C++, Objective-C, Objective-C++, Assembly, Windows resources), apply the appropriate file extensions using `sourceSet.source.filters`.
+
+#### Test cases
+
+- A native component with the source and headers for each language all in the same source directory.
+- Can include or exclude source files in a source set by file extension.
+- Fix sample and int tests that apply patterns to select source files with a given extension so that they no longer do.
 
 ### Story: Introduce implementation headers for native components
 
@@ -1097,6 +1102,20 @@ This story introduces a set of headers that are visible to all the source files 
             }
         }
     }
+
+##### Test cases
+
+- Native library `mylib` defines some header files in `src/mylib/include` and `src/mylib/headers`.
+    - Header files in both locations are visible at compile time for a C, C++, windows resource, Objective-C and Objective-C++ source file.
+- Native library `mylib` defines some implementation headers in `src/mylib/include` and some public headers in `src/mylib/headers`
+    - Header files in both locations are visible at compile time for a C source file in the component.
+    - Headers in `src/mylib/include` are not visible to a C source file in another component that depends on `mylib`.
+    - Headers in `src/mylib/headers` are visible to a C source file in another component that depends on `mylib`.
+- Native library `mylib` does not define any header files.
+    - Can compile and link `mylib` and use it in an executable. Need to use C as the implementation language.
+- Native library `mylib` defines a set of headers that are visible to the component's C source, but not visible to:
+    - C++ source in the same component.
+    - C and C++ source in another component that depends on `mylib`.
 
 #### Open issues
 
@@ -1145,6 +1164,7 @@ This story introduces a set of headers that are visible to all source files in a
 
 - Default location for public headers.
 - Language specific public headers. Eg include these headers when compiling C in a consuming component, and these additional headers when compiling C++.
+- Update the generated Visual Studio project so that different header sets are grouped within distinct "filters".
 
 ### Story: Configure the source sets of a component in the component definition
 
@@ -1233,6 +1253,114 @@ This story moves definition and configuration of the source sets for a component
 
 # Later Milestones
 
+## Story: Improved DSL for platform-specific tool chain configuration
+
+The Gradle model for native binaries will describe the concepts of Build Type and Platform in abstract terms, not specific
+to a particular tool chain. It is the job of the tool chain to map these concepts to concrete command-line arguments where possible.
+
+This story improves the mechanism whereby a tool chain supplies arguments specific to a Platform for compiling/linking etc, and makes
+this consistent with the way that tool arguments are configured in a tool chain. A future story will improve this mechanism.
+
+### Implementation
+
+* Split `ConfigurableToolChain` (with the GccTool methods) out of `PlatformConfigurableToolChain`
+* Replace `PlatformConfigurableToolChain.addPlatformConfiguration` with `PlatformConfigurableToolChain.target(Platform..., Action<ConfigurableToolChain>)`
+* Replace the built-in `TargetPlatformConfiguration` actions with `Action<ConfigurableToolChain>`
+* If `PlatformConfigurableToolChain.target()` is called on a tool chain, then the default target configurations are removed.
+
+### User visible changes
+
+    model {
+        toolChains {
+            gcc(Gcc) {
+                // Default platform support is _replaced_ by configured support
+
+                // Build for 'platforms.sparc' with no additional arguments
+                target(platforms.sparc)
+
+                // Build for 'platforms-ultrasparc' with different executable
+                target(platforms.ultrasparc) {
+                    cppCompiler.executable "foo-bar"
+                }
+
+                // Build for any windows platform with these args
+                target(platforms.matching { operatingSystem == operatingSystems.windows } ) {
+                    cppCompiler.withArguments { args ->
+                        args.replace("foo", "bar")
+                        args.add("-m32")
+                    }
+                }
+            }
+        }
+    }
+
+### Test cases
+
+* Configure a GCC tool chain that creates x86 binaries when targeting amd64
+* Configure a GCC tool chain that cannot create x86 binaries
+* Configure a GCC tool chain that always uses a custom compiler arg when targeting x86
+
+### Open issues
+
+* When no Platform architecture/os is defined, assume the current platform architecture/os, not the tool chain default.
+    * This will require detecting the current platform, and supplying the correct tool chain arguments when building.
+
+## Story: Improved DSL for tool chain configuration
+
+This story improves the DSL for tweaking arguments for a command-line tool that is part of a tool chain, and extends this
+ability to all command-line based tool chains. It also permits the configuration of tool chain executables on a per-platform basis.
+
+### Implementation
+
+* Add `CommandLineToolInvocation` extends `org.gradle.nativebinaries.Tool` with read-write String property `executable`.
+* Rename `GccTool` to `CommandLineTool` and change to have `withInvocation(Action<CommandLineToolInvocation>)` in place of `withArguments`
+* Remove tool-specific getters from `Gcc`, and instead make `Gcc` serve as a NamedDomainObjectSet of `CommandLineTool` instances.
+    * Continue to register a `CommandLineTool` for every supported language.
+* Allow the `eachInvocation` method to override the default executable to use.
+* Extract `CommandLineToolChain` interface out of `Gcc` and introduce similar functionality to VisualCpp and Clang tool chains.
+* Add a sample, user-guide documentation and note the breaking change in the release notes.
+* Consolidate various `ArgsTransformer` implementations so that most/all simply set/modify args on a `CommandLineToolInvocation`.
+
+### User visible changes
+
+    model {
+        toolChains {
+            gcc(Gcc) {
+                cppCompiler.withInvocation {
+                    args.replace("-m32", "-march=i386")
+                }
+                cCompiler.withInvocation {
+                    executable "gcc-custom"
+                }
+                linker.withInvocation {
+                    ...
+                }
+            }
+            visualCpp(VisualCpp) {
+                cppCompiler.withInvocation {
+                   ...
+                }
+            }
+        }
+    }
+
+### Test coverage
+
+* Update existing test cases for argument tweaking with GCC
+* Can use g++ instead of gcc for compiling C sources
+* Can tweak arguments for VisualCpp and Clang
+
+### Open issues
+
+* Only to register a `CommandLineTool` for languages that are supported by build.
+   * Need to make it easy to have centralised tool chain configuration that works regardless of languages in effect.
+
+## Story: Only use gcc/g++ front-ends for GCC tool chain
+
+* Use 'gcc -x assembler -c' for assembly sources
+* Use 'gcc' to link instead of 'g++': add -lstdc++ to linker args for C++ sources. Similar for objective-C++.
+* Remove 'as' from the tools in the GCC tool chain.
+
 ## Story: Improve definition of Platform, Architecture and Operating System
 
 In order to make it easier for users to publish and resolve native binary dependencies, this story introduces a set of conventional
@@ -1292,6 +1420,7 @@ This story also aggregates a bunch of review items that relate to Architecture a
 - Canonical names for conventional platforms
 - How to make Platform instance immutable
 - Consistent API for Architecture and OperatingSystem: either public method on both [os.isWindows(),arch.isAmd64()] or only on internal api.
+- Include ABI in architecture so that the correct prebuilt library can be selected for a tool chain
 
 ## Story: Include all macro definitions in Visual Studio project configuration
 
@@ -1735,6 +1864,7 @@ TBD
 - AssemblerSourceSet should implement DependentSourceSet (has source dependencies)
 - Add source sets only to a component, have some way to describe how to include/exclude a source set
 - Some conventional location for OS specific source for a component
+- Allow encoding to specified on a source set, with default values as per java sources
 
 ## Compilation
 
@@ -1870,3 +2000,6 @@ TBD
 * Publish to cocoapods repository.
 * Consume dependencies from NuGet repository.
 * Publish to NuGet repository.
+* JNI plugin generates native header, and sets up the JNI stuff in $java.home as a platform library.
+* Model minimum OS version.
+    * For OS X can use -mmacosx-version-min option.

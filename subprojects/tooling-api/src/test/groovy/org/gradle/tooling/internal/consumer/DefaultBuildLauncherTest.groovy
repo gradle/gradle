@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.api.GradleException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
@@ -22,9 +23,12 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
+import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.Launchable
 import org.gradle.tooling.model.Task
+import org.gradle.tooling.model.TaskSelector
 
 class DefaultBuildLauncherTest extends ConcurrentSpec {
     final AsyncConsumerActionExecutor asyncConnection = Mock()
@@ -87,6 +91,80 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         1 * connection.run(Void, _) >> {args ->
             ConsumerOperationParameters params = args[1]
             assert params.tasks == [':task1', ':task2']
+            assert params.standardOutput == stdout
+            assert params.standardError == stderr
+            return null
+        }
+        1 * handler.onComplete(null)
+        0 * asyncConnection._
+        0 * handler._
+    }
+
+    def "can configure task selector build operation"() {
+        TaskSelector ts = Mock(DefaultGradleTaskSelector)
+        _ * ts.name >> 'myTask'
+        _ * ts.tasks >> [':a:myTask', ':b:myTask']
+        ResultHandlerVersion1<Void> adaptedHandler
+        ResultHandler<Void> handler = Mock()
+        OutputStream stdout = Stub()
+        OutputStream stderr = Stub()
+
+        when:
+        launcher.standardOutput = stdout
+        launcher.standardError = stderr
+        launcher.forLaunchables(ts)
+        launcher.run(handler)
+
+        then:
+        1 * asyncConnection.run(!null, !null) >> { args ->
+            ConsumerAction<GradleProject> action = args[0]
+            action.run(connection)
+            adaptedHandler = args[1]
+            adaptedHandler.onComplete(null)
+        }
+        1 * connection.run(Void, _) >> {args ->
+            ConsumerOperationParameters params = args[1]
+            assert params.tasks as Set == [':a:myTask', ':b:myTask'] as Set
+            assert params.standardOutput == stdout
+            assert params.standardError == stderr
+            return null
+        }
+        1 * handler.onComplete(null)
+        0 * asyncConnection._
+        0 * handler._
+    }
+
+    def "preserves task selectors order in build operation"() {
+        TaskSelector ts1 = Mock(DefaultGradleTaskSelector)
+        _ * ts1.name >> 'firstTask'
+        _ * ts1.tasks >> [':firstTask']
+        TaskSelector ts2 = Mock(DefaultGradleTaskSelector)
+        _ * ts2.name >> 'secondTask'
+        _ * ts2.tasks >> [':secondTask']
+        TaskSelector ts3 = Mock(DefaultGradleTaskSelector)
+        _ * ts3.name >> 'thirdTask'
+        _ * ts3.tasks >> [':thirdTask']
+        ResultHandlerVersion1<Void> adaptedHandler
+        ResultHandler<Void> handler = Mock()
+        OutputStream stdout = Stub()
+        OutputStream stderr = Stub()
+
+        when:
+        launcher.standardOutput = stdout
+        launcher.standardError = stderr
+        launcher.forLaunchables(ts1, ts2, ts3)
+        launcher.run(handler)
+
+        then:
+        1 * asyncConnection.run(!null, !null) >> { args ->
+            ConsumerAction<GradleProject> action = args[0]
+            action.run(connection)
+            adaptedHandler = args[1]
+            adaptedHandler.onComplete(null)
+        }
+        1 * connection.run(Void, _) >> {args ->
+            ConsumerOperationParameters params = args[1]
+            assert params.tasks == [':firstTask', ':secondTask', ':thirdTask']
             assert params.standardOutput == stdout
             assert params.standardError == stderr
             return null
@@ -193,6 +271,17 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
 
         and:
         operation.runBuild.end > instant.failureAvailable
+    }
+
+    def "rejects unknown Launchable"() {
+        Launchable task = Mock(Launchable)
+
+        when:
+        launcher.forLaunchables(task)
+
+        then:
+        def e = thrown(GradleException)
+        e != null
     }
 
     def task(String path) {

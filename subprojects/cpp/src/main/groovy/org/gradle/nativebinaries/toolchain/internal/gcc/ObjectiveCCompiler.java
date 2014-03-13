@@ -16,30 +16,16 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import java.util.List;
-
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
-public class ObjectiveCCompiler implements Compiler<ObjectiveCCompileSpec> {
+import java.util.List;
 
-    private final CommandLineTool<ObjectiveCCompileSpec> commandLineTool;
+public class ObjectiveCCompiler extends NativeCompiler<ObjectiveCCompileSpec> {
 
-    public ObjectiveCCompiler(CommandLineTool<ObjectiveCCompileSpec> commandLineTool, Action<List<String>> argsAction, boolean useCommandFile) {
-        ArgsTransformer<ObjectiveCCompileSpec> argsTransformer = new ObjectiveCCompileArgsTransformer();
-        argsTransformer = new UserArgsTransformer<ObjectiveCCompileSpec>(argsTransformer, argsAction);
-        if (useCommandFile) {
-            argsTransformer = new GccOptionsFileArgTransformer<ObjectiveCCompileSpec>(argsTransformer);
-        }
-        this.commandLineTool = commandLineTool.withArguments(argsTransformer);
-    }
-
-    public WorkResult execute(ObjectiveCCompileSpec spec) {
-        return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
+    public ObjectiveCCompiler(CommandLineTool<ObjectiveCCompileSpec> commandLineTool, Action<List<String>> toolChainArgsAction, boolean useCommandFile) {
+        super(commandLineTool, toolChainArgsAction, new ObjectiveCCompileArgsTransformer(), useCommandFile);
     }
 
     private static class ObjectiveCCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCCompileSpec> {

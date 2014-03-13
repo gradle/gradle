@@ -22,8 +22,7 @@ class PatternStepFactoryTest extends Specification {
     def "creates step for ** wildcard"() {
         expect:
         def step = PatternStepFactory.getStep("**", true);
-        step instanceof GreedyPatternStep
-        step.greedy
+        step instanceof AnyWildcardPatternStep
         step.matches("anything")
         step.matches("")
     }
@@ -32,7 +31,6 @@ class PatternStepFactoryTest extends Specification {
         expect:
         def step = PatternStepFactory.getStep("*", true);
         step instanceof AnyWildcardPatternStep
-        !step.greedy
         step.matches("anything")
         step.matches("")
     }
@@ -41,7 +39,6 @@ class PatternStepFactoryTest extends Specification {
         expect:
         def step1 = PatternStepFactory.getStep("*abc", true);
         step1 instanceof WildcardPrefixPatternStep
-        !step1.greedy
         step1.matches("abc")
         step1.matches("thing.abc")
         !step1.matches("thing.java")
@@ -49,7 +46,6 @@ class PatternStepFactoryTest extends Specification {
         and:
         def step2 = PatternStepFactory.getStep("**abc", true);
         step2 instanceof WildcardPrefixPatternStep
-        !step2.greedy
         step2.matches("abc")
         step2.matches("thing.abc")
         !step2.matches("thing.java")
@@ -59,7 +55,6 @@ class PatternStepFactoryTest extends Specification {
         expect:
         def step1 = PatternStepFactory.getStep("a?c", true);
         step1 instanceof RegExpPatternStep
-        !step1.greedy
         step1.matches("abc")
         !step1.matches("ABC")
         !step1.matches("other")
@@ -67,7 +62,6 @@ class PatternStepFactoryTest extends Specification {
         and:
         def step2 = PatternStepFactory.getStep("a*c", true);
         step2 instanceof RegExpPatternStep
-        !step2.greedy
         step2.matches("ac")
         step2.matches("abc")
         !step2.matches("ABC")
@@ -76,7 +70,6 @@ class PatternStepFactoryTest extends Specification {
         and:
         def step3 = PatternStepFactory.getStep("?bc", true);
         step3 instanceof RegExpPatternStep
-        !step3.greedy
         step3.matches("abc")
         step3.matches("Abc")
         !step3.matches("bc")
@@ -86,7 +79,6 @@ class PatternStepFactoryTest extends Specification {
         and:
         def step4 = PatternStepFactory.getStep("*?bc", true);
         step4 instanceof RegExpPatternStep
-        !step4.greedy
         step4.matches("abc")
         step4.matches("123abc")
         !step4.matches("bc")
@@ -96,7 +88,6 @@ class PatternStepFactoryTest extends Specification {
         and:
         def step5 = PatternStepFactory.getStep("*bc*", true);
         step5 instanceof RegExpPatternStep
-        !step5.greedy
         step5.matches("bc")
         step5.matches("abc")
         step5.matches("bcd")
@@ -109,7 +100,6 @@ class PatternStepFactoryTest extends Specification {
         and:
         def step6 = PatternStepFactory.getStep("?", true);
         step6 instanceof RegExpPatternStep
-        !step6.greedy
         step6.matches("a")
         !step6.matches("")
         !step6.matches("abc")
@@ -119,7 +109,6 @@ class PatternStepFactoryTest extends Specification {
         expect:
         def step = PatternStepFactory.getStep("abc", true);
         step instanceof FixedPatternStep
-        !step.greedy
         step.matches("abc")
         !step.matches("ABC")
         !step.matches("other")

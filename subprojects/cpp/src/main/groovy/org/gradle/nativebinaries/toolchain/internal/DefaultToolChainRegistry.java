@@ -16,12 +16,10 @@
 package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.text.TreeFormatter;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 import org.gradle.util.TreeVisitor;
@@ -66,36 +64,54 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
 
     public ToolChain getForPlatform(Platform targetPlatform) {
         for (ToolChainInternal toolChain : searchOrder) {
-            if (toolChain.canTargetPlatform(targetPlatform).isAvailable()) {
+            if (toolChain.target(targetPlatform).isAvailable()) {
                 return toolChain;
             }
         }
 
         // No tool chains can build for this platform. Assemble a description of why
-
-        TreeFormatter failureMessage = new TreeFormatter();
-        failureMessage.node(String.format("No tool chain is available to build for platform '%s'", targetPlatform.getName()));
-        failureMessage.startChildren();
+        Map<String, PlatformToolChain> candidates = new LinkedHashMap<String, PlatformToolChain>();
         for (ToolChainInternal toolChain : searchOrder) {
-            failureMessage.node(toolChain.getDisplayName());
-            failureMessage.startChildren();
-            toolChain.canTargetPlatform(targetPlatform).explain(failureMessage);
-            failureMessage.endChildren();
+            candidates.put(toolChain.getDisplayName(), toolChain.target(targetPlatform));
         }
-        if (searchOrder.isEmpty()) {
-            failureMessage.node("No tool chain plugin applied.");
-        }
-        failureMessage.endChildren();
 
-        return new UnavailableToolChain(failureMessage.toString());
+        return new UnavailableToolChain(new UnavailableToolChainDescription(targetPlatform, candidates));
     }
 
-    private static class UnavailableToolChain implements ToolChainInternal {
-        private final String failureMessage;
-        private final OperatingSystem operatingSystem = OperatingSystem.current();
+    private static class UnavailableToolChainDescription implements ToolSearchResult {
+        private final Platform targetPlatform;
+        private final Map<String, PlatformToolChain> candidates;
 
-        UnavailableToolChain(String failureMessage) {
-            this.failureMessage = failureMessage;
+        private UnavailableToolChainDescription(Platform targetPlatform, Map<String, PlatformToolChain> candidates) {
+            this.targetPlatform = targetPlatform;
+            this.candidates = candidates;
+        }
+
+        public boolean isAvailable() {
+            return false;
+        }
+
+        public void explain(TreeVisitor<? super String> visitor) {
+            visitor.node(String.format("No tool chain is available to build for platform '%s'", targetPlatform.getName()));
+            visitor.startChildren();
+            for (Map.Entry<String, PlatformToolChain> entry : candidates.entrySet()) {
+                visitor.node(entry.getKey());
+                visitor.startChildren();
+                entry.getValue().explain(visitor);
+                visitor.endChildren();
+            }
+            if (candidates.isEmpty()) {
+                visitor.node("No tool chain plugin applied.");
+            }
+            visitor.endChildren();
+        }
+    }
+    private static class UnavailableToolChain implements ToolChainInternal {
+        private final OperatingSystem operatingSystem = OperatingSystem.current();
+        private final ToolSearchResult failure;
+
+        UnavailableToolChain(ToolSearchResult failure) {
+            this.failure = failure;
         }
 
         public String getDisplayName() {
@@ -107,23 +123,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
 
         public PlatformToolChain target(Platform targetPlatform) {
-            throw failure();
-        }
-
-        public ToolSearchResult canTargetPlatform(Platform targetPlatform) {
-            return new ToolSearchResult() {
-                public boolean isAvailable() {
-                    return false;
-                }
-
-                public void explain(TreeVisitor<? super String> visitor) {
-                    visitor.node(failureMessage);
-                }
-            };
-        }
-
-        private RuntimeException failure() {
-            return new GradleException(failureMessage);
+            return new UnavailablePlatformToolChain(failure);
         }
 
         public String getExecutableName(String executablePath) {

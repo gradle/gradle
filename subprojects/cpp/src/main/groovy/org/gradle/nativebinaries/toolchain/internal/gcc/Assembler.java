@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
@@ -34,18 +35,20 @@ class Assembler implements Compiler<AssembleSpec> {
 
     private final CommandLineTool<AssembleSpec> commandLineTool;
     private final Action<List<String>> argsAction;
+    private String outputFileSuffix;
 
-    public Assembler(CommandLineTool<AssembleSpec> commandLineTool, Action<List<String>> argsAction) {
+    public Assembler(CommandLineTool<AssembleSpec> commandLineTool, Action<List<String>> argsAction, String outputFileSuffix) {
         this.commandLineTool = commandLineTool;
         this.argsAction = argsAction;
+        this.outputFileSuffix = outputFileSuffix;
     }
 
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
         CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
-            ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile);
-            arguments = new UserArgsTransformer<AssembleSpec>(arguments, argsAction);
+            ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile, spec.getObjectFileDir(), outputFileSuffix);
+            arguments = new PostTransformActionArgsTransformer<AssembleSpec>(arguments, argsAction);
             WorkResult result = commandLineAssembler.withArguments(arguments).execute(spec);
             didWork = didWork || result.getDidWork();
         }
@@ -54,17 +57,22 @@ class Assembler implements Compiler<AssembleSpec> {
 
     private static class AssembleSpecToArgsList implements ArgsTransformer<AssembleSpec> {
         private final File inputFile;
-        private final String outputFileName;
+        private final File outputFile;
 
-        public AssembleSpecToArgsList(File inputFile) {
+        public AssembleSpecToArgsList(File inputFile, File objectFileRootDir, String outputFileSuffix) {
             this.inputFile = inputFile;
-            this.outputFileName = FilenameUtils.removeExtension(inputFile.getName()) + ".o";
+            String outputFileName = FilenameUtils.removeExtension(inputFile.getName())+ outputFileSuffix;
+            File currentObjectOutputDir = new File(objectFileRootDir, HashUtil.createCompactMD5(inputFile.getAbsolutePath()));
+            this.outputFile = new File(currentObjectOutputDir, outputFileName);
         }
 
         public List<String> transform(AssembleSpec spec) {
             List<String> args = new ArrayList<String>();
             args.addAll(spec.getAllArgs());
-            Collections.addAll(args, "-o", outputFileName);
+            if(!outputFile.getParentFile().exists()){
+                outputFile.getParentFile().mkdir();
+            }
+            Collections.addAll(args, "-o", outputFile.getAbsolutePath());
             args.add(inputFile.getAbsolutePath());
             return args;
         }

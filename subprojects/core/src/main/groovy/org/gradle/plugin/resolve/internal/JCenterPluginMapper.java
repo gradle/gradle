@@ -19,8 +19,11 @@ package org.gradle.plugin.resolve.internal;
 import com.jfrog.bintray.client.api.handle.Bintray;
 import com.jfrog.bintray.client.api.model.Pkg;
 import com.jfrog.bintray.client.impl.BintrayClient;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.Supplier;
 
 import java.util.List;
 
@@ -32,8 +35,36 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
     public static final String GRADLE_PLUGINS_REPO = "gradle-plugins";
     public static final String PLUGIN_ID_ATTRIBUTE_NAME = "gradle-plugin-id";
 
-    public Dependency map(PluginRequest request, DependencyHandler dependencyHandler) {
-        String pluginId = request.getId();
+    private static final String NOT_FOUND = "";
+
+    private final Supplier<PersistentIndexedCache<PluginRequest, String>> cacheSupplier;
+
+    public JCenterPluginMapper(Supplier<PersistentIndexedCache<PluginRequest, String>> cacheSupplier) {
+        this.cacheSupplier = cacheSupplier;
+    }
+
+    public Dependency map(final PluginRequest request, DependencyHandler dependencyHandler) {
+        final String pluginId = request.getId();
+
+        String systemId = cacheSupplier.supplyTo(new Transformer<String, PersistentIndexedCache<PluginRequest, String>>() {
+            public String transform(PersistentIndexedCache<PluginRequest, String> cache) {
+                return doCacheAwareSearch(request, pluginId, cache);
+            }
+        });
+
+        if (systemId.equals(NOT_FOUND)) {
+            return null;
+        } else {
+            return dependencyHandler.create(systemId + ":" + request.getVersion());
+        }
+    }
+
+    private String doCacheAwareSearch(PluginRequest request, String pluginId, PersistentIndexedCache<PluginRequest, String> indexedCache) {
+        String cached = indexedCache.get(request);
+        if (cached != null) {
+            return cached;
+        }
+
         Bintray bintrayClient = createBintrayClient();
         List<Pkg> results = bintrayClient.
                 subject(GRADLE_PLUGINS_ORG).
@@ -43,22 +74,26 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
                 equals(pluginId).
                 search();
 
+        String systemId;
+
         if (results.isEmpty()) {
-            throw new InvalidPluginRequestException("No plugins found for plugin id " + pluginId);
-        }
-        if (results.size() > 1) {
+            systemId = NOT_FOUND;
+        } else if (request.getVersion() == null) {
+            throw new InvalidPluginRequestException(String.format("No version number supplied for plugin '%s'. A version number must be supplied for plugins resolved from '%s'.", pluginId, getBintrayRepoUrl()));
+        } else if (results.size() > 1) {
             throw new InvalidPluginRequestException("Found more than one plugin for plugin id " + pluginId);
+        } else {
+            Pkg pluginPackage = results.get(0);
+            List<String> systemIds = pluginPackage.systemIds();
+            if (systemIds.isEmpty()) {
+                throw new InvalidPluginRequestException("No artifacts in maven layout found for plugin id" + pluginId);
+            }
+
+            systemId = systemIds.get(0);
         }
-        Pkg pluginPackage = results.get(0);
-        List<String> systemIds = pluginPackage.systemIds();
-        if (systemIds.isEmpty()) {
-            throw new InvalidPluginRequestException("No artifacts in maven layout found for plugin id" + pluginId);
-        }
-        String version = request.getVersion();
-        if (version == null) {
-            version = pluginPackage.latestVersion();
-        }
-        return dependencyHandler.create(systemIds.get(0) + ":" + version);
+
+        indexedCache.put(request, systemId);
+        return systemId;
     }
 
     private Bintray createBintrayClient() {
@@ -68,6 +103,10 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
         } else {
             return BintrayClient.create(override, null, null);
         }
+    }
+
+    public String getBintrayRepoUrl() {
+        return String.format("https://bintray.com/%s/%s", GRADLE_PLUGINS_ORG, GRADLE_PLUGINS_REPO);
     }
 
 }

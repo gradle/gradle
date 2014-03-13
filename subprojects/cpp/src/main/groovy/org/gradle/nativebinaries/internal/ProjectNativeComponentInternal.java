@@ -15,19 +15,10 @@
  */
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.ProjectNativeComponent;
-import org.gradle.nativebinaries.platform.Platform;
-
-import java.util.Set;
 
 public interface ProjectNativeComponentInternal extends ProjectNativeComponent {
 
     // TODO:DAZ Use BuildComponentIdentifier
     String getProjectPath();
-
-    Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates);
-    Set<Platform> choosePlatforms(Set<? extends Platform> candidates);
-    Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates);
 }

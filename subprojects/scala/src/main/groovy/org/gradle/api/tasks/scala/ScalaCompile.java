@@ -32,6 +32,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
@@ -63,7 +64,7 @@ public class ScalaCompile extends AbstractCompile {
         CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
         ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal, antBuilder, antBuilderFactory, compilerDaemonManager);
         Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = new DelegatingScalaCompiler(scalaCompilerFactory);
-        compiler = new IncrementalScalaCompiler(delegatingCompiler, getOutputs());
+        compiler = new CleaningScalaCompiler(delegatingCompiler, getOutputs());
     }
 
     /**
@@ -114,7 +115,7 @@ public class ScalaCompile extends AbstractCompile {
         this.compiler = compiler;
     }
 
-    @Override
+    @TaskAction
     protected void compile() {
         checkScalaClasspathIsNonEmpty();
         DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();

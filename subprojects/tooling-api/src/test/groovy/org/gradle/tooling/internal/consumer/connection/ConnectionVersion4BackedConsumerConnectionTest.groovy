@@ -59,18 +59,18 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         !details.supportsGradleProjectModel()
 
         and:
-        details.isModelSupported(HierarchicalEclipseProject)
-        details.isModelSupported(EclipseProject)
-        details.isModelSupported(Void)
+        details.maySupportModel(HierarchicalEclipseProject)
+        details.maySupportModel(EclipseProject)
+        details.maySupportModel(Void)
 
         and:
-        !details.isModelSupported(IdeaProject)
-        !details.isModelSupported(BasicIdeaProject)
-        !details.isModelSupported(GradleProject)
-        !details.isModelSupported(BuildEnvironment)
-        !details.isModelSupported(ProjectOutcomes)
-        !details.isModelSupported(CustomModel)
-        !details.isModelSupported(GradleBuild)
+        !details.maySupportModel(IdeaProject)
+        !details.maySupportModel(BasicIdeaProject)
+        !details.maySupportModel(GradleProject)
+        !details.maySupportModel(BuildEnvironment)
+        !details.maySupportModel(ProjectOutcomes)
+        !details.maySupportModel(CustomModel)
+        !details.maySupportModel(GradleBuild)
     }
 
     def "describes capabilities of a 1.0-m5 provider"() {
@@ -83,18 +83,18 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         details.supportsGradleProjectModel()
 
         and:
-        details.isModelSupported(HierarchicalEclipseProject)
-        details.isModelSupported(EclipseProject)
-        details.isModelSupported(IdeaProject)
-        details.isModelSupported(BasicIdeaProject)
-        details.isModelSupported(GradleProject)
-        details.isModelSupported(Void)
+        details.maySupportModel(HierarchicalEclipseProject)
+        details.maySupportModel(EclipseProject)
+        details.maySupportModel(IdeaProject)
+        details.maySupportModel(BasicIdeaProject)
+        details.maySupportModel(GradleProject)
+        details.maySupportModel(Void)
 
         and:
-        !details.isModelSupported(BuildEnvironment)
-        !details.isModelSupported(ProjectOutcomes)
-        !details.isModelSupported(CustomModel)
-        !details.isModelSupported(GradleBuild)
+        !details.maySupportModel(BuildEnvironment)
+        !details.maySupportModel(ProjectOutcomes)
+        !details.maySupportModel(CustomModel)
+        !details.maySupportModel(GradleBuild)
     }
 
     def "builds model using connection's getModel() method"() {

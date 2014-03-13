@@ -1,0 +1,47 @@
+// START SNIPPET complete-example
+apply plugin: "c"
+apply plugin: "cunit"
+
+model {
+    flavors {
+        passing
+        failing
+    }
+    repositories {
+        libs(PrebuiltLibraries) {
+            cunit {
+                headers.srcDir "lib/cunit/2.1-2/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile = file("lib/cunit/2.1-2/lib/" + findCUnitLibForPlatform(targetPlatform))
+                }
+            }
+        }
+    }
+}
+
+libraries {
+    operators {}
+}
+// START SNIPPET configure-test-binary
+binaries.withType(TestSuiteExecutableBinary) {
+    lib library: "cunit", linkage: "static"
+
+    if (flavor == flavors.failing) {
+        cCompiler.define "PLUS_BROKEN"
+    }
+}
+// END SNIPPET configure-test-binary
+// END SNIPPET complete-example
+
+def findCUnitLibForPlatform(Platform platform) {
+    if (platform.operatingSystem.windows) {
+        return "vs2010/cunit.lib"
+//        return "vs2013/cunit.lib"
+//        return "cygwin/cunit.lib"
+//        return "mingw/cunit.lib"
+    } else if (platform.operatingSystem.macOsX) {
+        return "osx/libcunit.a"
+    } else {
+        return "linux/libcunit.a"
+    }
+}

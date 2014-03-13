@@ -37,6 +37,9 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.util.GradleVersion;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
  * An adapter that wraps a {@link ConnectionVersion4} based provider.
  */
@@ -71,6 +74,15 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         if (operationParameters.getStandardInput() != null) {
             throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()", versionDetails.getVersion());
         }
+        OutputStream out = operationParameters.getStandardOutput();
+        if (out != null) {
+            try {
+                String deprecationMessage = String.format("Connecting to Gradle version %s from the Gradle tooling API has been deprecated and is scheduled to be removed in version 2.0 of the Gradle tooling API%n", versionDetails.getVersion());
+                out.write(deprecationMessage.getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot write to stream", e);
+            }
+        }
         return super.run(type, operationParameters);
     }
 
@@ -85,7 +97,7 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         }
 
         @Override
-        public boolean isModelSupported(Class<?> modelType) {
+        public boolean maySupportModel(Class<?> modelType) {
             return modelType.equals(HierarchicalEclipseProject.class) || modelType.equals(EclipseProjectVersion3.class) || modelType.equals(EclipseProject.class) || modelType.equals(Void.class);
         }
     }
@@ -101,7 +113,7 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         }
 
         @Override
-        public boolean isModelSupported(Class<?> modelType) {
+        public boolean maySupportModel(Class<?> modelType) {
             return modelType.equals(HierarchicalEclipseProject.class)
                     || modelType.equals(EclipseProject.class)
                     || modelType.equals(IdeaProject.class)
@@ -122,12 +134,12 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         }
 
         public <T> T produceModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
-            if (modelType == BuildEnvironment.class && !versionDetails.isModelSupported(BuildEnvironment.class)) {
+            if (modelType == BuildEnvironment.class && !versionDetails.maySupportModel(BuildEnvironment.class)) {
                 //early versions of provider do not support BuildEnvironment model
                 //since we know the gradle version at least we can give back some result
                 return adapter.adapt(modelType, new VersionOnlyBuildEnvironment(versionDetails.getVersion()), mapper);
             }
-            if (!versionDetails.isModelSupported(modelType)) {
+            if (!versionDetails.maySupportModel(modelType)) {
                 //don't bother asking the provider for this model
                 throw Exceptions.unsupportedModel(modelType, versionDetails.getVersion());
             }
@@ -147,7 +159,7 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
 
         public <T> T produceModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
             final Action<SourceObjectMapping> mapper = new PropertyHandlerFactory().forVersion(versionDetails);
-            if (modelType == GradleProject.class && !versionDetails.isModelSupported(GradleProject.class)) {
+            if (modelType == GradleProject.class && !versionDetails.maySupportModel(GradleProject.class)) {
                 //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
                 //this patch enables getting gradle tasks for target gradle version pre M5
                 EclipseProjectVersion3 project = delegate.produceModel(EclipseProjectVersion3.class, operationParameters);

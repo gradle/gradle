@@ -15,8 +15,10 @@
  */
 package org.gradle.ide.visualstudio
 
+import org.gradle.ide.visualstudio.fixtures.FiltersFile
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.*
@@ -24,7 +26,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.*
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32', 'debug|x64', 'release|x64'] as Set
+    private final Set<String> projectConfigurations = ['win32Debug', 'win32Release', 'x64Debug', 'x64Release'] as Set
 
     def app = new CppHelloWorldApp()
 
@@ -38,7 +40,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             win32 {
                 architecture "i386"
             }
-            x86 {
+            x64 {
                 architecture "amd64"
             }
         }
@@ -70,22 +72,23 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         executedAndNotSkipped ":mainExeVisualStudio"
 
         and:
-        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
-        projectFile.sourceFiles == allFiles("src/main/cpp")
-        projectFile.headerFiles == allFiles("src/main/headers")
+        final projectFile = projectFile("mainExe.vcxproj")
+        projectFile.assertHasComponentSources(app, "src/main")
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        with (projectFile.projectConfigurations['debug|Win32']) {
-            macros == "TEST;foo=bar"
-            includePath == filePath("src/main/headers")
+        projectFile.projectConfigurations.values().each {
+            assert it.macros == "TEST;foo=bar"
+            assert it.includePath == filePath("src/main/headers")
+            assert it.buildCommand == "gradle :install${it.name.capitalize()}MainExecutable"
+            assert it.outputFile == OperatingSystem.current().getExecutableName("build/install/mainExecutable/${it.name}/lib/main")
         }
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe")
-        mainSolution.assertReferencesProject(projectFile, ["debug|Win32"])
+        mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    def "create visual studio solution for single shared library"() {
+    def "create visual studio solution for shared and library"() {
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
@@ -94,22 +97,76 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     }
 """
         and:
-        run "mainVisualStudio"
+        run "mainDllVisualStudio"
 
         then:
         executedAndNotSkipped ":mainDllVisualStudio"
 
         and:
-        final projectFile = projectFile("visualStudio/mainDll.vcxproj")
-        projectFile.sourceFiles == allFiles("src/main/cpp")
-        projectFile.headerFiles == allFiles("src/main/headers")
+        final projectFile = projectFile("mainDll.vcxproj")
+        projectFile.assertHasComponentSources(app.library, "src/main")
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        projectFile.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers")
+        projectFile.projectConfigurations.values().each {
+            assert it.includePath == filePath("src/main/headers")
+            assert it.buildCommand == "gradle :${it.name}MainSharedLibrary"
+            assert it.outputFile == OperatingSystem.current().getSharedLibraryName("build/binaries/mainSharedLibrary/${it.name}/main")
+        }
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainDll.sln")
+        final mainSolution = solutionFile("mainDll.sln")
         mainSolution.assertHasProjects("mainDll")
-        mainSolution.assertReferencesProject(projectFile, ["debug|Win32"])
+        mainSolution.assertReferencesProject(projectFile, projectConfigurations)
+    }
+
+    def "create visual studio solution for static library"() {
+        when:
+        app.library.writeSources(file("src/main"))
+        buildFile << """
+    libraries {
+        main {
+        }
+    }
+"""
+        and:
+        run "mainLibVisualStudio"
+
+        then:
+        executedAndNotSkipped ":mainLibVisualStudio"
+
+        and:
+        final projectFile = projectFile("mainLib.vcxproj")
+        projectFile.assertHasComponentSources(app.library, "src/main")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+        projectFile.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers")
+
+        and:
+        final mainSolution = solutionFile("mainLib.sln")
+        mainSolution.assertHasProjects("mainLib")
+        mainSolution.assertReferencesProject(projectFile, projectConfigurations)
+    }
+
+    def "lifecycle task creates visual studio solution for buildable static and shared libraries"() {
+        when:
+        app.library.writeSources(file("src/main"))
+        buildFile << """
+    libraries {
+        both {}
+        staticOnly {
+            binaries.withType(SharedLibraryBinary) {
+                buildable false
+            }
+        }
+    }
+"""
+        and:
+        run "bothVisualStudio", "staticOnlyVisualStudio"
+
+        then:
+        executedAndNotSkipped ":bothDllVisualStudio", ":bothLibVisualStudio", ":staticOnlyLibVisualStudio"
+
+        and:
+        file("staticOnlyLib.sln").assertExists()
+        file("staticOnlyDll.sln").assertDoesNotExist()
     }
 
     def "create visual studio solution for defined static library"() {
@@ -117,29 +174,29 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.library.writeSources(file("src/main"))
         buildFile << """
     libraries {
-        main {}
-    }
-    binaries.withType(SharedLibraryBinary) {
-        buildable = false
+        main {
+            binaries.withType(SharedLibraryBinary) {
+                buildable = false
+            }
+        }
     }
 """
         and:
-        run "mainVisualStudio"
+        run "mainLibVisualStudio"
 
         then:
         executedAndNotSkipped ":mainLibVisualStudio"
 
         and:
-        final projectFile = projectFile("visualStudio/mainLib.vcxproj")
-        projectFile.sourceFiles == allFiles("src/main/cpp")
-        projectFile.headerFiles == allFiles("src/main/headers")
+        final projectFile = projectFile("mainLib.vcxproj")
+        projectFile.assertHasComponentSources(app.library, "src/main")
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        projectFile.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers")
+        projectFile.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainLib.sln")
+        final mainSolution = solutionFile("mainLib.sln")
         mainSolution.assertHasProjects("mainLib")
-        mainSolution.assertReferencesProject(projectFile, ["debug|Win32"])
+        mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
     def "create visual studio solution for executable that depends on static library"() {
@@ -159,24 +216,22 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
-        exeProject.sourceFiles == allFiles("src/main/cpp")
-        exeProject.headerFiles.isEmpty()
+        final exeProject = projectFile("mainExe.vcxproj")
+        exeProject.assertHasComponentSources(app.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
-        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers", "src/hello/headers")
+        exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
-        final libProject = projectFile("visualStudio/helloLib.vcxproj")
-        libProject.sourceFiles == allFiles("src/hello/cpp")
-        libProject.headerFiles == allFiles("src/hello/headers")
+        final libProject = projectFile("helloLib.vcxproj")
+        libProject.assertHasComponentSources(app.library, "src/hello")
         libProject.projectConfigurations.keySet() == projectConfigurations
-        libProject.projectConfigurations['debug|Win32'].includePath == filePath("src/hello/headers")
+        libProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloLib")
-        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(libProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(libProject, projectConfigurations)
     }
 
     def "create visual studio solution for executable that depends on shared library"() {
@@ -196,24 +251,22 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
-        exeProject.sourceFiles == allFiles("src/main/cpp")
-        exeProject.headerFiles.isEmpty()
+        final exeProject = projectFile("mainExe.vcxproj")
+        exeProject.assertHasComponentSources(app.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
-        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers", "src/hello/headers")
+        exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
-        final dllProject = projectFile("visualStudio/helloDll.vcxproj")
-        dllProject.sourceFiles == allFiles("src/hello/cpp")
-        dllProject.headerFiles == allFiles("src/hello/headers")
+        final dllProject = projectFile("helloDll.vcxproj")
+        dllProject.assertHasComponentSources(app.library, "src/hello")
         dllProject.projectConfigurations.keySet() == projectConfigurations
-        dllProject.projectConfigurations['debug|Win32'].includePath == filePath("src/hello/headers")
+        dllProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll")
-        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(dllProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(dllProject, projectConfigurations)
     }
 
     def "create visual studio solution for executable that depends on library that depends on another library"() {
@@ -239,32 +292,29 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
-        exeProject.sourceFiles == allFiles("src/main/cpp")
-        exeProject.headerFiles.isEmpty()
+        final exeProject = projectFile("mainExe.vcxproj")
+        exeProject.assertHasComponentSources(testApp.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
-        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers", "src/hello/headers")
+        exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
-        final helloDllProject = projectFile("visualStudio/helloDll.vcxproj")
-        helloDllProject.sourceFiles == allFiles("src/hello/cpp")
-        helloDllProject.headerFiles == allFiles("src/hello/headers")
+        final helloDllProject = projectFile("helloDll.vcxproj")
+        helloDllProject.assertHasComponentSources(testApp.library, "src/hello")
         helloDllProject.projectConfigurations.keySet() == projectConfigurations
-        helloDllProject.projectConfigurations['debug|Win32'].includePath == filePath("src/hello/headers", "src/greetings/headers")
+        helloDllProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers", "src/greetings/headers")
 
         and:
-        final greetingsLibProject = projectFile("visualStudio/greetingsLib.vcxproj")
-        greetingsLibProject.sourceFiles == allFiles("src/greetings/cpp")
-        greetingsLibProject.headerFiles == allFiles("src/greetings/headers")
+        final greetingsLibProject = projectFile("greetingsLib.vcxproj")
+        greetingsLibProject.assertHasComponentSources(testApp.greetingsLibrary, "src/greetings")
         greetingsLibProject.projectConfigurations.keySet() == projectConfigurations
-        greetingsLibProject.projectConfigurations['debug|Win32'].includePath == file("src/greetings/headers").absolutePath
+        greetingsLibProject.projectConfigurations['win32Debug'].includePath == filePath("src/greetings/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
-        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(helloDllProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(greetingsLibProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(helloDllProject, projectConfigurations)
+        mainSolution.assertReferencesProject(greetingsLibProject, projectConfigurations)
     }
 
     def "create visual studio solutions for 2 executables that depend on different linkages of the same library"() {
@@ -287,19 +337,19 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio", "mainStaticVisualStudio"
 
         then:
-        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe", "helloDll")
-        solutionFile("visualStudio/mainStaticExe.sln").assertHasProjects("mainStaticExe", "helloLib")
+        solutionFile("mainExe.sln").assertHasProjects("mainExe", "helloDll")
+        solutionFile("mainStaticExe.sln").assertHasProjects("mainStaticExe", "helloLib")
 
         and:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
-        final staticExeProject = projectFile("visualStudio/mainStaticExe.vcxproj")
+        final exeProject = projectFile("mainExe.vcxproj")
+        final staticExeProject = projectFile("mainStaticExe.vcxproj")
         exeProject.sourceFiles == staticExeProject.sourceFiles
         exeProject.headerFiles == []
         staticExeProject.headerFiles == []
 
         and:
-        final dllProject = projectFile("visualStudio/helloDll.vcxproj")
-        final libProject = projectFile("visualStudio/helloLib.vcxproj")
+        final dllProject = projectFile("helloDll.vcxproj")
+        final libProject = projectFile("helloLib.vcxproj")
         dllProject.sourceFiles == libProject.sourceFiles
         dllProject.headerFiles == libProject.headerFiles
     }
@@ -327,22 +377,22 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio", "mainReleaseVisualStudio"
 
         then:
-        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe", "helloDll")
-        solutionFile("visualStudio/mainReleaseExe.sln").assertHasProjects("mainReleaseExe", "helloDll")
+        solutionFile("mainExe.sln").assertHasProjects("mainExe", "helloDll")
+        solutionFile("mainReleaseExe.sln").assertHasProjects("mainReleaseExe", "helloDll")
 
         and:
-        final helloProjectFile = projectFile("visualStudio/helloDll.vcxproj")
+        final helloProjectFile = projectFile("helloDll.vcxproj")
         helloProjectFile.projectConfigurations.keySet() == projectConfigurations
-        final mainProjectFile = projectFile("visualStudio/mainExe.vcxproj")
+        final mainProjectFile = projectFile("mainExe.vcxproj")
         mainProjectFile.projectConfigurations.keySet() == projectConfigurations
-        final mainReleaseProjectFile = projectFile("visualStudio/mainReleaseExe.vcxproj")
-        mainReleaseProjectFile.projectConfigurations.keySet() == ['release|Win32', 'release|x64'] as Set
+        final mainReleaseProjectFile = projectFile("mainReleaseExe.vcxproj")
+        mainReleaseProjectFile.projectConfigurations.keySet() == ['win32', 'x64'] as Set
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
-        mainSolution.assertReferencesProject(helloProjectFile, ["debug|Win32"])
-        final mainReleaseSolution = solutionFile("visualStudio/mainReleaseExe.sln")
-        mainReleaseSolution.assertReferencesProject(helloProjectFile, ["release|Win32"])
+        final mainSolution = solutionFile("mainExe.sln")
+        mainSolution.assertReferencesProject(helloProjectFile, projectConfigurations)
+        final mainReleaseSolution = solutionFile("mainReleaseExe.sln")
+        mainReleaseSolution.assertReferencesProject(helloProjectFile, [win32: 'win32Release', x64: 'x64Release'])
     }
 
     def "create visual studio project for executable that targets multiple platforms with the same architecture"() {
@@ -358,7 +408,6 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     }
     executables {
         main {
-            targetBuildTypes "debug"
             targetPlatforms "win32", "otherWin32"
         }
     }
@@ -367,8 +416,8 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final mainProjectFile = projectFile("visualStudio/mainExe.vcxproj")
-        mainProjectFile.projectConfigurations.keySet() == ['win32Debug|Win32', 'otherWin32Debug|Win32'] as Set
+        final mainProjectFile = projectFile("mainExe.vcxproj")
+        mainProjectFile.projectConfigurations.keySet() == ['win32Debug', 'otherWin32Debug', 'win32Release', 'otherWin32Release'] as Set
     }
 
     def "create visual studio solution for executable that has diamond dependency"() {
@@ -392,28 +441,27 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         succeeds "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
-        final helloProject = projectFile("visualStudio/helloDll.vcxproj")
-        final greetProject = projectFile("visualStudio/greetingsLib.vcxproj")
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final exeProject = projectFile("mainExe.vcxproj")
+        final helloProject = projectFile("helloDll.vcxproj")
+        final greetProject = projectFile("greetingsLib.vcxproj")
+        final mainSolution = solutionFile("mainExe.sln")
 
         and:
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
-        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(helloProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(greetProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(helloProject, projectConfigurations)
+        mainSolution.assertReferencesProject(greetProject, projectConfigurations)
 
         and:
-        exeProject.sourceFiles == allFiles("src/main/cpp")
-        exeProject.headerFiles.isEmpty()
+        exeProject.assertHasComponentSources(testApp.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
-        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers", "src/hello/headers", "src/greetings/headers")
+        exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers", "src/greetings/headers")
     }
 
     def "create visual studio solution for executable that depends on both static and shared linkage of library"() {
         given:
-        def app = new ExeWithDiamondDependencyHelloWorldApp()
-        app.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
+        def testApp = new ExeWithDiamondDependencyHelloWorldApp()
+        testApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
 
         and:
         buildFile << """
@@ -433,28 +481,28 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         succeeds "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
-        final helloProject = projectFile("visualStudio/helloDll.vcxproj")
-        final greetDllProject = projectFile("visualStudio/greetingsDll.vcxproj")
-        final greetLibProject = projectFile("visualStudio/greetingsLib.vcxproj")
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final exeProject = projectFile("mainExe.vcxproj")
+        final helloProject = projectFile("helloDll.vcxproj")
+        final greetDllProject = projectFile("greetingsDll.vcxproj")
+        final greetLibProject = projectFile("greetingsLib.vcxproj")
+        final mainSolution = solutionFile("mainExe.sln")
 
         and:
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib", "greetingsDll")
-        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(helloProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(greetDllProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(greetLibProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(helloProject, projectConfigurations)
+        mainSolution.assertReferencesProject(greetDllProject, projectConfigurations)
+        mainSolution.assertReferencesProject(greetLibProject, projectConfigurations)
 
         and:
-        exeProject.sourceFiles == allFiles("src/main/cpp")
+        exeProject.assertHasComponentSources(testApp.executable, "src/main")
         exeProject.projectConfigurations.keySet() == projectConfigurations
-        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers", "src/hello/headers", "src/greetings/headers")
+        exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers", "src/greetings/headers")
 
         and:
-        helloProject.sourceFiles == allFiles("src/hello/cpp")
+        helloProject.assertHasComponentSources(testApp.library, "src/hello")
         helloProject.projectConfigurations.keySet() == projectConfigurations
-        helloProject.projectConfigurations['debug|Win32'].includePath == filePath("src/hello/headers", "src/greetings/headers")
+        helloProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers", "src/greetings/headers")
     }
 
     def "generate visual studio solution for executable with mixed sources"() {
@@ -475,16 +523,15 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
-        projectFile.sourceFiles == allFiles("src/main/asm", "src/main/c", "src/main/cpp")
-        projectFile.headerFiles == allFiles("src/main/headers")
+        final projectFile = projectFile("mainExe.vcxproj")
+        projectFile.assertHasComponentSources(testApp, "src/main")
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        with (projectFile.projectConfigurations['debug|Win32']) {
+        with (projectFile.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers")
         }
 
         and:
-        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
+        solutionFile("mainExe.sln").assertHasProjects("mainExe")
     }
 
     @RequiresInstalledToolChain(VisualCpp)
@@ -509,20 +556,21 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
-        projectFile.sourceFiles == allFiles("src/main/cpp")
-        projectFile.resourceFiles == allFiles("src/main/rc")
-        projectFile.headerFiles == allFiles("src/main/headers")
+        final projectFile = projectFile("mainExe.vcxproj")
+        final List<SourceFile> resources = resourceApp.resourceSources
+        final List<SourceFile> sources = resourceApp.sourceFiles - resources
+        assert projectFile.headerFiles == resourceApp.headerFiles*.withPath("src/main").sort()
+        assert projectFile.sourceFiles == ['build.gradle'] + sources*.withPath("src/main").sort()
+        assert projectFile.resourceFiles == resources*.withPath("src/main").sort()
+
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        with (projectFile.projectConfigurations['debug|Win32']) {
-            macros == ""
+        with (projectFile.projectConfigurations['win32Debug']) {
+            macros == "TEST;foo=bar"
             includePath == filePath("src/main/headers")
-            resourceMacros == "TEST;foo=bar"
-            resourceIncludePath == includePath
         }
 
         and:
-        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
+        solutionFile("mainExe.sln").assertHasProjects("mainExe")
     }
 
     def "builds solution for component with no source"() {
@@ -537,16 +585,40 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
-        projectFile.sourceFiles == []
+        final projectFile = projectFile("mainExe.vcxproj")
+        projectFile.sourceFiles == ['build.gradle']
         projectFile.headerFiles == []
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        with (projectFile.projectConfigurations['debug|Win32']) {
+        with (projectFile.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers")
         }
 
         and:
-        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
+        solutionFile("mainExe.sln").assertHasProjects("mainExe")
+    }
+
+    def "visual studio project includes headers co-located with sources"() {
+        when:
+        // Write headers so they sit with sources
+        app.allFiles.each {
+            it.writeToFile(file("src/main/cpp/${it.name}"))
+        }
+        buildFile << """
+    executables {
+        main {}
+    }
+    sources.main.cpp.source.include "**/*.cpp"
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        executedAndNotSkipped ":mainExeVisualStudio"
+
+        and:
+        final projectFile = projectFile("mainExe.vcxproj")
+        assert projectFile.sourceFiles == ['build.gradle'] + app.sourceFiles.collect({"src/main/cpp/${it.name}"}).sort()
+        assert projectFile.headerFiles == app.headerFiles.collect({"src/main/cpp/${it.name}"}).sort()
     }
 
     def "visual studio solution with header-only library"() {
@@ -575,18 +647,18 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         succeeds "mainVisualStudio"
 
         then:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll")
 
         and:
-        final mainExeProject = projectFile("visualStudio/mainExe.vcxproj")
-        with (mainExeProject.projectConfigurations['debug|Win32']) {
+        final mainExeProject = projectFile("mainExe.vcxproj")
+        with (mainExeProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers", "src/helloApi/headers", "src/hello/headers")
         }
 
         and:
-        final helloDllProject = projectFile("visualStudio/helloDll.vcxproj")
-        with (helloDllProject.projectConfigurations['debug|Win32']) {
+        final helloDllProject = projectFile("helloDll.vcxproj")
+        with (helloDllProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/hello/headers", "src/helloApi/headers")
         }
     }
@@ -594,11 +666,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     def "create visual studio solution for executable with variant conditional sources"() {
         when:
         app.writeSources(file("src/win32"))
-        app.alternate.writeSources(file("src/x86"))
+        app.alternate.writeSources(file("src/x64"))
         buildFile << """
     sources {
         win32 {}
-        x86 {}
+        x64 {}
     }
     executables {
         main {}
@@ -611,18 +683,14 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        executedAndNotSkipped ":win32MainExeVisualStudio"
+        final projectFile = projectFile("mainExe.vcxproj")
+        projectFile.assertHasComponentSources(app, "src/win32", app.alternate, "src/x64")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
 
         and:
-        final projectFile = projectFile("visualStudio/win32MainExe.vcxproj")
-        projectFile.sourceFiles == allFiles("src/win32/cpp")
-        projectFile.headerFiles == allFiles("src/win32/headers")
-        projectFile.projectConfigurations.keySet() == ['debug|Win32', 'release|Win32'] as Set
-
-        and:
-        final mainSolution = solutionFile("visualStudio/win32MainExe.sln")
-        mainSolution.assertHasProjects("win32MainExe")
-        mainSolution.assertReferencesProject(projectFile, ["debug|Win32"])
+        final mainSolution = solutionFile("mainExe.sln")
+        mainSolution.assertHasProjects("mainExe")
+        mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
     def "visual studio solution with pre-built library"() {
@@ -652,12 +720,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         and:
 
         then:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe")
 
         and:
-        final mainExeProject = projectFile("visualStudio/mainExe.vcxproj")
-        with (mainExeProject.projectConfigurations['debug|Win32']) {
+        final mainExeProject = projectFile("mainExe.vcxproj")
+        with (mainExeProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers", "libs/test/include")
         }
     }
@@ -688,26 +756,64 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         succeeds "mainVisualStudio"
 
         then:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
 
         and:
-        final mainExeProject = projectFile("visualStudio/mainExe.vcxproj")
-        with (mainExeProject.projectConfigurations['debug|Win32']) {
+        final mainExeProject = projectFile("mainExe.vcxproj")
+        with (mainExeProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers", "src/hello/headers")
         }
 
         and:
-        final helloDllProject = projectFile("visualStudio/helloDll.vcxproj")
-        with (helloDllProject.projectConfigurations['debug|Win32']) {
+        final helloDllProject = projectFile("helloDll.vcxproj")
+        with (helloDllProject.projectConfigurations['win32Debug']) {
             includePath == filePath( "src/hello/headers", "src/greetings/headers")
         }
 
         and:
-        final greetingsLibProject = projectFile("visualStudio/greetingsLib.vcxproj")
-        with (greetingsLibProject.projectConfigurations['debug|Win32']) {
+        final greetingsLibProject = projectFile("greetingsLib.vcxproj")
+        with (greetingsLibProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/greetings/headers", "src/hello/headers")
         }
+    }
+
+    def "create visual studio solution where referenced projects have different configurations"() {
+        when:
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+        buildFile << """
+    libraries {
+        hello {}
+    }
+    executables {
+        main {
+            targetPlatforms "win32"
+            targetBuildTypes "release"
+        }
+    }
+    sources.main.cpp.lib libraries.hello
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        final exeProject = projectFile("mainExe.vcxproj")
+        exeProject.assertHasComponentSources(app.executable, "src/main")
+        exeProject.projectConfigurations.keySet() == ['release'] as Set
+        exeProject.projectConfigurations['release'].includePath == filePath("src/main/headers", "src/hello/headers")
+
+        and:
+        final dllProject = projectFile("helloDll.vcxproj")
+        dllProject.assertHasComponentSources(app.library, "src/hello")
+        dllProject.projectConfigurations.keySet() == projectConfigurations
+        dllProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers")
+
+        and:
+        final mainSolution = solutionFile("mainExe.sln")
+        mainSolution.assertHasProjects("mainExe", "helloDll")
+        mainSolution.assertReferencesProject(exeProject, ['release'])
+        mainSolution.assertReferencesProject(dllProject, [release: 'win32Release'])
     }
 
     private SolutionFile solutionFile(String path) {
@@ -718,17 +824,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         return new ProjectFile(file(path))
     }
 
-    private List<String> allFiles(String... paths) {
-        List allFiles = []
-        paths.each { path ->
-            allFiles.addAll file(path).listFiles()*.absolutePath as List
-        }
-        return allFiles
+    private FiltersFile filtersFile(String path) {
+        return new FiltersFile(file(path))
     }
 
-    private String filePath(String... paths) {
-        return paths.collect {
-            file(it).absolutePath
-        } .join(';')
+    private static String filePath(String... paths) {
+        return (paths as List).join(';')
     }
 }

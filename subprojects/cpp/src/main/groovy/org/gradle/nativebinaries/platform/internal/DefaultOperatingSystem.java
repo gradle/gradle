@@ -59,6 +59,10 @@ public class DefaultOperatingSystem implements OperatingSystem {
     }
 
     public boolean isSolaris() {
-        return internalOs.isSolaris();
+        return internalOs == org.gradle.internal.os.OperatingSystem.SOLARIS;
+    }
+
+    public boolean isFreeBSD() {
+        return internalOs == org.gradle.internal.os.OperatingSystem.FREE_BSD;
     }
 }

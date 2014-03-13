@@ -33,6 +33,11 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         this.version = version;
     }
 
+    public DefaultModuleVersionIdentifier(ModuleIdentifier id, String version) {
+        this.id = new DefaultModuleIdentifier(id.getGroup(), id.getName());
+        this.version = version;
+    }
+
     public String getGroup() {
         return id.getGroup();
     }

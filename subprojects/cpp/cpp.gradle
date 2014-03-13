@@ -31,6 +31,7 @@ integTestTasks.all {
 }
 
 useTestFixtures()
+useTestFixtures(project: ":messaging")
 useTestFixtures(sourceSet: "testFixtures")
 
 //useClassycle()

@@ -17,13 +17,12 @@
 package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
-
-import java.net.URLClassLoader;
 
 class ClassPathPluginResolution implements PluginResolution {
 
@@ -37,9 +36,9 @@ class ClassPathPluginResolution implements PluginResolution {
         this.classPathFactory = classPathFactory;
     }
 
-    public Class<? extends Plugin> resolve(ClassLoader parentClassLoader) {
+    public Class<? extends Plugin> resolve(ClassLoaderScope classLoaderScope) {
         ClassPath classPath = classPathFactory.create();
-        ClassLoader classLoader = new URLClassLoader(classPath.getAsURLArray(), parentClassLoader);
+        ClassLoader classLoader = classLoaderScope.addLocal(classPath);
         PluginRegistry pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator);
         Class<? extends Plugin> typeForId = pluginRegistry.getTypeForId(pluginId);
         return typeForId;

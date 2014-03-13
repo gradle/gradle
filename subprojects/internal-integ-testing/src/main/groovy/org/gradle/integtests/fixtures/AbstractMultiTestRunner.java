@@ -73,8 +73,8 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
     private void initExecutions() {
         if (executions.isEmpty()) {
             try {
-                Runner runner = createRunnerFor(Arrays.asList(target));
-                templateDescription = runner.getDescription();
+                Runner descriptionProvider = createRunnerFor(Arrays.asList(target), Collections.<Filter>emptyList());
+                templateDescription = descriptionProvider.getDescription();
             } catch (InitializationError initializationError) {
                 throw UncheckedException.throwAsUncheckedException(initializationError);
             }
@@ -106,7 +106,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         executions.add(execution);
     }
 
-    private static Runner createRunnerFor(List<? extends Class<?>> targetClasses) throws InitializationError {
+    private static Runner createRunnerFor(List<? extends Class<?>> targetClasses, final List<Filter> filters) throws InitializationError {
         RunnerBuilder runnerBuilder = new RunnerBuilder() {
             @Override
             public Runner runnerForClass(Class<?> testClass) throws Throwable {
@@ -114,13 +114,26 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                     RunWith runWith = candidate.getAnnotation(RunWith.class);
                     if (runWith != null && !AbstractMultiTestRunner.class.isAssignableFrom(runWith.value())) {
                         try {
-                            return (Runner)runWith.value().getConstructors()[0].newInstance(testClass);
+                            Runner r = (Runner) runWith.value().getConstructors()[0].newInstance(testClass);
+                            return filter(r);
                         } catch (InvocationTargetException e) {
                             throw e.getTargetException();
                         }
                     }
                 }
-                return new BlockJUnit4ClassRunner(testClass);
+                return filter(new BlockJUnit4ClassRunner(testClass));
+            }
+
+            //we need to filter at the level child runners because the suite is not doing the right thing here
+            private Runner filter(Runner r) {
+                for (Filter filter : filters) {
+                    try {
+                        ((Filterable)r).filter(filter);
+                    } catch (NoTestsRemainException e) {
+                        //ignore
+                    }
+                }
+                return r;
             }
         };
         return new Suite(runnerBuilder, targetClasses.toArray(new Class<?>[targetClasses.size()]));
@@ -132,6 +145,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         private final Map<Description, Description> descriptionTranslations = new HashMap<Description, Description>();
         private final Set<Description> enabledTests = new LinkedHashSet<Description>();
         private final Set<Description> disabledTests = new LinkedHashSet<Description>();
+        private final List<Filter> filters = new LinkedList<Filter>();
 
         final void init(Class<?> target, Description templateDescription) {
             this.target = target;
@@ -140,7 +154,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
 
         private Runner createExecutionRunner() throws InitializationError {
             List<? extends Class<?>> targetClasses = loadTargetClasses();
-            return createRunnerFor(targetClasses);
+            return createRunnerFor(targetClasses, filters);
         }
 
         final void addDescriptions(Description parent) {
@@ -202,6 +216,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
 
         public void filter(Filter filter) throws NoTestsRemainException {
+            filters.add(filter);
             for (Map.Entry<Description, Description> entry : descriptionTranslations.entrySet()) {
                 if (!filter.shouldRun(entry.getKey())) {
                     enabledTests.remove(entry.getValue());

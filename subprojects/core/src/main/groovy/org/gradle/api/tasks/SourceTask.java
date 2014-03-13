@@ -34,7 +34,7 @@ import java.util.Set;
  * A {@code SourceTask} performs some operation on source files.
  */
 public class SourceTask extends ConventionTask implements PatternFilterable {
-    private final List<Object> source = new ArrayList<Object>();
+    protected final List<Object> source = new ArrayList<Object>();
     private final PatternFilterable patternSet = new PatternSet();
 
     /**

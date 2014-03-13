@@ -19,6 +19,7 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.FiltersFile
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 
@@ -49,13 +50,14 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 """
     }
 
-    def "can specific location of generated files"() {
+    def "can specify location of generated files"() {
         when:
+        file("gradlew.bat") << "dummy wrapper"
         buildFile << '''
     model {
         visualStudio {
             projects.all { project ->
-                projectFile.location = "other/${project.name}.vcxproj"
+                projectFile.location = "very/deeply/nested/${project.name}.vcxproj"
                 filtersFile.location = "other/filters.vcxproj.filters"
             }
             solutions.all {
@@ -71,12 +73,28 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         executedAndNotSkipped ":mainExeVisualStudio"
 
         and:
-        final projectFile = projectFile("other/mainExe.vcxproj")
-        filtersFile("other/filters.vcxproj.filters")
+        final projectFile = projectFile("very/deeply/nested/mainExe.vcxproj")
+        assert projectFile.headerFiles == app.headerFiles*.withPath("../../../src/main").sort()
+        assert projectFile.sourceFiles == ['../../../build.gradle'] + app.sourceFiles*.withPath("../../../src/main").sort()
+        projectFile.projectConfigurations.values().each {
+            assert it.buildCommand == "../../../gradlew.bat -p \"../../..\" :install${it.name.capitalize()}MainExecutable"
+            assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/mainExecutable/${it.name}/lib/main")
+        }
+        def filtersFile = filtersFile("other/filters.vcxproj.filters")
 
+        and:
         final mainSolution = solutionFile("vs/mainExe.solution")
         mainSolution.assertHasProjects("mainExe")
-        mainSolution.assertReferencesProject("mainExe", projectFile)
+        mainSolution.assertReferencesProject(projectFile, ['debug', 'release'])
+
+        // Ensure that clean handles custom file locations
+        when:
+        run "cleanVisualStudio"
+
+        then:
+        projectFile.projectFile.assertDoesNotExist()
+        filtersFile.file.assertDoesNotExist()
+        mainSolution.file.assertDoesNotExist()
     }
 
     def "can add xml configuration to generated project files"() {
@@ -98,7 +116,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         run "mainVisualStudio"
 
         then:
-        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        final projectFile = projectFile("mainExe.vcxproj")
         projectFile.globals.ExtraInfo[0].text() == "Some extra info"
         projectFile.globals.ProjectName[0].text() == "mainExe"
     }
@@ -120,7 +138,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         run "mainVisualStudio"
 
         then:
-        final filtersFile = filtersFile("visualStudio/mainExe.vcxproj.filters")
+        final filtersFile = filtersFile("mainExe.vcxproj.filters")
         filtersFile.xml.ExtraContent[0].text() == "Filter - mainExe"
     }
 
@@ -149,9 +167,30 @@ EndGlobal
         run "mainVisualStudio"
 
         then:
-        final solutionFile = solutionFile("visualStudio/mainExe.sln")
+        final solutionFile = solutionFile("mainExe.sln")
         solutionFile.content.contains "GlobalSection(MyGlobalSection)"
         solutionFile.content.contains "Project-list: mainExe"
+    }
+
+    def "can configure gradle command line"() {
+        when:
+        buildFile << """
+    executables {
+        main {}
+    }
+    tasks.withType(GenerateProjectFileTask) {
+        it.gradleExe "myCustomGradleExe"
+        it.gradleArgs "--configure-on-demand --another"
+    }
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        final projectFile = projectFile("mainExe.vcxproj")
+        projectFile.projectConfigurations.values().each {
+            assert it.buildCommand == "myCustomGradleExe --configure-on-demand --another :install${it.name.capitalize()}MainExecutable"
+        }
     }
 
     private SolutionFile solutionFile(String path) {

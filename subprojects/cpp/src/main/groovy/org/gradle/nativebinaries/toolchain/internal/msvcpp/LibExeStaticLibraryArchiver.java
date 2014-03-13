@@ -28,6 +28,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
+
 class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
 
@@ -46,7 +48,7 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
             List<String> args = new ArrayList<String>();
             args.add("/OUT:" + spec.getOutputFile().getAbsolutePath());
             args.add("/NOLOGO");
-            args.addAll(spec.getAllArgs());
+            args.addAll(escapeUserArgs(spec.getAllArgs()));
             for (File file : spec.getObjectFiles()) {
                 args.add(file.getAbsolutePath());
             }

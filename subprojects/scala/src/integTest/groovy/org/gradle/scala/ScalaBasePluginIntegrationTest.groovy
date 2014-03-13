@@ -17,6 +17,8 @@ package org.gradle.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.hamcrest.Matchers.startsWith
+
 class ScalaBasePluginIntegrationTest extends AbstractIntegrationSpec {
     def "defaults scalaClasspath to 'scalaTools' configuration if the latter is non-empty"() {
         executer.withDeprecationChecksDisabled()
@@ -135,7 +137,7 @@ task verify << {
         fails "compileScala"
 
         then:
-        failure.assertHasDescription "Cannot infer Scala class path because no Scala library Jar was found on class path: configuration ':compile'"
+        failure.assertThatDescription(startsWith("Cannot infer Scala class path because no Scala library Jar was found."))
     }
 
 }

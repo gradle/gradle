@@ -17,12 +17,16 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 
 import java.io.File;
 
 // TODO:ADAM - This is actually Ivy artifact publish meta data
 public interface ModuleVersionArtifactPublishMetaData {
     ModuleVersionArtifactIdentifier getId();
+
+    // TODO:DAZ Merge with getId()?
+    ArtifactIdentifier getArtifactIdentifier();
 
     /**
      * Returns this artifact as an Ivy Artifact. This method is here to allow us to migrate away from the Ivy types

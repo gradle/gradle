@@ -21,7 +21,7 @@ import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.ProjectNativeComponent;
-import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal;
+import org.gradle.nativebinaries.internal.TargetedNativeComponentInternal;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
@@ -49,41 +49,41 @@ public class ProjectNativeComponentInitializer implements Action<ProjectNativeCo
     }
 
     public void execute(ProjectNativeComponent projectNativeComponent) {
-        ProjectNativeComponentInternal component = (ProjectNativeComponentInternal) projectNativeComponent;
-        for (Platform platform : component.choosePlatforms(allPlatforms)) {
+        TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
+        for (Platform platform : targetedComponent.choosePlatforms(allPlatforms)) {
             ToolChain toolChain = toolChainRegistry.getForPlatform(platform);
-            for (BuildType buildType : component.chooseBuildTypes(allBuildTypes)) {
-                for (Flavor flavor : component.chooseFlavors(allFlavors)) {
-                    BinaryNamingSchemeBuilder namingScheme = initializeNamingScheme(component, platform, buildType, flavor);
-                    factory.createNativeBinaries(component, namingScheme, toolChain, platform, buildType, flavor);
+            for (BuildType buildType : targetedComponent.chooseBuildTypes(allBuildTypes)) {
+                for (Flavor flavor : targetedComponent.chooseFlavors(allFlavors)) {
+                    BinaryNamingSchemeBuilder namingScheme = initializeNamingScheme(targetedComponent, projectNativeComponent.getName(), platform, buildType, flavor);
+                    factory.createNativeBinaries(projectNativeComponent, namingScheme, toolChain, platform, buildType, flavor);
                 }
             }
         }
     }
 
-    private BinaryNamingSchemeBuilder initializeNamingScheme(ProjectNativeComponentInternal component, Platform platform, BuildType buildType, Flavor flavor) {
-        BinaryNamingSchemeBuilder namingScheme = namingSchemeBuilder.withComponentName(component.getName());
+    private BinaryNamingSchemeBuilder initializeNamingScheme(TargetedNativeComponentInternal component, String name, Platform platform, BuildType buildType, Flavor flavor) {
+        BinaryNamingSchemeBuilder builder = namingSchemeBuilder.withComponentName(name);
         if (usePlatformDimension(component)) {
-            namingScheme = namingScheme.withVariantDimension(platform.getName());
+            builder = builder.withVariantDimension(platform.getName());
         }
         if (useBuildTypeDimension(component)) {
-            namingScheme = namingScheme.withVariantDimension(buildType.getName());
+            builder = builder.withVariantDimension(buildType.getName());
         }
         if (useFlavorDimension(component)) {
-            namingScheme = namingScheme.withVariantDimension(flavor.getName());
+            builder = builder.withVariantDimension(flavor.getName());
         }
-        return namingScheme;
+        return builder;
     }
 
-    private boolean usePlatformDimension(ProjectNativeComponentInternal component) {
+    private boolean usePlatformDimension(TargetedNativeComponentInternal component) {
         return component.choosePlatforms(allPlatforms).size() > 1;
     }
 
-    private boolean useBuildTypeDimension(ProjectNativeComponentInternal component) {
+    private boolean useBuildTypeDimension(TargetedNativeComponentInternal component) {
         return component.chooseBuildTypes(allBuildTypes).size() > 1;
     }
 
-    private boolean useFlavorDimension(ProjectNativeComponentInternal component) {
+    private boolean useFlavorDimension(TargetedNativeComponentInternal component) {
         return component.chooseFlavors(allFlavors).size() > 1;
     }
 

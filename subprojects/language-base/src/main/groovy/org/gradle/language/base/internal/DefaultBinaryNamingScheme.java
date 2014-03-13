@@ -22,10 +22,10 @@ import org.gradle.util.GUtil;
 import java.util.List;
 
 public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
-    private final String parentName;
-    private final String typeString;
-    private final String dimensionPrefix;
-    private final List<String> dimensions;
+    final String parentName;
+    final String typeString;
+    final String dimensionPrefix;
+    final List<String> dimensions;
 
     public DefaultBinaryNamingScheme(String parentName, String typeString, List<String> dimensions) {
         this.parentName = parentName;
@@ -67,6 +67,10 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         appendUncapitalized(builder, typeString);
         builder.append("'");
         return builder.toString();
+    }
+
+    public List<String> getVariantDimensions() {
+        return dimensions;
     }
 
     public String getTaskName(@Nullable String verb) {

@@ -55,7 +55,7 @@ class ObjectiveCLangPlugin implements Plugin<ProjectInternal> {
                     instantiator.newInstance(DefaultObjectiveCSourceSet, name, functionalSourceSet, project)
                 }
                 // Add a single Objective-C source set
-                functionalSourceSet.create "objectiveC", ObjectiveCSourceSet
+                functionalSourceSet.create "objc", ObjectiveCSourceSet
             }
         });
     }

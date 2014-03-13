@@ -20,7 +20,4 @@ public class AnyWildcardPatternStep implements PatternStep{
         return true;
     }
 
-    public boolean isGreedy() {
-        return false;
-    }
 }

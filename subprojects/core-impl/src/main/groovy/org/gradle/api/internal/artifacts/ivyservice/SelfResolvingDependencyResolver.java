@@ -19,6 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -37,14 +38,17 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
         this.resolver = resolver;
     }
 
-    public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
-        ResolverResults results = resolver.resolve(configuration, repositories);
+    public void resolve(ConfigurationInternal configuration,
+                        List<? extends ResolutionAwareRepository> repositories,
+                        ModuleMetadataProcessor metadataProcessor,
+                        ResolverResults results) throws ResolveException {
+        resolver.resolve(configuration, repositories, metadataProcessor, results);
         ResolvedConfiguration resolvedConfiguration = results.getResolvedConfiguration();
         Set<Dependency> dependencies = configuration.getAllDependencies();
         CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
         SelfResolvingFilesProvider provider = new SelfResolvingFilesProvider(resolveContext, dependencies);
 
-        return results.withResolvedConfiguration(new FilesAggregatingResolvedConfiguration(resolvedConfiguration, provider));
+        results.withResolvedConfiguration(new FilesAggregatingResolvedConfiguration(resolvedConfiguration, provider));
     }
 
     protected static class SelfResolvingFilesProvider {

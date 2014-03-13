@@ -24,7 +24,7 @@ import static org.junit.Assert.assertEquals
 class IvyUtilTest {
     @Test public void testModuleRevisionId() {
         List l = ['myorg', 'myname', 'myrev']
-        ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(*l)
+        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(*l)
         assertEquals(l[0], moduleRevisionId.organisation)
         assertEquals(l[1], moduleRevisionId.name)
         assertEquals(l[2], moduleRevisionId.revision)

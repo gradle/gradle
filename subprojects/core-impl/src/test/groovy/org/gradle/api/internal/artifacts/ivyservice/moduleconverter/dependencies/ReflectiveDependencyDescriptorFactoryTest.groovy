@@ -17,15 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
 import org.apache.ivy.core.module.descriptor.*
-import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import spock.lang.Specification
 
 class ReflectiveDependencyDescriptorFactoryTest extends Specification {
 
     def factory = new ReflectiveDependencyDescriptorFactory()
-    def mrid = ModuleRevisionId.newInstance("org.gradle", "gradle-core", "1.0")
-    def target = ModuleRevisionId.newInstance("org.gradle", "gradle-core", "2.0")
-    def dynamicId = ModuleRevisionId.newInstance("org.gradle", "gradle-core", "latest-integration")
+    def mrid = IvyUtil.createModuleRevisionId("org.gradle", "gradle-core", "1.0")
+    def target = IvyUtil.createModuleRevisionId("org.gradle", "gradle-core", "2.0")
+    def dynamicId = IvyUtil.createModuleRevisionId("org.gradle", "gradle-core", "latest-integration")
 
     ModuleDescriptor md = DefaultModuleDescriptor.newBasicInstance(mrid, new Date())
 

@@ -27,7 +27,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.*;
-import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -79,7 +80,10 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), __scriptServices.get(ScriptPluginFactory.class), getScriptTarget());
+        ClassLoaderScope classLoaderScope = __scriptServices.get(ClassLoaderScope.class).createChild();
+        return new DefaultObjectConfigurationAction(
+                getFileResolver(), __scriptServices.get(ScriptPluginFactory.class), __scriptServices.get(ScriptHandlerFactory.class), classLoaderScope, getScriptTarget()
+        );
     }
 
     public void apply(Closure closure) {
@@ -168,7 +172,7 @@ public abstract class DefaultScript extends BasicScript {
         return fileOperations.copySpec(closure);
     }
 
-    public CopySpecInternal copySpec(Action<? super CopySpec> action) {
+    public CopySpec copySpec(Action<? super CopySpec> action) {
         return fileOperations.copySpec(action);
     }
 

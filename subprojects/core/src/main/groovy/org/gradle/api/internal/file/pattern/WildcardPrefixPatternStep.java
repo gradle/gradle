@@ -30,10 +30,6 @@ public class WildcardPrefixPatternStep implements PatternStep {
         this.caseSensitive = caseSensitive;
     }
 
-    public boolean isGreedy() {
-        return false;
-    }
-
     public boolean matches(String candidate) {
         return candidate.regionMatches(!caseSensitive, candidate.length() - suffixLength, suffix, 0, suffixLength);
     }

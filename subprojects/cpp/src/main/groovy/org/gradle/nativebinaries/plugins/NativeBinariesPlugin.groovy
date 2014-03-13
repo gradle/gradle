@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
@@ -23,8 +22,11 @@ import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
-import org.gradle.nativebinaries.tasks.*
-
+import org.gradle.nativebinaries.tasks.CreateStaticLibrary
+import org.gradle.nativebinaries.tasks.InstallExecutable
+import org.gradle.nativebinaries.tasks.LinkExecutable
+import org.gradle.nativebinaries.tasks.LinkSharedLibrary
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 /**
  * A plugin that creates tasks used for constructing native binaries.
  */
@@ -45,9 +47,14 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
         binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
-            binary.setBuildable(binary.toolChain.canTargetPlatform(binary.getTargetPlatform()).available)
+            binary.conventionMapping.buildable = { isBuildableBinary(binary) }
             createTasks(project, binary)
         }
+    }
+
+    static boolean isBuildableBinary(ProjectNativeBinaryInternal binary) {
+        final chain = binary.toolChain as ToolChainInternal
+        chain.target(binary.getTargetPlatform()).available
     }
 
     def createTasks(ProjectInternal project, ProjectNativeBinaryInternal binary) {

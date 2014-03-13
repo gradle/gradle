@@ -16,8 +16,8 @@
 
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.IOException;
 import java.net.URL;
@@ -229,6 +229,50 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
     }
 
     public static class Spec extends ClassLoaderSpec {
+
+        public static class Builder {
+            private final Set<String> packageNames = new HashSet<String>();
+            private final Set<String> packagePrefixes = new HashSet<String>();
+            private final Set<String> resourcePrefixes = new HashSet<String>();
+            private final Set<String> resourceNames = new HashSet<String>();
+            private final Set<String> classNames = new HashSet<String>();
+            private final Set<String> disallowedClassNames = new HashSet<String>();
+
+            public Builder packageNames(String... names) {
+                packageNames.addAll(Arrays.asList(names));
+                return this;
+            }
+
+            public Builder packagePrefixes(String... names) {
+                packagePrefixes.addAll(Arrays.asList(names));
+                return this;
+            }
+
+            public Builder resourcePrefixes(String... names) {
+                resourcePrefixes.addAll(Arrays.asList(names));
+                return this;
+            }
+
+            public Builder resourceNames(String... names) {
+                resourceNames.addAll(Arrays.asList(names));
+                return this;
+            }
+
+            public Builder classNames(String... names) {
+                classNames.addAll(Arrays.asList(names));
+                return this;
+            }
+
+            public Builder disallowedClassNames(String... names) {
+                disallowedClassNames.addAll(Arrays.asList(names));
+                return this;
+            }
+
+            public Spec build() {
+                return new Spec(classNames, packageNames, packagePrefixes, resourcePrefixes, resourceNames, disallowedClassNames);
+            }
+        }
+
         final Set<String> packageNames;
         final Set<String> packagePrefixes;
         final Set<String> resourcePrefixes;

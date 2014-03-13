@@ -17,11 +17,16 @@
 package org.gradle.test.fixtures.ivy;
 
 import groovy.lang.Closure;
+import org.gradle.test.fixtures.Module;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.Map;
 
-public interface IvyModule {
+public interface IvyModule extends Module {
+    String getOrganisation();
+    String getModule();
+    String getRevision();
+
     TestFile getIvyFile();
 
     TestFile getJarFile();
@@ -42,6 +47,10 @@ public interface IvyModule {
     IvyModule artifact(Map<String, ?> options);
 
     IvyModule withXml(Closure action);
+
+    IvyModule configuration(String name);
+
+    IvyModule configuration(Map<String, ?> options, String name);
 
     /**
      * Publishes ivy.xml plus all artifacts with different content (and size) to previous publication.

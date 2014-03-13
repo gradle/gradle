@@ -15,30 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ArtifactRevisionId
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Specification
 
-class GradlePomModuleDescriptorParserTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser()
-    final parseContext = Mock(DescriptorParseContext)
-    TestFile pomFile
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 
-    def "setup"() {
-        pomFile = tmpDir.file('foo')
-    }
-
+class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescriptorParserTest {
     def "parses simple pom"() {
         given:
         pomFile << """
@@ -194,7 +177,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
         dep.moduleConfigurations == ['test']
         dep.allExcludeRules.length == 1
-        dep.allExcludeRules.first().id.moduleId == ModuleId.newInstance('group-three', 'artifact-three')
+        dep.allExcludeRules.first().id.moduleId == createModuleId('group-three', 'artifact-three')
         hasDefaultDependencyArtifact(dep)
     }
 
@@ -453,8 +436,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
 
         when:
         def descriptor = parsePom()
@@ -523,7 +506,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
 
         when:
         def descriptor = parsePom()
@@ -718,8 +701,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
 
         when:
         def descriptor = parsePom()
@@ -795,8 +778,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
 
         when:
         def descriptor = parsePom()
@@ -877,8 +860,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
 
         when:
         def descriptor = parsePom()
@@ -1023,8 +1006,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
 
         when:
         def descriptor = parsePom()
@@ -1126,9 +1109,9 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
 
         when:
         def descriptor = parsePom()
@@ -1250,8 +1233,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         e.cause.message.contains('Element type "modelVersion"')
     }
 
-    @Issue("GRADLE-2034")
-    def "pom with meta data only"() {
+
+    def "pom with no dependencies "() {
         given:
         pomFile << """
 <project>
@@ -1271,9 +1254,36 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        descriptor.allArtifacts.length == 0
         descriptor.dependencies.length == 0
-        metaData.metaDataOnly
+    }
+
+    @Issue("GRADLE-2034")
+    def "pom with packaging 'pom' is considered to have a jar artifact, but also indicates that it might not exist"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <packaging>pom</packaging>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
+        def metaData = parseMetaData()
+        def descriptor = metaData.descriptor
+
+        then:
+        descriptor.allArtifacts.length == 1
+        def artifact = descriptor.allArtifacts[0]
+        artifact.type == "jar"
+        artifact.ext == "jar"
+        artifact.name == "artifact-one"
+        metaData.metaDataOnly //flag to indicate that there may not actually be any artifacts
+
     }
 
     def "pom with project coordinates defined by custom properties"() {
@@ -1397,8 +1407,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
 
         when:
         def descriptor = parsePom()
@@ -1465,8 +1475,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
 
         when:
         def descriptor = parsePom()
@@ -1538,8 +1548,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
 
         when:
         def descriptor = parsePom()
@@ -1620,8 +1630,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-relocated', 'relocated', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'relocated' }) >> { new DefaultLocallyAvailableExternalResource(relocated.toURI().toURL().toString(), new DefaultLocallyAvailableResource(relocated)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'relocated' }) >> { new DefaultLocallyAvailableExternalResource(relocated.toURI().toURL().toString(), new DefaultLocallyAvailableResource(relocated)) }
 
 
         when:
@@ -1695,7 +1705,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
 
         when:
         def descriptor = parsePom()
@@ -1763,7 +1773,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({ it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
 
         when:
         parsePom()
@@ -1822,7 +1832,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         def dep = descriptor.dependencies[0]
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-four')
         dep.moduleConfigurations == ['compile', 'runtime']
-        hasDependencyArtifact(dep, 'artifact-two' , 'jar', 'jar', 'myjar')
+        hasDependencyArtifact(dep, 'artifact-two', 'jar', 'jar', 'myjar')
     }
 
     @Issue("GRADLE-2931")
@@ -1888,19 +1898,19 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         def depJar = descriptor.dependencies[1]
         depJar.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-three')
         depJar.moduleConfigurations == ['compile', 'runtime']
-        hasDependencyArtifact(depJar, 'artifact-two' , 'jar', 'jar', 'myjar')
+        hasDependencyArtifact(depJar, 'artifact-two', 'jar', 'jar', 'myjar')
         def depTestJar = descriptor.dependencies[2]
         depTestJar.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-four')
         depTestJar.moduleConfigurations == ['compile', 'runtime']
-        hasDependencyArtifact(depTestJar, 'artifact-two' , 'test-jar', 'jar', 'tests')
+        hasDependencyArtifact(depTestJar, 'artifact-two', 'test-jar', 'jar', 'tests')
         def depTestJarWithClassifier = descriptor.dependencies[3]
         depTestJarWithClassifier.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-five')
         depTestJarWithClassifier.moduleConfigurations == ['compile', 'runtime']
-        hasDependencyArtifact(depTestJarWithClassifier, 'artifact-two' , 'test-jar', 'jar', 'test')
+        hasDependencyArtifact(depTestJarWithClassifier, 'artifact-two', 'test-jar', 'jar', 'test')
         def depEjbClient = descriptor.dependencies[4]
         depEjbClient.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-six')
         depEjbClient.moduleConfigurations == ['compile', 'runtime']
-        hasDependencyArtifact(depEjbClient, 'artifact-two' , 'ejb-client', 'ejb-client', 'client')
+        hasDependencyArtifact(depEjbClient, 'artifact-two', 'ejb-client', 'ejb-client', 'client')
     }
 
     @Issue("GRADLE-2371")
@@ -1961,7 +1971,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         def depJar = descriptor.dependencies[1]
         depJar.dependencyRevisionId == moduleId('group-one', 'artifact-two', 'version-one')
         depJar.moduleConfigurations == ['test']
-        hasDependencyArtifact(depJar, 'artifact-two' , 'test-jar', 'jar', 'tests')
+        hasDependencyArtifact(depJar, 'artifact-two', 'test-jar', 'jar', 'tests')
     }
 
     @Issue("GRADLE-2938")
@@ -2037,39 +2047,74 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(depGroupThree)
     }
 
-    private ModuleDescriptor parsePom() {
-        parseMetaData().descriptor
-    }
+    @Issue("GRADLE-2982")
+    def "use imported pom even though dependency is declared multiple times with different scopes"() {
+        given:
+        def imported = tmpDir.file("imported.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>different-group</groupId>
+    <artifactId>imported</artifactId>
+    <version>different-version</version>
 
-    private MutableModuleVersionMetaData parseMetaData() {
-        parser.parseMetaData(parseContext, pomFile, true)
-    }
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>1.5</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
 
-    private void hasArtifact(ModuleDescriptor descriptor, String name, String type, String ext, String classifier = null) {
-        assert descriptor.allArtifacts.length == 1
-        def artifact = descriptor.allArtifacts.first()
-        assert artifact.id == artifactId(descriptor.moduleRevisionId, name, type, ext)
-        assert artifact.extraAttributes['classifier'] == classifier
-    }
-    
-    private void hasDefaultDependencyArtifact(DependencyDescriptor descriptor) {
-        assert descriptor.allDependencyArtifacts.length == 0
-    }
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
 
-    private void hasDependencyArtifact(DependencyDescriptor descriptor, String name, String type, String ext, String classifier = null) {
-        assert descriptor.allDependencyArtifacts.length == 1
-        def artifact = descriptor.allDependencyArtifacts.first()
-        assert artifact.name == name
-        assert artifact.type == type
-        assert artifact.ext == ext
-        assert artifact.extraAttributes['classifier'] == classifier
-    }
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>different-group</groupId>
+                <artifactId>imported</artifactId>
+                <version>different-version</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>different-group</groupId>
+                <artifactId>imported</artifactId>
+                <version>different-version</version>
+                <type>pom</type>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-    private ModuleRevisionId moduleId(String group, String name, String version) {
-        ModuleRevisionId.newInstance(group, name, version)
-    }
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
 
-    private ArtifactRevisionId artifactId(ModuleRevisionId moduleId, String name, String type, String ext) {
-        ArtifactRevisionId.newInstance(moduleId, name, type, ext)
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.5')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
     }
 }

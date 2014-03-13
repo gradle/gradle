@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 
 import java.io.File;
 
-public class UnresolvedIdeRepoFileDependency extends IdeRepoFileDependency {
+public class UnresolvedIdeRepoFileDependency extends IdeExtendedRepoFileDependency {
     private Exception problem;
 
     public UnresolvedIdeRepoFileDependency(Configuration declaredConfiguration, File file) {

@@ -25,14 +25,16 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.*;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 public class DefaultToolingImplementationLoader implements ToolingImplementationLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultToolingImplementationLoader.class);
@@ -46,9 +48,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         this.classLoader = classLoader;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerConnectionParameters connectionParameters) {
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
-        ClassLoader classLoader = createImplementationClassLoader(distribution, progressLoggerFactory);
+        ClassLoader classLoader = createImplementationClassLoader(distribution, progressLoggerFactory, connectionParameters.getGradleUserHomeDir());
         ServiceLocator serviceLocator = new ServiceLocator(classLoader);
         try {
             Factory<ConnectionVersion4> factory = serviceLocator.findFactory(ConnectionVersion4.class);
@@ -83,8 +85,8 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         }
     }
 
-    private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
-        ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
+    private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, File userHomeDir) {
+        ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir);
         LOGGER.debug("Using tooling provider classpath: {}", implementationClasspath);
         // On IBM JVM 5, ClassLoader.getResources() uses a combination of findResources() and getParent() and traverses the hierarchy rather than just calling getResources()
         // Wrap our real classloader in one that hides the parent.

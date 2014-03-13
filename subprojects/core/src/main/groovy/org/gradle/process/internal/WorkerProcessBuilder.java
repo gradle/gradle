@@ -42,9 +42,19 @@ public abstract class WorkerProcessBuilder {
     private Action<? super WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private boolean loadApplicationInSystemClassLoader;
+    private String baseName = "Gradle Worker";
 
     public WorkerProcessBuilder(FileResolver fileResolver) {
         javaCommand = new JavaExecHandleBuilder(fileResolver);
+    }
+
+    public WorkerProcessBuilder setBaseName(String baseName) {
+        this.baseName = baseName;
+        return this;
+    }
+
+    public String getBaseName() {
+        return baseName;
     }
 
     public WorkerProcessBuilder applicationClasspath(Iterable<File> files) {

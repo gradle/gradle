@@ -46,6 +46,7 @@ public class JUnitXmlResultWriter {
             writer.startElement("testsuite")
                     .attribute("name", className)
                     .attribute("tests", String.valueOf(result.getTestsCount()))
+                    .attribute("skipped", String.valueOf(result.getSkippedCount()))
                     .attribute("failures", String.valueOf(result.getFailuresCount()))
                     .attribute("errors", "0")
                     .attribute("timestamp", DateUtils.format(result.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN))
@@ -88,20 +89,24 @@ public class JUnitXmlResultWriter {
 
     private void writeTests(SimpleXmlWriter writer, Iterable<TestMethodResult> methodResults, String className, long classId) throws IOException {
         for (TestMethodResult methodResult : methodResults) {
-            String testCase = methodResult.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
-            writer.startElement(testCase)
+            writer.startElement("testcase")
                     .attribute("name", methodResult.getName())
                     .attribute("classname", className)
                     .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0));
 
-            for (TestFailure failure : methodResult.getFailures()) {
-                writer.startElement("failure")
-                        .attribute("message", failure.getMessage())
-                        .attribute("type", failure.getExceptionType());
-
-                writer.characters(failure.getStackTrace());
-
+            if (methodResult.getResultType() == TestResult.ResultType.SKIPPED) {
+                writer.startElement("skipped");
                 writer.endElement();
+            } else {
+                for (TestFailure failure : methodResult.getFailures()) {
+                    writer.startElement("failure")
+                            .attribute("message", failure.getMessage())
+                            .attribute("type", failure.getExceptionType());
+
+                    writer.characters(failure.getStackTrace());
+
+                    writer.endElement();
+                }
             }
 
             if (outputAssociation.equals(TestOutputAssociation.WITH_TESTCASE)) {

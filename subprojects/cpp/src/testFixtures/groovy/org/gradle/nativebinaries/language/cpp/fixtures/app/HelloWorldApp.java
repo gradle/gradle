@@ -16,7 +16,9 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app;
 
-import org.gradle.util.GUtil;
+import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.Transformer;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,12 +35,20 @@ public abstract class HelloWorldApp extends TestApp {
         return HELLO_WORLD_FRENCH + "\n12";
     }
 
+    public String getCustomOutput(String value) {
+        return value + "\n12";
+    }
+
     public String getExtraConfiguration() {
         return "";
     }
 
     public String getSourceType() {
         return getMainSource().getPath();
+    }
+
+    public String getSourceExtension() {
+        return FilenameUtils.getExtension(getMainSource().getName());
     }
 
     public List<String> getPluginList() {
@@ -65,13 +75,43 @@ public abstract class HelloWorldApp extends TestApp {
         return compilerConfig("define", define);
     }
 
-    private String compilerConfig(String action, String arg) {
+    public String compilerDefine(String define, String value) {
+        return compilerConfig("define", define, value);
+    }
+
+    private String compilerConfig(String action, String... args) {
+        String quotedArgs = CollectionUtils.join(",", CollectionUtils.collect(args, new SingleQuotingTransformer()));
         StringBuilder builder = new StringBuilder();
         for (String plugin : getPluginList()) {
-            if (plugin.equals("c") || plugin.equals("cpp") || plugin.equals("objective-c") || plugin.equals("objective-cpp")) {
-                builder.append(GUtil.toLowerCamelCase(plugin)).append("Compiler.").append(action).append(" '").append(arg).append("'\n");
+            String compilerPrefix = getCompilerPrefix(plugin);
+            if (compilerPrefix == null) {
+                continue;
             }
+            builder.append(compilerPrefix).append("Compiler.").append(action).append(" ").append(quotedArgs).append("\n");
         }
+
         return builder.toString();
+    }
+
+    private String getCompilerPrefix(String plugin) {
+        if (plugin.equals("c")) {
+            return "c";
+        }
+        if (plugin.equals("cpp")) {
+            return "cpp";
+        }
+        if (plugin.equals("objective-c")) {
+            return "objc";
+        }
+        if (plugin.equals("objective-cpp")) {
+            return "objcpp";
+        }
+        return null;
+    }
+
+    private static class SingleQuotingTransformer implements Transformer<Object, String> {
+        public Object transform(String original) {
+            return "'" + original + "'";
+        }
     }
 }

@@ -18,10 +18,10 @@ package org.gradle.nativebinaries.internal.configure;
 import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal;
+import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 
 public interface NativeBinariesFactory {
-    void createNativeBinaries(ProjectNativeComponentInternal component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor);
+    void createNativeBinaries(ProjectNativeComponent component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor);
 }

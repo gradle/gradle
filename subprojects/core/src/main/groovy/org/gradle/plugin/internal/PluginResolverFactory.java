@@ -16,22 +16,29 @@
 
 package org.gradle.plugin.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.cache.CacheRepository;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.resolve.internal.*;
+import org.gradle.plugin.resolve.internal.CompositePluginResolver;
+import org.gradle.plugin.resolve.internal.NotInPluginRegistryPluginResolverCheck;
+import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
+import org.gradle.plugin.resolve.internal.PluginResolver;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import static org.gradle.plugin.internal.PluginResolvers.jcenterGradleOfficial;
 
 public class PluginResolverFactory {
 
@@ -40,6 +47,8 @@ public class PluginResolverFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final FileResolver fileResolver;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final DocumentationRegistry documentationRegistry;
+    private final CacheRepository cacheRepository;
 
     private final ProjectFinder projectFinder = new ProjectFinder() {
         public ProjectInternal getProject(String path) {
@@ -47,24 +56,30 @@ public class PluginResolverFactory {
         }
     };
 
-    public PluginResolverFactory(PluginRegistry pluginRegistry, Instantiator instantiator, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public PluginResolverFactory(PluginRegistry pluginRegistry, Instantiator instantiator, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, DocumentationRegistry documentationRegistry, CacheRepository cacheRepository) {
         this.pluginRegistry = pluginRegistry;
         this.instantiator = instantiator;
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.documentationRegistry = documentationRegistry;
+        this.cacheRepository = cacheRepository;
     }
 
-    public PluginResolver createPluginResolver() {
+    public PluginResolver createPluginResolver(ClassLoader scriptClassLoader) {
         List<PluginResolver> resolvers = new LinkedList<PluginResolver>();
         addDefaultResolvers(resolvers);
-        return new CompositePluginResolver(resolvers);
+        CompositePluginResolver compositePluginResolver = new CompositePluginResolver(resolvers);
+
+        PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(scriptClassLoader);
+        PluginResolver notAlreadyOnClasspathCheck = new NotInPluginRegistryPluginResolverCheck(compositePluginResolver, pluginRegistry, scriptClasspathPluginDescriptorLocator);
+
+        return notAlreadyOnClasspathCheck;
     }
 
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
-        resolvers.add(new PluginRegistryPluginResolver(pluginRegistry));
-        resolvers.add(new ModuleMappingPluginResolver("android plugin resolver", createDependencyResolutionServices(), instantiator, new AndroidPluginMapper(), new JCenterRepositoryConfigurer()));
-        resolvers.add(new ModuleMappingPluginResolver("jcenter plugin resolver", createDependencyResolutionServices(), instantiator, new JCenterPluginMapper(), new JCenterRepositoryConfigurer()));
+        resolvers.add(new PluginRegistryPluginResolver(documentationRegistry, pluginRegistry));
+        resolvers.add(jcenterGradleOfficial(instantiator, createDependencyResolutionServices(), cacheRepository));
     }
 
     private DependencyResolutionServices createDependencyResolutionServices() {
@@ -77,9 +92,4 @@ public class PluginResolverFactory {
         }
     }
 
-    private static class JCenterRepositoryConfigurer implements Action<RepositoryHandler> {
-        public void execute(RepositoryHandler repositories) {
-            repositories.jcenter();
-        }
-    }
 }

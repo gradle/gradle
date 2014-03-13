@@ -279,12 +279,12 @@ project.description = text
             return 'mock'
         }
 
-        ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
+        ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir) {
             def o = progressLoggerFactory.newOperation("mock")
             operation(o)
             o.started()
             o.completed()
-            return delegate.getToolingImplementationClasspath(progressLoggerFactory)
+            return delegate.getToolingImplementationClasspath(progressLoggerFactory, userHomeDir)
         }
     }
 

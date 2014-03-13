@@ -17,7 +17,6 @@ package org.gradle.api.publication.maven.internal.ant;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
@@ -30,6 +29,7 @@ import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
@@ -56,10 +56,10 @@ import static org.junit.Assert.assertThat;
 
 public abstract class AbstractMavenResolverTest {
     public static final String TEST_NAME = "name";
-    private static final Artifact TEST_IVY_ARTIFACT = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org", TEST_NAME, "1.0"), null);
+    private static final Artifact TEST_IVY_ARTIFACT = DefaultArtifact.newIvyArtifact(IvyUtil.createModuleRevisionId("org", TEST_NAME, "1.0"), null);
     private static final File TEST_IVY_FILE = new File("somepom.xml");
     private static final File TEST_JAR_FILE = new File("somejar.jar");
-    private static final Artifact TEST_ARTIFACT = new DefaultArtifact(ModuleRevisionId.newInstance("org", TEST_NAME, "1.0"), null, TEST_NAME, "jar", "jar");
+    private static final Artifact TEST_ARTIFACT = new DefaultArtifact(IvyUtil.createModuleRevisionId("org", TEST_NAME, "1.0"), null, TEST_NAME, "jar", "jar");
     protected ArtifactPomContainer artifactPomContainerMock;
     protected PomFilterContainer pomFilterContainerMock;
     protected LoggingManagerInternal loggingManagerMock;

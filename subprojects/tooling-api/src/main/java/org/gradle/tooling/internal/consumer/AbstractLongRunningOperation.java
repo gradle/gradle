@@ -25,46 +25,53 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public abstract class AbstractLongRunningOperation<T extends LongRunningOperation> implements LongRunningOperation {
-    protected final ConsumerOperationParameters operationParameters;
+    protected final ConnectionParameters connectionParameters;
+    protected final ConsumerOperationParameters.Builder operationParamsBuilder;
 
-    protected AbstractLongRunningOperation(ConsumerOperationParameters operationParameters) {
-        this.operationParameters = operationParameters;
+    protected AbstractLongRunningOperation(ConnectionParameters parameters) {
+        connectionParameters = parameters;
+        operationParamsBuilder = ConsumerOperationParameters.builder();
     }
 
     protected abstract T getThis();
 
+    protected final ConsumerOperationParameters getConsumerOperationParameters() {
+        ConnectionParameters connectionParameters = this.connectionParameters;
+        return operationParamsBuilder.setParameters(connectionParameters).build();
+    }
+
     public T withArguments(String... arguments) {
-        operationParameters.setArguments(arguments);
+        operationParamsBuilder.setArguments(arguments);
         return getThis();
     }
 
     public T setStandardOutput(OutputStream outputStream) {
-        operationParameters.setStandardOutput(outputStream);
+        operationParamsBuilder.setStdout(outputStream);
         return getThis();
     }
 
     public T setStandardError(OutputStream outputStream) {
-        operationParameters.setStandardError(outputStream);
+        operationParamsBuilder.setStderr(outputStream);
         return getThis();
     }
 
     public T setStandardInput(InputStream inputStream) {
-        operationParameters.setStandardInput(inputStream);
+        operationParamsBuilder.setStdin(inputStream);
         return getThis();
     }
 
     public T setJavaHome(File javaHome) {
-        operationParameters.setJavaHome(javaHome);
+        operationParamsBuilder.setJavaHome(javaHome);
         return getThis();
     }
 
     public T setJvmArguments(String... jvmArguments) {
-        operationParameters.setJvmArguments(jvmArguments);
+        operationParamsBuilder.setJvmArguments(jvmArguments);
         return getThis();
     }
 
     public T addProgressListener(ProgressListener listener) {
-        operationParameters.addProgressListener(listener);
+        operationParamsBuilder.addProgressListener(listener);
         return getThis();
     }
 }

@@ -16,35 +16,24 @@
 package org.gradle.ide.visualstudio.internal.rules;
 
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension;
+import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.model.ModelRule;
-import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.ProjectNativeComponent;
 
 public class CreateVisualStudioModel extends ModelRule {
     @SuppressWarnings("UnusedDeclaration")
     public void createVisualStudioModelForBinaries(DefaultVisualStudioExtension visualStudioExtension, BinaryContainer binaryContainer) {
         for (ProjectNativeBinary binary : binaryContainer.withType(ProjectNativeBinary.class)) {
-            visualStudioExtension.getProjectRegistry().addProjectConfiguration(binary);
+            VisualStudioProjectConfiguration configuration = visualStudioExtension.getProjectRegistry().addProjectConfiguration(binary);
 
-            if (isDevelopmentBinary(binary)) {
-                visualStudioExtension.getSolutionRegistry().addSolution(binary);
+            // Only create a solution if one of the binaries is buildable
+            if (binary.isBuildable()) {
+                DefaultVisualStudioProject visualStudioProject = configuration.getProject();
+                visualStudioExtension.getSolutionRegistry().addSolution(visualStudioProject);
             }
         }
-    }
-
-    private boolean isDevelopmentBinary(ProjectNativeBinary binary) {
-        return binary == chooseDevelopmentVariant(binary.getComponent());
-    }
-
-    private NativeBinary chooseDevelopmentVariant(ProjectNativeComponent component) {
-        for (ProjectNativeBinary candidate : component.getBinaries().withType(ProjectNativeBinary.class)) {
-            if (candidate.isBuildable()) {
-                return candidate;
-            }
-        }
-        return null;
     }
 }
 

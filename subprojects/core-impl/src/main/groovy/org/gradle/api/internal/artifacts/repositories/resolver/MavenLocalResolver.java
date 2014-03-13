@@ -15,15 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.slf4j.Logger;
@@ -35,24 +31,27 @@ public class MavenLocalResolver extends MavenResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
 
     public MavenLocalResolver(String name, URI rootUri, RepositoryTransport transport,
-                              LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                              ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher,
-                              LatestStrategy latestStrategy, ResolverStrategy resolverStrategy) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy);
+                              LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
+                              ResolverStrategy resolverStrategy) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, resolverStrategy);
     }
 
     @Override
-    protected void getDependencyForFoundIvyFileRef(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, DownloadedAndParsedMetaDataArtifact ivyRef) {
-        ModuleVersionMetaData metaData = getArtifactMetadata(ivyRef.getArtifact(), ivyRef.getResource());
+    protected MutableModuleVersionMetaData findMetaDataArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
+        MutableModuleVersionMetaData metaData = super.findMetaDataArtifact(dependency, artifactResolver);
+        if (isOrphanedPom(metaData, artifactResolver)) {
+            return null;
+        }
+        return metaData;
+    }
 
+    private boolean isOrphanedPom(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
         if (!metaData.isMetaDataOnly()) {
-            ResolvedArtifact artifactRef = findAnyArtifact(metaData);
-            if (artifactRef == null) {
-                LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", moduleRevisionId, getName());
-                return;
+            if (!hasArtifacts(metaData, artifactResolver)) {
+                LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", metaData.getId(), getName());
+                return true;
             }
         }
-
-        super.getDependencyForFoundIvyFileRef(dependencyDescriptor, result, moduleRevisionId, ivyRef);
+        return false;
     }
 }

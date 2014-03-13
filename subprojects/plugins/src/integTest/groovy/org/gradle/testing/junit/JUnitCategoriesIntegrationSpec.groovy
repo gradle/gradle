@@ -19,64 +19,46 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import org.junit.Test
+
 import static org.hamcrest.Matchers.startsWith
 
-
 public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
-    @Rule
-    public final TestResources resources = new TestResources(temporaryFolder)
 
-    @Test
-    public void reportsUnloadableExcludeCategory() {
+    @Rule TestResources resources = new TestResources(temporaryFolder)
+
+    def reportsUnloadableExcludeCategory() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reportsUnloadableCategories")
-        TestFile buildFile = testDirectory.file('build.gradle');
-        buildFile << '''test {
-                                    useJUnit {
-                                        excludeCategories 'org.gradle.CategoryA'
-                                    }
-                                }
-                            '''
+        buildFile << "test.useJUnit { excludeCategories 'org.gradle.CategoryA' }"
 
         when:
-        executer.withTasks('test').runWithFailure();
+        fails("test")
+
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeTestClass')
         result.testClass("org.gradle.SomeTestClass").assertTestCount(1, 1, 0)
         result.testClass("org.gradle.SomeTestClass").assertTestFailed("initializationError", startsWith("org.gradle.api.InvalidUserDataException: Can't load category class [org.gradle.CategoryA]"))
     }
 
-    @Test
-    public void reportsUnloadableIncludeCategory() {
+    def reportsUnloadableIncludeCategory() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reportsUnloadableCategories")
-        TestFile buildFile = testDirectory.file('build.gradle');
-        buildFile << '''test {
-                                useJUnit {
-                                    includeCategories 'org.gradle.CategoryA'
-                                }
-                            }
-                            '''
+        buildFile << "test.useJUnit { excludeCategories 'org.gradle.CategoryA' }"
 
         when:
-        executer.withTasks('test').runWithFailure();
+        fails('test')
+
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeTestClass')
         result.testClass("org.gradle.SomeTestClass").assertTestCount(1, 1, 0)
         result.testClass("org.gradle.SomeTestClass").assertTestFailed("initializationError", startsWith("org.gradle.api.InvalidUserDataException: Can't load category class [org.gradle.CategoryA]"))
     }
 
-    @Test
-    public void testTaskFailsIfCategoriesNotSupported() {
-        when:
-        ExecutionResult failure = executer.withTasks('test').runWithFailure();
-        then:
-        failure.error.contains("JUnit Categories defined but declared JUnit version does not support Categories.")
+    def testTaskFailsIfCategoriesNotSupported() {
+        when: fails('test')
+        then: failure.error.contains("JUnit Categories defined but declared JUnit version does not support Categories.")
     }
 }

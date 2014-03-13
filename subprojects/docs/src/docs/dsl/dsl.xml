@@ -490,6 +490,9 @@
                 <td>org.gradle.nativebinaries.NativeBinary</td>
             </tr>
             <tr>
+                <td>org.gradle.nativebinaries.ProjectNativeBinary</td>
+            </tr>
+            <tr>
                 <td>org.gradle.nativebinaries.ExecutableBinary</td>
             </tr>
             <tr>
@@ -543,6 +546,9 @@
             <tr>
                 <td>org.gradle.ide.visualstudio.VisualStudioSolution</td>
             </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.test.cunit.CUnitTestSuite</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -564,6 +570,9 @@
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.tasks.LinkExecutable</td>

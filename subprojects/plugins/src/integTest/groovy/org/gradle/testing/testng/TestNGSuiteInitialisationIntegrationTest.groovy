@@ -47,7 +47,7 @@ public class FooTest {
         fails("test")
 
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("Gradle Worker 1").assertTestFailed("execution failure",
+        result.testClass("Gradle Test Executor 1").assertTestFailed("execution failure",
                 startsWith("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"))
     }
 }

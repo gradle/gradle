@@ -35,4 +35,11 @@ public interface HeaderExportingSourceSet extends LanguageSourceSet {
      * The headers as a directory set.
      */
     SourceDirectorySet getExportedHeaders();
+
+    /**
+     * The headers that are private to this source set and implicitly available. These are not explicitly made available for compilation.
+     *
+     * TODO:DAZ This is temporary to get 'implicit' headers working in Visual Studio. The plan is to model these better soon.
+     */
+    SourceDirectorySet getImplicitHeaders();
 }

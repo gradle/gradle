@@ -18,6 +18,8 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -28,13 +30,13 @@ import java.util.Map;
 abstract public class AbstractPluginAware implements PluginAware {
 
     public void apply(Closure closure) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), this);
+        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope().getBase().createChild(), this);
         ConfigureUtil.configure(closure, action);
         action.execute();
     }
 
     public void apply(Map<String, ?> options) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), this);
+        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope().getBase().createChild(), this);
         ConfigureUtil.configureByMap(options, action);
         action.execute();
     }
@@ -42,4 +44,9 @@ abstract public class AbstractPluginAware implements PluginAware {
     protected abstract FileResolver getFileResolver();
 
     protected abstract ScriptPluginFactory getScriptPluginFactory();
+
+    protected abstract ScriptHandlerFactory getScriptHandlerFactory();
+
+    protected abstract ClassLoaderScope getClassLoaderScope();
+
 }

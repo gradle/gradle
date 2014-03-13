@@ -253,22 +253,23 @@ Note that no core plugins will be visible to the plugin implementation by defaul
 
 Add some basic DSL and resolver infrastructure to demonstrate plugin resolution from the public plugin repository.
 
-## Story: Introduce plugins DSL block
+## Story: Introduce plugins DSL block (✓)
 
 Adds the initial DSL support and APIs. At this stage, can only be used to apply core plugins to the script's target object. Later stories make this more useful.
 
 ### Test cases
 
-- Script can use a `plugins { ... }` block to apply a core plugin.
-- Can use both `buildscript { ... }` and `plugins { ... }` blocks in a script to apply plugins.
+- Script can use a `plugins { ... }` block to apply a core plugin. (✓)
+- Can use both `buildscript { ... }` and `plugins { ... }` blocks in a script to apply plugins. (✓)
 - Build author receives a nice error message when:
-    - A statement other than `buildscript { ... }` precedes the `plugins { ... }` statement.
+    - A statement other than `buildscript { ... }` precedes the `plugins { ... }` statement. (✓)
+    - A `buildscript { ... }` statement follows any `plugins { ... }` statements. (✓)
     - Attempting to apply an unknown plugin in a `plugins { ... }` block.
-        - Should give a set of candidate plugin ids that are available.
-    - Attempting to apply a core plugin with a version selector in a `plugins { ... }` block.
-    - Attempting to apply a plugin declared in the script's `buildscript { ... }` from the `plugins { ... }` block.
-    - Attempting to apply a plugin declared a parent project's build script `buildscript { ... }` from the `plugins { ... }` block.
-- The script's delegate object is not visible to the `plugins { ... }` block.
+        - Should provide information on how to find which plugins are available. (✓)
+    - Attempting to apply a core plugin with a version selector in a `plugins { ... }` block. (✓)
+    - Attempting to apply a plugin declared in the script's `buildscript { ... }` from the `plugins { ... }` block. (✓)
+    - Attempting to apply a plugin declared a parent project's build script `buildscript { ... }` from the `plugins { ... }` block. (✓)
+- The script's delegate object is not visible to the `plugins { ... }` block. (✓)
 
 ## Story: Resolve hard-coded set of plugins from public bintray repository
 
@@ -300,14 +301,15 @@ At this stage, dependencies on other plugins are not supported. Dependencies on 
 ### Test cases
 
 - The classes from plugins declared in a script's `plugins { ... }` block are visible:
-    - when compiling the script.
-    - from classes declared in a script's `buildscript { ... }` block.
+    - when compiling the script. (✓)
+- The classes from plugins declared in a script's `plugins { ... }` block are NOT visible:
+    - from classes declared in a script's `buildscript { ... }` block. (✓)
 - When a parent project's build script uses a `plugins { ... }` block to apply non-core plugins:
-    - The classes from plugins are not visible when compiling a child project's build script.
-    - The plugins are not visible via a child project's `Project.apply()` method.
-- Verify that a plugin applied using `plugins { ... }` block is not visible via the project's `Project.apply()` method.
-- When multiple scripts apply the same plugin to different targets, the plugin implementation is downloaded from remote repository once only and cached.
-- When multiple scripts apply the same plugin to different targets, the plugin classes are the same.
+    - The classes from plugins are not visible when compiling a child project's build script. (✓)
+    - The plugins are not visible via a child project's `Project.apply()` method. (✓)
+- Verify that a plugin applied using `plugins { ... }` block is not visible via the project's `Project.apply()` method. (✓)
+- When multiple scripts apply the same plugin to different targets, the plugin implementation is downloaded from remote repository once only and cached. (✓)
+- When multiple scripts apply the same plugin to different targets, the plugin classes are the same. (✓)
 
 ### Open issues
 
@@ -326,15 +328,33 @@ Implementation should use `http://plugins.gradle.org` as the entry point to the 
 
 - When multiple scripts apply the same plugin to different targets, the plugin resolution is done against the remote repository once only and cached.
 - Build author receives a nice error message when using the `plugins { ... }` block to:
-    - Attempt to apply a plugin from a remote repository without declaring a version selector.
+    - Attempt to apply a plugin from a remote repository without declaring a version selector. (✓)
     - Attempt to apply an unknown plugin.
         - Should list some candidates that are available, including those in the remote repositories.
     - Attempting to apply an unknown version of a plugin.
         - Should list some candidate versions that are available.
+    - Plugins with -SNAPSHOT versions are requested (Bintray does not allow snapshot versions)
+- Plugins can be resolved with status version numbers (e.g. latest.release)
+- Plugins can be resolved with version ranges (e.g. 2.+, ]1.0,2.0])
 
 ## Story: External plugins are usable when offline
 
 Cache the plugin mapping. Periodically check for new versions when a dynamic version selector is used. Reuse cached mapping when `--offline`.
+
+## Story: Plugins included in Gradle public repository are smoke tested
+
+For plugins to be listed in the public repository, there must be some external (i.e. not performed by plugin author) verification that the plugin is not completely broken.
+That is, the plugin should be:
+
+1. Able to be applied via the new plugin mechanism
+2. Not produce errors after simply applying
+
+This will (at least) need to be able to be performed _before_ the plugin is included in the public repository. 
+
+### Open issues
+
+1. Are existing plugins periodically tested? Or only upon submission (for each new version)?
+1. What action is taken if a plugin used to work but no longer does?
 
 ## Story: Make plugin DSL public
 
@@ -354,6 +374,10 @@ TBD - perhaps implement this using the bintray 'contact' UI plus some kind of re
 
 Retire the 'plugins' wiki page some point after this.
 
+## Story: Build author searches for plugins using Gradle command-line
+
+Introduce a plugin and implicit task that allows a build author to search for plugins from the central plugin repository, using the Gradle command-line.
+
 ## Story: Plugins declare dependencies on other plugins
 
 Should include dependencies on core plugins.
@@ -364,6 +388,22 @@ a build script and a plugin declare a dependency on the same plugin, the same im
 ## Story: Plugin author publishes plugin to bintray
 
 Add a basic plugin authoring plugin, that adds support for publishing to bintray with the appropriate meta-data.
+
+## Story: Plugin author can test use of plugin
+
+Authors should be able to test that their plugins are compatible with the new mechanism.
+
+- Provide mechanism to simulate plugin application at unit test level (new mechanism has functional differences at application time)
+- Provide mechanism to functionally test new plugin metadata (i.e. correctly declared dependencies on other plugins)
+
+(note: overlap with [design-docs/testing-user-build-logic.md](https://github.com/gradle/gradle/blob/master/design-docs/testing-user-build-logic.md))
+
+## Story: Build author searches for plugins using central Web UI
+
+Introduce a Web UI that allows a build author to search for and view basic details about available Gradle plugins. Backed by the meta-data hosted in the
+public Bintray repository.
+
+TBD - where hosted, how implemented, tested and deployed
 
 ## Story: Resolve plugins relative to Gradle distribution
 
@@ -391,7 +431,7 @@ Add a resolver that uses some convention to map plugin id to a build script.
         apply plugin: 'groovy-project'
     }
 
-## Story: Daemon reuses plugin implementation
+## Story: Daemon reuses plugin implementation across builds
 
 Cache the implementation ClassLoader across builds. More details in the [performance spec](performance.md).
 
@@ -418,7 +458,6 @@ These are yet to be mixed into the above plan:
 
 - conditional plugin application
 - need some way to tweak the resolve strategy for plugin component resolution.
-- declaring dependencies of a plugin on other plugins
 - configuring which repositories, possibly none, to use to resolve plugin declaration and to use to resolve implementation modules.
 - backwards compatibility wrt moving the core plugins. eg all core plugins are currently visible on every script compile classpath.
 - declare and expose only the API of the plugin

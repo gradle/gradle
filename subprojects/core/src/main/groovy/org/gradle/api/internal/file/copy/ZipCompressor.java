@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import java.io.File;
-
 import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
+
+import java.io.File;
 
 public interface ZipCompressor extends ArchiveOutputStreamFactory {
 
     ZipOutputStream createArchiveOutputStream(File destination);
+
 }

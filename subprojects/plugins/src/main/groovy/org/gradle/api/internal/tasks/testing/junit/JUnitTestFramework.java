@@ -49,18 +49,41 @@ public class JUnitTestFramework implements TestFramework {
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyJUnitCategorySupport();
+        verifyJUnitFilteringSupport();
         return new TestClassProcessorFactoryImpl(new JUnitSpec(options, filter.getIncludePatterns()));
     }
 
     private void verifyJUnitCategorySupport() {
         if (!options.getExcludeCategories().isEmpty() || !options.getIncludeCategories().isEmpty()) {
-            ClassLoader testClassloader = new URLClassLoader(new DefaultClassPath(testTask.getClasspath()).getAsURLArray(), null);
             try {
-                testClassloader.loadClass("org.junit.experimental.categories.Category");
+                getTestClassLoader().loadClass("org.junit.experimental.categories.Category");
             } catch (ClassNotFoundException e) {
                 throw new GradleException("JUnit Categories defined but declared JUnit version does not support Categories.");
             }
         }
+    }
+
+    private void verifyJUnitFilteringSupport() {
+        if (!filter.getIncludePatterns().isEmpty()) {
+            try {
+                Class<?> descriptionClass = getTestClassLoader().loadClass("org.junit.runner.Description");
+                descriptionClass.getMethod("getClassName");
+            } catch (ClassNotFoundException e) { //JUnit 3.8.1
+                filteringNotSupported();
+            } catch (NoSuchMethodException e) { //JUnit 4.5-
+                filteringNotSupported();
+            } catch (Exception e) {
+                throw new RuntimeException("Problem encountered when detecting support for JUnit filtering.", e);
+            }
+        }
+    }
+
+    private URLClassLoader getTestClassLoader() {
+        return new URLClassLoader(new DefaultClassPath(testTask.getClasspath()).getAsURLArray(), null);
+    }
+
+    private void filteringNotSupported() {
+        throw new GradleException("Test filtering is not supported for given version of JUnit. Please upgrade JUnit version to at least 4.6.");
     }
 
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {

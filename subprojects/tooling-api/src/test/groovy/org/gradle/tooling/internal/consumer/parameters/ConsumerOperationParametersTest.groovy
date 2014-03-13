@@ -20,26 +20,26 @@ import spock.lang.Specification
 
 class ConsumerOperationParametersTest extends Specification {
     
-    def params = new ConsumerOperationParameters(null)
+    def params = ConsumerOperationParameters.builder()
     
     def "null or empty arguments have the same meaning"() {
         when:
         params.arguments = null
 
         then:
-        params.arguments == null
+        params.build().arguments == null
 
         when:
         params.arguments = []
 
         then:
-        params.arguments == null
+        params.build().arguments == null
 
         when:
         params.arguments = ['-Dfoo']
 
         then:
-        params.arguments == ['-Dfoo']
+        params.build().arguments == ['-Dfoo']
     }
 
     def "null or empty jvm arguments have the same meaning"() {
@@ -47,18 +47,18 @@ class ConsumerOperationParametersTest extends Specification {
         params.jvmArguments = null
 
         then:
-        params.jvmArguments == null
+        params.build().jvmArguments == null
 
         when:
         params.jvmArguments = []
 
         then:
-        params.jvmArguments == null
+        params.build().jvmArguments == null
 
         when:
         params.jvmArguments = ['-Xmx']
 
         then:
-        params.jvmArguments == ['-Xmx']
+        params.build().jvmArguments == ['-Xmx']
     }
 }

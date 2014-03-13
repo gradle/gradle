@@ -27,7 +27,6 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.groovy.scripts.Transformer;
-import org.gradle.internal.Transformers;
 import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.Field;
@@ -42,9 +41,9 @@ import java.util.Map;
 public class StatementExtractingScriptTransformer extends AbstractScriptTransformer {
 
     private final String id;
-    private final FilteredTransformer<Statement, Statement> transformer;
+    private final StatementTransformer transformer;
 
-    public StatementExtractingScriptTransformer(String id, FilteredTransformer<Statement, Statement> transformer) {
+    public StatementExtractingScriptTransformer(String id, StatementTransformer transformer) {
         this.id = id;
         this.transformer = transformer;
     }
@@ -117,16 +116,16 @@ public class StatementExtractingScriptTransformer extends AbstractScriptTransfor
     }
 
     public Transformer invert() {
-        return new Inverse("no_" + StatementExtractingScriptTransformer.this.getId(), transformer.getSpec());
+        return new Inverse("no_" + StatementExtractingScriptTransformer.this.getId(), Specs.not(transformer.getSpec()));
     }
 
     private static class Inverse extends AbstractScriptTransformer {
         private final String id;
-        private final FilteredTransformer<Statement, Statement> transformer;
+        private final Spec<? super Statement> spec;
 
-        private Inverse(String id, Spec<? super Statement> originalSpec) {
+        private Inverse(String id, Spec<? super Statement> spec) {
             this.id = id;
-            this.transformer = new FilteringPassthroughTransformer(Specs.<Statement>not(originalSpec));
+            this.spec = spec;
         }
 
         protected int getPhase() {
@@ -139,25 +138,8 @@ public class StatementExtractingScriptTransformer extends AbstractScriptTransfor
 
         @Override
         public void call(SourceUnit source) throws CompilationFailedException {
-            AstUtils.filterAndTransformStatements(source, transformer);
+            AstUtils.filterAndTransformStatements(source, new FilteringStatementTransformer(spec));
         }
     }
 
-    private static class FilteringPassthroughTransformer implements FilteredTransformer<Statement, Statement> {
-        private final Spec<Statement> spec;
-        private final org.gradle.api.Transformer<Statement, Statement> transformer;
-
-        private FilteringPassthroughTransformer(Spec<Statement> spec) {
-            this.spec = spec;
-            this.transformer = Transformers.noOpTransformer();
-        }
-
-        public Spec<Statement> getSpec() {
-            return spec;
-        }
-
-        public org.gradle.api.Transformer<Statement, Statement> getTransformer() {
-            return transformer;
-        }
-    }
 }

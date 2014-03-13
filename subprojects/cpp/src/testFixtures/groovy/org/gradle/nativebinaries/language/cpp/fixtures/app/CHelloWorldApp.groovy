@@ -57,8 +57,13 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                 return "${HELLO_WORLD_FRENCH}";
             }
             #endif
+            #ifdef CUSTOM
+            char* greeting() {
+                return CUSTOM;
+            }
+            #endif
             void DLL_FUNC sayHello() {
-                #ifdef FRENCH
+                #if defined(FRENCH) || defined(CUSTOM)
                 printf("%s\\n", greeting());
                 #else
                 printf("${HELLO_WORLD}\\n");
@@ -121,6 +126,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                     sourceFile("cunit", "test.c", """
 #include <CUnit/Basic.h>
 #include "hello.h"
+#include "gradle_cunit_register.h"
 
 int init_test(void) {
     return 0;
@@ -132,8 +138,10 @@ int clean_test(void) {
 
 void test_sum(void) {
   CU_ASSERT(sum(0, 2) == 2);
+#ifndef ONE_TEST
   CU_ASSERT(sum(0, -2) == -2);
   CU_ASSERT(sum(2, 2) == 4);
+#endif
 }
 
 void gradle_cunit_register() {

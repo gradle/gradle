@@ -50,9 +50,6 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
             args.add("-I");
             args.add(file.getAbsolutePath());
         }
-        for (File file : spec.getSourceFiles()) {
-            args.add(file.getAbsolutePath());
-        }
         return args;
     }
 

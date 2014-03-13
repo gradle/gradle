@@ -114,7 +114,8 @@
             <literal>taskY</literal> is defined. This is very important for multi-project builds. Task dependencies are
             discussed in more detail in <xref linkend='sec:adding_dependencies_to_tasks'/>.
         </para>
-        <para>Please notice, that you can't use a shortcut notation (see <xref linkend='sec:shortcut_notations' />) when referring to task, which is not defined yet.</para>
+        <para>Please notice that you can't use shortcut notation (see <xref linkend='sec:shortcut_notations' />)
+        when referring to a task that is not yet defined.</para>
     </section>
     <section>
         <title>Dynamic tasks</title>
@@ -172,10 +173,10 @@
     </section>
     <section>
         <title>Using Ant Tasks</title>
-        <para>Ant tasks are first-class citizens in Gradle. Gradle provides excellent integration for Ant tasks simply
-            by relying on Groovy. Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant tasks
+        <para>Ant tasks are first-class citizens in Gradle. Gradle provides excellent integration for Ant tasks by simply
+            relying on Groovy. Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant tasks
             from Gradle is as convenient and more powerful than using Ant tasks from a <filename>build.xml</filename>
-            file. From below example you can learn how to execute ant tasks and how to access ant properties:
+            file. From the example below, you can learn how to execute ant tasks and how to access ant properties:
         </para>
         <sample id="antLoadfile" dir="userguide/tutorial/antLoadfile" title="Using AntBuilder to execute ant.loadfile target">
             <sourcefile file="build.gradle"/>
@@ -213,21 +214,20 @@
     </section>
     <section id="configure-by-dag">
         <title>Configure by DAG</title>
-        <para>As we describe in full detail later (See <xref linkend='build_lifecycle'/>) Gradle has a
-            configuration phase and an execution phase. After the configuration phase Gradle knows all tasks that should
+        <para>As we later describe in full detail (see <xref linkend='build_lifecycle'/>), Gradle has a
+            configuration phase and an execution phase. After the configuration phase, Gradle knows all tasks that should
             be executed. Gradle offers you a hook to make use of this information. A use-case for this would be to check
-            if the release task is part of the tasks to be executed. Depending on this you can assign different values
+            if the release task is among the tasks to be executed. Depending on this, you can assign different values
             to some variables.
         </para>
-        <para>In the following example, execution of <literal>distribution</literal> and <literal>release</literal> tasks results in different value of <literal>version</literal> variable.</para>
+        <para>In the following example, execution of the <literal>distribution</literal> and <literal>release</literal> tasks results in different value of the <literal>version</literal> variable.</para>
         <sample id="configByDagNoRelease" dir="userguide/tutorial/configByDag" title="Different outcomes of build depending on chosen tasks">
             <sourcefile file="build.gradle"/>
             <output args="-q distribution"/>
             <output args="-q release" outputFile="configByDag.out"/>
         </sample>
-        <para>The important thing is, that the fact that the release task has been chosen, has an effect
-            <emphasis>before</emphasis> the release task gets executed. Nor has the release task to be the
-            <emphasis>primary</emphasis> task (i.e. the task passed to the <command>gradle</command> command).
+        <para>The important thing is that <literal>whenReady</literal> affects the release task <emphasis>before</emphasis> the release task is executed.
+        This works even when the release task is not the <emphasis>primary</emphasis> task (i.e., the task passed to the <command>gradle</command> command).
         </para>
     </section>
     <section>

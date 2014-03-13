@@ -24,15 +24,15 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Assume
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 import static org.gradle.util.TextUtil.escapeString
 
 abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    static boolean multiPlatformsAvailable = false
+    static boolean multiPlatformsAvailable = true
 
     IncrementalHelloWorldApp app
     String mainCompileTask
@@ -57,6 +57,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         libraryCompileTask = ":compileHelloSharedLibraryHello${sourceType}"
 
         buildFile << app.pluginScript
+        buildFile << app.extraConfiguration
+
         buildFile << """
             executables {
                 main {
@@ -138,6 +140,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         if (toolChain.visualCpp) {
             executedAndNotSkipped ":linkMainExecutable"
             executedAndNotSkipped ":mainExecutable"
+        } else if(objectiveCWithAslr()){
+            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkMainExecutable"
             skipped ":mainExecutable"
@@ -191,6 +196,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         if (toolChain.visualCpp) {
             executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
+        } else if(objectiveCWithAslr()){
+            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
@@ -205,7 +213,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         headerFile << """
 // Comment added to the end of the header file
 """
-
         run "mainExecutable"
 
         then:
@@ -216,10 +223,22 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         if (toolChain.visualCpp) {
             executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
+        } else if(objectiveCWithAslr()){
+             executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+             executed ":linkMainExecutable", ":mainExecutable"
         } else {
             skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
             skipped ":linkMainExecutable", ":mainExecutable"
         }
+    }
+
+    // compiling Objective-C and Objective-Cpp with clang generates
+    // random different object files (related to ASLR settings) 
+    // We saw this behaviour only on linux so far. 
+    boolean objectiveCWithAslr() {
+        return (sourceType == "Objc" || sourceType == "Objcpp") &&
+                OperatingSystem.current().isLinux() && 
+                toolChain.displayName == "clang"
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -256,9 +275,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         install.exec().out == app.frenchOutput
     }
 
-    @IgnoreIf({!AbstractLanguageIncrementalBuildIntegrationTest.multiPlatformsAvailable})
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "rebuilds binary with target platform change"() {
+        Assume.assumeTrue(multiPlatformsAvailable)
         given:
         buildFile << """
     model {
@@ -273,7 +292,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         buildFile.text = buildFile.text.replace("// Tool chain defaults", "architecture 'i386'")
-        println "multiPlatformsAvailable: $multiPlatformsAvailable"
         run "mainExecutable"
 
         then:
@@ -312,12 +330,15 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-no_pie'" : "'-q'";
+        def linkerArgs =
+            toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'";
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
             executables {
                 main {
-                    binaries.all { linker.args ${escapeString(linkerArgs)} }
+                    binaries.all {
+                        linker.args ${escapeString(linkerArgs)}
+                    }
                 }
             }
 """
@@ -342,8 +363,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         given:
         run "installMainExecutable"
 
-        def oldObjFile = objectFile("build/objectFiles/mainExecutable/main${sourceType}/main")
-        def newObjFile = objectFile("build/objectFiles/mainExecutable/main${sourceType}/changed_main")
+        def oldObjFile = objectFileFor(sourceFile)
+        def newObjFile = objectFileFor(sourceFile.getParentFile().file("changed_${sourceFile.name}"))
         assert oldObjFile.file
         assert !newObjFile.file
 
@@ -371,8 +392,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         run "helloStaticLibrary"
 
         then:
-        def oldObjFile = objectFile("build/objectFiles/helloStaticLibrary/hello${sourceType}/hello")
-        def newObjFile = objectFile("build/objectFiles/helloStaticLibrary/hello${sourceType}/changed_hello")
+        String objectFilesPath = "build/objectFiles/helloStaticLibrary/hello${sourceType}"
+        def oldObjFile = objectFileFor(librarySourceFiles[0], objectFilesPath)
+        def newObjFile = objectFileFor( librarySourceFiles[0].getParentFile().file("changed_${librarySourceFiles[0].name}"), objectFilesPath)
         assert oldObjFile.file
         assert !newObjFile.file
 
@@ -475,4 +497,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         newFile << sourceFile.text
         sourceFile.delete()
     }
+
+
 }

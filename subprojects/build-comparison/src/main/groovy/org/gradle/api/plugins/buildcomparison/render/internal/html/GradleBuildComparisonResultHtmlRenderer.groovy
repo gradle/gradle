@@ -23,10 +23,9 @@ import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonRe
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome
+import org.gradle.api.plugins.buildcomparison.render.internal.*
 
 import java.nio.charset.Charset
-
-import org.gradle.api.plugins.buildcomparison.render.internal.*
 
 class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRenderer<Writer> {
 
@@ -281,7 +280,7 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
         }
     }
 
-    String name(BuildOutcomeComparisonResult<?> comparisonResult) {
+    String name(BuildOutcomeComparisonResult<? extends BuildOutcome> comparisonResult) {
         comparisonResult.compared.source.name
     }
 

@@ -16,8 +16,8 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.NonExtensible;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * <p>Provides details about a file or directory about to be copied, and allows some aspects of the destination file to
@@ -78,5 +78,22 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      */
     @Incubating
     DuplicatesStrategy getDuplicatesStrategy();
+
+    /**
+     * Returns the path of this file, relative to the root of the copy destination.
+     * <p>
+     * Always uses '/' as the hierarchy separator, regardless of platform file separator.
+     * Same as calling <code>getRelativePath().getPathString()</code>.
+     *
+     * @return The path. Never returns null.
+     */
+    String getPath();
+
+    /**
+     * Returns the path of this file, relative to the root of the copy destination.
+     *
+     * @return The path. Never returns null.
+     */
+    RelativePath getRelativePath();
 
 }

@@ -16,17 +16,14 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.Lists;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -44,23 +41,16 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final RepositoryTransportFactory transportFactory;
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
-    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final ModuleMetadataProcessor metadataProcessor;
-    private final VersionMatcher versionMatcher;
-    private final LatestStrategy latestStrategy;
+    private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
     private final ResolverStrategy resolverStrategy;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                          ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher, LatestStrategy latestStrategy,
+                                          LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
                                           ResolverStrategy resolverStrategy) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.metadataProcessor = metadataProcessor;
-        this.versionMatcher = versionMatcher;
-        this.latestStrategy = latestStrategy;
         this.resolverStrategy = resolverStrategy;
     }
 
@@ -108,7 +98,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
 
         MavenResolver resolver = new MavenResolver(getName(), rootUri, getTransport(rootUri.getScheme()),
-                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy);
+                locallyAvailableResourceFinder, resolverStrategy);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl, null);
         }
@@ -123,23 +113,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
     }
 
-    protected LocallyAvailableResourceFinder<ArtifactRevisionId> getLocallyAvailableResourceFinder() {
+    protected LocallyAvailableResourceFinder<ArtifactIdentifier> getLocallyAvailableResourceFinder() {
         return locallyAvailableResourceFinder;
-    }
-
-    protected ModuleMetadataProcessor getMetadataProcessor() {
-        return metadataProcessor;
-    }
-
-    protected VersionMatcher getVersionMatcher() {
-        return versionMatcher;
     }
 
     protected ResolverStrategy getResolverStrategy() {
         return resolverStrategy;
-    }
-
-    protected LatestStrategy getLatestStrategy() {
-        return latestStrategy;
     }
 }

@@ -15,9 +15,12 @@
  */
 package org.gradle.nativebinaries.language.cpp
 
+import org.apache.commons.lang.RandomStringUtils
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
+import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
@@ -43,7 +46,7 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':resourceCompileMainExecutableMainRc'.");
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.");
         failure.assertHasCause("Windows resource compiler failed; see the error output for details.")
     }
 
@@ -109,5 +112,32 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
         installation("build/install/mainExecutable").exec().out == "Hello!"
     }
 
-}
+    @Ignore
+    def "windows resources compiler can use long file paths"() {
+        // windows can't handle a path up to 260 characters
+        // we create a project path that is ~180 characters to end up
+        // with a path for the compiled resources.res > 260 chars
+        def projectPathOffset = 180 - testDirectory.getAbsolutePath().length()
+        def nestedProjectPath = RandomStringUtils.randomAlphanumeric(projectPathOffset-10) + "/123456789"
 
+        setup:
+        def deepNestedProjectFolder = file(nestedProjectPath)
+        executer.usingProjectDirectory(deepNestedProjectFolder)
+        def TestFile buildFile = deepNestedProjectFolder.file("build.gradle")
+        buildFile << helloWorldApp.pluginScript
+        buildFile << helloWorldApp.extraConfiguration
+        buildFile << """
+            executables {
+                main {}
+            }
+        """
+
+        and:
+        helloWorldApp.writeSources(file("$nestedProjectPath/src/main"));
+
+        expect:
+        // this test is just for verifying explicitly the behaviour of the windows resource compiler
+        // that's why we explicitly trigger this task instead of main.
+        succeeds "mainExecutable"
+    }
+}

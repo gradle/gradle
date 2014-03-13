@@ -264,13 +264,13 @@ class LazyDependencyToModuleResolverTest extends Specification {
     }
 
     def module() {
-        ModuleRevisionId id = ModuleRevisionId.newInstance("group", "module", "1.0")
+        ModuleRevisionId id = IvyUtil.createModuleRevisionId("group", "module", "1.0")
         return new ModuleDescriptorAdapter(new DefaultModuleDescriptor(id, "release", new Date()))
     }
 
     def dependency() {
         DependencyDescriptor descriptor = Mock()
-        ModuleRevisionId id = ModuleRevisionId.newInstance("group", "module", "1.0")
+        ModuleRevisionId id = IvyUtil.createModuleRevisionId("group", "module", "1.0")
         _ * descriptor.dependencyRevisionId >> id
         DependencyMetaData metaData = Mock()
         _ * metaData.descriptor >> descriptor
@@ -281,7 +281,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
     def artifact() {
         Artifact artifact = Mock()
-        _ * artifact.moduleRevisionId >> ModuleRevisionId.newInstance("group", "module", "1.0")
+        _ * artifact.moduleRevisionId >> IvyUtil.createModuleRevisionId("group", "module", "1.0")
         _ * artifact.name >> 'artifact'
         _ * artifact.ext >> 'zip'
         return Stub(ModuleVersionArtifactMetaData) {

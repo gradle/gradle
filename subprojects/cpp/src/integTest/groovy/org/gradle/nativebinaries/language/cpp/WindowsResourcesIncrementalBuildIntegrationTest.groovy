@@ -74,7 +74,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped ":resourceCompileMainExecutableMainRc", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainRc", ":linkMainExecutable", ":mainExecutable"
 
         and:
         mainExe.exec().out == "Goodbye"
@@ -90,7 +90,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped ":resourceCompileMainExecutableMainRc"
+        executedAndNotSkipped ":compileMainExecutableMainRc"
         skipped ":linkMainExecutable", ":mainExecutable"
     }
 
@@ -110,13 +110,13 @@ STRINGTABLE
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped ":resourceCompileMainExecutableMainRc", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainRc", ":linkMainExecutable", ":mainExecutable"
     }
 
     def "stale .res files are removed when a resource source file is renamed"() {
         given:
-        def oldResFile = file("build/objectFiles/mainExecutable/mainRc/resources.res")
-        def newResFile = file("build/objectFiles/mainExecutable/mainRc/changed_resources.res")
+        def oldResFile = file("build/objectFiles/mainExecutable/mainRc/${hashFor(mainResourceFile)}/resources.res")
+        def newResFile = file("build/objectFiles/mainExecutable/mainRc/${hashFor(file('src/main/rc/changed_resources.rc'))}/changed_resources.res")
         assert oldResFile.file
         assert !newResFile.file
 
@@ -125,7 +125,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped ":resourceCompileMainExecutableMainRc"
+        executedAndNotSkipped ":compileMainExecutableMainRc"
 
         and:
         !oldResFile.file
@@ -134,9 +134,8 @@ STRINGTABLE
 
     def "recompiles resource when included header is changed"() {
         given: "set the generated res file timestamp to zero"
-        def resourceFile = file("build/objectFiles/mainExecutable/mainRc/resources.res")
+        def resourceFile = file("build/objectFiles/mainExecutable/mainRc/${hashFor(mainResourceFile)}/resources.res")
         resourceFile.lastModified = 0
-
         when: "Unused header is changed"
         unusedHeaderFile << """
     #define EXTRA_DEFINE
@@ -145,7 +144,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then: "No resource compilation"
-        skipped ":resourceCompileMainExecutableMainRc"
+        skipped ":compileMainExecutableMainRc"
         resourceFile.lastModified() == 0
 
         when:
@@ -156,7 +155,7 @@ STRINGTABLE
         run "mainExecutable"
 
         then: "Resource is recompiled"
-        executedAndNotSkipped ":resourceCompileMainExecutableMainRc"
+        executedAndNotSkipped ":compileMainExecutableMainRc"
         resourceFile.lastModified() > 0
     }
 }

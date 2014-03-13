@@ -21,7 +21,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.*;
-import org.gradle.api.internal.hash.CachingHasher;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.*;
@@ -35,6 +34,8 @@ import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerManager;
+import org.gradle.messaging.serialize.DefaultSerializerRegistry;
+import org.gradle.messaging.serialize.SerializerRegistry;
 
 public class TaskExecutionServices {
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager) {
@@ -60,16 +61,22 @@ public class TaskExecutionServices {
         return new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, decorator);
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter) {
-        FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(
-                new CachingHasher(
-                        new DefaultHasher(),
-                        cacheAccess), cacheAccess);
+    FileSnapshotter createFileSnapshotter(TaskArtifactStateCacheAccess cacheAccess) {
+        return new CachingFileSnapshotter(new DefaultHasher(), cacheAccess);
+    }
 
-        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheAccess);
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter, FileSnapshotter fileSnapshotter) {
+        FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess);
+
+        FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter, new RandomLongIdGenerator(), cacheAccess);
+
+        SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
+        fileCollectionSnapshotter.registerSerializers(serializerRegistry);
+        outputFilesSnapshotter.registerSerializers(serializerRegistry);
 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
                 new CacheBackedFileSnapshotRepository(cacheAccess,
+                        serializerRegistry.build(),
                         new RandomLongIdGenerator()));
 
         return new ShortCircuitTaskArtifactStateRepository(
@@ -79,7 +86,7 @@ public class TaskExecutionServices {
                                 taskHistoryRepository,
                                 instantiator,
                                 outputFilesSnapshotter,
-                                fileSnapshotter
+                                fileCollectionSnapshotter
                         )
         );
     }

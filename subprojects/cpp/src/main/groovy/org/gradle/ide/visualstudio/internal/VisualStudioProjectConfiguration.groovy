@@ -28,14 +28,13 @@ class VisualStudioProjectConfiguration {
     private final String configurationName
     private final String platformName
     final ProjectNativeBinaryInternal binary
-    final String type
+    final String type = "Makefile"
 
-    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, ProjectNativeBinary binary, String type) {
+    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, ProjectNativeBinary binary) {
         this.vsProject = vsProject
         this.configurationName = configurationName
         this.platformName = platformName
-        this.binary = binary
-        this.type = type
+        this.binary = binary as ProjectNativeBinaryInternal
     }
 
     String getName() {
@@ -51,11 +50,20 @@ class VisualStudioProjectConfiguration {
     }
 
     String getBuildTask() {
-        return binary.name
+        return taskPath(binary.name)
     }
 
     String getCleanTask() {
-        return "clean" + binary.name.capitalize()
+        return taskPath("clean")
+    }
+
+    // TODO:DAZ Make it easier to find the lifecycle task and clean task for a binary and use task.path.
+    private String taskPath(String taskName) {
+        String projectPath = binary.component.projectPath
+        if (projectPath == ":") {
+            return ":${taskName}"
+        }
+        return "${projectPath}:${taskName}"
     }
 
     File getOutputFile() {
@@ -70,11 +78,8 @@ class VisualStudioProjectConfiguration {
         List<String> defines = []
         defines.addAll getDefines('cCompiler')
         defines.addAll getDefines('cppCompiler')
+        defines.addAll getDefines('rcCompiler')
         return defines
-    }
-
-    List<String> getResourceDefines() {
-        return getDefines('rcCompiler')
     }
 
     private List<String> getDefines(String tool) {

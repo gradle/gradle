@@ -49,7 +49,7 @@ class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolCh
         run "mainExecutable"
 
         then:
-        !executedTasks.contains(":resourceCompileMainExecutableMainRc")
+        !executedTasks.contains(":compileMainExecutableMainRc")
     }
 }
 

@@ -19,37 +19,40 @@ package org.gradle.plugin
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.resolve.internal.AndroidPluginMapper
 import org.gradle.test.fixtures.bintray.BintrayApi
 import org.gradle.test.fixtures.bintray.BintrayTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
-    private static final String SCRIPT = "println 'out'; plugins { println 'in' }"
+    private static final String SCRIPT = "plugins { println 'in' }; println 'out'"
 
     @Rule BintrayTestServer bintray = new BintrayTestServer(executer, mavenRepo) // provides a double for JCenter
-    def pluginBuilder = new PluginBuilder(executer, file("plugin"))
+
+    int pluginCounter = 0
 
     def pluginMessage = "from plugin"
     def pluginTaskName = "pluginTask"
     def pluginVersion = "1.0"
 
+    PluginBuilder pluginBuilder() {
+        new PluginBuilder(executer, file("plugin${++pluginCounter}"))
+    }
+
+    def setup() {
+        executer.requireOwnGradleUserHomeDir() // to negate caching effects
+    }
+
     def "build scripts have plugin blocks"() {
         when:
         buildFile << SCRIPT
-        buildFile << """
-            plugins {
-              apply plugin: 'java'
-            }
-        """
 
         then:
         executesCorrectly()
-        output.contains "javadoc" // task added by java plugin
     }
 
     def "settings scripts have plugin blocks"() {
@@ -96,7 +99,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
     def void executesCorrectly() {
         succeeds "tasks"
-        assert output.contains(toPlatformLineSeparators("in\nout\n")) // Testing the the plugins {} block is extracted and executed before the “main” content
+        assert output.contains(toPlatformLineSeparators("in\nout\n"))
     }
 
     void "plugins block has no implicit access to owner context"() {
@@ -129,81 +132,16 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         output.contains("end-of-plugins")
     }
 
-    void "can resolve android plugin"() {
-        given:
-        bintray.start()
-
-        // Not expecting a search of the bintray API, as there is an explicit mapper for this guy
-        publishPluginToBintray(AndroidPluginMapper.ID, AndroidPluginMapper.GROUP, AndroidPluginMapper.NAME)
-
-        buildScript """
-          plugins {
-            apply plugin: "$AndroidPluginMapper.ID", version: $pluginVersion
-          }
-        """
-
+    void "can resolve core plugins"() {
         when:
-        succeeds pluginTaskName
-
-        then:
-        output.contains pluginMessage
-    }
-
-    def "android plugin requires version"() {
-        given:
         buildScript """
-          plugins {
-            apply plugin: "$AndroidPluginMapper.ID"
-          }
-        """
-
-        when:
-        fails "tasks"
-
-        then:
-        failure.assertHasCause("The 'android' plugin requires a version")
-    }
-
-    def void publishPluginToBintray(String id, String group, String name, String version = pluginVersion) {
-        def module = bintray.jcenter.module(group, name, version)
-        module.allowAll()
-        def artifact = module.artifact([:])
-        module.publish()
-        pluginBuilder.addPluginWithPrintlnTask(pluginTaskName, pluginMessage, id)
-        pluginBuilder.publishTo(artifact.file)
-    }
-
-    void "can use plugin classes in script"() {
-        given:
-        bintray.start()
-
-        pluginBuilder.groovy("EchoTask.groovy") << """
-            package $pluginBuilder.packageName
-
-            class EchoTask extends ${DefaultTask.name} {
-                @${TaskAction.name}
-                void doEcho() {
-                    println "$pluginMessage"
-                }
+            plugins {
+              apply plugin: 'java'
             }
         """
 
-        publishPluginToBintray("test", "test", "test")
-        bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
-
-        buildScript """
-          plugins {
-            apply plugin: "test", version: "$pluginVersion"
-          }
-
-          task echo(type: ${pluginBuilder.packageName}.EchoTask) {}
-        """
-
-        when:
-        succeeds "echo"
-
         then:
-        output.contains pluginMessage
+        succeeds "javadoc"
     }
 
     void "core plugins cannot have a version number"() {
@@ -218,7 +156,49 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("Core plugins cannot have a version number. They are versioned with Gradle itself.")
+        failure.assertHasCause("Plugin 'java' is a core Gradle plugin, which cannot be specified with a version number")
+    }
+
+    def void publishPluginToBintray(PluginBuilder pluginBuilder, String group, String name, String version = pluginVersion) {
+        def module = bintray.jcenter.module(group, name, version)
+        module.allowAll()
+        def artifact = module.artifact([:])
+        module.publish()
+        pluginBuilder.publishTo(artifact.file)
+    }
+
+    void "can use plugin classes in script"() {
+        given:
+        bintray.start()
+        def pb = pluginBuilder()
+        pb.groovy("EchoTask.groovy") << """
+            package $pb.packageName
+
+            class EchoTask extends ${DefaultTask.name} {
+                @${TaskAction.name}
+                void doEcho() {
+                    println "$pluginMessage"
+                }
+            }
+        """
+
+        pb.addPlugin("", "test")
+        publishPluginToBintray(pb, "test", "test")
+        bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
+
+        buildScript """
+          plugins {
+            apply plugin: "test", version: "$pluginVersion"
+          }
+
+          task echo(type: ${pb.packageName}.EchoTask) {}
+        """
+
+        when:
+        succeeds "echo"
+
+        then:
+        output.contains pluginMessage
     }
 
     void "plugins block does not leak into build script proper"() {
@@ -242,5 +222,333 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         then:
         output.contains("configurations: 1")
         output.contains("plugins transitive: false")
+    }
+
+    def "buildscript blocks are allowed before plugin statements"() {
+        when:
+        buildScript """
+            buildscript {}
+            plugins {}
+        """
+
+        then:
+        succeeds "tasks"
+    }
+
+    def "buildscript blocks are not allowed after plugin blocks"() {
+        when:
+        buildScript """
+            plugins {}
+            buildscript {}
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasLineNumber 3
+        errorOutput.contains("all buildscript {} blocks must appear before any plugins {} blocks")
+    }
+
+    def "build logic cannot precede plugins block"() {
+        when:
+        buildScript """
+            someThing()
+            plugins {}
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasLineNumber 3
+        errorOutput.contains "only buildscript {} and and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+    }
+
+    def "build logic cannot precede any plugins block"() {
+        when:
+        buildScript """
+            plugins {}
+            someThing()
+            plugins {}
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasLineNumber 4
+        errorOutput.contains "only buildscript {} and and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+    }
+
+    def "failed resolution provides helpful error message"() {
+        given:
+        bintray.start()
+
+        buildScript """
+            plugins {
+                apply plugin: "foo"
+            }
+        """
+
+        and:
+        bintray.api.expectPackageSearch("foo")
+
+        when:
+        fails "tasks"
+
+        then:
+        errorOutput.contains "Cannot resolve plugin request [plugin: 'foo'] from plugin repositories:"
+        errorOutput.contains "- Gradle Distribution Plugins (listing: http://gradle.org/docs/${GradleVersion.current().version}/userguide/standard_plugins.html)"
+        errorOutput.contains "- Gradle Bintray Plugin Repository (listing: https://bintray.com/gradle-plugins-development/gradle-plugins)"
+    }
+
+    private publishTestPlugin() {
+        def pluginBuilder = new PluginBuilder(executer, testDirectory.file("plugin"))
+
+        def module = mavenRepo.module("plugin", "plugin")
+        def artifactFile = module.artifact([:]).artifactFile
+        module.publish()
+
+        def message = "from plugin"
+        def taskName = "pluginTask"
+        pluginBuilder.addPluginWithPrintlnTask(taskName, message, "plugin")
+        pluginBuilder.publishTo(artifactFile)
+    }
+
+    private testPluginBuildscriptBlock() {
+        return """
+            buildscript {
+                repositories {
+                    maven { url "$mavenRepo.uri" }
+                }
+                dependencies {
+                    classpath "plugin:plugin:1.0"
+                }
+            }
+        """
+    }
+
+    private testPluginPluginsBlock() {
+        return """
+            plugins {
+                apply plugin: "plugin", version: "1.0"
+            }
+        """
+    }
+
+    def "cannot apply plugins added to buildscript classpath in plugins block"() {
+        given:
+        publishTestPlugin()
+
+        when:
+        buildScript """
+            ${testPluginBuildscriptBlock()}
+            ${testPluginPluginsBlock()}
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        errorOutput.contains "Plugin 'plugin' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: 'plugin'\" outside of the plugins {} block)"
+    }
+
+    def "cannot apply plugins added to parent buildscript classpath in plugins block"() {
+        given:
+        publishTestPlugin()
+
+        when:
+        buildScript """
+            ${testPluginBuildscriptBlock()}
+        """
+
+        settingsFile << "include 'sub'"
+
+        file("sub/build.gradle") << """
+            ${testPluginPluginsBlock()}
+        """
+
+        then:
+        fails "sub:tasks"
+
+        and:
+        errorOutput.contains "Plugin 'plugin' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: 'plugin'\" outside of the plugins {} block)"
+    }
+
+    def "plugin classes are reused across projects and resolution is cached"() {
+        when:
+        bintray.start()
+        def pb = pluginBuilder().addPlugin("", "test")
+        publishPluginToBintray(pb, "test", "test")
+
+        // Only receiving one search request verifies that the result is cached
+        bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
+
+        settingsFile << "include 'sub1', 'sub2'"
+
+        ["sub1/build.gradle", "sub2/build.gradle", "build.gradle"].each {
+            file(it) << """
+                plugins {
+                    apply plugin: "test", version: "$pluginVersion"
+                }
+                ext.pluginClass = org.gradle.test.TestPlugin
+            """
+        }
+
+        file("build.gradle") << """
+            evaluationDependsOnChildren()
+
+            pluginClass.is project(":sub1").pluginClass
+            pluginClass.is project(":sub2").pluginClass
+            project(":sub1").pluginClass.is project(":sub2").pluginClass
+        """
+
+        then:
+        succeeds "tasks"
+    }
+
+    def "classes from plugin block are not visible to classes from buildscript block"() {
+        given:
+        def pb1 = pluginBuilder()
+        def pb2 = pluginBuilder()
+
+        pb1.addPlugin("getClass().classLoader.loadClass('org.gradle.test.PluginOne')", "p1", "PluginOne")
+        pb2.addPlugin("getClass().classLoader.loadClass('org.gradle.test.PluginOne')", "p2", "PluginTwo")
+
+        bintray.start()
+
+        publishPluginToBintray(pb1, "p1", "p1")
+        bintray.api.expectPackageSearch("p1", new BintrayApi.FoundPackage(pluginVersion, "p1:p1"))
+
+        publishPluginToBintray(pb2, "p2", "p2")
+
+        when:
+        settingsFile << "rootProject.name = 'tp'"
+        buildScript """
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+                dependencies {
+                    classpath "p2:p2:$pluginVersion"
+                }
+            }
+            plugins {
+                apply plugin: "p1", version: "1.0"
+            }
+
+            apply plugin: "p2"
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating root project 'tp'.")
+        failure.assertHasCause("org.gradle.test.PluginOne") // message of ClassNotFoundException
+        failure.assertHasLineNumber(14) // asserts that  'apply plugin: "p2"' is the line that fails
+    }
+
+    def "plugin classes are not available to child projects"() {
+        given:
+        bintray.start()
+        def pb = pluginBuilder().addPlugin("", "plugin")
+        publishPluginToBintray(pb, "plugin", "plugin")
+        bintray.api.expectPackageSearch("plugin", new BintrayApi.FoundPackage(pluginVersion, "plugin:plugin"))
+
+        when:
+        settingsFile << "include 'child'"
+        buildScript """
+            ${testPluginPluginsBlock()}
+            import org.gradle.test.TestPlugin
+        """
+        file("child/build.gradle") << """
+            import org.gradle.test.TestPlugin
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("Could not compile build file '${file("child/build.gradle")}'.")
+    }
+
+    def "plugins cannot be applied by child projects"() {
+        given:
+        bintray.start()
+        def pb = pluginBuilder().addPlugin("", "plugin")
+        publishPluginToBintray(pb, "plugin", "plugin")
+        bintray.api.expectPackageSearch("plugin", new BintrayApi.FoundPackage(pluginVersion, "plugin:plugin"))
+
+        when:
+        settingsFile << "include 'child'"
+        buildScript """
+            ${testPluginPluginsBlock()}
+            import org.gradle.test.TestPlugin
+        """
+        file("child/build.gradle") << """
+            apply plugin: 'plugin'
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Plugin with id 'plugin' not found.")
+    }
+
+    def "plugins added via plugins block cannot be applied with project.apply"() {
+        given:
+        bintray.start()
+        def pb = pluginBuilder().addPlugin("project.task('foo')", "plugin")
+        publishPluginToBintray(pb, "plugin", "plugin")
+        bintray.api.expectPackageSearch("plugin", new BintrayApi.FoundPackage(pluginVersion, "plugin:plugin"))
+
+        when:
+        settingsFile << 'rootProject.name = "tp"'
+        buildScript """
+            ${testPluginPluginsBlock()}
+            apply plugin: 'plugin'
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating root project 'tp'.")
+        failure.assertHasCause("Plugin with id 'plugin' not found.")
+    }
+
+    def "plugins added in root buildscript can be applied in subprojects"() {
+        given:
+        executer.withEagerClassLoaderCreationCheckDisabled()
+        pluginBuilder().addPlugin("project.task('foo')", "plugin").publishTo(mavenRepo.module("g", "a").artifactFile)
+
+        settingsFile << "include 'sub'"
+
+        buildScript """
+            buildscript {
+                repositories {
+                    maven { url "$mavenRepo.uri" }
+                }
+                dependencies {
+                    classpath "g:a:1.0"
+                }
+            }
+
+            apply plugin: 'plugin'
+
+            subprojects {
+                apply plugin: 'plugin'
+            }
+        """
+
+        when:
+        succeeds "sub:foo"
+
+        then:
+        ":sub:foo" in executedTasks
     }
 }

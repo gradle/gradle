@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
@@ -77,7 +78,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         if (pomReader.hasParent()) {
             //Is there any other parent properties?
 
-            ModuleRevisionId parentModRevID = ModuleRevisionId.newInstance(
+            ModuleRevisionId parentModRevID = IvyUtil.createModuleRevisionId(
                     pomReader.getParentGroupId(),
                     pomReader.getParentArtifactId(),
                     pomReader.getParentVersion());
@@ -145,7 +146,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      * @throws SAXException
      */
     private void overrideDependencyMgtsWithImported(DescriptorParseContext parseContext, PomReader pomReader) throws IOException, SAXException {
-        Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = parseImportedDependencyMgts(parseContext, pomReader.getPomDependencyMgt().values());
+        Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = parseImportedDependencyMgts(parseContext, pomReader.parseDependencyMgt());
         pomReader.addImportedDependencyMgts(importedDependencyMgts);
     }
 
@@ -191,7 +192,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      * @throws SAXException
      */
     private PomReader parseImportedPom(DescriptorParseContext parseContext, PomDependencyMgt pomDependencyMgt) throws IOException, SAXException {
-        ModuleRevisionId importModRevID = ModuleRevisionId.newInstance(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getVersion());
+        ModuleRevisionId importModRevID = IvyUtil.createModuleRevisionId(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getVersion());
         return parseOtherPom(parseContext, importModRevID);
     }
 

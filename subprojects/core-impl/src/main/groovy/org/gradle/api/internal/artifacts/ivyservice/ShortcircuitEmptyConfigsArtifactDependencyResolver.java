@@ -20,10 +20,9 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -36,24 +35,25 @@ import java.util.Set;
 
 public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements ArtifactDependencyResolver {
     private final ArtifactDependencyResolver dependencyResolver;
+    private final ComponentIdentifierFactory componentIdentifierFactory;
 
-    public ShortcircuitEmptyConfigsArtifactDependencyResolver(ArtifactDependencyResolver dependencyResolver) {
+    public ShortcircuitEmptyConfigsArtifactDependencyResolver(ArtifactDependencyResolver dependencyResolver, ComponentIdentifierFactory componentIdentifierFactory) {
         this.dependencyResolver = dependencyResolver;
+        this.componentIdentifierFactory = componentIdentifierFactory;
     }
 
-    public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
+    public void resolve(ConfigurationInternal configuration,
+                        List<? extends ResolutionAwareRepository> repositories,
+                        ModuleMetadataProcessor metadataProcessor,
+                        ResolverResults results) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(configuration.getModule());
-            ComponentIdentifier componentIdentifier = determineComponentIdentifier(id, configuration.getModule());
+            ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(configuration.getModule());
             ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();
-            return new ResolverResults(new EmptyResolvedConfiguration(), emptyResult);
+            results.resolved(new EmptyResolvedConfiguration(), emptyResult);
+        } else {
+            dependencyResolver.resolve(configuration, repositories, metadataProcessor, results);
         }
-        return dependencyResolver.resolve(configuration, repositories);
-    }
-
-    private ComponentIdentifier determineComponentIdentifier(ModuleVersionIdentifier id, ModuleInternal moduleInternal) {
-        String projectPath = moduleInternal.getProjectPath();
-        return projectPath != null ? new DefaultProjectComponentIdentifier(projectPath) : new DefaultModuleComponentIdentifier(id.getGroup(), id.getName(), id.getVersion());
     }
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {

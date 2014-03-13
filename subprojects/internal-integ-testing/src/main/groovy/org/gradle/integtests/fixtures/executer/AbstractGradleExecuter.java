@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.jvm.Jvm;
@@ -71,6 +72,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean requireGradleHome;
 
     private boolean deprecationChecksOn = true;
+    private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
 
     private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
@@ -200,6 +202,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (!deprecationChecksOn) {
             executer.withDeprecationChecksDisabled();
+        }
+        if (!eagerClassLoaderCreationChecksOn) {
+            executer.withEagerClassLoaderCreationCheckDisabled();
         }
         if (!stackTraceChecksOn) {
             executer.withStackTraceChecksDisabled();
@@ -509,6 +514,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         properties.put("file.encoding", getDefaultCharacterEncoding());
 
+        if (eagerClassLoaderCreationChecksOn) {
+            properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, "true");
+        }
+
         return properties;
     }
 
@@ -622,6 +631,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         deprecationChecksOn = false;
         // turn off stack traces too
         stackTraceChecksOn = false;
+        return this;
+    }
+
+    public GradleExecuter withEagerClassLoaderCreationCheckDisabled() {
+        eagerClassLoaderCreationChecksOn = false;
         return this;
     }
 

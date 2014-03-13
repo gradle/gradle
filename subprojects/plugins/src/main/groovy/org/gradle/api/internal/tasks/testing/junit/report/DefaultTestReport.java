@@ -46,7 +46,7 @@ public class DefaultTestReport implements TestReporter {
         Clock clock = new Clock();
         AllTestResults model = loadModelFromProvider(resultsProvider);
         generateFiles(model, resultsProvider, reportDir);
-        LOG.info("Finished generating test html results (" + clock.getTime() + ")");
+        LOG.info("Finished generating test html results ({}) into: {}", clock.getTime(), reportDir);
     }
 
     private AllTestResults loadModelFromProvider(TestResultsProvider resultsProvider) {
@@ -58,7 +58,7 @@ public class DefaultTestReport implements TestReporter {
                 for (TestMethodResult collectedResult : collectedResults) {
                     final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
                     if (collectedResult.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
-                        testResult.ignored();
+                        testResult.setIgnored();
                     } else {
                         List<TestFailure> failures = collectedResult.getFailures();
                         for (TestFailure failure : failures) {

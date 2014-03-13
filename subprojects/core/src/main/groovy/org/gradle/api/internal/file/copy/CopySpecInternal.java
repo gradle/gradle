@@ -39,9 +39,9 @@ public interface CopySpecInternal extends CopySpec {
 
     void walk(Action<? super CopySpecInternal> action);
 
-    DefaultCopySpec addChild();
+    CopySpecInternal addChild();
 
-    DefaultCopySpec addChildBeforeSpec(CopySpecInternal childSpec);
+    CopySpecInternal addChildBeforeSpec(CopySpecInternal childSpec);
 
-    DefaultCopySpec addFirst();
+    CopySpecInternal addFirst();
 }

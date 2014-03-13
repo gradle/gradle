@@ -2,7 +2,7 @@ apply plugin: 'windows-resources'
 
 // START SNIPPET resource-only-library
 libraries {
-    helloResources {
+    helloRes {
         binaries.all {
             rcCompiler.args "/v"
             linker.args "/noentry", "/machine:x86"
@@ -13,7 +13,7 @@ libraries {
 
 // START SNIPPET windows-resource-set
 sources {
-    helloResources {
+    helloRes {
         rc {
             source {
                 srcDirs "src/hello/rc"

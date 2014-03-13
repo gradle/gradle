@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.custom
-
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
+import org.gradle.test.fixtures.ivy.IvyHttpRepository
 import org.junit.Rule
 
 class IvyUrlResolverIntegrationTest extends AbstractDependencyResolutionTest {
@@ -30,44 +30,168 @@ class IvyUrlResolverIntegrationTest extends AbstractDependencyResolutionTest {
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         server.start()
         given:
-        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
+        final IvyHttpRepository repo = ivyHttpRepo
+        def projectA = repo.module('group', 'projectA', '1.2').publish()
+        repo.module('group', 'projectB').publish()
+        def projectB11 = repo.module('group', 'projectB', '1.1').publish()
+        def projectB20 = repo.module('group', 'projectB', '2.0').publish()
 
         and:
         buildFile << """
 repositories {
     add(new org.apache.ivy.plugins.resolver.URLResolver()) {
         name = "repo"
-        addIvyPattern("${ivyHttpRepo.ivyPattern}")
-        addArtifactPattern("${ivyHttpRepo.artifactPattern}")
+        addIvyPattern("${repo.ivyPattern}")
+        addArtifactPattern("${repo.artifactPattern}")
     }
 }
-configurations { compile }
-dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+configurations {
+    simple
+    dynamic
+    dynamic2
+    dynamicMissing
+}
+dependencies {
+    simple 'group:projectA:1.2'
+    dynamic 'group:projectB:1.+'
+    dynamic2 'group:projectB:2.+'
+    dynamicMissing 'group:projectC:1.+'
+}
+task retrieveSimple(type: Sync) {
+  from configurations.simple
+  into 'simple'
+}
+task retrieveDynamic(type: Sync) {
+  from configurations.dynamic
+  into 'dynamic'
+}
+task retrieveDynamic2(type: Sync) {
+  from configurations.dynamic2
+  into 'dynamic2'
+}
+task retrieveDynamicMissing(type: Sync) {
+  from configurations.dynamicMissing
+  into 'dynamicMissing'
 }
 """
         when:
-        module.ivy.expectHead()
-        module.ivy.expectGet()
-        module.jar.expectHead()
-        module.jar.expectGet()
+        projectA.ivy.expectHead()
+        projectA.ivy.expectGet()
+        projectA.jar.expectHead()
+        projectA.jar.expectGet()
         executer.withDeprecationChecksDisabled()
 
+        and:
+        succeeds 'retrieveSimple'
+
         then:
-        succeeds 'listJars'
+        file('simple').assertHasDescendants('projectA-1.2.jar')
 
         and:
-        progressLogging.downloadProgressLogged(module.ivy.uri)
-        progressLogging.downloadProgressLogged(module.jar.uri)
+        progressLogging.downloadProgressLogged(projectA.ivy.uri)
+        progressLogging.downloadProgressLogged(projectA.jar.uri)
 
         when:
         server.resetExpectations()
-        executer.withDeprecationChecksDisabled()
 
         // No extra calls for cached dependencies
+        and:
+        executer.withDeprecationChecksDisabled()
+        succeeds 'retrieveSimple'
+
         then:
-        succeeds 'listJars'
+        file('simple').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        repo.expectDirectoryListGet('group', 'projectB')
+        projectB11.ivy.expectHead()
+        projectB11.ivy.expectGet()
+        projectB11.jar.expectHead()
+        projectB11.jar.expectGet()
+
+        // TODO:DAZ This is a regression in retrieve dynamic versions with custom ivy resolver. Not sure if we care.
+        projectB11.ivy.expectGet()
+
+        and:
+        executer.withDeprecationChecksDisabled()
+        succeeds 'retrieveDynamic'
+
+        then:
+        file('dynamic').assertHasDescendants('projectB-1.1.jar')
+
+        and:
+        progressLogging.downloadProgressLogged(projectB11.ivy.uri)
+        progressLogging.downloadProgressLogged(projectB11.jar.uri)
+
+        when:
+        server.resetExpectations()
+
+        // No extra calls for cached dependencies
+        and:
+        executer.withDeprecationChecksDisabled()
+        succeeds 'retrieveDynamic'
+
+        then:
+        file('dynamic').assertHasDescendants('projectB-1.1.jar')
+
+        when:
+        repo.expectDirectoryListGet('group', 'projectB')
+        projectB20.ivy.expectHead()
+        projectB20.ivy.expectGet()
+        projectB20.jar.expectHead()
+        projectB20.jar.expectGet()
+        executer.withDeprecationChecksDisabled()
+
+        // TODO:DAZ Extra get since moving version listing up into UserResolverChain (for custom ivy resolver only)
+        projectB20.ivy.expectGet()
+
+        and:
+        succeeds 'retrieveDynamic2'
+
+        then:
+        file('dynamic2').assertHasDescendants('projectB-2.0.jar')
+    }
+
+    public void "reports module missing when directory listing for module is empty or broken"() {
+        given:
+        server.start()
+        def repo = ivyHttpRepo
+
+        and:
+        buildFile << """
+repositories {
+    add(new org.apache.ivy.plugins.resolver.URLResolver()) {
+        name = "repo"
+        addIvyPattern("${repo.ivyPattern}")
+        addArtifactPattern("${repo.artifactPattern}")
+    }
+}
+configurations { compile }
+dependencies { compile 'org.gradle:projectA:1.+' }
+task testResolve(type: Sync) {
+  println configurations.compile.files
+}
+"""
+        when:
+        server.resetExpectations()
+        2.times {repo.expectDirectoryListGetBroken("org.gradle", "projectA") }
+        executer.withDeprecationChecksDisabled()
+
+        then:
+        fails 'testResolve'
+
+        and:
+        failure.assertHasCause "Could not find any version that matches org.gradle:projectA:1.+"
+
+        when:
+        2.times { repo.expectDirectoryListGetMissing("org.gradle", "projectA") }
+        executer.withDeprecationChecksDisabled()
+
+        then:
+        fails 'testResolve'
+
+        and:
+        failure.assertHasCause "Could not find any version that matches org.gradle:projectA:1.+"
     }
 
     public void "honours changing patterns from custom resolver"() {

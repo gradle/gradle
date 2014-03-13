@@ -15,10 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.internal.Factory;
+
+import java.util.Set;
 
 /**
  * A wrapper around a {@link ModuleVersionRepository} that handles locking/unlocking the cache.
@@ -40,6 +45,14 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         return repository.getName();
     }
 
+    public void listModuleVersions(final DependencyMetaData dependency, final BuildableModuleVersionSelectionResolveResult result) {
+        cacheLockingManager.longRunningOperation(String.format("List %s using repository %s", dependency, getId()), new Runnable() {
+            public void run() {
+                repository.listModuleVersions(dependency, result);
+            }
+        });
+    }
+
     public void getDependency(final DependencyMetaData dependency, final BuildableModuleVersionMetaDataResolveResult result) {
         cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, getId()), new Runnable() {
             public void run() {
@@ -52,6 +65,14 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, getId()), new Runnable() {
             public void run() {
                 repository.resolve(artifact, result, moduleSource);
+            }
+        });
+    }
+
+    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(final ModuleVersionMetaData module, final Class<? extends SoftwareArtifact> artifactType) {
+        return cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", module, getId()), new Factory<Set<ModuleVersionArtifactMetaData>>() {
+            public Set<ModuleVersionArtifactMetaData> create() {
+                return repository.getCandidateArtifacts(module, artifactType);
             }
         });
     }

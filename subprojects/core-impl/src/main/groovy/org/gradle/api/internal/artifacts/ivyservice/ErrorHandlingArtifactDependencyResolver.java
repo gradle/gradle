@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -38,16 +39,19 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         this.dependencyResolver = dependencyResolver;
     }
 
-    public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
-        final ResolverResults results;
+    public void resolve(ConfigurationInternal configuration,
+                        List<? extends ResolutionAwareRepository> repositories,
+                        ModuleMetadataProcessor metadataProcessor,
+                        ResolverResults results) throws ResolveException {
         try {
-            results = dependencyResolver.resolve(configuration, repositories);
+            dependencyResolver.resolve(configuration, repositories, metadataProcessor, results);
         } catch (final Throwable e) {
-            return new ResolverResults(new BrokenResolvedConfiguration(e, configuration), wrapException(e, configuration));
+            results.failed(new BrokenResolvedConfiguration(e, configuration), wrapException(e, configuration));
+            return;
         }
         ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
         ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
-        return new ResolverResults(wrappedConfiguration, wrappedResult);
+        results.resolved(wrappedConfiguration, wrappedResult);
     }
 
     private static ResolveException wrapException(Throwable e, Configuration configuration) {

@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.reflect.Instantiator;
@@ -39,5 +40,8 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     public void process(ModuleVersionMetaData metadata) {
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
         moduleRules.execute(details);
+        if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
+            throw new ModuleVersionResolveException(metadata.getId(), "Unexpected status '" + metadata.getStatus() + "' specified for %s. Expected one of: " +  metadata.getStatusScheme());
+        }
     }
 }

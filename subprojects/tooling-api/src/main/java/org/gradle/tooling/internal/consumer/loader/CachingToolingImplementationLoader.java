@@ -17,9 +17,9 @@ package org.gradle.tooling.internal.consumer.loader;
 
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,8 +32,8 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
         this.loader = loader;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerConnectionParameters connectionParameters) {
-        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters) {
+        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, connectionParameters.getGradleUserHomeDir());
 
         ConsumerConnection connection = connections.get(classpath);
         if (connection == null) {

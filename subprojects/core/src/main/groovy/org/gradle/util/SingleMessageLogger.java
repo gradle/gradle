@@ -51,7 +51,7 @@ public class SingleMessageLogger {
     private static LoggingDeprecatedFeatureHandler handler = new LoggingDeprecatedFeatureHandler();
     private static String deprecationMessage;
 
-    private static String getDeprecationMessage() {
+    public static String getDeprecationMessage() {
         LOCK.lock();
         try {
             if (deprecationMessage == null) {

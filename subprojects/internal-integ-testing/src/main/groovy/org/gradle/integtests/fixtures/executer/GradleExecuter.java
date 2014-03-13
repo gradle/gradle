@@ -227,6 +227,11 @@ public interface GradleExecuter {
     GradleExecuter withDeprecationChecksDisabled();
 
     /**
+     * Disables asserting that class loaders were not eagerly created, potentially leading to performance problems.
+     */
+    GradleExecuter withEagerClassLoaderCreationCheckDisabled();
+
+    /**
      * Disables asserting that no unexpected stacktraces are present in the output.
      */
     GradleExecuter withStackTraceChecksDisabled();

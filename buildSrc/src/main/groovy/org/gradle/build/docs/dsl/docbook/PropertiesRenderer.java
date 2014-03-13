@@ -24,7 +24,7 @@ import org.w3c.dom.Element;
 
 import java.util.Collection;
 
-public class PropertiesRenderer {
+class PropertiesRenderer implements ClassDocMemberRenderer {
     private final PropertyTableRenderer propertyTableRenderer = new PropertyTableRenderer();
     private final ExtensionPropertiesSummaryRenderer extensionPropertiesSummaryRenderer;
     private final PropertyDetailRenderer propertiesDetailRenderer;
@@ -34,7 +34,7 @@ public class PropertiesRenderer {
         extensionPropertiesSummaryRenderer = new ExtensionPropertiesSummaryRenderer(propertyTableRenderer);
     }
 
-    public void renderTo(ClassDoc classDoc, Element parent) {
+    public void renderSummaryTo(ClassDoc classDoc, Element parent) {
         Document document = parent.getOwnerDocument();
 
         Element summarySection = document.createElement("section");
@@ -44,10 +44,8 @@ public class PropertiesRenderer {
         summarySection.appendChild(title);
         title.appendChild(document.createTextNode("Properties"));
 
-        boolean hasProperties = false;
         Collection<PropertyDoc> classProperties = classDoc.getClassProperties();
         if (!classProperties.isEmpty()) {
-            hasProperties = true;
 
             Element table = document.createElement("table");
             summarySection.appendChild(table);
@@ -60,32 +58,46 @@ public class PropertiesRenderer {
         }
 
         for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
-            hasProperties |= !extensionDoc.getExtensionProperties().isEmpty();
             extensionPropertiesSummaryRenderer.renderTo(extensionDoc, summarySection);
         }
 
-        if (!hasProperties) {
+        if (!hasProperties(classDoc)) {
             Element para = document.createElement("para");
             summarySection.appendChild(para);
             para.appendChild(document.createTextNode("No properties"));
-            return;
         }
+    }
 
+    public void renderDetailsTo(ClassDoc classDoc, Element parent) {
+        if (hasProperties(classDoc)) {
+            Document document = parent.getOwnerDocument();
+            Element detailsSection = document.createElement("section");
+            parent.appendChild(detailsSection);
 
-        Element detailsSection = document.createElement("section");
-        parent.appendChild(detailsSection);
+            Element title = document.createElement("title");
+            detailsSection.appendChild(title);
+            title.appendChild(document.createTextNode("Property details"));
 
-        title = document.createElement("title");
-        detailsSection.appendChild(title);
-        title.appendChild(document.createTextNode("Property details"));
-
-        for (PropertyDoc classProperty : classProperties) {
-            propertiesDetailRenderer.renderTo(classProperty, detailsSection);
-        }
-        for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
-            for (PropertyDoc propertyDoc : extensionDoc.getExtensionProperties()) {
-                propertiesDetailRenderer.renderTo(propertyDoc, detailsSection);
+            for (PropertyDoc classProperty : classDoc.getClassProperties()) {
+                propertiesDetailRenderer.renderTo(classProperty, detailsSection);
+            }
+            for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+                for (PropertyDoc propertyDoc : extensionDoc.getExtensionProperties()) {
+                    propertiesDetailRenderer.renderTo(propertyDoc, detailsSection);
+                }
             }
         }
     }
+
+    private boolean hasProperties(ClassDoc classDoc) {
+        boolean hasProperties = false;
+        if (!classDoc.getClassProperties().isEmpty()) {
+            hasProperties = true;
+        }
+        for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+            hasProperties |= !extensionDoc.getExtensionProperties().isEmpty();
+        }
+        return hasProperties;
+    }
+
 }

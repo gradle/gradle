@@ -61,7 +61,7 @@ class DefaultNativeComponentTest extends Specification {
         component.chooseFlavors([flavor("flavor1"), flavor("flavor2"), flavor("flavor3"), flavor("flavor4")] as Set)*.name == ["flavor1", "flavor2", "flavor3"]
     }
 
-    class TestProjectNativeComponent extends AbstractProjectNativeComponent {
+    class TestProjectNativeComponent extends AbstractTargetedProjectNativeComponent {
         TestProjectNativeComponent(NativeProjectComponentIdentifier id) {
             super(id)
         }

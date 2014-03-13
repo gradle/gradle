@@ -90,7 +90,8 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         protected PublishArtifact parseType(File file) {
             Module module = metaDataProvider.getModule();
             ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
-            return instantiator.newInstance(DefaultPublishArtifact.class, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(),
+            return instantiator.newInstance(DefaultPublishArtifact.class, artifactFile.getName(), artifactFile.getExtension(),
+                                            artifactFile.getExtension() == null? "":artifactFile.getExtension(),
                                             artifactFile.getClassifier(), null, file, new Task[0]);
         }
     }

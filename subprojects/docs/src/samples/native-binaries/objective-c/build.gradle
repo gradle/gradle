@@ -11,7 +11,7 @@ executables {
 
 // START SNIPPET all-binaries
 binaries.all {
-    objectiveCCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+    objcCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
 
     //on osx we need different settings than on linux or windows
     if(targetPlatform.operatingSystem.isMacOsX()){

@@ -19,11 +19,10 @@ import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.Library;
-import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.internal.*;
+import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.ProjectExecutableBinary;
+import org.gradle.nativebinaries.internal.ProjectSharedLibraryBinary;
+import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
@@ -39,7 +38,7 @@ class DefaultNativeBinariesFactory implements NativeBinariesFactory {
         this.resolver = resolver;
     }
 
-    public void createNativeBinaries(ProjectNativeComponentInternal component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
+    public void createNativeBinaries(ProjectNativeComponent component, BinaryNamingSchemeBuilder namingScheme, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         if (component instanceof Library) {
             createNativeBinary(ProjectSharedLibraryBinary.class, component, namingScheme.withTypeString("SharedLibrary").build(), toolChain, platform, buildType, flavor);
             createNativeBinary(ProjectStaticLibraryBinary.class, component, namingScheme.withTypeString("StaticLibrary").build(), toolChain, platform, buildType, flavor);
@@ -48,7 +47,7 @@ class DefaultNativeBinariesFactory implements NativeBinariesFactory {
         }
     }
 
-    private void createNativeBinary(Class<? extends ProjectNativeBinary> type, ProjectNativeComponentInternal component, BinaryNamingScheme namingScheme,
+    private void createNativeBinary(Class<? extends ProjectNativeBinary> type, ProjectNativeComponent component, BinaryNamingScheme namingScheme,
                             ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         ProjectNativeBinary nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, platform, buildType, namingScheme, resolver);
         setupDefaults(nativeBinary);

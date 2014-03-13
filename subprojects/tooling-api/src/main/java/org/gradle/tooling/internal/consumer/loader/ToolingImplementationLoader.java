@@ -16,10 +16,10 @@
 package org.gradle.tooling.internal.consumer.loader;
 
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 
 public interface ToolingImplementationLoader {
-    ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerConnectionParameters connectionParameters);
+    ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters);
 }

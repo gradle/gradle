@@ -24,11 +24,6 @@
                 </tr>
             </thead>
             <tr><td>path</td></tr>
-            <tr><td>assembler</td></tr>
-            <tr><td>cCompiler</td></tr>
-            <tr><td>cppCompiler</td></tr>
-            <tr><td>linker</td></tr>
-            <tr><td>staticLibArchiver</td></tr>
         </table>
     </section>
     <section>

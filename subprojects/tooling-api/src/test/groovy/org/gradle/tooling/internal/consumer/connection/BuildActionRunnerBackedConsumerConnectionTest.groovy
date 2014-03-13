@@ -20,7 +20,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
+import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
@@ -55,21 +55,21 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         details.supportsGradleProjectModel()
 
         and:
-        details.isModelSupported(HierarchicalEclipseProject)
-        details.isModelSupported(EclipseProject)
-        details.isModelSupported(IdeaProject)
-        details.isModelSupported(BasicIdeaProject)
-        details.isModelSupported(GradleProject)
-        details.isModelSupported(BuildEnvironment)
-        details.isModelSupported(ProjectOutcomes)
-        details.isModelSupported(Void)
+        details.maySupportModel(HierarchicalEclipseProject)
+        details.maySupportModel(EclipseProject)
+        details.maySupportModel(IdeaProject)
+        details.maySupportModel(BasicIdeaProject)
+        details.maySupportModel(GradleProject)
+        details.maySupportModel(BuildEnvironment)
+        details.maySupportModel(ProjectOutcomes)
+        details.maySupportModel(Void)
 
         and:
-        !details.isModelSupported(CustomModel)
+        !details.maySupportModel(CustomModel)
     }
 
     def "configures connection"() {
-        def parameters = new ConsumerConnectionParameters(false)
+        def parameters = Stub(ConnectionParameters)
 
         when:
         connection.configure(parameters)

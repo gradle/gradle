@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.apache.ivy.core.module.descriptor.Artifact
+import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.resource.ResourceException
 import org.gradle.api.internal.resource.ResourceNotFoundException
@@ -33,7 +33,7 @@ class ChainedVersionListerTest extends Specification {
 
     ResourcePattern pattern = Mock()
     ModuleIdentifier module = Mock()
-    Artifact artifact = Mock()
+    ArtifactIdentifier artifact = Mock()
 
     def chainedVersionLister = new ChainedVersionLister(lister1, lister2)
 

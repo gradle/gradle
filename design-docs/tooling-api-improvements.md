@@ -345,7 +345,7 @@ TBD - maybe don't change `forTasks()` but instead add an `execute(Iterable<? ext
 
 This story allows the IDE to hide those tasks that are part of the implementation details of a build.
 
-## Story: Deprecate support for Tooling API clients earlier than Gradle 1.2
+## Story: Deprecate support for Tooling API clients earlier than Gradle 1.2 (DONE)
 
 When any of the following methods are called on the provider connection treat the client version as deprecated:
 
@@ -362,7 +362,7 @@ The logging output should be received through the stream attached to `LongRunnin
 - Running a build generates a warning when using a client < 1.2, and does not generate a warning when using a client >= 1.2.
 - Fetching a model generates a warning when using a client < 1.2, and does not generate a warning when using a client >= 1.2.
 
-## Story: Deprecate support for Gradle versions earlier than Gradle 1.0-milestone-8
+## Story: Deprecate support for Gradle versions earlier than Gradle 1.0-milestone-8 (DONE)
 
 When the provider connection does not implement `InternalConnection` then treat the provider version as deprecated.
 
@@ -492,3 +492,24 @@ Need to allow a debug port to be specified, as hard-coded port 5005 can conflict
 * Replace `LongRunningOperation.standardOutput` and `standardError` with overloads that take a `Writer`, and (later) deprecate the `OutputStream` variants.
 * Handle cancellation during the Gradle distribution download.
 * Daemon cleanly stops the build when cancellation is requested.
+
+## Story: Tooling API build action requests a tooling model for a Gradle build
+
+This story adds support to build models that have a scope of a whole Gradle build (not just a project)
+
+1. Add a new `GradleBuildToolingModelBuilder` similar to `ToolingModelBuilder`. Possibly an abstract class since this is an SPI.
+2. Extend `ToolingModelBuilderRegistry` to allow registration of such a builder.
+3. Change the way how models are queried from `ProjectConnection` to use this new builders (there is no project context passed).
+   The only special case is the EclipseModel, which is actually built from the default project instead of the root project, so we'd need a specific implementation for that.
+4. Extend `BuildController.getModel()` to support `GradleBuild` as model parameter or add `BuildController.getBuildModel(Class)`.
+   Those would be using gradle model builder rather than project model builders
+
+### Test cases
+
+- Can register new model builder and
+  - query it from client via `ProjectConnection`.
+  - query it from client via build action.
+- Can request a model via build action:
+  - And get result from `GradleBuildToolingModelBuilder` for gradle build scope if passing `GradleBuild` as target.
+  - And get result from `ToolingModelBuilder` for project scope if passing one of parameters describing project.
+- Client receives decent feedback when requests an unknown model.

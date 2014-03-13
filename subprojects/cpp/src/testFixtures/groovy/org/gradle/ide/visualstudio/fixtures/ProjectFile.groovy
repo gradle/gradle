@@ -15,7 +15,11 @@
  */
 
 package org.gradle.ide.visualstudio.fixtures
+
+import org.gradle.nativebinaries.language.cpp.fixtures.app.SourceFile
+import org.gradle.nativebinaries.language.cpp.fixtures.app.TestComponent
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 
 class ProjectFile {
     String name
@@ -48,17 +52,21 @@ class ProjectFile {
 
     public List<String> getSourceFiles() {
         def sources = itemGroup('Sources').ClCompile
-        return sources*.'@Include'
+        return normalise(sources*.'@Include')
     }
 
     public List<String> getResourceFiles() {
         def sources = itemGroup('References').ResourceCompile
-        return sources*.'@Include'
+        return normalise(sources*.'@Include')
     }
 
     public List<String> getHeaderFiles() {
         def sources = itemGroup('Headers').ClInclude
-        return sources*.'@Include'
+        return normalise(sources*.'@Include')
+    }
+
+    private static List<String> normalise(List<String> files) {
+        return files.collect({ TextUtil.normaliseFileSeparators(it)}).sort()
     }
 
     private Node itemGroup(String label) {
@@ -66,44 +74,55 @@ class ProjectFile {
     }
 
     class Configuration {
-        String configName
+        String name
         String platformName
 
-        Configuration(String configName, String platformName) {
-            this.configName = configName
+        Configuration(String name, String platformName) {
+            this.name = name
             this.platformName = platformName
-        }
-
-        String getName() {
-            "${configName}|${platformName}"
-        }
-
-        String getMacros() {
-            buildConfiguration.ClCompile[0].PreprocessorDefinitions[0].text()
-        }
-
-        String getIncludePath() {
-            buildConfiguration.ClCompile[0].AdditionalIncludeDirectories[0].text()
-        }
-
-        String getResourceMacros() {
-            buildConfiguration.ResourceCompile[0].PreprocessorDefinitions[0].text()
-        }
-
-        String getResourceIncludePath() {
-            buildConfiguration.ResourceCompile[0].AdditionalIncludeDirectories[0].text()
         }
 
         ProjectFile getProject() {
             return ProjectFile.this
         }
 
+        String getMacros() {
+            buildConfiguration.NMakePreprocessorDefinitions[0].text()
+        }
+
+        String getIncludePath() {
+            TextUtil.normaliseFileSeparators(buildConfiguration.NMakeIncludeSearchPath[0].text())
+        }
+
+        String getBuildCommand() {
+            TextUtil.normaliseFileSeparators(buildConfiguration.NMakeBuildCommandLine[0].text())
+        }
+
+        String getOutputFile() {
+            TextUtil.normaliseFileSeparators(buildConfiguration.NMakeOutput[0].text())
+        }
+
         private Node getBuildConfiguration() {
-            projectXml.ItemDefinitionGroup.find({ it.'@Label' == 'VSBuildConfiguration' && it.'@Condition' == condition}) as Node
+            projectXml.PropertyGroup.find({ it.'@Label' == 'NMakeConfiguration' && it.'@Condition' == condition}) as Node
         }
 
         private String getCondition() {
-            "'\$(Configuration)|\$(Platform)'=='${configName}|${platformName}'"
+            "'\$(Configuration)|\$(Platform)'=='${name}|${platformName}'"
         }
     }
+
+    void assertHasComponentSources(TestComponent component, String basePath) {
+        assert sourceFiles == ['build.gradle'] + sourceFiles(component.sourceFiles, basePath)
+        assert headerFiles == sourceFiles(component.headerFiles, basePath)
+    }
+
+    void assertHasComponentSources(TestComponent component, String basePath, TestComponent component2, String basePath2) {
+        assert sourceFiles == ['build.gradle'] + sourceFiles(component.sourceFiles, basePath) + sourceFiles(component2.sourceFiles, basePath2)
+        assert headerFiles == sourceFiles(component.headerFiles, basePath) + sourceFiles(component2.headerFiles, basePath2)
+    }
+
+    private static List<String> sourceFiles(List<SourceFile> files, String path) {
+        return files*.withPath(path).sort()
+    }
+
 }

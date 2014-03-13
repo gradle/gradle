@@ -167,4 +167,5 @@ public class GlobalScopeServices {
     FileResolver createFileResolver(FileSystem fileSystem) {
         return new IdentityFileResolver(fileSystem);
     }
+
 }

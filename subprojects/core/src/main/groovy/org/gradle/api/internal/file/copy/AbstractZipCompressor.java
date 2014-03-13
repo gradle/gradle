@@ -22,13 +22,18 @@ import org.gradle.api.UncheckedIOException;
 import java.io.File;
 
 abstract class AbstractZipCompressor implements ZipCompressor {
+    private Zip64Mode zip64Mode;
+
+    public AbstractZipCompressor(boolean allowZip64Mode) {
+        zip64Mode = allowZip64Mode ? Zip64Mode.AsNeeded : Zip64Mode.Never;
+    }
 
     abstract public int getCompressedMethod();
 
     public ZipOutputStream createArchiveOutputStream(File destination) {
         try {
             ZipOutputStream outStream = new ZipOutputStream(destination);
-            outStream.setUseZip64(Zip64Mode.Never);
+            outStream.setUseZip64(zip64Mode);
             outStream.setMethod(getCompressedMethod());
             return outStream;
         } catch (Exception e) {
@@ -36,4 +41,5 @@ abstract class AbstractZipCompressor implements ZipCompressor {
             throw new UncheckedIOException(message, e);
         }
     }
+
 }

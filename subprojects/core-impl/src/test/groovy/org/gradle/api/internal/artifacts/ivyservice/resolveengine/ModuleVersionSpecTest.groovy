@@ -17,17 +17,18 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
 import org.apache.ivy.core.module.id.ArtifactId
-import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
-import spock.lang.Specification
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
+import spock.lang.Specification
+
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 
 class ModuleVersionSpecTest extends Specification {
     def "accepts all module by default"() {
         def spec = ModuleVersionSpec.forExcludes()
 
         expect:
-        spec.isSatisfiedBy(ModuleId.newInstance("org", "module"))
+        spec.isSatisfiedBy(createModuleId("org", "module"))
     }
 
     def "default specs accept the same modules as each other"() {
@@ -44,14 +45,14 @@ class ModuleVersionSpecTest extends Specification {
         def spec = ModuleVersionSpec.forExcludes(rule1, rule2, rule3, rule4, rule5)
 
         expect:
-        !spec.isSatisfiedBy(ModuleId.newInstance("org", "module"))
-        !spec.isSatisfiedBy(ModuleId.newInstance("org", "module2"))
-        !spec.isSatisfiedBy(ModuleId.newInstance("org2", "anything"))
-        !spec.isSatisfiedBy(ModuleId.newInstance("other", "module4"))
-        !spec.isSatisfiedBy(ModuleId.newInstance("regexp-72", "module12"))
-        spec.isSatisfiedBy(ModuleId.newInstance("org", "other"))
-        spec.isSatisfiedBy(ModuleId.newInstance("regexp-72", "other"))
-        spec.isSatisfiedBy(ModuleId.newInstance("regexp", "module2"))
+        !spec.isSatisfiedBy(createModuleId("org", "module"))
+        !spec.isSatisfiedBy(createModuleId("org", "module2"))
+        !spec.isSatisfiedBy(createModuleId("org2", "anything"))
+        !spec.isSatisfiedBy(createModuleId("other", "module4"))
+        !spec.isSatisfiedBy(createModuleId("regexp-72", "module12"))
+        spec.isSatisfiedBy(createModuleId("org", "other"))
+        spec.isSatisfiedBy(createModuleId("regexp-72", "other"))
+        spec.isSatisfiedBy(createModuleId("regexp", "module2"))
     }
 
     def "specs with the same set of exclude rules accept the same modules as each other"() {
@@ -263,11 +264,11 @@ class ModuleVersionSpecTest extends Specification {
         expect:
         def union = spec.union(spec2)
 
-        !spec.isSatisfiedBy(ModuleId.newInstance("org", "module"))
-        !union.isSatisfiedBy(ModuleId.newInstance("org", "module"))
+        !spec.isSatisfiedBy(createModuleId("org", "module"))
+        !union.isSatisfiedBy(createModuleId("org", "module"))
 
-        !spec.isSatisfiedBy(ModuleId.newInstance("org", "module2"))
-        union.isSatisfiedBy(ModuleId.newInstance("org", "module2"))
+        !spec.isSatisfiedBy(createModuleId("org", "module2"))
+        union.isSatisfiedBy(createModuleId("org", "module2"))
     }
 
     def "unions accepts same modules when original specs accept same modules"() {
@@ -306,15 +307,15 @@ class ModuleVersionSpecTest extends Specification {
         expect:
         def intersect = spec.intersect(spec2)
 
-        !spec.isSatisfiedBy(ModuleId.newInstance("org", "module"))
-        !intersect.isSatisfiedBy(ModuleId.newInstance("org", "module"))
+        !spec.isSatisfiedBy(createModuleId("org", "module"))
+        !intersect.isSatisfiedBy(createModuleId("org", "module"))
 
-        !spec.isSatisfiedBy(ModuleId.newInstance("org", "module2"))
-        !intersect.isSatisfiedBy(ModuleId.newInstance("org", "module2"))
+        !spec.isSatisfiedBy(createModuleId("org", "module2"))
+        !intersect.isSatisfiedBy(createModuleId("org", "module2"))
 
-        spec.isSatisfiedBy(ModuleId.newInstance("org", "module3"))
-        spec2.isSatisfiedBy(ModuleId.newInstance("org", "module3"))
-        intersect.isSatisfiedBy(ModuleId.newInstance("org", "module3"))
+        spec.isSatisfiedBy(createModuleId("org", "module3"))
+        spec2.isSatisfiedBy(createModuleId("org", "module3"))
+        intersect.isSatisfiedBy(createModuleId("org", "module3"))
     }
 
     def "intersection of a spec with itself returns the original spec"() {
@@ -358,10 +359,10 @@ class ModuleVersionSpecTest extends Specification {
     }
 
     def excludeRule(String org, String module) {
-        return new DefaultExcludeRule(new ArtifactId(ModuleId.newInstance(org, module), "ivy", "ivy", "ivy"), ExactPatternMatcher.INSTANCE, [:])
+        return new DefaultExcludeRule(new ArtifactId(createModuleId(org, module), "ivy", "ivy", "ivy"), ExactPatternMatcher.INSTANCE, [:])
     }
 
     def regExpExcludeRule(String org, String module) {
-        return new DefaultExcludeRule(new ArtifactId(ModuleId.newInstance(org, module), "ivy", "ivy", "ivy"), RegexpPatternMatcher.INSTANCE, [:])
+        return new DefaultExcludeRule(new ArtifactId(createModuleId(org, module), "ivy", "ivy", "ivy"), RegexpPatternMatcher.INSTANCE, [:])
     }
 }

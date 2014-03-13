@@ -16,8 +16,6 @@
 
 package org.gradle.api;
 
-import groovy.lang.GroovyObject;
-import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.NoConventionMapping;
 
@@ -26,12 +24,4 @@ import org.gradle.api.internal.NoConventionMapping;
  */
 @NoConventionMapping
 public class DefaultTask extends AbstractTask {
-    public DefaultTask() {
-        if (this instanceof GroovyObject) {
-            GroovyObject groovyObject = (GroovyObject) this;
-            if (groovyObject.getMetaClass() == null) {
-                groovyObject.setMetaClass(InvokerHelper.getMetaClass(getClass()));
-            }
-        }
-    }
 }

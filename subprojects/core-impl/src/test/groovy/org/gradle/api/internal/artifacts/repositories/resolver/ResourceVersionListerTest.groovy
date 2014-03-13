@@ -16,23 +16,23 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.apache.ivy.core.module.descriptor.DefaultArtifact
-import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.resource.ResourceException
-import org.gradle.api.internal.resource.ResourceNotFoundException
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ResourceVersionListerTest extends Specification {
 
     def repo = Mock(ExternalResourceRepository)
-    def moduleRevisionId = ModuleRevisionId.newInstance("org.acme", "proj1", "1.0")
+    def moduleRevisionId = IvyUtil.createModuleRevisionId("org.acme", "proj1", "1.0")
     def module = new DefaultModuleIdentifier("org.acme", "proj1")
-    def artifact = new DefaultArtifact(moduleRevisionId, new Date(), "proj1", "jar", "jar")
+    def artifact = new DefaultArtifactIdentifier(new DefaultModuleVersionIdentifier(module, "1.0"), "proj1", "jar", "jar", null)
 
     def ResourceVersionLister lister;
 
@@ -56,7 +56,7 @@ class ResourceVersionListerTest extends Specification {
         e.cause == failure
     }
 
-    def "visit throws ResourceNotFoundException for missing resource"() {
+    def "visit produces empty versionList for missing resource"() {
         setup:
         1 * repo.list(_) >> null
 
@@ -65,8 +65,7 @@ class ResourceVersionListerTest extends Specification {
         versionList.visit(pattern(testPattern), artifact)
 
         then:
-        ResourceNotFoundException e = thrown()
-        e.message == "Cannot list versions from /some/."
+        versionList.empty
 
         where:
         testPattern << ["/some/[revision]", "/some/version-[revision]"]

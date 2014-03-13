@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.rules
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.FileSnapshotter
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskExecution
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.TaskInputs
@@ -36,7 +36,7 @@ public class InputFilesStateChangeRuleTest extends Specification {
         def task = Stub(TaskInternal) {
             getInputs() >> taskInputs
         }
-        def snapshotter = Stub(FileSnapshotter) {
+        def snapshotter = Stub(FileCollectionSnapshotter) {
             snapshot(_) >> inputSnapshot
         }
 

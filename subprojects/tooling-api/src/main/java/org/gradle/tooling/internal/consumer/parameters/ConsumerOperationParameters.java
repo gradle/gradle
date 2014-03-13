@@ -30,66 +30,115 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-// TODO:ADAM - Need to make an immutable copy before passing to connection
 public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
 
-    private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
+        private ConnectionParameters parameters;
+        private OutputStream stdout;
+        private OutputStream stderr;
+        private InputStream stdin;
+        private File javaHome;
+        private List<String> jvmArguments;
+        private List<String> arguments;
+        private List<String> tasks;
+
+        private Builder() {
+        }
+
+        public Builder setParameters(ConnectionParameters parameters) {
+            this.parameters = parameters;
+            return this;
+        }
+
+        public Builder setStdout(OutputStream stdout) {
+            this.stdout = stdout;
+            return this;
+        }
+
+        public Builder setStderr(OutputStream stderr) {
+            this.stderr = stderr;
+            return this;
+        }
+
+        public Builder setStdin(InputStream stdin) {
+            this.stdin = stdin;
+            return this;
+        }
+
+        public Builder setJavaHome(File javaHome) {
+            validateJavaHome(javaHome);
+            this.javaHome = javaHome;
+            return this;
+        }
+
+        public Builder setJvmArguments(String... jvmArguments) {
+            this.jvmArguments = rationalizeInput(jvmArguments);
+            return this;
+        }
+
+        public Builder setArguments(String [] arguments) {
+            this.arguments = rationalizeInput(arguments);
+            return this;
+        }
+
+        public Builder setTasks(List<String> tasks) {
+            this.tasks = tasks;
+            return this;
+        }
+
+        public void addProgressListener(ProgressListener listener) {
+            progressListener.add(listener);
+        }
+
+        public ConsumerOperationParameters build() {
+            return new ConsumerOperationParameters(parameters, stdout, stderr, stdin,
+                    javaHome, jvmArguments, arguments, tasks, progressListener);
+        }
+    }
+
+    private final ProgressListenerAdapter progressListener;
     private final ConnectionParameters parameters;
     private final long startTime = System.currentTimeMillis();
 
-    private OutputStream stdout;
-    private OutputStream stderr;
-    private InputStream stdin;
+    private final OutputStream stdout;
+    private final OutputStream stderr;
+    private final InputStream stdin;
 
-    private File javaHome;
-    private List<String> jvmArguments;
-    private List<String> arguments;
-    private List<String> tasks;
+    private final File javaHome;
+    private final List<String> jvmArguments;
+    private final List<String> arguments;
+    private final List<String> tasks;
 
-    public ConsumerOperationParameters(ConnectionParameters parameters) {
+    private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, InputStream stdin,
+                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks,
+                                        ProgressListenerAdapter listener) {
         this.parameters = parameters;
+        this.stdout = stdout;
+        this.stderr = stderr;
+        this.stdin = stdin;
+        this.javaHome = javaHome;
+        this.jvmArguments = jvmArguments;
+        this.arguments = arguments;
+        this.tasks = tasks;
+        this.progressListener = listener;
     }
 
-    public void setArguments(String[] arguments) {
-        this.arguments = rationalizeInput(arguments);
-    }
-
-    private List<String> rationalizeInput(String[] arguments) {
+    private static List<String> rationalizeInput(String[] arguments) {
         return arguments != null && arguments.length > 0 ? Arrays.asList(arguments) : null;
     }
 
-    public void setStandardOutput(OutputStream outputStream) {
-        stdout = outputStream;
-    }
-
-    public void setStandardError(OutputStream outputStream) {
-        stderr = outputStream;
-    }
-
-    public void setStandardInput(InputStream inputStream) {
-        stdin = inputStream;
-    }
-
-    public void addProgressListener(ProgressListener listener) {
-        progressListener.add(listener);
-    }
-
-    public void setJavaHome(File javaHome) {
-        validateJavaHome(javaHome);
-        this.javaHome = javaHome;
-    }
-
-    private void validateJavaHome(File javaHome) {
+    private static void validateJavaHome(File javaHome) {
         if (javaHome == null) {
             return;
         }
         if (!javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome is not a valid folder. You supplied: " + javaHome);
         }
-    }
-
-    public void setJvmArguments(String... jvmArguments) {
-        this.jvmArguments = rationalizeInput(jvmArguments);
     }
 
     public long getStartTime() {
@@ -154,9 +203,5 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public List<String> getTasks() {
         return tasks;
-    }
-
-    public void setTasks(List<String> tasks) {
-        this.tasks = tasks;
     }
 }

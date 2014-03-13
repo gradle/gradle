@@ -23,27 +23,30 @@ import org.gradle.messaging.serialize.Serializer;
 import java.util.HashMap;
 import java.util.Map;
 
-class OutputFilesSnapshotSerializer implements Serializer<FileCollectionSnapshot> {
+class OutputFilesSnapshotSerializer implements Serializer<OutputFilesCollectionSnapshotter.OutputFilesSnapshot> {
+    private final Serializer<FileCollectionSnapshot> serializer;
 
-    public FileCollectionSnapshot read(Decoder decoder) throws Exception {
+    public OutputFilesSnapshotSerializer(Serializer<FileCollectionSnapshot> serializer) {
+        this.serializer = serializer;
+    }
+
+    public OutputFilesCollectionSnapshotter.OutputFilesSnapshot read(Decoder decoder) throws Exception {
         Map<String, Long> rootFileIds = new HashMap<String, Long>();
-        int rootFileIdsCount = decoder.readInt();
+        int rootFileIdsCount = decoder.readSmallInt();
         for (int i = 0; i < rootFileIdsCount; i++) {
             String key = decoder.readString();
             boolean notNull = decoder.readBoolean();
             Long value = notNull? decoder.readLong() : null;
             rootFileIds.put(key, value);
         }
-        FileSnapshotSerializer serializer = new FileSnapshotSerializer();
         FileCollectionSnapshot snapshot = serializer.read(decoder);
 
-        return new OutputFilesSnapshotter.OutputFilesSnapshot(rootFileIds, snapshot);
+        return new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(rootFileIds, snapshot);
     }
 
-    public void write(Encoder encoder, FileCollectionSnapshot currentValue) throws Exception {
-        OutputFilesSnapshotter.OutputFilesSnapshot value = (OutputFilesSnapshotter.OutputFilesSnapshot) currentValue;
+    public void write(Encoder encoder, OutputFilesCollectionSnapshotter.OutputFilesSnapshot value) throws Exception {
         int rootFileIds = value.rootFileIds.size();
-        encoder.writeInt(rootFileIds);
+        encoder.writeSmallInt(rootFileIds);
         for (String key : value.rootFileIds.keySet()) {
             Long id = value.rootFileIds.get(key);
             encoder.writeString(key);
@@ -55,7 +58,6 @@ class OutputFilesSnapshotSerializer implements Serializer<FileCollectionSnapshot
             }
         }
 
-        FileSnapshotSerializer serializer = new FileSnapshotSerializer();
         serializer.write(encoder, value.filesSnapshot);
     }
 }

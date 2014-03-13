@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app;
 
+import com.google.common.base.Joiner;
 import org.gradle.test.fixtures.file.TestFile;
 
 public class SourceFile {
@@ -43,10 +44,18 @@ public class SourceFile {
 
     public TestFile writeToDir(TestFile base) {
         TestFile file = base.file(path, name);
+        writeToFile(file);
+        return file;
+    }
+
+    public void writeToFile(TestFile file) {
         if (file.exists()) {
             file.write("");
         }
         file.write(content);
-        return file;
+    }
+
+    public String withPath(String basePath) {
+        return Joiner.on('/').join(basePath, path, name);
     }
 }

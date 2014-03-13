@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes
 
 import org.gradle.api.AntBuilder
+import org.gradle.api.RecordingAntBuildListener
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.*
 import org.gradle.api.internal.artifacts.DependencyManagementServices
@@ -24,8 +25,8 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.*
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
 import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.DefaultAntBuilderFactory
@@ -45,10 +46,11 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
+import org.junit.Rule
 import spock.lang.Specification
 
 class ProjectScopeServicesTest extends Specification {
@@ -61,12 +63,19 @@ class ProjectScopeServicesTest extends Specification {
     ServiceRegistry parent = Stub()
     ProjectScopeServices registry
     PluginRegistry pluginRegistry = Mock()
+    def classLoaderScope = Mock(ClassLoaderScope)
     DependencyResolutionServices dependencyResolutionServices = Stub()
+
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     def setup() {
         project.gradle >> gradle
-        project.projectDir >> new File("project-dir").absoluteFile
+        project.projectDir >> testDirectoryProvider.file("project-dir").createDir().absoluteFile
         project.buildScriptSource >> Stub(ScriptSource)
+        project.getClassLoaderScope() >> classLoaderScope
+        project.getClassLoaderScope().createChild() >> classLoaderScope
+        project.getClassLoaderScope().lock() >> classLoaderScope
         parent.get(ITaskFactory) >> taskFactory
         parent.get(DependencyFactory) >> dependencyFactory
         parent.get(PluginRegistry) >> pluginRegistry
@@ -75,7 +84,6 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
-        parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry)
         registry = new ProjectScopeServices(parent, project)
     }
 
@@ -107,9 +115,7 @@ class ProjectScopeServicesTest extends Specification {
     }
 
     def "provides a PluginContainer"() {
-        expectScriptClassLoaderProviderCreated()
-
-        1 * pluginRegistry.createChild(!null, _ as DependencyInjectingInstantiator) >> Stub(PluginRegistry)
+        1 * pluginRegistry.createChild(classLoaderScope, _ as DependencyInjectingInstantiator) >> Stub(PluginRegistry)
 
         expect:
         provides(PluginContainer, DefaultPluginContainer)
@@ -142,12 +148,11 @@ class ProjectScopeServicesTest extends Specification {
         registry.getFactory(AntBuilder).is registry.getFactory(AntBuilder)
     }
 
-    def "provides a ScriptHandler and ScriptClassLoaderProvider"() {
+    def "provides a ScriptHandler"() {
         expectScriptClassLoaderProviderCreated()
 
         expect:
         provides(ScriptHandler, DefaultScriptHandler)
-        registry.get(ScriptClassLoaderProvider).is registry.get(ScriptHandler)
     }
 
     def "provides a FileResolver"() {
@@ -161,7 +166,7 @@ class ProjectScopeServicesTest extends Specification {
         expect:
         provides(FileOperations, DefaultFileOperations)
     }
-    
+
     def "provides a TemporaryFileProvider"() {
         expect:
         provides(TemporaryFileProvider, DefaultTemporaryFileProvider)
@@ -182,6 +187,22 @@ class ProjectScopeServicesTest extends Specification {
         expect:
         registry.get(LoggingManager).is loggingManager
         registry.get(LoggingManager).is registry.get(LoggingManager)
+    }
+
+    def "ant builder is closed when registry is closed"() {
+        given:
+        def antBuilder = registry.getFactory(AntBuilder).create()
+        def listener = new RecordingAntBuildListener()
+        antBuilder.project.addBuildListener(listener)
+
+        expect:
+        listener.buildFinished.empty
+
+        when:
+        registry.close()
+
+        then:
+        !listener.buildFinished.empty
     }
 
     void provides(Class<?> contractType, Class<?> implementationType) {

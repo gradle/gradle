@@ -17,9 +17,10 @@
 package org.gradle.api.internal.artifacts.repositories.legacy
 
 import org.apache.ivy.core.module.descriptor.Artifact
-import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.plugins.repository.Resource
 import org.apache.ivy.plugins.repository.ResourceDownloader
+import org.gradle.api.artifacts.ArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.internal.filestore.FileStore
@@ -29,10 +30,10 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DownloadingRepositoryCacheManagerTest extends Specification {
-    FileStore<ArtifactRevisionId> fileStore = Mock()
+    FileStore<ArtifactIdentifier> fileStore = Mock()
     CacheLockingManager lockingManager = Mock()
     TemporaryFileProvider tmpFileProvider = Mock()
-    ArtifactRevisionId artifactId = Mock()
+    ArtifactIdentifier artifactIdentifier = new DefaultArtifactIdentifier("group", "module", "version", "name", "type", "ext", "classifier")
     Artifact artifact = Mock()
     ResourceDownloader resourceDownloader = Mock()
     Resource resource = Mock();
@@ -47,19 +48,18 @@ class DownloadingRepositoryCacheManagerTest extends Specification {
         def downloadFile = temporaryFolder.createFile("download")
         def storeFile = temporaryFolder.createFile("store")
 
-        _ * artifact.id >> artifactId
         _ * fileStoreEntry.file >> storeFile;
         _ * tmpFileProvider._ >> downloadFile
 
         when:
-        downloadingRepositoryCacheManager.downloadAndCacheArtifactFile(artifact, resourceDownloader, resource)
+        downloadingRepositoryCacheManager.downloadAndCacheArtifactFile(artifactIdentifier, artifact, resourceDownloader, resource)
 
         then:
         1 * lockingManager.useCache(_, _) >> {name, action ->
             return action.create()
         }
         1 * resourceDownloader.download(artifact, resource, downloadFile)
-        1 * fileStore.move(artifactId, downloadFile) >> {key, action ->
+        1 * fileStore.move(artifactIdentifier, downloadFile) >> {key, action ->
             return fileStoreEntry
         }
     }

@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
+import org.gradle.nativebinaries.test.cunit.CUnitTestResults
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -44,6 +46,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     @Rule public final Sample visualStudio = new Sample(temporaryFolder, 'native-binaries/visual-studio')
     @Rule public final Sample prebuilt = new Sample(temporaryFolder, 'native-binaries/prebuilt')
     @Rule public final Sample idl = new Sample(temporaryFolder, 'native-binaries/idl')
+    @Rule public final Sample cunit = new Sample(temporaryFolder, 'native-binaries/cunit')
 
     def "assembler"() {
         given:
@@ -99,7 +102,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         succeeds "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileMainExecutableMainObjectiveC", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainObjc", ":linkMainExecutable", ":mainExecutable"
 
         and:
         executable("native-binaries/objective-c/build/binaries/mainExecutable/main").exec().out == "Hello world!\n"
@@ -114,7 +117,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         succeeds "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileMainExecutableMainObjectiveCpp", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainObjcpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
         executable("native-binaries/objective-cpp/build/binaries/mainExecutable/main").exec().out == "Hello world!\n"
@@ -166,8 +169,9 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         staticLibrary("native-binaries/cpp-lib/build/binaries/mainStaticLibrary/main").assertExists()
     }
 
+
     @RequiresInstalledToolChain(VisualCpp)
-    def "windows resources"() {
+    def "win rc"() {
         given:
         sample windowsResources
 
@@ -175,7 +179,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         run "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":resourceCompileHelloSharedLibraryHelloRc",
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":compileHelloSharedLibraryHelloRc",
                               ":linkHelloSharedLibrary", ":helloSharedLibrary",
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
@@ -184,10 +188,10 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
 
         when:
         executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
-        run "helloResourcesSharedLibrary"
+        run "helloResSharedLibrary"
 
         then:
-        file("native-binaries/windows-resources/build/binaries/helloResourcesSharedLibrary/helloResources.dll").assertExists()
+        file("native-binaries/windows-resources/build/binaries/helloResSharedLibrary/helloRes.dll").assertExists()
     }
 
     def "custom layout"() {
@@ -353,4 +357,53 @@ Util build type: RELEASE
         and:
         installation("native-binaries/idl/build/install/mainExecutable").exec().out == "Hello from generated source!!\n"
     }
+
+    def "cunit"() {
+        given:
+        // CUnit prebuilt library only works for VS2010 on windows
+        if (OperatingSystem.current().windows && !isVisualCpp2010()) {
+            return
+        }
+
+        when:
+        sample cunit
+        succeeds "runPassing"
+
+        then:
+        executedAndNotSkipped ":operatorsTestCUnitLauncher",
+                              ":compilePassingOperatorsTestCUnitExeOperatorsTestCunit", ":compilePassingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
+                              ":linkPassingOperatorsTestCUnitExe", ":passingOperatorsTestCUnitExe",
+                              ":installPassingOperatorsTestCUnitExe", ":runPassingOperatorsTestCUnitExe"
+
+        and:
+        def passingResults = new CUnitTestResults(file("native-binaries/cunit/build/test-results/operatorsTestCUnitExe/passing/CUnitAutomated-Results.xml"))
+        passingResults.suiteNames == ['operator tests']
+        passingResults.suites['operator tests'].passingTests == ['test_plus', 'test_minus']
+        passingResults.suites['operator tests'].failingTests == []
+        passingResults.checkTestCases(2, 2, 0)
+        passingResults.checkAssertions(6, 6, 0)
+
+        when:
+        sample cunit
+        fails "runFailing"
+
+        then:
+        skipped ":operatorsTestCUnitLauncher"
+        executedAndNotSkipped ":compileFailingOperatorsTestCUnitExeOperatorsTestCunit", ":compileFailingOperatorsTestCUnitExeOperatorsTestCunitLauncher",
+                              ":linkFailingOperatorsTestCUnitExe", ":failingOperatorsTestCUnitExe",
+                              ":installFailingOperatorsTestCUnitExe", ":runFailingOperatorsTestCUnitExe"
+
+        and:
+        def failingResults = new CUnitTestResults(file("native-binaries/cunit/build/test-results/operatorsTestCUnitExe/failing/CUnitAutomated-Results.xml"))
+        failingResults.suiteNames == ['operator tests']
+        failingResults.suites['operator tests'].passingTests == ['test_minus']
+        failingResults.suites['operator tests'].failingTests == ['test_plus']
+        failingResults.checkTestCases(2, 1, 1)
+        failingResults.checkAssertions(6, 4, 2)
+    }
+
+    private static boolean isVisualCpp2010() {
+        return (toolChain.visualCpp && (toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "10")
+    }
+
 }

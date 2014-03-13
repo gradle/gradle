@@ -20,7 +20,7 @@ import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
-import org.gradle.plugins.ide.internal.resolver.model.IdeRepoFileDependency
+import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency
 
 class ClasspathFactory {
 
@@ -50,8 +50,8 @@ class ClasspathFactory {
     private final ClasspathEntryBuilder librariesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
             dependenciesExtractor.extractRepoFileDependencies(
-                    classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
-            .each { IdeRepoFileDependency it ->
+                    classpath.project.dependencies, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
+            .each { IdeExtendedRepoFileDependency it ->
                 entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath, it.id)
             }
 

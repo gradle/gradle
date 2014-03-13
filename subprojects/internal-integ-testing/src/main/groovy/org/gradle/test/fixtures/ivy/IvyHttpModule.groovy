@@ -16,19 +16,34 @@
 
 package org.gradle.test.fixtures.ivy
 
+import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.HttpArtifact
 import org.gradle.test.fixtures.server.http.HttpServer
 
-class IvyHttpModule implements IvyModule {
+class IvyHttpModule implements IvyModule, HttpModule {
+    public final IvyHttpRepository repository
     private final IvyFileModule backingModule
     private final HttpServer server
     private final String prefix
 
-    IvyHttpModule(HttpServer server, String prefix, IvyFileModule backingModule) {
+    IvyHttpModule(IvyHttpRepository repository, HttpServer server, String prefix, IvyFileModule backingModule) {
+        this.repository = repository
         this.prefix = prefix
         this.server = server
         this.backingModule = backingModule
+    }
+
+    String getOrganisation() {
+        return backingModule.organisation
+    }
+
+    String getModule() {
+        return backingModule.module
+    }
+
+    String getRevision() {
+        return backingModule.revision
     }
 
     IvyDescriptor getParsedIvy() {
@@ -72,6 +87,11 @@ class IvyHttpModule implements IvyModule {
 
     IvyHttpModule extendsFrom(Map<String, ?> attributes) {
         backingModule.extendsFrom(attributes)
+        return this
+    }
+
+    IvyHttpModule configuration(Map<String, ?> options = [:], String name) {
+        backingModule.configuration(options, name)
         return this
     }
 

@@ -23,14 +23,11 @@ import org.gradle.nativebinaries.*;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
     private final FileResolver fileResolver;
-    private final VisualStudioProjectResolver projectResolver;
     private final VisualStudioProjectMapper projectMapper;
 
-    public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver,
-                                       VisualStudioProjectMapper projectMapper, Instantiator instantiator) {
+    public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectMapper projectMapper, Instantiator instantiator) {
         super(DefaultVisualStudioProject.class, instantiator);
         this.fileResolver = fileResolver;
-        this.projectResolver = projectResolver;
         this.projectMapper = projectMapper;
     }
 
@@ -39,23 +36,24 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         return getByName(projectName).getConfiguration(nativeBinary);
     }
 
-    public void addProjectConfiguration(ProjectNativeBinary nativeBinary) {
+    public VisualStudioProjectConfiguration addProjectConfiguration(ProjectNativeBinary nativeBinary) {
         VisualStudioProjectMapper.ProjectConfigurationNames names = projectMapper.mapToConfiguration(nativeBinary);
-        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary, names.project);
+        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getComponent(), names.project);
         VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(nativeBinary, project, names.configuration, names.platform);
         project.addConfiguration(nativeBinary, configuration);
+        return configuration;
     }
 
     private VisualStudioProjectConfiguration createVisualStudioProjectConfiguration(ProjectNativeBinary nativeBinary, DefaultVisualStudioProject project, String configuration, String platform) {
-        return getInstantiator().newInstance(
-                VisualStudioProjectConfiguration.class, project, configuration, platform, nativeBinary, configurationType(nativeBinary));
+        Class<? extends VisualStudioProjectConfiguration> type =
+                nativeBinary instanceof ExecutableBinary ? ExecutableVisualStudioProjectConfiguration.class : VisualStudioProjectConfiguration.class;
+        return getInstantiator().newInstance(type, project, configuration, platform, nativeBinary);
     }
 
-    private DefaultVisualStudioProject getOrCreateProject(ProjectNativeBinary nativeBinary, String projectName) {
+    private DefaultVisualStudioProject getOrCreateProject(ProjectNativeComponent nativeComponent, String projectName) {
         DefaultVisualStudioProject vsProject = findByName(projectName);
         if (vsProject == null) {
-            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, projectName, nativeBinary.getComponent(), fileResolver, projectResolver, getInstantiator());
-            vsProject.source(nativeBinary.getSource());
+            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, projectName, nativeComponent, fileResolver, getInstantiator());
             add(vsProject);
         }
         return vsProject;
@@ -64,11 +62,4 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     private String projectName(ProjectNativeBinary nativeBinary) {
         return projectMapper.mapToConfiguration(nativeBinary).project;
     }
-
-    private static String configurationType(NativeBinary nativeBinary) {
-        return nativeBinary instanceof StaticLibraryBinary ? "StaticLibrary"
-                : nativeBinary instanceof SharedLibraryBinary ? "DynamicLibrary"
-                : "Application";
-    }
 }
-

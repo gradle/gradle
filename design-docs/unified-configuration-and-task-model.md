@@ -70,6 +70,7 @@ There are a number of other places where the plugins use `container.all { }` to 
 These should be refactored to use model rules instead. These will probably require some DSL and rules support.
 
 - Remove all usages of `ModelRegistry` outside the rules infrastructure.
+- Document the model rule DSL.
 
 ### Open issues
 
@@ -131,6 +132,12 @@ Similarly, this work should consider how the existing task DSL can be used to ac
 
 TBD
 
+## Internal properties and methods are not visible from the model DSL
+
+The model DSL should expose only public methods and properties defined by the public API. All other methods and properties should be hidden.
+
+- Reasonable error message when DSL uses unknown property, eg show matching candidates, inform user that method/property is internal.
+
 ## Plugin author uses model rules to define tasks after plugin model has been configured
 
 A common problem when authoring a plugin is how to handle configuration that happens after the plugin is applied.
@@ -139,7 +146,7 @@ This story exposes model rules as a public (but very much experimental) feature 
 story is mostly about exposing and documenting the features that already exist, possibly along with some sugar to help solve this very common use case.
 
 - Provide a mechanism for the plugin to register a model object and some logic which later receives the immutable model object and defines some tasks from this object.
-- Add documentation and samples.
+- Add documentation for the model rules API and samples.
 - Add some mechanism to expose the model object also as an extension, to provide the plugin with a migration path to the new DSL.
     - Generate a warning when the build script author uses the extension DSL to configure the model.
     - Generate a warning when the extension DSL is used after the model object has been closed.
@@ -257,7 +264,7 @@ or the associated generation tasks.
 
 Replace usages of `TaskContainerInternal.addPlaceholderAction()`
 
-## User discovers which model elements are available
+## User discovers available model elements
 
 - Add some command-line and HTML reporting tasks that can present the model, or parts of the model, to the user.
 - Include the model DSL in the DSL reference guide.
@@ -269,9 +276,17 @@ Address some of the current problems with the publishing plugins:
 - Almost always need to determine the project version before closing the publications. This may happen in various places.
 - Warn when maven repositories are defined but no maven publications are defined, and vice versa. Same for Ivy.
 - Don't allow the identifier of a publication to be changed after the identity has been used:
-    - to generate a descriptor for a publication that depends on it
-    - at resolve time.
+    - to generate a descriptor for a publication that depends on it.
+    - used at resolve time.
+    - exposed to tooling API client.
+- Don't allow additional publications to be defined after the set of publication identities have been used (as per previous item).
 - Validate publications once they have been configured.
+- Use model rules to register outgoing publications to `ProjectPublicationRegistry`.
+    - `BasePlugin`
+    - `MavenPlugin`
+    - `PublishingPlugin`
+- Change `ProjectDependencyPublicationResolver` to use `ProjectPublicationRegistry` and remove explicit call to project `evaluate()`.
+- Change `ProjectDependencyArtifactIdExtractorHack` to use `ProjectPublicationRegistry`.
 
 Remove support for `@DeferredConfigurable` once this is complete.
 

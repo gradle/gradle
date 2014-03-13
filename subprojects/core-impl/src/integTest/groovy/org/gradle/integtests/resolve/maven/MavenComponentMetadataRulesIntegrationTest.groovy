@@ -15,47 +15,28 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.resolve.ComponentMetadataRulesIntegrationTest
+import org.gradle.test.fixtures.maven.MavenHttpRepository
 
-class MavenComponentMetadataRulesIntegrationTest extends AbstractDependencyResolutionTest {
-    def "rules are provided with correct metadata"() {
-        given:
-        mavenRepo().module('group1', 'projectA', '1.0').publish()
-        mavenRepo().module('group2', 'projectB', '2.0-SNAPSHOT').publish()
+class MavenComponentMetadataRulesIntegrationTest extends ComponentMetadataRulesIntegrationTest {
+    @Override
+    MavenHttpRepository getRepo() {
+        mavenHttpRepo
+    }
 
-        and:
-        buildFile << """
-configurations { compile }
-repositories { maven { url "${mavenRepo().uri}" } }
-def allDetails = []
-dependencies {
-    compile 'group1:projectA:1.0'
-    compile 'group2:projectB:2.0-SNAPSHOT'
-    components {
-        eachComponent { allDetails << it }
+    @Override
+    String getRepoDeclaration() {
+"""
+repositories {
+    maven {
+        url "$repo.uri"
     }
 }
-
-task verify << {
-    configurations.compile.resolve()
-
-    def projectA = allDetails.find { it.id.name == 'projectA' }
-    assert projectA != null
-    assert projectA.id.group == 'group1'
-    assert projectA.id.version == '1.0'
-    assert projectA.status == 'release'
-    assert projectA.statusScheme == ['integration', 'milestone', 'release']
-
-    def projectB = allDetails.find { it.id.name == 'projectB' }
-    assert projectB != null
-    assert projectB.id.group == 'group2'
-    assert projectB.id.version == '2.0-SNAPSHOT'
-    assert projectB.status == 'integration'
-    assert projectB.statusScheme == ['integration', 'milestone', 'release']
-}
 """
+    }
 
-        expect:
-        succeeds 'verify'
+    @Override
+    String getDefaultStatus() {
+        "release"
     }
 }

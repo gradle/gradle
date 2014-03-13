@@ -21,6 +21,7 @@ import java.io.File;
 
 public class SimpleStaleClassCleaner extends StaleClassCleaner {
     private final TaskOutputsInternal taskOutputs;
+    private boolean didWork;
 
     public SimpleStaleClassCleaner(TaskOutputsInternal taskOutputs) {
         this.taskOutputs = taskOutputs;
@@ -31,8 +32,12 @@ public class SimpleStaleClassCleaner extends StaleClassCleaner {
         String prefix = getDestinationDir().getAbsolutePath() + File.separator;
         for (File f : taskOutputs.getPreviousFiles()) {
             if (f.getAbsolutePath().startsWith(prefix)) {
-                f.delete();
+                didWork |= f.delete();
             }
         }
+    }
+
+    public boolean getDidWork() {
+        return didWork;
     }
 }

@@ -111,4 +111,7 @@
     <plugin id="visual-studio" description="Visual Studio Plugin">
         <extends targetClass="org.gradle.api.Project" id="visualStudio" extensionClass="org.gradle.ide.visualstudio.VisualStudioExtension"/>
     </plugin>
+    <plugin id="cunit" description="CUnit Test Plugin">
+        <extends targetClass="org.gradle.api.Project" id="testSuites" extensionClass="org.gradle.nativebinaries.test.TestSuiteContainer"/>
+    </plugin>
 </plugins>

@@ -67,15 +67,15 @@ public abstract class AstUtils {
         declaringClass.getDeclaredMethods(methodNode.getName()).clear();
     }
 
-    public static void filterAndTransformStatements(SourceUnit source, FilteredTransformer<? extends Statement, ? super Statement> transformer) {
+    public static void filterAndTransformStatements(SourceUnit source, StatementTransformer transformer) {
         ListIterator<Statement> statementIterator = source.getAST().getStatementBlock().getStatements().listIterator();
         while (statementIterator.hasNext()) {
-            Statement statement = statementIterator.next();
-            if (transformer.getSpec().isSatisfiedBy(statement)) {
-                Statement transformed = transformer.getTransformer().transform(statement);
-                statementIterator.set(transformed);
-            } else {
+            Statement originalStatement = statementIterator.next();
+            Statement transformedStatement = transformer.transform(source, originalStatement);
+            if (transformedStatement == null) {
                 statementIterator.remove();
+            } else if (transformedStatement != originalStatement) {
+                statementIterator.set(transformedStatement);
             }
         }
     }

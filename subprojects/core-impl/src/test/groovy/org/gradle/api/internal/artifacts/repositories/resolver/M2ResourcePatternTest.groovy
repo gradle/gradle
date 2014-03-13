@@ -18,34 +18,34 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.apache.ivy.core.module.descriptor.DefaultArtifact
-import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.ArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import spock.lang.Specification
 
 class M2ResourcePatternTest extends Specification {
     def "substitutes artifact attributes into pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
-        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
-        def artifact3 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance(null, "projectA", "1.2"), new Date())
+        final String group = "group"
+        final String name = "projectA"
+        final String version = "1.2"
+        def artifact1 = artifactId(group, name, version)
+        def artifact2 = artifactId("org.group", "projectA", "1.2")
 
         expect:
         pattern.toPath(artifact1) == 'prefix/group/projectA/1.2/ivys/1.2/ivy.xml'
         pattern.toPath(artifact2) == 'prefix/org/group/projectA/1.2/ivys/1.2/ivy.xml'
-        pattern.toPath(artifact3) == 'prefix/[organisation]/projectA/1.2/ivys/1.2/ivy.xml'
     }
 
     def "substitutes module attributes into pattern to determine module pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
-        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
-        def artifact3 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance(null, "projectA", "1.2"), new Date())
+        def artifact1 = artifactId("group", "projectA", "1.2")
+        def artifact2 = artifactId("org.group", "projectA", "1.2")
 
         expect:
         pattern.toVersionListPattern(artifact1) == 'prefix/group/projectA/[revision]/ivys/[revision]/ivy.xml'
         pattern.toVersionListPattern(artifact2) == 'prefix/org/group/projectA/[revision]/ivys/[revision]/ivy.xml'
-        pattern.toVersionListPattern(artifact3) == 'prefix/[organisation]/projectA/[revision]/ivys/[revision]/ivy.xml'
     }
 
     def "can build module path"() {
@@ -60,21 +60,12 @@ class M2ResourcePatternTest extends Specification {
 
     def "can build module version path"() {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
-        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
+        def artifact1 = artifactId("group", "projectA", "1.2")
+        def artifact2 = artifactId("org.group", "projectA", "1.2")
 
         expect:
         pattern.toModuleVersionPath(artifact1) == 'prefix/group/projectA/1.2'
         pattern.toModuleVersionPath(artifact2) == 'prefix/org/group/projectA/1.2'
-    }
-
-    def "can substitute revision in filename by timestamped version when provided"() {
-        def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def artifact1 = new DefaultArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2-SNAPSHOT",  [timestamp: "1.2-20100101.120001-1"]), new Date(), "projectA", "ivy", "ivy")
-        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2-SNAPSHOT"), new Date())
-        expect:
-        pattern.toPath(artifact1) == 'prefix/group/projectA/1.2-SNAPSHOT/projectA-1.2-20100101.120001-1.ivy'
-        pattern.toPath(artifact2) == 'prefix/org/group/projectA/1.2-SNAPSHOT/ivy-1.2-SNAPSHOT.xml'
     }
 
     def "throws UnsupportedOperationException for non M2 compatible pattern"() {
@@ -85,5 +76,9 @@ class M2ResourcePatternTest extends Specification {
 
         then:
         thrown(UnsupportedOperationException)
+    }
+
+    private static ArtifactIdentifier artifactId(String group, String name, String version) {
+        return new DefaultArtifactIdentifier(DefaultModuleVersionIdentifier.newId(group, name, version), "ivy", "ivy", "xml", null)
     }
 }

@@ -21,18 +21,21 @@ import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.consumer.versioning.CustomModel
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ModelBuilderBackedConsumerConnectionTest extends Specification {
     final metaData = Stub(ConnectionMetaDataVersion1)
@@ -53,18 +56,18 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         details.supportsGradleProjectModel()
 
         and:
-        details.isModelSupported(HierarchicalEclipseProject)
-        details.isModelSupported(EclipseProject)
-        details.isModelSupported(IdeaProject)
-        details.isModelSupported(BasicIdeaProject)
-        details.isModelSupported(GradleProject)
-        details.isModelSupported(BuildEnvironment)
-        details.isModelSupported(ProjectOutcomes)
-        details.isModelSupported(Void)
-        details.isModelSupported(CustomModel)
+        details.maySupportModel(HierarchicalEclipseProject)
+        details.maySupportModel(EclipseProject)
+        details.maySupportModel(IdeaProject)
+        details.maySupportModel(BasicIdeaProject)
+        details.maySupportModel(GradleProject)
+        details.maySupportModel(BuildEnvironment)
+        details.maySupportModel(ProjectOutcomes)
+        details.maySupportModel(Void)
+        details.maySupportModel(CustomModel)
 
         and:
-        !details.isModelSupported(GradleBuild)
+        !details.maySupportModel(GradleBuild)
     }
 
     def "describes capabilities of a post 1.8-rc-1 provider"() {
@@ -77,16 +80,16 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         details.supportsGradleProjectModel()
 
         and:
-        details.isModelSupported(HierarchicalEclipseProject)
-        details.isModelSupported(EclipseProject)
-        details.isModelSupported(IdeaProject)
-        details.isModelSupported(BasicIdeaProject)
-        details.isModelSupported(GradleProject)
-        details.isModelSupported(BuildEnvironment)
-        details.isModelSupported(ProjectOutcomes)
-        details.isModelSupported(Void)
-        details.isModelSupported(CustomModel)
-        details.isModelSupported(GradleBuild)
+        details.maySupportModel(HierarchicalEclipseProject)
+        details.maySupportModel(EclipseProject)
+        details.maySupportModel(IdeaProject)
+        details.maySupportModel(BasicIdeaProject)
+        details.maySupportModel(GradleProject)
+        details.maySupportModel(BuildEnvironment)
+        details.maySupportModel(ProjectOutcomes)
+        details.maySupportModel(Void)
+        details.maySupportModel(CustomModel)
+        details.maySupportModel(GradleBuild)
     }
 
     def "maps model type to model identifier"() {
@@ -159,5 +162,25 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
     }
 
     interface TestModelBuilder extends ModelBuilder, ConnectionVersion4, ConfigurableConnection {
+    }
+
+    @Unroll('VersionDetails for #versionString support expected models')
+    def "VersionDetails supports expected models"() {
+        when:
+        VersionDetails version = ModelBuilderBackedConsumerConnection.getVersionDetails(versionString)
+        def gradleVersion = GradleVersion.version(versionString)
+
+        then:
+        version.maySupportModel(GradleBuild) == gradleVersion.compareTo(GradleVersion.version("1.8")) >= 0
+        version.maySupportModel(BuildInvocations) == gradleVersion.compareTo(GradleVersion.version("1.11")) > 0
+        version.supportsGradleProjectModel() == gradleVersion.compareTo(GradleVersion.version("1.6")) >= 0
+        version.maySupportModel(ModelBuilderBackedConsumerConnectionTest.CustomModel)
+
+        where:
+        versionString << ['1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12']
+    }
+
+    static class CustomModel {
+
     }
 }

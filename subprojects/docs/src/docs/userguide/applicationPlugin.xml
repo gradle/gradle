@@ -40,6 +40,15 @@
             <filename>build/install/<replaceable>projectName</replaceable></filename>. You can run <userinput>gradle distZip</userinput> to create a
             ZIP containing the distribution.
         </para>
+
+        <para>
+            If your Java application requires a specific set of JVM settings or system properties, you can configure the <literal>applicationDefaultJvmArgs</literal> property.
+            These JVM arguments are applied to the <literal>run</literal> task and also considered in the generated start scripts of your distribution.
+        </para>
+        <sample id="configureApplicationDefaultJvmArgs" dir="application" title="Configure default JVM settings">
+            <sourcefile file="build.gradle" snippet="application-defaultjvmargs"/>
+        </sample>
+
     </section>
 
     <section>
@@ -113,7 +122,7 @@
             <para>The application plugin adds some properties to the project, which you can use to configure its behaviour. See <apilink class="org.gradle.api.Project"/>.
             </para>
     </section>
-    
+
     <section id="application_distribution_resources">
             <title>Including other resources in the distribution</title>
             <para>

@@ -24,7 +24,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChanges;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
-import org.gradle.api.internal.changedetection.state.FileSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -38,12 +38,12 @@ import java.util.List;
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
 
     private final TaskHistoryRepository taskHistoryRepository;
-    private final FileSnapshotter outputFilesSnapshotter;
-    private final FileSnapshotter inputFilesSnapshotter;
+    private final FileCollectionSnapshotter outputFilesSnapshotter;
+    private final FileCollectionSnapshotter inputFilesSnapshotter;
     private final Instantiator instantiator;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
-                                              FileSnapshotter outputFilesSnapshotter, FileSnapshotter inputFilesSnapshotter) {
+                                              FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.outputFilesSnapshotter = outputFilesSnapshotter;

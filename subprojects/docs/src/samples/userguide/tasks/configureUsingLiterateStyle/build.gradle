@@ -1,4 +1,0 @@
-task(myCopy, type: Copy)
-    .from('resources')
-    .into('target')
-    .include('**/*.txt', '**/*.xml', '**/*.properties')

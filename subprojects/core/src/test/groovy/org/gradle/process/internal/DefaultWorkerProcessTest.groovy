@@ -82,7 +82,10 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
                 workerProcess.start()
                 fail()
             } catch (ExecException e) {
-                assertThat(e.message, equalTo(String.format("Timeout after waiting %.1f seconds for $execHandle (STARTED, running: true) to connect." as String, 1d)))
+                assertThat(e.message, equalTo(String.format("Unable to connect to the child process 'ExecHandle'.\n"
+                        + "It is likely that the child process have crashed - please find the stack trace in the build log.\n"
+                        + "This exception might occur when the build machine is extremely loaded.\n"
+                        + "The connection attempt hit a timeout after %.1f seconds (last known process state: STARTED, running: true)." as String, 1d)))
             }
         }
     }

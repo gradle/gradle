@@ -38,6 +38,7 @@ class FindBugsWorkerManager {
 
     private WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
         WorkerProcessBuilder builder = workerFactory.create();
+        builder.setBaseName("Gradle FindBugs Worker")
         builder.applicationClasspath(findBugsClasspath);
         builder.sharedPackages(Arrays.asList("edu.umd.cs.findbugs"));
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();

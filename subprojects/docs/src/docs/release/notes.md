@@ -1,374 +1,280 @@
-Gradle 1.11 primarily features improvements to the rapidly evolving native support. 
-The new Visual Studio integration means that it is now possible to easily generate Visual Studio configuration files that allow you to develop your Gradle based native project.
-The support for pre-built native dependencies is also a strong step forward and makes Gradle a compelling build tool choice for a new class of native code projects.
 
-As always there are bug fixes and internal performance and stability improvements, along with a mix of other new and improved features.
-Thanks to all who submitted contributions, bug reports and ideas for the release.
+Gradle 1.12 will be the last release before Gradle 2.0
 
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
 
-### Choose applicable platforms, build types and flavors for a native component (i)
+### CUnit integration (i)
 
-It is now possible to specify a global set of build types, platforms and flavors and then specifically choose which of
-these should apply for a particular component. This makes it easier to have a single plugin that adds support for a
-bunch of platforms, build types, and/or flavors, and have the build script choose which of these are appropriate.
+The new Gradle `cunit` plugin provides support for compiling and executing CUnit tests in your native-binary project.
 
-- `buildTypes` is now `model.buildTypes`
-- `targetPlatforms` is now `model.platforms`
-- `executable.flavors` or `library.flavors` is now `model.flavors`
+You simply need to include your CUnit test sources, and provide a hook for Gradle to register the suites and tests defined.
 
+    #include <CUnit/Basic.h>
+    #include "gradle_cunit_register.h"
+    #include "operator_tests.h"
 
-    model {
-        platforms {
-            x86 {
-                ... config
-            }
-        }
-        buildTypes {
-            debug
-        }
-        flavors {
-            custom
-        }
-        ... Many others, perhaps added by capability plugins
+    void gradle_cunit_register() {
+        CU_pSuite mySuite = CU_add_suite("operator tests", suite_init, suite_clean);
+        CU_add_test(mySuite, "test plus", test_plus);
+        CU_add_test(mySuite, "test minus", test_minus);
     }
 
-    executables {
-        main {
-            targetPlatforms "x86" // Only build for this platform
-            targetFlavors "foo", "bar" // Build these 2 flavors
-            // targetBuildTypes - without this, all build types are targeted.
-        }
-    }
+Gradle will then generate the required boiler-plate CUnit code, build a test executable, and run your tests.
 
-#### Current Limitations
+    > gradle -q runFailingOperatorsTest
 
-- The `component.target*` methods match on element _name_. It is not possible to supply an element instance at this time.
+    There were test failures:
+      1. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:6  - plus(0, -2) == -2
+      2. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:7  - plus(2, 2) == 4
 
-### Improved notation for declaring library dependencies when building native binaries (i)
+    BUILD FAILED
 
-When building native binaries, it is now possible to declare a dependency on a library using a dependency notation.
 
-    libraries {
-        hello
-    }
+See the [user guide chapter](docs/userguide/nativeBinaries.html#native_binaries:cunit) and the cunit sample (`samples/native-binaries/cunit`)
+in the distribution to learn more. Expect deeper integration with CUnit (and other native testing tools) in the future.
 
-    executables {
-        main
-    }
-    sources {
-        main {
-            cpp {
-                lib library: 'hello', linkage: 'static'
-            }
-            c {
-                lib project: ':another', library: 'hi'
+### Component metadata rules can control whether a component version is considered changing (i)
+
+Component metadata rules can now control whether a component version is considered changing, or in other words, whether the contents
+of one and the same component version may change over time. (A common example for a changing component version is a Maven snapshot dependency.)
+This makes it possible to implement custom strategies for deciding if a component version is changing. In the following example, every
+component version whose group is `my.company` and whose version number ends in `-dev` will be considered changing:
+
+    dependencies {
+        components {
+            eachComponent { ComponentMetadataDetails details ->
+                details.changing =
+                    details.id.group == "my.company" &&
+                        details.id.version.endsWith("-dev")
             }
         }
     }
 
-The `project`, `library` and `linkage` attributes can be specified. Only `library` is required and must be the name of a library
-in the specified project, or in the current project if the `project` attribute is omitted.
+This feature is especially useful when dealing with Ivy repositories, as it is a generalized form of Ivy's `changingPattern` concept.
 
-This notation based syntax provides a number of benefits over directly accessing the library when declaring the dependency requirement:
+### Tooling API exposes information on a project's publications
 
-- The library referenced does not have to be declared before the dependency declaration in the build script.
-- For libraries in another project, the depended-on project does not need to have been evaluated when the dependency declaration is added.
-- The linkage is clearly specified.
+Tooling API clients can now get basic information on a project's publications:
 
-### Declare header-only library dependencies in native binary projects (i)
-
-There are times when your source may require the headers of a library at compile time, but not require the library binary when linking.
-To support this use case, it is now possible to add a dependency on the 'api' linkage of a library. In this case, the headers
-of the library will be available when compiling, but no binary will be provided when linking.
-
-A dependency on the 'api' linkage can be specified by both the direct and the map-based syntax.
-
-    sources {
-        main {
-            cpp {
-                lib project: ':A', library: 'my-lib', linkage: 'api'
-                lib libraries.hello.api
-            }
-        }
+    def projectConnection = ...
+    def project = projectConnection.getModel(GradleProject)
+    for (publication in project.publications) {
+        println publication.id.group
+        println publication.id.name
+        println publication.id.version
     }
 
-### Include pre-built libraries in native binary projects (i)
+Both publications declared in the old (`artifacts` block, `Upload` task) and new (`publishing.publications` block) way are reflected in the result.
 
-It would be very unusual for a sophisticated software project not to make some use of 3rd party system libraries.
-In some cases these libraries are already available locally. This version of Gradle makes it possible to reference
-these 'pre-built' libraries such that they can be referenced as a dependency in the same way as libraries built by
-Gradle.
+### New API for artifact resolution (i)
 
-In order to reference pre-built libraries, they must be added to a local repository of type `PrebuiltLibraries`.
-For each library, the header directories to include can be defined, as well as the actual binary files for
-static and shared library linkages.
+Gradle 1.12 introduces a new, incubating API for resolving component artifacts. With this addition, Gradle now offers separate dedicated APIs for resolving
+components and artifacts. (Component resolution is mainly concerned with computing the dependency graph, whereas artifact resolution is
+mainly concerned with locating and downloading artifacts.) The entry points to the component and artifact resolution APIs are `configuration.incoming` and
+`dependencies.createArtifactResolutionQuery()`, respectively.
 
-    model {
-        repositories {
-            libs(PrebuiltLibraries) {
-                boost {
-                    headers.srcDir "libs/boost_1_55_0/boost"
-                }
-                util {
-                    headers.srcDir "libs/util/src/include"
-                    binaries.withType(StaticLibraryBinary) {
-                        staticLibraryFile = file("libs/util/bin/libutil.a")
-                    }
-                    binaries.withType(SharedLibraryBinary) {
-                        sharedLibraryFile = file("libs/util/bin/libutil.so")
-                    }
-                }
-            }
-        }
+Here is an example usage of the new API:
+
+```
+def query = dependencies.createArtifactResolutionQuery()
+    .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
+    .forArtifacts(JvmLibrary)
+
+def result = query.execute() // artifacts are downloaded at this point
+
+for (component in result.components) {
+    assert component instanceof JvmLibrary
+    println component.id
+    component.sourceArtifacts.each { println it.file }
+    component.javadocArtifacts.each { println it.file }
+}
+
+assert result.unresolvedComponents.isEmpty()
+```
+
+Artifact resolution can be limited to selected artifact types:
+
+```
+def query = dependencies.createArtifactResolutionQuery()
+    .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
+    .forArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
+
+def result = query.execute()
+
+for (component in result.components) {
+    assert !component.sourceArtifacts.isEmpty()
+    assert component.javadocArtifacts.isEmpty()
+}
+```
+
+Artifacts for many components can be resolved together:
+
+```
+def query = dependencies.createArtifactResolutionQuery()
+    .forComponents(setOfComponentIds)
+    .forArtifacts(JvmLibrary)
+```
+
+So far, only one component type (`JvmLibrary`) is available, but others will follow, also for platforms other than the JVM.
+
+### Easier to determine ignored tests in HTML test report
+
+The HTML test report now has a dedicated tab for ignored tests, at the overview and package level.
+This makes it much easier to see which tests were ignored at a glance.
+Thanks to [Paul Merlin](https://github.com/eskatos) for this improvement.
+
+### Support for building large zips
+
+It is now possible to build zips with the [Zip64 extension](http://en.wikipedia.org/wiki/Zip_\(file_format\)#ZIP64), enabling building large zip files.
+
+    task largeZip(type: Zip) {
+        from 'lotsOfLargeFiles'
+        zip64 = true
     }
 
-Future releases of Gradle will provide full-featured dependency resolution for third-party libraries, as well as
-providing more sophisticated support for system libraries (such as the Windows SDK).
-`PrebuiltLibraries` takes a step in that direction, and provides a tool that can be used for many use cases.
+The zip standard does not support containing more than 65535 files, containing any file greater than 4GB or being greater than 4GB compressed.
+If your zip file meets any of these criteria, then the zip must be built with the
+[`zip64` property](dsl/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:zip64) set to `true` (it is `false` by default).
+This flag also applies to all JARs, WARs, EARs and anything else that uses the Zip format.
 
-### Support for generated sources in native binary projects (i)
+However, not all Zip readers support the Zip64 extensions.
+Notably, the `ZipInputStream` JDK class does not support Zip64 for versions earlier than Java 7.
+This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
 
-Any `LanguageSourceSet` (e.g. `CSourceSet`, `CppSourceSet`) is now a `BuildableModelElement`, which means that a
-task can be supplied which will be executed before the sources are used. This makes it easy to include generated sources in your
-native binary project.
+Thanks to [Jason Gauci](https://github.com/MisterTea) for this improvement.
 
-A 'builder' task for a source set can be added using the `builtBy` method. All such tasks will be executed before the source set is
-used. The source set files and headers will still need to be explicitly configured, either as directory paths or by
-connecting task outputs.
+### Consumption of active POM profile information
 
-    sources {
-        main {
-            c {
-                builtBy tasks.generateCSources
-                source {
-                    srcDirs tasks.generateCSources.sourceDir
-                }
-                exportedHeaders {
-                    srcDirs tasks.generateCSources.headerDir
-                }
-            }
-        }
-    }
+Publishing artifacts to a Maven repository including their profile information for relying on properties, dependencies or dependency management defaults
+is not a recommended practice. Reality is that a significant number of published artifacts make use of this practice which leads to unresolvable transitive
+dependencies. Gradle is now able to consume this metadata for profiles that are marked as [active by default](https://maven.apache.org/pom.html#Activation).
+The following profile metadata is parsed and evaluated:
 
-As an added convenience, it is possible to specify that a source set is `generatedBy` a particular task. As well as linking the task
-as a 'builder' for the source set, Gradle will also inspect the generator task for `sourceDir` and `headerDir` output properties,
-which will then be automatically configured as source set inputs.
+* Properties elements
+* Dependency management elements
 
-Using this mechanism, the above example can be simplified to:
+### Customise Clang tool chain (i)
 
-    source {
-        main {
-            c {
-                generatedBy tasks.generateCSources
-            }
-        }
-    }
+TODO - You can now configure the Clang tool chain in the same way as the GCC tool chain, using the `cCompiler`, `cppCompiler` etc properties.
 
-See the `idl` sample in your Gradle distribution for a working example of generated sources for a native binary.
+### Updated Visual Studio project file generation (i)
 
-### Objective-C and Objective-C++ Support (i)
+A few minor tweaks to the VS project files generated by the 'visual-studio' plugin.
 
-With Gradle 1.11, it is now possible to include 'Objective-C' and 'Objective-C++' source files to create a native library or executable.
-Including Objective-C and Objective-C++ sources in your project is straightforward. Whereas C++ sources are contained in a 'cpp' source directory,
-Objective-C source files should be located in a 'objectiveC' directory and Objective-C++ source files in a 'objectiveCpp' directory.
-These directory locations are by convention, and can be updated in your build script.
+* Visual studio log files are generated into `.vs` instead of the project directory.
+* Project files are named by `ProjectNativeComponent.name` instead of `ProjectNativeComponent.baseName`.
+* Header files co-located with source files are now include in the generated project.
 
-Here's an example of how you can customize which source files and directories to include:
+## Promoted features
 
-    sources {
-        main {
-            // Configure an existing ObjectiveCSourceSet
-            objectiveC {
-                source {
-                    srcDirs "objectiveCFiles"
-                    include "**{@literal /}*.m"
-                }
-                exportedHeaders {
-                    srcDirs "includes"
-                }
-            }
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-            objectiveCpp {
-                source {
-                    srcDirs "src/shared/objectiveCpp"
-                    include "**{@literal /}*.mm"
-                }
-                exportedHeaders {
-                    srcDirs "src/main/include"
-                }
-            }
-        }
-    }
+The following are the features that have been promoted in this Gradle release.
 
-### Generate Visual Studio configuration for a native binary project (i)
-
-One of the great things about using Gradle for building Java projects is the ability to generate IDE configuration files: this
-release of Gradle brings a similar feature when you use Microsoft Visual Studio as your IDE. With this integration, you can
-use the best tool for the job: Gradle to build your binaries and Visual Studio to edit your code.
-
-Visual Studio integration is supplied by the `visual-studio` plugin. When this plugin is applied, for each component
-Gradle will create a task to produce a Visual Studio solution for a selected binary variant of that component.
-The generated solution will include a project file for the selected binary, as well as project files for each depended-on library.
-
-Similar to the Java IDE plugins, you can customize the generated Visual Studio configuration files with programmatic hooks.
-These hooks are applied to the `visualStudio` element in the model registry.
-For example, you can change the default locations of the generated files:
-
-    model {
-        visualStudio {
-            solutions.all { VisualStudioSolution solution ->
-                solutionFile.location = "vs/${solution.name}.sln"
-            }
-            projects.all { VisualStudioProject project ->
-                projectFile.location = "vs/${project.name}.vcxproj"
-                filtersFile.location = "vs/${project.name}.vcxproj.filters"
-            }
-        }
-    }
-
-Additionally, you can change the content of the generated files:
-
-    model {
-        visualStudio {
-            solutions.all { VisualStudioSolution solution ->
-                solutionFile.withText { StringBuilder text ->
-                    ... customise the solution content
-                }
-            }
-            projects.all { VisualStudioProject project ->
-                projectFile.withXml { XmlProvider xml ->
-                    xml.asNode()...
-                }
-            }
-        }
-    }
-
-
-While Visual Studio support is functional, there remain some limitations:
-
-- Macros defined by passing `/D` to compiler args are not included in your project configuration. Use `cppCompiler.define` instead.
-- Includes defined by passing `/I` to compiler args are not included in your project configuration. Use library dependencies instead.
-- External dependencies supplied via `sourceSet.dependency` are not yet handled.
-- The way a component graph is mapped to Visual Studio projects is overly complex, often resulting in several VS projects to cater for different binary variants.
-    - This will be improved in the next release of Gradle.
-
-Please try it out an let us know how it works for you.
-
-### Improved detection of Visual studio and Windows SDK installations
-
-- Uses registry to find installations.
-- Can build using Windows SDK 7.x without a Visual Studio installation.
-
-### Independent control of TestNG output directory
-
-It is now possible to specify the location that TestNG should write its output files to.
-In previous versions of Gradle, this location was inseparable from the location that Gradle writes its output files to.
-
-It can be set via the `TestNGOptions.outputDirectory` property, which can be set during the `useTestNG()` configuration closure…
-
-    test {
-      useTestNG {
-        outputDirectory = file("$buildDir/testngoutput")
-        useDefaultListeners()
-      }
-    }
-
-By default, the value for this new property will be the same as the value for the `destination` property of the test task's HTML report.
-
-If you are using the file outputs from TestNG listeners (i.e. you are calling `useDefaultListeners()` or registering a custom listener), 
-it is recommended that you explicitly set this new property to a value other than the default.
-The default value for this property will change in Gradle 2.0.
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 
+## Deprecations
+
+Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
+in the next major Gradle version (Gradle 2.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+
+The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
+
+### Deprecations in Tooling API communication
+
+* Using Tooling API to connect to provider using older distribution than Gradle 1.0-milestone-8 is now deprecated and scheduled for removal in version Gradle 2.0.
+* Using Tooling API client version older than 1.2 to connect to a provider from current distribution is now deprecated and scheduled for removal in version Gradle 2.0.
+
 ## Potential breaking changes
 
-### Change to '?' wildcard in file patterns
+### Incremental Scala compilation
 
-Previously, the '?' character would match zero or more characters. To better match the Ant behaviour, the '?' character now matches exactly one character.
+The version of 'zinc' tool that Gradle uses to perform incremental scala compilation has been upgraded to a newer version (0.3.0).
+This might be a breaking change for users who explicitly configured some low version of zinc in their build scripts (there should be very few such users, if any).
 
-### Changed DSL and model for native binary components
+### Changes to incubating native support
 
-Much of the model and DSL for defining native binary components has been changed. Most build scripts leveraging this functionality
-will need to be updated.
+* '-Xlinker' is no longer automatically added to linker args for GCC or Clang. If you want to pass an argument directly to 'ld' you need to add this escape yourself.
+* Tasks for windows resource compilation are now named 'compileXXXX' instead of 'resourceCompileXXX'.
 
-- Gradle no longer creates a binary variant for every available tool chain. Instead, the variants of a component are defined
-  by it's flavors, build types and target platforms. Gradle will attempt to locate a tool chain to build each possible variant.
-- The set of configured platforms can be defined separately from the target platforms for a component. The set of all platforms
-  is specified by the `platforms` container within the `model` block.
+### Change to treatment of poms with packaging 'pom'
 
-### Changes to native binary support
+If you have a dependency whose pom has packaging of 'pom', Gradle now expects that there will always be an associated jar artifact and will fail to resolve if there is not.
+In particular, this means that you can not have a dependency with a pom that only declares further dependencies and has no artifacts itself.
 
-- Moved definitions of `buildTypes`, `targetPlatforms` and `flavors` into model block (see above)
-- Classes moved from org.gradle.nativebinaries:
-    - ToolChain, ToolChainRegistry -> org.gradle.nativebinaries.toolchain
-    - Architecture, OperatingSystem, Platform, PlatformContainer -> org.gradle.nativebinaries.platform
-- Tasks are not created for empty source sets
-- Removed `Library.getHeaders()`: to manipulate headers modify the header exporting source set; to access headers use
-`NativeDependencySet.getIncludeRoots()`.
-- Renamed `NativeComponent` -> `ProjectNativeComponent`
-- Extracted methods relating to building a native binary out of `NativeBinary` into `ProjectNativeBinary`.
-- `NativeBinary.outputFile` has been replaced by `ExecutableBinary.executableFile`, `SharedLibraryBinary.sharedLibraryFile` and `StaticLibraryBinary.staticLibraryFile`.
+### Change to JUnit XML file for skipped tests
 
-### Removal of incubating 'cpp-exe' and  'cpp-lib' plugins
+The way that skipped/ignored tests are represented in the JUnit XML output file produced by the `Test` task.
+Gradle now produces the same output, with regard to skipped tests, as Apache Ant and Apache Maven.
+This format is accepted, and expected, by all major Continuous Integration servers.
 
-These incubating plugins have been removed in Gradle 1.11. Both plugins were very light additions to the `cpp` plugin which remains. 
+This change is described as follows:
 
-If you are using the `cpp-exe` or `cpp-lib`, you will need to now explicitly create your main executable or library respectively. 
+1. The `testsuite` element now contains a `skipped` attribute, indicating the number of skipped tests (may be 0)
+2. The element representing a test case is now always named `testcase` (previously it was named `ignored-testcase` if it was a skipped test)
+3. If a test case was skipped, a child `<skipped/>` element will be present
 
-### A requested dependency returns different types of selectors
+No changes are necessary to build scripts or Continuous Integration server configuration to accommodate this change.
 
-The method `DependencyResult.getRequested()` method was changed to return an implementation of type `ComponentSelector`. This change to the API has to be taken into account
-when writing a `Spec` for the `DependencyInsightReportTask`. Here's an example for such a use case:
+### Ordering of dependencies in imported Ant builds
 
-    task insight(type: DependencyInsightReportTask) {
-        setDependencySpec { it.requested instanceof ModuleComponentSelector && it.requested.module == 'leaf2' }
-    }
+The ordering of Ant target dependencies is now respected when possible.
+This may cause tasks of imported Ant builds to executed in a different order from this version of Gradle on.
 
-### Changes to resolution result root identifier
+Given…
 
-The root node identifier for a resolved project configuration was changed to return a `ProjectComponentIdentifier`. Before the change the method `ResolutionResult.getRoot().getId()`
-exclusively returned a `ModuleComponentIdentifier`.
+    <target name='a' depends='d,c,b'/>
 
-### Changes to container configuration DSL
+A shouldRunAfter [task ordering](userguide/more_about_tasks.html#sec:ordering_tasks) will be applied to the dependencies so that,
+`c.shouldRunAfter d` and `b.shouldRunAfter c`.
 
-In previous versions of Gradle, accessing a property on the [configuration container](dsl/org.gradle.api.Project.html#org.gradle.api.Project:configurations\(groovy.lang.Closure\)) would
-create a new configuration on demand if a configuration with the name of the property did not exist.
-In Gradle 1.11, this behavior only now occurs when inside the configurations script block…
+This is in alignment with Ant's ordering of target dependencies.
 
-    configurations.xyz // will not create configuration 'xyz'
-    
-    configurations {
-      xyz // will create configuration 'xyz'
-    }
+### Invalid large zip files now fail the build
 
-The previous behavior was surprising in certain circumstances and has been removed.
+If a zip file is built without the `zip64` flag (new in this release) set to true that surpasses the file size and count limits
+of the zip format, Gradle will now fail the build.
+Previously, it may have silently created an invalid zip.
 
-### Changes to incubating test filtering
+To allow the large zip to be correctly built, set the `zip64` property of the task to `true`.
 
-JUnit tests that JUnit API internally represents by 'null' test methods are filtered only by class name.
-This is a very internal change and should not affect users. It is mentioned for completeness.
+### Change to incubating (undocumented) mechanism for controlling caching of dynamic versions
 
-### Changes to HTML test reports
+An experimental, undocumented API exists for controlling the cache behaviour for dynamic versions.
+The underlying caching mechanism has changed, and this experimental API has changed so that:
 
-Ignored tests are no longer considered in the calculation of the reported percentage success rate.
-A test run with 1 failed test, 1 successful test and 8 ignored tests will now report a success rate of 50%
-(previously it would have been 90%)
+* `DependencyResolutionControl.getRequest()` now returns a `ModuleIdentifier` instead of a `ModuleVersionSelector`.
+* `DependencyResolutionControl.getCachedResult()` now returns `Set<ModuleVersionIdentifier>` (all matching versions) instead of a single `ModuleVersionIdentifier`.
+
+Use of this API is not recommended and it will be removed in the future.
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Michael Putters](https://github.com/mputters) 
-	* improved the detection of available Visual studio and Windows SDKs installations
-	* add basic support for Objective-C
-* [Jean-Baptiste Nizet](https://github.com/jnizet) - improved HTML test reports to better report on ignored tests
-* [Piotr Kubowicz](https://github.com/Derbeth) - Documentation regarding incrementalness of tasks with no declared output
-* [Cédric Champeau](https://github.com/melix) - Recognition of Java 9 to the `JavaVersion` class
-* [Grégory Bévan](https://github.com/GregoryBevan) - Fix for hang in Eclipse with Lombok installed
+* [Marcin Erdmann](https://github.com/erdi)
+    * dependency ordering of imported Ant targets [GRADLE-1102]
+    * fixes for excluding tasks [GRADLE-2974] & [GRADLE-3031]
+* [Jesse Glick](https://github.com/jglick) - enabling newlines in option values passed to build
+* [Zeeke](https://github.com/zeeke) - documentation improvements
+* [Kamil Szymański](https://github.com/kamilszymanski) - documentation improvements
+* [Jakub Kubryński](https://github.com/jkubrynski) - handling of empty string proxy system property values
+* [Lee Symes](https://github.com/leesdolphin) & [Greg Temchenko](https://github.com/soid) - fix skipped test representation in JUnit XML result files [GRADLE-2731]
+* [Ivan Vyshnevskyi](https://github.com/sainaen) - Fixes to HTML test report
+* [Vincent Cantin](https://github.com/green-coder) - documentation improvements
+* [Sterling Greene](https://github.com/big-guy) - Support for developing Gradle in Eclipse
+* [Matthew Michihara](https://github.com/matthewmichihara) - Documentation improvements
+* [Andrew Oberstar](https://github.com/ajoberstar) - Improved Sonar support on Java 1.5 [GRADLE-3005]
+* [Mark Johnson](https://github.com/elucify) - documentation improvements
+* [Paul Merlin](https://github.com/eskatos) - ignored tests tab for HTML test report
+* [Jason Gauci](https://github.com/MisterTea) - Support for large zips
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

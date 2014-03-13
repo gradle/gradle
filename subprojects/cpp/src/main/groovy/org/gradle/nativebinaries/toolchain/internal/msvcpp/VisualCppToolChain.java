@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.nativebinaries.internal.LinkerSpec;
@@ -31,11 +32,17 @@ import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.util.TreeVisitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VisualCppToolChain.class);
 
     public static final String DEFAULT_NAME = "visualCpp";
 
@@ -46,6 +53,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private File windowsSdkDir;
     private VisualCppInstall visualCpp;
     private WindowsSdk windowsSdk;
+    private ToolChainAvailability availability;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
@@ -60,8 +68,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         return "Visual Studio";
     }
 
-    @Override
-    protected void checkAvailable(ToolChainAvailability availability) {
+    private void checkAvailable(ToolChainAvailability availability) {
         if (!operatingSystem.isWindows()) {
             availability.unavailable("Visual Studio is not available on this operating system.");
             return;
@@ -94,26 +101,24 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         this.windowsSdkDir = resolve(windowsSdkDirPath);
     }
 
-    public PlatformToolChain target(Platform targetPlatform) {
-        checkPlatform(targetPlatform);
-
-        return new VisualCppPlatformToolChain(visualCpp, windowsSdk, targetPlatform);
-    }
-
-    private void checkPlatform(Platform targetPlatform) {
-        assertAvailable();
-        if (!canTargetPlatform(targetPlatform).isAvailable()) {
-            throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
+    private ToolChainAvailability getAvailability() {
+        if (availability == null) {
+            availability = new ToolChainAvailability();
+            checkAvailable(availability);
         }
+        return availability;
     }
 
-    public ToolSearchResult canTargetPlatform(Platform targetPlatform) {
+    public PlatformToolChain target(Platform targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
         if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
             result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
         }
-        return result;
+        if (!result.isAvailable()) {
+            return new UnavailablePlatformToolChain(result);
+        }
+        return new VisualCppPlatformToolChain(visualCpp, windowsSdk, targetPlatform);
     }
 
     @Override
@@ -130,6 +135,13 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             this.visualCpp = visualCpp;
             this.sdk = sdk;
             this.targetPlatform = targetPlatform;
+        }
+
+        public boolean isAvailable() {
+            return true;
+        }
+
+        public void explain(TreeVisitor<? super String> visitor) {
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
@@ -188,7 +200,20 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             tool.withPath(visualCpp.getPath(targetPlatform));
             tool.withPath(sdk.getBinDir(targetPlatform));
 
+            // Clear environment variables that might effect cl.exe & link.exe
+            clearEnvironmentVars(tool, "INCLUDE", "CL", "LIBPATH", "LINK", "LIB");
             return tool;
+        }
+
+        private <T extends BinaryToolSpec> void clearEnvironmentVars(CommandLineTool<T> tool, String... names) {
+            Map<String, ?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(System.getenv());
+            for (String name : names) {
+                Object value = environmentVariables.get(name);
+                if (value != null) {
+                    LOGGER.warn("Ignoring value '{}' set for environment variable '{}'.", value, name);
+                    tool.withEnvironmentVar(name, "");
+                }
+            }
         }
 
         public String getOutputType() {

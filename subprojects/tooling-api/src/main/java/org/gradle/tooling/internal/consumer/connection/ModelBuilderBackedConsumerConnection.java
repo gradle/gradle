@@ -22,6 +22,7 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
+import org.gradle.tooling.model.gradle.BuildInvocations;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.util.GradleVersion;
 
@@ -32,14 +33,18 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
     private final ModelProducer modelProducer;
 
     public ModelBuilderBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
-        super(delegate, getMetaData(delegate));
+        super(delegate, getVersionDetails(delegate.getMetaData().getVersion()));
         ModelBuilder builder = (ModelBuilder) delegate;
         ModelProducer consumerConnectionBackedModelProducer = new ModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, builder);
-        modelProducer = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
+        ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
+        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelMapping, producerWithGradleBuild);
     }
 
-    private static R16VersionDetails getMetaData(ConnectionVersion4 delegate) {
-        GradleVersion version = GradleVersion.version(delegate.getMetaData().getVersion());
+    public static VersionDetails getVersionDetails(String versionString) {
+        GradleVersion version = GradleVersion.version(versionString);
+        if (version.compareTo(GradleVersion.version("1.11")) > 0) {
+            return new R112VersionDetails(version.getVersion());
+        }
         if (version.compareTo(GradleVersion.version("1.8-rc-1")) >= 0) {
             return new R18VersionDetails(version.getVersion());
         }
@@ -56,8 +61,9 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         }
 
         @Override
-        public boolean isModelSupported(Class<?> modelType) {
-            return modelType != GradleBuild.class;
+        public boolean maySupportModel(Class<?> modelType) {
+            return modelType != BuildInvocations.class
+                    && modelType != GradleBuild.class;
         }
 
         @Override
@@ -72,7 +78,29 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         }
 
         @Override
-        public boolean isModelSupported(Class<?> modelType) {
+        public boolean maySupportModel(Class<?> modelType) {
+            if (modelType == GradleBuild.class) {
+                return true;
+            }
+            return super.maySupportModel(modelType);
+        }
+    }
+
+    private static class R112VersionDetails extends R18VersionDetails {
+        private R112VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean maySupportModel(Class<?> modelType) {
+            if (modelType == BuildInvocations.class) {
+                return true;
+            }
+            return super.maySupportModel(modelType);
+        }
+
+        @Override
+        public boolean supportsTaskSelectors() {
             return true;
         }
     }

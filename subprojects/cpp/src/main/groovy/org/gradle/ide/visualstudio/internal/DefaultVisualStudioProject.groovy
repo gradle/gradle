@@ -25,31 +25,28 @@ import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.language.rc.WindowsResourceSet
-import org.gradle.nativebinaries.LibraryBinary
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.util.CollectionUtils
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
 class DefaultVisualStudioProject extends AbstractBuildableModelElement implements VisualStudioProject {
-    final VisualStudioProjectResolver projectResolver
     private final String name
     private final DefaultConfigFile projectFile
     private final DefaultConfigFile filtersFile
     private final ProjectNativeComponent component
-    private final List<LanguageSourceSet> sources = new ArrayList<LanguageSourceSet>()
+    private final List<File> additionalFiles = []
+    final Set<LanguageSourceSet> sources = new LinkedHashSet<LanguageSourceSet>()
     private final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
 
-    DefaultVisualStudioProject(String name, ProjectNativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver, Instantiator instantiator) {
+    DefaultVisualStudioProject(String name, ProjectNativeComponent component, FileResolver fileResolver, Instantiator instantiator) {
         this.name = name
         this.component = component
-        this.projectResolver = projectResolver
-        projectFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj" as String)
-        filtersFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj.filters" as String)
+        projectFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "${name}.vcxproj" as String)
+        filtersFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "${name}.vcxproj.filters" as String)
     }
 
     String getName() {
@@ -68,6 +65,10 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         return component
     }
 
+    void addSourceFile(File sourceFile) {
+        additionalFiles << sourceFile
+    }
+
     String getUuid() {
         String projectPath = (component as ProjectNativeComponentInternal).projectPath
         String vsComponentPath = "${projectPath}:${name}"
@@ -81,6 +82,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
 
     List<File> getSourceFiles() {
         def allSource = [] as Set
+        allSource.addAll additionalFiles
         sources.each { LanguageSourceSet sourceSet ->
             if (!(sourceSet instanceof WindowsResourceSet)) {
                 allSource.addAll sourceSet.source.files
@@ -104,30 +106,19 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         sources.each { LanguageSourceSet sourceSet ->
             if (sourceSet instanceof HeaderExportingSourceSet) {
                 allHeaders.addAll sourceSet.exportedHeaders.files
+                allHeaders.addAll sourceSet.implicitHeaders.files
             }
         }
         return allHeaders as List
-    }
-
-    // TODO:DAZ This isn't right
-    Set<DefaultVisualStudioProject> getProjectReferences() {
-        def projects = [] as Set
-        component.binaries.each { ProjectNativeBinaryInternal binary ->
-            for (LibraryBinary library : binary.dependentBinaries) {
-                if (library instanceof ProjectNativeBinary) {
-                    projects << getProjectResolver().lookupProjectConfiguration(library).getProject()
-                }
-            }
-        }
-        return projects
     }
 
     List<VisualStudioProjectConfiguration> getConfigurations() {
         return CollectionUtils.toList(configurations.values())
     }
 
-    void addConfiguration(NativeBinary nativeBinary, VisualStudioProjectConfiguration configuration) {
+    void addConfiguration(ProjectNativeBinary nativeBinary, VisualStudioProjectConfiguration configuration) {
         configurations[nativeBinary] = configuration
+        source nativeBinary.source
     }
 
     VisualStudioProjectConfiguration getConfiguration(ProjectNativeBinary nativeBinary) {

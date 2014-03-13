@@ -29,6 +29,8 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.id.RandomLongIdGenerator
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.messaging.serialize.DefaultSerializerRegistry
+import org.gradle.messaging.serialize.SerializerRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
@@ -69,9 +71,12 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     def setup() {
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, CacheUsage.ON, new InMemoryCacheFactory())
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
-        FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher(), cacheAccess)
-        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess)
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, new RandomLongIdGenerator()))
+        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(new CachingFileSnapshotter(new DefaultHasher(), cacheAccess), cacheAccess)
+        FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess)
+        SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
+        inputFilesSnapshotter.registerSerializers(serializerRegistry);
+        outputFilesSnapshotter.registerSerializers(serializerRegistry);
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(), new RandomLongIdGenerator()))
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, new DirectInstantiator(), outputFilesSnapshotter, inputFilesSnapshotter)
     }
 

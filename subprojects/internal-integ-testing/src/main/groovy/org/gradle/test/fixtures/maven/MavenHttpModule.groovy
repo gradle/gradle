@@ -18,10 +18,11 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 
-class MavenHttpModule implements MavenModule {
+class MavenHttpModule implements MavenModule, HttpModule {
     private final HttpServer server
     private final String moduleRootPath
     private final MavenFileModule backingModule

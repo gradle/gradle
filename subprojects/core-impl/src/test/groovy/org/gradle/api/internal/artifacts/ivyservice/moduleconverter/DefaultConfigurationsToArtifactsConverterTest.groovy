@@ -18,12 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
 import spock.lang.Specification
 
@@ -96,7 +96,7 @@ class DefaultConfigurationsToArtifactsConverterTest extends Specification {
             assert ivyArtifact.name == 'module'
         }
         _ * metaData.moduleDescriptor >> Stub(DefaultModuleDescriptor) {
-            getModuleRevisionId() >> ModuleRevisionId.newInstance("group", "module", "version")
+            getModuleRevisionId() >> IvyUtil.createModuleRevisionId("group", "module", "version")
         }
         0 * metaData._
     }

@@ -16,18 +16,27 @@
 
 package org.gradle.plugins.ide.internal
 
+import com.google.common.collect.LinkedHashMultimap
+import com.google.common.collect.Multimap
+
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.resolution.JvmLibrary
+import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact
+import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyResolver
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
-import org.gradle.plugins.ide.internal.resolver.model.IdeRepoFileDependency
+import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency
 
 class IdeDependenciesExtractor {
-    IdeDependencyResolver ideDependencyResolver = new DefaultIdeDependencyResolver()
+    private final IdeDependencyResolver ideDependencyResolver = new DefaultIdeDependencyResolver()
 
     Collection<IdeProjectDependency> extractProjectDependencies(Project project, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
         LinkedHashMap<Project, IdeProjectDependency> deps = [:]
@@ -47,22 +56,55 @@ class IdeDependenciesExtractor {
         deps.values()
     }
 
-    List<IdeRepoFileDependency> extractRepoFileDependencies(ConfigurationContainer confContainer,
-                                                           Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,
-                                                           boolean downloadSources, boolean downloadJavadoc) {
-        List<IdeRepoFileDependency> out = []
+    Collection<IdeExtendedRepoFileDependency> extractRepoFileDependencies(
+            DependencyHandler dependencyHandler,
+            Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,
+            boolean downloadSources, boolean downloadJavadoc) {
 
-        def downloader = new JavadocAndSourcesDownloader(confContainer, plusConfigurations, minusConfigurations, downloadSources, downloadJavadoc)
-
-        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { IdeRepoFileDependency dependency ->
-            dependency.sourceFile = downloader.sourceFor(dependency.file.name)
-            dependency.javadocFile = downloader.javadocFor(dependency.file.name)
-            out << dependency
+        // can have multiple ide dependencies with same component identifier (see GRADLE-1622)
+        Multimap<ModuleComponentIdentifier, IdeExtendedRepoFileDependency> resolvedDependencies = LinkedHashMultimap.create()
+        for (dep in resolvedExternalDependencies(plusConfigurations, minusConfigurations)) {
+            resolvedDependencies.put(toComponentIdentifier(dep.id), dep)
         }
 
-        out.addAll(unresolvedExternalDependencies(plusConfigurations, minusConfigurations))
+        downloadSourcesAndJavadoc(dependencyHandler, resolvedDependencies, downloadSources, downloadJavadoc)
 
-        out
+        def unresolvedDependencies = unresolvedExternalDependencies(plusConfigurations, minusConfigurations)
+        return resolvedDependencies.values() + unresolvedDependencies
+    }
+
+    private ModuleComponentIdentifier toComponentIdentifier(ModuleVersionIdentifier id) {
+        new DefaultModuleComponentIdentifier(id.group, id.name, id.version)
+    }
+
+    private void downloadSourcesAndJavadoc(DependencyHandler dependencyHandler,
+                                           Multimap<ModuleComponentIdentifier, IdeExtendedRepoFileDependency> dependencies,
+                                           boolean downloadSources, boolean downloadJavadoc) {
+
+        if (!downloadSources && !downloadJavadoc) {
+            return
+        }
+
+        def query = dependencyHandler.createArtifactResolutionQuery()
+        query.forComponents(dependencies.keySet());
+        if (downloadSources) {
+            query.withArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
+        }
+        if (downloadJavadoc) {
+            query.withArtifacts(JvmLibrary, JvmLibraryJavadocArtifact)
+        }
+
+        def jvmLibraries = query.execute().getComponents(JvmLibrary)
+        for (jvmLibrary in jvmLibraries) {
+            for (dependency in dependencies.get(jvmLibrary.id)) {
+                for (sourceArtifact in jvmLibrary.sourcesArtifacts) {
+                    dependency.sourceFile = sourceArtifact.file
+                }
+                for (javadocArtifact in jvmLibrary.javadocArtifacts) {
+                    dependency.javadocFile = javadocArtifact.file
+                }
+            }
+        }
     }
 
     private Collection<UnresolvedIdeRepoFileDependency> unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
@@ -104,8 +146,8 @@ class IdeDependenciesExtractor {
         fileToConf.values()
     }
 
-    Collection<IdeRepoFileDependency> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        LinkedHashMap<File, IdeRepoFileDependency> out = [:]
+    Collection<IdeExtendedRepoFileDependency> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        LinkedHashMap<File, IdeExtendedRepoFileDependency> out = [:]
 
         for (plusConfiguration in plusConfigurations) {
             for (artifact in ideDependencyResolver.getIdeRepoFileDependencies(plusConfiguration)) {

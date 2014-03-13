@@ -19,13 +19,15 @@ package org.gradle.messaging.serialize;
 import java.io.File;
 
 public class BaseSerializerFactory {
-    public static final Serializer STRING_SERIALIZER = new StringSerializer();
+    public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     public static final Serializer LONG_SERIALIZER = new LongSerializer();
     public static final Serializer FILE_SERIALIZER = new FileSerializer();
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
-            return STRING_SERIALIZER;
+            @SuppressWarnings("unchecked")
+            Serializer<T> stringSerializer = (Serializer<T>) STRING_SERIALIZER;
+            return stringSerializer;
         }
         if (type.equals(Long.class)) {
             return LONG_SERIALIZER;

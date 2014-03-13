@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.resource.ResourceException;
-import org.gradle.api.internal.resource.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.Set;
@@ -29,10 +28,11 @@ public interface VersionList {
     /**
      * <p>Adds those versions available for the given pattern.</p>
      *
-     * @throws ResourceNotFoundException If information for versions cannot be found.
+     * If no versions are listed with the given pattern, then no versions are added.
+     * 
      * @throws ResourceException If information for versions cannot be loaded.
      */
-    void visit(ResourcePattern pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException;
+    void visit(ResourcePattern pattern, ArtifactIdentifier artifactId) throws ResourceException;
 
     Set<ListedVersion> getVersions();
 

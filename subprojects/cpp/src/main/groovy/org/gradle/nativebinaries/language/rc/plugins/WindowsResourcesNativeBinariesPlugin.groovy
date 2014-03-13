@@ -81,7 +81,7 @@ class WindowsResourcesNativeBinariesPlugin implements Plugin<ProjectInternal> {
     }
 
     private def createResourceCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, WindowsResourceSet sourceSet) {
-        WindowsResourceCompile compileTask = project.task(binary.namingScheme.getTaskName("resourceCompile", sourceSet.fullName), type: WindowsResourceCompile) {
+        WindowsResourceCompile compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: WindowsResourceCompile) {
             description = "Compiles resources of the $sourceSet of $binary"
         }
 

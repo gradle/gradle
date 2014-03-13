@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.Dependency;
@@ -29,6 +28,7 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
@@ -126,7 +126,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
 
     private static DefaultExcludeRule getTestExcludeRule() {
         return new DefaultExcludeRule(new ArtifactId(
-                new ModuleId("org", "testOrg"), PatternMatcher.ANY_EXPRESSION,
+                IvyUtil.createModuleId("org", "testOrg"), PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION),
                 ExactPatternMatcher.INSTANCE, null);

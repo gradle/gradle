@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProgressListener
 
@@ -47,6 +49,10 @@ class ConfigurableOperation {
 
     String getStandardError() {
         return stderr.toString()
+    }
+
+    ExecutionResult getResult() {
+        return new OutputScrapingExecutionResult(standardOutput, standardError)
     }
 
     ConfigurableOperation setStandardInput(String input) {

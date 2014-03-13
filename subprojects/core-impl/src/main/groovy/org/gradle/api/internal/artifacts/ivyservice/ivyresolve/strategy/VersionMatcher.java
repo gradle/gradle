@@ -39,14 +39,13 @@ public interface VersionMatcher extends Comparator<String> {
 
     /**
      * Indicates if module metadata is required to determine if the given version
-     * selector matches the given candidate version.
+     * selector matches a candidate version.
      */
-    public boolean needModuleMetadata(String selector, String candidate);
+    public boolean needModuleMetadata(String selector);
 
     /**
      * Indicates if the given version selector matches the given candidate version.
-     * Only called if {@link #needModuleMetadata} returned {@code false} for the given selector
-     * and candidate version.
+     * Only called if {@link #needModuleMetadata} returned {@code false} for the given selector.
      */
     public boolean accept(String selector, String candidate);
 

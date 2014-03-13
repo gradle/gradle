@@ -17,6 +17,7 @@ package org.gradle.api.tasks.ant;
 
 import org.apache.tools.ant.Target;
 import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskDependency;
@@ -46,7 +47,11 @@ public class AntTarget extends ConventionTask {
         Enumeration dependencies = target.getDependencies();
         while (dependencies.hasMoreElements()) {
             String name = (String) dependencies.nextElement();
-            tasks.add(getProject().getTasks().getByName(name));
+            Task dependency = getProject().getTasks().findByName(name);
+            if (dependency == null) {
+                throw new UnknownTaskException(String.format("Imported Ant target '%s' depends on target or task '%s' which does not exist", getName(), name));
+            }
+            tasks.add(dependency);
         }
         return tasks;
     }

@@ -16,6 +16,7 @@
 package org.gradle.test.fixtures.ivy
 
 import org.apache.ivy.core.IvyPatternHelper
+import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.test.fixtures.file.TestFile
 
@@ -68,7 +69,7 @@ class IvyFileRepository implements IvyRepository {
 
     private IvyFileModule createModule(String organisation, String module, String revision) {
         def revisionString = revision.toString()
-        def path = IvyPatternHelper.substitute(dirPattern, ModuleRevisionId.newInstance(organisation, module, revisionString))
+        def path = IvyPatternHelper.substitute(dirPattern, new ModuleRevisionId(new ModuleId(organisation, module), revisionString))
         def moduleDir = rootDir.file(path)
         return new IvyFileModule(ivyFilePattern, artifactFilePattern, moduleDir, organisation, module, revisionString)
     }

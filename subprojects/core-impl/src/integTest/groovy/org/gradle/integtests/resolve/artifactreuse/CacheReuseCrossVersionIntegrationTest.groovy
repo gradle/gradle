@@ -145,7 +145,7 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        httpRepo.expectMetaDataGet("org.name", "projectB")
+        httpRepo.getModuleMetaData("org.name", "projectB").expectGet()
         projectB.allowAll()
 
         and:
@@ -157,7 +157,7 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        httpRepo.expectMetaDataGet("org.name", "projectB")
+        httpRepo.getModuleMetaData("org.name", "projectB").expectGet()
         projectB.pom.expectHead()
         projectB.pom.sha1.expectGet()
         projectB.artifact.expectHead()

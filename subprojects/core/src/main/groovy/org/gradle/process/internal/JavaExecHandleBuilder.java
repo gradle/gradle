@@ -166,17 +166,17 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     public JavaExecHandleBuilder setArgs(Iterable<?> applicationArgs) {
         this.applicationArgs.clear();
-        GUtil.addToCollection(this.applicationArgs, applicationArgs);
+        args(applicationArgs);
         return this;
     }
 
     public JavaExecHandleBuilder args(Object... args) {
-        applicationArgs.addAll(Arrays.asList(args));
+        args(Arrays.asList(args));
         return this;
     }
 
     public JavaExecSpec args(Iterable<?> args) {
-        GUtil.addToCollection(applicationArgs, args);
+        GUtil.addToCollection(applicationArgs, true, args);
         return this;
     }
 

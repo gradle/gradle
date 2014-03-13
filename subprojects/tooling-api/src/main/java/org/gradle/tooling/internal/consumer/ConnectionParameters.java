@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-public interface ConnectionParameters {
+public interface ConnectionParameters extends org.gradle.tooling.internal.protocol.ConnectionParameters {
     File getProjectDir();
 
     /**

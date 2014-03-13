@@ -18,29 +18,65 @@ package org.gradle.api.internal.file.pattern;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PatternMatcherFactory {
+
+    public static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
+
     public static Spec<RelativePath> getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
+        PathMatcher pathMatcher = compile(caseSensitive, pattern);
+        return new PathMatcherBackedSpec(partialMatchDirs, pathMatcher);
+    }
+
+    private static PathMatcher compile(boolean caseSensitive, String pattern) {
+        if (pattern.length() == 0) {
+            return END_OF_PATH_MATCHER;
+        }
+
         // trailing / or \ assumes **
         if (pattern.endsWith("/") || pattern.endsWith("\\")) {
             pattern = pattern + "**";
         }
+        String[] parts = pattern.split("\\\\|/");
+        return compile(parts, 0, caseSensitive);
+    }
 
-        if (pattern.length() == 0) {
-            return new DefaultPatternMatcher(partialMatchDirs, true);
-        } else {
-            String[] parts = pattern.split("\\\\|/");
-            if (parts.length == 2) {
-                if ("**".equals(parts[0])) {
-                    if ("**".equals(parts[1])) {
-                        // don't need second **
-                        return new DefaultPatternMatcher(partialMatchDirs, caseSensitive, "**");
-                    } else {
-                        // common name only case
-                        return new NameOnlyPatternMatcher(partialMatchDirs, caseSensitive, parts[1]);
-                    }
-                }
+    private static PathMatcher compile(String[] parts, int startIndex, boolean caseSensitive) {
+        if (startIndex >= parts.length) {
+            return END_OF_PATH_MATCHER;
+        }
+        int pos = startIndex;
+        while (pos < parts.length && parts[pos].equals("**")) {
+            pos++;
+        }
+        if (pos > startIndex) {
+            return new GreedyPathMatcher(compile(parts, pos, caseSensitive));
+        }
+        List<PatternStep> steps = new ArrayList<PatternStep>(parts.length - startIndex);
+        while (pos < parts.length && !parts[pos].equals("**")) {
+            steps.add(PatternStepFactory.getStep(parts[pos], caseSensitive));
+            pos++;
+        }
+        return new FixedStepsPathMatcher(steps, compile(parts, pos, caseSensitive));
+    }
+
+    private static class PathMatcherBackedSpec implements Spec<RelativePath> {
+        private final boolean partialMatchDirs;
+        private final PathMatcher pathMatcher;
+
+        public PathMatcherBackedSpec(boolean partialMatchDirs, PathMatcher pathMatcher) {
+            this.partialMatchDirs = partialMatchDirs;
+            this.pathMatcher = pathMatcher;
+        }
+
+        public boolean isSatisfiedBy(RelativePath element) {
+            if (element.isFile() || !partialMatchDirs) {
+                return pathMatcher.matches(element.getSegments(), 0);
+            } else {
+                return pathMatcher.isPrefix(element.getSegments(), 0);
             }
-            return new DefaultPatternMatcher(partialMatchDirs, caseSensitive, parts);
         }
     }
 }

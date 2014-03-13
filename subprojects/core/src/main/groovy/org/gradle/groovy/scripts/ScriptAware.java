@@ -15,10 +15,6 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.configuration.ScriptPlugin;
-
 public interface ScriptAware {
-    void beforeCompile(ScriptPlugin configurer);
-
-    void afterCompile(ScriptPlugin configurer, Script script);
+    void setScript(groovy.lang.Script script);
 }

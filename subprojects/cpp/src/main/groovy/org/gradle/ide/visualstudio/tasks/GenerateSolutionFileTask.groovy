@@ -33,7 +33,7 @@ class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
         this.solution = solution as DefaultVisualStudioSolution
 
         dependsOn {
-            this.solution.projectConfigurations*.project
+            this.solution.projects
         }
     }
 
@@ -58,9 +58,9 @@ class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
 
         public void configure(VisualStudioSolutionFile solutionFile) {
             DefaultVisualStudioSolution solution = getSolution() as DefaultVisualStudioSolution
-            solutionFile.solutionConfiguration = solution.configurationName
-            solution.projectConfigurations.each {
-                solutionFile.addProjectConfiguration(it)
+            solutionFile.setMainProject(solution.rootProject)
+            solution.solutionConfigurations.each { solutionConfig ->
+                solutionFile.addSolutionConfiguration(solutionConfig.name, solution.getProjectConfigurations(solutionConfig))
             }
 
             solution.solutionFile.textActions.each {

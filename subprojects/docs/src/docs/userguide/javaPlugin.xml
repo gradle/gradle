@@ -1203,10 +1203,10 @@
                         <para><literal>gradle test --tests org.gradle.SomeTest.someSpecificFeature</literal></para>
                     </listitem>
                     <listitem>
-                        <para><literal>gradle test --tests SomeTest.someSpecificFeature</literal></para>
+                        <para><literal>gradle test --tests *SomeTest.someSpecificFeature</literal></para>
                     </listitem>
                     <listitem>
-                        <para><literal>gradle test --tests SomeSpecificTest</literal></para>
+                        <para><literal>gradle test --tests *SomeSpecificTest</literal></para>
                     </listitem>
                     <listitem>
                         <para><literal>gradle test --tests all.in.specific.package*</literal></para>
@@ -1236,7 +1236,7 @@
                   or just the task name.  The <replaceable>testNamePattern</replaceable> will be used to form an include
                   pattern of &quot;**/testNamePattern*.class&quot;.
                   If no tests with this pattern can be found an exception is thrown. This is to shield you from false security.
-                  If tests of more then one subproject are executed, the pattern is applied to each subproject. An exception
+                  If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception
                   is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the
                   pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully
                   qualified task name to be executed. You can also specify multiple patterns. Examples:
@@ -1353,9 +1353,9 @@
             </sample>
 
             <para>You should note that the <literal>TestReport</literal> type combines the results from multiple test
-                tasks, but it does not aggregate the results of individual test classes. This means that if a given test class is executed by
-                multiple test tasks, then the test report will include only one execution of that class and discard the other executions of that
-                class. This will be addressed in a future Gradle version.
+                tasks and needs to aggregate the results of individual test classes. This means that if a given test class is executed by
+                multiple test tasks, then the test report will include executions of that class, but it can be hard to distinguish individual
+                executions of that class and their output.
             </para>
             <section id="testNgParameterizedReporting">
                 <title>TestNG parameterized methods and reporting</title>

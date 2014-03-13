@@ -24,6 +24,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArg;
+import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
+
 abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
     public List<String> transform(T spec) {
         List<String> args = new ArrayList<String>();
@@ -31,15 +34,13 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
         args.add("/nologo");
 
         for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
-            args.add("/D" + macroArg);
+            args.add(escapeUserArg("/D" + macroArg));
         }
-        args.addAll(spec.getAllArgs());
+        args.addAll(escapeUserArgs(spec.getAllArgs()));
+
         args.add("/c");
         for (File file : spec.getIncludeRoots()) {
             args.add("/I" + file.getAbsolutePath());
-        }
-        for (File file : spec.getSourceFiles()) {
-            args.add(file.getAbsolutePath());
         }
 
         return args;

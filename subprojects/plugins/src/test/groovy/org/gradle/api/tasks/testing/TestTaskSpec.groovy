@@ -53,9 +53,8 @@ class TestTaskSpec extends Specification {
         1 * testExecuter.execute(task, _ as TestResultProcessor)
 
         then:
-        1 * testListenerBroadcaster.removeAll({it.size() == 3})
-        1 * testListenerBroadcaster.remove(_)
-        1 * testOutputListenerBroadcaster.removeAll({it.size() == 2})
+        1 * testListenerBroadcaster.removeAll()
+        1 * testOutputListenerBroadcaster.removeAll()
     }
 
     def "removes listeners even if execution fails"() {
@@ -69,7 +68,7 @@ class TestTaskSpec extends Specification {
         ex.message == "Boo!"
 
         and:
-        1 * testListenerBroadcaster.removeAll({it.size() == 3})
-        1 * testOutputListenerBroadcaster.removeAll({it.size() == 2})
+        1 * testListenerBroadcaster.removeAll()
+        1 * testOutputListenerBroadcaster.removeAll()
     }
 }

@@ -16,30 +16,27 @@
 
 package org.gradle.nativebinaries.language.cpp
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
-import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.ToolChainCandidate
-import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
-import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.Gcc
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.GccCompatible
 
-@RequiresInstalledToolChain(Gcc)
-class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
-    def AvailableToolChains.InstalledToolChain gcc
-    def helloWorldApp = new CppCallingCHelloWorldApp()
+@RequiresInstalledToolChain(GccCompatible)
+class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def helloWorldApp = new CHelloWorldApp()
 
     def setup() {
-        gcc = findGcc()
-
         buildFile << """
-            apply plugin: 'cpp'
             apply plugin: 'c'
 
             model {
                 toolChains {
-                    ${gcc.buildScriptConfig}
+                    ${toolChain.buildScriptConfig}
                 }
             }
 
@@ -59,25 +56,12 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
         helloWorldApp.library.writeSources(file("src/hello"))
     }
 
-    def findGcc() {
-        for (ToolChainCandidate candidate : AvailableToolChains.toolChains) {
-            if (candidate instanceof AvailableToolChains.InstalledGcc) {
-                return candidate
-            }
-        }
-        throw new IllegalStateException("No GCC found")
-    }
-
-    def ExecutableFixture executable(Object path) {
-        return gcc.executable(file(path))
-    }
-
     def "can add binary configuration to target a platform"() {
         when:
         buildFile << """
             model {
                 toolChains {
-                    ${gcc.id} {
+                    ${toolChain.id} {
                         addPlatformConfiguration(new ArmArchitecture())
                     }
                 }
@@ -97,7 +81,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 List<String> getCppCompilerArgs() {
-                    ["-m32", "-DFRENCH"]
+                    []
                 }
 
                 List<String> getCCompilerArgs() {
@@ -142,20 +126,12 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             model {
                 toolChains {
-                    ${gcc.id} {
-                        cppCompiler.withArguments { args ->
-                            Collections.replaceAll(args, "CUSTOM", "-O3")
-                        }
-                        CCompiler.withArguments { args ->
-                            Collections.replaceAll(args, "CUSTOM", "-O3")
+                    ${toolChain.id} {
+                        cCompiler.withArguments { args ->
+                            Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
                         }
                         linker.withArguments { args ->
-                            int customIndex = args.indexOf("CUSTOM")
-                            if (customIndex >= 1) {
-                                // Remove "-Xlinker" "CUSTOM"
-                                args.remove(customIndex)
-                                args.remove(customIndex - 1)
-                            }
+                            args.remove "CUSTOM"
                         }
                         staticLibArchiver.withArguments { args ->
                             args.remove "CUSTOM"
@@ -164,7 +140,6 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             binaries.all {
-                cppCompiler.args "CUSTOM"
                 cCompiler.args "CUSTOM"
                 linker.args "CUSTOM"
             }
@@ -176,6 +151,43 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "can configure tool executables"() {
+        def binDir = testDirectory.createDir("bin")
+        wrapperTool(binDir, "c-compiler", toolChain.CCompiler, "-DFRENCH")
+        wrapperTool(binDir, "static-lib", toolChain.staticLibArchiver)
+        wrapperTool(binDir, "linker", toolChain.linker)
+
+        when:
+        buildFile << """
+            model {
+                toolChains {
+                    ${toolChain.id} {
+                        path file('${binDir.toURI()}')
+                        cCompiler.executable = 'c-compiler'
+                        staticLibArchiver.executable = 'static-lib'
+                        linker.executable = 'linker'
+                    }
+                }
+            }
+"""
+        succeeds "mainExecutable"
+
+        then:
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+    }
+
+    def wrapperTool(TestFile binDir, String wrapperName, String executable, String... additionalArgs) {
+        def script = binDir.file(OperatingSystem.current().getExecutableName(wrapperName))
+        if (OperatingSystem.current().windows) {
+            script.text = "${executable} ${additionalArgs.join(' ')} %*"
+        } else {
+            script.text = "${executable} ${additionalArgs.join(' ')} \"\$@\""
+            script.permissions = "rwxr--r--"
+        }
+        return script
     }
 }

@@ -15,7 +15,10 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.fixtures
+
+import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
 /**
@@ -64,5 +67,15 @@ allprojects {
 
     def NativeBinaryFixture resourceOnlyLibrary(Object path) {
         return toolChain.resourceOnlyLibrary(file(path))
+    }
+
+    def objectFileFor(TestFile sourceFile, String rootObjectFilesDir = "build/objectFiles/mainExecutable/main${sourceType}") {
+        final baseName = FilenameUtils.removeExtension(sourceFile.name)
+        String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
+        return objectFile("$rootObjectFilesDir/$compactMD5/${baseName}")
+    }
+
+    String hashFor(File inputFile){
+        HashUtil.createCompactMD5(inputFile.getAbsolutePath());
     }
 }

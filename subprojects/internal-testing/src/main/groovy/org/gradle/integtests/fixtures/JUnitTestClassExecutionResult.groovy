@@ -39,13 +39,23 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     TestClassExecutionResult assertTestsExecuted(String... testNames) {
-        Map<String, Node> testMethods = findTests()
+        Map<String, Node> testMethods = findTests().findAll { name, element ->
+            element."skipped".size() == 0 // Exclude skipped test.
+        }
         Assert.assertThat(testMethods.keySet(), Matchers.equalTo(testNames as Set))
         this
     }
 
     TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
         assert testClassNode.@tests == tests
+        assert testClassNode.@failures == failures
+        assert testClassNode.@errors == errors
+        this
+    }
+    
+    TestClassExecutionResult assertTestCount(int tests, int skipped, int failures, int errors) {
+        assert testClassNode.@tests == tests
+        assert testClassNode.@skipped == skipped
         assert testClassNode.@failures == failures
         assert testClassNode.@errors == errors
         this
@@ -81,7 +91,10 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     TestClassExecutionResult assertTestsSkipped(String... testNames) {
-        Map<String, Node> testMethods = findIgnoredTests()
+        Map<String, Node> testMethods = findTests().findAll { name, element ->
+            element."skipped".size() > 0 // Include only skipped test.
+        }
+        
         Assert.assertThat(testMethods.keySet(), Matchers.equalTo(testNames as Set))
         this
     }
@@ -127,6 +140,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
             Assert.assertThat(testClassNode.name(), Matchers.equalTo('testsuite'))
             Assert.assertThat(testClassNode.@name.text(), Matchers.equalTo(testClassName))
             Assert.assertThat(testClassNode.@tests.text(), Matchers.not(Matchers.equalTo('')))
+            Assert.assertThat(testClassNode.@skipped.text(), Matchers.not(Matchers.equalTo('')))
             Assert.assertThat(testClassNode.@failures.text(), Matchers.not(Matchers.equalTo('')))
             Assert.assertThat(testClassNode.@errors.text(), Matchers.not(Matchers.equalTo('')))
             Assert.assertThat(testClassNode.@time.text(), Matchers.not(Matchers.equalTo('')))
@@ -154,12 +168,6 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         }
         Map testMethods = [:]
         testClassNode.testcase.each { testMethods[it.@name.text()] = it }
-        return testMethods
-    }
-
-    private def findIgnoredTests() {
-        Map testMethods = [:]
-        testClassNode."ignored-testcase".each { testMethods[it.@name.text()] = it }
         return testMethods
     }
 }

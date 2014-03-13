@@ -34,13 +34,18 @@ import java.io.File;
 import java.util.*;
 
 public class EclipseModelBuilder implements ToolingModelBuilder {
+    private final GradleProjectBuilder gradleProjectBuilder;
+
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject result;
     private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
     private TasksFactory tasksFactory;
-    private GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
     private DefaultGradleProject rootGradleProject;
     private Project currentProject;
+
+    public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder) {
+        this.gradleProjectBuilder = gradleProjectBuilder;
+    }
 
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")

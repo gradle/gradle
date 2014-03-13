@@ -32,7 +32,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
     private final AsyncConsumerActionExecutor connection;
 
     public DefaultModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
-        super(new ConsumerOperationParameters(parameters));
+        super(parameters);
         this.modelType = modelType;
         this.connection = connection;
     }
@@ -49,6 +49,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
     }
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
+        final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
         connection.run(new ConsumerAction<T>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
@@ -61,7 +62,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
     }
 
     public DefaultModelBuilder<T> forTasks(String... tasks) {
-        operationParameters.setTasks(Arrays.asList(tasks));
+        operationParamsBuilder.setTasks(Arrays.asList(tasks));
         return this;
     }
 

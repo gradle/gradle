@@ -24,7 +24,7 @@ import org.w3c.dom.Element;
 
 import java.util.Collection;
 
-public class MethodsRenderer {
+class MethodsRenderer implements ClassDocMemberRenderer {
     private final MethodTableRenderer methodTableRenderer = new MethodTableRenderer();
     private final ExtensionMethodsSummaryRenderer extensionMethodsSummaryRenderer;
     private final MethodDetailRenderer methodDetailRenderer;
@@ -34,7 +34,7 @@ public class MethodsRenderer {
         extensionMethodsSummaryRenderer = new ExtensionMethodsSummaryRenderer(methodTableRenderer);
     }
 
-    public void renderTo(ClassDoc classDoc, Element parent) {
+    public void renderSummaryTo(ClassDoc classDoc, Element parent) {
         Document document = parent.getOwnerDocument();
 
         Element summarySection = document.createElement("section");
@@ -44,11 +44,9 @@ public class MethodsRenderer {
         summarySection.appendChild(title);
         title.appendChild(document.createTextNode("Methods"));
 
-        boolean hasMethods = false;
         Collection<MethodDoc> classMethods = classDoc.getClassMethods();
-        if (!classMethods.isEmpty()) {
-            hasMethods = true;
 
+        if (!classMethods.isEmpty()) {
             Element table = document.createElement("table");
             summarySection.appendChild(table);
 
@@ -58,34 +56,46 @@ public class MethodsRenderer {
 
             methodTableRenderer.renderTo(classMethods, table);
         }
-
         for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
-            hasMethods |= !extensionDoc.getExtensionMethods().isEmpty();
             extensionMethodsSummaryRenderer.renderTo(extensionDoc, summarySection);
         }
 
-        if (!hasMethods) {
+        if (!hasMethods(classDoc)) {
             Element para = document.createElement("para");
             summarySection.appendChild(para);
             para.appendChild(document.createTextNode("No methods"));
-            return;
         }
+    }
 
+    public void renderDetailsTo(ClassDoc classDoc, Element parent) {
+        if (hasMethods(classDoc)) {
+            Document document = parent.getOwnerDocument();
+            Element detailsSection = document.createElement("section");
+            parent.appendChild(detailsSection);
 
-        Element detailsSection = document.createElement("section");
-        parent.appendChild(detailsSection);
+            Element title = document.createElement("title");
+            detailsSection.appendChild(title);
+            title.appendChild(document.createTextNode("Method details"));
 
-        title = document.createElement("title");
-        detailsSection.appendChild(title);
-        title.appendChild(document.createTextNode("Method details"));
-
-        for (MethodDoc methodDoc : classMethods) {
-            methodDetailRenderer.renderTo(methodDoc, detailsSection);
-        }
-        for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
-            for (MethodDoc methodDoc : extensionDoc.getExtensionMethods()) {
+            for (MethodDoc methodDoc : classDoc.getClassMethods()) {
                 methodDetailRenderer.renderTo(methodDoc, detailsSection);
             }
+            for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+                for (MethodDoc methodDoc : extensionDoc.getExtensionMethods()) {
+                    methodDetailRenderer.renderTo(methodDoc, detailsSection);
+                }
+            }
         }
+    }
+
+    private boolean hasMethods(ClassDoc classDoc) {
+        boolean hasMethods = false;
+        if (!classDoc.getClassMethods().isEmpty()) {
+            hasMethods = true;
+        }
+        for (ClassExtensionDoc extensionDoc : classDoc.getClassExtensions()) {
+            hasMethods |= !extensionDoc.getExtensionMethods().isEmpty();
+        }
+        return hasMethods;
     }
 }

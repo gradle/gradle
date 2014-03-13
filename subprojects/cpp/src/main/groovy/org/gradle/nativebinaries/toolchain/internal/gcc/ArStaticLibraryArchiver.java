@@ -36,7 +36,7 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
 
     public ArStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool, Action<List<String>> argsAction) {
         ArgsTransformer<StaticLibraryArchiverSpec> arguments = new ArchiverSpecToArguments();
-        arguments = new UserArgsTransformer<StaticLibraryArchiverSpec>(arguments, argsAction);
+        arguments = new PostTransformActionArgsTransformer<StaticLibraryArchiverSpec>(arguments, argsAction);
         this.commandLineTool = commandLineTool.withArguments(arguments);
     }
 

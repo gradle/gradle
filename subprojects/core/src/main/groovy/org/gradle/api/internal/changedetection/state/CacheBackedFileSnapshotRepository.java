@@ -18,14 +18,15 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.RandomLongIdGenerator;
+import org.gradle.messaging.serialize.Serializer;
 
 public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository {
     private final PersistentIndexedCache<Long, FileCollectionSnapshot> cache;
     private IdGenerator<Long> idGenerator = new RandomLongIdGenerator();
 
-    public CacheBackedFileSnapshotRepository(TaskArtifactStateCacheAccess cacheAccess, IdGenerator<Long> idGenerator) {
+    public CacheBackedFileSnapshotRepository(TaskArtifactStateCacheAccess cacheAccess, Serializer<FileCollectionSnapshot> serializer, IdGenerator<Long> idGenerator) {
         this.idGenerator = idGenerator;
-        cache = cacheAccess.createCache("fileSnapshots", Long.class, new FileSnapshotSerializer());
+        cache = cacheAccess.createCache("fileSnapshots", Long.class, serializer);
     }
 
     public Long add(FileCollectionSnapshot snapshot) {

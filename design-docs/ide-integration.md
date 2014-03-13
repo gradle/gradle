@@ -30,6 +30,10 @@ model introduced by the new language plugins:
 - This is a breaking change. Previously, the reporting logic used to analyse the task dependency graph and treated any task which was not a dependency of some other task
   as a public task. This is very slow, requires every task in every project to be configured, and is not particularly accurate.
 
+#### Open issues
+
+- Split `gradle tasks` into 'what can I do with this build?' and a 'what are all the tasks in this project?'.
+
 ### GRADLE-2434 - IDE visualises and runs task selectors
 
 On the command-line I can run `gradle test` and this will find and execute all tasks with name `test` in the current project
@@ -49,7 +53,91 @@ See [tooling-api-improvements.md](tooling-api-improvements.md#expose-information
 
 ### Simplify task visibility logic
 
-TBD
+Change the task visibility logic introduced in the previous stories so that:
+
+- A task is public if its `group` attribute is not empty.
+- A task selector is public if any of the tasks that it selects are public.
+
+### Test cases
+
+- Tooling API and `gradle tasks` treats as public a task with a non-empty `group` attribute.
+- Tooling API and `gradle tasks` treats as public a selector that selects a public task.
+- Tooling API and `gradle tasks` treats as private a task with null `group` attribute.
+- Tooling API and `gradle tasks` treats as private a selector that selects only private tasks.
+
+### Expose the lifecycle tasks of build elements as public tasks
+
+Change the task visibility logic so that the lifecycle task of all `BuildableModelElement` objects are public, regardless of their group attribute.
+
+### Test cases
+
+- Tooling API and `gradle tasks` treats as public the lifecycle task of a `BuildableModelElement` with a null `group` attribute.
+
+#### Open issues
+
+- Should other tasks for a `BuildableModelElement` be private, regardless of group attribute?
+
+### GRADLE-2017 - Correctly map libraries to IDEA dependency scope
+
+A new model will be available for defining IDEA scopes: these scopes will formed by combining and excluding Gradle configurations and other scopes.
+The model can statically restrict the available scopes to 'compile', 'runtime', 'provided' and 'test'.
+
+- scope `provided` should default to empty, or `configurations.providedCompile` when the war plugin is applied.
+- scope `compile` should default to `configurations.compile` minus scope `provided`.
+- scope `runtime` should default to `configurations.runtime` minus scope `compile`.
+- scope `test` should default to (`configurations.testCompile` minus scope `compile`) union (`configurations.testRuntime` minus scope `runtime`).
+
+#### User visible changes
+
+TODO: Example DSL
+
+The new DSL (and model defaults) will be used to configure an IDEA module when the current `scopes` map has not been altered by the user.
+Once the new DSL is stabilised we will deprecate and remove the `scopes` map.
+
+Initial proposal for the new DSL is to support complete scope definition ...
+
+```
+    ideaScope.TEST.build {
+      filtered(base: configurations.testCompile, excluded: configurations.compile)
+      filtered(base: configurations.testRuntime, excluded: configurations.runtime)
+    }
+```
+
+... or to append to previously defined set of items for this scope like ...
+
+```
+    ideaScope.TEST.append {
+      configurations.integTestCompile
+    }
+```
+
+#### Implementation
+
+- Add `ResolvableComponents` which represents a set of requirements that can be resolved into a graph or set of `Components`
+- Add an implementation of `ResolvableComponents` that wraps a `Configuration` instance
+- Add an implementation of `ResolvableComponents` that can combine other `ResolvableComponents` as required for the Idea scope DSL
+- Update each method on `IdeDependenciesExtractor`so that it takes a `ResolvableComponents` parameter in place of the
+  current `Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations`.
+    - For now, these methods can simply unpack the `ResolvableComponents` to a set of added and excluded configurations.
+    - The current scope map DSL should be mapped to the new API
+- Add domain classes as required for the new Idea scopes DSL, with appropriate defaults.
+
+#### Test cases
+
+- When using the tooling API to fetch the IDEA model or the `idea` task to generate the IDEA project files, verify that:
+    - When a java project has a dependency declared for `testCompile` and `runtime`, the dependency appears with `test` and `runtime` scopes only.
+    - When a java project has a dependency declared for `testRuntime` and `runtime`, the dependency appears with `runtime` scope only.
+    - When a java project has a dependency declared for `compile` and `testCompile`, the dependency appears with `compile` scope only.
+    - When a war project has a dependency declared for `providedCompile` and `compile`, the dependency appears with `provided` scope only.
+- Current defaults are used when the `scopes` maps is configured by user
+- User is informed of failure when both `scopes` map and new DSL are configured.
+
+#### Open issues
+
+- Similar new DSL for the Eclipse model (except that it’s much simpler).
+- ArtifactResolutionQuery API takes a `ResolvableComponents` as input
+    - Include JvmLibrary main artifact in query results
+    - Replace `IdeDependenciesExtractor.extractRepoFileDependencies` with single ArtifactResolutionQuery
 
 ## Feature - Tooling API client cancels an operation
 
@@ -184,6 +272,7 @@ Extend the above mechanism to support prompting the user, when running via the t
 
 Some more features to mix into the above plan:
 
+- Honour same environment variables as command-line `gradle` invocation.
 - Cancelled build is gracefully stopped
 - Richer events during execution:
     - Task execution

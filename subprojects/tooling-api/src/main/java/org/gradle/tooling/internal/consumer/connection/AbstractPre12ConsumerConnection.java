@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
@@ -32,7 +32,8 @@ public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerCo
         super(delegate, providerMetaData);
     }
 
-    public void configure(ConsumerConnectionParameters connectionParameters) {
+    @Override
+    public void configure(ConnectionParameters connectionParameters) {
         new CompatibleIntrospector(getDelegate()).callSafely("configureLogging", connectionParameters.getVerboseLogging());
     }
 

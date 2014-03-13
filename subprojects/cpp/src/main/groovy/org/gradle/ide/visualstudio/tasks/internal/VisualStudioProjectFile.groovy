@@ -15,15 +15,14 @@
  */
 
 package org.gradle.ide.visualstudio.tasks.internal
-
 import org.gradle.api.Transformer
 import org.gradle.api.internal.xml.XmlTransformer
-import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     private final Transformer<String, File> fileLocationResolver
+    String gradleCommand = 'gradle'
 
     VisualStudioProjectFile(XmlTransformer xmlTransformer, Transformer<String, File> fileLocationResolver) {
         super(xmlTransformer)
@@ -60,11 +59,14 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         configNode.appendNode("Platform", configuration.platformName)
         final configCondition = "'\$(Configuration)|\$(Platform)'=='${configuration.name}'"
 
+        def vsOutputDir = ".vs\\${configuration.project.name}\\\$(Configuration)"
         Node defaultProps = xml.Import.find({ it.'@Project' == '$(VCTargetsPath)\\Microsoft.Cpp.Default.props'}) as Node
         defaultProps + {
             PropertyGroup(Label: "Configuration", Condition: configCondition) {
                 ConfigurationType(configuration.type)
                 UseDebugLibraries(configuration.debug)
+                OutDir(vsOutputDir)
+                IntDir(vsOutputDir)
             }
         }
 
@@ -72,34 +74,14 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         Node userMacros = xml.PropertyGroup.find({ it.'@Label' == 'UserMacros'}) as Node
         userMacros + {
             PropertyGroup(Label: "NMakeConfiguration", Condition: configCondition) {
-                NMakeBuildCommandLine("gradlew.bat ${configuration.buildTask}")
-                NMakeCleanCommandLine("gradlew.bat ${configuration.cleanTask}")
-                NMakeReBuildCommandLine("gradlew.bat ${configuration.cleanTask} ${configuration.buildTask}")
+                NMakeBuildCommandLine("${gradleCommand} ${configuration.buildTask}")
+                NMakeCleanCommandLine("${gradleCommand} ${configuration.cleanTask}")
+                NMakeReBuildCommandLine("${gradleCommand} ${configuration.cleanTask} ${configuration.buildTask}")
                 NMakePreprocessorDefinitions(configuration.compilerDefines.join(";"))
                 NMakeIncludeSearchPath(includePath)
                 NMakeOutput(toPath(configuration.outputFile))
-                IntDir("\$(ProjectName)\\\$(Configuration)\\")
-            }
-            ItemDefinitionGroup(Label: "VSBuildConfiguration", Condition: configCondition) {
-                ClCompile {
-                    AdditionalIncludeDirectories(includePath)
-                    PreprocessorDefinitions(configuration.compilerDefines.join(";"))
-                }
-                ResourceCompile {
-                    AdditionalIncludeDirectories(includePath)
-                    PreprocessorDefinitions(configuration.resourceDefines.join(";"))
-                }
-                Link {
-                    GenerateDebugInformation("true")
-                }
             }
         }
-    }
-
-    def addProjectReference(DefaultVisualStudioProject referencedProject) {
-        Node references = xml.ItemGroup.find({ it.'@Label' == 'References' }) as Node
-        references.appendNode("ProjectReference", [Include: referencedProject.projectFile.location.absolutePath])
-                  .appendNode("Project", referencedProject.uuid)
     }
 
     private Node getConfigurations() {

@@ -33,6 +33,7 @@ public class OperatingSystemNotationParser {
     private static final List<String> OSX_ALIASES = Arrays.asList("osx", "mac os x");
     private static final List<String> LINUX_ALIASES = Arrays.asList("linux");
     private static final List<String> SOLARIS_ALIASES = Arrays.asList("solaris", "sunos");
+    private static final List<String> FREEBSD_ALIASES = Arrays.asList("freebsd");
 
     public static NotationParser<Object, OperatingSystem> parser() {
         return new NotationParserBuilder<OperatingSystem>()
@@ -59,6 +60,9 @@ public class OperatingSystemNotationParser {
             }
             if (SOLARIS_ALIASES.contains(notation.toLowerCase())) {
                 return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.SOLARIS);
+            }
+            if (FREEBSD_ALIASES.contains(notation.toLowerCase())) {
+                return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.FREE_BSD);
             }
             throw new UnsupportedNotationException(notation);
         }

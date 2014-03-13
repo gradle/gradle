@@ -15,37 +15,58 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.util.GUtil;
 
-import java.util.Collections;
 import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 
 public class IvyUtil {
 
-    public static ModuleRevisionId createModuleRevisionId(Module module) {
-        return createModuleRevisionId(module, Collections.<String, String>emptyMap());
-    }
+    private static final Object MODULE_ID_LOCK = new Object(); //see GRADLE-3027
 
-    public static ModuleRevisionId createModuleRevisionId(Module module, Map<String, String> extraAttributes) {
-        return createModuleRevisionId(module.getGroup(), module.getName(), module.getVersion(), extraAttributes);
+    public static ModuleRevisionId createModuleRevisionId(Module module) {
+        return createModuleRevisionId(module.getGroup(), module.getName(), module.getVersion());
     }
 
     public static ModuleRevisionId createModuleRevisionId(Dependency dependency) {
-        return createModuleRevisionId(dependency, Collections.<String, String>emptyMap());
+        return createModuleRevisionId(dependency.getGroup(), dependency.getName(), dependency.getVersion());
     }
 
-    public static ModuleRevisionId createModuleRevisionId(Dependency dependency, Map<String, String> extraAttributes) {
-        return createModuleRevisionId(dependency.getGroup(), dependency.getName(), dependency.getVersion(), extraAttributes);
+    public static ModuleRevisionId createModuleRevisionId(String group, String name, String version) {
+        return createModuleRevisionId(emptyStringIfNull(group), name, null, emptyStringIfNull(version), emptyMap());
     }
 
-    public static ModuleRevisionId createModuleRevisionId(String group, String name, String version, Map<String, String> extraAttributes) {
-        return ModuleRevisionId.newInstance(emptyStringIfNull(group), name, emptyStringIfNull(version), extraAttributes);
+    public static ModuleRevisionId createModuleRevisionId(ModuleVersionIdentifier id) {
+        return createModuleRevisionId(id.getGroup(), id.getName(), id.getVersion());
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(ModuleRevisionId revId, String version) {
+        return createModuleRevisionId(revId.getOrganisation(), revId.getName(), revId.getBranch(), version, revId.getQualifiedExtraAttributes());
     }
 
     private static String emptyStringIfNull(String value) {
         return GUtil.elvis(value, "");
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(String org, String name, String branch, String rev, Map extraAttributes) {
+        return createModuleRevisionId(org, name, branch, rev, extraAttributes, true);
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(String org, String name, String branch, String revConstraint, Map extraAttributes, boolean replaceNullBranchWithDefault) {
+        synchronized (MODULE_ID_LOCK) {
+            return ModuleRevisionId.newInstance(org, name, branch, revConstraint, extraAttributes, replaceNullBranchWithDefault);
+        }
+    }
+
+    public static ModuleId createModuleId(String org, String name) {
+        synchronized (MODULE_ID_LOCK) {
+            return ModuleId.newInstance(org, name);
+        }
     }
 }

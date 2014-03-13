@@ -27,4 +27,29 @@ public interface PlatformConfigurableToolChain extends ToolChain {
      * Add configuration for a target platform.
      */
     void addPlatformConfiguration(TargetPlatformConfiguration platformConfig);
+
+    /**
+     * The C++ compiler.
+     */
+    GccTool getCCompiler();
+
+    /**
+     * The C compiler.
+     */
+    GccTool getCppCompiler();
+
+    /**
+     * The assembler.
+     */
+    GccTool getAssembler();
+
+    /**
+     * The linker.
+     */
+    GccTool getLinker();
+
+    /**
+     * The static library archiver.
+     */
+    GccTool getStaticLibArchiver();
 }

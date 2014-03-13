@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JvmOptions {
-    private static final Pattern SYS_PROP_PATTERN = Pattern.compile("-D(.+?)=(.*)");
+    private static final Pattern SYS_PROP_PATTERN = Pattern.compile("(?s)-D(.+?)=(.*)");
     private static final Pattern NO_ARG_SYS_PROP_PATTERN = Pattern.compile("-D([^=]+)");
     private static final Pattern MIN_HEAP_PATTERN = Pattern.compile("-Xms(.+)");
     private static final Pattern MAX_HEAP_PATTERN = Pattern.compile("-Xmx(.+)");

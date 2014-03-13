@@ -22,7 +22,7 @@ import org.gradle.messaging.actor.ActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.*
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
+import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException
 import org.gradle.util.GradleVersion
@@ -35,11 +35,15 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
+    ConnectionParameters connectionParameters = Stub() {
+        getVerboseLogging() >> true
+    }
+    File userHomeDir = Mock()
     final loader = new DefaultToolingImplementationLoader()
 
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(
+        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir) >> new DefaultClassPath(
                 getToolingApiResourcesDir(connectionImplementation),
                 ClasspathUtil.getClasspathForClass(TestConnection.class),
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -49,7 +53,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true))
+        def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters)
 
         then:
         adaptedConnection.delegate.class != connectionImplementation //different classloaders
@@ -81,10 +85,10 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
 
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath()
+        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir) >> new DefaultClassPath()
 
         expect:
-        loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true)) instanceof NoToolingApiConnection
+        loader.create(distribution, loggerFactory, connectionParameters) instanceof NoToolingApiConnection
     }
 }
 
@@ -111,7 +115,7 @@ class TestR16Connection extends TestR12Connection implements ModelBuilder {
 }
 
 class TestR12Connection extends TestR10M8Connection implements BuildActionRunner, ConfigurableConnection {
-    void configure(ConnectionParameters parameters) {
+    void configure(org.gradle.tooling.internal.protocol.ConnectionParameters parameters) {
         configured = parameters.verboseLogging
     }
 

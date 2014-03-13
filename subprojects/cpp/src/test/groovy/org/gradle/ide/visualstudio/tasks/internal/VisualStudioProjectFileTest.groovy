@@ -63,30 +63,34 @@ class VisualStudioProjectFileTest extends Specification {
 
     def "add configurations"() {
         when:
-        generator.addConfiguration(configuration("debug", "Win32", ["foo", "bar"], ["include1", "include2"]))
-        generator.addConfiguration(configuration("release", "Win32", ["foo", "bar"], ["include1", "include2", "include3"]))
-        generator.addConfiguration(configuration("debug", "x64", ["foo", "bar"], ["include1", "include2"]))
+        generator.gradleCommand = 'GRADLE'
+        generator.addConfiguration(configuration("debugWin32", "Win32", ["foo", "bar"], ["include1", "include2"]))
+        generator.addConfiguration(configuration("releaseWin32", "Win32", ["foo", "bar"], ["include1", "include2", "include3"]))
+        generator.addConfiguration(configuration("debugX64", "x64", ["foo", "bar"], ["include1", "include2"]))
 
         then:
         final configurations = projectFile.projectConfigurations
         configurations.size() == 3
-        with (configurations['debug|Win32']) {
-            configName == 'debug'
+        with (configurations['debugWin32']) {
+            name == 'debugWin32'
             platformName == 'Win32'
             macros == "foo;bar"
             includePath == "include1;include2"
+            buildCommand == "GRADLE debugWin32Build"
         }
-        with (configurations['release|Win32']) {
-            configName == 'release'
+        with (configurations['releaseWin32']) {
+            name == 'releaseWin32'
             platformName == 'Win32'
             macros == "foo;bar"
             includePath == "include1;include2;include3"
+            buildCommand == "GRADLE releaseWin32Build"
         }
-        with (configurations['debug|x64']) {
-            configName == 'debug'
+        with (configurations['debugX64']) {
+            name == 'debugX64'
             platformName == 'x64'
             macros == "foo;bar"
             includePath == "include1;include2"
+            buildCommand == "GRADLE debugX64Build"
         }
     }
 
@@ -95,8 +99,8 @@ class VisualStudioProjectFileTest extends Specification {
             getName() >> "${configName}|${platformName}"
             getConfigurationName() >> configName
             getPlatformName() >> platformName
-            getBuildTask() >> "buildMe"
-            getCleanTask() >> "cleanMe"
+            getBuildTask() >> "${configName}Build"
+            getCleanTask() >> "${configName}Clean"
             getCompilerDefines() >> defines
             getIncludePaths() >> includes.collect { file(it) }
         }

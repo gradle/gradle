@@ -18,16 +18,19 @@ package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 
 public interface SettingsInternal extends Settings {
-    ClassLoader getClassLoader();
+
+    ClassLoaderScope getClassLoaderScope();
 
     StartParameter getStartParameter();
 
     ScriptSource getSettingsScript();
 
     ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry();
+
 }

@@ -46,7 +46,7 @@
     <section>
         <title>Locating tasks</title>
         <para>You often need to locate the tasks that you have defined in the build file, for example, to configure them
-            or use them for dependencies. There are a number of ways you can do this. Firstly, each task is available as
+            or use them for dependencies. There are a number of ways of doing this. Firstly, each task is available as
             a property of the project, using the task name as the property name:
         </para>
         <sample id="accessAsProperty" dir="userguide/tasks/accessAsProperty" title="Accessing tasks as properties">
@@ -316,6 +316,7 @@
             <para>
                 A task with only outputs defined will be considered up-to-date if those outputs are unchanged since the previous build.
             </para>
+
         </section>
         <section>
             <title>How does it work?</title>
@@ -323,8 +324,7 @@
                 Before a task is executed for the first time, Gradle takes a snapshot of the inputs. This snapshot contains
                 the set of input files and a hash of the contents of each file. Gradle then executes the task. If the
                 task completes successfully, Gradle takes a snapshot of the outputs. This snapshot contains the set of
-                output files and a hash of the contents of each file. Gradle takes note of any files created, changed or
-                deleted in the output directories of the task. Gradle persists both snapshots for next time the task
+                output files and a hash of the contents of each file. Gradle persists both snapshots for next time the task
                 is executed.
             </para>
             <para>
@@ -333,12 +333,17 @@
                 date and skips the task. If they are not the same, Gradle executes the task. Gradle persists both snapshots
                 for next time the task is executed.
             </para>
+            <para>
+                Note that if a task has an output directory specified, any files added to that directory since the last time it was executed
+                are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other.
+                If this is not the behaviour you want for some reason, consider using <apilink class="org.gradle.api.tasks.TaskOutputs" method="upToDateWhen(groovy.lang.Closure)" />
+            </para>
         </section>
     </section>
 
     <section>
         <title>Task rules</title>
-        <para>Sometimes you want to have a task which behavior depends on a large or infinite number value range
+        <para>Sometimes you want to have a task whose behavior depends on a large or infinite number value range
             of parameters. A very nice and expressive way to provide such tasks are task rules:
         </para>
         <sample id="taskRule" dir="userguide/tasks/addRules" title="Task rule">
@@ -348,7 +353,7 @@
         <para>The String parameter is used as a description for the rule. This description is shown when running
             for example <userinput>gradle tasks</userinput>.
         </para>
-        <para>Rules not just work for calling tasks from the command line. You can also create dependsOn relations
+        <para>Rules not just work when calling tasks from the command line. You can also create dependsOn relations
             on rule based tasks:
         </para>
         <sample id="taskRuleDependsOn" dir="userguide/tasks/addRules" title="Dependency on rule based tasks">

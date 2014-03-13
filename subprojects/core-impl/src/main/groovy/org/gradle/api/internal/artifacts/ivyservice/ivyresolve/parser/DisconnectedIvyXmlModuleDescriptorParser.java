@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -31,6 +30,8 @@ import java.net.URL;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Map;
+
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId;
 
 public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
     public DisconnectedIvyXmlModuleDescriptorParser(ResolverStrategy resolverStrategy) {
@@ -57,8 +58,7 @@ public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescri
         @Override
         protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation,
                                                      String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
-            ModuleId parentModuleId = new ModuleId(parentOrganisation, parentModule);
-            ModuleRevisionId parentMrid = new ModuleRevisionId(parentModuleId, parentRevision);
+            ModuleRevisionId parentMrid = createModuleRevisionId(parentOrganisation, parentModule, parentRevision);
             return new DefaultModuleDescriptor(parentMrid, "release", new Date());
         }
     }

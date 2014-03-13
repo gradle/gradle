@@ -30,7 +30,7 @@ import java.io.*;
 import java.util.Collection;
 
 public class TestResultSerializer {
-    private static final int RESULT_VERSION = 2;
+    private static final int RESULT_VERSION = 3;
 
     private final File resultsFile;
 
@@ -79,6 +79,7 @@ public class TestResultSerializer {
         encoder.writeSmallInt(methodResult.getResultType().ordinal());
         encoder.writeSmallLong(methodResult.getDuration());
         encoder.writeLong(methodResult.getEndTime());
+        encoder.writeBoolean(methodResult.isIgnored());
         encoder.writeSmallInt(methodResult.getFailures().size());
         for (TestFailure testFailure : methodResult.getFailures()) {
             encoder.writeString(testFailure.getExceptionType());
@@ -140,6 +141,9 @@ public class TestResultSerializer {
         long duration = decoder.readSmallLong();
         long endTime = decoder.readLong();
         TestMethodResult methodResult = new TestMethodResult(id, name, resultType, duration, endTime);
+        if (decoder.readBoolean()) {
+            methodResult.setIgnored();
+        }
         int failures = decoder.readSmallInt();
         for (int i = 0; i < failures; i++) {
             String exceptionType = decoder.readString();

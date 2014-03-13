@@ -16,18 +16,15 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import groovy.lang.Closure;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
@@ -49,17 +46,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
-    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
+    private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
     private final MetaDataProvider metaDataProvider;
     private final Instantiator instantiator;
-    private final ModuleMetadataProcessor metadataProcessor;
-    private final VersionMatcher versionMatcher;
-    private final LatestStrategy latestStrategy;
     private final ResolverStrategy resolverStrategy;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, Instantiator instantiator,
-                                        ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher, LatestStrategy latestStrategy,
+                                        LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder, Instantiator instantiator,
                                         ResolverStrategy resolverStrategy) {
         super(credentials);
         this.fileResolver = fileResolver;
@@ -70,9 +63,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.layout = new GradleRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiator;
-        this.metadataProcessor = metadataProcessor;
-        this.versionMatcher = versionMatcher;
-        this.latestStrategy = latestStrategy;
     }
 
     public DependencyResolver createLegacyDslObject() {
@@ -123,8 +113,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyResolver(
                 getName(), httpTransport,
                 locallyAvailableResourceFinder,
-                metadataProcessor, versionMatcher,
-                latestStrategy, metaDataProvider.dynamicResolve, resolverStrategy);
+                metaDataProvider.dynamicResolve, resolverStrategy);
     }
 
     public URI getUrl() {

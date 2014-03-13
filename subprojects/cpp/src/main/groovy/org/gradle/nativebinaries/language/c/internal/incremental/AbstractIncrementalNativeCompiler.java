@@ -16,49 +16,41 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.hash.CachingHasher;
-import org.gradle.api.internal.hash.DefaultHasher;
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
+import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.DefaultSerializer;
-import org.gradle.messaging.serialize.Serializer;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.List;
 
 abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
-    private final RegexBackedIncludesParser includesParser = new RegexBackedIncludesParser();
     private final TaskInternal task;
-    private final CacheRepository cacheRepository;
+    private final SourceIncludesParser sourceIncludesParser;
+    private final TaskArtifactStateCacheAccess cacheAccess;
+    private final FileSnapshotter fileSnapshotter;
     private Iterable<File> includes;
 
-    protected AbstractIncrementalNativeCompiler(TaskInternal task, Iterable<File> includes, CacheRepository cacheRepository) {
+    protected AbstractIncrementalNativeCompiler(TaskInternal task, SourceIncludesParser sourceIncludesParser, Iterable<File> includes,
+                                                TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter) {
         this.task = task;
         this.includes = includes;
-        this.cacheRepository = cacheRepository;
+        this.sourceIncludesParser = sourceIncludesParser;
+        this.cacheAccess = cacheAccess;
+        this.fileSnapshotter = fileSnapshotter;
     }
 
     public WorkResult execute(final NativeCompileSpec spec) {
-        final PersistentCache cache = openCache(task);
-        try {
-            return cache.useCache("incremental compile", new Factory<WorkResult>() {
-                public WorkResult create() {
-                    IncrementalCompileProcessor processor = createProcessor(includes, cache);
-                    return doIncrementalCompile(processor, spec);
-                }
-            });
-        } finally {
-            cache.close();
-        }
+        return cacheAccess.useCache("incremental compile", new Factory<WorkResult>() {
+            public WorkResult create() {
+                IncrementalCompileProcessor processor = createProcessor(includes);
+                return doIncrementalCompile(processor, spec);
+            }
+        });
     }
 
     protected abstract WorkResult doIncrementalCompile(IncrementalCompileProcessor processor, NativeCompileSpec spec);
@@ -67,28 +59,28 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
         return task;
     }
 
-    private IncrementalCompileProcessor createProcessor(Iterable<File> includes, PersistentCache cache) {
-        PersistentIndexedCache<File, FileState> stateCache = createCache(cache, "state", File.class, new DefaultSerializer<FileState>(FileState.class.getClassLoader()));
-        // TODO:DAZ This doesn't need to be an indexed cache: need PersistentCache.createStateCache()
-        PersistentIndexedCache<String, List<File>> listCache = createCache(cache, "previous", String.class, new DefaultSerializer<List<File>>());
+    private IncrementalCompileProcessor createProcessor(Iterable<File> includes) {
+        PersistentStateCache<CompilationState> compileStateCache = createCompileStateCache(task.getPath());
 
-        DefaultSourceDependencyParser dependencyParser = new DefaultSourceDependencyParser(includesParser, CollectionUtils.toList(includes));
+        DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
 
-        // TODO:DAZ Inject a factory, and come up with a common abstraction for TaskArtifactStateCacheAccess and PersistentCache
-        CachingHasher hasher = new CachingHasher(new DefaultHasher(), cache);
-
-        return new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, hasher);
+        return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, fileSnapshotter);
     }
 
-    private PersistentCache openCache(TaskInternal task) {
-        return cacheRepository
-                .cache(task, "incrementalCompile")
-                .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
-                .open();
-    }
+    private PersistentStateCache<CompilationState> createCompileStateCache(final String taskPath) {
+        final PersistentIndexedCache<String, CompilationState> stateIndexedCache = cacheAccess.createCache("compilationState", String.class, new CompilationStateSerializer());
+        return new PersistentStateCache<CompilationState>() {
+            public CompilationState get() {
+                return stateIndexedCache.get(taskPath);
+            }
 
-    private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, Serializer<V> fileStateDefaultSerializer) {
-        return cache.createCache(new PersistentIndexedCacheParameters<U, V>(name, keyType, fileStateDefaultSerializer));
-    }
+            public void set(CompilationState newValue) {
+                stateIndexedCache.put(taskPath, newValue);
+            }
 
+            public void update(UpdateAction<CompilationState> updateAction) {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
 }

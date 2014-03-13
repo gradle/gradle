@@ -31,6 +31,7 @@ import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
@@ -59,6 +60,8 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId;
 
 /**
  * Copied from org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser into Gradle codebase.
@@ -331,8 +334,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         protected DependencyDescriptor getDefaultConfMappingDescriptor() {
             if (defaultConfMappingDescriptor == null) {
-                defaultConfMappingDescriptor = new DefaultDependencyDescriptor(ModuleRevisionId
-                        .newInstance("", "", ""), false);
+                defaultConfMappingDescriptor = new DefaultDependencyDescriptor(createModuleRevisionId("", "", ""), false);
                 parseDepsConfs(defaultConfMapping, defaultConfMappingDescriptor, false, false);
             }
             return defaultConfMappingDescriptor;
@@ -604,7 +606,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 parent = parseOtherIvyFileOnFileSystem(location);
 
                 //verify that the parsed descriptor is the correct parent module.
-                ModuleId expected = new ModuleId(parentOrganisation, parentModule);
+                ModuleId expected = IvyUtil.createModuleId(parentOrganisation, parentModule);
                 ModuleId pid = parent.getModuleRevisionId().getModuleId();
                 if (!expected.equals(pid)) {
                     LOGGER.warn("Ignoring parent Ivy file " + location + "; expected " + expected + " but found " + pid);
@@ -681,12 +683,12 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             DefaultModuleDescriptor descriptor = getMd();
             ModuleRevisionId currentMrid = descriptor.getModuleRevisionId();
 
-            ModuleRevisionId mergedMrid = ModuleRevisionId.newInstance(
-                mergeValue(parentMrid.getOrganisation(), currentMrid.getOrganisation()),
-                currentMrid.getName(),
-                mergeValue(parentMrid.getBranch(), currentMrid.getBranch()),
-                mergeValue(parentMrid.getRevision(), currentMrid.getRevision()),
-                mergeValues(parentMrid.getQualifiedExtraAttributes(), currentMrid.getQualifiedExtraAttributes())
+            ModuleRevisionId mergedMrid = createModuleRevisionId(
+                    mergeValue(parentMrid.getOrganisation(), currentMrid.getOrganisation()),
+                    currentMrid.getName(),
+                    mergeValue(parentMrid.getBranch(), currentMrid.getBranch()),
+                    mergeValue(parentMrid.getRevision(), currentMrid.getRevision()),
+                    mergeValues(parentMrid.getQualifiedExtraAttributes(), currentMrid.getQualifiedExtraAttributes())
             );
 
             descriptor.setModuleRevisionId(mergedMrid);
@@ -743,8 +745,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation,
                 String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
-            ModuleId parentModuleId = new ModuleId(parentOrganisation, parentModule);
-            ModuleRevisionId parentMrid = new ModuleRevisionId(parentModuleId, parentRevision);
+            ModuleRevisionId parentMrid = createModuleRevisionId(parentOrganisation, parentModule, parentRevision);
             Artifact pomArtifact = DefaultArtifact.newIvyArtifact(parentMrid, new Date());
             ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(pomArtifact);
             LocallyAvailableExternalResource externalResource = parseContext.getArtifact(artifactIdentifier);
@@ -873,19 +874,19 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String[] ignoredAttributeNames = DEPENDENCY_REGULAR_ATTRIBUTES;
             Map extraAttributes = getExtraAttributes(attributes, ignoredAttributeNames);
 
-            ModuleRevisionId revId = ModuleRevisionId.newInstance(org, name, branch, rev, extraAttributes);
+            ModuleRevisionId revId = createModuleRevisionId(org, name, branch, rev, extraAttributes);
             ModuleRevisionId dynamicId;
             if ((revConstraint == null) && (branchConstraint == null)) {
                 // no dynamic constraints defined, so dynamicId equals revId
-                dynamicId = ModuleRevisionId.newInstance(org, name, branch, rev, extraAttributes, false);
+                dynamicId = createModuleRevisionId(org, name, branch, rev, extraAttributes, false);
             } else {
                 if (branchConstraint == null) {
                     // this situation occurs when there was no branch defined
                     // in the original dependency descriptor. So the dynamicId
                     // shouldn't contain a branch neither
-                    dynamicId = ModuleRevisionId.newInstance(org, name, null, revConstraint, extraAttributes, false);
+                    dynamicId = createModuleRevisionId(org, name, null, revConstraint, extraAttributes, false);
                 } else {
-                    dynamicId = ModuleRevisionId.newInstance(org, name, branchConstraint, revConstraint, extraAttributes);
+                    dynamicId = createModuleRevisionId(org, name, branchConstraint, revConstraint, extraAttributes);
                 }
             }
 
@@ -961,7 +962,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String revision = substitute(attributes.getValue("revision"));
             String branch = substitute(attributes.getValue("branch"));
             Map extraAttributes = getExtraAttributes(attributes, new String[]{"organisation", "module", "revision", "status", "publication", "branch", "namespace", "default", "resolver"});
-            getMd().setModuleRevisionId(ModuleRevisionId.newInstance(org, module, branch, revision, extraAttributes));
+            getMd().setModuleRevisionId(createModuleRevisionId(org, module, branch, revision, extraAttributes));
 
             getMd().setStatus(elvis(substitute(attributes.getValue("status")), "integration"));
             getMd().setDefault(Boolean.valueOf(substitute(attributes.getValue("default"))));
@@ -1054,14 +1055,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
-                ArtifactId aid = new ArtifactId(new ModuleId(org, module), name, type, ext);
+                ArtifactId aid = new ArtifactId(IvyUtil.createModuleId(org, module), name, type, ext);
                 Map extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultIncludeRule(aid, matcher, extraAttributes);
             } else { // _state == ARTIFACT_EXCLUDE || EXCLUDE
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
-                ArtifactId aid = new ArtifactId(new ModuleId(org, module), name, type, ext);
+                ArtifactId aid = new ArtifactId(IvyUtil.createModuleId(org, module), name, type, ext);
                 Map extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultExcludeRule(aid, matcher, extraAttributes);
             }

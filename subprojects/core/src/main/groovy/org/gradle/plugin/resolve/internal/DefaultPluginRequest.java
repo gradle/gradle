@@ -41,7 +41,11 @@ public class DefaultPluginRequest implements PluginRequest {
 
     @Override
     public String toString() {
-        return "{id=" + id + ",version=" + version + "}";
+        if (version == null) {
+            return String.format("[plugin: '%s']", id);
+        } else {
+            return String.format("[plugin: '%s', version: '%s']", id, version);
+        }
     }
 
     @Override

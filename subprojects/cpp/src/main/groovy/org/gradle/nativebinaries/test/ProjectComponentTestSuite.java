@@ -22,7 +22,7 @@ import org.gradle.nativebinaries.ProjectNativeComponent;
  * A suite of tests for a project component.
  */
 @Incubating
-public interface ProjectComponentTestSuite {
+public interface ProjectComponentTestSuite extends TestSuite {
 
     /**
      * The tested component.

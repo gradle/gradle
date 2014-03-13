@@ -53,7 +53,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         then:
         0 * delegate._
     }
-    
+
     void "evaluates the project firing all necessary listeners and updating the state"() {
         when:
         evaluator.evaluate(project, state)
@@ -145,7 +145,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         1 * state.setExecuting(false)
 
         then:
-        1 * listener.afterEvaluate(project, state) >> { throw new RuntimeException("afterEvaluate")}
+        1 * listener.afterEvaluate(project, state) >> { throw new RuntimeException("afterEvaluate") }
         1 * state.hasFailure() >> true
         0 * state.executed(_)
     }

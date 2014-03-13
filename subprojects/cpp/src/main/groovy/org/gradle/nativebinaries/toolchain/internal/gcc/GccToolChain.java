@@ -15,15 +15,11 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.Gcc;
-import org.gradle.nativebinaries.toolchain.GccTool;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionResult;
@@ -32,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Compiler adapter for GCC.
@@ -45,19 +40,19 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     private final Transformer<GccVersionResult, File> versionDeterminer;
 
-    private String version;
+    private GccVersionResult versionResult;
 
     public GccToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
-        super(name, operatingSystem, fileResolver, execActionFactory, new GccToolRegistry(operatingSystem));
+        super(name, operatingSystem, fileResolver, execActionFactory, new GccToolSearchPath(operatingSystem));
         this.versionDeterminer = new GccVersionDeterminer(execActionFactory);
 
-        tools.setExeName(ToolType.CPP_COMPILER, "g++");
-        tools.setExeName(ToolType.C_COMPILER, "gcc");
-        tools.setExeName(ToolType.OBJECTIVECPP_COMPILER, "g++");
-        tools.setExeName(ToolType.OBJECTIVEC_COMPILER, "gcc");
-        tools.setExeName(ToolType.ASSEMBLER, "as");
-        tools.setExeName(ToolType.LINKER, "g++");
-        tools.setExeName(ToolType.STATIC_LIB_ARCHIVER, "ar");
+        registerTool(ToolType.CPP_COMPILER, "g++");
+        registerTool(ToolType.C_COMPILER, "gcc");
+        registerTool(ToolType.OBJECTIVECPP_COMPILER, "g++");
+        registerTool(ToolType.OBJECTIVEC_COMPILER, "gcc");
+        registerTool(ToolType.ASSEMBLER, "as");
+        registerTool(ToolType.LINKER, "g++");
+        registerTool(ToolType.STATIC_LIB_ARCHIVER, "ar");
     }
 
     @Override
@@ -66,74 +61,30 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     }
 
     @Override
-    protected void checkAvailable(ToolChainAvailability availability) {
-        super.checkAvailable(availability);
-        determineVersion(availability);
-    }
-
-    private void determineVersion(ToolChainAvailability availability) {
-        CommandLineToolSearchResult cppCompiler = tools.locate(ToolType.CPP_COMPILER);
-        if (cppCompiler.isAvailable()) {
-            GccVersionResult result = versionDeterminer.transform(cppCompiler.getTool());
-            availability.mustBeAvailable(result);
-            if (result.isAvailable()) {
-                version = result.getVersion();
-                LOGGER.info("Found {} with version {}", ToolType.CPP_COMPILER.getToolName(), version);
+    protected void initTools(ToolChainAvailability availability) {
+        if (versionResult == null) {
+            CommandLineToolSearchResult compiler = locate(ToolType.C_COMPILER);
+            if (!compiler.isAvailable()) {
+                compiler = locate(ToolType.CPP_COMPILER);
             }
+            availability.mustBeAvailable(compiler);
+            if (!compiler.isAvailable()) {
+                return;
+            }
+            versionResult = versionDeterminer.transform(compiler.getTool());
+            LOGGER.debug("Found {} with version {}", ToolType.C_COMPILER.getToolName(), versionResult);
         }
-    }
-
-    public GccTool getCppCompiler() {
-        return new DefaultTool(ToolType.CPP_COMPILER);
-    }
-
-    public GccTool getCCompiler() {
-        return new DefaultTool(ToolType.C_COMPILER);
-    }
-
-    public GccTool getAssembler() {
-        return new DefaultTool(ToolType.ASSEMBLER);
-    }
-
-    public GccTool getLinker() {
-        return new DefaultTool(ToolType.LINKER);
-    }
-
-    public GccTool getStaticLibArchiver() {
-        return new DefaultTool(ToolType.STATIC_LIB_ARCHIVER);
+        availability.mustBeAvailable(versionResult);
     }
 
     protected boolean canUseCommandFile() {
-        String[] components = version.split("\\.");
+        String[] components = versionResult.getVersion().split("\\.");
         int majorVersion;
         try {
             majorVersion = Integer.valueOf(components[0]);
         } catch (NumberFormatException e) {
-            throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", version), e);
+            throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", versionResult), e);
         }
         return majorVersion >= 4;
     }
-
-    private class DefaultTool implements GccTool {
-        private final ToolType toolType;
-
-        private DefaultTool(ToolType toolType) {
-            this.toolType = toolType;
-        }
-
-        public String getExecutable() {
-            return tools.getExeName(toolType);
-        }
-
-        public void setExecutable(String file) {
-            tools.setExeName(toolType, file);
-        }
-
-        // TODO:DAZ Decorate class and use an action parameter
-        public void withArguments(Closure arguments) {
-            Action<List<String>> action = new ClosureBackedAction<List<String>>(arguments);
-            tools.addArgsAction(toolType, action);
-        }
-    }
-
 }

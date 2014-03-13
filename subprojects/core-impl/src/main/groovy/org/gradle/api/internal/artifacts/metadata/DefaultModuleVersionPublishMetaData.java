@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 
 import java.io.File;
 import java.util.Collection;
@@ -62,6 +64,10 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
 
         public Artifact getArtifact() {
             return artifact;
+        }
+
+        public ArtifactIdentifier getArtifactIdentifier() {
+            return new DefaultArtifactIdentifier(artifact.getId());
         }
 
         public ModuleVersionArtifactIdentifier getId() {

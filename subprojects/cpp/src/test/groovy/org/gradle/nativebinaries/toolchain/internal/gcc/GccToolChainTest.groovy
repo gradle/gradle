@@ -36,7 +36,7 @@ class GccToolChainTest extends Specification {
     def "has default tool names"() {
         expect:
         toolChain.cppCompiler.executable == "g++"
-        toolChain.CCompiler.executable == "gcc"
+        toolChain.cCompiler.executable == "gcc"
         toolChain.assembler.executable == "as"
         toolChain.linker.executable == "g++"
         toolChain.staticLibArchiver.executable == "ar"

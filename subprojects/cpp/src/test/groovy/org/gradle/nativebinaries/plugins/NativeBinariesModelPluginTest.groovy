@@ -21,13 +21,13 @@ import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.PlatformContainer
-import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
 import org.gradle.nativebinaries.toolchain.ToolChainRegistry
-import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -224,7 +224,7 @@ class NativeBinariesModelPluginTest extends Specification {
     def toolChain(def name) {
         Stub(ToolChainInternal) {
             getName() >> name
-            canTargetPlatform(_) >> Stub(ToolSearchResult) {
+            target(_) >> Stub(PlatformToolChain) {
                 isAvailable() >> true
             }
         }

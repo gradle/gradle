@@ -16,10 +16,10 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,17 +37,17 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private Set<Thread> executing = new HashSet<Thread>();
+    private final Set<Thread> executing = new HashSet<Thread>();
     private boolean stopped;
     private ConsumerConnection connection;
 
-    ConsumerConnectionParameters connectionParameters;
+    private final ConnectionParameters connectionParameters;
 
-    public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, boolean verboseLogging) {
+    public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, ConnectionParameters connectionParameters) {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
-        this.connectionParameters = new ConsumerConnectionParameters(verboseLogging);
+        this.connectionParameters = connectionParameters;
     }
 
     public void stop() {

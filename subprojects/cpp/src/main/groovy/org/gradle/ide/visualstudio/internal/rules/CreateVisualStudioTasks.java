@@ -44,15 +44,28 @@ public class CreateVisualStudioTasks extends ModelRule {
 
             // Lifecycle task for component
             ProjectNativeComponent component = vsSolution.getComponent();
-            Task lifecycleTask = tasks.create(component.getName() + "VisualStudio").dependsOn(vsSolution);
+            Task lifecycleTask = tasks.maybeCreate(component.getName() + "VisualStudio");
+            lifecycleTask.dependsOn(vsSolution);
             lifecycleTask.setGroup("IDE");
             lifecycleTask.setDescription(String.format("Generates the Visual Studio solution for %s.", component));
         }
 
+        addCleanTask(tasks);
+    }
+
+    private void addCleanTask(TaskContainer tasks) {
         Delete cleanTask = tasks.create("cleanVisualStudio", Delete.class);
-        cleanTask.delete("visualStudio");
+        for (Task task : tasks.withType(GenerateSolutionFileTask.class)) {
+            cleanTask.delete(task.getOutputs().getFiles());
+        }
+        for (Task task : tasks.withType(GenerateFiltersFileTask.class)) {
+            cleanTask.delete(task.getOutputs().getFiles());
+        }
+        for (Task task : tasks.withType(GenerateProjectFileTask.class)) {
+            cleanTask.delete(task.getOutputs().getFiles());
+        }
         cleanTask.setGroup("IDE");
-        cleanTask.setDescription("Removes all Visual Studio project and solution files");
+        cleanTask.setDescription("Removes all generated Visual Studio project and solution files");
     }
 
     private Task createSolutionTask(TaskContainer tasks, VisualStudioSolution solution) {
@@ -64,6 +77,7 @@ public class CreateVisualStudioTasks extends ModelRule {
     private Task createProjectsFileTask(TaskContainer tasks, VisualStudioProject vsProject) {
         GenerateProjectFileTask task = tasks.create(vsProject.getName() + "VisualStudioProject", GenerateProjectFileTask.class);
         task.setVisualStudioProject(vsProject);
+        task.initGradleCommand();
         return task;
     }
 

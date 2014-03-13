@@ -23,9 +23,9 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.*;
 import org.gradle.api.specs.Spec;
+import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeRepoFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 
 import java.io.File;
@@ -145,17 +145,17 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @param configuration Configuration
      * @return IDE local file dependencies
      */
-    public List<IdeRepoFileDependency> getIdeRepoFileDependencies(Configuration configuration) {
+    public List<IdeExtendedRepoFileDependency> getIdeRepoFileDependencies(Configuration configuration) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
         List<ResolvedDependencyResult> resolvedDependencies = findAllResolvedModuleDependencies(result.getAllDependencies());
         Map<ModuleVersionIdentifier, ResolvedDependencyResult> mappedResolvedDependencies = mapResolvedDependencies(resolvedDependencies);
         Set<ResolvedArtifact> artifacts = getExternalArtifacts(configuration);
 
-        List<IdeRepoFileDependency> externalDependencies = new ArrayList<IdeRepoFileDependency>();
+        List<IdeExtendedRepoFileDependency> externalDependencies = new ArrayList<IdeExtendedRepoFileDependency>();
 
         for(ResolvedArtifact artifact : artifacts) {
             if(mappedResolvedDependencies.containsKey(artifact.getModuleVersion().getId())) {
-                IdeRepoFileDependency ideRepoFileDependency = new IdeRepoFileDependency(configuration, artifact.getFile());
+                IdeExtendedRepoFileDependency ideRepoFileDependency = new IdeExtendedRepoFileDependency(configuration, artifact.getFile());
                 ideRepoFileDependency.setId(artifact.getModuleVersion().getId());
                 externalDependencies.add(ideRepoFileDependency);
             }
@@ -273,12 +273,12 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @return External artifacts
      */
     private Set<ResolvedArtifact> getExternalArtifacts(Configuration configuration) {
-        Spec<Dependency> externalDependencySpec = new Spec<Dependency>() {
-            public boolean isSatisfiedBy(Dependency element) {
-                return element instanceof ExternalDependency;
-            }
-        };
+        return configuration.getResolvedConfiguration().getLenientConfiguration().getArtifacts(new ExternalDependencySpec());
+    }
 
-        return configuration.getResolvedConfiguration().getLenientConfiguration().getArtifacts(externalDependencySpec);
+    private class ExternalDependencySpec implements Spec<Dependency> {
+        public boolean isSatisfiedBy(Dependency element) {
+            return element instanceof ExternalDependency;
+        }
     }
 }

@@ -65,7 +65,7 @@ class ProfileReportRendererTest extends Specification {
         file.text.contains(toPlatformLineSeparators("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-<meta httpEquiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>Profile report</title>
 <link href="css/base-style.css" rel="stylesheet" type="text/css"/>
 <link href="css/style.css" rel="stylesheet" type="text/css"/>

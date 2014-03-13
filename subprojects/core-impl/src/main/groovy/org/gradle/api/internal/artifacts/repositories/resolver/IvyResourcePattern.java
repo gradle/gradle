@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.HashMap;
@@ -39,13 +39,13 @@ public class IvyResourcePattern implements ResourcePattern {
         return String.format("Ivy pattern '%s'", pattern);
     }
 
-    public String toPath(Artifact artifact) {
+    public String toPath(ArtifactIdentifier artifact) {
         Map<String, Object> attributes = toAttributes(artifact);
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }
 
-    public String toVersionListPattern(Artifact artifact) {
-        Map<String, Object> attributes = toAttributes(artifact);
+    public String toVersionListPattern(ArtifactIdentifier artifactId) {
+        Map<String, Object> attributes = toAttributes(artifactId);
         attributes.remove(IvyPatternHelper.REVISION_KEY);
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }
@@ -54,12 +54,20 @@ public class IvyResourcePattern implements ResourcePattern {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    public String toModuleVersionPath(Artifact artifact) {
+    public String toModuleVersionPath(ArtifactIdentifier artifact) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    protected Map<String, Object> toAttributes(Artifact artifact) {
-        return new HashMap<String, Object>(artifact.getAttributes());
+    protected Map<String, Object> toAttributes(ArtifactIdentifier artifact) {
+        HashMap<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(IvyPatternHelper.ORGANISATION_KEY, artifact.getModuleVersionIdentifier().getGroup());
+        attributes.put(IvyPatternHelper.MODULE_KEY, artifact.getModuleVersionIdentifier().getName());
+        attributes.put(IvyPatternHelper.REVISION_KEY, artifact.getModuleVersionIdentifier().getVersion());
+        attributes.put(IvyPatternHelper.ARTIFACT_KEY, artifact.getName());
+        attributes.put(IvyPatternHelper.TYPE_KEY, artifact.getType());
+        attributes.put(IvyPatternHelper.EXT_KEY, artifact.getExtension());
+        attributes.put("classifier", artifact.getClassifier());
+        return attributes;
     }
 
     protected Map<String, Object> toAttributes(ModuleIdentifier module) {

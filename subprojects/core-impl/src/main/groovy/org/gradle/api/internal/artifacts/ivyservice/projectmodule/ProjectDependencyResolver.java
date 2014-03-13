@@ -17,23 +17,21 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 
 import java.util.Set;
 
 public class ProjectDependencyResolver implements DependencyToModuleVersionResolver, ModuleToModuleVersionResolver {
-    private final ProjectModuleRegistry projectModuleRegistry;
+    private final ProjectComponentRegistry projectComponentRegistry;
     private final DependencyToModuleVersionResolver resolver;
     private final LocalComponentFactory localComponentFactory;
 
-    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleVersionResolver resolver, LocalComponentFactory localComponentFactory) {
-        this.projectModuleRegistry = projectModuleRegistry;
+    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, DependencyToModuleVersionResolver resolver, LocalComponentFactory localComponentFactory) {
+        this.projectComponentRegistry = projectComponentRegistry;
         this.resolver = resolver;
         this.localComponentFactory = localComponentFactory;
     }
@@ -42,7 +40,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         DependencyDescriptor descriptor = dependency.getDescriptor();
         if (descriptor instanceof ProjectDependencyDescriptor) {
             ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
-            LocalComponentMetaData componentMetaData = projectModuleRegistry.findProject(desc);
+            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(desc.getTargetProject().getPath());
             result.resolved(componentMetaData.toResolveMetaData(), new ProjectArtifactResolver(componentMetaData));
         } else {
             resolver.resolve(dependency, result);
@@ -68,6 +66,11 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
             } else {
                 result.notFound(artifact.getId());
             }
+        }
+
+        public void resolve(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result) {
+            // TODO: how to handle this?
+            throw new UnsupportedOperationException("TODO");
         }
     }
 }

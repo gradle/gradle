@@ -62,7 +62,7 @@ class CompositeTestResultsTest extends Specification {
         results.failed(failed)
         results.addTest(test())
         results.addTest(test())
-        results.addIgnored();
+        results.ignored(test());
 
         expect:
         results.successRate == 50
@@ -91,7 +91,7 @@ class CompositeTestResultsTest extends Specification {
     def computesResultTypeWhenSuccessAndIgnored() {
         results.addTest(test())
         results.addTest(test())
-        results.addIgnored()
+        results.ignored(test())
 
         expect:
         results.resultType == SKIPPED;
@@ -100,7 +100,7 @@ class CompositeTestResultsTest extends Specification {
     def computesResultTypeWhenSuccessAndIgnoredAndFailed() {
         results.addTest(test())
         results.addTest(test())
-        results.addIgnored()
+        results.ignored(test())
         def failed = results.addTest(test())
         results.failed(failed)
 

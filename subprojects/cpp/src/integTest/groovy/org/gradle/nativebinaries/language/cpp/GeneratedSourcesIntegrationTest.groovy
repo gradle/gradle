@@ -140,6 +140,37 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         executableBuilt(app)
     }
 
+    def "can have library composed of generated sources"() {
+        given:
+        def app = new CHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/input"))
+        degenerateInputSources()
+
+        when:
+        buildFile << """
+    apply plugin: 'c'
+
+    executables {
+        main {}
+    }
+    libraries {
+        hello {}
+    }
+    sources {
+        hello {
+            c {
+                generatedBy tasks.generateCSources
+            }
+        }
+    }
+    sources.main.c.lib library: 'hello', linkage: 'static'
+"""
+
+        then:
+        executableBuilt(app)
+    }
+
     def "generator task produces cpp sources"() {
         given:
         def app = new CppHelloWorldApp()
@@ -326,22 +357,21 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         succeeds "mainVisualStudio"
 
         then:
-        final mainSolution = new SolutionFile(file("visualStudio/mainExe.sln"))
+        final mainSolution = new SolutionFile(file("mainExe.sln"))
         mainSolution.assertHasProjects("mainExe")
 
         and:
-        final projectFile = new ProjectFile(file("visualStudio/mainExe.vcxproj"))
+        final projectFile = new ProjectFile(file("mainExe.vcxproj"))
         projectFile.sourceFiles as Set == [
-                file("build/src/generated/c/hello.c"),
-                file("build/src/generated/c/main.c"),
-                file("build/src/generated/c/sum.c")
-        ]*.absolutePath as Set
-        projectFile.headerFiles == [
-                file("build/src/generated/headers/hello.h")
-        ]*.absolutePath
-        projectFile.projectConfigurations.keySet() == ['debug|Win32'] as Set
-        with (projectFile.projectConfigurations['debug|Win32']) {
-            includePath == file("build/src/generated/headers").absolutePath
+                "build.gradle",
+                "build/src/generated/c/hello.c",
+                "build/src/generated/c/main.c",
+                "build/src/generated/c/sum.c"
+        ] as Set
+        projectFile.headerFiles == [ "build/src/generated/headers/hello.h" ]
+        projectFile.projectConfigurations.keySet() == ['debug'] as Set
+        with (projectFile.projectConfigurations['debug']) {
+            includePath == "build/src/generated/headers"
         }
     }
 

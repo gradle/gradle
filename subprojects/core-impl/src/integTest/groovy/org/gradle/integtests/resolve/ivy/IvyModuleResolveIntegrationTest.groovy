@@ -88,13 +88,15 @@ task retrieve(type: Sync) {
     @Unroll
     def "correctly handles configuration mapping rule '#rule'"() {
         given:
+        server.start()
+
         buildFile << """
 configurations {
     compile
 }
 dependencies {
     repositories {
-        ivy { url "${ivyRepo.uri}" }
+        ivy { url "${ivyHttpRepo.uri}" }
     }
     compile group: 'ivy.configuration', name: 'projectA', version: '1.2', configuration: 'a'
 }
@@ -103,14 +105,14 @@ task retrieve(type: Sync) {
   into 'libs'
 }
 """
-        ivyRepo.module('ivy.configuration', 'projectA', '1.2')
+        def projectA = ivyHttpRepo.module('ivy.configuration', 'projectA', '1.2')
                 .configuration("parent")
                 .configuration("a", extendsFrom: ["parent"])
                 .configuration("b")
                 .dependsOn(organisation: 'ivy.configuration', module: 'projectB', revision: '1.5', conf: rule)
                 .publish()
 
-        ivyRepo.module('ivy.configuration', 'projectB', '1.5')
+        def projectB = ivyHttpRepo.module('ivy.configuration', 'projectB', '1.5')
                 .configuration('a')
                 .configuration('b')
                 .configuration('c')
@@ -124,10 +126,22 @@ task retrieve(type: Sync) {
                 .dependsOn(organisation: 'ivy.configuration', module: 'projectE', revision: '1.7', conf: 'd->default')
                 .publish()
 
-        ivyRepo.module('ivy.configuration', 'projectC', '1.7').publish()
-        ivyRepo.module('ivy.configuration', 'projectD', '1.7').publish()
+        def projectC = ivyHttpRepo.module('ivy.configuration', 'projectC', '1.7').publish()
+        def projectD = ivyHttpRepo.module('ivy.configuration', 'projectD', '1.7').publish()
+
+        projectA.allowAll()
+        projectB.allowAll()
+        projectC.allowAll()
+        projectD.allowAll()
 
         when:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants(* (['projectA-1.2.jar'] + jars))
+
+        when:
+        server.resetExpectations()
         run 'retrieve'
 
         then:

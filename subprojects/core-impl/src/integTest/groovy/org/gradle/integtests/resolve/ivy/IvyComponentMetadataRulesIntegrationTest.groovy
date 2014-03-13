@@ -15,118 +15,28 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.resolve.ComponentMetadataRulesIntegrationTest
+import org.gradle.test.fixtures.ivy.IvyHttpRepository
 
-import static org.hamcrest.Matchers.containsString
+class IvyComponentMetadataRulesIntegrationTest extends ComponentMetadataRulesIntegrationTest {
+    @Override
+    IvyHttpRepository getRepo() {
+        ivyHttpRepo
+    }
 
-class IvyComponentMetadataRulesIntegrationTest extends AbstractDependencyResolutionTest {
-    def setup() {
-        buildFile <<
+    @Override
+    String getRepoDeclaration() {
 """
 repositories {
     ivy {
-        url "${ivyRepo.uri}"
-    }
-}
-
-configurations { compile }
-
-dependencies {
-    compile 'org.test:projectA:1.0'
-}
-
-task resolve(type: Sync) {
-    from configurations.compile
-    into 'libs'
-}
-"""
-    }
-
-    def "rule is being passed correct, mutable metadata"() {
-        ivyRepo.module('org.test', 'projectA', '1.0').withStatus("release").publish()
-        buildFile <<
-"""
-dependencies {
-    components {
-        eachComponent { details ->
-            assert details.id.group == "org.test"
-            assert details.id.name == "projectA"
-            assert details.id.version == "1.0"
-            assert details.status == "release"
-            assert details.statusScheme == ["integration", "milestone", "release"]
-
-            details.status "silver" // verify that 'details' is enhanced
-            assert details.status == "silver"
-
-            details.statusScheme = ["bronze", "silver", "gold"]
-            assert details.statusScheme == ["bronze", "silver", "gold"]
-        }
+        url "$ivyHttpRepo.uri"
     }
 }
 """
-
-        expect:
-        succeeds 'resolve'
     }
 
-    def "module with custom status can be resolved by adapting status scheme"() {
-        ivyRepo.module('org.test', 'projectA', '1.0').withStatus("silver").publish()
-        buildFile <<
-"""
-dependencies {
-    components {
-        eachComponent { details ->
-            details.statusScheme = ["gold", "silver", "bronze"]
-        }
-    }
-}
-"""
-
-        expect:
-        succeeds 'resolve'
-        file('libs').assertHasDescendants('projectA-1.0.jar')
-    }
-
-    def "resolve fails if status doesn't match default status scheme"() {
-        ivyRepo.module('org.test', 'projectA', '1.0').withStatus("silver").publish()
-
-        expect:
-        fails 'resolve'
-        failure.assertThatCause(containsString("bad status: 'silver'"))
-    }
-
-    def "resolve fails if status doesn't match custom status scheme"() {
-        ivyRepo.module('org.test', 'projectA', '1.0').withStatus("silver").publish()
-        buildFile <<
-"""
-dependencies {
-    components {
-        eachComponent { details ->
-            details.statusScheme = ["gold", "bronze"]
-        }
-    }
-}
-"""
-
-        expect:
-        fails 'resolve'
-        failure.assertThatCause(containsString("bad status: 'silver'"))
-    }
-
-    def "rule can change status"() {
-        ivyRepo.module('org.test', 'projectA', '1.0').withStatus("silver").publish()
-        buildFile <<
-"""
-dependencies {
-    components {
-        eachComponent { details ->
-            details.status = "milestone"
-        }
-    }
-}
-"""
-
-        expect:
-        succeeds 'resolve'
+    @Override
+    String getDefaultStatus() {
+        "integration"
     }
 }

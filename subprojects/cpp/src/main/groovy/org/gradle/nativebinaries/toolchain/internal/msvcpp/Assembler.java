@@ -16,9 +16,11 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
@@ -26,6 +28,8 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
 class Assembler implements Compiler<AssembleSpec> {
 
@@ -55,11 +59,22 @@ class Assembler implements Compiler<AssembleSpec> {
 
         public List<String> transform(AssembleSpec spec) {
             List<String> args = new ArrayList<String>();
-            args.addAll(spec.getAllArgs());
+            args.addAll(escapeUserArgs(spec.getAllArgs()));
             args.add("/nologo");
             args.add("/c");
+            File outputFile = getOutputFilePath(spec);
+            if(!outputFile.getParentFile().exists()){
+                outputFile.getParentFile().mkdir();
+            }
+            args.add("/Fo"+ outputFile);
             args.add(inputFile.getAbsolutePath());
             return args;
+        }
+
+        public File getOutputFilePath(AssembleSpec spec) {
+            String compactMD5 = HashUtil.createCompactMD5(inputFile.getAbsolutePath());
+            File currentObjectOutputDir = new File(spec.getObjectFileDir(), compactMD5);
+            return new File(currentObjectOutputDir, FilenameUtils.removeExtension(inputFile.getName())+ ".obj");
         }
     }
 }

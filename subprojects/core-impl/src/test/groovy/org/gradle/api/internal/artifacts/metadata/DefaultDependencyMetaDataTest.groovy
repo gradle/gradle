@@ -19,19 +19,19 @@ package org.gradle.api.internal.artifacts.metadata
 import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.ProjectAccessListener
 import spock.lang.Specification
 
 class DefaultDependencyMetaDataTest extends Specification {
-    final requestedModuleId = ModuleRevisionId.newInstance("org", "module", "1.2+")
+    final requestedModuleId = IvyUtil.createModuleRevisionId("org", "module", "1.2+")
 
     def "constructs selector from descriptor"() {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false)
@@ -52,7 +52,7 @@ class DefaultDependencyMetaDataTest extends Specification {
 
         then:
         copy.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.3+")
-        copy.descriptor.dependencyRevisionId == ModuleRevisionId.newInstance("org", "module", "1.3+")
+        copy.descriptor.dependencyRevisionId == IvyUtil.createModuleRevisionId("org", "module", "1.3+")
     }
 
     def "returns this if new requested version is the same as current requested version"() {

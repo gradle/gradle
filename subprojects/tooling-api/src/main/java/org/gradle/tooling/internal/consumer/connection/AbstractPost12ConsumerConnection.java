@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConfigurableConnection;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
@@ -32,7 +32,8 @@ public abstract class AbstractPost12ConsumerConnection extends AbstractConsumerC
         configurableConnection = (ConfigurableConnection) delegate;
     }
 
-    public void configure(ConsumerConnectionParameters connectionParameters) {
+    @Override
+    public void configure(ConnectionParameters connectionParameters) {
         configurableConnection.configure(connectionParameters);
     }
 }

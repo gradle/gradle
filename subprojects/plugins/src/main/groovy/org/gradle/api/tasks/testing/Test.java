@@ -26,6 +26,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
+import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
@@ -35,7 +36,6 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.*;
-import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
@@ -68,8 +68,6 @@ import org.gradle.util.DeprecationLogger;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.*;
-
-import static java.util.Arrays.asList;
 
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -441,10 +439,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestEventLogger eventLogger = new TestEventLogger(textOutputFactory, currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
-        TestListener noTestsReporter = null;
         if (!getFilter().getIncludePatterns().isEmpty()) {
-            noTestsReporter = new NoMatchingTestsReporter("No tests found for given includes: " + getFilter().getIncludePatterns());
-            addTestListener(noTestsReporter);
+            addTestListener(new NoMatchingTestsReporter("No tests found for given includes: " + getFilter().getIncludePatterns()));
         }
 
         File binaryResultsDir = getBinResultsDir();
@@ -469,11 +465,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         try {
             testExecuter.execute(this, resultProcessor);
         } finally {
-            testListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector, testCountLogger));
-            testOutputListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector));
-            if (noTestsReporter != null) {
-                testListenerBroadcaster.remove(noTestsReporter);
-            }
+            testListenerBroadcaster.removeAll();
+            testOutputListenerBroadcaster.removeAll();
             outputWriter.close();
         }
 

@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
-
+package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
-import org.gradle.api.internal.artifacts.DefaultModule
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Specs
@@ -29,44 +28,50 @@ import spock.lang.Specification
 
 class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specification {
 
-    final ArtifactDependencyResolver delegate = Mock()
-    final ConfigurationInternal configuration = Mock()
-    final List<ResolutionAwareRepository> repositories = [Mock(ResolutionAwareRepository)]
-    final DependencySet dependencies = Mock()
+    def delegate = Mock(ArtifactDependencyResolver)
+    def configuration = Stub(ConfigurationInternal)
+    def repositories = [Stub(ResolutionAwareRepository)]
+    def metadataProcessor = Stub(ModuleMetadataProcessor)
+    def dependencies = Stub(DependencySet)
+    def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
+    def results = new ResolverResults()
+    def dependencyResolver = new ShortcircuitEmptyConfigsArtifactDependencyResolver(delegate, componentIdentifierFactory);
 
-    final ShortcircuitEmptyConfigsArtifactDependencyResolver dependencyResolver = new ShortcircuitEmptyConfigsArtifactDependencyResolver(delegate);
-
-    def "returns empty config when no dependencies"() {
+    def "returns empty result when no dependencies"() {
         given:
         dependencies.isEmpty() >> true
         configuration.getAllDependencies() >> dependencies
-        configuration.getModule() >> new DefaultModule("org", "foo", "1.0")
 
         when:
-        ResolverResults results = dependencyResolver.resolve(configuration, repositories);
-        ResolvedConfiguration resolvedConfig = results.resolvedConfiguration
+        dependencyResolver.resolve(configuration, repositories, metadataProcessor, results)
 
         then:
+        def resolvedConfig = results.resolvedConfiguration
         !resolvedConfig.hasError()
         resolvedConfig.rethrowFailure();
 
-        resolvedConfig.getFiles(Specs.<Dependency>satisfyAll()).isEmpty()
+        resolvedConfig.getFiles(Specs.<Dependency> satisfyAll()).isEmpty()
         resolvedConfig.getFirstLevelModuleDependencies().isEmpty()
         resolvedConfig.getResolvedArtifacts().isEmpty()
+
+        and:
+        def result = results.resolutionResult
+        result.allComponents.size() == 1
+        result.allDependencies.empty
+
+        and:
+        0 * delegate._
     }
 
-    def "delegates to backing service"() {
+    def "delegates to backing service when there are one or more dependencies"() {
         given:
-        def resultsDummy = Mock(ResolverResults)
-
         dependencies.isEmpty() >> false
         configuration.getAllDependencies() >> dependencies
-        delegate.resolve(configuration, repositories) >> resultsDummy
 
         when:
-        def out = dependencyResolver.resolve(configuration, repositories)
+        dependencyResolver.resolve(configuration, repositories, metadataProcessor, results)
 
         then:
-        out == resultsDummy
+        1 * delegate.resolve(configuration, repositories, metadataProcessor, results)
     }
 }

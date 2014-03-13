@@ -52,9 +52,9 @@ public class VersionRangeMatcherTest extends Specification {
 
     def "never needs metadata"() {
         expect:
-        !matcher.needModuleMetadata("[1.0,2.0]", "1.0")
-        !matcher.needModuleMetadata("[1.0,)", "1.0")
-        !matcher.needModuleMetadata("1", "1")
+        !matcher.needModuleMetadata("[1.0,2.0]")
+        !matcher.needModuleMetadata("[1.0,)")
+        !matcher.needModuleMetadata("1")
     }
 
     def "accepts candidate versions that fall into the selector's range"() {

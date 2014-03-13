@@ -27,7 +27,8 @@ class DefaultDependencyHandlerTest extends Specification {
     private ProjectFinder projectFinder = Mock()
     private DependencySet dependencySet = Mock()
 
-    private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory, projectFinder, Stub(ComponentMetadataHandler))
+    private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(
+            configurationContainer, dependencyFactory, projectFinder, Stub(ComponentMetadataHandler), Stub(ArtifactResolutionQueryFactory))
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration

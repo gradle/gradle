@@ -35,7 +35,7 @@ class GccLinker implements Compiler<LinkerSpec> {
 
     public GccLinker(CommandLineTool<LinkerSpec> commandLineTool, Action<List<String>> argsAction, boolean useCommandFile) {
         ArgsTransformer<LinkerSpec> argsTransformer = new GccLinkerArgsTransformer();
-        argsTransformer = new UserArgsTransformer<LinkerSpec>(argsTransformer, argsAction);
+        argsTransformer = new PostTransformActionArgsTransformer<LinkerSpec>(argsTransformer, argsAction);
         if (useCommandFile) {
             argsTransformer = new GccOptionsFileArgTransformer<LinkerSpec>(argsTransformer);
         }
@@ -73,7 +73,6 @@ class GccLinker implements Compiler<LinkerSpec> {
             }
 
             for (String userArg : spec.getArgs()) {
-                args.add("-Xlinker");
                 args.add(userArg);
             }
 

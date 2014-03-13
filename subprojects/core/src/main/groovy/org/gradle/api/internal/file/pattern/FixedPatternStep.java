@@ -28,10 +28,6 @@ public class FixedPatternStep implements PatternStep {
         this.caseSensitive = caseSensitive;
     }
 
-    public boolean isGreedy() {
-        return false;
-    }
-
     public boolean matches(String candidate) {
         return caseSensitive ? candidate.equals(value) : candidate.equalsIgnoreCase(value);
     }
