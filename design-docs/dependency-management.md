@@ -241,7 +241,7 @@ Certain source/javadoc artifacts that were not automatically linked into an IDE 
 
 * Artifacts contained in a 'sources' configuration in ivy.xml (or 'javadocs')
 * Artifacts with a 'source' type in ivy.xml (or 'javadoc')
-* ??? Other conventions ???
+* Artifacts following the maven naming convention, and not declared in ivy.xml
 
 ### Implementation
 
@@ -272,8 +272,11 @@ Certain source/javadoc artifacts that were not automatically linked into an IDE 
 
 ### Open issues
 
-* If the files defined by a ivy-specific scheme are not available, should we then use the maven convention to look for artifacts?
-  Or, for backward-compatibility should we first use the maven scheme, trying the ivy-specific scheme if not found?
+* If the files defined by a ivy-specific scheme are not available, should we then use the maven convention to look for artifacts? For backward compatibililty we could either:
+    * Try the maven scheme, trying the ivy-specific scheme if not found?
+    * Try both, and use the union. Possibly emit a deprecation warning for artifacts located via Maven scheme that are not also found via ivy scheme.
+* If we find a conventional 'sources' configuration that doesn't declare any artifacts, does that indicate "no artifacts"? Or do we still try the maven scheme in this case? (ie is missing configuration different from empty configuration?)
+* Should we fail resolution for an artifact that is declared in an ivy configuration but cannot be downloaded? Is this different from the maven scheme, where the artifact may or may not actually exist?
 
 ## Story: Source and Javadoc artifacts are exposed for a local Java component
 
