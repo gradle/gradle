@@ -51,6 +51,7 @@ import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.LongIdGenerator;
@@ -286,7 +287,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ClassLoaderScope createClassLoaderScope(ClassLoaderRegistry classLoaderRegistry, ClassLoaderCache classLoaderCache) {
-        return new RootClassLoaderScope(classLoaderRegistry.getGradleApiClassLoader(), classLoaderCache);
+        ClassLoader classLoader = new CachingClassLoader(classLoaderRegistry.getGradleApiClassLoader());
+        return new RootClassLoaderScope(classLoader, classLoaderCache);
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
