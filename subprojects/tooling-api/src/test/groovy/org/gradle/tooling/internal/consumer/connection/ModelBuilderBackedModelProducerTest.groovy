@@ -64,7 +64,7 @@ class ModelBuilderBackedModelProducerTest extends Specification {
         then:
         1 * builder.getModel(someModelIdentifier, operationParameters) >> buildResult
         1 * buildResult.model >> returnValue
-        1 * adapter.adapt(SomeModel.class, returnValue) >> returnValue
+        1 * adapter.adapt(SomeModel.class, returnValue, _) >> returnValue
         model != null
     }
 

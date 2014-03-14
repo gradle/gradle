@@ -39,7 +39,7 @@ public abstract class VersionDetails {
         return false;
     }
 
-    public boolean supportsTaskSelectors() {
+    public boolean supportsTaskDisplayName() {
         return false;
     }
 }

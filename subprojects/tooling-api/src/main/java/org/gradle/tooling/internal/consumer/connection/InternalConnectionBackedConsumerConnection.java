@@ -16,7 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -71,10 +74,12 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
 
     private class InternalConnectionBackedModelProducer extends AbstractModelProducer {
         private final InternalConnection delegate;
+        private final Action<SourceObjectMapping> mapper;
 
         public InternalConnectionBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalConnection delegate) {
             super(adapter, versionDetails, modelMapping);
             this.delegate = delegate;
+            this.mapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
         }
 
         public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
@@ -83,7 +88,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }
             Class<?> protocolType = modelMapping.getProtocolType(type);
-            return adapter.adapt(type, delegate.getTheModel(protocolType, operationParameters));
+            return adapter.adapt(type, delegate.getTheModel(protocolType, operationParameters), mapper);
         }
     }
 }

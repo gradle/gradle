@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.model;
 
-import org.gradle.api.Incubating;
+package org.gradle.tooling.internal.consumer.converters;
 
-/**
- * Represents a launchable that uses task name to select tasks executed from a given context.
- *
- * @since 1.12
- */
-@Incubating
-public interface TaskSelector extends Launchable {
-    /**
-     * Returns the name of this selector. Note that the name is not necessarily a unique identifier for the launchable.
-     *
-     * @return The name of this selector.
-     */
-    String getName();
+import org.gradle.tooling.model.GradleTask;
+
+public class GradleTaskDisplayNameMixInHandler {
+    private final GradleTask task;
+
+    public GradleTaskDisplayNameMixInHandler(GradleTask task) {
+        this.task = task;
+    }
+
+    public String getDisplayName() {
+        return task.getName() + " task (" + task.getPath() + ")";
+    }
 }

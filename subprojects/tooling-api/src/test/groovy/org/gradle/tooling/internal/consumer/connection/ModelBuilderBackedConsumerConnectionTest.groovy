@@ -142,7 +142,7 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
 
         and:
         1 * target.getModel(modelIdentifier, parameters) >> Stub(BuildResult) { getModel() >> gradleProject }
-        1 * adapter.adapt(GradleProject.class, gradleProject) >> gradleProject
+        1 * adapter.adapt(GradleProject.class, gradleProject, _) >> gradleProject
         1 * adapter.adapt(GradleBuild.class, _) >> model
         0 * target._
     }
