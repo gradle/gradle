@@ -16,10 +16,9 @@
 
 package org.gradle.plugins.ide.internal.resolver.model;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.gradle.plugins.ide.idea.model.Dependency;
-
-import java.util.Objects;
 
 /**
  * Key used to merge same dependency extracted from different configurations.
@@ -99,7 +98,7 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
             if (!(otherDependency instanceof IdeLocalFileDependency)) {
                 return false;
             }
-            return Objects.equals(ideDependency.getFile(), ((IdeLocalFileDependency) otherDependency).getFile());
+            return Objects.equal(ideDependency.getFile(), ((IdeLocalFileDependency) otherDependency).getFile());
         }
 
         public String toString() {
@@ -122,7 +121,7 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
             if (!(otherDependency instanceof IdeProjectDependency)) {
                 return false;
             }
-            return Objects.equals(ideDependency.getProject(), ((IdeProjectDependency) otherDependency).getProject());
+            return Objects.equal(ideDependency.getProject(), ((IdeProjectDependency) otherDependency).getProject());
         }
 
         public String toString() {
@@ -148,7 +147,7 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
                 return false;
             }
             IdeRepoFileDependency that = (IdeRepoFileDependency) otherDependency;
-            return Objects.equals(ideDependency.getFile(), that.getFile()) && Objects.equals(ideDependency.getId(), that.getId());
+            return Objects.equal(ideDependency.getFile(), that.getFile()) && Objects.equal(ideDependency.getId(), that.getId());
         }
 
         public String toString() {
