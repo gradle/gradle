@@ -391,6 +391,28 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
+    @Test public void testTransformWithCopyspec() {
+        TestFile buildFile = testFile("build.gradle").writelns(
+                """
+                def spec = copySpec {
+                    from 'src'
+                    include '*/*.a'
+                    into 'subdir'
+                    eachFile { fcd -> fcd.relativePath = fcd.relativePath.prepend('transformedAgain')}
+                }
+                task copy(type: Copy) {
+                    into 'dest'
+                    with spec
+                    eachFile { fcd -> fcd.relativePath = fcd.relativePath.prepend('transformed') }
+                }"""
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        testFile('dest').assertHasDescendants(
+                'transformedAgain/transformed/subdir/one/one.a',
+                'transformedAgain/transformed/subdir/two/two.a'
+        )
+    }
+
     // can't use TestResources here because Git doesn't support committing empty directories
     @Test
     void emptyDirsAreCopiedByDefault() {

@@ -16,8 +16,14 @@
 
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static org.gradle.util.CollectionUtils.collect;
 
@@ -38,6 +44,14 @@ public class RelativizedCopySpec extends DelegatingCopySpecInternal {
 
     public RelativePath getDestPath() {
         return parent.getDestPath().append(child.getDestPath());
+    }
+
+    @Override
+    public Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions() {
+        List<Action<? super FileCopyDetails>> allActions = new ArrayList<Action<? super FileCopyDetails>>();
+        allActions.addAll(parent.getAllCopyActions());
+        allActions.addAll(child.getAllCopyActions());
+        return allActions;
     }
 
     @Override
