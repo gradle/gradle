@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.Factory;
@@ -27,6 +28,8 @@ import java.net.URI;
 import java.util.List;
 
 public interface FileResolver {
+    FileSystem getFileSystem();
+
     File resolve(Object path);
 
     ReadableResource resolveResource(Object path);

@@ -19,7 +19,8 @@ import org.gradle.CacheUsage;
 import org.gradle.RefreshOptions;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.file.BaseDirFileResolver;
+import org.gradle.api.internal.file.DefaultFileLookup;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cli.*;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
@@ -56,7 +57,13 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
-    private final LayoutCommandLineConverter layoutCommandLineConverter = new LayoutCommandLineConverter();
+    private final LayoutCommandLineConverter layoutCommandLineConverter;
+    private final FileLookup fileLookup;
+
+    public DefaultCommandLineConverter() {
+        this.fileLookup = new DefaultFileLookup(FileSystems.getDefault());
+        layoutCommandLineConverter = new LayoutCommandLineConverter(fileLookup);
+    }
 
     public void configure(CommandLineParser parser) {
         loggingConfigurationCommandLineConverter.configure(parser);
@@ -94,7 +101,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
         loggingConfigurationCommandLineConverter.convert(options, startParameter);
-        FileResolver resolver = new BaseDirFileResolver(FileSystems.getDefault(), startParameter.getCurrentDir());
+        FileResolver resolver = fileLookup.getFileResolver(startParameter.getCurrentDir());
 
         Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options);
         convertCommandLineSystemProperties(systemProperties, startParameter, resolver);

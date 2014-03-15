@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,33 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.file;
 
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.nativeplatform.services.NativeServices;
 
 import java.io.File;
 
-public class TestFiles {
-    public static FileLookup fileLookup() {
-        return new DefaultFileLookup(fileSystem());
+public class DefaultFileLookup implements FileLookup {
+    private final FileSystem fileSystem;
+    private final FileResolver fileResolver;
+
+    public DefaultFileLookup(FileSystem fileSystem) {
+        this.fileSystem = fileSystem;
+        fileResolver = new IdentityFileResolver(this.fileSystem);
     }
 
-    public static FileSystem fileSystem() {
-        return NativeServices.getInstance().get(FileSystem.class);
+    public FileSystem getFileSystem() {
+        return fileSystem;
     }
 
-    /**
-     * Returns a resolver with no base directory.
-     */
-    public static FileResolver resolver() {
-        return new IdentityFileResolver(fileSystem());
+    public FileResolver getFileResolver() {
+        return fileResolver;
     }
 
-    /**
-     * Returns a resolver with the given base directory.
-     */
-    public static FileResolver resolver(File baseDir) {
-        return resolver().withBaseDir(baseDir);
+    public FileResolver getFileResolver(File baseDirectory) {
+        return fileResolver.withBaseDir(baseDirectory);
     }
 }

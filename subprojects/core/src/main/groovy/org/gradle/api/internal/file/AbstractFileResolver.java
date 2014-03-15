@@ -48,6 +48,10 @@ public abstract class AbstractFileResolver implements FileResolver {
         this.fileNotationParser = new FileOrUriNotationParser(fileSystem);
     }
 
+    public FileSystem getFileSystem() {
+        return fileSystem;
+    }
+
     public FileResolver withBaseDir(Object path) {
         return new BaseDirFileResolver(fileSystem, resolve(path));
     }

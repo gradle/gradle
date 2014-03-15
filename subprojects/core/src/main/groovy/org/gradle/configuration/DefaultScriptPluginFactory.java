@@ -18,6 +18,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.plugins.PluginAware;
@@ -48,19 +49,22 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final Instantiator instantiator;
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final PluginResolverFactory pluginResolverFactory;
+    private final FileLookup fileLookup;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       ImportsReader importsReader,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
                                       ScriptHandlerFactory scriptHandlerFactory,
-                                      PluginResolverFactory pluginResolverFactory) {
+                                      PluginResolverFactory pluginResolverFactory,
+                                      FileLookup fileLookup) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.pluginResolverFactory = pluginResolverFactory;
+        this.fileLookup = fileLookup;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptClass) {
@@ -95,6 +99,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandler.class, scriptHandler);
+            services.add(FileLookup.class, fileLookup);
 
             ScriptSource withImports = importsReader.withImports(scriptSource);
 

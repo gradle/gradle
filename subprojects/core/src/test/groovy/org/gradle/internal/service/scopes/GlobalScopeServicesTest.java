@@ -21,6 +21,8 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
+import org.gradle.api.internal.file.DefaultFileLookup;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.cache.internal.CacheFactory;
@@ -156,6 +158,11 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesAFileResolver() {
         assertThat(registry.get(FileResolver.class), instanceOf(IdentityFileResolver.class));
+    }
+
+    @Test
+    public void providesAFileLookup() {
+        assertThat(registry.get(FileLookup.class), instanceOf(DefaultFileLookup.class));
     }
 
     @Test
