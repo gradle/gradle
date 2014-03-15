@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.TestUtil
@@ -26,8 +25,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class BuildInvocationsBuilderTest extends Specification {
-    def publicationRegistry = Mock(ProjectPublicationRegistry)
-    def builder = new BuildInvocationsBuilder(new GradleProjectBuilder(publicationRegistry))
+    def builder = new BuildInvocationsBuilder(new GradleProjectBuilder())
     @Shared def project = TestUtil.builder().withName("root").build()
     @Shared def child1 = TestUtil.builder().withName("child1").withParent(project).build()
     @Shared def child1a = TestUtil.builder().withName("child1a").withParent(child1).build()
@@ -39,10 +37,6 @@ class BuildInvocationsBuilderTest extends Specification {
         child1b.tasks.create('t2', DefaultTask)
         child1.tasks.create('t2', DefaultTask)
         project.tasks.create('t3', DefaultTask)
-    }
-
-    def setup() {
-        publicationRegistry.getPublications(_) >> Collections.emptySet()
     }
 
     def "can build model"() {
