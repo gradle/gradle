@@ -40,7 +40,7 @@ class IncrementalCompilationSupportTest extends Specification {
         then:
         1 * extractor.extractInfo("") >> Stub(ClassDependencyInfo)
         1 * serializer.writeInfo(_ as ClassDependencyInfo)
-        1 * feeder.storeJarSnapshots(jars)
+//        1 * feeder.storeJarSnapshots(jars)
     }
 
     def "does nothing when not incremental"() {
