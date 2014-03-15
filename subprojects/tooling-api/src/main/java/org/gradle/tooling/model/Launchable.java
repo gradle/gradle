@@ -28,12 +28,12 @@ import org.gradle.api.Nullable;
 @Incubating
 public interface Launchable {
     /**
-     * Returns the name of this launchable. Note that the name is not necessarily a unique identifier for the launchable.
+     * Returns the display name of this launchable.
      *
-     * @return The name of this launchable.
+     * @return Display name of this launchable.
      * @since 1.12
      */
-    String getName();
+    String getDisplayName();
 
     /**
      * Returns the description of this launchable, or {@code null} if it has no description.

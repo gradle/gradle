@@ -82,14 +82,8 @@ public class SelectiveCompilation {
                     }
                 }
                 if (name.endsWith(".jar")) {
-                    JarArchive jarArchive = new JarArchive(inputFileDetails.getFile(), operations.zipTree(inputFileDetails.getFile()));
-                    JarChangeProcessor processor = new JarChangeProcessor(jarSnapshotFeeder);
-                    RebuildInfo info = processor.processJarChange(inputFileDetails, jarArchive);
-                    if (info.isFullRebuildRequired()) {
-                        fullRebuildNeeded = "change to " + inputFile + " requires full rebuild";
-                        return;
-                    }
-                    info.configureCompilation(changedSourceOnly, compiler, dependencyInfo);
+                    fullRebuildNeeded = "change to " + inputFile + " requires full rebuild";
+                    return;
                 }
             }
         });

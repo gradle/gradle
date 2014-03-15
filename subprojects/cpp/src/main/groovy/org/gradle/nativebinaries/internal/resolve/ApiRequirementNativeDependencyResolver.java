@@ -45,7 +45,7 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
             if (resolution.getRequirement() instanceof ApiAdaptedNativeLibraryRequirement) {
                 ApiAdaptedNativeLibraryRequirement adaptedRequirement = (ApiAdaptedNativeLibraryRequirement) resolution.getRequirement();
                 resolution.setRequirement(adaptedRequirement.getOriginal());
-                resolution.setLibraryBinary(null);
+//                resolution.setLibraryBinary(null);
                 resolution.setNativeDependencySet(new ApiNativeDependencySet(resolution.getNativeDependencySet()));
             }
         }

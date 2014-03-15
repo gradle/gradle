@@ -367,4 +367,39 @@ project(':impl') {
         assert content.count("someApiProject") == 1
         assert content.count("unresolved dependency - i.dont Exist 1.0") == 1
     }
+
+    @Issue("GRADLE-2017")
+    @Test
+    void "create external dependency in more scopes when needed"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "api-artifact").publish()
+        maven(repoDir).module("org.gradle", "impl-artifact").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+dependencies {
+    compile 'org.gradle:api-artifact:1.0'
+    testCompile 'org.gradle:impl-artifact:1.0'
+    runtime 'org.gradle:impl-artifact:1.0'
+}
+"""
+        def iml = parseFile(print: true, 'root.iml')
+
+        //then
+        assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
+
+        def orderEntries = iml.component.orderEntry
+        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'RUNTIME' &&
+            it.library.CLASSES.root.@url.text().contains ('impl-artifact-1.0.jar') }
+        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'TEST' &&
+                it.library.CLASSES.root.@url.text().contains ('impl-artifact-1.0.jar') }
+    }
 }

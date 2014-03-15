@@ -100,7 +100,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         }
 
         @Override
-        public boolean supportsTaskSelectors() {
+        public boolean supportsTaskDisplayName() {
             return true;
         }
     }

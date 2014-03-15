@@ -43,9 +43,9 @@ public class IncrementalCompilationSupport {
             serializer.writeInfo(info);
             LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), serializer);
 
-            clock = new Clock();
-            jarSnapshotFeeder.storeJarSnapshots(jarsOnClasspath);
-            LOG.lifecycle("Wrote jar snapshots in {}.", clock.getTime());
+//            clock = new Clock();
+//            jarSnapshotFeeder.storeJarSnapshots(jarsOnClasspath);
+//            LOG.lifecycle("Wrote jar snapshots in {}.", clock.getTime());
         }
     }
 }

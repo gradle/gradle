@@ -648,7 +648,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         final mainSolution = solutionFile("mainExe.sln")
-        mainSolution.assertHasProjects("mainExe", "helloDll")
+        mainSolution.assertHasProjects("mainExe", "helloDll", "helloApiDll")
 
         and:
         final mainExeProject = projectFile("mainExe.vcxproj")
@@ -660,6 +660,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         final helloDllProject = projectFile("helloDll.vcxproj")
         with (helloDllProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/hello/headers", "src/helloApi/headers")
+        }
+
+        and:
+        final helloApiDllProject = projectFile("helloApiDll.vcxproj")
+        with (helloApiDllProject.projectConfigurations['win32Debug']) {
+            includePath == filePath("src/helloApi/headers")
         }
     }
 

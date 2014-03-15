@@ -23,6 +23,7 @@ public class DefaultGradleTask implements Serializable {
     String path;
     String name;
     String description;
+    String displayName;
     PartialGradleProject project;
 
     public String getPath() {
@@ -40,6 +41,15 @@ public class DefaultGradleTask implements Serializable {
 
     public DefaultGradleTask setName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public DefaultGradleTask setDisplayName(String displayName) {
+        this.displayName = displayName;
         return this;
     }
 

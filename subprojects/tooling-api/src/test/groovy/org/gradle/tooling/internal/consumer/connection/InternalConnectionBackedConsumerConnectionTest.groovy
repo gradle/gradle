@@ -80,7 +80,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         _ * modelMapping.getProtocolType(GradleProject.class) >> GradleProject.class
 
         1 * target.getTheModel(GradleProject.class, parameters) >> gradleProject
-        1 * adapter.adapt(GradleProject.class, gradleProject) >> gradleProject
+        1 * adapter.adapt(GradleProject.class, gradleProject, _) >> gradleProject
         1 * adapter.adapt(GradleBuild.class, _) >> model
         0 * target._
     }
@@ -97,7 +97,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         and:
         _ * modelMapping.getProtocolType(GradleProject.class) >> Integer.class
         1 * target.getTheModel(Integer.class, parameters) >> 12
-        1 * adapter.adapt(GradleProject.class, 12) >> model
+        1 * adapter.adapt(GradleProject.class, 12, _) >> model
         0 * target._
     }
 
