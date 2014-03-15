@@ -21,6 +21,7 @@ import java.util.List;
 
 public class DefaultBuildInvocations implements Serializable {
     private List<DefaultGradleTaskSelector> selectors;
+    private List<DefaultGradleTask> tasks;
 
     public DefaultBuildInvocations setSelectors(List<DefaultGradleTaskSelector> selectors) {
         this.selectors = selectors;
@@ -29,5 +30,14 @@ public class DefaultBuildInvocations implements Serializable {
 
     public List<DefaultGradleTaskSelector> getTaskSelectors() {
         return selectors;
+    }
+
+    public DefaultBuildInvocations setTasks(List<DefaultGradleTask> tasks) {
+        this.tasks = tasks;
+        return this;
+    }
+
+    public List<DefaultGradleTask> getTasks() {
+        return tasks;
     }
 }

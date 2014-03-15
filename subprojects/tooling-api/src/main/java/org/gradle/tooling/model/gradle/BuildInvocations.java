@@ -18,6 +18,7 @@ package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.TaskSelector;
 
 /**
@@ -36,4 +37,13 @@ public interface BuildInvocations {
      */
     @Incubating
     DomainObjectSet<? extends TaskSelector> getTaskSelectors();
+
+    /*
+     * Returns tasks selectors that can be used to execute build.
+     *
+     * @return Task selectors.
+     * @since 1.12
+     */
+    @Incubating
+    DomainObjectSet<? extends GradleTask> getTasks();
 }
