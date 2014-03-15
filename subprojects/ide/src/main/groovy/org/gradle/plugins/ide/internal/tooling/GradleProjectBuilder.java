@@ -78,7 +78,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return gradleProject;
     }
 
-    private List<DefaultGradleTask> tasks(DefaultGradleProject owner, TaskContainer tasks) {
+    private static List<DefaultGradleTask> tasks(DefaultGradleProject owner, TaskContainer tasks) {
         List<DefaultGradleTask> out = new LinkedList<DefaultGradleTask>();
 
         for (Task t : tasks) {

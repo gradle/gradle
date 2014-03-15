@@ -24,7 +24,10 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
+import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
+import org.gradle.tooling.internal.gradle.PartialGradleProject;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
 import java.util.ArrayList;
@@ -63,9 +66,21 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
 
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
         if (implicitProject) {
-            return new DefaultBuildInvocations().setSelectors(buildRecursively(modelName, project.getRootProject()));
+            DefaultGradleProject gradleProject = gradleProjectBuilder.buildAll(project);
+            List<DefaultGradleTask> tasks = new ArrayList<DefaultGradleTask>();
+            fillTaskList(gradleProject, tasks);
+            return new DefaultBuildInvocations()
+                    .setSelectors(buildRecursively(modelName, project.getRootProject()))
+                    .setTasks(tasks);
         } else {
             return buildAll(modelName, project);
+        }
+    }
+
+    private void fillTaskList(PartialGradleProject gradleProject, List<DefaultGradleTask> tasks) {
+        tasks.addAll(gradleProject.getTasks());
+        for (PartialGradleProject childProject : gradleProject.getChildren()) {
+            fillTaskList(childProject, tasks);
         }
     }
 

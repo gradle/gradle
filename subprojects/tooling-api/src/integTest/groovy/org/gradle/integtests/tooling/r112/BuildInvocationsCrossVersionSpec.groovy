@@ -149,7 +149,7 @@ task t2 << {
     }
 
     @TargetGradleVersion("<1.8")
-    def "cannot request task selectors for old project"() {
+    def "cannot request BuildInvocations for old project"() {
         when:
         withConnection { connection ->
             connection.getModel(BuildInvocations)
@@ -192,4 +192,29 @@ task t2 << {
         }
     }
 
+    @TargetGradleVersion(">=1.8")
+    def "can request tasks for project"() {
+        given:
+        BuildInvocations model = withConnection { connection ->
+            connection.getModel(BuildInvocations)
+        }
+
+        expect:
+        model.tasks.size() == 5
+
+        when:
+        def tasks = model.tasks.findAll { GradleTask it ->
+            it.project.path == ':b'
+        }
+        then:
+        tasks*.name as Set == ['t2', 't3'] as Set
+
+        when:
+        tasks = model.tasks.findAll { GradleTask it ->
+            it.project.path == ':b:c'
+        }
+        then:
+        tasks*.name as Set == ['t1', 't2'] as Set
+
+    }
 }

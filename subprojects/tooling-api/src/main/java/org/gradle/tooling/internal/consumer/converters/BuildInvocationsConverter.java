@@ -25,17 +25,20 @@ import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BuildInvocationsConverter {
     public DefaultBuildInvocations convert(GradleProject project) {
-        return new DefaultBuildInvocations().setSelectors(buildRecursively(project));
+        List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
+        List<GradleTask> tasks = Lists.newArrayList();
+        buildRecursively(project, selectors, tasks);
+        return new DefaultBuildInvocations().setSelectors(selectors).setTasks(tasks);
     }
 
-    private List<DefaultGradleTaskSelector> buildRecursively(GradleProject project) {
-        List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
+    private void buildRecursively(GradleProject project, List<DefaultGradleTaskSelector> selectors, List<GradleTask> tasks) {
         for (GradleProject childProject : project.getChildren()) {
-            selectors.addAll(buildRecursively(childProject));
+            buildRecursively(childProject, selectors, tasks);
         }
         Multimap<String, String> aggregatedTasks = ArrayListMultimap.create();
         for (DefaultGradleTaskSelector childSelector : selectors) {
@@ -43,6 +46,7 @@ public class BuildInvocationsConverter {
         }
         for (GradleTask task : project.getTasks()) {
             aggregatedTasks.put(task.getName(), task.getPath());
+            tasks.add(task);
         }
         for (String selectorName : aggregatedTasks.keySet()) {
             selectors.add(new DefaultGradleTaskSelector().
@@ -53,6 +57,10 @@ public class BuildInvocationsConverter {
                             : String.format("%s task selector", selectorName)).
                     setDisplayName(String.format("%s built in %s and subprojects.", selectorName, project.getName())));
         }
-        return selectors;
     }
+
+    private static List<GradleTask> tasks(GradleProject owner) {
+        return new ArrayList<GradleTask>(owner.getTasks());
+    }
+
 }
