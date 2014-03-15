@@ -19,14 +19,10 @@ package org.gradle.integtests.tooling.r112
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.model.GradleTask
-import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.TaskSelector
-import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 @ToolingApiVersion(">=1.12")
@@ -172,24 +168,6 @@ task t2 << {
         tasks*.name as Set == ['t2', 't3'] as Set
         tasks*.project.each { it.name == 'b' && it.path == ':b'}
 
-    }
-
-    static class FetchTasksBuildAction implements BuildAction<List<GradleTask>> {
-        private final String projectPath
-
-        FetchTasksBuildAction(String projectPath) {
-            this.projectPath = projectPath
-        }
-
-        List<GradleTask> execute(BuildController controller) {
-            BasicGradleProject project = controller.getBuildModel().getProjects().find { it.path == projectPath }
-
-            List<GradleTask> result = new ArrayList<>()
-            for (GradleTask task : controller.getModel(project, BuildInvocations).getTasks()) {
-                result.add(task);
-            }
-            result
-        }
     }
 
     @TargetGradleVersion(">=1.8")
