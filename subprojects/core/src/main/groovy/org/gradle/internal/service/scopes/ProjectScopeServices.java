@@ -95,7 +95,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected DefaultFileOperations createFileOperations() {
-        return new DefaultFileOperations(get(FileResolver.class), project.getTasks(), get(TemporaryFileProvider.class), get(Instantiator.class));
+        return new DefaultFileOperations(get(FileResolver.class), project.getTasks(), get(TemporaryFileProvider.class), get(Instantiator.class), get(FileLookup.class));
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {

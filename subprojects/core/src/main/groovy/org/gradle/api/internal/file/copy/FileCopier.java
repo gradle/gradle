@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.reflect.Instantiator;
@@ -24,13 +25,14 @@ import org.gradle.internal.reflect.Instantiator;
 import java.io.File;
 
 public class FileCopier {
-
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
+    private final FileLookup fileLookup;
 
-    public FileCopier(Instantiator instantiator, FileResolver fileResolver) {
+    public FileCopier(Instantiator instantiator, FileResolver fileResolver, FileLookup fileLookup) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
+        this.fileLookup = fileLookup;
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super CopySpec> action) {
@@ -54,11 +56,11 @@ public class FileCopier {
     }
 
     private FileCopyAction getCopyVisitor(File destination) {
-        return new FileCopyAction(fileResolver.withBaseDir(destination));
+        return new FileCopyAction(fileLookup.getFileResolver(destination));
     }
 
     private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
-        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileResolver.getFileSystem());
+        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileLookup.getFileSystem());
         return visitorDriver.execute(copySpec, visitor);
     }
 

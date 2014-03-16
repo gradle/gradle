@@ -52,16 +52,18 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
     private final TaskResolver taskResolver;
     private final TemporaryFileProvider temporaryFileProvider;
     private final Instantiator instantiator;
-    private DeleteAction deleteAction;
+    private final DeleteAction deleteAction;
     private final DefaultResourceHandler resourceHandler;
+    private final FileCopier fileCopier;
 
-    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator) {
+    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.deleteAction = new DeleteActionImpl(fileResolver);
         this.resourceHandler = new DefaultResourceHandler(fileResolver);
+        fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup);
     }
 
     public File file(Object path) {
@@ -85,7 +87,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
     }
 
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, instantiator);
+        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, instantiator, fileCopier);
     }
 
     public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
@@ -93,12 +95,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
     }
 
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
-        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, instantiator);
+        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, instantiator, fileCopier);
     }
 
     public ConfigurableFileTree fileTree(Closure closure) {
         // This method is deprecated, but the deprecation warning is added on public classes that delegate to this. 
-        return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver, instantiator));
+        return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver, instantiator, fileCopier));
     }
 
     public FileTree zipTree(Object zipPath) {
@@ -134,13 +136,11 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
     }
 
     public WorkResult copy(Closure closure) {
-        FileCopier copyAction = new FileCopier(instantiator, fileResolver);
-        return copyAction.copy(new ClosureBackedAction<CopySpec>(closure));
+        return fileCopier.copy(new ClosureBackedAction<CopySpec>(closure));
     }
 
     public WorkResult sync(Action<? super CopySpec> action) {
-        FileCopier copyAction = new FileCopier(instantiator, fileResolver);
-        return copyAction.sync(action);
+        return fileCopier.sync(action);
     }
 
     public CopySpec copySpec(Closure closure) {
@@ -155,14 +155,6 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
 
     public FileResolver getFileResolver() {
         return fileResolver;
-    }
-
-    public DeleteAction getDeleteAction() {
-        return deleteAction;
-    }
-
-    public void setDeleteAction(DeleteAction deleteAction) {
-        this.deleteAction = deleteAction;
     }
 
     public ExecResult javaexec(Closure cl) {

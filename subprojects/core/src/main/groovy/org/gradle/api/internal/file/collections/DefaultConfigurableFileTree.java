@@ -42,15 +42,17 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     private PatternSet patternSet = new PatternSet();
     private Object dir;
     private final FileResolver resolver;
+    private final FileCopier fileCopier;
     private final DefaultTaskDependency buildDependency;
     private final Instantiator instantiator;
 
-    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator) {
-        this(Collections.singletonMap("dir", dir), resolver, taskResolver, instantiator);
+    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator, FileCopier fileCopier) {
+        this(Collections.singletonMap("dir", dir), resolver, taskResolver, instantiator, fileCopier);
     }
 
-    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator) {
+    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator, FileCopier fileCopier) {
         this.resolver = resolver;
+        this.fileCopier = fileCopier;
         ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
         this.instantiator = instantiator;
@@ -82,8 +84,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     public WorkResult copy(final Closure closure) {
-        FileCopier copyAction = new FileCopier(instantiator, resolver);
-        return copyAction.copy(new Action<CopySpec>() {
+        return fileCopier.copy(new Action<CopySpec>() {
             public void execute(CopySpec copySpec) {
                 copySpec.from(DefaultConfigurableFileTree.this);
                 ConfigureUtil.configure(closure, copySpec);

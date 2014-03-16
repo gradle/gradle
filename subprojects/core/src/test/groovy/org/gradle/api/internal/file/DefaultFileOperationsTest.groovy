@@ -47,7 +47,8 @@ public class DefaultFileOperationsTest extends Specification {
     private final TaskResolver taskResolver = Mock()
     private final TemporaryFileProvider temporaryFileProvider = Mock()
     private final Instantiator instantiator = new DirectInstantiator()
-    private DefaultFileOperations fileOperations = new DefaultFileOperations(resolver, taskResolver, temporaryFileProvider, instantiator)
+    private final FileLookup fileLookup = Mock()
+    private DefaultFileOperations fileOperations = new DefaultFileOperations(resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -243,7 +244,7 @@ public class DefaultFileOperationsTest extends Specification {
 
     def javaexec() {
         File testFile = tmpDir.file("someFile")
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator, fileLookup)
         List files = ClasspathUtil.getClasspath(getClass().classLoader)
 
         when:
@@ -259,7 +260,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def javaexecWithNonZeroExitValueShouldThrowException() {
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator, fileLookup)
 
         when:
         fileOperations.javaexec {
@@ -271,7 +272,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def javaexecWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator, fileLookup)
 
         when:
         ExecResult result = fileOperations.javaexec {
@@ -285,7 +286,7 @@ public class DefaultFileOperationsTest extends Specification {
 
     @Requires(TestPrecondition.NOT_WINDOWS)
     def exec() {
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator, fileLookup)
         File testFile = tmpDir.file("someFile")
 
         when:
@@ -302,7 +303,7 @@ public class DefaultFileOperationsTest extends Specification {
 
     @Requires(TestPrecondition.NOT_WINDOWS)
     def execWithNonZeroExitValueShouldThrowException() {
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator, fileLookup)
 
         when:
         fileOperations.exec {
@@ -317,7 +318,7 @@ public class DefaultFileOperationsTest extends Specification {
 
     @Requires(TestPrecondition.NOT_WINDOWS)
     def execWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
-        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator, fileLookup)
 
         when:
         ExecResult result = fileOperations.exec {
