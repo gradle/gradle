@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.context
 
 import org.gradle.internal.nativeplatform.ProcessEnvironment
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.Requires
@@ -81,13 +80,12 @@ class DaemonCompatibilitySpecSpec extends Specification {
         def dir = new File(tmp.testDirectory, "a")
         dir.mkdirs()
         def link = new File(tmp.testDirectory, "link")
-        new TestFile(link).createLink(dir)
+//        new TestFile(link).createLink(dir)
+        ["ln", "-s", dir, link].execute().waitFor()
 
         assert dir != link
-//        assert dir.canonicalFile == dir.canonicalFile
-//        assert link.canonicalFile == link.canonicalFile
-//        assert dir.canonicalPath == link.canonicalPath
-//        assert dir.canonicalFile == link.canonicalFile
+        assert link.exists()
+        assert dir.canonicalFile == link.canonicalFile
 
         client { javaHome = dir }
         server { javaHome = link }
