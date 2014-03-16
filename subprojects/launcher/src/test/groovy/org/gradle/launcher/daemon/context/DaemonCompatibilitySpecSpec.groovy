@@ -79,10 +79,10 @@ class DaemonCompatibilitySpecSpec extends Specification {
     def "contexts with symlinked javaHome are compatible"() {
         def dir = tmp.createDir("a")
         def link = tmp.file("link")
-        link.createLink(dir)
+        link.createLink("a")
 
         assert dir != link
-        assert link.readLink() == dir.absolutePath
+        assert link.readLink() == "a"
         assert dir.canonicalFile == link.canonicalFile
 
         client { javaHome = dir }
