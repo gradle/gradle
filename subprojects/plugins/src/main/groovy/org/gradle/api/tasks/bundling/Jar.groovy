@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
+import org.gradle.internal.nativeplatform.filesystem.Chmod
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -41,7 +42,7 @@ public class Jar extends Zip {
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = rootSpec.addFirst().into('META-INF')
         metaInf.addChild().from {
-            MapFileTree manifestSource = new MapFileTree(temporaryDirFactory)
+            MapFileTree manifestSource = new MapFileTree(temporaryDirFactory, services.get(Chmod))
             manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
                 Manifest manifest = getManifest() ?: new DefaultManifest(null)
                 manifest.writeTo(new OutputStreamWriter(outstr))

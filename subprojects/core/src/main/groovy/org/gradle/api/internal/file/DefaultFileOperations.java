@@ -34,6 +34,7 @@ import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.*;
@@ -55,6 +56,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
     private final DeleteAction deleteAction;
     private final DefaultResourceHandler resourceHandler;
     private final FileCopier fileCopier;
+    private final FileSystem fileSystem;
 
     public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup) {
         this.fileResolver = fileResolver;
@@ -64,6 +66,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
         this.deleteAction = new DeleteActionImpl(fileResolver);
         this.resourceHandler = new DefaultResourceHandler(fileResolver);
         fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup);
+        fileSystem = fileLookup.getFileSystem();
     }
 
     public File file(Object path) {
@@ -87,7 +90,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
     }
 
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, instantiator, fileCopier);
+        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, fileCopier);
     }
 
     public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
@@ -95,22 +98,23 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations,
     }
 
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
-        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, instantiator, fileCopier);
+        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, fileCopier);
     }
 
+    @Deprecated
     public ConfigurableFileTree fileTree(Closure closure) {
         // This method is deprecated, but the deprecation warning is added on public classes that delegate to this. 
-        return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver, instantiator, fileCopier));
+        return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver, fileCopier));
     }
 
     public FileTree zipTree(Object zipPath) {
-        return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir()));
+        return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir(), fileSystem));
     }
 
     public FileTree tarTree(Object tarPath) {
         ReadableResource res = getResources().maybeCompressed(tarPath);
 
-        TarFileTree tarTree = new TarFileTree(res, getExpandDir());
+        TarFileTree tarTree = new TarFileTree(res, getExpandDir(), fileSystem);
         return new FileTreeAdapter(tarTree);
     }
 

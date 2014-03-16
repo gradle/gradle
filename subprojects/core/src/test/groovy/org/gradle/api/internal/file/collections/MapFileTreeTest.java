@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
@@ -34,7 +35,7 @@ public class MapFileTreeTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private TestFile rootDir = tmpDir.getTestDirectory();
-    private final MapFileTree tree = new MapFileTree(rootDir);
+    private final MapFileTree tree = new MapFileTree(rootDir, TestFiles.fileSystem());
 
     @Test
     public void isEmptyByDefault() {

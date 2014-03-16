@@ -24,6 +24,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.nativeplatform.filesystem.Chmod;
 
 import java.io.File;
 import java.io.FilterReader;
@@ -37,9 +38,11 @@ import java.util.*;
 public class NormalizingCopyActionDecorator implements CopyAction {
 
     private final CopyAction delegate;
+    private final Chmod chmod;
 
-    public NormalizingCopyActionDecorator(CopyAction delegate) {
+    public NormalizingCopyActionDecorator(CopyAction delegate, Chmod chmod) {
         this.delegate = delegate;
+        this.chmod = chmod;
     }
 
     public WorkResult execute(final CopyActionProcessingStream stream) {
@@ -87,7 +90,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
                 FileCopyDetailsInternal dir;
                 if (detailsForPath.isEmpty()) {
                     // TODO - this is pretty nasty, look at avoiding using a time bomb stub here
-                    dir = new StubbedFileCopyDetails(path, includeEmptyDirs);
+                    dir = new StubbedFileCopyDetails(path, includeEmptyDirs, chmod);
                 } else {
                     dir = detailsForPath.get(0);
                 }
@@ -104,7 +107,8 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         private final boolean includeEmptyDirs;
         private long lastModified = System.currentTimeMillis();
 
-        private StubbedFileCopyDetails(RelativePath path, boolean includeEmptyDirs) {
+        private StubbedFileCopyDetails(RelativePath path, boolean includeEmptyDirs, Chmod chmod) {
+            super(chmod);
             this.path = path;
             this.includeEmptyDirs = includeEmptyDirs;
         }

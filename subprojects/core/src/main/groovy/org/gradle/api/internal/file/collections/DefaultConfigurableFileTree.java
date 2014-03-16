@@ -30,7 +30,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -44,18 +43,16 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     private final FileResolver resolver;
     private final FileCopier fileCopier;
     private final DefaultTaskDependency buildDependency;
-    private final Instantiator instantiator;
 
-    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator, FileCopier fileCopier) {
-        this(Collections.singletonMap("dir", dir), resolver, taskResolver, instantiator, fileCopier);
+    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver, FileCopier fileCopier) {
+        this(Collections.singletonMap("dir", dir), resolver, taskResolver, fileCopier);
     }
 
-    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator, FileCopier fileCopier) {
+    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, FileCopier fileCopier) {
         this.resolver = resolver;
         this.fileCopier = fileCopier;
         ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
-        this.instantiator = instantiator;
     }
 
     public PatternSet getPatterns() {

@@ -19,8 +19,9 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.filesystem.Chmod;
 
 import java.io.File;
 import java.io.InputStream;
@@ -37,13 +38,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final Map<RelativePath, Closure> elements = new LinkedHashMap<RelativePath, Closure>();
     private final Factory<File> tmpDirSource;
+    private final Chmod chmod;
 
-    public MapFileTree(final File tmpDir) {
-        this(new Factory<File>() { public File create() { return tmpDir; }});
+    public MapFileTree(final File tmpDir, Chmod chmod) {
+        this(new Factory<File>() { public File create() { return tmpDir; }}, chmod);
     }
 
-    public MapFileTree(Factory<File> tmpDirSource) {
+    public MapFileTree(Factory<File> tmpDirSource, Chmod chmod) {
         this.tmpDirSource = tmpDirSource;
+        this.chmod = chmod;
     }
 
     private File getTmpDir() {
@@ -95,12 +98,12 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             }
 
             visitDirs(path.getParent(), visitor);
-            visitor.visitDir(new FileVisitDetailsImpl(path, null, stopFlag));
+            visitor.visitDir(new FileVisitDetailsImpl(path, null, stopFlag, chmod));
         }
 
         public void visit(RelativePath path, Closure generator) {
             visitDirs(path.getParent(), visitor);
-            visitor.visitFile(new FileVisitDetailsImpl(path, generator, stopFlag));
+            visitor.visitFile(new FileVisitDetailsImpl(path, generator, stopFlag, chmod));
         }
     }
 
@@ -111,7 +114,8 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         private final AtomicBoolean stopFlag;
         private File file;
 
-        public FileVisitDetailsImpl(RelativePath path, Closure generator, AtomicBoolean stopFlag) {
+        public FileVisitDetailsImpl(RelativePath path, Closure generator, AtomicBoolean stopFlag, Chmod chmod) {
+            super(chmod);
             this.path = path;
             this.generator = generator;
             this.stopFlag = stopFlag;

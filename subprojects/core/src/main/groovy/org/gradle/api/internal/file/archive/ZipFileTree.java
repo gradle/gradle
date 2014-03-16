@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.internal.nativeplatform.filesystem.Chmod;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.internal.hash.HashUtil;
@@ -42,10 +43,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final File zipFile;
+    private final Chmod chmod;
     private final File tmpDir;
 
-    public ZipFileTree(File zipFile, File tmpDir) {
+    public ZipFileTree(File zipFile, File tmpDir, Chmod chmod) {
         this.zipFile = zipFile;
+        this.chmod = chmod;
         String expandDirName = String.format("%s_%s", zipFile.getName(), HashUtil.createCompactMD5(zipFile.getAbsolutePath()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
@@ -86,9 +89,9 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
                 while (!stopFlag.get() && sortedEntries.hasNext()) {
                     ZipEntry entry = sortedEntries.next();
                     if (entry.isDirectory()) {
-                        visitor.visitDir(new DetailsImpl(entry, zip, stopFlag));
+                        visitor.visitDir(new DetailsImpl(entry, zip, stopFlag, chmod));
                     } else {
-                        visitor.visitFile(new DetailsImpl(entry, zip, stopFlag));
+                        visitor.visitFile(new DetailsImpl(entry, zip, stopFlag, chmod));
                     }
                 }
             } finally {
@@ -105,7 +108,8 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         private final AtomicBoolean stopFlag;
         private File file;
 
-        public DetailsImpl(ZipEntry entry, ZipFile zip, AtomicBoolean stopFlag) {
+        public DetailsImpl(ZipEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
+            super(chmod);
             this.entry = entry;
             this.zip = zip;
             this.stopFlag = stopFlag;

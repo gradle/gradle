@@ -21,8 +21,8 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import java.io.File;
 
 public class TestFiles {
-    public static final FileSystem FILE_SYSTEM = NativeServices.getInstance().get(FileSystem.class);
-    public static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup(FILE_SYSTEM);
+    private static final FileSystem FILE_SYSTEM = NativeServices.getInstance().get(FileSystem.class);
+    private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup(FILE_SYSTEM);
 
     public static FileLookup fileLookup() {
         return FILE_LOOKUP;

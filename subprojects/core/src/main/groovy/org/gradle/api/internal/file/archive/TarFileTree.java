@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.nativeplatform.filesystem.Chmod;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.gradle.internal.hash.HashUtil;
@@ -40,10 +41,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final ReadableResource resource;
+    private final Chmod chmod;
     private final File tmpDir;
 
-    public TarFileTree(ReadableResource resource, File tmpDir) {
+    public TarFileTree(ReadableResource resource, File tmpDir, Chmod chmod) {
         this.resource = resource;
+        this.chmod = chmod;
         String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createCompactMD5(resource.getURI().toString()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
@@ -91,11 +94,10 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         TarEntry entry;
         while (!stopFlag.get() && (entry = tar.getNextEntry()) != null) {
             if (entry.isDirectory()) {
-                visitor.visitDir(new DetailsImpl(entry, tar, stopFlag));
+                visitor.visitDir(new DetailsImpl(entry, tar, stopFlag, chmod));
             } else {
-                visitor.visitFile(new DetailsImpl(entry, tar, stopFlag));
+                visitor.visitFile(new DetailsImpl(entry, tar, stopFlag, chmod));
             }
-
         }
     }
 
@@ -106,7 +108,8 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         private File file;
         private boolean read;
 
-        public DetailsImpl(TarEntry entry, NoCloseTarInputStream tar, AtomicBoolean stopFlag) {
+        public DetailsImpl(TarEntry entry, NoCloseTarInputStream tar, AtomicBoolean stopFlag, Chmod chmod) {
+            super(chmod);
             this.entry = entry;
             this.tar = tar;
             this.stopFlag = stopFlag;

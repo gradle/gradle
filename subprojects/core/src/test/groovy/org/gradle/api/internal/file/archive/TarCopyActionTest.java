@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
+import static org.gradle.api.internal.file.TestFiles.fileSystem;
 import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -96,7 +97,7 @@ public class TarCopyActionTest {
         expected.put("dir", 2);
         expected.put("file", 1);
 
-        assertVisitsPermissions(new TarFileTree(new FileResource(tarFile), null),
+        assertVisitsPermissions(new TarFileTree(new FileResource(tarFile), null, fileSystem()),
                 expected);
     }
 

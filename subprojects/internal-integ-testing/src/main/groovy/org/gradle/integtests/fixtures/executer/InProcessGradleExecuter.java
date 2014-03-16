@@ -24,9 +24,8 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
@@ -36,6 +35,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
@@ -116,7 +116,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
     protected GradleHandle doStart() {
         return new ForkingGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), new Factory<JavaExecHandleBuilder>() {
             public JavaExecHandleBuilder create() {
-                JavaExecHandleBuilder builder = new JavaExecHandleBuilder(new IdentityFileResolver());
+                JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver());
                 builder.workingDir(getWorkingDir());
                 Set<File> classpath = new DefaultModuleRegistry().getFullClasspath();
                 builder.classpath(classpath);

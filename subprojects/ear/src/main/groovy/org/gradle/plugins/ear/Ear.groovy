@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.internal.nativeplatform.filesystem.Chmod
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
@@ -73,7 +74,7 @@ class Ear extends Jar {
         // this allows us to generate the deployment descriptor after recording all modules it contains
         def metaInf = mainSpec.addChild().into('META-INF')
         metaInf.addChild().from {
-            MapFileTree descriptorSource = new MapFileTree(temporaryDirFactory)
+            MapFileTree descriptorSource = new MapFileTree(temporaryDirFactory, services.get(Chmod))
             final DeploymentDescriptor descriptor = deploymentDescriptor
             if (descriptor) {
                 if (!descriptor.libraryDirectory) {

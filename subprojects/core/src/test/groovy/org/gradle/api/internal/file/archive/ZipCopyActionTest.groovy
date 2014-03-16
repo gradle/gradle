@@ -20,6 +20,7 @@ import org.apache.tools.zip.ZipOutputStream
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal
 import org.gradle.api.internal.file.copy.ZipStoredCompressor
@@ -83,7 +84,7 @@ class ZipCopyActionTest extends Specification {
         expected.put("file", 1);
 
         then:
-        assertVisitsPermissions(new ZipFileTree(zipFile, null), expected)
+        assertVisitsPermissions(new ZipFileTree(zipFile, null, TestFiles.fileSystem()), expected)
     }
 
     void wrapsFailureToOpenOutputFile() {

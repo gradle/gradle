@@ -23,7 +23,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.Chmod;
 
 import java.io.*;
 import java.util.Map;
@@ -31,17 +31,16 @@ import java.util.Map;
 public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
     private final FileVisitDetails fileDetails;
     private final CopySpecInternal spec;
-    private FileSystem fileSystem;
     private final FilterChain filterChain = new FilterChain();
     private RelativePath relativePath;
     private boolean excluded;
     private Integer mode;
     private DuplicatesStrategy duplicatesStrategy;
 
-    public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecInternal spec, FileSystem fileSystem) {
+    public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecInternal spec, Chmod chmod) {
+        super(chmod);
         this.fileDetails = fileDetails;
         this.spec = spec;
-        this.fileSystem = fileSystem;
         this.duplicatesStrategy = spec.getDuplicatesStrategy();
     }
 
@@ -113,7 +112,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         final Integer specMode = getMode();
         if(specMode !=null){
             try {
-                fileSystem.chmod(target, specMode);
+                getChmod().chmod(target, specMode);
             } catch (IOException e) {
                 throw new GradleException(String.format("Could not set permission %s on '%s'.", specMode, target), e);
             }

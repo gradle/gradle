@@ -15,18 +15,21 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.DefaultFileTreeElement;
+import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A file tree with a single file entry.
  */
 public class SingletonFileTree implements MinimalFileTree {
     private final File file;
+    private final FileSystem fileSystem = FileSystems.getDefault();
 
     public SingletonFileTree(File file) {
         this.file = file;
@@ -37,16 +40,6 @@ public class SingletonFileTree implements MinimalFileTree {
     }
 
     public void visit(FileVisitor visitor) {
-        visitor.visitFile(new FileVisitDetailsImpl());
+        visitor.visitFile(new DefaultFileVisitDetails(file, new RelativePath(true, file.getName()), new AtomicBoolean(), fileSystem, fileSystem));
     }
-
-    private class FileVisitDetailsImpl extends DefaultFileTreeElement implements FileVisitDetails {
-        private FileVisitDetailsImpl() {
-            super(file, new RelativePath(true, file.getName()));
-        }
-
-        public void stopVisiting() {
-        }
-    }
-
 }
