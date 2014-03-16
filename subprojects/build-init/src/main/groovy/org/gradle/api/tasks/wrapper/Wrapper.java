@@ -18,6 +18,7 @@ package org.gradle.api.tasks.wrapper;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.tasks.Input;
@@ -87,7 +88,7 @@ public class Wrapper extends DefaultTask {
     void generate() {
         File jarFileDestination = getJarFile();
         File unixScript = getScriptFile();
-        FileResolver resolver = getServices().get(FileResolver.class).withBaseDir(unixScript.getParentFile());
+        FileResolver resolver = getServices().get(FileLookup.class).getFileResolver(unixScript.getParentFile());
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
 
         writeProperties(getPropertiesFile());

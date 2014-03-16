@@ -22,7 +22,7 @@ import java.io.File;
 
 public class DefaultFileLookup implements FileLookup {
     private final FileSystem fileSystem;
-    private final FileResolver fileResolver;
+    private final IdentityFileResolver fileResolver;
 
     public DefaultFileLookup(FileSystem fileSystem) {
         this.fileSystem = fileSystem;

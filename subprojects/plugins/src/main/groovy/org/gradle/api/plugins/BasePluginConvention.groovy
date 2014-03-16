@@ -16,6 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.project.ProjectInternal
 
 public class BasePluginConvention {
@@ -49,7 +50,7 @@ public class BasePluginConvention {
      * @return The directory. Never returns null.
      */
     File getDistsDir() {
-        project.fileResolver.withBaseDir(project.buildDir).resolve(distsDirName)
+        project.services.get(FileLookup).getFileResolver(project.buildDir).resolve(distsDirName)
     }
 
     /**
@@ -58,6 +59,6 @@ public class BasePluginConvention {
      * @return The directory. Never returns null.
      */
     File getLibsDir() {
-        project.fileResolver.withBaseDir(project.buildDir).resolve(libsDirName)
+        project.services.get(FileLookup).getFileResolver(project.buildDir).resolve(libsDirName)
     }
 }

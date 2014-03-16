@@ -53,7 +53,7 @@ import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResour
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedArtifactIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
@@ -89,7 +89,7 @@ class DependencyManagementBuildScopeServices {
                                               ProjectAccessListener projectAccessListener,
                                               StartParameter startParameter,
                                               ClassPathRegistry classPathRegistry,
-                                              FileResolver fileResolver) {
+                                              FileLookup fileLookup) {
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
                 projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
 
@@ -105,7 +105,7 @@ class DependencyManagementBuildScopeServices {
                 moduleMapParser,
                 selfResolvingDependencyFactory,
                 projParser,
-                new DependencyClassPathNotationParser(instantiator, classPathRegistry, fileResolver.withNoBaseDir()));
+                new DependencyClassPathNotationParser(instantiator, classPathRegistry, fileLookup.getFileResolver()));
 
         return new DefaultDependencyFactory(
                 new DependencyNotationParser(notationParsers),

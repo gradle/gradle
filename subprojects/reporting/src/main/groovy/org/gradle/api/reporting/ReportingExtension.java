@@ -16,6 +16,7 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
@@ -55,8 +56,8 @@ public class ReportingExtension {
         this.project = (ProjectInternal)project;
         this.baseDir = new Callable<File>() {
             public File call() throws Exception {
-                return ReportingExtension.this.project.getFileResolver().
-                        withBaseDir(ReportingExtension.this.project.getBuildDir()).
+                return ReportingExtension.this.project.getServices().
+                        get(FileLookup.class).getFileResolver(ReportingExtension.this.project.getBuildDir()).
                         resolve(DEFAULT_REPORTS_DIR_NAME);
             }
         };
@@ -93,7 +94,7 @@ public class ReportingExtension {
      * @return a file object at the given path relative to {@link #getBaseDir()}
      */
     public File file(String path) {  // TODO should this take Object?
-        return this.project.getFileResolver().withBaseDir(getBaseDir()).resolve(path);
+        return this.project.getServices().get(FileLookup.class).getFileResolver(getBaseDir()).resolve(path);
     }
 
     // TODO this doesn't belong here, that java plugin should add an extension to this guy with this

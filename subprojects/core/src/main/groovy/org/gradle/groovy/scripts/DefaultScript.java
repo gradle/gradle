@@ -68,10 +68,9 @@ public abstract class DefaultScript extends BasicScript {
         if (target instanceof FileOperations) {
             fileOperations = (FileOperations) target;
         } else if (getScriptSource().getResource().getFile() != null) {
-            fileOperations = new DefaultFileOperations(
-                    fileLookup.getFileResolver(getScriptSource().getResource().getFile().getParentFile()), null, null, instantiator);
+            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(getScriptSource().getResource().getFile().getParentFile()), null, null, instantiator, fileLookup);
         } else {
-            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator);
+            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup);
         }
 
         processOperations = (ProcessOperations) fileOperations;
