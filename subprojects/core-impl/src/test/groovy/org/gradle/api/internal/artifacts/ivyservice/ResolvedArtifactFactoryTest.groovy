@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.apache.ivy.Ivy
 import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import org.gradle.internal.Factory
 import spock.lang.Specification
 
@@ -27,12 +28,13 @@ class ResolvedArtifactFactoryTest extends Specification {
     final ResolvedArtifactFactory factory = new ResolvedArtifactFactory(lockingManager, ivyContextManager)
 
     def "provides artifact source"() {
+        ModuleVersionMetaData module = Mock()
         ModuleVersionArtifactMetaData artifact = Mock()
         ArtifactResolver artifactResolver = Mock()
         File file = new File("something.jar")
 
         when:
-        File f = factory.artifactSource(artifact, artifactResolver).create()
+        File f = factory.artifactSource(module, artifact, artifactResolver).create()
 
         then:
         f == file
@@ -42,7 +44,7 @@ class ResolvedArtifactFactoryTest extends Specification {
         1 * ivyContextManager.withIvy(!null) >> {Transformer action ->
             return action.transform(Stub(Ivy))
         }
-        1 * artifactResolver.resolve(artifact, _) >> { args -> args[1].resolved(file) }
+        1 * artifactResolver.resolve(module, artifact, _) >> { args -> args[2].resolved(file) }
         0 * _._
     }
 }

@@ -29,9 +29,9 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
         this.resolver = resolver;
     }
 
-    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+    public void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
         try {
-            resolver.resolve(artifact, result);
+            resolver.resolve(moduleMetaData, artifact, result);
         } catch (Throwable t) {
             result.failed(new ArtifactResolveException(artifact.getId(), t));
         }

@@ -23,7 +23,7 @@ public interface ArtifactResolver {
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result);
+    void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result);
 
     /**
      * Resolves artifacts of the given type and belonging to the given module. Any failures are packaged up in the result.

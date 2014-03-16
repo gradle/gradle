@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
@@ -31,6 +32,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleDescriptor moduleDescriptor;
     private final ComponentIdentifier componentIdentifier;
+    private ModuleSource moduleSource;
     private boolean changing;
     private boolean metaDataOnly;
     private String status;
@@ -79,6 +81,14 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
 
     public ModuleVersionIdentifier getId() {
         return moduleVersionIdentifier;
+    }
+
+    public void setSource(ModuleSource source) {
+        this.moduleSource = source;
+    }
+
+    public ModuleSource getSource() {
+        return moduleSource;
     }
 
     public ModuleDescriptor getDescriptor() {
