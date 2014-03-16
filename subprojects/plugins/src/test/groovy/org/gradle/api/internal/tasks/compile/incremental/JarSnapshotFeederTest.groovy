@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.tasks.compile.incremental
 
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo
 import spock.lang.Specification
 import spock.lang.Subject
 
 class JarSnapshotFeederTest extends Specification {
 
     def cache = Mock(JarSnapshotCache)
+    def info = Mock(ClassDependencyInfo)
     def snapshotter = Mock(JarSnapshotter)
 
     @Subject feeder = new JarSnapshotFeeder(cache, snapshotter)
@@ -32,11 +36,11 @@ class JarSnapshotFeederTest extends Specification {
         def snapshot = Mock(JarSnapshot)
 
         when:
-        feeder.storeJarSnapshots([jar1])
+        feeder.storeJarSnapshots([jar1], info)
 
         then:
         1 * cache.getSnapshot(jar1.file)
-        1 * snapshotter.createSnapshot(jar1.contents) >> snapshot
+        1 * snapshotter.createSnapshot(jar1.contents, info) >> snapshot
         1 * cache.putSnapshots([(jar1.file): snapshot])
         0 * _
     }
@@ -46,11 +50,11 @@ class JarSnapshotFeederTest extends Specification {
         def jar2 = new JarArchive(new File("jar2.jar"), Mock(FileTree))
 
         when:
-        feeder.storeJarSnapshots([jar1, jar2])
+        feeder.storeJarSnapshots([jar1, jar2], info)
 
         then:
-        1 * snapshotter.createSnapshot(jar1.contents) >> Mock(JarSnapshot)
-        1 * snapshotter.createSnapshot(jar2.contents) >> Mock(JarSnapshot)
+        1 * snapshotter.createSnapshot(jar1.contents, info) >> Mock(JarSnapshot)
+        1 * snapshotter.createSnapshot(jar2.contents, info) >> Mock(JarSnapshot)
         1 * cache.putSnapshots({ it.size() == 2})
     }
 
@@ -60,12 +64,12 @@ class JarSnapshotFeederTest extends Specification {
 
         when:
         feeder.changedJar(jar2.file)
-        feeder.storeJarSnapshots([jar1, jar2])
+        feeder.storeJarSnapshots([jar1, jar2], info)
 
         then:
         1 * cache.getSnapshot(jar1.file) >> Mock(JarSnapshot)
         1 * cache.getSnapshot(jar2.file) >> Mock(JarSnapshot)
-        1 * snapshotter.createSnapshot(jar2.contents) >> Mock(JarSnapshot)
+        1 * snapshotter.createSnapshot(jar2.contents, info) >> Mock(JarSnapshot)
         1 * cache.putSnapshots({ it[jar2.file] })
         0 * _
     }

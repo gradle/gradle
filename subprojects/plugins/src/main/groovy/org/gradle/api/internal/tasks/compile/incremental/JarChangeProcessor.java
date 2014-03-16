@@ -16,14 +16,17 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 public class JarChangeProcessor {
 
     private JarSnapshotFeeder jarSnapshotFeeder;
+    private ClassDependencyInfo dependencyInfo;
 
-    public JarChangeProcessor(JarSnapshotFeeder jarSnapshotFeeder) {
+    public JarChangeProcessor(JarSnapshotFeeder jarSnapshotFeeder, ClassDependencyInfo dependencyInfo) {
         this.jarSnapshotFeeder = jarSnapshotFeeder;
+        this.dependencyInfo = dependencyInfo;
     }
 
     //TODO SF coverage
@@ -33,22 +36,20 @@ public class JarChangeProcessor {
             return DefaultRebuildInfo.NOTHING_TO_REBUILD;
         }
 
+        if (existing == null) {
+            //we don't know what classes were dependents of the jar in the previous build
+            //for example, a class (in jar) with a constant might have changed into a class without a constant - we need to rebuild everything
+            return DefaultRebuildInfo.FULL_REBUILD;
+        }
+
         if (jarChangeDetails.isRemoved()) {
-            if (existing != null) {
-                return new AllFromJarRebuildInfo(jarArchive);
-            } else {
-                return DefaultRebuildInfo.FULL_REBUILD;
-            }
+            return DefaultRebuildInfo.FULL_REBUILD;
         }
 
         if (jarChangeDetails.isModified()) {
-            if (existing != null) {
-                JarSnapshot newSnapshot = jarSnapshotFeeder.createSnapshot(jarArchive);
-                JarDelta jarDelta = existing.compareToSnapshot(newSnapshot);
-                return new SpecificClassesRebuildInfo(jarDelta);
-            } else {
-                return new AllFromJarRebuildInfo(jarArchive);
-            }
+            JarSnapshot newSnapshot = jarSnapshotFeeder.createSnapshot(jarArchive, dependencyInfo);
+            final JarDependentsDelta delta = existing.getDependentsDelta(newSnapshot);
+            return new DefaultRebuildInfo(delta.getDependentClasses());
         }
 
         throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);

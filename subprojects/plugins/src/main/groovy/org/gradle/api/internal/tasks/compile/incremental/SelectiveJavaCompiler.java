@@ -27,7 +27,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-public class SelectiveJavaCompiler implements Compiler<JavaCompileSpec> {
+public class SelectiveJavaCompiler implements Compiler<JavaCompileSpec>, StaleClassProcessor {
     private Compiler<JavaCompileSpec> compiler;
     private final OutputClassMapper outputClassMapper;
     private List<File> staleClasses = new LinkedList<File>();

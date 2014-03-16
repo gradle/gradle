@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.tasks.compile.incremental
 
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.hash.Hasher
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,26 +29,31 @@ import spock.lang.Subject
 class JarSnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    def hasher = Mock(Hasher)
-    @Subject snapshotter = new JarSnapshotter(hasher);
+    def classSnapshotter = Mock(ClassSnapshotter)
+    def info = Mock(ClassDependencyInfo)
+    @Subject snapshotter = new JarSnapshotter(classSnapshotter);
 
     def "creates snapshot of an empty jar"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(new FileTreeAdapter(new DirectoryFileTree(new File("missing"))))
-        snapshot.classHashes.isEmpty()
+        def snapshot = snapshotter.createSnapshot(new FileTreeAdapter(new DirectoryFileTree(new File("missing"))), null)
+        snapshot.classSnapshots.isEmpty()
     }
 
     def "creates snapshot of a jar with classes"() {
         def f1 = temp.createFile("foo/Foo.class")
         def f2 = temp.createFile("foo/com/Foo2.class")
+        def sn1 = Mock(ClassSnapshot); def sn2 = Mock(ClassSnapshot)
 
         when:
-        def snapshot = snapshotter.createSnapshot(new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))))
+        def snapshot = snapshotter.createSnapshot(new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), info)
 
         then:
-        snapshot.classHashes.keySet() == ["Foo", "com.Foo2"] as Set
-        1 * hasher.hash(f1);
-        1 * hasher.hash(f2);
+        1 * classSnapshotter.createSnapshot("Foo", f1, info) >> sn1
+        1 * classSnapshotter.createSnapshot("com.Foo2", f2, info) >> sn2
+
+        snapshot.classSnapshots["Foo"] == sn1
+        snapshot.classSnapshots["com.Foo2"] == sn2
+
         0 * _._
     }
 }

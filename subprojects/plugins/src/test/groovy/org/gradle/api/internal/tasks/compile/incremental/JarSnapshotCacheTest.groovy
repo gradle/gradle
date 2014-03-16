@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.tasks.compile.incremental
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,18 +35,20 @@ class JarSnapshotCacheTest extends Specification {
 
     def "caches snapshots"() {
         when:
-        cache.putSnapshots([(new File("foo.jar")): new JarSnapshot(["Foo": "f".bytes])])
+        cache.putSnapshots([(new File("foo.jar")): new JarSnapshot(["Foo": new ClassSnapshot("f".bytes, ['a', 'b'])])])
+        def sn = cache.getSnapshot(new File("foo.jar")).classSnapshots["Foo"]
 
         then:
-        cache.getSnapshot(new File("foo.jar")).classHashes == ["Foo": "f".bytes]
+        sn.hash == "f".bytes
+        sn.dependentClasses == ['a', 'b']
     }
 
     def "caches snapshots in file"() {
         when:
-        cache.putSnapshots([(new File("foo.jar")): new JarSnapshot(["Foo": "f".bytes])])
+        cache.putSnapshots([(new File("foo.jar")): new JarSnapshot(["Foo": new ClassSnapshot("f".bytes, [])])])
 
         then:
         def cache2 = new JarSnapshotCache(temp.file("cache.bin"))
-        cache2.getSnapshot(new File("foo.jar")).classHashes == ["Foo": "f".bytes]
+        cache2.getSnapshot(new File("foo.jar")).classSnapshots["Foo"].hash == "f".bytes
     }
 }

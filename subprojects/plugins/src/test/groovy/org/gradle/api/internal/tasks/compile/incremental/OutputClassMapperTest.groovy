@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.tasks.compile.incremental
 
 import spock.lang.Specification

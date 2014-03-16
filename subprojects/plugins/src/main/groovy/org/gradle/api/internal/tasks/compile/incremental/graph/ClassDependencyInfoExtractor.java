@@ -30,16 +30,16 @@ import java.util.Map;
 
 public class ClassDependencyInfoExtractor {
 
-    private File classesDir;
+    private final ClassDependenciesAnalyzer analyzer;
 
-    public ClassDependencyInfoExtractor(File classesDir) {
-        this.classesDir = classesDir;
+    public ClassDependencyInfoExtractor(ClassDependenciesAnalyzer analyzer) {
+        this.analyzer = analyzer;
     }
 
-    public ClassDependencyInfo extractInfo(String packagePrefix) {
+    public ClassDependencyInfo extractInfo(File compiledClassesDir, String packagePrefix) {
         Map<String, ClassDependents> dependents = new HashMap<String, ClassDependents>();
-        Iterator output = FileUtils.iterateFiles(classesDir, new String[]{"class"}, true);
-        ClassNameProvider nameProvider = new ClassNameProvider(classesDir);
+        Iterator output = FileUtils.iterateFiles(compiledClassesDir, new String[]{"class"}, true);
+        ClassNameProvider nameProvider = new ClassNameProvider(compiledClassesDir);
         while (output.hasNext()) {
             File classFile = (File) output.next();
             String className = nameProvider.provideName(classFile);
@@ -47,7 +47,7 @@ public class ClassDependencyInfoExtractor {
                 continue;
             }
             try {
-                ClassAnalysis analysis = new ClassDependenciesAnalyzer().getClassAnalysis(className, classFile);
+                ClassAnalysis analysis = analyzer.getClassAnalysis(className, classFile);
                 for (String dependency : analysis.getClassDependencies()) {
                     if (!dependency.equals(className) && dependency.startsWith(packagePrefix)) {
                         getOrCreateDependentMapping(dependents, dependency).addClass(className);

@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.tasks.compile.incremental
 
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer
@@ -30,23 +33,24 @@ class IncrementalCompilationSupportTest extends Specification {
     def serializer = Mock(ClassDependencyInfoSerializer)
     def feeder = Mock(JarSnapshotFeeder)
 
-    @Subject support = new IncrementalCompilationSupport(feeder)
+    @Subject support = new IncrementalCompilationSupport(feeder, serializer, Mock(FileOperations), extractor)
 
     def "analyzes class dependencies when incremental"() {
         options.incremental >> true
         def jars = [Mock(JarArchive)]
+        def classesDir = new File("c")
 
-        when: support.compilationComplete(options, extractor, serializer, jars)
+        when: support.compilationComplete(options, jars, classesDir)
         then:
-        1 * extractor.extractInfo("") >> Stub(ClassDependencyInfo)
+        1 * extractor.extractInfo(classesDir, "") >> Stub(ClassDependencyInfo)
         1 * serializer.writeInfo(_ as ClassDependencyInfo)
-//        1 * feeder.storeJarSnapshots(jars)
+        1 * feeder.storeJarSnapshots(jars, _ as ClassDependencyInfo)
     }
 
     def "does nothing when not incremental"() {
         options.incremental >> false
 
-        when: support.compilationComplete(options, extractor, serializer, [])
+        when: support.compilationComplete(options, [], new File("c"))
         then: 0 * extractor._
     }
 }

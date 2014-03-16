@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.tasks.compile.incremental
 
 import spock.lang.Specification
@@ -21,29 +23,44 @@ import spock.lang.Specification
 class JarSnapshotTest extends Specification {
 
     def "knows when snapshots are the same"() {
-        JarSnapshot s1 = new JarSnapshot(["com.Foo": "f".bytes, "Bar": "b".bytes])
-        JarSnapshot s2 = new JarSnapshot(["com.Foo": "f".bytes, "Bar": "b".bytes])
+        JarSnapshot s1 = new JarSnapshot(["com.Foo": new ClassSnapshot("f".bytes, ['x.X', 'y.Y']), "Bar": new ClassSnapshot("b".bytes, [])])
+        JarSnapshot s2 = new JarSnapshot(["com.Foo": new ClassSnapshot("f".bytes, ['x.X', 'y.Y']), "Bar": new ClassSnapshot("b".bytes, [])])
 
         expect:
-        s1.compareToSnapshot(s2).changedClasses.isEmpty()
-        s2.compareToSnapshot(s1).changedClasses.isEmpty()
+        s1.getDependentsDelta(s2).dependentClasses.isEmpty()
+        s2.getDependentsDelta(s1).dependentClasses.isEmpty()
     }
 
     def "knows when other snapshots have extra/missing classes"() {
-        JarSnapshot s1 = new JarSnapshot(["com.Foo": "f".bytes, "Bar": "b".bytes, "Car": "c".bytes])
-        JarSnapshot s2 = new JarSnapshot(["com.Foo": "f".bytes])
+        JarSnapshot s1 = new JarSnapshot(["com.Foo": new ClassSnapshot("f".bytes, ['X']),
+                                              "Bar": new ClassSnapshot("b".bytes, ['X', 'Y']),
+                                              "Car": new ClassSnapshot("c".bytes, ['Z'])])
+        JarSnapshot s2 = new JarSnapshot(["com.Foo": new ClassSnapshot("f".bytes, ['X'])])
 
         expect:
-        s1.compareToSnapshot(s2).changedClasses == ["Bar", "Car"]
-        s2.compareToSnapshot(s1).changedClasses == [] //ignore class additions
+        s1.getDependentsDelta(s2).dependentClasses == ["X", "Y", "Z"]
+        s2.getDependentsDelta(s1).dependentClasses == [] //ignore class additions
     }
 
     def "knows when other snapshots have class with different hash"() {
-        JarSnapshot s1 = new JarSnapshot(["com.Foo": "f".bytes, "Bar": "b".bytes, "Car": "c".bytes])
-        JarSnapshot s2 = new JarSnapshot(["Car": "xxx".bytes, "com.Foo": "f".bytes])
+        JarSnapshot s1 = new JarSnapshot(["com.Foo": new ClassSnapshot("f".bytes, ['X']),
+                "Bar": new ClassSnapshot("b".bytes, ['X', 'Y']),
+                "Car": new ClassSnapshot("yyy".bytes, ['Z'])])
+        JarSnapshot s2 = new JarSnapshot(["com.Foo": new ClassSnapshot("f".bytes, ['X']),
+                "Car": new ClassSnapshot("xxx".bytes, ['Z'])])
 
         expect:
-        s1.compareToSnapshot(s2).changedClasses == ["Bar", "Car"]
-        s2.compareToSnapshot(s1).changedClasses == ["Car"]
+        s1.getDependentsDelta(s2).dependentClasses == ["X", "Y", "Z"]
+        s2.getDependentsDelta(s1).dependentClasses == ["Z"]
+    }
+
+    def "informs that all classes are dependent"() {
+        JarSnapshot s1 = new JarSnapshot(["com.Foo": new ClassSnapshot("f".bytes, ['X']),
+                "Bar": new ClassSnapshot("b".bytes, null)])
+        JarSnapshot s2 = new JarSnapshot([:])
+
+        expect:
+        s1.getDependentsDelta(s2).dependentClasses == null //all dependent, ugly. The whole test case needs to be simplified. TODO SF
+        s2.getDependentsDelta(s1).dependentClasses == []
     }
 }

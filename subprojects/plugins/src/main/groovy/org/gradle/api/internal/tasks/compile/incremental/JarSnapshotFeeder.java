@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,19 +41,19 @@ public class JarSnapshotFeeder {
         return snapshot;
     }
 
-    public void storeJarSnapshots(Iterable<JarArchive> jars) {
+    public void storeJarSnapshots(Iterable<JarArchive> jars, ClassDependencyInfo info) {
         Map<File, JarSnapshot> newSnapshots = new HashMap<File, JarSnapshot>();
         for (JarArchive jar : jars) {
             if (!changedJars.contains(jar.file) && jarSnapshotCache.getSnapshot(jar.file) != null) {
                 //if jar was not changed and the the snapshot already exists, skip
                 continue;
             }
-            newSnapshots.put(jar.file, jarSnapshotter.createSnapshot(jar.contents));
+            newSnapshots.put(jar.file, jarSnapshotter.createSnapshot(jar.contents, info));
         }
         jarSnapshotCache.putSnapshots(newSnapshots);
     }
 
-    public JarSnapshot createSnapshot(JarArchive jarArchive) {
-        return jarSnapshotter.createSnapshot(jarArchive.contents);
+    public JarSnapshot createSnapshot(JarArchive jarArchive, ClassDependencyInfo dependencyInfo) {
+        return jarSnapshotter.createSnapshot(jarArchive.contents, dependencyInfo);
     }
 }

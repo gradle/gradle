@@ -17,7 +17,6 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -201,7 +200,6 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         changedFiles.containsAll(['WithConst', 'AnotherPersonImpl', 'PersonImpl', 'Person'])
     }
 
-    @Ignore
     def "understands inter-project dependencies"() {
         settingsFile << "include 'api'"
         buildFile << "dependencies { compile project(':api') }"
@@ -228,5 +226,27 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         then:
         changedFiles == ['ConsumesB'] as Set
         unchangedFiles.contains('ConsumesA')
+    }
+
+    def "understands inter-project dependency that forces full rebuild"() {
+        settingsFile << "include 'api'"
+        buildFile << "dependencies { compile project(':api') }"
+
+        file("api/src/main/java/org/A.java") << """package org; public class A {
+            public static final String x = "foo";
+        }"""
+
+        file("src/main/java/org/B.java") << """package org; public class B {  }"""
+        file("src/main/java/org/C.java") << """package org; public class C {  }"""
+
+        run "compileJava"
+
+        file("api/src/main/java/org/A.java").text = "package org; public class A {}"
+
+        when: run "compileJava"
+
+        then:
+        changedFiles.containsAll(['B', 'C'])
+        unchangedFiles.isEmpty()
     }
 }

@@ -16,8 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-public class SpecificClassesRebuildInfo extends DefaultRebuildInfo {
-    public SpecificClassesRebuildInfo(JarDelta jarDelta) {
-        super(false, jarDelta.getChangedClasses());
+import java.io.Serializable;
+import java.util.Collection;
+
+public class ClassSnapshot implements Serializable {
+
+    final byte[] hash;
+    final Collection<String> dependentClasses;
+
+    public ClassSnapshot(byte[] hash, Collection<String> dependentClasses) {
+        this.hash = hash;
+        this.dependentClasses = dependentClasses;
     }
 }

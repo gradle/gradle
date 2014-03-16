@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.incremental.*;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
@@ -76,8 +77,12 @@ public class Compile extends AbstractCompile {
         JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, antBuilderFactory, inProcessCompilerFactory, compilerDaemonManager);
         javaCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
         cleaningCompiler = new CleaningJavaCompiler(javaCompiler, antBuilderFactory, getOutputs());
-        JarSnapshotFeeder jarSnapshotFeeder = new JarSnapshotFeeder(getJarSnapshotCache(), new JarSnapshotter(new DefaultHasher()));
-        incrementalCompilation = new IncrementalCompilationSupport(jarSnapshotFeeder);
+
+        ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer();
+        ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
+        JarSnapshotFeeder jarSnapshotFeeder = new JarSnapshotFeeder(getJarSnapshotCache(), new JarSnapshotter(new ClassSnapshotter(new DefaultHasher(), analyzer)));
+        incrementalCompilation = new IncrementalCompilationSupport(jarSnapshotFeeder, getDependencyInfoSerializer(),
+                (FileOperations) getProject(), extractor);
     }
 
     private FileCollection compileClasspath; //TODO SF remove this hack
@@ -87,9 +92,7 @@ public class Compile extends AbstractCompile {
         if (!maybeCompileIncrementally(inputs)) {
             compile();
         }
-        incrementalCompilation.compilationComplete(compileOptions,
-                new ClassDependencyInfoExtractor(getDestinationDir()),
-                getDependencyInfoSerializer(), jarsOnClasspath());
+        incrementalCompilation.compilationComplete(compileOptions, jarsOnClasspath(), getDestinationDir());
     }
 
     private Iterable<JarArchive> jarsOnClasspath() {
@@ -127,8 +130,8 @@ public class Compile extends AbstractCompile {
         SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
 
         SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler, new OutputClassMapper(getDestinationDir()));
-        SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, getSource(), getClasspath(), getDestinationDir(),
-                getDependencyInfoSerializer(), getJarSnapshotCache(), compiler, sourceDirs, (FileOperations) getProject());
+        SelectiveCompilation selectiveCompilation = incrementalCompilation.createSelectiveCompilation(
+                inputs, getSource(), getClasspath(), getDestinationDir(), compiler, sourceDirs);
 
         if (!selectiveCompilation.getCompilationNeeded()) {
             LOG.lifecycle("{} does not require recompilation. Skipping the compiler.", getPath());

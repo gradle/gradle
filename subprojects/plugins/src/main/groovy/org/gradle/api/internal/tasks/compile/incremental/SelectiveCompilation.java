@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
@@ -37,20 +36,13 @@ import java.util.Set;
 public class SelectiveCompilation {
     private final FileCollection source;
     private final FileCollection classpath;
-    private final JarSnapshotFeeder jarSnapshotFeeder;
-    private SelectiveJavaCompiler compiler;
     private static final Logger LOG = Logging.getLogger(SelectiveCompilation.class);
     private String fullRebuildNeeded;
     private boolean compilationNeeded = true;
-    private final FileOperations operations;
 
     public SelectiveCompilation(IncrementalTaskInputs inputs, FileTree source, FileCollection compileClasspath, final File compileDestination,
-                                final ClassDependencyInfoSerializer dependencyInfoSerializer, final JarSnapshotCache jarSnapshotCache, final SelectiveJavaCompiler compiler,
+                                final ClassDependencyInfoSerializer dependencyInfoSerializer, final JarSnapshotFeeder jarSnapshotFeeder, final SelectiveJavaCompiler compiler,
                                 Iterable<File> sourceDirs, final FileOperations operations) {
-        this.operations = operations;
-        this.jarSnapshotFeeder = new JarSnapshotFeeder(jarSnapshotCache, new JarSnapshotter(new DefaultHasher()));
-        this.compiler = compiler;
-
         Clock clock = new Clock();
         final InputOutputMapper mapper = new InputOutputMapper(sourceDirs, compileDestination);
 
@@ -82,8 +74,14 @@ public class SelectiveCompilation {
                     }
                 }
                 if (name.endsWith(".jar")) {
-                    fullRebuildNeeded = "change to " + inputFile + " requires full rebuild";
-                    return;
+                    JarArchive jarArchive = new JarArchive(inputFileDetails.getFile(), operations.zipTree(inputFileDetails.getFile()));
+                    JarChangeProcessor processor = new JarChangeProcessor(jarSnapshotFeeder, dependencyInfo);
+                    RebuildInfo rebuildInfo = processor.processJarChange(inputFileDetails, jarArchive);
+                    RebuildInfo.Info info = rebuildInfo.configureCompilation(changedSourceOnly, compiler);
+                    if (info == RebuildInfo.Info.FullRebuild) {
+                        fullRebuildNeeded = "change to " + inputFile + " requires full rebuild";
+                        return;
+                    }
                 }
             }
         });

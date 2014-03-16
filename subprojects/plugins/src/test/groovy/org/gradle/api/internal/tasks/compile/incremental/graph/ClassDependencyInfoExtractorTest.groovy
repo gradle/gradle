@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.tasks.compile.incremental.graph
 
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.AccessedFromPrivateClass
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.HasNonPrivateConstants
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.HasPrivateConstants
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.SomeClass
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.SomeOtherClass
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.UsedByNonPrivateConstantsClass
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.YetAnotherClass
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.*
 import spock.lang.Specification
+import spock.lang.Subject
 
 class ClassDependencyInfoExtractorTest extends Specification {
 
+    @Subject ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(new ClassDependenciesAnalyzer())
+
     def "knows recursive dependency tree"() {
-        def info = new ClassDependencyInfoExtractor(new File(ClassDependencyInfoExtractorTest.classLoader.getResource("").toURI())).extractInfo("org.gradle.api.internal.tasks.compile.incremental")
+        def classesDir = new File(ClassDependencyInfoExtractorTest.classLoader.getResource("").toURI())
+        def info = extractor.extractInfo(classesDir, "org.gradle.api.internal.tasks.compile.incremental")
+
         expect:
         info.getActualDependents(SomeClass.name) == [SomeOtherClass.name] as Set
         info.getActualDependents(SomeOtherClass.name) == [] as Set

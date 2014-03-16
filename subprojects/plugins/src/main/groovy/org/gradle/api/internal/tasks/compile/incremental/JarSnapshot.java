@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import java.io.Serializable;
@@ -20,23 +21,31 @@ import java.util.*;
 
 class JarSnapshot implements Serializable {
 
-    final Map<String, byte[]> classHashes;
+    final Map<String, ClassSnapshot> classSnapshots;
 
-    JarSnapshot(Map<String, byte[]> classHashes) {
-        this.classHashes = classHashes;
+    JarSnapshot(Map<String, ClassSnapshot> classSnapshots) {
+        this.classSnapshots = classSnapshots;
     }
 
-    JarDelta compareToSnapshot(JarSnapshot other) {
-        final List<String> changedClasses = new LinkedList<String>();
-        for (String thisCls : classHashes.keySet()) {
-            byte[] hash = other.classHashes.get(thisCls);
-            if (hash == null || !Arrays.equals(hash, classHashes.get(thisCls))) {
-                changedClasses.add(thisCls);
+    JarDependentsDelta getDependentsDelta(JarSnapshot other) {
+        final List<String> allDependents = new LinkedList<String>();
+        for (String thisCls : classSnapshots.keySet()) {
+            ClassSnapshot otherCls = other.classSnapshots.get(thisCls);
+            if (otherCls == null || !Arrays.equals(otherCls.hash, classSnapshots.get(thisCls).hash)) {
+                Collection<String> dependents = classSnapshots.get(thisCls).dependentClasses;
+                if (dependents == null) { //TODO SF don't model as null
+                    return new JarDependentsDelta() {
+                        public Collection<String> getDependentClasses() {
+                            return null;
+                        }
+                    };
+                }
+                allDependents.addAll(dependents);
             }
         }
-        return new JarDelta() {
-            public Collection<String> getChangedClasses() {
-                return changedClasses;
+        return new JarDependentsDelta() {
+            public Collection<String> getDependentClasses() {
+                return allDependents;
             }
         };
     }

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import java.util.Collection;
-
-interface JarDelta {
-    Collection<String> getChangedClasses();
+public interface StaleClassProcessor {
+    void addStaleClass(String className);
 }

@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.file.FileTree;
-import org.gradle.api.tasks.util.PatternSet;
+import java.util.Collection;
 
-import java.io.File;
-
-public class JarArchive {
-    final File file;
-    final FileTree contents;
-    public JarArchive(File jar, FileTree contents) {
-        this.file = jar;
-        this.contents = contents.matching(new PatternSet().include("**/*.class"));
-    }
+interface JarDependentsDelta {
+    Collection<String> getDependentClasses();
 }

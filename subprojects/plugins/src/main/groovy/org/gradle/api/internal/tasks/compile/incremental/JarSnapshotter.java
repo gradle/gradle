@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,27 +18,27 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.hash.Hasher;
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class JarSnapshotter {
 
-    private final Hasher hasher;
+    private final ClassSnapshotter classSnapshotFactory;
 
-    public JarSnapshotter(Hasher hasher) {
-        this.hasher = hasher;
+    public JarSnapshotter(ClassSnapshotter classSnapshotFactory) {
+        this.classSnapshotFactory = classSnapshotFactory;
     }
 
-    JarSnapshot createSnapshot(FileTree archivedClasses) {
-        final Map<String, byte[]> hashes = new HashMap<String, byte[]>();
+    JarSnapshot createSnapshot(FileTree archivedClasses, final ClassDependencyInfo dependencyInfo) {
+        final Map<String, ClassSnapshot> hashes = new HashMap<String, ClassSnapshot>();
         archivedClasses.visit(new FileVisitor() {
-            public void visitDir(FileVisitDetails dirDetails) {
-            }
+            public void visitDir(FileVisitDetails dirDetails) {}
 
             public void visitFile(FileVisitDetails fileDetails) {
-                hashes.put(fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", ""), hasher.hash(fileDetails.getFile()));
+                String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");
+                hashes.put(className, classSnapshotFactory.createSnapshot(className, fileDetails.getFile(), dependencyInfo));
             }
         });
         return new JarSnapshot(hashes);

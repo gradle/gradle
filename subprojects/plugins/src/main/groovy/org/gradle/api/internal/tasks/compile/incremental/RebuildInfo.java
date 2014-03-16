@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.tasks.util.PatternSet;
 
 interface RebuildInfo {
-    boolean isFullRebuildRequired();
-    void configureCompilation(PatternSet changedSourceOnly, SelectiveJavaCompiler compiler, ClassDependencyInfo dependencyInfo);
+    enum Info { FullRebuild, Incremental }
+    Info configureCompilation(PatternSet changedSourceOnly, StaleClassProcessor compiler);
 }

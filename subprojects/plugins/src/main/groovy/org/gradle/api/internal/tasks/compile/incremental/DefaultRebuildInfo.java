@@ -16,38 +16,30 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 
 class DefaultRebuildInfo implements RebuildInfo {
 
-    static final RebuildInfo NOTHING_TO_REBUILD = new DefaultRebuildInfo(false, Collections.<String>emptyList());
-    static final RebuildInfo FULL_REBUILD = new DefaultRebuildInfo(true, Collections.<String>emptyList());
+    static final RebuildInfo NOTHING_TO_REBUILD = new DefaultRebuildInfo(Collections.<String>emptyList());
+    static final RebuildInfo FULL_REBUILD = new DefaultRebuildInfo(null);
 
-    private boolean fullRebuildRequired;
-    protected final Collection<String> changedClassesInJar;
+    protected final Collection<String> dependentClasses;
 
-    DefaultRebuildInfo(boolean fullRebuildRequired, Collection<String> changedClassesInJar) {
-        this.fullRebuildRequired = fullRebuildRequired;
-        this.changedClassesInJar = changedClassesInJar;
+    DefaultRebuildInfo(Collection<String> dependentClasses) {
+        this.dependentClasses = dependentClasses;
     }
 
-    public boolean isFullRebuildRequired() {
-        return fullRebuildRequired;
-    }
-
-    //TODO SF tests
-    public void configureCompilation(PatternSet changedSourceOnly, SelectiveJavaCompiler compiler, ClassDependencyInfo dependencyInfo) {
-        for (String c : changedClassesInJar) {
-            Set<String> actualDependents = dependencyInfo.getActualDependents(c);
-            for (String d : actualDependents) {
-                compiler.addStaleClass(d);
-                changedSourceOnly.include(d.replaceAll("\\.", "/").concat(".java"));
-            }
+    public Info configureCompilation(PatternSet changedSourceOnly, StaleClassProcessor staleClassProcessor) {
+        if (dependentClasses == null) {
+            return Info.FullRebuild;
         }
+        for (String c : dependentClasses) {
+            staleClassProcessor.addStaleClass(c);
+            changedSourceOnly.include(c.replaceAll("\\.", "/").concat(".java"));
+        }
+        return Info.Incremental;
     }
 }
