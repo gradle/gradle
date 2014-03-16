@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins;
 
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.util.DeprecationLogger;
@@ -69,7 +70,7 @@ public class ReportingBasePluginConvention {
         DeprecationLogger.nagUserOfReplacedProperty("reportsDirName", "reporting.baseDir");
         extension.setBaseDir(new Callable<File>() {
             public File call() throws Exception {
-                return project.getFileResolver().withBaseDir(project.getBuildDir()).resolve(reportsDirName);
+                return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(reportsDirName);
             }
         });
     }

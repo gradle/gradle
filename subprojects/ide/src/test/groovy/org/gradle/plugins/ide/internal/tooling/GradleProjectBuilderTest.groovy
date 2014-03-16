@@ -16,27 +16,14 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-
 import org.junit.Rule
 import spock.lang.Specification
 
 class GradleProjectBuilderTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
-    def publicationRegistry = Stub(ProjectPublicationRegistry) {
-        getPublications(":") >> [Stub(ProjectPublication) {
-            getId() >> Stub(ModuleVersionIdentifier) {
-                getGroup() >> "group"
-                getName() >> "name"
-                getVersion() >> "version"
-            }
-        }]
-    }
-    def builder = new GradleProjectBuilder(publicationRegistry)
+    def builder = new GradleProjectBuilder()
 
     def "builds basics for project"() {
         def buildFile = tmpDir.file("build.gradle") << "//empty"
@@ -51,11 +38,5 @@ class GradleProjectBuilderTest extends Specification {
         model.name == 'test'
         model.description == 'a test project'
         model.buildScript.sourceFile == buildFile
-
-        and:
-        def publication = model.publications.iterator().next()
-        publication.id.group == "group"
-        publication.id.name == "name"
-        publication.id.version == "version"
     }
 }

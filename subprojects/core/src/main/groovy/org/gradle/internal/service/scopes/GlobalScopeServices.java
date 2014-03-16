@@ -23,10 +23,7 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
+import org.gradle.api.internal.file.*;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
@@ -166,6 +163,10 @@ public class GlobalScopeServices {
 
     FileResolver createFileResolver(FileSystem fileSystem) {
         return new IdentityFileResolver(fileSystem);
+    }
+
+    FileLookup createFileLookup(FileSystem fileSystem) {
+        return new DefaultFileLookup(fileSystem);
     }
 
 }

@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.*
 import org.gradle.cache.CacheRepository
@@ -79,6 +80,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
         parent.get(CacheFactory) >> Stub(CacheFactory)
         parent.get(DocumentationRegistry) >> new DocumentationRegistry()
+        parent.get(FileLookup) >> Stub(FileLookup)
     }
 
     def delegatesToParentForUnknownService() {

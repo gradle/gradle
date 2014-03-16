@@ -18,6 +18,7 @@ package org.gradle.api.internal.filestore;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.DeleteAction;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -58,7 +59,7 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     public static final String IN_PROGRESS_MARKER_FILE_SUFFIX = ".fslck";
 
     private File baseDir;
-    private final DeleteActionImpl deleteAction = new DeleteActionImpl(new IdentityFileResolver());
+    private final DeleteAction deleteAction = new DeleteActionImpl(new IdentityFileResolver());
 
     public PathKeyFileStore(File baseDir) {
         this.baseDir = baseDir;

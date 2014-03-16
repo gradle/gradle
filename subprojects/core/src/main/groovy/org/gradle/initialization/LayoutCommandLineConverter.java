@@ -17,26 +17,30 @@
 package org.gradle.initialization;
 
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.file.BaseDirFileResolver;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 
 public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
 
     public static final String GRADLE_USER_HOME = "g";
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
+    private final FileLookup fileLookup;
+
+    public LayoutCommandLineConverter(FileLookup fileLookup) {
+        this.fileLookup = fileLookup;
+    }
 
     protected BuildLayoutParameters newInstance() {
         return new BuildLayoutParameters();
     }
 
     public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {
-        FileResolver resolver = new BaseDirFileResolver(FileSystems.getDefault(), target.getProjectDir());
+        FileResolver resolver = fileLookup.getFileResolver(target.getProjectDir());
         if (options.hasOption(NO_SEARCH_UPWARDS)) {
             target.setSearchUpwards(false);
         }

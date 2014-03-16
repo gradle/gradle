@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.language.cpp.fixtures;
 import com.google.common.base.Joiner;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
-import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
@@ -139,7 +139,7 @@ public class AvailableToolChains {
         String name = String.format("gcc %s", versionPrefix);
         GccVersionDeterminer versionDeterminer = new GccVersionDeterminer(new ExecActionFactory() {
             public ExecAction newExecAction() {
-                return new DefaultExecAction(new IdentityFileResolver());
+                return new DefaultExecAction(TestFiles.resolver());
             }
         });
 

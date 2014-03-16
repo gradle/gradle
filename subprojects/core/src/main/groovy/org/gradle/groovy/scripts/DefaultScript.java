@@ -26,7 +26,10 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ProcessOperations;
-import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.DefaultFileOperations;
+import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
@@ -36,7 +39,6 @@ import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecResult;
@@ -62,14 +64,13 @@ public abstract class DefaultScript extends BasicScript {
         this.__scriptServices = services;
         loggingManager = services.get(LoggingManager.class);
         Instantiator instantiator = services.get(Instantiator.class);
+        FileLookup fileLookup = services.get(FileLookup.class);
         if (target instanceof FileOperations) {
             fileOperations = (FileOperations) target;
         } else if (getScriptSource().getResource().getFile() != null) {
-            fileOperations = new DefaultFileOperations(
-                    new BaseDirFileResolver(FileSystems.getDefault(), getScriptSource().getResource().getFile().getParentFile()), null, null,
-                    instantiator);
+            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(getScriptSource().getResource().getFile().getParentFile()), null, null, instantiator, fileLookup);
         } else {
-            fileOperations = new DefaultFileOperations(new IdentityFileResolver(), null, null, instantiator);
+            fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup);
         }
 
         processOperations = (ProcessOperations) fileOperations;

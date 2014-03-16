@@ -17,20 +17,24 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
-import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.internal.nativeplatform.filesystem.Chmod;
+import org.gradle.internal.nativeplatform.filesystem.Stat;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class DefaultFileTreeElement extends AbstractFileTreeElement {
     private final File file;
     private final RelativePath relativePath;
+    private final Stat stat;
 
-    public DefaultFileTreeElement(File file, RelativePath relativePath) {
+    public DefaultFileTreeElement(File file, RelativePath relativePath, Chmod chmod, Stat stat) {
+        super(chmod);
         this.file = file;
         this.relativePath = relativePath;
+        this.stat = stat;
     }
 
     public File getFile() {
@@ -63,7 +67,7 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
 
     public int getMode() {
         try {
-            return FileSystems.getDefault().getUnixMode(file);
+            return stat.getUnixMode(file);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

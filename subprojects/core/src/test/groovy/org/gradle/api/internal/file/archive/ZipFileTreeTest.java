@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static java.util.Collections.EMPTY_LIST;
 import static org.gradle.api.file.FileVisitorUtil.*;
+import static org.gradle.api.internal.file.TestFiles.fileSystem;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
@@ -40,7 +41,7 @@ public class ZipFileTreeTest {
     private final TestFile zipFile = tmpDir.getTestDirectory().file("test.zip");
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
     private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
-    private final ZipFileTree tree = new ZipFileTree(zipFile, expandDir);
+    private final ZipFileTree tree = new ZipFileTree(zipFile, expandDir, fileSystem());
 
     @Test
     public void displayName() {

@@ -18,6 +18,7 @@ package org.gradle.configuration
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.groovy.scripts.*
@@ -50,8 +51,9 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def loggingManagerFactory = Mock(Factory) as Factory<LoggingManagerInternal>
     def sourceWithImports = Mock(ScriptSource)
     def loggingManager = Mock(LoggingManagerInternal)
+    def fileLookup = Mock(FileLookup)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginResolverFactory)
+    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginResolverFactory, fileLookup)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)

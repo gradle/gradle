@@ -17,6 +17,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
@@ -110,28 +111,28 @@ class JavaPluginConvention {
     }
 
     File getDependencyCacheDir() {
-        project.fileResolver.withBaseDir(project.buildDir).resolve(dependencyCacheDirName)
+        project.services.get(FileLookup).getFileResolver(project.buildDir).resolve(dependencyCacheDirName)
     }
 
     /**
      * Returns a file pointing to the root directory supposed to be used for all docs.
      */
     File getDocsDir() {
-        project.fileResolver.withBaseDir(project.buildDir).resolve(docsDirName)
+        project.services.get(FileLookup).getFileResolver(project.buildDir).resolve(docsDirName)
     }
 
     /**
      * Returns a file pointing to the root directory of the test results.
      */
     File getTestResultsDir() {
-        project.fileResolver.withBaseDir(project.buildDir).resolve(testResultsDirName)
+        project.services.get(FileLookup).getFileResolver(project.buildDir).resolve(testResultsDirName)
     }
 
     /**
      * Returns a file pointing to the root directory to be used for reports.
      */
     File getTestReportDir() {
-        project.fileResolver.withBaseDir(reportsDir).resolve(testReportDirName)
+        project.services.get(FileLookup).getFileResolver(reportsDir).resolve(testReportDirName)
     }
 
     private File getReportsDir() {

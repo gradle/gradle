@@ -18,9 +18,9 @@ package org.gradle.api.internal.file;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.Factory;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.File;
 import java.net.URI;
@@ -44,17 +44,6 @@ public interface FileResolver {
     URI resolveUri(Object path);
 
     String resolveAsRelativePath(Object path);
-
-    /**
-     * Creates a new resolver with the given base directory.
-     * @param path The path for the base directory. Resolved relative to the current base directory (if any).
-     */
-    FileResolver withBaseDir(Object path);
-
-    /**
-     * Creates a new resolver with no base directory.
-     */
-    FileResolver withNoBaseDir();
 
     NotationParser<Object, File> asNotationParser();
 }

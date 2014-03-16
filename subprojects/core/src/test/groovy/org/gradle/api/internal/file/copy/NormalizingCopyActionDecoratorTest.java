@@ -29,6 +29,7 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.gradle.api.internal.file.TestFiles.fileSystem;
 import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit;
 
 @RunWith(JMock.class)
@@ -41,7 +42,7 @@ public class NormalizingCopyActionDecoratorTest {
             return new SimpleWorkResult(true);
         }
     };
-    private final NormalizingCopyActionDecorator decorator = new NormalizingCopyActionDecorator(delegate);
+    private final NormalizingCopyActionDecorator decorator = new NormalizingCopyActionDecorator(delegate, fileSystem());
 
     @Test
     public void doesNotVisitADirectoryWhichHasBeenVisitedBefore() {

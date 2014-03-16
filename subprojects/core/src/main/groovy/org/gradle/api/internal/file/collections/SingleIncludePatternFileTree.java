@@ -26,6 +26,8 @@ import org.gradle.api.internal.file.pattern.PatternStepFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 
 import java.io.File;
 import java.util.Arrays;
@@ -44,6 +46,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
     private final String includePattern;
     private final List<String> patternSegments;
     private final Spec<FileTreeElement> excludeSpec;
+    private final FileSystem fileSystem = FileSystems.getDefault();
 
     public SingleIncludePatternFileTree(File baseDir, String includePattern) {
         this(baseDir, includePattern, Specs.<FileTreeElement>satisfyNone());
@@ -105,14 +108,14 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
         if (file.isFile()) {
             if (segmentIndex == patternSegments.size()) {
                 RelativePath path = new RelativePath(true, relativePath.toArray(new String[relativePath.size()]));
-                FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag);
+                FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
                 if (!excludeSpec.isSatisfiedBy(details)) {
                     visitor.visitFile(details);
                 }
             }
         } else if (file.isDirectory()) {
             RelativePath path = new RelativePath(false, relativePath.toArray(new String[relativePath.size()]));
-            FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag);
+            FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
             if (!excludeSpec.isSatisfiedBy(details)) {
                 visitor.visitDir(details);
             }

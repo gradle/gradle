@@ -18,32 +18,18 @@ package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.GradleTask;
-import org.gradle.tooling.model.TaskSelector;
+import org.gradle.tooling.model.GradlePublication;
 
 /**
- * A model providing access to {@link org.gradle.tooling.model.Launchable}s that can be used
- * to initiate Gradle build.
+ * A model providing information about project publications.
  *
  * @since 1.12
  */
 @Incubating
-public interface BuildInvocations {
-    /*
-     * Returns tasks selectors that can be used to execute build.
-     *
-     * @return Task selectors.
-     * @since 1.12
-     */
-    @Incubating
-    DomainObjectSet<? extends TaskSelector> getTaskSelectors();
+public interface ProjectPublications {
 
-    /*
-     * Returns tasks selectors that can be used to execute build.
-     *
-     * @return Task selectors.
-     * @since 1.12
+    /**
+     * Returns the publications for this project.
      */
-    @Incubating
-    DomainObjectSet<? extends GradleTask> getTasks();
+    DomainObjectSet<? extends GradlePublication> getPublications();
 }

@@ -21,7 +21,7 @@ import java.io.IOException;
 /**
  * A file system accessible to Gradle.
  */
-public interface FileSystem extends Chmod {
+public interface FileSystem extends Chmod, Stat {
     /**
      * Default Unix permissions for directories, {@code 755}.
      */

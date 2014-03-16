@@ -24,12 +24,22 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
+import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
+import org.gradle.tooling.internal.gradle.PartialGradleProject;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
+    private final GradleProjectBuilder gradleProjectBuilder;
+
+    public BuildInvocationsBuilder(GradleProjectBuilder gradleProjectBuilder) {
+        this.gradleProjectBuilder = gradleProjectBuilder;
+    }
+
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.gradle.BuildInvocations");
     }
@@ -49,14 +59,28 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                             : String.format("%s task selector", selectorName)).
                     setDisplayName(String.format("%s built in %s and subprojects.", selectorName, project.getName())));
         }
-        return new DefaultBuildInvocations().setSelectors(selectors);
+        return new DefaultBuildInvocations()
+                .setSelectors(selectors)
+                .setTasks(new ArrayList(gradleProjectBuilder.buildAll(project).findByPath(project.getPath()).getTasks()));
     }
 
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
         if (implicitProject) {
-            return new DefaultBuildInvocations().setSelectors(buildRecursively(modelName, project.getRootProject()));
+            DefaultGradleProject gradleProject = gradleProjectBuilder.buildAll(project);
+            List<DefaultGradleTask> tasks = new ArrayList<DefaultGradleTask>();
+            fillTaskList(gradleProject, tasks);
+            return new DefaultBuildInvocations()
+                    .setSelectors(buildRecursively(modelName, project.getRootProject()))
+                    .setTasks(tasks);
         } else {
             return buildAll(modelName, project);
+        }
+    }
+
+    private void fillTaskList(PartialGradleProject gradleProject, List<DefaultGradleTask> tasks) {
+        tasks.addAll(gradleProject.getTasks());
+        for (PartialGradleProject childProject : gradleProject.getChildren()) {
+            fillTaskList(childProject, tasks);
         }
     }
 

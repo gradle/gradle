@@ -103,6 +103,7 @@ public class AbstractFileTreeElementTest {
         }
 
         public TestFileTreeElement(TestFile file, Integer mode) {
+            super(chmod);
             this.file = file;
             this.mode = mode;
         }
@@ -125,11 +126,6 @@ public class AbstractFileTreeElementTest {
 
         public long getSize() {
             return file.length();
-        }
-
-        @Override
-        protected Chmod getChmod() {
-            return chmod;
         }
 
         public RelativePath getRelativePath() {

@@ -25,7 +25,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class BuildInvocationsBuilderTest extends Specification {
-    def builder = new BuildInvocationsBuilder()
+    def builder = new BuildInvocationsBuilder(new GradleProjectBuilder())
     @Shared def project = TestUtil.builder().withName("root").build()
     @Shared def child1 = TestUtil.builder().withName("child1").withParent(project).build()
     @Shared def child1a = TestUtil.builder().withName("child1a").withParent(child1).build()

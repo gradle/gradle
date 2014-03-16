@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.project.ProjectInternal
 
 class JavaCodeQualityPluginConvention {
@@ -54,6 +55,6 @@ class JavaCodeQualityPluginConvention {
      * The directory to write the Checkstyle results into.
      */
     File getCheckstyleResultsDir() {
-        project.fileResolver.withBaseDir(project.buildDir).resolve(checkstyleResultsDirName)
+        project.services.get(FileLookup).getFileResolver(project.buildDir).resolve(checkstyleResultsDirName)
     }
 }

@@ -227,11 +227,19 @@ class HtmlTestResultsFixture {
             assert tableElement.select("tr > td:eq(5)").text() == expected
         }
 
-        void assertSuccessRate(int expected) {
-            assert tableElement.select("tr > td:eq(5)").text() == "${expected}%"
+        void assertPassed() {
+            assertOverallResult('success')
         }
 
-        void assertOverallResult(String expected) {
+        void assertIgnored() {
+            assertOverallResult('skipped')
+        }
+
+        void assertFailed() {
+            assertOverallResult('failures')
+        }
+
+        private void assertOverallResult(String expected) {
             assert tableElement.select("tr > td:eq(0)").hasClass(expected)
             assert tableElement.select("tr > td:eq(5)").hasClass(expected)
         }
@@ -240,7 +248,6 @@ class HtmlTestResultsFixture {
             assert tableElement.select("a[href=${target}.html]") != null
         }
     }
-
 
     class TestDetails {
         private final Element tableElement
@@ -253,14 +260,26 @@ class HtmlTestResultsFixture {
             assert tableElement.select("tr > td:eq(1)").text() == expected
         }
 
-        void assertResult(String expectedValue, String expectedClass) {
+        void assertPassed() {
+            assertResult('passed', 'success')
+        }
+
+        void assertIgnored() {
+            assertResult('ignored', 'skipped')
+        }
+
+        void assertFailed() {
+            assertResult('failed', 'failures')
+        }
+
+        private void assertResult(String expectedValue, String expectedClass) {
             assert tableElement.select("tr > td:eq(2)").listIterator().any { Element it -> it.text() == expectedValue }
             assert tableElement.select("tr > td:eq(2)").hasClass(expectedClass)
         }
 
-        boolean hasResult(String expectedValue, String expectedClass) {
-            return tableElement.select("tr > td:eq(2)").listIterator().any { Element it -> it.text() == expectedValue } &&
-              tableElement.select("tr > td:eq(2)").hasClass(expectedClass)
+        boolean failed() {
+            return tableElement.select("tr > td:eq(2)").listIterator().any { Element it -> it.text() == 'failed' } &&
+              tableElement.select("tr > td:eq(2)").hasClass('failures')
         }
     }
 }

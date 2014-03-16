@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.*;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
@@ -203,7 +204,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 getFactory(LoggingManagerInternal.class),
                 get(Instantiator.class),
                 get(ScriptHandlerFactory.class),
-                get(PluginResolverFactory.class)
+                get(PluginResolverFactory.class),
+                get(FileLookup.class)
         );
     }
 
