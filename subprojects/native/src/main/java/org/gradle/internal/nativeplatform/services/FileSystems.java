@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeplatform.filesystem;
+package org.gradle.internal.nativeplatform.services;
 
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 public abstract class FileSystems {
     public static FileSystem getDefault() {
-        return DefaultFileSystem.INSTANCE;
-    }
-
-    private static class DefaultFileSystem {
-        static final FileSystem INSTANCE;
-
-        static {
-            ServiceRegistry services = FileSystemServices.getServices();
-            INSTANCE = new GenericFileSystem(services.get(Chmod.class), services.get(Stat.class), services.get(Symlink.class));
-        }
+        return NativeServices.getInstance().get(FileSystem.class);
     }
 }

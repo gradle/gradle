@@ -26,12 +26,13 @@ import org.gradle.internal.nativeplatform.console.ConsoleDetector;
 import org.gradle.internal.nativeplatform.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeplatform.console.NoOpConsoleDetector;
 import org.gradle.internal.nativeplatform.console.WindowsConsoleDetector;
+import org.gradle.internal.nativeplatform.filesystem.*;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.nativeplatform.jna.*;
 import org.gradle.internal.nativeplatform.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +86,8 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected FileSystem createFileSystem() {
-        return FileSystems.getDefault();
+        ServiceRegistry services = FileSystemServices.getServices();
+        return new GenericFileSystem(services.get(Chmod.class), services.get(Stat.class), services.get(Symlink.class));
     }
 
     protected Jvm createJvm() {
