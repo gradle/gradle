@@ -19,21 +19,13 @@ package org.gradle.integtests.tooling.r112
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.gradle.ProjectPublications
 
 @ToolingApiVersion('>=1.12')
 @TargetGradleVersion('>=1.12')
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
-    static class FetchPublicationsBuildAction implements BuildAction<ProjectPublications> {
-        ProjectPublications execute(BuildController controller) {
-            controller.getModel(ProjectPublications)
-        }
-    }
-
     def "project without any configured publications"() {
         buildFile << "apply plugin: 'java'"
 
