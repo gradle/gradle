@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
@@ -38,6 +39,7 @@ import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
@@ -49,10 +51,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class MavenResolver extends ExternalResourceResolver implements PatternBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
@@ -263,6 +262,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
         if (artifactType == JvmLibrarySourcesArtifact.class) {
             return createArtifactMetaData(module, "source", "sources");
+        }
+
+        if (artifactType == ComponentMetaDataArtifact.class) {
+            Artifact pomArtifact = DefaultArtifact.newPomArtifact(IvyUtil.createModuleRevisionId(module.getId()), new Date());
+            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), pomArtifact));
         }
 
         throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));

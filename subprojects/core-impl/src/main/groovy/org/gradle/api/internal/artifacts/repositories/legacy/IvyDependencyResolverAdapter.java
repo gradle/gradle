@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,6 +146,11 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
 
         if (artifactType == JvmLibrarySourcesArtifact.class) {
             return createArtifactMetaData(module, "source", "sources");
+        }
+
+        if (artifactType == ComponentMetaDataArtifact.class) {
+            Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
+            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), metadataArtifact));
         }
 
         throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));

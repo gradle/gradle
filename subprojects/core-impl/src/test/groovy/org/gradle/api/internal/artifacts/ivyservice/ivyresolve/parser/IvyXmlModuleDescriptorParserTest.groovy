@@ -244,7 +244,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 </ivy-module>
 """
         and:
-        parseContext.getArtifact(_) >> new DefaultLocallyAvailableExternalResource(parentFile.toURI().toString(), new DefaultLocallyAvailableResource(parentFile))
+        parseContext.getMetaDataArtifact(_) >> new DefaultLocallyAvailableExternalResource(parentFile.toURI().toString(), new DefaultLocallyAvailableResource(parentFile))
 
         when:
         ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
