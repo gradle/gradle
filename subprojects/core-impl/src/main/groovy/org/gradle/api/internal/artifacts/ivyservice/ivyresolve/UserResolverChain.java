@@ -17,13 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +34,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
     private final List<String> moduleVersionRepositoryNames = new ArrayList<String>();
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
+    private final RepositoryChainArtifactResolver artifactResolver = new RepositoryChainArtifactResolver();
 
     public UserResolverChain(VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.versionMatcher = versionMatcher;
@@ -46,6 +44,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
     public void add(LocalAwareModuleVersionRepository repository) {
         moduleVersionRepositories.add(repository);
         moduleVersionRepositoryNames.add(repository.getName());
+        artifactResolver.add(repository);
     }
 
     public void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result) {
@@ -54,12 +53,14 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
         List<Throwable> errors = new ArrayList<Throwable>();
         final ModuleResolution latestResolved = findLatestModule(dependency, errors);
         if (latestResolved != null) {
-            final ModuleVersionMetaData downloadedModule = latestResolved.module;
-            LOGGER.debug("Using module '{}' from repository '{}'", downloadedModule.getId(), latestResolved.repository.getName());
+            LOGGER.debug("Using module '{}' from repository '{}'", latestResolved.module.getId(), latestResolved.repository.getName());
             for (Throwable error : errors) {
                 LOGGER.debug("Discarding resolve failure.", error);
             }
-            result.resolved(latestResolved.module, new ModuleVersionRepositoryArtifactResolverAdapter(latestResolved.repository, latestResolved.moduleSource));
+
+            MutableModuleVersionMetaData module = latestResolved.module;
+            module.setSource(new RepositoryChainModuleSource(latestResolved.repository.getId(), latestResolved.moduleSource));
+            result.resolved(module, artifactResolver);
             return;
         }
         if (!errors.isEmpty()) {
@@ -154,34 +155,6 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
         }
 
         return comparison < 0 ? two : one;
-    }
-
-    private static class ModuleVersionRepositoryArtifactResolverAdapter implements ArtifactResolver {
-        private final ModuleVersionRepository delegate;
-        private final ModuleSource moduleSource;
-
-        public ModuleVersionRepositoryArtifactResolverAdapter(ModuleVersionRepository repository, ModuleSource moduleSource) {
-            this.delegate = repository;
-            this.moduleSource = moduleSource;
-        }
-
-        public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-            delegate.resolve(artifact, result, moduleSource);
-        }
-
-        public void resolve(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result) {
-            Set<ModuleVersionArtifactMetaData> artifacts = delegate.getCandidateArtifacts(moduleMetadata, artifactType);
-            for (ModuleVersionArtifactMetaData artifact : artifacts) {
-                DefaultBuildableArtifactResolveResult singleResult = new DefaultBuildableArtifactResolveResult();
-                try {
-                    resolve(artifact, singleResult);
-                } catch(Throwable t) {
-                    // can't call up to ErrorHandlingArtifactResolver#resolve, so we'll have to handle errors ourselves
-                    singleResult.failed(new ArtifactResolveException(artifact.getId(), t));
-                }
-                result.addResult(artifact.getId(), singleResult);
-            }
-        }
     }
 
     public static abstract class RepositoryResolveState {
@@ -318,10 +291,10 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
 
     private static class ModuleResolution implements Versioned {
         public final ModuleVersionRepository repository;
-        public final ModuleVersionMetaData module;
+        public final MutableModuleVersionMetaData module;
         public final ModuleSource moduleSource;
 
-        public ModuleResolution(ModuleVersionRepository repository, ModuleVersionMetaData module, ModuleSource moduleSource) {
+        public ModuleResolution(ModuleVersionRepository repository, MutableModuleVersionMetaData module, ModuleSource moduleSource) {
             this.repository = repository;
             this.module = module;
             this.moduleSource = moduleSource;

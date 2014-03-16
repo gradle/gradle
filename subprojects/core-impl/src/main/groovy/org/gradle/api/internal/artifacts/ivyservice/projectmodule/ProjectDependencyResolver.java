@@ -59,7 +59,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
             this.publishMetaData = publishMetaData;
         }
 
-        public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+        public void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
             LocalArtifactMetaData artifactMetaData = publishMetaData.getArtifact(artifact.getId());
             if (artifactMetaData != null) {
                 result.resolved(artifactMetaData.getFile());
