@@ -162,12 +162,11 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         hasArtifact(moduleARemote)
     }
 
-    def "mavenLocal resolves if pom with packaging 'pom' has a jar itself, and dependencies with jars"() {
+    def "mavenLocal includes jar for module with packaging 'pom'"() {
         given:
         m2Installation.mavenRepo().module('group', 'projectB', '1.2').publish()
         def pomModule = m2Installation.mavenRepo().module('group', 'projectA', '1.2')
         pomModule.packaging = 'pom'
-        pomModule.type = 'pom'
         pomModule.dependsOn('group', 'projectB', '1.2')
         pomModule.artifact(type: "jar")
         pomModule.publish()
@@ -178,24 +177,22 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         then:
         def buildDir = file('build')
         buildDir.assertHasDescendants("projectA-1.2.jar","projectB-1.2.jar")
-
     }
 
-    def "mavenLocal fails to resolve if pom with packaging 'pom' has no jar itself, only dependencies with jars"() {
+    def "mavenLocal ignores missing jar for module with packaging 'pom'"() {
         given:
         m2Installation.mavenRepo().module('group', 'projectB', '1.2').publish()
         def pomModule = m2Installation.mavenRepo().module('group', 'projectA', '1.2')
         pomModule.packaging = 'pom'
-        pomModule.type = 'pom'
         pomModule.dependsOn('group', 'projectB', '1.2')
         pomModule.publishPom()
 
         when:
-        runAndFail 'retrieve'
+        run 'retrieve'
 
         then:
-        failure.assertHasCause("Artifact 'group:projectA:1.2:projectA.jar' not found")
-
+        def buildDir = file('build')
+        buildDir.assertHasDescendants("projectB-1.2.jar")
     }
 
     @Issue('GRADLE-2034')

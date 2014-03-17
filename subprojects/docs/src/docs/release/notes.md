@@ -204,11 +204,6 @@ This might be a breaking change for users who explicitly configured some low ver
 * '-Xlinker' is no longer automatically added to linker args for GCC or Clang. If you want to pass an argument directly to 'ld' you need to add this escape yourself.
 * Tasks for windows resource compilation are now named 'compileXXXX' instead of 'resourceCompileXXX'.
 
-### Change to treatment of poms with packaging 'pom'
-
-If you have a dependency whose pom has packaging of 'pom', Gradle now expects that there will always be an associated jar artifact and will fail to resolve if there is not.
-In particular, this means that you can not have a dependency with a pom that only declares further dependencies and has no artifacts itself.
-
 ### Change to JUnit XML file for skipped tests
 
 The way that skipped/ignored tests are represented in the JUnit XML output file produced by the `Test` task.
