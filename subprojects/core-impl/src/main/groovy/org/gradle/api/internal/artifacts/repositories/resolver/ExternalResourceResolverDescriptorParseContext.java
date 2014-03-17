@@ -30,7 +30,6 @@ import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
-import java.util.Collection;
 
 /**
  * ParserSettings that control the scope of searches carried out during parsing.
@@ -57,18 +56,22 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     }
 
     public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier) {
-        File resolvedArtifactFile = resolveMetaDataArtifactFile(moduleVersionIdentifier, mainResolvers.getDependencyResolver());
+        File resolvedArtifactFile = resolveMetaDataArtifactFile(moduleVersionIdentifier, mainResolvers.getDependencyResolver(), mainResolvers.getArtifactResolver());
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(resolvedArtifactFile);
         return new DefaultLocallyAvailableExternalResource(resolvedArtifactFile.toURI().toString(), localResource);
     }
 
-    private File resolveMetaDataArtifactFile(ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver) {
+    private File resolveMetaDataArtifactFile(ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver dependencyResolver, ArtifactResolver artifactResolver) {
         BuildableModuleVersionResolveResult moduleVersionResolveResult = new DefaultBuildableModuleVersionResolveResult();
-        resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(moduleVersionIdentifier), true)), moduleVersionResolveResult);
-        BuildableMultipleArtifactResolveResult artifactResolveResult = new DefaultBuildableMultipleArtifactResolveResult();
-        mainResolvers.getArtifactResolver().resolve(moduleVersionResolveResult.getMetaData(), ComponentMetaDataArtifact.class, artifactResolveResult);
-        Collection<ArtifactResolveResult> resolveResults = artifactResolveResult.getResults().values();
-        return resolveResults.iterator().next().getFile();
+        dependencyResolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(moduleVersionIdentifier), true)), moduleVersionResolveResult);
+
+        BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
+        artifactResolver.resolveArtifactSet(moduleVersionResolveResult.getMetaData(), ComponentMetaDataArtifact.class, moduleArtifactsResolveResult);
+
+        BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
+        ModuleVersionArtifactMetaData artifactMetaData = moduleArtifactsResolveResult.getResults().iterator().next();
+        artifactResolver.resolveArtifact(moduleVersionResolveResult.getMetaData(), artifactMetaData, artifactResolveResult);
+        return artifactResolveResult.getFile();
     }
 
 }

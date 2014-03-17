@@ -96,7 +96,7 @@ public class LoopbackDependencyResolver implements DependencyResolver {
                     dependencyResolver.resolve(dependency, resolveResult);
                     DefaultBuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
                     DefaultModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(resolveResult.getId(), artifact);
-                    artifactResolver.resolve(resolveResult.getMetaData(), artifactMetaData, artifactResolveResult);
+                    artifactResolver.resolveArtifact(resolveResult.getMetaData(), artifactMetaData, artifactResolveResult);
                     File artifactFile = artifactResolveResult.getFile();
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
                 } catch (ModuleVersionNotFoundException e) {

@@ -165,20 +165,18 @@ public class ResolveIvyFactory {
             });
         }
 
-        // TODO:DAZ I don't think cache is required
-        public void resolve(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
+        public void resolveArtifact(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s", artifact), new Runnable() {
                 public void run() {
-                    artifactResolver.resolve(moduleMetaData, artifact, result);
+                    artifactResolver.resolveArtifact(moduleMetaData, artifact, result);
                 }
             });
         }
 
-        // TODO:DAZ I don't think cache is required
-        public void resolve(final ModuleVersionMetaData moduleMetaData, final Class<? extends SoftwareArtifact> artifactType, final BuildableMultipleArtifactResolveResult result) {
+        public void resolveArtifactSet(final ModuleVersionMetaData moduleMetaData, final Class<? extends SoftwareArtifact> artifactType, final BuildableArtifactSetResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s from %s", artifactType, moduleMetaData), new Runnable() {
                 public void run() {
-                    artifactResolver.resolve(moduleMetaData, artifactType, result);
+                    artifactResolver.resolveArtifactSet(moduleMetaData, artifactType, result);
                 }
             });
         }

@@ -32,24 +32,24 @@ public class ContextualArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolve(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
+    public void resolveArtifact(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
         lockingManager.useCache(String.format("resolve %s", artifact), new Runnable() {
             public void run() {
                 ivyContextManager.withIvy(new Action<Ivy>() {
                     public void execute(Ivy ivy) {
-                        delegate.resolve(moduleMetaData, artifact, result);
+                        delegate.resolveArtifact(moduleMetaData, artifact, result);
                     }
                 });
             }
         });
     }
 
-    public void resolve(final ModuleVersionMetaData moduleMetaData, final Class<? extends SoftwareArtifact> artifactType, final BuildableMultipleArtifactResolveResult result) {
+    public void resolveArtifactSet(final ModuleVersionMetaData moduleMetaData, final Class<? extends SoftwareArtifact> artifactType, final BuildableArtifactSetResolveResult result) {
         lockingManager.useCache(String.format("Resolve %s from %s", artifactType, moduleMetaData), new Runnable() {
             public void run() {
                 ivyContextManager.withIvy(new Action<Ivy>() {
                     public void execute(Ivy ivy) {
-                        delegate.resolve(moduleMetaData, artifactType, result);
+                        delegate.resolveArtifactSet(moduleMetaData, artifactType, result);
                     }
                 });
             }

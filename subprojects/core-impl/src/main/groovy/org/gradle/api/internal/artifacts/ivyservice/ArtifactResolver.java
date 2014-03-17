@@ -21,12 +21,12 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 public interface ArtifactResolver {
     /**
-     * Resolves the given artifact. Any failures are packaged up in the result.
+     * Resolves the set of artifacts of the given type and belonging to the given module. Any failures are packaged up in the result.
      */
-    void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result);
+    void resolveArtifactSet(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableArtifactSetResolveResult result);
 
     /**
-     * Resolves artifacts of the given type and belonging to the given module. Any failures are packaged up in the result.
+     * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    void resolve(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result);
+    void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result);
 }

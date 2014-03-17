@@ -80,8 +80,8 @@ public class DefaultResolvedConfigurationBuilder implements
     }
 
     public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ModuleVersionMetaData module, ModuleVersionArtifactMetaData artifact) {
-        Factory<File> artifactSource = lazyArtifactSource(module, artifact);
-        Factory<ResolvedDependency> dependencySource = new ResolvedDependencyFactory(owner, builder, this);
+        Factory<File> artifactSource = new LazyArtifactSource(module, artifact, artifactResolver);
+        Factory<ResolvedDependency> dependencySource = new LazyResolvedDependencySource(owner, builder, this);
         long id = idGenerator.generateId();
         ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), dependencySource, artifact.getName(), artifactSource, id);
         artifacts.put(id, newArtifact);
@@ -116,22 +116,30 @@ public class DefaultResolvedConfigurationBuilder implements
         return unresolvedDependencies;
     }
 
-    private Factory<File> lazyArtifactSource(final ModuleVersionMetaData module, final ModuleVersionArtifactMetaData artifact) {
-        return new Factory<File>() {
-            public File create() {
-                DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
-                artifactResolver.resolve(module, artifact, result);
-                return result.getFile();
-            }
-        };
+    private static class LazyArtifactSource implements Factory<File> {
+        private final ArtifactResolver artifactResolver;
+        private final ModuleVersionMetaData module;
+        private final ModuleVersionArtifactMetaData artifact;
+
+        private LazyArtifactSource(ModuleVersionMetaData module, ModuleVersionArtifactMetaData artifact, ArtifactResolver artifactResolver) {
+            this.artifact = artifact;
+            this.artifactResolver = artifactResolver;
+            this.module = module;
+        }
+
+        public File create() {
+            DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
+            artifactResolver.resolveArtifact(module, artifact, result);
+            return result.getFile();
+        }
     }
 
-    private static class ResolvedDependencyFactory implements Factory<ResolvedDependency> {
+    private static class LazyResolvedDependencySource implements Factory<ResolvedDependency> {
         private final ResolvedConfigurationIdentifier owner;
         private TransientConfigurationResultsBuilder builder;
         private ResolvedContentsMapping mapping;
 
-        public ResolvedDependencyFactory(ResolvedConfigurationIdentifier owner, TransientConfigurationResultsBuilder builder, ResolvedContentsMapping mapping) {
+        public LazyResolvedDependencySource(ResolvedConfigurationIdentifier owner, TransientConfigurationResultsBuilder builder, ResolvedContentsMapping mapping) {
             this.owner = owner;
             this.builder = builder;
             this.mapping = mapping;

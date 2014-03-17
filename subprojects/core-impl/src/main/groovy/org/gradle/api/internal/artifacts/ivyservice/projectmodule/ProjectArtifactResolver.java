@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableMultipleArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
@@ -34,7 +34,7 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
         if (isProjectModule(moduleMetaData)) {
             // TODO:DAZ We're now looking up the project separately per artifact: need to ensure this isn't a problem
             ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) moduleMetaData.getComponentId();
@@ -46,15 +46,15 @@ public class ProjectArtifactResolver implements ArtifactResolver {
                 result.notFound(artifact.getId());
             }
         } else {
-            delegate.resolve(moduleMetaData, artifact, result);
+            delegate.resolveArtifact(moduleMetaData, artifact, result);
         }
     }
 
-    public void resolve(ModuleVersionMetaData moduleMetaData, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result) {
+    public void resolveArtifactSet(ModuleVersionMetaData moduleMetaData, Class<? extends SoftwareArtifact> artifactType, BuildableArtifactSetResolveResult result) {
         if (isProjectModule(moduleMetaData)) {
             throw new UnsupportedOperationException("TODO");
         } else {
-            delegate.resolve(moduleMetaData, artifactType, result);
+            delegate.resolveArtifactSet(moduleMetaData, artifactType, result);
         }
     }
 
