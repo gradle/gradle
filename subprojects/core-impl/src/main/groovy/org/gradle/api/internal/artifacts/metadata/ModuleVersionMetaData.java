@@ -32,6 +32,8 @@ public interface ModuleVersionMetaData {
 
     ModuleSource getSource();
 
+    ModuleVersionMetaData withSource(ModuleSource source);
+
     /**
      * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
      * and will be removed.

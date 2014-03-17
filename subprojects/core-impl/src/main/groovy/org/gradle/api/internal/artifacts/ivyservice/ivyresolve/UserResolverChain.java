@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainDependencyResolver dependencyResolver;
@@ -47,9 +46,8 @@ public class UserResolverChain implements RepositoryChain {
 
     private static class ModuleTransformer implements Transformer<ModuleVersionMetaData, RepositoryChainModuleResolution> {
         public ModuleVersionMetaData transform(RepositoryChainModuleResolution original) {
-            MutableModuleVersionMetaData module = original.module;
-            module.setSource(new RepositoryChainModuleSource(original.repository.getId(), module.getSource()));
-            return module;
+            RepositoryChainModuleSource moduleSource = new RepositoryChainModuleSource(original.repository.getId(), original.moduleSource);
+            return original.module.withSource(moduleSource);
         }
     }
 }

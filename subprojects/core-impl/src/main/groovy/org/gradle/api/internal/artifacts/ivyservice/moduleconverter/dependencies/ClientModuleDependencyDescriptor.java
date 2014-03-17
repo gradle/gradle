@@ -18,21 +18,17 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ClientModule;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 public class ClientModuleDependencyDescriptor extends EnhancedDependencyDescriptor {
-    private final MutableModuleVersionMetaData targetModule;
+    private final ModuleVersionMetaData targetModule;
 
-    public ClientModuleDependencyDescriptor(ClientModule moduleDependency, ModuleDescriptor md, MutableModuleVersionMetaData targetModule, ModuleRevisionId mrid, boolean force, boolean changing, boolean transitive) {
+    public ClientModuleDependencyDescriptor(ClientModule moduleDependency, ModuleDescriptor md, ModuleVersionMetaData targetModule, ModuleRevisionId mrid, boolean force, boolean changing, boolean transitive) {
         super(moduleDependency, md, mrid, force, changing, transitive);
         this.targetModule = targetModule;
     }
 
-    public ModuleVersionMetaData getTargetModule(ModuleSource moduleSource) {
-        // TODO:DAZ Make a copy
-        targetModule.setSource(moduleSource);
+    public ModuleVersionMetaData getTargetModule() {
         return targetModule;
     }
 }

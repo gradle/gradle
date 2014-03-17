@@ -38,21 +38,22 @@ class ClientModuleResolverTest extends Specification {
         ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
         DependencyMetaData dependencyMetaData = Mock()
         BuildableModuleVersionResolveResult result = Mock()
-        ModuleVersionMetaData originalMetaData = Mock()
+        ModuleVersionMetaData resolvedMetaData = Mock()
 
         given:
 
         _ * dependencyMetaData.descriptor >> dependencyDescriptor
-        _ * dependencyDescriptor.getTargetModule(moduleSource) >> moduleMetaData
+        _ * dependencyDescriptor.getTargetModule() >> moduleMetaData
 
         when:
         resolver.resolve(dependencyMetaData, result)
 
         then:
         1 * target.resolve(dependencyMetaData, result)
-        1 * result.getMetaData() >> originalMetaData
-        1 * originalMetaData.getSource() >> moduleSource
-        1 * dependencyDescriptor.getTargetModule(moduleSource) >> moduleMetaData
+        1 * result.getMetaData() >> resolvedMetaData
+        1 * resolvedMetaData.getSource() >> moduleSource
+        1 * dependencyDescriptor.getTargetModule() >> moduleMetaData
+        1 * moduleMetaData.withSource(moduleSource) >> moduleMetaData
         1 * result.setMetaData(moduleMetaData)
         _ * result.failure >> null
         0 * result._
