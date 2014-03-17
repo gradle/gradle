@@ -27,6 +27,7 @@ public interface GradleTask extends Task {
      * Returns the Gradle project this task is defined in.
      *
      * @return The element.
+     * @since 1.0-milestone-5
      */
     GradleProject getProject();
 }
