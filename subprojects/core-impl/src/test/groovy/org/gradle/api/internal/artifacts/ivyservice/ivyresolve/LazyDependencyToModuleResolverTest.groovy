@@ -59,7 +59,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         moduleResolveResult.metaData == metaData
 
-        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(metaData, Mock(ArtifactResolver))}
+        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(metaData)}
         0 * target._
     }
 
@@ -78,7 +78,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         id == metaData.id
 
         and:
-        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(metaData, Mock(ArtifactResolver))}
+        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(metaData)}
         0 * target._
 
         when:
@@ -211,56 +211,6 @@ class LazyDependencyToModuleResolverTest extends Specification {
         then:
         e = thrown()
         e.is(idResolveResult.failure)
-    }
-
-    def "can resolve artifact for a module version"() {
-        def dependency = dependency()
-        def metaData = module()
-        def artifact = artifact()
-        ArtifactResolver targetResolver = Mock()
-        BuildableArtifactResolveResult result = Mock()
-
-        when:
-        def resolveResult = resolver.resolve(dependency).resolve()
-
-        then:
-        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(metaData, targetResolver)}
-
-        when:
-        resolveResult.artifactResolver.resolve(artifact, result)
-
-        then:
-        1 * targetResolver.resolve(artifact, result)
-        0 * targetResolver._
-        0 * target._
-    }
-    
-    def "wraps unexpected failure to resolve artifact"() {
-        def dependency = dependency()
-        def artifact = artifact()
-        def metaData = module()
-
-        ArtifactResolver targetResolver = Mock()
-        BuildableArtifactResolveResult result = Mock()
-        def failure = new RuntimeException("broken")
-
-        when:
-        def resolveResult = resolver.resolve(dependency).resolve()
-
-        then:
-        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(metaData, targetResolver)}
-
-        when:
-        resolveResult.artifactResolver.resolve(artifact, result)
-
-        then:
-        1 * result.failed(_) >> { ArtifactResolveException e ->
-            assert e.message == "Could not download artifact 'artifact.zip'"
-            assert e.cause == failure
-        }
-
-        and:
-        _ * targetResolver.resolve(artifact, result) >> { throw failure }
     }
 
     def module() {

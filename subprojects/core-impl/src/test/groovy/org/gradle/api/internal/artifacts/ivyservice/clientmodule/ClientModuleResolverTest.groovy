@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
@@ -28,6 +29,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class ClientModuleResolverTest extends Specification {
+    final ModuleSource moduleSource = Mock()
     final ModuleVersionMetaData moduleMetaData = Mock()
     final DependencyToModuleVersionResolver target = Mock()
     final ClientModuleResolver resolver = new ClientModuleResolver(target)
@@ -36,16 +38,21 @@ class ClientModuleResolverTest extends Specification {
         ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
         DependencyMetaData dependencyMetaData = Mock()
         BuildableModuleVersionResolveResult result = Mock()
+        ModuleVersionMetaData originalMetaData = Mock()
 
         given:
+
         _ * dependencyMetaData.descriptor >> dependencyDescriptor
-        _ * dependencyDescriptor.targetModule >> moduleMetaData
+        _ * dependencyDescriptor.getTargetModule(moduleSource) >> moduleMetaData
 
         when:
         resolver.resolve(dependencyMetaData, result)
 
         then:
         1 * target.resolve(dependencyMetaData, result)
+        1 * result.getMetaData() >> originalMetaData
+        1 * originalMetaData.getSource() >> moduleSource
+        1 * dependencyDescriptor.getTargetModule(moduleSource) >> moduleMetaData
         1 * result.setMetaData(moduleMetaData)
         _ * result.failure >> null
         0 * result._

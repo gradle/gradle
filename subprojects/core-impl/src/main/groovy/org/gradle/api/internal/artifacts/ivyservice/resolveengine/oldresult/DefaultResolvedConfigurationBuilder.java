@@ -41,14 +41,16 @@ public class DefaultResolvedConfigurationBuilder implements
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
     private final Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap = new HashMap<ResolvedConfigurationIdentifier, ModuleDependency>();
+    private final ArtifactResolver artifactResolver;
 
     private ResolvedArtifactFactory resolvedArtifactFactory;
 
     private final TransientConfigurationResultsBuilder builder;
 
-    public DefaultResolvedConfigurationBuilder(ResolvedArtifactFactory resolvedArtifactFactory, TransientConfigurationResultsBuilder builder) {
+    public DefaultResolvedConfigurationBuilder(ResolvedArtifactFactory resolvedArtifactFactory, TransientConfigurationResultsBuilder builder, ArtifactResolver artifactResolver) {
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.builder = builder;
+        this.artifactResolver = artifactResolver;
     }
 
     public void addUnresolvedDependency(UnresolvedDependency unresolvedDependency) {
@@ -80,8 +82,8 @@ public class DefaultResolvedConfigurationBuilder implements
         builder.resolvedDependency(id);
     }
 
-    public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ModuleVersionMetaData module, ModuleVersionArtifactMetaData artifact, ArtifactResolver artifactResolver) {
-        Factory<File> artifactSource = resolvedArtifactFactory.artifactSource(module, artifact, artifactResolver);
+    public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ModuleVersionMetaData module, ModuleVersionArtifactMetaData artifact) {
+        Factory<File> artifactSource = resolvedArtifactFactory.artifactSource(module, artifact, this.artifactResolver);
         Factory<ResolvedDependency> dependencySource = new ResolvedDependencyFactory(owner, builder, this);
         long id = idGenerator.generateId();
         ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), dependencySource, artifact.getName(), artifactSource, id);

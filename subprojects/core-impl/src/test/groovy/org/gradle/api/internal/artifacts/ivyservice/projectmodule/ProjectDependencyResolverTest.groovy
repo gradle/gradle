@@ -30,7 +30,7 @@ class ProjectDependencyResolverTest extends Specification {
     final ProjectComponentRegistry registry = Mock()
     final DependencyToModuleVersionResolver target = Mock()
     final LocalComponentFactory converter = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target, converter)
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, converter, target)
 
     def "resolves project dependency"() {
         setup:
@@ -54,7 +54,7 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         1 * registry.getProject(":project") >> componentMetaData
-        1 * result.resolved(resolveMetaData, _)
+        1 * result.resolved(resolveMetaData)
         0 * result._
     }
 
