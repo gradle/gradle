@@ -45,6 +45,7 @@ class DependencyGraphBuilderTest extends Specification {
     final ConfigurationInternal configuration = Mock()
     final ModuleConflictResolver conflictResolver = Mock()
     final DependencyToModuleVersionIdResolver dependencyResolver = Mock()
+    final ArtifactResolver artifactResolver = Mock()
     final ResolutionResultBuilder resultBuilder = Mock()
     final ModuleVersionMetaData root = revision('root')
     final ModuleToModuleVersionResolver moduleResolver = Mock()
@@ -55,7 +56,7 @@ class DependencyGraphBuilderTest extends Specification {
         config(root, 'root', 'default')
         _ * configuration.name >> 'root'
         _ * configuration.path >> 'root'
-        _ * moduleResolver.resolve(_, _, _) >> { it[2].resolved(root, Mock(ArtifactResolver)) }
+        _ * moduleResolver.resolve(_, _, _) >> { it[2].resolved(root) }
     }
 
     def "does not resolve a given module selector more than once"() {
@@ -77,8 +78,10 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     private DefaultLenientConfiguration resolve() {
-        def results = new DefaultResolvedConfigurationBuilder(Stub(ResolvedArtifactFactory),
-                new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()))
+        def results = new DefaultResolvedConfigurationBuilder(
+                Stub(ResolvedArtifactFactory),
+                new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()),
+                artifactResolver)
         builder.resolve(configuration, resultBuilder, results)
         new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
     }

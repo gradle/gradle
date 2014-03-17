@@ -39,11 +39,4 @@ public interface ModuleVersionResolveResult {
      */
     @Nullable
     ModuleVersionResolveException getFailure();
-
-    /**
-     * Returns the artifact resolver for this module.
-     *
-     * @throws ModuleVersionResolveException If resolution was unsuccessful and artifacts are not available.
-     */
-    ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException;
 }

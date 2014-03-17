@@ -55,14 +55,22 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     }
 
     private ModuleVersionRepository findSourceRepository(ModuleVersionMetaData moduleMetaData) {
-        RepositoryChainModuleSource source = (RepositoryChainModuleSource) moduleMetaData.getSource();
+        String repositoryId = getSourceRepositoryId(moduleMetaData);
         for (ModuleVersionRepository repository : repositories) {
-            if (source.getRepositoryId().equals(repository.getId())) {
+            if (repository.getId().equals(repositoryId)) {
                 return repository;
             }
         }
         // This should never happen
-        throw new IllegalStateException("No repository found for id: " + source.getRepositoryId());
+        throw new IllegalStateException("No repository found for id: " + repositoryId);
+    }
+
+    private String getSourceRepositoryId(ModuleVersionMetaData moduleMetaData) {
+        if (moduleMetaData.getSource() instanceof RepositoryChainModuleSource) {
+            RepositoryChainModuleSource source = (RepositoryChainModuleSource) moduleMetaData.getSource();
+            return source.getRepositoryId();
+        }
+        throw new IllegalStateException(String.format("Repository source not set for %s", moduleMetaData.getId()));
     }
 
     private ModuleSource unpackModuleSource(ModuleVersionMetaData moduleMetaData) {

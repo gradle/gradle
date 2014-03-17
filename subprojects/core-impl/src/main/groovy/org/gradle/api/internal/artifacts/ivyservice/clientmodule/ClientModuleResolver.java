@@ -39,8 +39,7 @@ public class ClientModuleResolver implements DependencyToModuleVersionResolver {
         }
 
         ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) descriptor;
-        ModuleVersionMetaData moduleVersionMetaData = clientModuleDependencyDescriptor.getTargetModule();
-
+        ModuleVersionMetaData moduleVersionMetaData = clientModuleDependencyDescriptor.getTargetModule(result.getMetaData().getSource());
         result.setMetaData(moduleVersionMetaData);
     }
 }

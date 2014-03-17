@@ -23,7 +23,7 @@ public interface BuildableModuleVersionResolveResult extends ModuleVersionResolv
     /**
      * Marks the module version as resolved, with the given meta-data and artifact resolver.
      */
-    void resolved(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver);
+    void resolved(ModuleVersionMetaData metaData);
 
     /**
      * Marks the resolve as failed with the given exception.
@@ -39,9 +39,4 @@ public interface BuildableModuleVersionResolveResult extends ModuleVersionResolv
      * Replaces the meta-data in the result. Result must already be resolved.
      */
     void setMetaData(ModuleVersionMetaData metaData);
-
-    /**
-     * Replaces the artifact resolver in the result. Result must already be resolved.
-     */
-    void setArtifactResolver(ArtifactResolver artifactResolver);
 }

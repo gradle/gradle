@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -74,7 +73,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private RepositoryArtifactCache repositoryCacheManager;
     private String changingMatcherName;
     private String changingPattern;
-    private DependencyToModuleVersionResolver nestedResolver;
+    private RepositoryChain repositoryChain;
 
     private final ExternalResourceRepository repository;
     private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
@@ -117,8 +116,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return String.format("Repository '%s'", getName());
     }
 
-    public void setResolver(DependencyToModuleVersionResolver resolver) {
-        this.nestedResolver = resolver;
+    public void setRepositoryChain(RepositoryChain resolver) {
+        this.repositoryChain = resolver;
     }
 
     protected ExternalResourceRepository getRepository() {
@@ -202,7 +201,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected MutableModuleVersionMetaData getArtifactMetadata(ArtifactIdentifier artifactId, ExternalResource resource) {
-        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(nestedResolver, this, artifactId.getModuleVersionIdentifier());
+        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(repositoryChain, this, artifactId.getModuleVersionIdentifier());
         LocallyAvailableExternalResource cachedResource;
         try {
             cachedResource = downloadAndCacheResource(artifactId, resource);

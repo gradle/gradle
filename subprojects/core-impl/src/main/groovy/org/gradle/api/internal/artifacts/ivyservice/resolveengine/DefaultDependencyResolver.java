@@ -25,10 +25,13 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
@@ -80,10 +83,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         LOGGER.debug("Resolving {}", configuration);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
-                DependencyToModuleVersionResolver dependencyResolver = ivyFactory.create(configuration, repositories, metadataProcessor);
+                RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataProcessor);
 
+                DependencyToModuleVersionResolver dependencyResolver = repositoryChain.getDependencyResolver();
                 dependencyResolver = new ClientModuleResolver(dependencyResolver);
-                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, dependencyResolver, localComponentFactory);
+                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, dependencyResolver);
                 dependencyResolver = projectDependencyResolver;
                 DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, versionMatcher);
                 idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveRule());
@@ -107,7 +111,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 BinaryStore oldModelStore = stores.nextBinaryStore();
                 Store<TransientConfigurationResults> oldModelCache = stores.newModelStore();
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
-                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, oldTransientModelBuilder);
+                ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
+                artifactResolver = new ProjectArtifactResolver(projectComponentRegistry, artifactResolver);
+                artifactResolver = new ErrorHandlingArtifactResolver(artifactResolver);
+                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, oldTransientModelBuilder, artifactResolver);
 
                 builder.resolve(configuration, newModelBuilder, oldModelBuilder);
                 DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder, cacheLockingManager);
