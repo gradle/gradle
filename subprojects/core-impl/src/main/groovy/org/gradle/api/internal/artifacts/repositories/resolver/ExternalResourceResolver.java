@@ -291,7 +291,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         File localFile;
         try {
             localFile = download(ivyArtifact, moduleSource);
-        } catch (IOException e) {
+        } catch (Throwable e) {
             result.failed(new ArtifactResolveException(artifact.getId(), e));
             return;
         }

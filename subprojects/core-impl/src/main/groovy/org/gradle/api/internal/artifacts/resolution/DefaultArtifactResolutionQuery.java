@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
@@ -93,8 +92,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                     ModuleComponentIdentifier moduleComponentId = (ModuleComponentIdentifier) componentId;
                     BuildableModuleVersionResolveResult moduleResolveResult = new DefaultBuildableModuleVersionResolveResult();
                     repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId), true)), moduleResolveResult);
-                    // TODO:DAZ Shouldn't be required
-                    ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(repositoryChain.getArtifactResolver());
+                    ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
 
                     if (moduleResolveResult.getFailure() != null) {
                         unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId, moduleResolveResult.getFailure()));

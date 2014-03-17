@@ -165,7 +165,7 @@ public class ResolveIvyFactory {
             });
         }
 
-        // TODO:DAZ I don't think this is required
+        // TODO:DAZ I don't think cache is required
         public void resolve(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s", artifact), new Runnable() {
                 public void run() {
@@ -174,7 +174,7 @@ public class ResolveIvyFactory {
             });
         }
 
-        // TODO:DAZ I don't think this is required
+        // TODO:DAZ I don't think cache is required
         public void resolve(final ModuleVersionMetaData moduleMetaData, final Class<? extends SoftwareArtifact> artifactType, final BuildableMultipleArtifactResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s from %s", artifactType, moduleMetaData), new Runnable() {
                 public void run() {

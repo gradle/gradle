@@ -25,7 +25,7 @@ import java.io.File;
 public interface ModuleVersionArtifactPublishMetaData {
     ModuleVersionArtifactIdentifier getId();
 
-    // TODO:DAZ Merge with getId()?
+    // TODO:DAZ Replace use with getId()
     ArtifactIdentifier getArtifactIdentifier();
 
     /**

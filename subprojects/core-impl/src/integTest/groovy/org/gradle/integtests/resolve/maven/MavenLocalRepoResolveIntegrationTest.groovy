@@ -194,7 +194,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         runAndFail 'retrieve'
 
         then:
-        failure.assertHasCause("Could not download artifact 'group:projectA:1.2:projectA.jar'")
+        failure.assertHasCause("Artifact 'group:projectA:1.2:projectA.jar' not found")
 
     }
 
