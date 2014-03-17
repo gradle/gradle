@@ -202,7 +202,11 @@ public class GradlePomModuleDescriptorBuilder {
     public void addMainArtifact(String artifactId, String packaging) {
         if ("pom".equals(packaging)) {
             DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, "jar", "jar");
-            ivyModuleDescriptor.addArtifact("master", artifact);
+            ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(artifact);
+            if (parserSettings.artifactExists(artifactIdentifier)) {
+                ivyModuleDescriptor.addArtifact("master", artifact);
+            }
+
             return;
         }
 
