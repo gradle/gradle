@@ -12,5 +12,8 @@ class CustomEventLogger extends BuildAdapter implements TaskExecutionListener {
     
     public void buildFinished(BuildResult result) {
         println 'build completed'
+        if (result.failure != null) {
+            result.failure.printStackTrace()
+        }
     }
 }
