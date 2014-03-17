@@ -16,10 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableMultipleArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
@@ -34,23 +31,17 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         repositories.add(repository);
     }
 
-    public void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
         findSourceRepository(moduleMetaData).resolve(artifact, result, unpackModuleSource(moduleMetaData));
     }
 
-    public void resolve(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result) {
+    public void resolveArtifactSet(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableArtifactSetResolveResult result) {
         ModuleVersionRepository sourceRepository = findSourceRepository(moduleMetadata);
-        ModuleSource repositoryModuleSource = unpackModuleSource(moduleMetadata);
-        Set<ModuleVersionArtifactMetaData> artifacts = sourceRepository.getCandidateArtifacts(moduleMetadata, artifactType);
-        for (ModuleVersionArtifactMetaData artifact : artifacts) {
-            DefaultBuildableArtifactResolveResult singleResult = new DefaultBuildableArtifactResolveResult();
-            try {
-                sourceRepository.resolve(artifact, singleResult, repositoryModuleSource);
-            } catch(Throwable t) {
-                // can't call up to ErrorHandlingArtifactResolver#resolve, so we'll have to handle errors ourselves
-                singleResult.failed(new ArtifactResolveException(artifact.getId(), t));
-            }
-            result.addResult(artifact.getId(), singleResult);
+        try {
+            Set<ModuleVersionArtifactMetaData> artifacts = sourceRepository.getCandidateArtifacts(moduleMetadata, artifactType);
+            result.resolved(artifacts);
+        } catch (Exception e) {
+            result.failed(new ArtifactResolveException(String.format("Could not determine artifacts for %s", moduleMetadata)));
         }
     }
 

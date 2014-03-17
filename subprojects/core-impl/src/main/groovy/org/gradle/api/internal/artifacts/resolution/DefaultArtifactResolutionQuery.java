@@ -30,6 +30,8 @@ import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
@@ -97,11 +99,13 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                     if (moduleResolveResult.getFailure() != null) {
                         unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId, moduleResolveResult.getFailure()));
                     } else {
+                        ModuleVersionMetaData moduleMetaData = moduleResolveResult.getMetaData();
                         List<JvmLibraryArtifact> jvmLibraryArtifacts = Lists.newArrayList();
                         for (Class<? extends SoftwareArtifact> artifactType : artifactTypes) {
-                            DefaultBuildableMultipleArtifactResolveResult multiResolveResult = new DefaultBuildableMultipleArtifactResolveResult();
-                            artifactResolver.resolve(moduleResolveResult.getMetaData(), artifactType, multiResolveResult);
-                            for (ArtifactResolveResult resolveResult : multiResolveResult.getResults().values()) {
+                            BuildableArtifactSetResolveResult multiResolveResult = new DefaultBuildableArtifactSetResolveResult();
+                            artifactResolver.resolveArtifactSet(moduleMetaData, artifactType, multiResolveResult);
+                            for (ModuleVersionArtifactMetaData artifactMetaData : multiResolveResult.getResults()) {
+                                BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
                                 if (artifactType == JvmLibraryJavadocArtifact.class) {
                                     if (resolveResult.getFailure() != null) {
                                         jvmLibraryArtifacts.add(new DefaultJvmLibraryJavadocArtifact(resolveResult.getFailure()));
