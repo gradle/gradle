@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
@@ -113,7 +112,6 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
                 ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
                 artifactResolver = new ProjectArtifactResolver(projectComponentRegistry, artifactResolver);
-                artifactResolver = new ErrorHandlingArtifactResolver(artifactResolver);
                 DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, oldTransientModelBuilder, artifactResolver);
 
                 builder.resolve(configuration, newModelBuilder, oldModelBuilder);
