@@ -52,7 +52,6 @@ import java.util.List;
 public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependencyResolver.class);
     private final LocalComponentFactory localComponentFactory;
-    private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final ResolveIvyFactory ivyFactory;
     private final ProjectComponentRegistry projectComponentRegistry;
     private final CacheLockingManager cacheLockingManager;
@@ -61,12 +60,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
 
-    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory, ResolvedArtifactFactory resolvedArtifactFactory,
+    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory,
                                      ProjectComponentRegistry projectComponentRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
                                      ResolutionResultsStoreFactory storeFactory, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.ivyFactory = ivyFactory;
         this.localComponentFactory = localComponentFactory;
-        this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.projectComponentRegistry = projectComponentRegistry;
         this.cacheLockingManager = cacheLockingManager;
         this.ivyContextManager = ivyContextManager;
@@ -112,7 +110,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
                 ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
                 artifactResolver = new ProjectArtifactResolver(projectComponentRegistry, artifactResolver);
-                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, oldTransientModelBuilder, artifactResolver);
+                artifactResolver = new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, artifactResolver);
+                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder, artifactResolver);
 
                 builder.resolve(configuration, newModelBuilder, oldModelBuilder);
                 DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder, cacheLockingManager);

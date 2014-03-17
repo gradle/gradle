@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactFactory;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
@@ -43,12 +43,9 @@ public class DefaultResolvedConfigurationBuilder implements
     private final Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap = new HashMap<ResolvedConfigurationIdentifier, ModuleDependency>();
     private final ArtifactResolver artifactResolver;
 
-    private ResolvedArtifactFactory resolvedArtifactFactory;
-
     private final TransientConfigurationResultsBuilder builder;
 
-    public DefaultResolvedConfigurationBuilder(ResolvedArtifactFactory resolvedArtifactFactory, TransientConfigurationResultsBuilder builder, ArtifactResolver artifactResolver) {
-        this.resolvedArtifactFactory = resolvedArtifactFactory;
+    public DefaultResolvedConfigurationBuilder(TransientConfigurationResultsBuilder builder, ArtifactResolver artifactResolver) {
         this.builder = builder;
         this.artifactResolver = artifactResolver;
     }
@@ -83,7 +80,7 @@ public class DefaultResolvedConfigurationBuilder implements
     }
 
     public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ModuleVersionMetaData module, ModuleVersionArtifactMetaData artifact) {
-        Factory<File> artifactSource = resolvedArtifactFactory.artifactSource(module, artifact, this.artifactResolver);
+        Factory<File> artifactSource = lazyArtifactSource(module, artifact);
         Factory<ResolvedDependency> dependencySource = new ResolvedDependencyFactory(owner, builder, this);
         long id = idGenerator.generateId();
         ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), dependencySource, artifact.getName(), artifactSource, id);
@@ -117,6 +114,16 @@ public class DefaultResolvedConfigurationBuilder implements
 
     public Set<UnresolvedDependency> getUnresolvedDependencies() {
         return unresolvedDependencies;
+    }
+
+    private Factory<File> lazyArtifactSource(final ModuleVersionMetaData module, final ModuleVersionArtifactMetaData artifact) {
+        return new Factory<File>() {
+            public File create() {
+                DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
+                artifactResolver.resolve(module, artifact, result);
+                return result.getFile();
+            }
+        };
     }
 
     private static class ResolvedDependencyFactory implements Factory<ResolvedDependency> {
