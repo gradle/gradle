@@ -83,7 +83,7 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLookup.available >> false
 
         and:
-        def result = toolChain.target(Stub(Platform))
+        def result = toolChain.select(Stub(Platform))
 
         then:
         !result.available
@@ -98,7 +98,7 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
 
         and:
-        def result = toolChain.target(Stub(Platform))
+        def result = toolChain.select(Stub(Platform))
 
         then:
         !result.available
@@ -118,7 +118,7 @@ class VisualCppToolChainTest extends Specification {
         visualCpp.isSupportedPlatform(platform) >> false
 
         and:
-        def result = toolChain.target(platform)
+        def result = toolChain.select(platform)
 
         then:
         !result.available
@@ -138,7 +138,7 @@ class VisualCppToolChainTest extends Specification {
         visualCpp.isSupportedPlatform(platform) >> true
 
         and:
-        def platformToolChain = toolChain.target(platform)
+        def platformToolChain = toolChain.select(platform)
 
         then:
         platformToolChain.available

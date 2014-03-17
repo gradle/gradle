@@ -15,10 +15,12 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
+import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration;
@@ -27,22 +29,19 @@ import org.gradle.nativebinaries.toolchain.internal.tools.*;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 
 /**
  * A tool chain that has GCC semantics, where all platform variants are produced by varying the tool args.
  */
-public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain implements PlatformConfigurableToolChain {
+public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain implements PlatformConfigurableToolChain, ConfigurableToolChain {
     private final ExecActionFactory execActionFactory;
     private final ToolSearchPath toolSearchPath;
     private final DefaultToolRegistry toolRegistry = new DefaultToolRegistry();
 
-    private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
+    private final List<ApplyablePlatformConfiguration> platformConfigs = new ArrayList<ApplyablePlatformConfiguration>();
     private int configInsertLocation;
 
     public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath toolSearchPath) {
@@ -50,9 +49,9 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         this.execActionFactory = execActionFactory;
         this.toolSearchPath = toolSearchPath;
 
-        addPlatformConfiguration(new ToolChainDefaultArchitecture());
-        addPlatformConfiguration(new Intel32Architecture());
-        addPlatformConfiguration(new Intel64Architecture());
+        target(new ToolChainDefaultArchitecture());
+        target(new Intel32Architecture());
+        target(new Intel64Architecture());
         configInsertLocation = 0;
     }
 
@@ -92,15 +91,29 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
     }
 
+    @Deprecated
     public void addPlatformConfiguration(TargetPlatformConfiguration platformConfig) {
-        platformConfigs.add(configInsertLocation, platformConfig);
+        target(new ApplyableTargetPlatformConfigurationAdapter(platformConfig));
+    }
+
+    public void target(Platform platform, Action<ConfigurableToolChain> action) {
+        target(platform.getName(), action);
+    }
+
+    public void target(String platformName, Action<ConfigurableToolChain> action) {
+        target(new ConfigurableToolChainActionAdapter(platformName, action));
+    }
+
+    void target(ApplyablePlatformConfiguration applyablePlatformConfiguration) {
+        platformConfigs.add(configInsertLocation, applyablePlatformConfiguration);
         configInsertLocation++;
     }
 
-    public PlatformToolChain target(Platform targetPlatform) {
-        TargetPlatformConfiguration platformConfiguration = getPlatformConfiguration(targetPlatform);
+
+    public PlatformToolChain select(Platform targetPlatform) {
+        ApplyablePlatformConfiguration applyablePlatformConfiguration = getPlatformConfiguration(targetPlatform);
         ToolChainAvailability result = new ToolChainAvailability();
-        if (platformConfiguration == null) {
+        if (applyablePlatformConfiguration == null) {
             result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
             return new UnavailablePlatformToolChain(result);
         }
@@ -110,12 +123,12 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
 
         // Target the tools for the platform
-        ToolRegistry platformTools = new PlatformToolRegistry(toolRegistry, platformConfiguration);
+        ToolRegistry platformTools = new PlatformToolRegistry(toolRegistry, applyablePlatformConfiguration);
         return new GccPlatformToolChain(toolSearchPath, platformTools, execActionFactory, canUseCommandFile());
     }
 
-    protected TargetPlatformConfiguration getPlatformConfiguration(Platform targetPlatform) {
-        for (TargetPlatformConfiguration platformConfig : platformConfigs) {
+    protected ApplyablePlatformConfiguration getPlatformConfiguration(Platform targetPlatform) {
+        for (ApplyablePlatformConfiguration platformConfig : platformConfigs) {
             if (platformConfig.supportsPlatform(targetPlatform)) {
                 return platformConfig;
             }
@@ -144,6 +157,14 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         return getTool(ToolType.ASSEMBLER);
     }
 
+    public GccTool getObjcCompiler() {
+        return getTool(ToolType.OBJECTIVEC_COMPILER);
+    }
+
+    public GccTool getObjcppCompiler() {
+        return getTool(ToolType.OBJECTIVECPP_COMPILER);
+    }
+
     public GccTool getLinker() {
         return getTool(ToolType.LINKER);
     }
@@ -151,117 +172,167 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
     public GccTool getStaticLibArchiver() {
         return getTool(ToolType.STATIC_LIB_ARCHIVER);
     }
-    private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {
+
+    private static class ToolChainDefaultArchitecture implements ApplyablePlatformConfiguration {
         public boolean supportsPlatform(Platform targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
-                && targetPlatform.getArchitecture() == ArchitectureInternal.TOOL_CHAIN_DEFAULT;
+                    && targetPlatform.getArchitecture() == ArchitectureInternal.TOOL_CHAIN_DEFAULT;
         }
 
-        public List<String> getAssemblerArgs() {
-            return emptyList();
-        }
-
-        public List<String> getCppCompilerArgs() {
-            return emptyList();
-        }
-
-        public List<String> getCCompilerArgs() {
-            return emptyList();
-        }
-
-        public List<String> getObjectiveCppCompilerArgs() {
-            return emptyList();
-        }
-
-        public List<String> getObjectiveCCompilerArgs() {
-            return emptyList();
-        }
-
-        public List<String> getStaticLibraryArchiverArgs() {
-            return emptyList();
-        }
-
-        public List<String> getLinkerArgs() {
-            return emptyList();
+        public ConfigurableToolChain apply(ConfigurableToolChain configurableToolChain) {
+            return configurableToolChain;
         }
     }
 
-    private static class Intel32Architecture implements TargetPlatformConfiguration {
+    private static class Intel32Architecture implements ApplyablePlatformConfiguration{
+
         public boolean supportsPlatform(Platform targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && ((ArchitectureInternal) targetPlatform.getArchitecture()).isI386();
         }
 
-        public List<String> getCppCompilerArgs() {
-            return asList("-m32");
-        }
-
-        public List<String> getCCompilerArgs() {
-            return asList("-m32");
-        }
-
-        public List<String> getObjectiveCppCompilerArgs() {
-            return asList("-m32");
-        }
-
-        public List<String> getObjectiveCCompilerArgs() {
-            return asList("-m32");
-        }
-
-        public List<String> getAssemblerArgs() {
-            if (OperatingSystem.current().isMacOsX()) {
-                return asList("-arch", "i386");
-            } else {
-                return asList("--32");
-            }
-        }
-
-        public List<String> getLinkerArgs() {
-            return asList("-m32");
-        }
-
-        public List<String> getStaticLibraryArchiverArgs() {
-            return emptyList();
+        public ConfigurableToolChain apply(ConfigurableToolChain configurableToolChain) {
+            Action<ConfigurableToolChain> action = new Action<ConfigurableToolChain>() {
+                public void execute(ConfigurableToolChain configurableToolChain) {
+                    Action<List<String>> m32args = new Action<List<String>>() {
+                        public void execute(List<String> args) {
+                            args.add("-m32");
+                        }
+                    };
+                    configurableToolChain.getCppCompiler().withArguments(m32args);
+                    configurableToolChain.getCCompiler().withArguments(m32args);
+                    configurableToolChain.getObjcCompiler().withArguments(m32args);
+                    configurableToolChain.getObjcppCompiler().withArguments(m32args);
+                    configurableToolChain.getLinker().withArguments(m32args);
+                    configurableToolChain.getAssembler().withArguments(new Action<List<String>>() {
+                        public void execute(List<String> args) {
+                            if (OperatingSystem.current().isMacOsX()) {
+                                args.addAll(asList("-arch", "i386"));
+                            } else {
+                                args.add("--32");
+                            }
+                        }
+                    });
+                }
+            };
+            action.execute(configurableToolChain);
+            return configurableToolChain;
         }
     }
 
-    private static class Intel64Architecture implements TargetPlatformConfiguration {
+    private static class Intel64Architecture implements ApplyablePlatformConfiguration {
         public boolean supportsPlatform(Platform targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && !OperatingSystem.current().isWindows() // Currently don't support building 64-bit binaries on GCC/Windows
                     && ((ArchitectureInternal) targetPlatform.getArchitecture()).isAmd64();
         }
-        public List<String> getCppCompilerArgs() {
-            return asList("-m64");
-        }
 
-        public List<String> getCCompilerArgs() {
-            return asList("-m64");
-        }
-
-        public List<String> getObjectiveCppCompilerArgs() {
-            return asList("-m64");
-        }
-
-        public List<String> getObjectiveCCompilerArgs() {
-            return asList("-m64");
-        }
-
-        public List<String> getAssemblerArgs() {
-            if (OperatingSystem.current().isMacOsX()) {
-                return asList("-arch", "x86_64");
-            } else {
-                return asList("--64");
-            }
-        }
-
-        public List<String> getLinkerArgs() {
-            return asList("-m64");
-        }
-
-        public List<String> getStaticLibraryArchiverArgs() {
-            return emptyList();
+        public ConfigurableToolChain apply(ConfigurableToolChain configurableToolChain) {
+            Action<ConfigurableToolChain> action = new Action<ConfigurableToolChain>() {
+                public void execute(ConfigurableToolChain configurableToolChain) {
+                    Action<List<String>> m64ArgsAction = new Action<List<String>>() {
+                        public void execute(List<String> args) {
+                            args.add("-m64");
+                        }
+                    };
+                    configurableToolChain.getCppCompiler().withArguments(m64ArgsAction);
+                    configurableToolChain.getCCompiler().withArguments(m64ArgsAction);
+                    configurableToolChain.getObjcCompiler().withArguments(m64ArgsAction);
+                    configurableToolChain.getObjcppCompiler().withArguments(m64ArgsAction);
+                    configurableToolChain.getLinker().withArguments(m64ArgsAction);
+                    configurableToolChain.getAssembler().withArguments(new Action<List<String>>() {
+                        public void execute(List<String> args) {
+                            if (OperatingSystem.current().isMacOsX()) {
+                               args.addAll(asList("-arch", "x86_64"));
+                            } else {
+                                args.add("--64");
+                            }
+                        }
+                    });
+                }
+            };
+            action.execute(configurableToolChain);
+            return configurableToolChain;
         }
     }
 
+
+    private class ApplyableTargetPlatformConfigurationAdapter implements ApplyablePlatformConfiguration {
+
+        private TargetPlatformConfiguration targetPlatformConfiguration;
+
+        public ApplyableTargetPlatformConfigurationAdapter(TargetPlatformConfiguration targetPlatformConfiguration) {
+            this.targetPlatformConfiguration = targetPlatformConfiguration;
+        }
+
+        public boolean supportsPlatform(Platform targetPlatform) {
+            return targetPlatformConfiguration.supportsPlatform(targetPlatform);
+        }
+
+        public ConfigurableToolChain apply(ConfigurableToolChain configurableToolChain) {
+            configurableToolChain.getAssembler().withArguments(new Action<List<String>>() {
+                public void execute(List<String> args) {
+                    args.addAll(targetPlatformConfiguration.getAssemblerArgs());
+                }
+            });
+
+            configurableToolChain.getCppCompiler().withArguments(new Action<List<String>>() {
+                public void execute(List<String> args) {
+                    args.addAll(targetPlatformConfiguration.getCppCompilerArgs());
+                }
+            });
+
+            configurableToolChain.getCCompiler().withArguments(new Action<List<String>>() {
+                public void execute(List<String> args) {
+                    args.addAll(targetPlatformConfiguration.getCCompilerArgs());
+                }
+            });
+
+            configurableToolChain.getStaticLibArchiver().withArguments(new Action<List<String>>() {
+                public void execute(List<String> args) {
+                    args.addAll(targetPlatformConfiguration.getStaticLibraryArchiverArgs());
+                }
+            });
+
+            configurableToolChain.getLinker().withArguments(new Action<List<String>>() {
+                public void execute(List<String> args) {
+                    args.addAll(targetPlatformConfiguration.getLinkerArgs());
+                }
+            });
+
+            configurableToolChain.getObjcCompiler().withArguments(new Action<List<String>>() {
+                public void execute(List<String> args) {
+                    args.addAll(targetPlatformConfiguration.getObjectiveCCompilerArgs());
+                }
+            });
+
+            configurableToolChain.getObjcppCompiler().withArguments(new Action<List<String>>() {
+                public void execute(List<String> args) {
+                    args.addAll(targetPlatformConfiguration.getObjectiveCppCompilerArgs());
+                }
+            });
+            return configurableToolChain;
+        }
+    }
+
+    private class ConfigurableToolChainActionAdapter implements ApplyablePlatformConfiguration {
+
+        //TODO this should be a container of platforms
+        private final String platformName;
+        private Action<ConfigurableToolChain> configurationAction;
+
+        public ConfigurableToolChainActionAdapter(String targetPlatformName, Action<ConfigurableToolChain> configurationAction) {
+            this.platformName = targetPlatformName;
+            this.configurationAction = configurationAction;
+        }
+
+        public boolean supportsPlatform(Platform targetPlatform) {
+            return platformName.equals(targetPlatform.getName());
+        }
+
+        public ConfigurableToolChain apply(ConfigurableToolChain configurableToolChain) {
+            configurationAction.execute(configurableToolChain);
+            return configurableToolChain;
+        }
+    }
 }

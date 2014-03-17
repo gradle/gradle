@@ -109,7 +109,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         return availability;
     }
 
-    public PlatformToolChain target(Platform targetPlatform) {
+    public PlatformToolChain select(Platform targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
         if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {

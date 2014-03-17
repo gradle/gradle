@@ -121,6 +121,45 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         executable("build/binaries/mainExecutable/i386/main").exec().out == helloWorldApp.englishOutput
     }
 
+    def "can configure platform with dsl"() {
+        when:
+        buildFile << """
+            model {
+                toolChains {
+                    ${toolChain.id} {
+                        target("arm"){
+                            cCompiler.withArguments { args ->
+                                args << "-m32"
+                                args << "-DFRENCH"
+                            }
+                            linker.withArguments { args ->
+                                args << "-m32"
+                            }
+                        }
+                    }
+                }
+                platforms {
+                    arm {
+                        architecture "arm"
+                    }
+                    i386 {
+                        architecture "i386"
+                    }
+                }
+            }
+"""
+
+        and:
+        succeeds "armMainExecutable", "i386MainExecutable"
+
+        then:
+        executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "x86"
+        executable("build/binaries/mainExecutable/arm/main").exec().out == helloWorldApp.frenchOutput
+
+        executable("build/binaries/mainExecutable/i386/main").binaryInfo.arch.name == "x86"
+        executable("build/binaries/mainExecutable/i386/main").exec().out == helloWorldApp.englishOutput
+    }
+
     def "can add action to tool chain that modifies tool arguments prior to execution"() {
         when:
         buildFile << """

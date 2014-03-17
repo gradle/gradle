@@ -103,7 +103,7 @@ class WindowsResourceCompile extends DefaultTask {
          spec.macros = getMacros()
          spec.args getCompilerArgs()
 
-         PlatformToolChain platformToolChain = toolChain.target(targetPlatform)
+         PlatformToolChain platformToolChain = toolChain.select(targetPlatform)
          final compiler = platformToolChain.createWindowsResourceCompiler()
          if (!inputs.incremental) {
              incrementalCompilerBuilder.withCleanCompile()

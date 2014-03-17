@@ -52,6 +52,11 @@ class DefaultTool implements GccToolInternal {
         argActions.add(action);
     }
 
+    // TODO:Rene Decorate class instead of method overloading
+    public void withArguments(Action<List<String>> action) {
+        argActions.add(action);
+    }
+
     public Action<List<String>> getArgAction() {
         return Actions.composite(argActions);
     }

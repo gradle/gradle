@@ -112,7 +112,7 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.args getCompilerArgs()
         spec.positionIndependentCode = isPositionIndependentCode()
 
-        PlatformToolChain platformToolChain = toolChain.target(targetPlatform)
+        PlatformToolChain platformToolChain = toolChain.select(targetPlatform)
         if (!inputs.incremental) {
             incrementalCompilerBuilder.withCleanCompile()
         }

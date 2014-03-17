@@ -81,7 +81,7 @@ class DefaultToolChainRegistryTest extends Specification {
 
         and:
         def tc = registry.getForPlatform(platform)
-        def result = tc.target(platform)
+        def result = tc.select(platform)
 
         when:
         result.createCCompiler()
@@ -154,7 +154,7 @@ class DefaultToolChainRegistryTest extends Specification {
         }
         TestToolChain testToolChain = Mock(TestToolChain) {
             _ * getName() >> name
-            _ * target(platform) >> platformToolChain
+            _ * select(platform) >> platformToolChain
         }
         factory.create(name) >> testToolChain
         return testToolChain
@@ -168,7 +168,7 @@ class DefaultToolChainRegistryTest extends Specification {
         TestToolChain testToolChain = Mock(TestToolChain) {
             _ * getName() >> name
             _ * getDisplayName() >> "Tool chain '$name'"
-            _ * target(platform) >> platformToolChain
+            _ * select(platform) >> platformToolChain
         }
         factory.create(name) >> testToolChain
         return testToolChain

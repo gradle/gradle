@@ -13,19 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativebinaries.toolchain;
 
-import org.gradle.api.Incubating;
-
 /**
- * A ToolChain that can handle additional platforms simply by configuring the NativeBinary.
- */
-@Incubating
-public interface PlatformConfigurableToolChain extends ToolChain {
+ * A configurable tool chain.
+ * */
+public interface ConfigurableToolChain {
 
     /**
-     * Add configuration for a target platform.
+     * The C++ compiler.
      */
-    void addPlatformConfiguration(TargetPlatformConfiguration platformConfig);
+    GccTool getCCompiler();
 
+    /**
+     * The C compiler.
+     */
+    GccTool getCppCompiler();
+
+    /**
+     * The assembler.
+     */
+    GccTool getAssembler();
+
+    /**
+     * The linker.
+     */
+    GccTool getLinker();
+
+    /**
+     * The Objective-C compiler.
+     */
+    GccTool getObjcCompiler();
+
+    /**
+     * The Objective-CPP compiler.
+     */
+    GccTool getObjcppCompiler();
+
+    /**
+     * The static library archiver.
+     */
+    GccTool getStaticLibArchiver();
 }

@@ -224,7 +224,7 @@ class NativeBinariesModelPluginTest extends Specification {
     def toolChain(def name) {
         Stub(ToolChainInternal) {
             getName() >> name
-            target(_) >> Stub(PlatformToolChain) {
+            select(_) >> Stub(PlatformToolChain) {
                 isAvailable() >> true
             }
         }

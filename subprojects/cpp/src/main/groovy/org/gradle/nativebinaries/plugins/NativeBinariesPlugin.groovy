@@ -54,7 +54,7 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
 
     static boolean isBuildableBinary(ProjectNativeBinaryInternal binary) {
         final chain = binary.toolChain as ToolChainInternal
-        chain.target(binary.getTargetPlatform()).available
+        chain.select(binary.getTargetPlatform()).available
     }
 
     def createTasks(ProjectInternal project, ProjectNativeBinaryInternal binary) {

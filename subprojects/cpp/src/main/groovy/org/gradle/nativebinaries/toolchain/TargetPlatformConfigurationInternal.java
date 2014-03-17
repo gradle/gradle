@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@ package org.gradle.nativebinaries.toolchain;
 import org.gradle.api.Incubating;
 
 /**
- * A ToolChain that can handle additional platforms simply by configuring the NativeBinary.
+ * Configuration to add support for a target platform to a {@link PlatformConfigurableToolChain}.
  */
 @Incubating
-public interface PlatformConfigurableToolChain extends ToolChain {
+public interface TargetPlatformConfigurationInternal extends TargetPlatformConfiguration{
 
     /**
-     * Add configuration for a target platform.
-     */
-    void addPlatformConfiguration(TargetPlatformConfiguration platformConfig);
-
+     * a configured tool chain
+     * */
+    void apply(ConfigurableToolChain configurableToolChain);
 }
