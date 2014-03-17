@@ -21,8 +21,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeplatform.jna.LibC;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.jruby.ext.posix.BaseNativePOSIX;
 import org.jruby.ext.posix.JavaPOSIX;
 import org.jruby.ext.posix.POSIX;
@@ -31,39 +29,24 @@ import org.slf4j.LoggerFactory;
 
 public class FileSystemServices {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServices.class);
-    private static final ServiceRegistry SERVICES;
 
-    static {
-        DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry();
-        addServices(serviceRegistry);
-        SERVICES = serviceRegistry;
-    }
-
-    public static ServiceRegistry getServices() {
-        return SERVICES;
-    }
-
-    private static void addServices(DefaultServiceRegistry serviceRegistry) {
-        OperatingSystem operatingSystem = OperatingSystem.current();
-
+    @SuppressWarnings("UnusedDeclaration")
+    public FileSystem createFileSystem(OperatingSystem operatingSystem) {
         // Use no-op implementations for windows
         if (operatingSystem.isWindows()) {
-            serviceRegistry.add(Chmod.class, new EmptyChmod());
-            serviceRegistry.add(Stat.class, new FallbackStat());
-            serviceRegistry.add(Symlink.class, new FallbackSymlink());
-            return;
+            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), new FallbackSymlink());
         }
 
         LibC libC = loadLibC();
-        serviceRegistry.add(Symlink.class, createSymlink(libC));
+        Symlink symlink = symlink(libC);
 
         // Use libc backed implementations on Linux and Mac, if libc available
         POSIX posix = PosixUtil.current();
         if ((libC != null && (operatingSystem.isLinux() || operatingSystem.isMacOsX())) && posix instanceof BaseNativePOSIX) {
-            FilePathEncoder filePathEncoder = createEncoder(libC);
-            serviceRegistry.add(Chmod.class, new LibcChmod(libC, filePathEncoder));
-            serviceRegistry.add(Stat.class, new LibCStat(libC, operatingSystem, (BaseNativePOSIX) posix, filePathEncoder));
-            return;
+            FilePathEncoder filePathEncoder = encoder(libC, operatingSystem);
+            Chmod chmod = new LibcChmod(libC, filePathEncoder);
+            Stat stat = new LibCStat(libC, operatingSystem, (BaseNativePOSIX) posix, filePathEncoder);
+            return new GenericFileSystem(chmod, stat, symlink);
         }
 
         // Use java 7 APIs, if available
@@ -71,9 +54,7 @@ public class FileSystemServices {
             String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
             try {
                 Object handler = FileSystemServices.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
-                serviceRegistry.add(Stat.class, (Stat) handler);
-                serviceRegistry.add(Chmod.class, (Chmod) handler);
-                return;
+                return new GenericFileSystem((Chmod) handler, (Stat) handler, symlink);
             } catch (ClassNotFoundException e) {
                 LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.", jdkFilePermissionclass));
             } catch (Exception e) {
@@ -82,11 +63,10 @@ public class FileSystemServices {
         }
 
         // Attempt to use libc for chmod and posix for stat, and fallback to no-op implementations if not available
-        serviceRegistry.add(Chmod.class, createChmod(libC));
-        serviceRegistry.add(Stat.class, createStat());
+        return new GenericFileSystem(chmod(libC, operatingSystem), stat(), symlink);
     }
 
-    private static Symlink createSymlink(LibC libC) {
+    private Symlink symlink(LibC libC) {
         if (libC != null) {
             return new LibcSymlink(libC);
         }
@@ -94,7 +74,7 @@ public class FileSystemServices {
         return new FallbackSymlink();
     }
 
-    private static Stat createStat() {
+    private Stat stat() {
         POSIX posix = PosixUtil.current();
         if (posix instanceof JavaPOSIX) {
             return new FallbackStat();
@@ -103,16 +83,16 @@ public class FileSystemServices {
         }
     }
 
-    static Chmod createChmod(LibC libC) {
+    private Chmod chmod(LibC libC, OperatingSystem operatingSystem) {
         if (libC != null) {
-            return new LibcChmod(libC, createEncoder(libC));
+            return new LibcChmod(libC, encoder(libC, operatingSystem));
         }
         LOGGER.debug("Using EmptyChmod implementation.");
         return new EmptyChmod();
     }
 
-    static FilePathEncoder createEncoder(LibC libC) {
-        if (OperatingSystem.current().isMacOsX()) {
+    private FilePathEncoder encoder(LibC libC, OperatingSystem operatingSystem) {
+        if (operatingSystem.isMacOsX()) {
             return new MacFilePathEncoder();
         }
         return new DefaultFilePathEncoder(libC);
