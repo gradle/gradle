@@ -15,13 +15,11 @@
  */
 package org.gradle.integtests.tooling.r112
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 
 @ToolingApiVersion('>=1.12')
-@TargetGradleVersion('>=1.0-milestone-5')
 class TaskDisplayNameCrossVersionSpec extends ToolingApiSpecification {
     def "can get task's display name introduced in 1.12"() {
         file('build.gradle') << '''
@@ -35,7 +33,7 @@ task a
         def taskA = project.tasks.find { it.name == 'a' }
         taskA != null
         taskA.path == ':a'
-        taskA.displayName == 'a task (:a)'
+        taskA.displayName == /task ':a'/
         taskA.project == project
     }
 }
