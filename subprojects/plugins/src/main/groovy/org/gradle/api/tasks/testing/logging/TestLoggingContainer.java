@@ -32,11 +32,16 @@ import org.gradle.api.logging.LogLevel;
  *         // set options for log level LIFECYCLE
  *         events "failed"
  *         exceptionFormat "short"
+ *
  *         // set options for log level DEBUG
  *         debug {
  *             events "started", "skipped", "failed"
  *             exceptionFormat "full"
  *         }
+ *
+ *         // remove standard output/error logging from --info builds
+ *         // by assigning only 'failed' and 'skipped' events
+ *         info.events = ["failed", "skipped"]
  *     }
  * }
  * </pre>
