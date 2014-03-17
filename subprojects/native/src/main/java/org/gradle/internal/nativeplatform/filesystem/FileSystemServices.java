@@ -17,6 +17,8 @@
 package org.gradle.internal.nativeplatform.filesystem;
 
 import com.sun.jna.Native;
+import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
+import net.rubygrapefruit.platform.PosixFiles;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeplatform.jna.LibC;
@@ -37,13 +39,23 @@ public class FileSystemServices {
             return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), new FallbackSymlink());
         }
 
+        try {
+            PosixFiles posixFiles = net.rubygrapefruit.platform.Native.get(PosixFiles.class);
+            Symlink symlink = new NativePlatformBackedSymlink(posixFiles);
+            Chmod chmod = new NativePlatformBackedChmod(posixFiles);
+            Stat stat = new NativePlatformBackedStat(posixFiles);
+            return new GenericFileSystem(chmod, stat, symlink);
+        } catch (NativeIntegrationUnavailableException ex) {
+            LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
+        }
+
         LibC libC = loadLibC();
         Symlink symlink = symlink(libC);
 
-        // Use libc backed implementations on Linux and Mac, if libc available
+        // Use libc backed implementations on Linux, if libc available
         POSIX posix = PosixUtil.current();
-        if ((libC != null && (operatingSystem.isLinux() || operatingSystem.isMacOsX())) && posix instanceof BaseNativePOSIX) {
-            FilePathEncoder filePathEncoder = encoder(libC, operatingSystem);
+        if ((libC != null && (operatingSystem.isLinux())) && posix instanceof BaseNativePOSIX) {
+            FilePathEncoder filePathEncoder = new DefaultFilePathEncoder(libC);
             Chmod chmod = new LibcChmod(libC, filePathEncoder);
             Stat stat = new LibCStat(libC, operatingSystem, (BaseNativePOSIX) posix, filePathEncoder);
             return new GenericFileSystem(chmod, stat, symlink);
@@ -63,7 +75,7 @@ public class FileSystemServices {
         }
 
         // Attempt to use libc for chmod and posix for stat, and fallback to no-op implementations if not available
-        return new GenericFileSystem(chmod(libC, operatingSystem), stat(), symlink);
+        return new GenericFileSystem(chmod(libC), stat(), symlink);
     }
 
     private Symlink symlink(LibC libC) {
@@ -83,19 +95,12 @@ public class FileSystemServices {
         }
     }
 
-    private Chmod chmod(LibC libC, OperatingSystem operatingSystem) {
+    private Chmod chmod(LibC libC) {
         if (libC != null) {
-            return new LibcChmod(libC, encoder(libC, operatingSystem));
+            return new LibcChmod(libC, new DefaultFilePathEncoder(libC));
         }
         LOGGER.debug("Using EmptyChmod implementation.");
         return new EmptyChmod();
-    }
-
-    private FilePathEncoder encoder(LibC libC, OperatingSystem operatingSystem) {
-        if (operatingSystem.isMacOsX()) {
-            return new MacFilePathEncoder();
-        }
-        return new DefaultFilePathEncoder(libC);
     }
 
     private static LibC loadLibC() {

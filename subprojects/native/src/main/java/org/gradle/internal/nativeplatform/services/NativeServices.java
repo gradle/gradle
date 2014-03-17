@@ -95,8 +95,6 @@ public class NativeServices extends DefaultServiceRegistry {
                 return new NativePlatformBackedProcessEnvironment(process);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
-            } catch (NativeException ex) {
-                LOGGER.debug("Unable to load from native-platform backed ProcessEnvironment. Continuing with fallback. Failure: {}", format(ex));
             }
         }
 
@@ -138,26 +136,30 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
-        if (operatingSystem.isWindows()) {
+        if (useNativePlatform && operatingSystem.isWindows()) {
             return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
         }
         return notAvailable(WindowsRegistry.class);
     }
 
     protected SystemInfo createSystemInfo() {
-        try {
-            return net.rubygrapefruit.platform.Native.get(SystemInfo.class);
-        } catch (NativeIntegrationUnavailableException e) {
-            LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
+        if (useNativePlatform) {
+            try {
+                return net.rubygrapefruit.platform.Native.get(SystemInfo.class);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
+            }
         }
         return notAvailable(SystemInfo.class);
     }
 
     protected ProcessLauncher createProcessLauncher() {
-        try {
-            return net.rubygrapefruit.platform.Native.get(ProcessLauncher.class);
-        } catch (NativeIntegrationUnavailableException e) {
-            LOGGER.debug("Native-platform process launcher is not available. Continuing with fallback.");
+        if (useNativePlatform) {
+            try {
+                return net.rubygrapefruit.platform.Native.get(ProcessLauncher.class);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform process launcher is not available. Continuing with fallback.");
+            }
         }
         return new DefaultProcessLauncher();
     }
