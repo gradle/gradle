@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-
 import java.util.List;
 
 public interface MutableModuleVersionMetaData extends ModuleVersionMetaData {
@@ -33,7 +31,4 @@ public interface MutableModuleVersionMetaData extends ModuleVersionMetaData {
      * Replaces the dependencies of this module version.
      */
     void setDependencies(Iterable<? extends DependencyMetaData> dependencies);
-
-    // TODO:DAZ This should be immutable?
-    void setSource(ModuleSource source);
 }
