@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Matchers
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -164,7 +165,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-    @Test public void copySingleFiles() {
+    @Test
+    public void copySingleFiles() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 "task copyIt << {",
                 "   copy {",
@@ -185,7 +187,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
      * If these filters are chained in the correct order, you should get 6, 11, and 16
      */
 
-    @Test public void copyMultipleFilterTest() {
+    @Test
+    public void copyMultipleFilterTest() {
         TestFile buildFile = testFile('build.gradle').writelns(
                 """task (copy, type:Copy) {
                    into 'dest'
@@ -205,7 +208,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         assertThat(it.next(), startsWith('16'))
     }
 
-    @Test public void chainedTransformations() {
+    @Test
+    public void chainedTransformations() {
         def buildFile = testFile('build.gradle') << '''
             task copy(type: Copy) {
                 into 'dest'
@@ -237,7 +241,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         assertThat(it.next(), equalTo('[prefix: line 2]'))
     }
 
-    @Test public void testCopyFromFileTree() {
+    @Test
+    public void testCopyFromFileTree() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
                    copy {
@@ -257,7 +262,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-    @Test public void testCopyFromFileCollection() {
+    @Test
+    public void testCopyFromFileCollection() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task copy << {
                    copy {
@@ -279,7 +285,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-    @Test public void testCopyFromCompositeFileCollection() {
+    @Test
+    public void testCopyFromCompositeFileCollection() {
         testFile('a.jar').touch()
 
         TestFile buildFile = testFile("build.gradle").writelns(
@@ -304,7 +311,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-    @Test public void testCopyFromTask() {
+    @Test
+    public void testCopyFromTask() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """
                     configurations { compile }
@@ -337,7 +345,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-    @Test public void testCopyFromTaskOutputs() {
+    @Test
+    public void testCopyFromTaskOutputs() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """
                         configurations { compile }
@@ -370,7 +379,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-    @Test public void testCopyWithCopyspec() {
+    @Test
+    public void testCopyWithCopyspec() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """
                 def spec = copySpec {
@@ -391,7 +401,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-    @Test public void testTransformWithCopyspec() {
+    @Test
+    public void testTransformWithCopyspec() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """
                 def spec = copySpec {
@@ -410,6 +421,81 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'transformedAgain/transformed/subdir/one/one.a',
                 'transformedAgain/transformed/subdir/two/two.a'
+        )
+    }
+
+    @Test
+    @Ignore //this does not pass with current implementation
+    public void testIncludeExcludeWithCopyspec() {
+        TestFile buildFile = testFile("build.gradle").writelns(
+                """
+                def spec = copySpec {
+                    from 'src'
+                    include '**/one/**'
+                    exclude '**/ignore/**'
+                    into 'subdir'
+                }
+                task copy(type: Copy) {
+                    into 'dest'
+                    include '**/sub/**'
+                    exclude '*.b'
+                    with spec
+                }"""
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        testFile('dest').assertHasDescendants(
+                'subdir/one/sub/onesub.a'
+        )
+    }
+
+    /*
+   * two.a starts off with "$one\n${one+1}\n${one+1+1}\n"
+   * If these filters are chained in the correct order, you should get 6, 11, and 16
+   */
+
+    @Test
+    public void testMultipleFilterWithCopyspec() {
+        TestFile buildFile = testFile('build.gradle').writelns(
+                """
+                  def spec = copySpec {
+                    from('src/two/two.a')
+                    filter { (Integer.parseInt(it) / 2) as String }
+                  }
+                  task (copy, type:Copy) {
+                   into 'dest'
+                   expand(one: 1)
+                   filter { (Integer.parseInt(it) * 10) as String }
+                   filter { (Integer.parseInt(it) + 2) as String }
+                   with spec
+                }
+                """
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        Iterator<String> it = testFile('dest/two.a').readLines().iterator()
+        assertThat(it.next(), startsWith('6'))
+        assertThat(it.next(), startsWith('11'))
+        assertThat(it.next(), startsWith('16'))
+    }
+
+    @Test
+    void testRenameWithCopySpec() {
+        TestFile buildFile = testFile("build.gradle") << '''
+            def spec = copySpec {
+               from 'src/one'
+               exclude '**/ignore/**'
+               rename '(.*).b$', '$1.renamed'
+            }
+            task (copy, type:Copy) {
+               with spec
+               into 'dest'
+               rename { it.startsWith('one.') ? "renamed_$it" : it }
+            }'''
+        usingBuildFile(buildFile).withTasks("copy").run()
+        testFile('dest').assertHasDescendants(
+                'renamed_one.renamed',
+                'renamed_one.a',
+                'sub/onesub.renamed',
+                'sub/onesub.a',
         )
     }
 
@@ -514,7 +600,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         file('path/bcd.txt').createFile()
 
         def buildFile = testFile('build.gradle') <<
-            '''
+                '''
             task copy(type: Copy) {
                 from 'path'
                 into 'dest'
