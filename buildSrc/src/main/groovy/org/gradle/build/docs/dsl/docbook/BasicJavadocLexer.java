@@ -34,6 +34,8 @@ class BasicJavadocLexer implements JavadocLexer {
     private static final Pattern TAG = Pattern.compile("(?s)\\{@.+?\\}");
     private static final Pattern END_TAG_NAME = Pattern.compile("(?s)\\s|}");
     private static final Pattern WHITESPACE_WITH_EOL = Pattern.compile("(?s)\\s+");
+    private static final String START_HTML_COMMENT = "<!--";
+    private static final String END_HTML_COMMENT = "-->";
     private static final Map<String, String> ENTITIES = new HashMap<String, String>();
 
     static {
@@ -56,6 +58,10 @@ class BasicJavadocLexer implements JavadocLexer {
 
     public void visit(TokenVisitor visitor) {
         while (!scanner.isEmpty()) {
+            if (scanner.lookingAt(START_HTML_COMMENT)) {
+                skipComment();
+                continue;
+            }
             if (scanner.lookingAt(HTML_ELEMENT)) {
                 parseStartElement(visitor);
                 continue;
@@ -67,6 +73,10 @@ class BasicJavadocLexer implements JavadocLexer {
 
             StringBuilder text = new StringBuilder();
             while (!scanner.isEmpty()) {
+                if (scanner.lookingAt(START_HTML_COMMENT)) {
+                    skipComment();
+                    continue;
+                }
                 if (scanner.lookingAt(HTML_ELEMENT)) {
                     break;
                 }
@@ -86,6 +96,16 @@ class BasicJavadocLexer implements JavadocLexer {
             visitor.onText(text.toString());
         }
         visitor.onEnd();
+    }
+
+    private void skipComment() {
+        scanner.next(4);
+        while (!scanner.isEmpty() && !scanner.lookingAt(END_HTML_COMMENT)) {
+            scanner.next();
+        }
+        if (!scanner.isEmpty()) {
+            scanner.next(3);
+        }
     }
 
     private void parseHtmlEntity(StringBuilder buffer) {

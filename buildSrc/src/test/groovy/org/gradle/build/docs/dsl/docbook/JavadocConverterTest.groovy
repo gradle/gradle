@@ -100,6 +100,16 @@ line 2</para>'''
         format(result.docbook) == '''<para>&lt;&gt;&amp; /&gt;</para>'''
     }
 
+    def ignoresHtmlComments() {
+        _ * classMetaData.rawCommentText >> '<!-- <p>ignore me</p> --><p>para 1'
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '''<para>para 1</para>'''
+    }
+
     def convertsPElementsToParaElements() {
         _ * classMetaData.rawCommentText >> '<p>para 1</p><P>para 2</P>'
 
