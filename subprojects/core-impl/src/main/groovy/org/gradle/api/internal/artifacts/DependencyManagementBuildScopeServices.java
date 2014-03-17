@@ -247,10 +247,6 @@ class DependencyManagementBuildScopeServices {
         ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
                 resolveIvyFactory,
                 publishModuleDescriptorConverter,
-                new ResolvedArtifactFactory(
-                        cacheLockingManager,
-                        ivyContextManager
-                ),
                 new DefaultProjectComponentRegistry(
                         publishModuleDescriptorConverter,
                         projectRegistry),
