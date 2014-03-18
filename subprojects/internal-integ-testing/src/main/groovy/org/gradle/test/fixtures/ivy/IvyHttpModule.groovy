@@ -80,7 +80,7 @@ class IvyHttpModule implements IvyModule, HttpModule {
         return this
     }
 
-    IvyHttpModule artifact(Map<String, ?> options) {
+    IvyHttpModule artifact(Map<String, ?> options = [:]) {
         backingModule.artifact(options)
         return this
     }
