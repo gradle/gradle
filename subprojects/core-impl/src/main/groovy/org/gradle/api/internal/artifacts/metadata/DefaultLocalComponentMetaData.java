@@ -23,6 +23,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.io.File;
@@ -113,15 +114,11 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         }
 
         public IvyArtifactName getName() {
-            return new DefaultIvyArtifactName(artifact);
-        }
-
-        public Artifact getArtifact() {
-            return artifact;
+            return id.getName();
         }
 
         public ArtifactIdentifier toArtifactIdentifier() {
-            throw new UnsupportedOperationException();
+            return new DefaultArtifactIdentifier(id);
         }
 
         public ModuleVersionArtifactIdentifier getId() {

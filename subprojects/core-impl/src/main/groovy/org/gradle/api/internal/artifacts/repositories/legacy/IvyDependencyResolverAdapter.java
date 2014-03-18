@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.legacy;
 import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
@@ -27,7 +28,6 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.MavenCandidateArtifacts;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
@@ -117,7 +117,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     }
 
     public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-        Artifact ivyArtifact = artifact.getArtifact();
+        Artifact ivyArtifact = createIvyArtifact(moduleMetaData, artifact);
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
@@ -137,6 +137,11 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         }
     }
 
+    private Artifact createIvyArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact) {
+        // TODO:DAZ Should really be looking up the Ivy Artifact from the ModuleDescriptor, to ensure we're not losing anything here, like URL or publication date.
+        IvyArtifactName ivyName = artifact.getName();
+        return new DefaultArtifact(IvyUtil.createModuleRevisionId(moduleMetaData.getId()), null, ivyName.getName(), ivyName.getType(), ivyName.getExtension(), ivyName.getAttributes());
+    }
 
     public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
         if (context instanceof ConfigurationResolveContext) {
