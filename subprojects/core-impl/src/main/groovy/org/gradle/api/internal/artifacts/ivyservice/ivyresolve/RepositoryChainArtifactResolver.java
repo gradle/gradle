@@ -34,12 +34,11 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     }
 
     public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetadata, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        ModuleVersionRepository sourceRepository = findSourceRepository(moduleMetadata);
-        sourceRepository.resolveModuleArtifacts(moduleMetadata, context, result);
+        findSourceRepository(moduleMetadata).resolveModuleArtifacts(unpackModuleSource(moduleMetadata), context, result);
     }
 
     public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-        findSourceRepository(moduleMetaData).resolveArtifact(moduleMetaData.withSource(unpackModuleSource(moduleMetaData)), artifact, result);
+        findSourceRepository(moduleMetaData).resolveArtifact(unpackModuleSource(moduleMetaData), artifact, result);
     }
 
     private ModuleVersionRepository findSourceRepository(ModuleVersionMetaData moduleMetaData) {
@@ -61,8 +60,8 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         throw new IllegalStateException(String.format("Repository source not set for %s", moduleMetaData.getId()));
     }
 
-    private ModuleSource unpackModuleSource(ModuleVersionMetaData moduleMetaData) {
+    private ModuleVersionMetaData unpackModuleSource(ModuleVersionMetaData moduleMetaData) {
         RepositoryChainModuleSource source = (RepositoryChainModuleSource) moduleMetaData.getSource();
-        return source.getDelegate();
+        return moduleMetaData.withSource(source.getDelegate());
     }
 }

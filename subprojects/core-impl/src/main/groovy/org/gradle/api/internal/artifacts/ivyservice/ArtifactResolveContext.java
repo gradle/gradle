@@ -16,5 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 public interface ArtifactResolveContext {
+    String getId();
     String getDescription();
 }

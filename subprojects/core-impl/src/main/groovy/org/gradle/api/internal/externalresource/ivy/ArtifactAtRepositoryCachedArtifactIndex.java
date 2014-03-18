@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.externalresource.ivy;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
+import org.gradle.api.internal.artifacts.ModuleVersionArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
-import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.api.internal.externalresource.cached.DefaultCachedArtifact;
@@ -31,9 +29,6 @@ import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements CachedArtifactIndex {
     private final BuildCommencedTimeProvider timeProvider;
@@ -62,43 +57,17 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
     }
 
     private static class ArtifactAtRepositoryKeySerializer implements Serializer<ArtifactAtRepositoryKey> {
-        private final ModuleVersionIdentifierSerializer modIdSerializer = new ModuleVersionIdentifierSerializer();
+        private final Serializer<ModuleVersionArtifactIdentifier> artifactIdSerializer = new ModuleVersionArtifactIdentifierSerializer();
 
         public void write(Encoder encoder, ArtifactAtRepositoryKey value) throws Exception {
             encoder.writeString(value.getRepositoryId());
-            DefaultModuleVersionArtifactIdentifier artifact = (DefaultModuleVersionArtifactIdentifier) value.getArtifactId();
-            modIdSerializer.write(encoder, artifact.getModuleVersionIdentifier());
-            IvyArtifactName ivyArtifactName = artifact.getName();
-            encoder.writeString(ivyArtifactName.getName());
-            encoder.writeString(ivyArtifactName.getType());
-            encoder.writeNullableString(ivyArtifactName.getExtension());
-            Map<String, String> attributes = ivyArtifactName.getAttributes();
-            encoder.writeSmallInt(attributes.size());
-            for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                encoder.writeString(entry.getKey());
-                encoder.writeString(entry.getValue());
-            }
+            artifactIdSerializer.write(encoder, value.getArtifactId());
         }
 
         public ArtifactAtRepositoryKey read(Decoder decoder) throws Exception {
             String repositoryId = decoder.readString();
-            ModuleVersionIdentifier moduleVersionIdentifier = modIdSerializer.read(decoder);
-            String artifactName = decoder.readString();
-            String type = decoder.readString();
-            String extension = decoder.readNullableString();
-            int attrCount = decoder.readSmallInt();
-            Map<String, String> attributes;
-            if (attrCount == 0) {
-                attributes = Collections.emptyMap();
-            } else {
-                attributes = new HashMap<String, String>(attrCount);
-                for (int i = 0; i < attrCount; i++) {
-                    String key = decoder.readString();
-                    String value = decoder.readString();
-                    attributes.put(key, value);
-                }
-            }
-            return new ArtifactAtRepositoryKey(repositoryId, new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifactName, type, extension, attributes));
+            ModuleVersionArtifactIdentifier artifactIdentifier = artifactIdSerializer.read(decoder);
+            return new ArtifactAtRepositoryKey(repositoryId, artifactIdentifier);
         }
     }
 

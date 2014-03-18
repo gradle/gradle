@@ -185,7 +185,8 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         for (String ancestor : configurationMetaData.getHierarchy()) {
             for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
                 if (artifacts.add(artifact)) {
-                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(artifact));
+                    DefaultModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(getId(), artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getQualifiedExtraAttributes());
+                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(artifactId));
                 }
             }
         }

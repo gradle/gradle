@@ -28,6 +28,10 @@ public class ArtifactTypeResolveContext implements ArtifactResolveContext {
         return artifactType;
     }
 
+    public String getId() {
+        return "artifacts:" + artifactType.getName();
+    }
+
     public String getDescription() {
         return String.format("artifacts of type %s", artifactType);
     }
