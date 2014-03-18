@@ -59,7 +59,7 @@ class ExternalResourceResolverTest extends Specification {
         artifactIsMissing()
 
         when:
-        resolver.resolve(moduleMetaData, artifact, result)
+        resolver.resolveArtifact(moduleMetaData, artifact, result)
 
         then:
         1 * result.notFound(artifactIdentifier)
@@ -71,7 +71,7 @@ class ExternalResourceResolverTest extends Specification {
         downloadIsFailing(new IOException("DOWNLOAD FAILURE"))
 
         when:
-        resolver.resolve(moduleMetaData, artifact, result)
+        resolver.resolveArtifact(moduleMetaData, artifact, result)
 
         then:
         1 * result.failed(_) >> { ArtifactResolveException exception ->
@@ -86,7 +86,7 @@ class ExternalResourceResolverTest extends Specification {
         artifactCanBeResolved()
 
         when:
-        resolver.resolve(moduleMetaData, artifact, result)
+        resolver.resolveArtifact(moduleMetaData, artifact, result)
 
         then:
         1 * result.resolved(_)
@@ -99,7 +99,7 @@ class ExternalResourceResolverTest extends Specification {
         artifactCanBeResolved()
 
         when:
-        resolver.resolve(moduleMetaData, artifact, result)
+        resolver.resolveArtifact(moduleMetaData, artifact, result)
 
         then:
         1 * result.resolved(_)

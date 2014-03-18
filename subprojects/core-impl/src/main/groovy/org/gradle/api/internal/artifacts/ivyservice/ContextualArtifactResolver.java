@@ -31,12 +31,12 @@ public class ContextualArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolveArtifactSet(final ModuleVersionMetaData moduleMetaData, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(final ModuleVersionMetaData moduleMetaData, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
         lockingManager.useCache(String.format("Resolve %s for %s", context.getDescription(), moduleMetaData), new Runnable() {
             public void run() {
                 ivyContextManager.withIvy(new Action<Ivy>() {
                     public void execute(Ivy ivy) {
-                        delegate.resolveArtifactSet(moduleMetaData, context, result);
+                        delegate.resolveModuleArtifacts(moduleMetaData, context, result);
                     }
                 });
             }

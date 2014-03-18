@@ -197,10 +197,11 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     }
 
     public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        // TODO:DAZ Add caching
         delegate.resolveModuleArtifacts(moduleMetaData, context, result);
     }
 
-    public void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
         ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate.getId(), artifact.getId());
         // Look in the cache for this resolver
         CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
@@ -226,7 +227,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             }
         }
 
-        delegate.resolve(moduleMetaData.withSource(cachedModuleSource.getDelegate()), artifact, result);
+        delegate.resolveArtifact(moduleMetaData.withSource(cachedModuleSource.getDelegate()), artifact, result);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact, delegate.getName());
 
         if (result.getFailure() == null) {

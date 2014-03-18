@@ -68,7 +68,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey("repo-id", artifactId)
 
         when:
-        repo.resolve(moduleMetaData, artifact, result)
+        repo.resolveArtifact(moduleMetaData, artifact, result)
 
         then:
         1 * artifactAtRepositoryCache.store(atRepositoryKey, file, descriptorHash)

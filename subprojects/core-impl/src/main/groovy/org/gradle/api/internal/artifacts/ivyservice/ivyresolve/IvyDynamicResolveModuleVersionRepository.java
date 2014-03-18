@@ -77,8 +77,8 @@ public class IvyDynamicResolveModuleVersionRepository implements LocalAwareModul
         repository.resolveModuleArtifacts(moduleMetaData, context, result);
     }
 
-    public void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-        repository.resolve(moduleMetaData, artifact, result);
+    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+        repository.resolveArtifact(moduleMetaData, artifact, result);
     }
 
 }
