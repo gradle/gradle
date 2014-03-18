@@ -123,7 +123,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         eclipseProject.setLinkedResources(linkedResources);
 
         List<EclipseTaskVersion1> tasks = new ArrayList<EclipseTaskVersion1>();
-        for (final Task t : tasksFactory.getTasks(project)) {
+        for (Task t : tasksFactory.getTasks(project)) {
             tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
         }
         eclipseProject.setTasks(tasks);
