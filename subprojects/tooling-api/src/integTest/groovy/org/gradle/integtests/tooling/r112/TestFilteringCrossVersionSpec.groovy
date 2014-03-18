@@ -31,7 +31,8 @@ class TestFilteringCrossVersionSpec extends ToolingApiSpecification {
             dependencies { testCompile 'junit:junit:4.11' }
         """
 
-        file("src/test/java/FooTest.java") << """import org.junit.*;
+        file("src/test/java/FooTest.java") << """
+            import org.junit.Test;
             public class FooTest {
                 @Test public void passes() {}
                 @Test public void fails() { throw new RuntimeException("Boo!"); }
