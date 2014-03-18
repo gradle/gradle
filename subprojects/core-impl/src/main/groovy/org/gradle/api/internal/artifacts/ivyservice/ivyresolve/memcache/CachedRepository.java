@@ -72,9 +72,11 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
 
     public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
         ModuleVersionArtifactIdentifier artifactId = artifact.getId();
-        if(!cache.supplyArtifact(artifactId, result)) {
+        if (!cache.supplyArtifact(artifactId, result)) {
             delegate.resolve(artifact, result, moduleSource);
-            cache.newArtifact(artifactId, result);
+            if (result.getFailure() == null) {
+                cache.newArtifact(artifactId, result);
+            }
         }
     }
 

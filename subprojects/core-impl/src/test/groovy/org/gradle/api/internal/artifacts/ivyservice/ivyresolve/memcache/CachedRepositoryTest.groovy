@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
-import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import spock.lang.Specification
@@ -104,6 +103,7 @@ class CachedRepositoryTest extends Specification {
         then:
         1 * cache.supplyArtifact(artifactId, result) >> false
         1 * delegate.resolve(artifact, result, source)
+        1 * result.getFailure() >> null
         1 * cache.newArtifact(artifactId, result)
         0 * _
     }
