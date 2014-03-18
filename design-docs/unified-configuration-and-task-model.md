@@ -460,6 +460,7 @@ Reuse the domain object lifecycle mechanism to warn when:
 # Open issues
 
 - Fire events before and after configuration of domain objects.
+- Allow task outputs to be used as inputs to rules. eg a `Report` produced by a task.
 
 # Spike
 

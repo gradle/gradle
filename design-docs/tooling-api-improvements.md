@@ -463,3 +463,5 @@ Need to allow a debug port to be specified, as hard-coded port 5005 can conflict
 * Replace `LongRunningOperation.standardOutput` and `standardError` with overloads that take a `Writer`, and (later) deprecate the `OutputStream` variants.
 * Handle cancellation during the Gradle distribution download.
 * Daemon cleanly stops the build when cancellation is requested.
+* Test fixtures should stop daemons at end of test when custom user home dir is used.
+* Introduce a `GradleExecutor` implementation backed by the tooling API.
