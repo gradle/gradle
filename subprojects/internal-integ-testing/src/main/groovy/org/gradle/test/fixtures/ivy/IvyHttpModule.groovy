@@ -108,6 +108,10 @@ class IvyHttpModule implements IvyModule, HttpModule {
         return backingModule.jarFile
     }
 
+    IvyModuleHttpArtifact getArtifact(Map<String, ?> options) {
+        return new IvyModuleHttpArtifact(server, prefix, backingModule.file(options))
+    }
+
     void allowAll() {
         server.allowGetOrHead(prefix, backingModule.moduleDir)
     }
@@ -134,11 +138,6 @@ class IvyHttpModule implements IvyModule, HttpModule {
 
     void expectJarSha1Put(String userName, String password) {
         server.expectPut("$prefix/${jarFile.name}.sha1", userName, password, backingModule.getSha1File(jarFile))
-    }
-
-    void expectArtifactGet(String name) {
-        def artifactFile = backingModule.artifactFile(name)
-        server.expectGet("$prefix/$artifactFile.name", artifactFile)
     }
 
     void expectArtifactGet(Map options) {
