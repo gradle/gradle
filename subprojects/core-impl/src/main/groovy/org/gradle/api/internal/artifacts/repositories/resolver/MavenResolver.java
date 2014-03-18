@@ -24,11 +24,10 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.MavenCandidateArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
@@ -257,15 +256,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
-        if (artifactType == JvmLibraryJavadocArtifact.class) {
-            return createArtifactMetaData(module, "javadoc", "javadoc");
-        }
-
-        if (artifactType == JvmLibrarySourcesArtifact.class) {
-            return createArtifactMetaData(module, "source", "sources");
-        }
-
-        throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
+        return new MavenCandidateArtifacts().get(module, artifactType);
     }
 
     private Set<ModuleVersionArtifactMetaData> createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {
