@@ -132,7 +132,8 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         Thread acceptor;
 
         void tryStart(int port) {
-            socket = ServerSocketChannel.open().bind(new InetSocketAddress(port))
+            socket = ServerSocketChannel.open()
+            socket.socket().bind(new InetSocketAddress(port))
             acceptor = new Thread() {
                 @Override
                 void run() {
