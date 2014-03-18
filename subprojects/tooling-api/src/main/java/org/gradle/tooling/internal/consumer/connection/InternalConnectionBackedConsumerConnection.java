@@ -42,7 +42,8 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
     public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()), adapter);
         ModelProducer consumerConnectionBackedModelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate);
-        modelProducer = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
+        ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
+        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelMapping, producerWithGradleBuild);
     }
 
     @Override

@@ -52,7 +52,8 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         super(delegate, getMetaData(delegate), adapter);
         ModelProducer consumerConnectionBackedModelProducer = new ConnectionVersion4BackedModelProducer(adapter, getVersionDetails(), modelMapping, delegate);
         ModelProducer gradleProjectAdapterProducer = new GradleProjectAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
-        modelProducer = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, gradleProjectAdapterProducer);
+        ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, gradleProjectAdapterProducer);
+        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelMapping, producerWithGradleBuild);
     }
 
     private static VersionDetails getMetaData(final ConnectionVersion4 delegate) {
