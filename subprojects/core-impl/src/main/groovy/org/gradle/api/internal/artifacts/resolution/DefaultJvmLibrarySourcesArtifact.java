@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.resolution;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 
 import java.io.File;
@@ -22,5 +23,9 @@ import java.io.File;
 public class DefaultJvmLibrarySourcesArtifact extends AbstractSoftwareArtifact implements JvmLibrarySourcesArtifact {
     public DefaultJvmLibrarySourcesArtifact(File file) {
         super(file);
+    }
+
+    public DefaultJvmLibrarySourcesArtifact(GradleException failure) {
+        super(failure);
     }
 }

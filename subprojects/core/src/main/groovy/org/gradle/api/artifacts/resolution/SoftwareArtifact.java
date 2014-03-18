@@ -15,7 +15,9 @@
  */
 package org.gradle.api.artifacts.resolution;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 import java.io.File;
 
@@ -26,5 +28,18 @@ import java.io.File;
  */
 @Incubating
 public interface SoftwareArtifact {
-    File getFile();
+    /**
+     * The file for the artifact. If resolving the artifact caused a failure, that failure will be rethrown.
+     *
+     * @return the file for the artifact
+     */
+    File getFile() throws GradleException;
+
+    /**
+     * Returns the failure that occurred when the artifact was resolved, or {@code null} if no failure occurred.
+     *
+     * @return the failure that occurred when the artifact was resolved, or {@code null} if no failure occurred
+     */
+    @Nullable
+    GradleException getFailure();
 }
