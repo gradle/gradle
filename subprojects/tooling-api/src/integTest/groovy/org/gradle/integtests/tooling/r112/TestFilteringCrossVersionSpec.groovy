@@ -32,10 +32,9 @@ class TestFilteringCrossVersionSpec extends ToolingApiSpecification {
         """
 
         file("src/test/java/FooTest.java") << """
-            import org.junit.Test;
             public class FooTest {
-                @Test public void passes() {}
-                @Test public void fails() { throw new RuntimeException("Boo!"); }
+                @org.junit.Test public void passes() {}
+                @org.junit.Test public void fails() { throw new RuntimeException("Boo!"); }
             }
         """
 
