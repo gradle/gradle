@@ -10,13 +10,17 @@ for changes to behaviour.
 
 The following stories are to be included in Gradle 2.0.
 
-## Remove all features deprecated as at Gradle 1.9
+## Remove all features deprecated as at Gradle 1.12
 
-In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gradle 1.9 or earlier:
+In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gradle 1.12 or earlier:
 
 * Search for usages of `DeprecationLogger`, `@Deprecated`, `@deprecated` and remove the associated feature.
 * Review usages of `DeprecationLogger.whileDisabled()`.
 * Remove `JavaPluginGoodBehaviourTest#changing debug flag does not produce deprecation warning`
+
+## Replace deprecation warnings with errors
+
+* Convert deprecated behaviours with errors.
 
 ## Remove Ivy types from the Gradle repository API
 
@@ -29,14 +33,15 @@ allows us to implement new features and remove some internal complexity.
 * Change the `MavenResolver` implementation so that it no longer extends `DependencyResolver`.
 * Change the `FlatDirRepository` implementation so that it no longer uses a `DependencyResolver` implementation.
 * Remove Ivy version from the output of `gradle -v`.
+* Remove loopback resolver, ModuleVersionRepository -> Ivy adapter.
 
-## Remove the Gradle Open API
+## Remove the Gradle Open API implementation
 
 Now that we have reasonable tooling support via the tooling API, remove the Open API.
 
 * Implement a stub to fail with a reasonable error message when attempting to use Gradle from the Open API.
 * Remove the remaining Open API classes and project.
-* Add integration test coverage.
+* Add integration test coverage that using the openAPI fails with a reasonable error message.
 
 ## Remove the `GradleLauncher` API
 
@@ -51,8 +56,9 @@ Gradle 1.2 was released on 12th sept 2012. This change means that tooling more t
 will not be able to invoke Gradle 2.0 or later.
 
 * Change the implementation of methods on `ConnectionVersion4` and `InternalConnection` to fail with a decent error message.
-* The model implementations no longer need to implement `ProjectVersion3` or the protocol interfaces.
-* Add integration test coverage.
+* The model implementations no longer need to implement `ProjectVersion3` of the protocol interfaces.
+* Change test suite to default to tooling API versions >= 1.2.
+* Add integration test coverage that tooling API versions <1.2 fail with a reasonable error message, when running build or fetching model.
 
 ## Remove tooling API support for Gradle providers 1.0-milestone-7 and earlier
 
@@ -60,8 +66,11 @@ Gradle 1.0-milestone-8 was release on 14th feb 2012. This change means that tool
 approximately 2 years old as of the Gradle 2.0 release.
 
 * Consumer fails with a decent error message instead of falling back to the methods on `ConnectionVersion4`.
-* Remove the appropriate ConsumerConnection implementations.
-* Add integration test coverage.
+* Add support for fetching partial `BuildEnvironment` model for unsupported versions.
+* Remove the appropriate `ConsumerConnection` implementations.
+* Change the test suite to default to target Gradle version >= 1.0-milestone-8
+* Add integration test coverage that running build with Gradle version < 1.0-milestone-8 fails with a reasonable error message, when running build or fetching model.
+* Add integration test coverage that can fetch a partial `BuildEnvironment` model for Gradle version < 1.0-milestone-8.
 
 ## Misc API tidy-ups
 
