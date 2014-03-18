@@ -70,8 +70,13 @@ class IvyFileModule extends AbstractModule implements IvyModule {
      * @return this
      */
     IvyFileModule artifact(Map<String, ?> options = [:]) {
-        artifacts << [name: options.name ?: module, type: options.type ?: 'jar', classifier: options.classifier ?: null, conf: options.conf ?: '*']
+        artifacts << toArtifact(options)
         return this
+    }
+
+    Map<String, ?> toArtifact(Map<String, ?> options = [:]) {
+        return [name: options.name ?: module, type: options.type ?: 'jar',
+                ext: options.ext ?: options.type ?: 'jar', classifier: options.classifier ?: null, conf: options.conf ?: '*']
     }
 
     IvyFileModule dependsOn(String organisation, String module, String revision) {
@@ -118,10 +123,6 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     TestFile getJarFile() {
         def path = IvyPatternHelper.substitute(artifactPattern, new ModuleRevisionId(new ModuleId(organisation, module), revision), null, "jar", "jar")
         return moduleDir.file(path)
-    }
-
-    TestFile artifactFile(String name) {
-        return file(artifacts.find { it.name == name })
     }
 
     /**
@@ -187,7 +188,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 	<publications>
 """
             artifacts.each { artifact ->
-                ivyFileWriter << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.type}" conf="${artifact.conf}" m:classifier="${artifact.classifier ?: ''}"/>
+                ivyFileWriter << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.ext}" conf="${artifact.conf}" m:classifier="${artifact.classifier ?: ''}"/>
 """
             }
             ivyFileWriter << """
@@ -210,8 +211,9 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
-    TestFile file(artifact) {
-        return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.type}")
+    TestFile file(Map<String, ?> options) {
+        def artifact = toArtifact(options)
+        return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.ext}")
     }
 
     @Override
