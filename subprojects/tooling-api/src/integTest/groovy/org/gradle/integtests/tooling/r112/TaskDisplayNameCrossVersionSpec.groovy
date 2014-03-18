@@ -33,8 +33,6 @@ task b { description = 'this is task b' }
         GradleProject project = withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
-        project.tasks.size() == 2
-
         def taskA = project.tasks.find { it.name == 'a' }
         taskA != null
         taskA.path == ':a'
