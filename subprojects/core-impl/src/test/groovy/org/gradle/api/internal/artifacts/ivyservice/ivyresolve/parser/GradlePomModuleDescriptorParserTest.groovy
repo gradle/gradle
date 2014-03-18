@@ -1257,8 +1257,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         descriptor.dependencies.length == 0
     }
 
-    @Issue("GRADLE-2034")
-    def "pom with packaging 'pom' is considered to have a jar artifact, but also indicates that it might not exist"() {
+    def "pom with packaging 'pom'"() {
         given:
         pomFile << """
 <project>
@@ -1277,13 +1276,8 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def descriptor = metaData.descriptor
 
         then:
-        descriptor.allArtifacts.length == 1
-        def artifact = descriptor.allArtifacts[0]
-        artifact.type == "jar"
-        artifact.ext == "jar"
-        artifact.name == "artifact-one"
+        descriptor.allArtifacts.length == 0
         metaData.metaDataOnly //flag to indicate that there may not actually be any artifacts
-
     }
 
     def "pom with project coordinates defined by custom properties"() {

@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
+import org.gradle.api.internal.artifacts.resolution.JvmLibraryMainArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
@@ -86,6 +87,10 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         if (artifactType == JvmLibrarySourcesArtifact.class) {
             ConfigurationMetaData configuration = module.getConfiguration("sources");
             return configuration != null ? configuration.getArtifacts() : Collections.<ModuleVersionArtifactMetaData>emptySet();
+        }
+
+        if (artifactType == JvmLibraryMainArtifact.class) {
+            return Collections.emptySet();
         }
 
         if (artifactType == ComponentMetaDataArtifact.class) {

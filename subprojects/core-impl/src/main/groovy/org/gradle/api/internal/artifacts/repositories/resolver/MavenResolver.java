@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
@@ -40,6 +39,7 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
+import org.gradle.api.internal.artifacts.resolution.JvmLibraryMainArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
@@ -257,11 +257,21 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
         if (artifactType == JvmLibraryJavadocArtifact.class) {
-            return createArtifactMetaData(module, "javadoc", "javadoc");
+            return ImmutableSet.of(createArtifactMetaData(module, "javadoc", "javadoc"));
         }
 
         if (artifactType == JvmLibrarySourcesArtifact.class) {
-            return createArtifactMetaData(module, "source", "sources");
+            return ImmutableSet.of(createArtifactMetaData(module, "source", "sources"));
+        }
+
+        if (artifactType == JvmLibraryMainArtifact.class) {
+            if (module.isMetaDataOnly()) {
+                ModuleVersionArtifactMetaData possibleJarArtifact = createArtifactMetaData(module, "jar", null);
+                if (artifactExists(possibleJarArtifact)) {
+                    return ImmutableSet.of(possibleJarArtifact);
+                }
+            }
+            return Collections.emptySet();
         }
 
         if (artifactType == ComponentMetaDataArtifact.class) {
@@ -272,10 +282,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
     }
 
-    private Set<ModuleVersionArtifactMetaData> createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {
+    private ModuleVersionArtifactMetaData createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {
+        Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
         Artifact artifact = new DefaultArtifact(module.getDescriptor().getModuleRevisionId(), null,
-                module.getId().getName(), type, "jar", ImmutableMap.of("m:classifier", classifier));
-        return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), artifact));
+                module.getId().getName(), type, "jar", extraAttributes);
+        return new DefaultModuleVersionArtifactMetaData(module.getId(), artifact);
     }
 
     protected static class TimestampedModuleSource implements ModuleSource {

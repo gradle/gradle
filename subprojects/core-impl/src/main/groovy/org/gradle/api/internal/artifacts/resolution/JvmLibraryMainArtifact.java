@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.resolution;
 
-import java.io.File;
+import org.gradle.api.artifacts.resolution.JvmLibraryArtifact;
 
-public class DefaultComponentMetaDataArtifact extends AbstractSoftwareArtifact implements ComponentMetaDataArtifact {
-    public DefaultComponentMetaDataArtifact(File file) {
-        super(file);
-    }
+// TODO:DAZ Move this to public API
+public interface JvmLibraryMainArtifact extends JvmLibraryArtifact {
 }

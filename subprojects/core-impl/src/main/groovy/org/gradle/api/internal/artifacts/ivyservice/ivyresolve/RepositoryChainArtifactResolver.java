@@ -19,11 +19,11 @@ import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.resolution.JvmLibraryMainArtifact;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+// TODO:DAZ Unit test
 class RepositoryChainArtifactResolver implements ArtifactResolver {
     private final List<ModuleVersionRepository> repositories = new ArrayList<ModuleVersionRepository>();
 
@@ -34,14 +34,24 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     public void resolveArtifactSet(ModuleVersionMetaData moduleMetadata, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
         if (context instanceof ConfigurationResolveContext) {
             resolveArtifactsForConfiguration(moduleMetadata, ((ConfigurationResolveContext) context).getConfigurationName(), result);
-        } else if (context instanceof DeveloperArtifactResolveContext) {
-            resolveArtifactsByType(moduleMetadata, ((DeveloperArtifactResolveContext) context).getArtifactType(), result);
+        } else if (context instanceof ArtifactTypeResolveContext) {
+            resolveArtifactsByType(moduleMetadata, ((ArtifactTypeResolveContext) context).getArtifactType(), result);
         }
     }
 
     private void resolveArtifactsForConfiguration(ModuleVersionMetaData moduleMetadata, String configurationName, BuildableArtifactSetResolveResult result) {
-        Set<ModuleVersionArtifactMetaData> artifacts = moduleMetadata.getConfiguration(configurationName).getArtifacts();
-        result.resolved(artifacts);
+        try {
+            Set<ModuleVersionArtifactMetaData> artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+            artifacts.addAll(moduleMetadata.getConfiguration(configurationName).getArtifacts());
+
+            // See if there are any optional artifacts for this module
+            ModuleVersionRepository sourceRepository = findSourceRepository(moduleMetadata);
+            artifacts.addAll(sourceRepository.getCandidateArtifacts(moduleMetadata, JvmLibraryMainArtifact.class));
+
+            result.resolved(artifacts);
+        } catch (Exception e) {
+            result.failed(new ArtifactResolveException(String.format("Could not determine artifacts for %s", moduleMetadata)));
+        }
     }
 
     private void resolveArtifactsByType(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableArtifactSetResolveResult result) {

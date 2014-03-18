@@ -34,12 +34,14 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
+import org.gradle.api.internal.artifacts.resolution.JvmLibraryMainArtifact;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -146,6 +148,10 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
 
         if (artifactType == JvmLibrarySourcesArtifact.class) {
             return createArtifactMetaData(module, "source", "sources");
+        }
+
+        if (artifactType == JvmLibraryMainArtifact.class) {
+            return Collections.emptySet();
         }
 
         if (artifactType == ComponentMetaDataArtifact.class) {

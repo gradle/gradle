@@ -53,10 +53,6 @@ task retrieve(type: Sync) {
         child.pom.expectGet()
         parent.pom.expectGet()
 
-        // Will always check for a default artifact with a module with 'pom' packaging
-        // TODO - should not make this request
-        parent.artifact.expectHeadMissing()
-
         child.artifact.expectGet()
 
         parentDep.pom.expectGet()
@@ -111,10 +107,6 @@ task retrieve(type: Sync) {
         parent.metaData.expectGet()
         parent.pom.expectGet()
 
-        // Will always check for a default artifact with a module with 'pom' packaging
-        // TODO - should not make this request
-        parent.artifact.expectHeadMissing()
-
         child.artifact.expectGet()
 
         and:
@@ -161,8 +153,6 @@ task retrieve(type: Sync) {
         parentInRepo1.artifact.expectHeadMissing()
 
         parentInRepo2.pom.expectGet()
-         // TODO - should not make this request
-        parentInRepo2.artifact.expectHeadMissing()
 
         and:
         run 'retrieve'
@@ -220,7 +210,6 @@ task retrieveChild2(type: Sync) {
         missingParent.pom.expectGetMissing()
         missingParent.artifact.expectHeadMissing()
         parent.pom.expectGet()
-        parent.artifact.expectHeadMissing()
 
         child1.artifact.expectGet()
 
@@ -282,10 +271,6 @@ task retrieve(type: Sync) {
         child2.pom.expectGet()
         parent.pom.expectGet()
 
-        // Will always check for a default artifact with a module with 'pom' packaging
-        // TODO - should not make this request
-        parent.artifact.expectHeadMissing()
-
         child1.artifact.expectGet()
         child2.artifact.expectGet()
 
@@ -332,11 +317,6 @@ task retrieve(type: Sync) {
         child.pom.expectGet()
         parent.pom.expectGet()
         grandParent.pom.expectGet()
-
-        // Will always check for a default artifact with a module with 'pom' packaging
-        // TODO - should not make this request
-        parent.artifact.expectHeadMissing()
-        grandParent.artifact.expectHeadMissing()
 
         child.artifact.expectGet()
 

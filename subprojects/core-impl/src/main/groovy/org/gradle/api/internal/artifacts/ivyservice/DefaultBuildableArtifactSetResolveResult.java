@@ -34,7 +34,11 @@ public class DefaultBuildableArtifactSetResolveResult implements BuildableArtifa
         this.failure = failure;
     }
 
-    public Set<ModuleVersionArtifactMetaData> getResults() {
+    public ArtifactResolveException getFailure() {
+        return failure;
+    }
+
+    public Set<ModuleVersionArtifactMetaData> getArtifacts() {
         assertResolved();
         return artifacts;
     }
