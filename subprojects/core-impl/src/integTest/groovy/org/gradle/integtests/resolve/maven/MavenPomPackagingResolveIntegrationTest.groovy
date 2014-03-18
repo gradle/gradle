@@ -39,7 +39,10 @@ configurations { compile }
 dependencies {
     $dependencies
 }
-task retrieve(type: Sync) {
+task deleteDir(type: Delete) {
+    delete 'libs'
+}
+task retrieve(type: Copy, dependsOn: deleteDir) {
     into 'libs'
     from configurations.compile
 }
@@ -116,6 +119,12 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0.jar')
         file('libs/projectA-1.0.jar').assertIsCopyOf(projectA.artifactFile)
 
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
+
         where:
         packaging << ['', 'jar', 'eclipse-plugin', 'bundle']
     }
@@ -138,6 +147,12 @@ task retrieve(type: Sync) {
         and:
         file('libs').assertHasDescendants('projectA-1.0.jar')
         file('libs/projectA-1.0.jar').assertIsCopyOf(projectA.artifactFile)
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
     }
 
     @Issue('GRADLE-2188')
@@ -163,6 +178,12 @@ task retrieve(type: Sync) {
 
         and:
         result.output.contains("Relying on packaging to define the extension of the main artifact has been deprecated")
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
     }
 
     def "fails and reports type-based location if neither packaging-based or type-based artifact can be located"() {
@@ -207,6 +228,12 @@ compile('group:projectA:1.0') {
         and:
         file('libs').assertHasDescendants('projectA-1.0.zip')
         file('libs/projectA-1.0.zip').assertIsCopyOf(projectA.artifactFile)
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
     }
 
     def "will use non-jar maven dependency type to determine artifact location"() {
@@ -232,6 +259,12 @@ compile 'group:mavenProject:1.0'
         and:
         file('libs').assertHasDescendants('projectA-1.0.zip')
         file('libs/projectA-1.0.zip').assertIsCopyOf(projectA.artifactFile)
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
     }
 
     @FailsWith(value = AssertionError, reason = "Pending better fix for GRADLE-2188")
@@ -249,6 +282,7 @@ compile('group:projectA:1.0') {
 
         and:
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.zip', projectA.artifactFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.zip', projectA.artifactFile)
 
         then:
@@ -260,6 +294,12 @@ compile('group:projectA:1.0') {
 
         and: "Stop the http server here to allow failure to be declared (otherwise occurs in tearDown) - remove this when the test is fixed"
         server.stop()
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
     }
 
     private def publishWithPackaging(String packaging, String type = 'jar') {

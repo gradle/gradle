@@ -728,7 +728,7 @@ public class DependencyGraphBuilder {
                 BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
                 resolveState.artifactResolver.resolveArtifactSet(metaData.getModuleVersion(), new ConfigurationResolveContext(metaData.getName()), result);
 
-                for (ModuleVersionArtifactMetaData artifact : result.getResults()) {
+                for (ModuleVersionArtifactMetaData artifact : result.getArtifacts()) {
                     artifacts.add(resolveState.builder.newArtifact(id, metaData.getModuleVersion(), artifact));
                 }
             }

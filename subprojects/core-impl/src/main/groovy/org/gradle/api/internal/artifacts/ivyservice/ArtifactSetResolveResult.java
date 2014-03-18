@@ -15,10 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 import java.util.Set;
 
 public interface ArtifactSetResolveResult {
-    Set<ModuleVersionArtifactMetaData> getResults();
+    /**
+     * Returns the resolve failure, if any.
+     */
+    @Nullable
+    ArtifactResolveException getFailure();
+
+    Set<ModuleVersionArtifactMetaData> getArtifacts();
 }

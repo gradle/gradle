@@ -49,6 +49,7 @@ public interface ModuleVersionMetaData {
 
     boolean isChanging();
 
+    // TODO:DAZ This is not set correctly when read from cache
     boolean isMetaDataOnly();
 
     String getStatus();

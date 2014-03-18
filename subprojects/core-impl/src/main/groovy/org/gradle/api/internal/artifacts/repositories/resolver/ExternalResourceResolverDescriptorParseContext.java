@@ -66,11 +66,11 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         dependencyResolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(moduleVersionIdentifier), true)), moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        DeveloperArtifactResolveContext context = new DeveloperArtifactResolveContext(ComponentMetaDataArtifact.class);
+        ArtifactTypeResolveContext context = new ArtifactTypeResolveContext(ComponentMetaDataArtifact.class);
         artifactResolver.resolveArtifactSet(moduleVersionResolveResult.getMetaData(), context, moduleArtifactsResolveResult);
 
         BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
-        ModuleVersionArtifactMetaData artifactMetaData = moduleArtifactsResolveResult.getResults().iterator().next();
+        ModuleVersionArtifactMetaData artifactMetaData = moduleArtifactsResolveResult.getArtifacts().iterator().next();
         artifactResolver.resolveArtifact(moduleVersionResolveResult.getMetaData(), artifactMetaData, artifactResolveResult);
         return artifactResolveResult.getFile();
     }

@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 
-public class DeveloperArtifactResolveContext implements ArtifactResolveContext {
+public class ArtifactTypeResolveContext implements ArtifactResolveContext {
     private final Class<? extends SoftwareArtifact> artifactType;
 
-    public DeveloperArtifactResolveContext(Class<? extends SoftwareArtifact> artifactType) {
+    public ArtifactTypeResolveContext(Class<? extends SoftwareArtifact> artifactType) {
         this.artifactType = artifactType;
     }
 
