@@ -234,7 +234,7 @@ task verify << {
         assert component.id.group == "some.group"
         assert component.id.module == "some-artifact"
         assert component.id.version == "1.0"
-        assert component.allArtifacts.size() == 1
+        assert component.allArtifacts.size() == 2
         assert component instanceof JvmLibrary
 
         assert component.sourcesArtifacts.size() == 1
@@ -242,7 +242,10 @@ task verify << {
         assert sourceArtifact instanceof JvmLibrarySourcesArtifact
         assert sourceArtifact.file.name == "some-artifact-1.0-sources.jar"
 
-        assert component.javadocArtifacts.empty
+        assert component.javadocArtifacts.size() == 1
+        def javadocArtifact = component.javadocArtifacts.iterator().next()
+        assert javadocArtifact instanceof JvmLibraryJavadocArtifact
+        assert javadocArtifact.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
     }
 
     assert result.unresolvedComponents.empty
@@ -253,7 +256,6 @@ task verify << {
         succeeds("verify")
     }
 
-    // TODO: artifact resolution error needs to be discoverable
     def "resolve partially broken artifacts"() {
         file("repo/some-artifact-1.0.jar").createFile()
         file("repo/some-artifact-1.0-sources.jar").createFile()
@@ -278,7 +280,7 @@ task verify << {
         assert component.id.group == "some.group"
         assert component.id.module == "some-artifact"
         assert component.id.version == "1.0"
-        assert component.allArtifacts.size() == 1
+        assert component.allArtifacts.size() == 2
         assert component instanceof JvmLibrary
 
         assert component.sourcesArtifacts.size() == 1
@@ -286,7 +288,10 @@ task verify << {
         assert sourceArtifact instanceof JvmLibrarySourcesArtifact
         assert sourceArtifact.file.name == "some-artifact-1.0-sources.jar"
 
-        assert component.javadocArtifacts.empty
+        assert component.javadocArtifacts.size() == 1
+        def javadocArtifact = component.javadocArtifacts.iterator().next()
+        assert javadocArtifact instanceof JvmLibraryJavadocArtifact
+        assert javadocArtifact.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
     }
 
     assert result.unresolvedComponents.empty
