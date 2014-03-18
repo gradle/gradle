@@ -20,7 +20,9 @@ import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.nativeplatform.console.ConsoleDetector
 import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeplatform.filesystem.Chmod
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.internal.nativeplatform.filesystem.Stat
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
@@ -40,6 +42,8 @@ class NativeServicesTest extends Specification {
     def "makes a FileSystem available"() {
         expect:
         services.get(FileSystem) != null
+        services.get(Chmod) != null
+        services.get(Stat) != null
     }
 
     def "makes a ConsoleDetector available"() {

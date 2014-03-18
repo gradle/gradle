@@ -160,7 +160,7 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         _ * modelMapping.getProtocolType(EclipseProjectVersion3) >> EclipseProjectVersion3.class
         1 * target.getModel(EclipseProjectVersion3.class, parameters) >> protocolModel
         1 * adapter.adapt(EclipseProjectVersion3.class, _, _) >> protocolModel
-        1 * adapter.adapt(GradleProject.class, _, _) >> model
+        1 * adapter.adapt(GradleProject.class, _) >> model
         0 * target._
     }
 
@@ -181,7 +181,7 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         _ * modelMapping.getProtocolType(EclipseProjectVersion3) >> EclipseProjectVersion3.class
         1 * target.getModel(EclipseProjectVersion3.class, parameters) >> protocolModel
         1 * adapter.adapt(EclipseProjectVersion3.class, _, _) >> protocolModel
-        1 * adapter.adapt(GradleProject.class, { it instanceof PartialGradleProject }, _) >> gradleProject
+        1 * adapter.adapt(GradleProject.class, { it instanceof PartialGradleProject }) >> gradleProject
         1 * adapter.adapt(GradleBuild.class, { it instanceof DefaultGradleBuild }) >> model
         0 * adapter._
         0 * target._

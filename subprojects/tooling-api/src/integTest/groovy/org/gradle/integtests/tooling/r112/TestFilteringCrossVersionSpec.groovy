@@ -20,27 +20,22 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import spock.lang.Issue
 
-@ToolingApiVersion("current")
-@TargetGradleVersion("current")
+@ToolingApiVersion(">=1.0")
+@TargetGradleVersion(">=1.10")
 class TestFilteringCrossVersionSpec extends ToolingApiSpecification {
-
-    def setup() {
-        // workaround for classloading problem
-        toolingApi.isEmbedded = false
-    }
-
     @Issue("GRADLE-2972")
     def "tooling api support test filtering when tasks configured via command line"() {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.11' }
+            compileTestJava.options.fork = true
         """
 
-        file("src/test/java/FooTest.java") << """import org.junit.*;
+        file("src/test/java/FooTest.java") << """
             public class FooTest {
-                @Test public void passes() {}
-                @Test public void fails() { throw new RuntimeException("Boo!"); }
+                @org.junit.Test public void passes() {}
+                @org.junit.Test public void fails() { throw new RuntimeException("Boo!"); }
             }
         """
 

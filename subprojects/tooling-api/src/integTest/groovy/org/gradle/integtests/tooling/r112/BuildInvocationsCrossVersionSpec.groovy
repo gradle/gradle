@@ -38,25 +38,24 @@ rootProject.name = 'test'
 task t1 << {
     println "t1 in $project.name"
 }
-'''
-        file('b').mkdirs()
-        file('b').file('build.gradle').text = '''
-task t3 << {
-    println "t3 in $project.name"
+
+project(':b') {
+    task t3 << {
+        println "t3 in $project.name"
+    }
+    task t2 << {
+        println "t2 in $project.name"
+    }
 }
-task t2 << {
-    println "t2 in $project.name"
-}
-'''
-        file('b/c').mkdirs()
-        file('b/c').file('build.gradle').text = '''
-task t1 << {
-    println "t1 in $project.name"
-}
-task t2 << {
-    println "t2 in $project.name"
-}
-'''
+
+project(':b:c') {
+    task t1 << {
+        println "t1 in $project.name"
+    }
+    task t2 << {
+        println "t2 in $project.name"
+    }
+}'''
     }
 
     @TargetGradleVersion(">=1.8 <=1.11")

@@ -44,10 +44,6 @@ public class FetchTasksBuildAction implements BuildAction<List<GradleTask>> {
             }
         }
 
-        List<GradleTask> result = new ArrayList<GradleTask>();
-        for (GradleTask task : controller.getModel(project, BuildInvocations.class).getTasks()) {
-            result.add(task);
-        }
-        return result;
+        return new ArrayList<GradleTask>(controller.getModel(project, BuildInvocations.class).getTasks());
     }
 }

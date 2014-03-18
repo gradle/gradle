@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.nativeplatform.services;
 
-package org.gradle.tooling.internal.consumer.converters;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
-import org.gradle.tooling.model.GradleTask;
-
-public class GradleTaskDisplayNameMixInHandler {
-    private final GradleTask task;
-
-    public GradleTaskDisplayNameMixInHandler(GradleTask task) {
-        this.task = task;
-    }
-
-    public String getDisplayName() {
-        return String.format("task '%s'", task.getPath());
+public abstract class FileSystems {
+    public static FileSystem getDefault() {
+        return NativeServices.getInstance().get(FileSystem.class);
     }
 }

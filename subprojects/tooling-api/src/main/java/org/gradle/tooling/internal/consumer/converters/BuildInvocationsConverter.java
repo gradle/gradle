@@ -25,15 +25,14 @@ import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class BuildInvocationsConverter {
-    public DefaultBuildInvocations convert(GradleProject project) {
+    public DefaultBuildInvocations<GradleTask> convert(GradleProject project) {
         List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
         List<GradleTask> tasks = Lists.newArrayList();
         buildRecursively(project, selectors, tasks);
-        return new DefaultBuildInvocations().setSelectors(selectors).setTasks(tasks);
+        return new DefaultBuildInvocations<GradleTask>().setSelectors(selectors).setTasks(tasks);
     }
 
     private void buildRecursively(GradleProject project, List<DefaultGradleTaskSelector> selectors, List<GradleTask> tasks) {
@@ -55,12 +54,7 @@ public class BuildInvocationsConverter {
                     setDescription(project.getParent() != null
                             ? String.format("%s:%s task selector", project.getPath(), selectorName)
                             : String.format("%s task selector", selectorName)).
-                    setDisplayName(String.format("%s built in %s and subprojects.", selectorName, project.getName())));
+                    setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.getName())));
         }
     }
-
-    private static List<GradleTask> tasks(GradleProject owner) {
-        return new ArrayList<GradleTask>(owner.getTasks());
-    }
-
 }

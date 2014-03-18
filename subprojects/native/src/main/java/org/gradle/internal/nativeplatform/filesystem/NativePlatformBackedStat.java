@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.converters;
+package org.gradle.internal.nativeplatform.filesystem;
 
-import org.gradle.tooling.model.GradleTask;
+import net.rubygrapefruit.platform.PosixFiles;
 
-public class GradleTaskDisplayNameMixInHandler {
-    private final GradleTask task;
+import java.io.File;
+import java.io.IOException;
 
-    public GradleTaskDisplayNameMixInHandler(GradleTask task) {
-        this.task = task;
+class NativePlatformBackedStat implements Stat {
+    private final PosixFiles posixFiles;
+
+    public NativePlatformBackedStat(PosixFiles posixFiles) {
+        this.posixFiles = posixFiles;
     }
 
-    public String getDisplayName() {
-        return String.format("task '%s'", task.getPath());
+    public int getUnixMode(File f) throws IOException {
+        return posixFiles.getMode(f);
     }
 }

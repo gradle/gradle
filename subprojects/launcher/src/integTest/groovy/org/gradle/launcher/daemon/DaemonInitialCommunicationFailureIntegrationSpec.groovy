@@ -19,17 +19,21 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.KillProcessAvailability
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
-import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import org.junit.rules.ExternalResource
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+
+import java.nio.ByteBuffer
+import java.nio.channels.ServerSocketChannel
+import java.nio.channels.SocketChannel
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @IgnoreIf({ !KillProcessAvailability.CAN_KILL })
 class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
 
-    @Rule HttpServer server = new HttpServer()
+    @Rule TestServer server = new TestServer()
 
     def cleanup() {
         stopDaemonsNow()
@@ -53,7 +57,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         and:
         //starting some service on the daemon port
         poll {
-            server.start(daemon.port)
+            server.tryStart(daemon.port)
         }
 
         then:
@@ -73,7 +77,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
     }
 
     @Issue("GRADLE-2444")
-    def "stop() behaves if the registry contains connectable port without daemon on the other end"() {
+    def "stop behaves if the registry contains connectable port without daemon on the other end"() {
         when:
         buildSucceeds()
 
@@ -84,7 +88,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         daemon.waitUntilIdle()
         daemon.kill()
         poll {
-            server.start(daemon.port)
+            server.tryStart(daemon.port)
         }
 
         then:
@@ -121,5 +125,41 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         def analyzer = new DaemonLogsAnalyzer(executer.daemonBaseDir)
         analyzer.daemons.size() == 2        //2 daemon participated
         analyzer.registry.all.size() == 1   //only one address in the registry
+    }
+
+    private static class TestServer extends ExternalResource {
+        ServerSocketChannel socket;
+        Thread acceptor;
+
+        void tryStart(int port) {
+            socket = ServerSocketChannel.open()
+            socket.socket().bind(new InetSocketAddress(port))
+            acceptor = new Thread() {
+                @Override
+                void run() {
+                    while (true) {
+                        SocketChannel connection
+                        try {
+                            connection = socket.accept()
+                        } catch (IOException e) {
+                            return
+                        }
+                        try {
+                            connection.read(ByteBuffer.allocate(4096))
+                            connection.write(ByteBuffer.wrap("hello".bytes))
+                        } finally {
+                            connection.close()
+                        }
+                    }
+                }
+            }
+            acceptor.start()
+        }
+
+        @Override
+        protected void after() {
+            socket?.close()
+            acceptor?.join()
+        }
     }
 }

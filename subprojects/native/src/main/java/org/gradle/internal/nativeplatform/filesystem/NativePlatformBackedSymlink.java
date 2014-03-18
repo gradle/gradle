@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.nativeplatform.filesystem;
 
-import org.gradle.internal.service.ServiceRegistry;
+import net.rubygrapefruit.platform.PosixFiles;
 
-public abstract class FileSystems {
-    public static FileSystem getDefault() {
-        return DefaultFileSystem.INSTANCE;
+import java.io.File;
+import java.io.IOException;
+
+class NativePlatformBackedSymlink implements Symlink {
+    private final PosixFiles posixFiles;
+
+    public NativePlatformBackedSymlink(PosixFiles posixFiles) {
+        this.posixFiles = posixFiles;
     }
 
-    private static class DefaultFileSystem {
-        static final FileSystem INSTANCE;
-
-        static {
-            ServiceRegistry services = FileSystemServices.getServices();
-            INSTANCE = new GenericFileSystem(services.get(Chmod.class), services.get(Stat.class), services.get(Symlink.class));
-        }
+    public void symlink(File link, File target) throws IOException {
+        link.getParentFile().mkdirs();
+        posixFiles.symlink(link, target.getPath());
     }
 }

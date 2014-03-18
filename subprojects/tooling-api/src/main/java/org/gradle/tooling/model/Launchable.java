@@ -28,7 +28,7 @@ import org.gradle.api.Nullable;
 @Incubating
 public interface Launchable {
     /**
-     * Returns the display name of this launchable.
+     * Returns a human-consumable display name for this launchable.
      *
      * @return Display name of this launchable.
      * @since 1.12

@@ -18,16 +18,16 @@ package org.gradle.tooling.model;
 import org.gradle.api.Incubating;
 
 /**
- * Represents a launchable that uses task name to select tasks executed from a given context.
+ * Represents a launchable that uses task name to select tasks executed from a given project and its sub-projects.
  *
  * @since 1.12
  */
 @Incubating
 public interface TaskSelector extends Launchable {
     /**
-     * Returns the name of this selector. Note that the name is not necessarily a unique identifier for the launchable.
+     * Returns the name that will be used to select tasks.
      *
-     * @return The name of this selector.
+     * @return The name used by this selector.
      */
     String getName();
 }
