@@ -20,15 +20,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import spock.lang.Issue
 
-@ToolingApiVersion("current")
-@TargetGradleVersion("current")
+@ToolingApiVersion(">=1.0")
+@TargetGradleVersion(">=1.10")
 class TestFilteringCrossVersionSpec extends ToolingApiSpecification {
-
-    def setup() {
-        // workaround for classloading problem
-        toolingApi.isEmbedded = false
-    }
-
     @Issue("GRADLE-2972")
     def "tooling api support test filtering when tasks configured via command line"() {
         buildFile << """
