@@ -24,7 +24,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -165,18 +164,18 @@ public class ResolveIvyFactory {
             });
         }
 
-        public void resolveArtifact(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
-            cacheLockingManager.useCache(String.format("Resolve %s", artifact), new Runnable() {
+        public void resolveArtifactSet(final ModuleVersionMetaData moduleMetaData, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
+            cacheLockingManager.useCache(String.format("Resolve %s for %s", context.getDescription(), moduleMetaData), new Runnable() {
                 public void run() {
-                    artifactResolver.resolveArtifact(moduleMetaData, artifact, result);
+                    artifactResolver.resolveArtifactSet(moduleMetaData, context, result);
                 }
             });
         }
 
-        public void resolveArtifactSet(final ModuleVersionMetaData moduleMetaData, final Class<? extends SoftwareArtifact> artifactType, final BuildableArtifactSetResolveResult result) {
-            cacheLockingManager.useCache(String.format("Resolve %s from %s", artifactType, moduleMetaData), new Runnable() {
+        public void resolveArtifact(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
+            cacheLockingManager.useCache(String.format("Resolve %s", artifact), new Runnable() {
                 public void run() {
-                    artifactResolver.resolveArtifactSet(moduleMetaData, artifactType, result);
+                    artifactResolver.resolveArtifact(moduleMetaData, artifact, result);
                 }
             });
         }

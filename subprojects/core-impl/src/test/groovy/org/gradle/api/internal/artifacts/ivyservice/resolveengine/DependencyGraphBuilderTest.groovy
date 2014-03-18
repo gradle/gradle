@@ -50,13 +50,17 @@ class DependencyGraphBuilderTest extends Specification {
     final ModuleVersionMetaData root = revision('root')
     final ModuleToModuleVersionResolver moduleResolver = Mock()
     final DependencyToConfigurationResolver dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
-    final DependencyGraphBuilder builder = new DependencyGraphBuilder(dependencyResolver, moduleResolver, conflictResolver, dependencyToConfigurationResolver)
+    final DependencyGraphBuilder builder = new DependencyGraphBuilder(dependencyResolver, moduleResolver, artifactResolver, conflictResolver, dependencyToConfigurationResolver)
 
     def setup() {
         config(root, 'root', 'default')
         _ * configuration.name >> 'root'
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _, _) >> { it[2].resolved(root) }
+
+        _ * artifactResolver.resolveArtifactSet(_, _, _,) >> { ModuleVersionMetaData module, ArtifactResolveContext context, BuildableArtifactSetResolveResult result ->
+            result.resolved(module.artifacts)
+        }
     }
 
     def "does not resolve a given module selector more than once"() {

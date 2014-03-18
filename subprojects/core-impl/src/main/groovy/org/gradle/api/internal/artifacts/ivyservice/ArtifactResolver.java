@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 public interface ArtifactResolver {
     /**
-     * Resolves the set of artifacts of the given type and belonging to the given module. Any failures are packaged up in the result.
+     * Resolves a set of artifacts belonging to the given module, based on the supplied context. Any failures are packaged up in the result.
      */
-    void resolveArtifactSet(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableArtifactSetResolveResult result);
+    void resolveArtifactSet(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result);
 
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.

@@ -16,14 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+
+import java.util.Set;
 
 public class ProjectArtifactResolver implements ArtifactResolver {
     private final ProjectComponentRegistry projectComponentRegistry;
@@ -34,9 +33,23 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
+    public void resolveArtifactSet(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        if (isProjectModule(moduleMetaData)) {
+            if (context instanceof ConfigurationResolveContext) {
+                String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
+                Set<ModuleVersionArtifactMetaData> artifacts = moduleMetaData.getConfiguration(configurationName).getArtifacts();
+                result.resolved(artifacts);
+                return;
+            }
+            throw new UnsupportedOperationException(String.format("Resolving %s for project modules is not yet supported", context.getDescription()));
+        }
+
+        delegate.resolveArtifactSet(moduleMetaData, context, result);
+    }
+
     public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
         if (isProjectModule(moduleMetaData)) {
-            // TODO:DAZ We're now looking up the project separately per artifact: need to ensure this isn't a problem
+            // TODO:DAZ We're now looking up the project separately per resolved artifact: need to ensure this isn't a problem
             ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) moduleMetaData.getComponentId();
             LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(componentIdentifier.getProjectPath());
             LocalArtifactMetaData artifactMetaData = componentMetaData.getArtifact(artifact.getId());
@@ -47,14 +60,6 @@ public class ProjectArtifactResolver implements ArtifactResolver {
             }
         } else {
             delegate.resolveArtifact(moduleMetaData, artifact, result);
-        }
-    }
-
-    public void resolveArtifactSet(ModuleVersionMetaData moduleMetaData, Class<? extends SoftwareArtifact> artifactType, BuildableArtifactSetResolveResult result) {
-        if (isProjectModule(moduleMetaData)) {
-            throw new UnsupportedOperationException("TODO");
-        } else {
-            delegate.resolveArtifactSet(moduleMetaData, artifactType, result);
         }
     }
 
