@@ -26,10 +26,13 @@ public class ConfigurationResolveContext implements ArtifactResolveContext {
         return configurationName;
     }
 
-
     @Override
     public String toString() {
         return String.format("configuration '%s'", configurationName);
+    }
+
+    public String getId() {
+        return "configuration:" + configurationName;
     }
 
     public String getDescription() {

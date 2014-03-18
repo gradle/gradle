@@ -72,9 +72,6 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
 
         when:
         server.resetExpectations()
-        // TODO:DAZ Should be cached
-        server.expectHead('/repo2/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        and:
         run 'retrieve'
 
         then: // Uses cached artifacts
@@ -98,9 +95,6 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
 
         when:
         server.resetExpectations()
-        // TODO:DAZ Should be cached
-        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
-        and:
         run 'retrieve'
 
         then: // Uses cached artifacts
@@ -267,8 +261,6 @@ compile 'group:mavenProject:1.0'
         // Check caching
         when:
         server.resetExpectations()
-        // TODO:DAZ Should be cached
-        server.expectHeadMissing('/repo1/group/mavenProject/1.0/mavenProject-1.0.jar')
         then:
         succeeds 'retrieve'
     }
