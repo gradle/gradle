@@ -53,6 +53,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
         def file = new File("local")
         def result = Stub(BuildableArtifactResolveResult) {
             getFile() >> file
+            getFailure() >> null
         }
 
         def descriptorHash = 1234G

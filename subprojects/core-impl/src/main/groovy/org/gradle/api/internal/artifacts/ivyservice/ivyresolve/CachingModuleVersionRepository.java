@@ -224,10 +224,10 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         delegate.resolve(artifact, result, cachedModuleSource.getDelegate());
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact, delegate.getName());
 
-        if (result.getFailure() instanceof ArtifactNotFoundException) {
-            artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey, descriptorHash);
-        } else {
+        if (result.getFailure() == null) {
             artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, result.getFile(), descriptorHash);
+        } else if (result.getFailure() instanceof ArtifactNotFoundException) {
+            artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey, descriptorHash);
         }
     }
 
