@@ -38,7 +38,6 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
-import org.gradle.api.internal.artifacts.resolution.JvmLibraryMainArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
@@ -254,23 +253,24 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         }
     }
 
-    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
-        if (artifactType == JvmLibraryMainArtifact.class) {
-            if (module.isMetaDataOnly()) {
-                ModuleVersionArtifactMetaData possibleJarArtifact = createArtifactMetaData(module, "jar", null);
-                if (artifactExists(possibleJarArtifact)) {
-                    return ImmutableSet.of(possibleJarArtifact);
-                }
-            }
-            return Collections.emptySet();
-        }
-
+    public Set<ModuleVersionArtifactMetaData> getTypedArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
         if (artifactType == ComponentMetaDataArtifact.class) {
             Artifact pomArtifact = DefaultArtifact.newPomArtifact(IvyUtil.createModuleRevisionId(module.getId()), new Date());
             return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), pomArtifact));
         }
 
         return new MavenCandidateArtifacts().get(module, artifactType);
+    }
+
+    @Override
+    protected Set<ModuleVersionArtifactMetaData> getOptionalMainArtifacts(ModuleVersionMetaData module) {
+        if (module.isMetaDataOnly()) {
+            ModuleVersionArtifactMetaData possibleJarArtifact = createArtifactMetaData(module, "jar", null);
+            if (artifactExists(possibleJarArtifact)) {
+                return ImmutableSet.of(possibleJarArtifact);
+            }
+        }
+        return Collections.emptySet();
     }
 
     private ModuleVersionArtifactMetaData createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {

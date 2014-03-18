@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import spock.lang.Specification
@@ -42,6 +43,9 @@ class ExternalResourceResolverTest extends Specification {
         getId() >> artifactIdentifier
     }
     MavenResolver.TimestampedModuleSource moduleSource = Mock()
+    ModuleVersionMetaData moduleMetaData = Stub() {
+        getSource() >> moduleSource
+    }
     File downloadedFile = Mock(File)
     ExternalResourceResolver resolver
 
@@ -55,7 +59,7 @@ class ExternalResourceResolverTest extends Specification {
         artifactIsMissing()
 
         when:
-        resolver.resolve(artifact, result, moduleSource)
+        resolver.resolve(moduleMetaData, artifact, result)
 
         then:
         1 * result.notFound(artifactIdentifier)
@@ -67,7 +71,7 @@ class ExternalResourceResolverTest extends Specification {
         downloadIsFailing(new IOException("DOWNLOAD FAILURE"))
 
         when:
-        resolver.resolve(artifact, result, moduleSource)
+        resolver.resolve(moduleMetaData, artifact, result)
 
         then:
         1 * result.failed(_) >> { ArtifactResolveException exception ->
@@ -82,7 +86,7 @@ class ExternalResourceResolverTest extends Specification {
         artifactCanBeResolved()
 
         when:
-        resolver.resolve(artifact, result, moduleSource)
+        resolver.resolve(moduleMetaData, artifact, result)
 
         then:
         1 * result.resolved(_)
@@ -95,7 +99,7 @@ class ExternalResourceResolverTest extends Specification {
         artifactCanBeResolved()
 
         when:
-        resolver.resolve(artifact, result, moduleSource)
+        resolver.resolve(moduleMetaData, artifact, result)
 
         then:
         1 * result.resolved(_)

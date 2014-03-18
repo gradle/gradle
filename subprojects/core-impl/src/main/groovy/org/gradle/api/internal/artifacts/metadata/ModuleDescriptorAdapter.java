@@ -65,7 +65,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
 
     public ModuleDescriptorAdapter copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor);
+        ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor, componentIdentifier);
         copy.dependencies = dependencies;
         copy.changing = changing;
         copy.metaDataOnly = metaDataOnly;

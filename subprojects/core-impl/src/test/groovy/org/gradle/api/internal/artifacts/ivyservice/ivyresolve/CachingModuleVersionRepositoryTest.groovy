@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersio
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider
@@ -60,11 +61,14 @@ class CachingModuleVersionRepositoryTest extends Specification {
         def moduleSource = Stub(CachingModuleVersionRepository.CachingModuleSource) {
             getDescriptorHash() >> descriptorHash
         }
+        def moduleMetaData = Stub(ModuleVersionMetaData) {
+            getSource() >> moduleSource
+        }
 
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey("repo-id", artifactId)
 
         when:
-        repo.resolve(artifact, result, moduleSource)
+        repo.resolve(moduleMetaData, artifact, result)
 
         then:
         1 * artifactAtRepositoryCache.store(atRepositoryKey, file, descriptorHash)
