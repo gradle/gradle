@@ -180,17 +180,16 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     }
 
     protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-        Map<Artifact, ModuleVersionArtifactMetaData> ivyArtifacts = new HashMap<Artifact, ModuleVersionArtifactMetaData>();
-        for (ModuleVersionArtifactMetaData artifact : getArtifacts()) {
-            ivyArtifacts.put(artifact.getArtifact(), artifact);
-        }
-        Set<ModuleVersionArtifactMetaData> artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+        Set<Artifact> artifacts = new HashSet<Artifact>();
+        Set<ModuleVersionArtifactMetaData> artifactMetaData = new LinkedHashSet<ModuleVersionArtifactMetaData>();
         for (String ancestor : configurationMetaData.getHierarchy()) {
             for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-                artifacts.add(ivyArtifacts.get(artifact));
+                if (artifacts.add(artifact)) {
+                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(artifact));
+                }
             }
         }
-        return artifacts;
+        return artifactMetaData;
     }
 
     private class DefaultConfigurationMetaData implements ConfigurationMetaData {

@@ -119,7 +119,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     }
 
     public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-        Artifact ivyArtifact = artifact.getArtifact();
+        Artifact ivyArtifact = createIvyArtifact(moduleMetaData, artifact);
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
@@ -137,6 +137,12 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         } else {
             result.notFound(artifact.getId());
         }
+    }
+
+    private Artifact createIvyArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact) {
+        // TODO:DAZ Should really be looking up the Ivy Artifact from the ModuleDescriptor, to ensure we're not losing anything here, like URL or publication date.
+        IvyArtifactName ivyName = artifact.getName();
+        return new DefaultArtifact(IvyUtil.createModuleRevisionId(moduleMetaData.getId()), null, ivyName.getName(), ivyName.getType(), ivyName.getExtension(), ivyName.getAttributes());
     }
 
     public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {

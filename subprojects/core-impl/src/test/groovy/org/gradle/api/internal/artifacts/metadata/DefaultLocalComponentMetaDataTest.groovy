@@ -71,12 +71,10 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def conf1Artifacts = resolveMetaData.getConfiguration("conf1").artifacts as List
         conf1Artifacts.size() == 1
         def artifactMetadata1 = conf1Artifacts[0]
-        artifactMetadata1.artifact.is(artifact1)
 
         def conf2Artifacts = resolveMetaData.getConfiguration("conf2").artifacts as List
         conf2Artifacts.size() == 1
         def artifactMetadata2 = conf2Artifacts[0]
-        artifactMetadata2.artifact.is(artifact2)
 
         and:
         artifactMetadata1.id != artifactMetadata2.id

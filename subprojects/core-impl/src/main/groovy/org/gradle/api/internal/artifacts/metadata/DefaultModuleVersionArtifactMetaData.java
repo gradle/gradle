@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifactMetaData {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
-    private final Artifact artifact;
     private final DefaultModuleVersionArtifactIdentifier id;
 
     public DefaultModuleVersionArtifactMetaData(Artifact artifact) {
@@ -33,17 +32,12 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
 
     public DefaultModuleVersionArtifactMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
         this.moduleVersionIdentifier = moduleVersionIdentifier;
-        this.artifact = artifact;
         this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact);
     }
 
     @Override
     public String toString() {
         return id.toString();
-    }
-
-    public Artifact getArtifact() {
-        return artifact;
     }
 
     public ModuleVersionArtifactIdentifier getId() {
@@ -55,7 +49,7 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
     }
 
     public ArtifactIdentifier toArtifactIdentifier() {
-        return new DefaultArtifactIdentifier(artifact.getId());
+        return new DefaultArtifactIdentifier(id);
     }
 
     public IvyArtifactName getName() {
