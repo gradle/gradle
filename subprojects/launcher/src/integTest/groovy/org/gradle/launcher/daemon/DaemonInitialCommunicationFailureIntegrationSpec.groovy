@@ -77,7 +77,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
     }
 
     @Issue("GRADLE-2444")
-    def "stop() behaves if the registry contains connectable port without daemon on the other end"() {
+    def "stop behaves if the registry contains connectable port without daemon on the other end"() {
         when:
         buildSucceeds()
 
@@ -145,6 +145,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
                             return
                         }
                         try {
+                            connection.read(ByteBuffer.allocate(4096))
                             connection.write(ByteBuffer.wrap("hello".bytes))
                         } finally {
                             connection.close()
