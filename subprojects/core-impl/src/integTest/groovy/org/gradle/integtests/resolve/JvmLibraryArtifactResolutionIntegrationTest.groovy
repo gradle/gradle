@@ -25,10 +25,7 @@ class JvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyReso
         server.start()
     }
 
-    def "resolve sources artifacts"() {
-        module.pom.expectGet()
-        module.getArtifact(classifier: "sources").expectGet()
-
+    def "resolves and caches sources artifacts"() {
         publishArtifacts("sources", "javadoc")
 
         buildFile <<
@@ -66,14 +63,22 @@ task verify << {
 }
 """
 
-        expect:
+        when:
+        module.pom.expectGet()
+        module.getArtifact(classifier: "sources").expectGet()
+
+        then:
         succeeds("verify")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds "verify"
     }
 
     def "resolve javadoc artifacts"() {
         publishArtifacts("sources", "javadoc")
-        module.pom.expectGet()
-        module.artifact(classifier: "javadoc").expectGet()
 
         buildFile <<
 """
@@ -110,15 +115,23 @@ task verify << {
 }
 """
 
-        expect:
-        succeeds("verify")
+
+        when:
+        module.pom.expectGet()
+        module.artifact(classifier: "javadoc").expectGet()
+
+        then:
+        succeeds "verify"
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds "verify"
     }
 
-    def "resolve all artifacts"() {
+    def "resolves and caches all artifacts"() {
         publishArtifacts("sources", "javadoc")
-        module.pom.expectGet()
-        module.artifact(classifier: "sources").expectGet()
-        module.artifact(classifier: "javadoc").expectGet()
 
         buildFile <<
 """
@@ -153,13 +166,22 @@ task verify << {
 }
 """
 
-        expect:
+        when:
+        module.pom.expectGet()
+        module.artifact(classifier: "sources").expectGet()
+        module.artifact(classifier: "javadoc").expectGet()
+
+        then:
         succeeds("verify")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds "verify"
     }
 
-    def "resolve artifacts of non-existing component"() {
-        module.pom.expectGetMissing()
-        module.artifact.expectHeadMissing()
+    def "resolves artifacts of non-existing component"() {
 
         buildFile <<
 """
@@ -185,16 +207,16 @@ task verify << {
     }
 }
 """
+        when:
+        module.pom.expectGetMissing()
+        module.artifact.expectHeadMissing()
 
-        expect:
+        then:
         succeeds("verify")
     }
 
-    def "resolve non-existing artifacts of existing component"() {
+    def "resolve and caches non-existing artifacts of existing component"() {
         publishArtifacts("sources", "javadoc")
-        module.pom.expectGet()
-        module.artifact(classifier: "sources").expectGetMissing()
-        module.artifact(classifier: "javadoc").expectGetMissing()
 
         buildFile <<
 """
@@ -226,15 +248,23 @@ task verify << {
 }
 """
 
-        expect:
+        when:
+        module.pom.expectGet()
+        module.artifact(classifier: "sources").expectGetMissing()
+        module.artifact(classifier: "javadoc").expectGetMissing()
+
+        then:
         succeeds("verify")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds "verify"
     }
 
-    def "resolve partially missing artifacts"() {
+    def "resolves and caches partially missing artifacts"() {
         publishArtifacts("sources")
-        module.pom.expectGet()
-        module.artifact(classifier: "sources").expectGet()
-        module.artifact(classifier: "javadoc").expectGetMissing()
 
         buildFile <<
 """
@@ -271,8 +301,19 @@ task verify << {
 }
 """
 
-        expect:
+        when:
+        module.pom.expectGet()
+        module.artifact(classifier: "sources").expectGet()
+        module.artifact(classifier: "javadoc").expectGetMissing()
+
+        then:
         succeeds("verify")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds "verify"
     }
 
     // TODO: artifact resolution error needs to be discoverable
