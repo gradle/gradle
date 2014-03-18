@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
-
-import java.util.Set;
 
 /**
  * A repository of module versions.
@@ -45,13 +44,13 @@ public interface ModuleVersionRepository {
     void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
 
     /**
-     * Resolves the given artifact. Any failures are packaged up in the result.
+     * Resolves a set of artifacts belonging to the given module, based on the supplied context. Any failures are packaged up in the result.
      */
-    void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource);
+    void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result);
 
     /**
-     * Returns candidate artifacts for the given module and artifact type, without hitting the network. The returned artifacts
-     * may or may not exist for the given module.
+     * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType);
+    void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result);
+
 }

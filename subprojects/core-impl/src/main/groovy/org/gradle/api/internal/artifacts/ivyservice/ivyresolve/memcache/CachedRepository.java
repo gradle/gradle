@@ -16,18 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
-
-import java.util.Set;
 
 class CachedRepository implements LocalAwareModuleVersionRepository {
     final DependencyMetadataCache cache;
@@ -70,17 +68,19 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
         }
     }
 
-    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        // TODO:DAZ Implement for efficiency
+        delegate.resolveModuleArtifacts(moduleMetaData, context, result);
+    }
+
+    public void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
         ModuleVersionArtifactIdentifier artifactId = artifact.getId();
         if (!cache.supplyArtifact(artifactId, result)) {
-            delegate.resolve(artifact, result, moduleSource);
+            delegate.resolve(moduleMetaData, artifact, result);
             if (result.getFailure() == null) {
                 cache.newArtifact(artifactId, result);
             }
         }
     }
 
-    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
-        return delegate.getCandidateArtifacts(module, artifactType);
-    }
 }

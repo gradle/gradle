@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
-import org.gradle.api.internal.artifacts.resolution.JvmLibraryMainArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
@@ -78,7 +77,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         addIvyPattern(descriptorPattern);
     }
 
-    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
+    public Set<ModuleVersionArtifactMetaData> getTypedArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
         if (artifactType == JvmLibraryJavadocArtifact.class) {
             ConfigurationMetaData configuration = module.getConfiguration("javadoc");
             return configuration != null ? configuration.getArtifacts() : Collections.<ModuleVersionArtifactMetaData>emptySet();
@@ -89,15 +88,16 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
             return configuration != null ? configuration.getArtifacts() : Collections.<ModuleVersionArtifactMetaData>emptySet();
         }
 
-        if (artifactType == JvmLibraryMainArtifact.class) {
-            return Collections.emptySet();
-        }
-
         if (artifactType == ComponentMetaDataArtifact.class) {
             Artifact ivyArtifact = DefaultArtifact.newIvyArtifact(IvyUtil.createModuleRevisionId(module.getId()), new Date());
             return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), ivyArtifact));
         }
 
         throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
+    }
+
+    @Override
+    protected Set<ModuleVersionArtifactMetaData> getOptionalMainArtifacts(ModuleVersionMetaData module) {
+        return Collections.emptySet();
     }
 }

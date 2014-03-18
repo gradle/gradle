@@ -21,11 +21,12 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
@@ -195,11 +196,15 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         result.resolved(metaData, new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), cachedMetaData.getModuleSource()));
     }
 
-    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        delegate.resolveModuleArtifacts(moduleMetaData, context, result);
+    }
+
+    public void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
         ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate.getId(), artifact.getId());
         // Look in the cache for this resolver
         CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
-        final CachingModuleSource cachedModuleSource = (CachingModuleSource) moduleSource;
+        final CachingModuleSource cachedModuleSource = (CachingModuleSource) moduleMetaData.getSource();
         final BigInteger descriptorHash = cachedModuleSource.getDescriptorHash();
         if (cached != null) {
             long age = timeProvider.getCurrentTime() - cached.getCachedAt();
@@ -221,7 +226,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             }
         }
 
-        delegate.resolve(artifact, result, cachedModuleSource.getDelegate());
+        delegate.resolve(moduleMetaData.withSource(cachedModuleSource.getDelegate()), artifact, result);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact, delegate.getName());
 
         if (result.getFailure() == null) {
@@ -229,10 +234,6 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         } else if (result.getFailure() instanceof ArtifactNotFoundException) {
             artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey, descriptorHash);
         }
-    }
-
-    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
-        return delegate.getCandidateArtifacts(module, artifactType);
     }
 
     static class CachingModuleSource implements ModuleSource {
