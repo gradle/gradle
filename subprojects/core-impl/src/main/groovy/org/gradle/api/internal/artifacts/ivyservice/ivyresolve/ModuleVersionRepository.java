@@ -15,12 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 /**
  * A repository of module versions.
@@ -28,7 +24,7 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
  * The plan is to sync this with {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver} and rename it
  * to have 'resolver' instead of 'repository' in its name.
  */
-public interface ModuleVersionRepository {
+public interface ModuleVersionRepository extends ArtifactResolver {
     String getId();
 
     String getName();
@@ -42,15 +38,4 @@ public interface ModuleVersionRepository {
      * Resolves the given dependency to the corresponding module version meta-data.
      */
     void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
-
-    /**
-     * Resolves a set of artifacts belonging to the given module, based on the supplied context. Any failures are packaged up in the result.
-     */
-    void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result);
-
-    /**
-     * Resolves the given artifact. Any failures are packaged up in the result.
-     */
-    void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result);
-
 }

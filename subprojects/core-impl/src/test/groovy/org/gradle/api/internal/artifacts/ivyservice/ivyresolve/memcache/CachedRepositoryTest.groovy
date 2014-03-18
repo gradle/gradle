@@ -97,11 +97,11 @@ class CachedRepositoryTest extends Specification {
         def moduleMetaData = Mock(ModuleVersionMetaData)
 
         when:
-        repo.resolve(moduleMetaData, artifact, result)
+        repo.resolveArtifact(moduleMetaData, artifact, result)
 
         then:
         1 * cache.supplyArtifact(artifactId, result) >> false
-        1 * delegate.resolve(moduleMetaData, artifact, result)
+        1 * delegate.resolveArtifact(moduleMetaData, artifact, result)
         1 * result.getFailure() >> null
         1 * cache.newArtifact(artifactId, result)
         0 * _
@@ -116,7 +116,7 @@ class CachedRepositoryTest extends Specification {
         def moduleMetaData = Mock(ModuleVersionMetaData)
 
         when:
-        repo.resolve(moduleMetaData, artifact, result)
+        repo.resolveArtifact(moduleMetaData, artifact, result)
 
         then:
         1 * cache.supplyArtifact(artifactId, result) >> true

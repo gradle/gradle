@@ -33,7 +33,7 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolveArtifactSet(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
         if (isProjectModule(moduleMetaData)) {
             if (context instanceof ConfigurationResolveContext) {
                 String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
@@ -44,7 +44,7 @@ public class ProjectArtifactResolver implements ArtifactResolver {
             throw new UnsupportedOperationException(String.format("Resolving %s for project modules is not yet supported", context.getDescription()));
         }
 
-        delegate.resolveArtifactSet(moduleMetaData, context, result);
+        delegate.resolveModuleArtifacts(moduleMetaData, context, result);
     }
 
     public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {

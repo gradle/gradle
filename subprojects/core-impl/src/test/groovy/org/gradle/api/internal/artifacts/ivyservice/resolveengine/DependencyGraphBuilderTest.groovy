@@ -58,7 +58,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _, _) >> { it[2].resolved(root) }
 
-        _ * artifactResolver.resolveArtifactSet(_, _, _,) >> { ModuleVersionMetaData module, ArtifactResolveContext context, BuildableArtifactSetResolveResult result ->
+        _ * artifactResolver.resolveModuleArtifacts(_, _, _,) >> { ModuleVersionMetaData module, ArtifactResolveContext context, BuildableArtifactSetResolveResult result ->
             result.resolved(module.artifacts)
         }
     }

@@ -104,7 +104,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                         for (Class<? extends SoftwareArtifact> artifactType : artifactTypes) {
                             ArtifactResolveContext context = new ArtifactTypeResolveContext(artifactType);
                             BuildableArtifactSetResolveResult multiResolveResult = new DefaultBuildableArtifactSetResolveResult();
-                            artifactResolver.resolveArtifactSet(moduleMetaData, context, multiResolveResult);
+                            artifactResolver.resolveModuleArtifacts(moduleMetaData, context, multiResolveResult);
                             for (ModuleVersionArtifactMetaData artifactMetaData : multiResolveResult.getArtifacts()) {
                                 BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
                                 artifactResolver.resolveArtifact(moduleMetaData, artifactMetaData, resolveResult);

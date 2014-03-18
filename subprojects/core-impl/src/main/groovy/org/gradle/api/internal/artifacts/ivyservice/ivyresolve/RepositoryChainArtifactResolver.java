@@ -33,13 +33,13 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         repositories.add(repository);
     }
 
-    public void resolveArtifactSet(ModuleVersionMetaData moduleMetadata, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetadata, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
         ModuleVersionRepository sourceRepository = findSourceRepository(moduleMetadata);
         sourceRepository.resolveModuleArtifacts(moduleMetadata, context, result);
     }
 
     public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-        findSourceRepository(moduleMetaData).resolve(moduleMetaData.withSource(unpackModuleSource(moduleMetaData)), artifact, result);
+        findSourceRepository(moduleMetaData).resolveArtifact(moduleMetaData.withSource(unpackModuleSource(moduleMetaData)), artifact, result);
     }
 
     private ModuleVersionRepository findSourceRepository(ModuleVersionMetaData moduleMetaData) {

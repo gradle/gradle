@@ -22,7 +22,7 @@ public interface ArtifactResolver {
     /**
      * Resolves a set of artifacts belonging to the given module, based on the supplied context. Any failures are packaged up in the result.
      */
-    void resolveArtifactSet(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result);
+    void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result);
 
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.

@@ -69,14 +69,14 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
     }
 
     public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        // TODO:DAZ Implement for efficiency
+        // TODO:DAZ Add in-memory caching
         delegate.resolveModuleArtifacts(moduleMetaData, context, result);
     }
 
-    public void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
         ModuleVersionArtifactIdentifier artifactId = artifact.getId();
         if (!cache.supplyArtifact(artifactId, result)) {
-            delegate.resolve(moduleMetaData, artifact, result);
+            delegate.resolveArtifact(moduleMetaData, artifact, result);
             if (result.getFailure() == null) {
                 cache.newArtifact(artifactId, result);
             }

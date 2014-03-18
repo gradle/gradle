@@ -308,7 +308,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return repositoryCacheManager.downloadAndCacheArtifactFile(artifactId, resourceDownloader, resource);
     }
 
-    public void resolve(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
         ArtifactIdentifier ivyArtifact = artifact.toArtifactIdentifier();
 
         File localFile;
