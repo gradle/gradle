@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
@@ -32,24 +31,24 @@ public class ContextualArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolveArtifact(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
-        lockingManager.useCache(String.format("resolve %s", artifact), new Runnable() {
+    public void resolveArtifactSet(final ModuleVersionMetaData moduleMetaData, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
+        lockingManager.useCache(String.format("Resolve %s for %s", context.getDescription(), moduleMetaData), new Runnable() {
             public void run() {
                 ivyContextManager.withIvy(new Action<Ivy>() {
                     public void execute(Ivy ivy) {
-                        delegate.resolveArtifact(moduleMetaData, artifact, result);
+                        delegate.resolveArtifactSet(moduleMetaData, context, result);
                     }
                 });
             }
         });
     }
 
-    public void resolveArtifactSet(final ModuleVersionMetaData moduleMetaData, final Class<? extends SoftwareArtifact> artifactType, final BuildableArtifactSetResolveResult result) {
-        lockingManager.useCache(String.format("Resolve %s from %s", artifactType, moduleMetaData), new Runnable() {
+    public void resolveArtifact(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
+        lockingManager.useCache(String.format("Resolve %s", artifact), new Runnable() {
             public void run() {
                 ivyContextManager.withIvy(new Action<Ivy>() {
                     public void execute(Ivy ivy) {
-                        delegate.resolveArtifactSet(moduleMetaData, artifactType, result);
+                        delegate.resolveArtifact(moduleMetaData, artifact, result);
                     }
                 });
             }

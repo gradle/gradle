@@ -89,6 +89,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, versionMatcher);
                 idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveRule());
 
+                ArtifactResolver artifactResolver = createArtifactResolver(repositoryChain);
+
                 ModuleConflictResolver conflictResolver;
                 if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
                     conflictResolver = new StrictConflictResolver();
@@ -97,7 +99,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
 
-                DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
+                DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, artifactResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
 
                 StoreSet stores = storeFactory.createStoreSet();
 
@@ -108,9 +110,6 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 BinaryStore oldModelStore = stores.nextBinaryStore();
                 Store<TransientConfigurationResults> oldModelCache = stores.newModelStore();
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
-                ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
-                artifactResolver = new ProjectArtifactResolver(projectComponentRegistry, artifactResolver);
-                artifactResolver = new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, artifactResolver);
                 DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder, artifactResolver);
 
                 builder.resolve(configuration, newModelBuilder, oldModelBuilder);
@@ -118,5 +117,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 results.resolved(new DefaultResolvedConfiguration(result), newModelBuilder.complete());
             }
         });
+    }
+
+    private ArtifactResolver createArtifactResolver(RepositoryChain repositoryChain) {
+        ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
+        artifactResolver = new ProjectArtifactResolver(projectComponentRegistry, artifactResolver);
+        artifactResolver = new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, artifactResolver);
+        return artifactResolver;
     }
 }

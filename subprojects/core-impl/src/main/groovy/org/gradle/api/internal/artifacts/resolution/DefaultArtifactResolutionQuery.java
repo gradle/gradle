@@ -102,8 +102,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                         ModuleVersionMetaData moduleMetaData = moduleResolveResult.getMetaData();
                         List<JvmLibraryArtifact> jvmLibraryArtifacts = Lists.newArrayList();
                         for (Class<? extends SoftwareArtifact> artifactType : artifactTypes) {
+                            ArtifactResolveContext context = new DeveloperArtifactResolveContext(artifactType);
                             BuildableArtifactSetResolveResult multiResolveResult = new DefaultBuildableArtifactSetResolveResult();
-                            artifactResolver.resolveArtifactSet(moduleMetaData, artifactType, multiResolveResult);
+                            artifactResolver.resolveArtifactSet(moduleMetaData, context, multiResolveResult);
                             for (ModuleVersionArtifactMetaData artifactMetaData : multiResolveResult.getResults()) {
                                 BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
                                 if (artifactType == JvmLibraryJavadocArtifact.class) {

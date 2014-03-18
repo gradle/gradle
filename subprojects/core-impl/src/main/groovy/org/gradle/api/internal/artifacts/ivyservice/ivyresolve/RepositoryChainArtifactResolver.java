@@ -31,11 +31,20 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         repositories.add(repository);
     }
 
-    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-        findSourceRepository(moduleMetaData).resolve(artifact, result, unpackModuleSource(moduleMetaData));
+    public void resolveArtifactSet(ModuleVersionMetaData moduleMetadata, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        if (context instanceof ConfigurationResolveContext) {
+            resolveArtifactsForConfiguration(moduleMetadata, ((ConfigurationResolveContext) context).getConfigurationName(), result);
+        } else if (context instanceof DeveloperArtifactResolveContext) {
+            resolveArtifactsByType(moduleMetadata, ((DeveloperArtifactResolveContext) context).getArtifactType(), result);
+        }
     }
 
-    public void resolveArtifactSet(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableArtifactSetResolveResult result) {
+    private void resolveArtifactsForConfiguration(ModuleVersionMetaData moduleMetadata, String configurationName, BuildableArtifactSetResolveResult result) {
+        Set<ModuleVersionArtifactMetaData> artifacts = moduleMetadata.getConfiguration(configurationName).getArtifacts();
+        result.resolved(artifacts);
+    }
+
+    private void resolveArtifactsByType(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableArtifactSetResolveResult result) {
         ModuleVersionRepository sourceRepository = findSourceRepository(moduleMetadata);
         try {
             Set<ModuleVersionArtifactMetaData> artifacts = sourceRepository.getCandidateArtifacts(moduleMetadata, artifactType);
@@ -43,6 +52,10 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         } catch (Exception e) {
             result.failed(new ArtifactResolveException(String.format("Could not determine artifacts for %s", moduleMetadata)));
         }
+    }
+
+    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+        findSourceRepository(moduleMetaData).resolve(artifact, result, unpackModuleSource(moduleMetaData));
     }
 
     private ModuleVersionRepository findSourceRepository(ModuleVersionMetaData moduleMetaData) {
