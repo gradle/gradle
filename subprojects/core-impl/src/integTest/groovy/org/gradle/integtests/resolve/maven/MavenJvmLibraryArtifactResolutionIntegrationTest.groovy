@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve
+package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
-class JvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     def repo = mavenHttpRepo
     def module = repo.module("some.group", "some-artifact", "1.0")
 
