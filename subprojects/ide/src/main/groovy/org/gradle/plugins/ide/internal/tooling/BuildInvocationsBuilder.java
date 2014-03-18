@@ -57,7 +57,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     setDescription(project.getParent() != null
                             ? String.format("%s:%s task selector", project.getPath(), selectorName)
                             : String.format("%s task selector", selectorName)).
-                    setDisplayName(String.format("%s built in %s and subprojects.", selectorName, project.getName())));
+                    setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())));
         }
         return new DefaultBuildInvocations()
                 .setSelectors(selectors)
