@@ -24,7 +24,7 @@ import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import java.util.ArrayList;
 import java.util.List;
 
-class DefaultTool implements GccToolInternal {
+public class DefaultTool implements GccToolInternal {
     private final ToolType toolType;
     private String executable;
     private List<Action<? super List<String>>> argActions = new ArrayList<Action<? super List<String>>>();

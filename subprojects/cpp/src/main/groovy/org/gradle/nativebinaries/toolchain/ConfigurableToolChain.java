@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.toolchain;
 /**
  * A configurable tool chain.
  * */
-public interface ConfigurableToolChain {
+public interface ConfigurableToolChain extends ToolChain {
 
     /**
      * The C++ compiler.

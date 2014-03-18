@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.toolchain;
 
-import org.gradle.api.Incubating;
+package org.gradle.nativebinaries.toolchain.internal.gcc;
+
+import org.gradle.nativebinaries.platform.Platform;
+import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
 
 /**
- * Configuration to add support for a target platform to a {@link PlatformConfigurableToolChain}.
- */
-@Incubating
-public interface TargetPlatformConfigurationInternal extends TargetPlatformConfiguration{
+ *  some javadoc
+ * */
+public interface TargetPlatformConfiguration {
 
     /**
-     * a configured tool chain
+     *  some other javadoc
      * */
-    void apply(ConfigurableToolChain configurableToolChain);
+    boolean supportsPlatform(Platform targetPlatform);
+
+
+    /**
+     *  some more other javadoc
+     * */
+    ConfigurableToolChain apply(ConfigurableToolChain configurableToolChain);
 }

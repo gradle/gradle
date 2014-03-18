@@ -20,12 +20,13 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativebinaries.toolchain.ConfigurableToolChain
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 import org.gradle.nativebinaries.toolchain.internal.tools.DefaultTool
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
 import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
 import org.gradle.nativebinaries.platform.internal.DefaultOperatingSystem
-import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration
+
 import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
 import org.gradle.nativebinaries.toolchain.internal.ToolType
 import org.gradle.nativebinaries.toolchain.internal.tools.ConfigurableToolChainInternal
@@ -98,14 +99,9 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     def "is available when any language tool can be found and platform configuration registered for platform"() {
-        def platformConfig = Mock(TargetPlatformConfiguration)
-
         given:
         toolSearchPath.locate(_, _) >> tool
-        platformConfig.supportsPlatform(platform) >> true
-
-        and:
-        toolChain.addPlatformConfiguration(platformConfig)
+        toolChain.target(platform, Mock(Action))
 
         expect:
         toolChain.select(platform).available
@@ -177,12 +173,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         then:
         toolChain.select(platform).available
 
-        with(toolChain.getPlatformConfiguration(platform)) {
-            linkerArgs == ["-m32"]
-            cppCompilerArgs == ["-m32"]
-            CCompilerArgs == ["-m32"]
-            assemblerArgs == ["--32"]
-            staticLibraryArchiverArgs == []
+        with(toolChain.getPlatformConfiguration(platform).apply(newConfigurableToolChainInternal())) {
+            argsFor(linker) == ["-m32"]
+            argsFor(cppCompiler)== ["-m32"]
+            argsFor(getCCompiler()) == ["-m32"]
+            argsFor(assembler) == ["--32"]
+            argsFor(staticLibArchiver) == []
         }
     }
 
@@ -205,25 +201,23 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     def "uses supplied platform configurations in order to target binary"() {
-        def platformConfig1 = Mock(TargetPlatformConfiguration)
-        def platformConfig2 = Mock(TargetPlatformConfiguration)
+        setup:
+        _ * platform.getName() >> "platform2"
+        def platformConfig1 = Mock(Action)
+        def platformConfig2 = Mock(Action)
         when:
         toolSearchPath.locate(_, _) >> tool
         platform.getOperatingSystem() >> new DefaultOperatingSystem("other", OperatingSystem.SOLARIS)
+        toolChain.target("platform1", platformConfig1)
+        toolChain.target("platform2", platformConfig2)
 
-        and:
-        toolChain.addPlatformConfiguration(platformConfig1)
-        toolChain.addPlatformConfiguration(platformConfig2)
-
-        and:
-        platformConfig1.supportsPlatform(platform) >> false
-        platformConfig2.supportsPlatform(platform) >> true
+        PlatformToolChain platformToolChain = toolChain.select(platform)
 
         then:
-        toolChain.select(platform).available
+        platformToolChain.available
 
         and:
-        toolChain.getPlatformConfiguration(platform).targetPlatformConfiguration == platformConfig2
+        1 * platformConfig2.execute(_)
     }
 
     def "uses platform specific toolchain configuration"() {

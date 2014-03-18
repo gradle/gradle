@@ -23,7 +23,6 @@ import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
 import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
-import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.nativebinaries.toolchain.internal.tools.*;
 import org.gradle.process.internal.ExecActionFactory;
@@ -41,7 +40,7 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
     private final ToolSearchPath toolSearchPath;
     private final DefaultToolRegistry toolRegistry = new DefaultToolRegistry();
 
-    private final List<ApplyablePlatformConfiguration> platformConfigs = new ArrayList<ApplyablePlatformConfiguration>();
+    private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
     private int configInsertLocation;
 
     public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath toolSearchPath) {
@@ -91,29 +90,24 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
     }
 
-    @Deprecated
-    public void addPlatformConfiguration(TargetPlatformConfiguration platformConfig) {
-        target(new ApplyableTargetPlatformConfigurationAdapter(platformConfig));
-    }
-
     public void target(Platform platform, Action<ConfigurableToolChain> action) {
         target(platform.getName(), action);
     }
 
     public void target(String platformName, Action<ConfigurableToolChain> action) {
-        target(new ConfigurableToolChainActionAdapter(platformName, action));
+        target(new DefaultTargetPlatformConfiguration(platformName, action));
     }
 
-    void target(ApplyablePlatformConfiguration applyablePlatformConfiguration) {
-        platformConfigs.add(configInsertLocation, applyablePlatformConfiguration);
+    void target(TargetPlatformConfiguration targetPlatformConfiguration) {
+        platformConfigs.add(configInsertLocation, targetPlatformConfiguration);
         configInsertLocation++;
     }
 
 
     public PlatformToolChain select(Platform targetPlatform) {
-        ApplyablePlatformConfiguration applyablePlatformConfiguration = getPlatformConfiguration(targetPlatform);
+        TargetPlatformConfiguration targetPlatformConfigurationConfiguration = getPlatformConfiguration(targetPlatform);
         ToolChainAvailability result = new ToolChainAvailability();
-        if (applyablePlatformConfiguration == null) {
+        if (targetPlatformConfigurationConfiguration == null) {
             result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
             return new UnavailablePlatformToolChain(result);
         }
@@ -122,13 +116,16 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
             return new UnavailablePlatformToolChain(result);
         }
 
-        // Target the tools for the platform
-        ToolRegistry platformTools = new PlatformToolRegistry(toolRegistry, applyablePlatformConfiguration);
+        DefaultConfigurableToolChain configurableToolChain = new DefaultConfigurableToolChain(toolRegistry, getName(), getDisplayName());
+
+        // apply the platform configuration
+        targetPlatformConfigurationConfiguration.apply(configurableToolChain);
+        ToolRegistry platformTools = new ConfiguredToolRegistry(configurableToolChain);
         return new GccPlatformToolChain(toolSearchPath, platformTools, execActionFactory, canUseCommandFile());
     }
 
-    protected ApplyablePlatformConfiguration getPlatformConfiguration(Platform targetPlatform) {
-        for (ApplyablePlatformConfiguration platformConfig : platformConfigs) {
+    protected TargetPlatformConfiguration getPlatformConfiguration(Platform targetPlatform) {
+        for (TargetPlatformConfiguration platformConfig : platformConfigs) {
             if (platformConfig.supportsPlatform(targetPlatform)) {
                 return platformConfig;
             }
@@ -173,7 +170,7 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         return getTool(ToolType.STATIC_LIB_ARCHIVER);
     }
 
-    private static class ToolChainDefaultArchitecture implements ApplyablePlatformConfiguration {
+    private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {
         public boolean supportsPlatform(Platform targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && targetPlatform.getArchitecture() == ArchitectureInternal.TOOL_CHAIN_DEFAULT;
@@ -184,7 +181,7 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
     }
 
-    private static class Intel32Architecture implements ApplyablePlatformConfiguration{
+    private static class Intel32Architecture implements TargetPlatformConfiguration {
 
         public boolean supportsPlatform(Platform targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
@@ -220,7 +217,7 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
     }
 
-    private static class Intel64Architecture implements ApplyablePlatformConfiguration {
+    private static class Intel64Architecture implements TargetPlatformConfiguration {
         public boolean supportsPlatform(Platform targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && !OperatingSystem.current().isWindows() // Currently don't support building 64-bit binaries on GCC/Windows
@@ -256,72 +253,13 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
     }
 
-
-    private class ApplyableTargetPlatformConfigurationAdapter implements ApplyablePlatformConfiguration {
-
-        private TargetPlatformConfiguration targetPlatformConfiguration;
-
-        public ApplyableTargetPlatformConfigurationAdapter(TargetPlatformConfiguration targetPlatformConfiguration) {
-            this.targetPlatformConfiguration = targetPlatformConfiguration;
-        }
-
-        public boolean supportsPlatform(Platform targetPlatform) {
-            return targetPlatformConfiguration.supportsPlatform(targetPlatform);
-        }
-
-        public ConfigurableToolChain apply(ConfigurableToolChain configurableToolChain) {
-            configurableToolChain.getAssembler().withArguments(new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    args.addAll(targetPlatformConfiguration.getAssemblerArgs());
-                }
-            });
-
-            configurableToolChain.getCppCompiler().withArguments(new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    args.addAll(targetPlatformConfiguration.getCppCompilerArgs());
-                }
-            });
-
-            configurableToolChain.getCCompiler().withArguments(new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    args.addAll(targetPlatformConfiguration.getCCompilerArgs());
-                }
-            });
-
-            configurableToolChain.getStaticLibArchiver().withArguments(new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    args.addAll(targetPlatformConfiguration.getStaticLibraryArchiverArgs());
-                }
-            });
-
-            configurableToolChain.getLinker().withArguments(new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    args.addAll(targetPlatformConfiguration.getLinkerArgs());
-                }
-            });
-
-            configurableToolChain.getObjcCompiler().withArguments(new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    args.addAll(targetPlatformConfiguration.getObjectiveCCompilerArgs());
-                }
-            });
-
-            configurableToolChain.getObjcppCompiler().withArguments(new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    args.addAll(targetPlatformConfiguration.getObjectiveCppCompilerArgs());
-                }
-            });
-            return configurableToolChain;
-        }
-    }
-
-    private class ConfigurableToolChainActionAdapter implements ApplyablePlatformConfiguration {
+    private class DefaultTargetPlatformConfiguration implements TargetPlatformConfiguration {
 
         //TODO this should be a container of platforms
         private final String platformName;
         private Action<ConfigurableToolChain> configurationAction;
 
-        public ConfigurableToolChainActionAdapter(String targetPlatformName, Action<ConfigurableToolChain> configurationAction) {
+        public DefaultTargetPlatformConfiguration(String targetPlatformName, Action<ConfigurableToolChain> configurationAction) {
             this.platformName = targetPlatformName;
             this.configurationAction = configurationAction;
         }

@@ -560,10 +560,9 @@
             <title>Cross-compiling with GCC</title>
             <para>
                 Cross-compiling is possible with the <apilink class="org.gradle.nativebinaries.toolchain.Gcc"/> and <apilink class="org.gradle.nativebinaries.toolchain.Clang"/> tool chains,
-                by programmatically adding support for additional target platforms.
+                by adding support for additional target platforms.
                 This is done using the <apilink class="org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain"/> API.
-                Each added <apilink class="org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration"/> defines support for a particular target platform,
-                and supplies additional tool arguments that are required to target this platform.
+                By adding a support for a particular platform, additional tool arguments that are required to target this platform can be provided.
             </para>
         </section>
     </section>
