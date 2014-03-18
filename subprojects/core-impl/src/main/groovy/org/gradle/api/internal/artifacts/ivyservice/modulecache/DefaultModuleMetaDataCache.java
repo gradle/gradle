@@ -83,25 +83,18 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     }
 
     public CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id) {
-        return cacheModuleDescriptor(repository, id, null, null, false);
+        LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", id, false);
+        ModuleDescriptorCacheEntry entry = createMissingEntry(false);
+        getCache().put(createKey(repository, id), entry);
+        return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
     public CachedMetaData cacheMetaData(ModuleVersionRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource) {
-        return cacheModuleDescriptor(repository, metaData.getId(), metaData.getDescriptor(), moduleSource, metaData.isChanging());
-    }
-
-    public CachedMetaData cacheModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleSource moduleSource, boolean isChanging) {
-        ModuleDescriptorCacheEntry entry;
-        if (moduleDescriptor == null) {
-            LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", moduleVersionIdentifier, isChanging);
-            entry = createMissingEntry(isChanging);
-            getCache().put(createKey(repository, moduleVersionIdentifier), entry);
-        } else {
-            LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
-            LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
-            entry = createEntry(isChanging, resource.getSha1(), moduleSource);
-            getCache().put(createKey(repository, moduleVersionIdentifier), entry);
-        }
+        ModuleDescriptor moduleDescriptor = metaData.getDescriptor();
+        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), metaData.isChanging());
+        LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
+        ModuleDescriptorCacheEntry entry = createEntry(metaData.isChanging(), metaData.isMetaDataOnly(), resource.getSha1(), moduleSource);
+        getCache().put(createKey(repository, metaData.getId()), entry);
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
@@ -110,11 +103,11 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     }
 
     private ModuleDescriptorCacheEntry createMissingEntry(boolean changing) {
-        return new ModuleDescriptorCacheEntry(changing, true, timeProvider.getCurrentTime(), BigInteger.ZERO, null);
+        return new ModuleDescriptorCacheEntry(changing, false, true, timeProvider.getCurrentTime(), BigInteger.ZERO, null);
     }
 
-    private ModuleDescriptorCacheEntry createEntry(boolean changing, HashValue moduleDescriptorHash, ModuleSource moduleSource) {
-        return new ModuleDescriptorCacheEntry(changing, false, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger(), moduleSource);
+    private ModuleDescriptorCacheEntry createEntry(boolean changing, boolean metaDataOnly, HashValue moduleDescriptorHash, ModuleSource moduleSource) {
+        return new ModuleDescriptorCacheEntry(changing, metaDataOnly, false, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger(), moduleSource);
     }
 
     private static class RevisionKey {
@@ -162,6 +155,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         public void write(Encoder encoder, ModuleDescriptorCacheEntry value) throws Exception {
             encoder.writeBoolean(value.isMissing);
             encoder.writeBoolean(value.isChanging);
+            encoder.writeBoolean(value.isMetaDataOnly);
             encoder.writeLong(value.createTimestamp);
             moduleSourceSerializer.write(encoder, value.moduleSource);
             byte[] hash = value.moduleDescriptorHash.toByteArray();
@@ -171,11 +165,12 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         public ModuleDescriptorCacheEntry read(Decoder decoder) throws Exception {
             boolean isMissing = decoder.readBoolean();
             boolean isChanging = decoder.readBoolean();
+            boolean isMetaData = decoder.readBoolean();
             long createTimestamp = decoder.readLong();
             ModuleSource moduleSource = moduleSourceSerializer.read(decoder);
             byte[] encodedHash = decoder.readBinary();
             BigInteger hash = new BigInteger(encodedHash);
-            return new ModuleDescriptorCacheEntry(isChanging, isMissing, createTimestamp, hash, moduleSource);
+            return new ModuleDescriptorCacheEntry(isChanging, isMetaData, isMissing, createTimestamp, hash, moduleSource);
         }
     }
 }
