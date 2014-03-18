@@ -27,6 +27,9 @@ import org.gradle.internal.id.LongIdGenerator
 import org.gradle.logging.StandardOutputRedirector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.testng.ITestContext
+import org.testng.ITestListener
+import org.testng.ITestResult
 import org.testng.annotations.*
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -213,6 +216,33 @@ class TestNGTestClassProcessorTest extends Specification {
         then: 1 * processor.completed(1, _)
         0 * processor._
     }
+
+    void "custom test listeners can change test status"() {
+        options.listeners << FailSkippedTestsListener.class.name
+
+        when: process(ATestNGClassWithSkippedTest)
+
+        then: 1 * processor.completed(_, { it.resultType == ResultType.FAILURE})
+    }
+}
+
+public class FailSkippedTestsListener implements ITestListener {
+    void onTestStart(ITestResult result) {}
+    void onTestSuccess(ITestResult result) {
+        result.setStatus(ITestResult.FAILURE)
+    }
+    void onTestFailure(ITestResult result) {}
+    void onTestSkipped(ITestResult result) {
+
+    }
+    void onTestFailedButWithinSuccessPercentage(ITestResult result) {}
+    void onStart(ITestContext context) {}
+    void onFinish(ITestContext context) {}
+}
+
+public class ATestNGClassWithSkippedTest {
+    @org.testng.annotations.Test
+    public void skipMe() {}
 }
 
 public class ATestNGClass {

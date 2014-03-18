@@ -32,9 +32,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Custom TestNG listeners are applied before Gradle's listeners
+
+This way the custom listeners are more robust because they can affect the test status.
+There should be no impact of this change because majority of users does not employ custom listeners
+and even if they do healthy listeners will work correctly regardless of the listeners' order.
 
 ## External contributions
 

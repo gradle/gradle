@@ -88,19 +88,22 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
 
         testNg.setUseDefaultListeners(options.getUseDefaultListeners());
-        testNg.addListener((Object) adaptListener(testResultProcessor));
-        if (!options.getIncludedTests().isEmpty()) {
-            testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
-        }
         testNg.setVerbose(0);
         testNg.setGroups(CollectionUtils.join(",", options.getIncludeGroups()));
         testNg.setExcludedGroups(CollectionUtils.join(",", options.getExcludeGroups()));
+
+        //adding custom test listeners before Gradle's listeners.
+        //this way, custom listeners are more powerful and, for example, they can change test status.
         for (String listenerClass : options.getListeners()) {
             try {
                 testNg.addListener(applicationClassLoader.loadClass(listenerClass).newInstance());
             } catch (Throwable e) {
                 throw new GradleException(String.format("Could not add a test listener with class '%s'.", listenerClass), e);
             }
+        }
+        testNg.addListener((Object) adaptListener(testResultProcessor));
+        if (!options.getIncludedTests().isEmpty()) {
+            testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
         }
 
         if (!suiteFiles.isEmpty()) {
