@@ -28,7 +28,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     def "resolve sources artifacts"() {
         publishModule()
         module.ivy.expectGet()
-        module.getArtifact(classifier: "sources").expectGet()
+        module.getArtifact(classifier: "my-sources").expectGet()
 
 
         buildFile <<
@@ -57,7 +57,7 @@ task verify << {
         assert component.sourcesArtifacts.size() == 1
         def sourceArtifact = component.sourcesArtifacts.iterator().next()
         assert sourceArtifact instanceof JvmLibrarySourcesArtifact
-        assert sourceArtifact.file.name == "some-artifact-1.0-sources.jar"
+        assert sourceArtifact.file.name == "some-artifact-1.0-my-sources.jar"
 
         assert component.javadocArtifacts.empty
     }
@@ -73,7 +73,7 @@ task verify << {
     def "resolve javadoc artifacts"() {
         publishModule()
         module.ivy.expectGet()
-        module.getArtifact(classifier: "javadoc").expectGet()
+        module.getArtifact(classifier: "my-javadoc").expectGet()
 
         buildFile <<
 """
@@ -103,7 +103,7 @@ task verify << {
         assert component.javadocArtifacts.size() == 1
         def javadocArtifact = component.javadocArtifacts.iterator().next()
         assert javadocArtifact instanceof JvmLibraryJavadocArtifact
-        assert javadocArtifact.file.name == "some-artifact-1.0-javadoc.jar"
+        assert javadocArtifact.file.name == "some-artifact-1.0-my-javadoc.jar"
     }
 
     assert result.unresolvedComponents.empty
@@ -117,8 +117,8 @@ task verify << {
     def "resolve all artifacts"() {
         publishModule()
         module.ivy.expectGet()
-        module.getArtifact(classifier: "sources").expectGet()
-        module.getArtifact(classifier: "javadoc").expectGet()
+        module.getArtifact(classifier: "my-sources").expectGet()
+        module.getArtifact(classifier: "my-javadoc").expectGet()
 
         buildFile <<
 """
@@ -193,8 +193,8 @@ task verify << {
     def "resolve non-existing artifacts of existing component"() {
         publishModule()
         module.ivy.expectGet()
-        module.getArtifact(classifier: "sources").expectGetMissing()
-        module.getArtifact(classifier: "javadoc").expectGetMissing()
+        module.getArtifact(classifier: "my-sources").expectGetMissing()
+        module.getArtifact(classifier: "my-javadoc").expectGetMissing()
 
         buildFile <<
 """
@@ -242,8 +242,8 @@ task verify << {
     def "resolve partially missing artifacts"() {
         publishModule()
         module.ivy.expectGet()
-        module.getArtifact(classifier: "sources").expectGet()
-        module.getArtifact(classifier: "javadoc").expectGetMissing()
+        module.getArtifact(classifier: "my-sources").expectGet()
+        module.getArtifact(classifier: "my-javadoc").expectGetMissing()
 
         buildFile <<
 """
@@ -271,7 +271,7 @@ task verify << {
         assert component.sourcesArtifacts.size() == 1
         def sourceArtifact = component.sourcesArtifacts.iterator().next()
         assert sourceArtifact instanceof JvmLibrarySourcesArtifact
-        assert sourceArtifact.file.name == "some-artifact-1.0-sources.jar"
+        assert sourceArtifact.file.name == "some-artifact-1.0-my-sources.jar"
 
         assert component.javadocArtifacts.size() == 1
         def javadocArtifact = component.javadocArtifacts.iterator().next()
@@ -290,8 +290,8 @@ task verify << {
     def "resolve partially broken artifacts"() {
         publishModule()
         module.ivy.expectGet()
-        module.getArtifact(classifier: "sources").expectGet()
-        module.getArtifact(classifier: "javadoc").expectGetBroken()
+        module.getArtifact(classifier: "my-sources").expectGet()
+        module.getArtifact(classifier: "my-javadoc").expectGetBroken()
 
         buildFile <<
 """
@@ -319,7 +319,7 @@ task verify << {
         assert component.sourcesArtifacts.size() == 1
         def sourceArtifact = component.sourcesArtifacts.iterator().next()
         assert sourceArtifact instanceof JvmLibrarySourcesArtifact
-        assert sourceArtifact.file.name == "some-artifact-1.0-sources.jar"
+        assert sourceArtifact.file.name == "some-artifact-1.0-my-sources.jar"
 
         assert component.javadocArtifacts.size() == 1
         def javadocArtifact = component.javadocArtifacts.iterator().next()
@@ -338,8 +338,10 @@ task verify << {
     private publishModule() {
         module.configuration("sources")
         module.configuration("javadoc")
-        module.artifact(type: "source", classifier: "sources", ext: "jar", conf: "sources")
-        module.artifact(type: "javadoc", classifier: "javadoc", ext: "jar", conf: "javadoc")
+        // use uncommon classifiers that are different from those used by maven, 
+        // in order to prove that artifact names don't matter
+        module.artifact(type: "source", classifier: "my-sources", ext: "jar", conf: "sources")
+        module.artifact(type: "javadoc", classifier: "my-javadoc", ext: "jar", conf: "javadoc")
         module.publish()
     }
 }
