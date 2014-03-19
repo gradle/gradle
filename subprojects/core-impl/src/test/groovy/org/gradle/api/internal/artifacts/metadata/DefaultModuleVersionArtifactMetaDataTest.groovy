@@ -23,13 +23,13 @@ import spock.lang.Specification
 class DefaultModuleVersionArtifactMetaDataTest extends Specification {
     def "has reasonable string representation"() {
         expect:
-        def artifact = new DefaultModuleVersionArtifactMetaData(Stub(ModuleVersionIdentifier), ivyArtifact("name", "type", "ext", ['m:classifier': 'classifier']))
+        def artifact = new DefaultModuleVersionArtifactMetaData(Stub(ModuleVersionIdentifier), ivyArtifact("name", "type", "ext", ['classifier': 'classifier']))
         artifact.toString() == artifact.id.toString()
     }
 
     def "extracts attributes from provided artifact instance"() {
         expect:
-        def artifact = new DefaultModuleVersionArtifactMetaData(Stub(ModuleVersionIdentifier), ivyArtifact("name", "type", "ext", ['m:classifier': 'classifier']))
+        def artifact = new DefaultModuleVersionArtifactMetaData(Stub(ModuleVersionIdentifier), ivyArtifact("name", "type", "ext", ['classifier': 'classifier']))
         artifact.name.name == "name"
         artifact.name.type == "type"
         artifact.name.extension == "ext"
@@ -55,7 +55,7 @@ class DefaultModuleVersionArtifactMetaDataTest extends Specification {
         _ * artifact.name >> name
         _ * artifact.type >> type
         _ * artifact.ext >> extension
-        _ * artifact.qualifiedExtraAttributes >> attributes
+        _ * artifact.extraAttributes >> attributes
         return artifact
     }
 }

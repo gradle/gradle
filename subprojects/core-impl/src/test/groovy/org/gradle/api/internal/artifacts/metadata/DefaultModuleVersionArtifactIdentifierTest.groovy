@@ -29,11 +29,11 @@ class DefaultModuleVersionArtifactIdentifierTest extends Specification {
         noClassifier.displayName == "group:module:version:name.ext"
         noClassifier.toString() == "group:module:version:name.ext"
 
-        def withClassifier = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", "ext", ['m:classifier': 'classifier'])
+        def withClassifier = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", "ext", ['classifier': 'classifier'])
         withClassifier.displayName == "group:module:version:name-classifier.ext"
         withClassifier.toString() == "group:module:version:name-classifier.ext"
 
-        def noExtension = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", null, ['m:classifier': 'classifier'])
+        def noExtension = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", null, ['classifier': 'classifier'])
         noExtension.displayName == "group:module:version:name-classifier"
         noExtension.toString() == "group:module:version:name-classifier"
     }
@@ -42,13 +42,13 @@ class DefaultModuleVersionArtifactIdentifierTest extends Specification {
         def moduleVersion = DefaultModuleVersionIdentifier.newId("group", "module", "version")
         def otherModuleVersion = DefaultModuleVersionIdentifier.newId("group", "module", "2")
 
-        def withClassifier = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", "ext", ['m:classifier': 'classifier'])
-        def same = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", "ext", ['m:classifier': 'classifier'])
-        def differentModule = new DefaultModuleVersionArtifactIdentifier(otherModuleVersion, "name", "type", "ext", ['m:classifier': 'classifier'])
-        def differentName = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "2", "type", "ext", ['m:classifier': 'classifier'])
-        def differentType = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "2", "ext", ['m:classifier': 'classifier'])
-        def differentExt = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", "2", ['m:classifier': 'classifier'])
-        def differentAttributes = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", "ext", ['m:classifier': '2'])
+        def withClassifier = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", "ext", ['classifier': 'classifier'])
+        def same = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", "ext", ['classifier': 'classifier'])
+        def differentModule = new DefaultModuleVersionArtifactIdentifier(otherModuleVersion, "name", "type", "ext", ['classifier': 'classifier'])
+        def differentName = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "2", "type", "ext", ['classifier': 'classifier'])
+        def differentType = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "2", "ext", ['classifier': 'classifier'])
+        def differentExt = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", "2", ['classifier': 'classifier'])
+        def differentAttributes = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", "ext", ['classifier': '2'])
         def emptyParts = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", null, [:])
         def emptyPartsSame = new DefaultModuleVersionArtifactIdentifier(moduleVersion, "name", "type", null, [:])
 

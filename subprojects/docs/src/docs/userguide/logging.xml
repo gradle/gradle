@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='logging' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='logging'>
     <title>Logging</title>
     <para>The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden
         by this. On the other hand you need the relevant information for figuring out if things have gone wrong. Gradle
@@ -182,8 +182,9 @@
         <para>You can replace much of Gradle's logging UI with your own. You might do this, for example, if you want to
             customize the UI in some way - to log more or less information, or to change the formatting. You replace
             the logging using the <apilink class="org.gradle.api.invocation.Gradle" method="useLogger"/> method. This
-            is accessible from a build script, or an init script, or via the embedding API. Below is an example
-            init script which changes how task execution and build completion is logged.
+            is accessible from a build script, or an init script, or via the embedding API.
+            Note that this completely disables Gradle's default output.
+            Below is an example init script which changes how task execution and build completion is logged.
         </para>
         <sample id="custom_logging_ui" dir="userguide/initScripts/customLogger" title="Customizing what Gradle logs">
             <sourcefile file="init.gradle"/>

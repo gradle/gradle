@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
@@ -108,6 +109,12 @@ import java.util.*;
  *   }
  * }
  * </pre>
+ * <p>
+ * The test process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debugJvm` switch when invoking the build.
+ * <pre>
+ * gradle someTestTask --debugJvm
+ * </pre>
+
  */
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
 
@@ -367,6 +374,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Option(option = "jvmDebug", description = "Enable or disable debugging for the test process. When enabled, the process is started suspended and listening on port 5005. [INCUBATING]")
     public void setDebug(boolean enabled) {
         forkOptions.setDebug(enabled);
     }
@@ -1112,16 +1120,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Allows filtering tests that are included in the execution
+     * Executes the action against the {@link #getFilter()}.
      *
-     * @param closure to configure the test filter
-     * @return filter object
+     * @param action configuration of the test filter
      * @since 1.10
      */
     @Incubating
-    public TestFilter filter(Closure closure) {
-        ConfigureUtil.configure(closure, filter);
-        return filter;
+    public void filter(Action<TestFilter> action) {
+        action.execute(filter);
     }
 
     // only way I know of to determine current log level

@@ -1118,10 +1118,7 @@
                 API allows you some control over how this happens.
             </para>
             <para>There are a number of properties which control how the test process is launched. This includes
-                things such as system properties, JVM arguments, and the Java executable to use. The task also provides a
-                <literal>debug</literal> property, which when set to true, starts the test process in debug mode,
-                suspended and listening on port 5005. This makes it very easy to debug your tests.  You may also enable
-                this using a system property as specified below.
+                things such as system properties, JVM arguments, and the Java executable to use.
             </para>
             <para>You can specify whether or not to execute your tests in parallel. Gradle provides parallel test execution
                 by running multiple test processes concurrently. Each test process executes only a single test at a time, so you
@@ -1147,6 +1144,17 @@
                 which detail level. By default, a concise message will be logged for every failed test. See
                 <apilink class="org.gradle.api.tasks.testing.logging.TestLoggingContainer"/> for how to tune test logging to your
                 preferences.
+            </para>
+        </section>
+
+        <section>
+            <title>Debugging</title>
+            <para>
+                The test task provides a <apilink class="org.gradle.api.tasks.testing.Test" method="getDebug()" /> property that can be set to launch to make the JVM wait for a
+                debugger to attach to port 5005 before proceeding with test execution.
+            </para>
+            <para>
+                This can also be enabled at invocation time via the <userinput>--debugJvm</userinput> task option.
             </para>
         </section>
 
@@ -1223,13 +1231,9 @@
                 </itemizedlist>
             </para>
         </section>
-
         <section>
-            <title>System properties</title>
-            <para>There are two system properties that can affect test execution.  Both of these are based off
-                  of the name of the test task with a suffix. If you are interested in selecting specific tests for execution
-                make sure you read the previous paragraph on test filtering because the latter feature is more robust.
-            </para>
+            <title>Single test execution via System Properties</title>
+            <note>This mechanism has been superseded by 'Test Filtering', described above.</note>
             <para>Setting a system property of <replaceable>taskName.single</replaceable> = <replaceable>testNamePattern</replaceable>
                   will only execute tests that match the specified <replaceable>testNamePattern</replaceable>.
                   The <replaceable>taskName</replaceable> can be a full multi-project path like &quot;:sub1:sub2:test&quot;
@@ -1257,10 +1261,6 @@
                           <para><literal>gradle -DintegTest.single=c/d/ :proj1:integTest</literal></para>
                       </listitem>
                   </itemizedlist>
-            </para>
-            <para>Setting a system property of <literal>taskName.debug</literal> will run the tests in debug mode,
-                  suspended and listening on port 5005.  For example:
-                  <literal>gradle test -Dtest.single=ThisUniquelyNamedTest -Dtest.debug</literal>
             </para>
         </section>
 

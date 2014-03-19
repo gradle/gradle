@@ -17,9 +17,7 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import com.google.common.base.Objects;
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.util.GUtil;
 
 import java.util.Collections;
@@ -27,19 +25,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultIvyArtifactName implements IvyArtifactName {
+    private static final String CLASSIFIER = "classifier";
     private final String name;
     private final String type;
     private final String extension;
     private final Map<String, String> attributes;
-
-    public DefaultIvyArtifactName(Artifact artifact) {
-        // Unpack the stuff that we're interested from the artifact and discard. The artifact instance drags in a whole pile of stuff that
-        // we don't want to retain references to.
-        name = artifact.getName();
-        type = artifact.getType();
-        extension = artifact.getExt();
-        attributes = new HashMap<String, String>(artifact.getQualifiedExtraAttributes());
-    }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension, Map<String, String> attributes) {
         this.name = name;
@@ -52,7 +42,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append(name);
-        String classifier = attributes.get(Dependency.CLASSIFIER);
+        String classifier = attributes.get(CLASSIFIER);
         if (GUtil.isTrue(classifier)) {
             result.append("-");
             result.append(classifier);
@@ -98,7 +88,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
 
     @Nullable
     public String getClassifier() {
-        return attributes.get(Dependency.CLASSIFIER);
+        return attributes.get(CLASSIFIER);
     }
 
     public Map<String, String> getAttributes() {
