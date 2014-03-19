@@ -20,6 +20,7 @@ import org.gradle.test.fixtures.ivy.IvyHttpRepository
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
 class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule HttpServer server
@@ -61,6 +62,7 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpe
 
     }
 
+    @Ignore
     def "sources and javadoc jars from flatdir repositories are resolved and attached"() {
         file("repo/module-1.0.jar").createFile()
         file("repo/module-1.0-sources.jar").createFile()
