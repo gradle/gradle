@@ -250,6 +250,12 @@ The underlying caching mechanism has changed, and this experimental API has chan
 
 Use of this API is not recommended and it will be removed in the future.
 
+### Change to signature of `Test.filter(Closure)`
+
+The incubating `Test.filter(Closure)` method introduced in 1.10 for configuring the `TestFilter` has been changed to be more consistent with other configuration methods.
+This method now accepts an `Action` and no longer returns the `TestFilter`.
+This change should not require any adjustments to build scripts as this method can still be called with a `Closure`, upon which it will be implicitly converted into an `Action`.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

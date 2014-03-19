@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
@@ -1112,16 +1113,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Allows filtering tests that are included in the execution
+     * Executes the action against the {@link #getFilter()}.
      *
-     * @param closure to configure the test filter
-     * @return filter object
+     * @param action configuration of the test filter
      * @since 1.10
      */
     @Incubating
-    public TestFilter filter(Closure closure) {
-        ConfigureUtil.configure(closure, filter);
-        return filter;
+    public void filter(Action<TestFilter> action) {
+        action.execute(filter);
     }
 
     // only way I know of to determine current log level
