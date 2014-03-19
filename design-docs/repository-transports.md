@@ -159,13 +159,3 @@ use a remote resource that requires authentication, and where no credentials hav
 
 Allow tooling API clients to provide a credentials provider. This will allow IDE integrations to prompt the user for and manage their credentials.
 
-## Allow caching for a slow file-backed repository
-
-Currently, the only way to enable caching for file-backed repository (eg when backed by a slow NFS share) is to set local attribute to false for a FileSystemResolver.
-We need a way to prevent very slow resolution in these cases, by either:
-
-* making the caching configurable for a file repository
-* detecting the slowness and automatically enabling caching
-* always using caching for file-backed repositories
-* something else?
-
