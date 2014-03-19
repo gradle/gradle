@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 
 import java.util.Set;
 
