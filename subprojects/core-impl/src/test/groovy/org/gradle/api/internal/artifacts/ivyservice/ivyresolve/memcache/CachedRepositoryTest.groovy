@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
+
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
@@ -85,6 +89,33 @@ class CachedRepositoryTest extends Specification {
 
         then:
         1 * cache.supplyMetaData(lib, result) >> true
+        0 * _
+    }
+
+    def "retrieves, caches and uses module artifacts"() {
+        def result = Mock(BuildableArtifactSetResolveResult)
+        def id = DefaultModuleVersionIdentifier.newId("group", "name", "version")
+        def moduleMetaData = Stub(ModuleVersionMetaData) {
+            getId() >> id
+        }
+        def context = Stub(ArtifactResolveContext) {
+            getId() >> "context"
+        }
+        final CachedModuleArtifactsKey key = new CachedModuleArtifactsKey(id, "context")
+        when:
+        repo.resolveModuleArtifacts(moduleMetaData, context, result)
+
+        then:
+        1 * cache.supplyModuleArtifacts(key, result) >> false
+        1 * delegate.resolveModuleArtifacts(moduleMetaData, context, result)
+        1 * cache.newModuleArtifacts(key, result)
+        0 * _
+
+        when:
+        repo.resolveModuleArtifacts(moduleMetaData, context, result)
+
+        then:
+        1 * cache.supplyModuleArtifacts(key, result) >> true
         0 * _
     }
 
