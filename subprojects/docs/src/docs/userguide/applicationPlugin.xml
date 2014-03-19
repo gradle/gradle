@@ -32,6 +32,7 @@
 
         <para>Then, you can run the application by running <userinput>gradle run</userinput>. Gradle will take care of building the application classes,
             along with their runtime dependencies, and starting the application with the correct classpath.
+            You can launch the application in debug mode with <userinput>gradle run --debugJvm</userinput> (see <apilink class="org.gradle.api.tasks.JavaExec" method="setDebug(boolean)" />).
         </para>
 
         <para>The plugin can also build a distribution for your application. The distribution will package up the runtime dependencies of the application

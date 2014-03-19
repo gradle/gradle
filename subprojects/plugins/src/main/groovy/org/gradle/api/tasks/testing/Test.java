@@ -109,6 +109,12 @@ import java.util.*;
  *   }
  * }
  * </pre>
+ * <p>
+ * The test process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debugJvm` switch when invoking the build.
+ * <pre>
+ * gradle someTestTask --debugJvm
+ * </pre>
+
  */
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
 
@@ -368,6 +374,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Option(option = "jvmDebug", description = "Enable or disable debugging for the test process. When enabled, the process is started suspended and listening on port 5005. [INCUBATING]")
     public void setDebug(boolean enabled) {
         forkOptions.setDebug(enabled);
     }
