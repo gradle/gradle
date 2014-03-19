@@ -256,15 +256,19 @@ Source artifacts contained in a 'sources' configuration in ivy.xml will be now b
 
 ### Test cases
 
-* For each defined ivy convention:
-    * Resolve source/javadoc artifacts from Ivy repository
-    * Report on artifacts that are defined in ivy metadata but not found
-    * Report on artifacts that are defined in ivy metadata where download fails
-* Resolve source/javadoc artifacts by maven conventions when resolving from a Flatdir repository
+* Where ivy.xml contains a 'sources' and/or 'javadoc' configuration:
+    * Defined artifacts are included in generated IDE files
+    * Defined artifacts are available via Artifact Query API
+    * Detect and report on artifacts that are defined in ivy configuration but not found
+    * Detect and report error for artifacts that are defined in ivy configuration where download fails
+* Use ivy scheme to retrieve source/javadoc artifacts from a local ivy repository
+* Resolve source/javadoc artifacts by maven conventions where no ivy convention can be used:
+    * Flatdir repository
+    * No ivy.xml file for module
+    * Ivy module with no source/javadoc configurations defined in metadata
+* Maven conventions are not used if ivy file declares empty sources and javadoc configuration
 
 ### Open issues
-
-* If the ivy source/javadoc configurations are not defined, should we then use the maven convention to look for artifacts?
 
 ## Story: Source and Javadoc artifacts are exposed for a local Java component
 
