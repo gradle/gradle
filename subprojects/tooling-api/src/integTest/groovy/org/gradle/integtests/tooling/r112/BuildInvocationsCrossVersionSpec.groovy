@@ -21,7 +21,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.UnknownModelException
+import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.model.GradleTask
+import org.gradle.tooling.model.Launchable
 import org.gradle.tooling.model.TaskSelector
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -56,6 +58,9 @@ project(':b:c') {
         println "t2 in $project.name"
     }
 }'''
+        projectDir.file('a').mkdir()
+        projectDir.file('b').mkdir()
+        projectDir.file('b', 'c').mkdir()
     }
 
     @TargetGradleVersion(">=1.8 <=1.11")
@@ -85,6 +90,10 @@ project(':b:c') {
 
     @TargetGradleVersion(">=1.12")
     def "build task selectors from action"() {
+        given:
+        toolingApi.withConnector { connector ->
+            connector.searchUpwards(true)
+        }
         when:
         BuildInvocations projectSelectors = withConnection { connection ->
             connection.action(new FetchTaskSelectorsBuildAction('b')).run() }
@@ -95,11 +104,27 @@ project(':b:c') {
 
         then:
         result.result.assertTasksExecuted(':b:c:t1')
+        result.result.assertTaskNotExecuted(':t1')
+
+        when:
+        BuildInvocations rootProjectSelectors = withConnection { connection ->
+            connection.action(new FetchTaskSelectorsBuildAction('test')).run() }
+        TaskSelector rootSelector = rootProjectSelectors.taskSelectors.find { it -> it.name == 't1'}
+        result = withBuild { BuildLauncher it ->
+            it.forLaunchables(selector, rootSelector)
+        }
+
+        then:
+        UnsupportedBuildArgumentException e = thrown()
+        e.message.contains('Problem with provided launchable arguments')
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")
     def "build task selectors from connection"() {
         when:
+        toolingApi.withConnector { connector ->
+            connector.searchUpwards(true)
+        }
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
         }
@@ -165,7 +190,26 @@ project(':b:c') {
         tasks.size() == 2
         tasks*.name as Set == ['t2', 't3'] as Set
         tasks*.project.each { it.name == 'b' && it.path == ':b'}
+    }
 
+    @TargetGradleVersion(">=1.12")
+    def "build tasks from BuildInvocations model as Launchable"() {
+        given:
+        toolingApi.withConnector { connector ->
+            connector.searchUpwards(true)
+        }
+        when:
+        List<GradleTask> tasks = withConnection { connection ->
+            connection.action(new FetchTasksBuildAction(':b')).run()
+        }
+        Launchable task = tasks.find { it -> it.name == 't2'}
+        def result = withBuild { BuildLauncher it ->
+            it.forLaunchables(task)
+        }
+
+        then:
+        result.result.assertTasksExecuted(':b:t2')
+        result.result.assertTaskNotExecuted(':b:c:t2')
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")

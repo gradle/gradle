@@ -16,13 +16,11 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import org.gradle.tooling.internal.protocol.InternalLaunchable;
-
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultGradleTask implements Serializable, InternalLaunchable, TaskListingLaunchable {
+public class DefaultGradleTask implements Serializable, TaskListingLaunchable {
 
     String path;
     String name;
@@ -75,14 +73,14 @@ public class DefaultGradleTask implements Serializable, InternalLaunchable, Task
         return this;
     }
 
+    public Set<String> getTasks() {
+        return Collections.singleton(getPath());
+    }
+
     @Override
     public String toString() {
         return "GradleTask{"
                 + "name='" + name + '\''
                 + '}';
-    }
-
-    public Set<String> getTasks() {
-        return Collections.singleton(getPath());
     }
 }

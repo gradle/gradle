@@ -49,13 +49,14 @@ class BuildInvocationsBuilderTest extends Specification {
         expect:
         def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", startProject)
         model.taskSelectors*.name as Set == selectorNames as Set
-        model.taskSelectors.find { it.name == 't1' }?.tasks == t1Tasks as Set
+        model.taskSelectors*.projectDir as Set == [startProject.projectDir] as Set
+        // model.taskSelectors.find { it.name == 't1' }?.tasks == t1Tasks as Set
 
         where:
-        startProject | selectorNames       | t1Tasks
-        project      | ['t1', 't2', 't3']  | [':child1:child1a:t1', ':child1:child1b:t1']
-        child1       | ['t1', 't2']        | [':child1:child1a:t1', ':child1:child1b:t1']
-        child1a      | ['t1']              | [':child1:child1a:t1']
+        startProject | selectorNames
+        project      | ['t1', 't2', 't3']
+        child1       | ['t1', 't2']
+        child1a      | ['t1']
     }
 
     def "builds recursive model"() {
@@ -63,15 +64,19 @@ class BuildInvocationsBuilderTest extends Specification {
         def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", project, true)
 
         then:
-        model.taskSelectors.find { DefaultGradleTaskSelector it ->
+        def t1Selector = model.taskSelectors.find { DefaultGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith("t1")
-        }?.tasks == [':child1:child1a:t1', ':child1:child1b:t1'] as Set
-        model.taskSelectors.find { DefaultGradleTaskSelector it ->
+        }
+        t1Selector?.projectDir == project.projectDir
+        t1Selector?.projectPath == ':'
+        def child1T1selector = model.taskSelectors.find { DefaultGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith(":child1:t1")
-        }?.tasks == [':child1:child1a:t1', ':child1:child1b:t1'] as Set
-        model.taskSelectors.find { DefaultGradleTaskSelector it ->
+        }
+        child1T1selector?.projectDir == child1.projectDir
+        def child1aT1selector = model.taskSelectors.find { DefaultGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith(":child1:child1a:t1")
-        }?.tasks == [':child1:child1a:t1'] as Set
+        }
+        child1aT1selector?.projectDir == child1a.projectDir
         model.taskSelectors*.name.each { it != null }
         model.taskSelectors*.description.each { it != null }
         model.taskSelectors*.displayName.each { it != null }

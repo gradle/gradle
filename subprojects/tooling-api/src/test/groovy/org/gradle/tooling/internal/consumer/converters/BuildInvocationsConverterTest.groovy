@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.converters
 
+import org.gradle.tooling.internal.gradle.BasicGradleTaskSelector
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations
-import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
@@ -73,13 +73,13 @@ class BuildInvocationsConverterTest extends Specification {
         DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(project)
 
         then:
-        builds.taskSelectors.find { DefaultGradleTaskSelector it ->
+        builds.taskSelectors.find { BasicGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith("t1")
         }?.tasks == [':child1:child1a:t1', ':child1:child1b:t1'] as Set
-        builds.taskSelectors.find { DefaultGradleTaskSelector it ->
+        builds.taskSelectors.find { BasicGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith(":child1:t1")
         }?.tasks == [':child1:child1a:t1', ':child1:child1b:t1'] as Set
-        builds.taskSelectors.find { DefaultGradleTaskSelector it ->
+        builds.taskSelectors.find { BasicGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith(":child1:child1a:t1")
         }?.tasks == [':child1:child1a:t1'] as Set
         builds.taskSelectors*.name.each { it != null }
