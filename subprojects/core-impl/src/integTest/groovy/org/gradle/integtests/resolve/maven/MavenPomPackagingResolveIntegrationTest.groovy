@@ -68,14 +68,13 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
 
         then:
         file('libs').assertHasDescendants('projectA-1.0.jar')
-        def snapshot = file('libs/projectA-1.0.jar').snapshot()
 
         when:
         server.resetExpectations()
         run 'retrieve'
 
         then: // Uses cached artifacts
-        file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
+        file('libs').assertHasDescendants('projectA-1.0.jar')
     }
 
     def "ignores missing jar artifact for pom with packaging of type 'pom'"() {
