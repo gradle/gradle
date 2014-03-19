@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.gradle;
 
 import org.gradle.api.Nullable;
+import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.model.TaskSelector;
 
 import java.io.Serializable;
@@ -25,7 +26,7 @@ import java.util.Set;
 /**
  * Data used for {@link org.gradle.tooling.model.TaskSelector}.
  */
-public class DefaultGradleTaskSelector implements TaskSelector, TaskListingTaskSelector, Serializable {
+public class DefaultGradleTaskSelector implements TaskSelector, TaskListingLaunchable, InternalLaunchable, Serializable {
     private String name;
     private String displayName;
     private String description;

@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParameters;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
+import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 import java.io.File;
@@ -46,6 +47,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<String> jvmArguments;
         private List<String> arguments;
         private List<String> tasks;
+        private List<InternalLaunchable> launchables;
 
         private Builder() {
         }
@@ -91,13 +93,18 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
+        public Builder setLaunchables(List<InternalLaunchable> launchables) {
+            this.launchables = launchables;
+            return this;
+        }
+
         public void addProgressListener(ProgressListener listener) {
             progressListener.add(listener);
         }
 
         public ConsumerOperationParameters build() {
             return new ConsumerOperationParameters(parameters, stdout, stderr, stdin,
-                    javaHome, jvmArguments, arguments, tasks, progressListener);
+                    javaHome, jvmArguments, arguments, tasks, launchables, progressListener);
         }
     }
 
@@ -113,10 +120,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> jvmArguments;
     private final List<String> arguments;
     private final List<String> tasks;
+    private final List<InternalLaunchable> launchables;
 
     private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, InputStream stdin,
                                         File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks,
-                                        ProgressListenerAdapter listener) {
+                                        List<InternalLaunchable> launchables, ProgressListenerAdapter listener) {
         this.parameters = parameters;
         this.stdout = stdout;
         this.stderr = stderr;
@@ -125,6 +133,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.jvmArguments = jvmArguments;
         this.arguments = arguments;
         this.tasks = tasks;
+        this.launchables = launchables;
         this.progressListener = listener;
     }
 
@@ -203,5 +212,9 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public List<String> getTasks() {
         return tasks;
+    }
+
+    public List<InternalLaunchable> getLaunchables() {
+        return launchables;
     }
 }

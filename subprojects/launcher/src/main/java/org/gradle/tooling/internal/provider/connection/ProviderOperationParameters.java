@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.connection;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 import java.io.File;
@@ -62,4 +63,6 @@ public interface ProviderOperationParameters {
     List<String> getArguments(List<String> defaultArguments);
 
     List<String> getTasks();
+
+    List<InternalLaunchable> getLaunchables();
 }

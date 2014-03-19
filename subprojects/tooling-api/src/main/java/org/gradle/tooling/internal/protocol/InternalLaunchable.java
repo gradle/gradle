@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.gradle;
+package org.gradle.tooling.internal.protocol;
 
-import org.gradle.tooling.model.TaskSelector;
-
-import java.util.Set;
-
-public interface TaskListingTaskSelector extends TaskSelector {
-    Set<String> getTasks();
+/**
+ * A marker interface for launchables.
+ *
+ * The real implementation exists elsewhere and is only interesting for provider.
+ * Consumer will see public part of the contract from *.model.* packages and will send it back
+ * to provider as it is when a build is launched.
+ *
+ * @since 1.12
+ */
+public interface InternalLaunchable extends InternalProtocolInterface {
 }
