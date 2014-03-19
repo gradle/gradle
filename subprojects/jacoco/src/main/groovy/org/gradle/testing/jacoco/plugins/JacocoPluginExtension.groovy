@@ -35,7 +35,7 @@ class JacocoPluginExtension {
     /**
      * Version of Jacoco JARs to use.
      */
-    String toolVersion = '0.6.2.201302030002'
+    String toolVersion = '0.7.0.201403182114'
 
     protected final Project project
 
