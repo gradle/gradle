@@ -1356,6 +1356,7 @@ ability to all command-line based tool chains. It also permits the configuration
 
 * Only to register a `CommandLineTool` for languages that are supported by build.
    * Need to make it easy to have centralised tool chain configuration that works regardless of languages in effect.
+* Make it simpler to add support for new languages to existing tool chain implementations
 
 ## Story: Only use gcc/g++ front-ends for GCC tool chain
 
@@ -1423,6 +1424,9 @@ This story also aggregates a bunch of review items that relate to Architecture a
 - How to make Platform instance immutable
 - Consistent API for Architecture and OperatingSystem: either public method on both [os.isWindows(),arch.isAmd64()] or only on internal api.
 - Include ABI in architecture so that the correct prebuilt library can be selected for a tool chain
+- When no Platform architecture/os is defined, assume the current platform architecture/os, not the tool chain default.
+    - This will require detecting the current platform, and supplying the correct tool chain arguments when building.
+    - We can then remove the concept of the "tool chain default" platform, and always explicitly tell the tool chain which platform to build for.
 
 ## Story: Include all macro definitions in Visual Studio project configuration
 
