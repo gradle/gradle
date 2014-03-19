@@ -25,7 +25,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiDeprecationsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
-        toolingApi.isEmbedded = false
         file("build.gradle") << """
 task noop << {
     println "noop"

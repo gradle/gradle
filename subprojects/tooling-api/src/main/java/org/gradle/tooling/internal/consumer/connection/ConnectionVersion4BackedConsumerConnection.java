@@ -52,7 +52,8 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         super(delegate, getMetaData(delegate), adapter);
         ModelProducer consumerConnectionBackedModelProducer = new ConnectionVersion4BackedModelProducer(adapter, getVersionDetails(), modelMapping, delegate);
         ModelProducer gradleProjectAdapterProducer = new GradleProjectAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
-        modelProducer = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, gradleProjectAdapterProducer);
+        ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, gradleProjectAdapterProducer);
+        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelMapping, producerWithGradleBuild);
     }
 
     private static VersionDetails getMetaData(final ConnectionVersion4 delegate) {
@@ -162,14 +163,11 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         }
 
         public <T> T produceModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
-            final Action<SourceObjectMapping> mapper = Actions.composite(
-                    new PropertyHandlerFactory().forVersion(versionDetails),
-                    new TaskPropertyHandlerFactory().forVersion(versionDetails));
             if (modelType == GradleProject.class && !versionDetails.maySupportModel(GradleProject.class)) {
                 //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
                 //this patch enables getting gradle tasks for target gradle version pre M5
                 EclipseProjectVersion3 project = delegate.produceModel(EclipseProjectVersion3.class, operationParameters);
-                return adapter.adapt(modelType, new GradleProjectConverter().convert(project), mapper);
+                return adapter.adapt(modelType, new GradleProjectConverter().convert(project));
             }
             return delegate.produceModel(modelType, operationParameters);
         }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
@@ -31,6 +32,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleDescriptor moduleDescriptor;
     private final ComponentIdentifier componentIdentifier;
+    private ModuleSource moduleSource;
     private boolean changing;
     private boolean metaDataOnly;
     private String status;
@@ -61,14 +63,15 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         status = moduleDescriptor.getStatus();
     }
 
-    public MutableModuleVersionMetaData copy() {
+    public ModuleDescriptorAdapter copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor);
+        ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor, componentIdentifier);
         copy.dependencies = dependencies;
         copy.changing = changing;
         copy.metaDataOnly = metaDataOnly;
         copy.status = status;
         copy.statusScheme = statusScheme;
+        copy.moduleSource = moduleSource;
         return copy;
     }
 
@@ -79,6 +82,16 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
 
     public ModuleVersionIdentifier getId() {
         return moduleVersionIdentifier;
+    }
+
+    public ModuleSource getSource() {
+        return moduleSource;
+    }
+
+    public ModuleVersionMetaData withSource(ModuleSource source) {
+        ModuleDescriptorAdapter copy = copy();
+        copy.moduleSource = source;
+        return copy;
     }
 
     public ModuleDescriptor getDescriptor() {
@@ -167,17 +180,17 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     }
 
     protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-        Map<Artifact, ModuleVersionArtifactMetaData> ivyArtifacts = new HashMap<Artifact, ModuleVersionArtifactMetaData>();
-        for (ModuleVersionArtifactMetaData artifact : getArtifacts()) {
-            ivyArtifacts.put(artifact.getArtifact(), artifact);
-        }
-        Set<ModuleVersionArtifactMetaData> artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+        Set<Artifact> artifacts = new HashSet<Artifact>();
+        Set<ModuleVersionArtifactMetaData> artifactMetaData = new LinkedHashSet<ModuleVersionArtifactMetaData>();
         for (String ancestor : configurationMetaData.getHierarchy()) {
             for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-                artifacts.add(ivyArtifacts.get(artifact));
+                if (artifacts.add(artifact)) {
+                    DefaultModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(getId(), artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getQualifiedExtraAttributes());
+                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(artifactId));
+                }
             }
         }
-        return artifacts;
+        return artifactMetaData;
     }
 
     private class DefaultConfigurationMetaData implements ConfigurationMetaData {

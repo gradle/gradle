@@ -26,7 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
 
-class GenericFileSystem implements FileSystem {
+public class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
 
     final boolean caseSensitive;
@@ -73,7 +73,7 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
-    GenericFileSystem(Chmod chmod, Stat stat, Symlink symlink) {
+    public GenericFileSystem(Chmod chmod, Stat stat, Symlink symlink) {
         this.stat = stat;
         this.symlink = symlink;
         this.chmod = chmod;

@@ -24,7 +24,7 @@ public class DefaultBuildInvocations<T> implements Serializable {
     private List<DefaultGradleTaskSelector> selectors;
     private List<T> tasks;
 
-    public DefaultBuildInvocations setSelectors(List<DefaultGradleTaskSelector> selectors) {
+    public DefaultBuildInvocations<T> setSelectors(List<DefaultGradleTaskSelector> selectors) {
         this.selectors = selectors;
         return this;
     }
@@ -33,7 +33,7 @@ public class DefaultBuildInvocations<T> implements Serializable {
         return selectors;
     }
 
-    public DefaultBuildInvocations setTasks(List<T> tasks) {
+    public DefaultBuildInvocations<T> setTasks(List<T> tasks) {
         this.tasks = tasks;
         return this;
     }

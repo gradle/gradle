@@ -24,7 +24,6 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
-import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.internal.Exceptions;
 
 public class BuildInvocationsAdapterProducer extends AbstractModelProducer {
@@ -37,7 +36,7 @@ public class BuildInvocationsAdapterProducer extends AbstractModelProducer {
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (type.getName().equals(BuildInvocations.class.getName()) && !versionDetails.maySupportModel(type)) {
-            if (!versionDetails.maySupportModel(GradleBuild.class)) {
+            if (!versionDetails.maySupportModel(GradleProject.class)) {
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }
             GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);

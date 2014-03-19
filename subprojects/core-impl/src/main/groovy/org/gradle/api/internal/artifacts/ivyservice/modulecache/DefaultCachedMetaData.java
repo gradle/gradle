@@ -38,8 +38,10 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
         if (moduleDescriptor == null) {
             metaData = null;
         } else {
-            metaData = new ModuleDescriptorAdapter(moduleDescriptor);
-            metaData.setChanging(entry.isChanging);
+            ModuleDescriptorAdapter moduleDescriptorAdapter = new ModuleDescriptorAdapter(moduleDescriptor);
+            moduleDescriptorAdapter.setChanging(entry.isChanging);
+            moduleDescriptorAdapter.setMetaDataOnly(entry.isMetaDataOnly);
+            metaData = moduleDescriptorAdapter;
         }
     }
 

@@ -72,7 +72,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
             out.add(new DefaultGradleTask()
                     .setPath(t.getPath())
                     .setName(t.getName())
-                    .setDisplayName(t.getName() + " task (" + t.getPath() + ")")
+                    .setDisplayName(t.toString())
                     .setDescription(t.getDescription())
                     .setProject(owner));
         }

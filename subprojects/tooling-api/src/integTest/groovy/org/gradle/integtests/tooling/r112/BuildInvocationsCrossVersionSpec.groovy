@@ -38,25 +38,24 @@ rootProject.name = 'test'
 task t1 << {
     println "t1 in $project.name"
 }
-'''
-        file('b').mkdirs()
-        file('b').file('build.gradle').text = '''
-task t3 << {
-    println "t3 in $project.name"
+
+project(':b') {
+    task t3 << {
+        println "t3 in $project.name"
+    }
+    task t2 << {
+        println "t2 in $project.name"
+    }
 }
-task t2 << {
-    println "t2 in $project.name"
-}
-'''
-        file('b/c').mkdirs()
-        file('b/c').file('build.gradle').text = '''
-task t1 << {
-    println "t1 in $project.name"
-}
-task t2 << {
-    println "t2 in $project.name"
-}
-'''
+
+project(':b:c') {
+    task t1 << {
+        println "t1 in $project.name"
+    }
+    task t2 << {
+        println "t2 in $project.name"
+    }
+}'''
     }
 
     @TargetGradleVersion(">=1.8 <=1.11")
@@ -98,7 +97,7 @@ task t2 << {
         result.result.assertTasksExecuted(':b:c:t1')
     }
 
-    @TargetGradleVersion(">=1.8")
+    @TargetGradleVersion(">=1.0-milestone-5")
     def "build task selectors from connection"() {
         when:
         BuildInvocations model = withConnection { connection ->
@@ -114,8 +113,7 @@ task t2 << {
         result.result.assertTasksExecuted(':b:c:t1')
     }
 
-    // TODO retrofit to older version
-    @TargetGradleVersion(">=1.8")
+    @TargetGradleVersion(">=1.0-milestone-5")
     def "can request task selectors for project"() {
         given:
         BuildInvocations model = withConnection { connection ->
@@ -124,7 +122,7 @@ task t2 << {
 
         when:
         def selectors = model.taskSelectors.findAll { TaskSelector it ->
-            !it.description.startsWith(':')
+            !it.description.startsWith(':') && it.name != 'setupBuild' // synthetic task in 1.6
         }
         then:
         selectors*.name as Set == ['t1', 't2', 't3'] as Set
@@ -144,7 +142,7 @@ task t2 << {
         selectors*.name as Set == ['t1', 't2'] as Set
     }
 
-    @TargetGradleVersion("<1.8")
+    @TargetGradleVersion("<1.0-milestone-5")
     def "cannot request BuildInvocations for old project"() {
         when:
         withConnection { connection ->
@@ -170,7 +168,7 @@ task t2 << {
 
     }
 
-    @TargetGradleVersion(">=1.8")
+    @TargetGradleVersion(">=1.0-milestone-5")
     def "can request tasks for project"() {
         given:
         BuildInvocations model = withConnection { connection ->
@@ -178,7 +176,7 @@ task t2 << {
         }
 
         expect:
-        model.tasks.size() == 5
+        model.tasks.count { it.name != 'setupBuild' } == 5
 
         when:
         def tasks = model.tasks.findAll { GradleTask it ->

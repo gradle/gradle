@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.tooling
+package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildLauncher
 
 class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
-
-    def setup() {
-        toolingApi.isEmbedded = false
-    }
-
-    def "tooling api spawns a daemon in specified userHomeDir against old toolingApi"() {
+    def "build is executed using specified user home directory"() {
         File userHomeDir = temporaryFolder.createDir('userhomedir')
         projectDir.file('settings.gradle') << 'rootProject.name="test"'
-        projectDir.file('build.gradle') << """task gradleBuild(type: GradleBuild) << {
-    println 'userHomeDir=' + startParameter.gradleUserHomeDir
+        projectDir.file('build.gradle') << """task gradleBuild << {
+    logger.lifecycle 'userHomeDir=' + gradle.gradleUserHomeDir
 }
 """
         ByteArrayOutputStream baos = new ByteArrayOutputStream()

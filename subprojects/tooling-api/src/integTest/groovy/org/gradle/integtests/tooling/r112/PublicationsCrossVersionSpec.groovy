@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r112
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.gradle.ProjectPublications
 
@@ -31,7 +30,7 @@ class PublicationsCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         ProjectPublications publications = withConnection { connection ->
-            connection.action(new FetchPublicationsBuildAction()).run()
+            connection.getModel(ProjectPublications)
         }
 
         then:
@@ -56,7 +55,7 @@ uploadArchives {
 
         when:
         ProjectPublications publications = withConnection { connection ->
-            connection.action(new FetchPublicationsBuildAction()).run()
+            connection.getModel(ProjectPublications)
         }
 
         then:
@@ -88,7 +87,7 @@ uploadArchives {
 
         when:
         ProjectPublications publications = withConnection { connection ->
-            connection.action(new FetchPublicationsBuildAction()).run()
+            connection.getModel(ProjectPublications)
         }
 
         then:
@@ -123,7 +122,7 @@ uploadArchives {
 
         when:
         ProjectPublications publications = withConnection { connection ->
-            connection.action(new FetchPublicationsBuildAction()).run()
+            connection.getModel(ProjectPublications)
         }
 
         then:
@@ -170,7 +169,7 @@ publishing {
 
         when:
         ProjectPublications publications = withConnection { connection ->
-            connection.action(new FetchPublicationsBuildAction()).run()
+            connection.getModel(ProjectPublications)
         }
 
         then:
@@ -189,30 +188,17 @@ publishing {
         pub2.id.version == "1.2"
     }
 
-    @TargetGradleVersion('<1.12 >=1.8')
+    @TargetGradleVersion('<1.12')
     def "decent error message for Gradle version that doesn't expose publications"() {
         when:
         ProjectPublications publications = withConnection { connection ->
-            connection.action(new FetchPublicationsBuildAction()).run()
-        }
-        publications.publications
-
-        then:
-        BuildActionFailureException e = thrown()
-        e.cause.message.contains('No model of type \'ProjectPublications\' is available in this build.')
-    }
-
-    @TargetGradleVersion('<1.8')
-    def "decent error message for Gradle version that doesn't expose build actions"() {
-        when:
-        ProjectPublications publications = withConnection { connection ->
-            connection.action(new FetchPublicationsBuildAction()).run()
+            connection.getModel(ProjectPublications)
         }
         publications.publications
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message.contains('The version of Gradle you are using')
-        e.message.contains('does not support execution of build actions provided by the tooling API client.')
+        e.message.contains('does not support building a model of type \'ProjectPublications\'.') || 
+        e.message.contains('No model of type \'ProjectPublications\' is available in this build.')
     }
 }

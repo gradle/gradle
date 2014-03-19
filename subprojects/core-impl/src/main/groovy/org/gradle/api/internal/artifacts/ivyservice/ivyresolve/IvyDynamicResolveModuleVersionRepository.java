@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
@@ -25,7 +26,6 @@ import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class IvyDynamicResolveModuleVersionRepository implements LocalAwareModuleVersionRepository {
     private final LocalAwareModuleVersionRepository repository;
@@ -73,11 +73,12 @@ public class IvyDynamicResolveModuleVersionRepository implements LocalAwareModul
         metaData.setDependencies(transformed);
     }
 
-    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        repository.resolve(artifact, result, moduleSource);
+    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        repository.resolveModuleArtifacts(moduleMetaData, context, result);
     }
 
-    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
-        return repository.getCandidateArtifacts(module, artifactType);
+    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+        repository.resolveArtifact(moduleMetaData, artifact, result);
     }
+
 }

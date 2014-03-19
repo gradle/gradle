@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.resolution;
 
-import com.google.common.collect.*;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -28,15 +27,19 @@ import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
 import org.gradle.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ConfigurationContainerInternal configurationContainer;
@@ -77,7 +80,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     public ArtifactResolutionQueryResult execute() {
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
         ConfigurationInternal configuration = configurationContainer.detachedConfiguration();
-        final DependencyToModuleVersionResolver resolver = ivyFactory.create(configuration, repositories, metadataProcessor);
+        final RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataProcessor);
 
         return lockingManager.useCache("resolve artifacts", new Factory<ArtifactResolutionQueryResult>() {
             public ArtifactResolutionQueryResult create() {
@@ -90,17 +93,22 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                     }
                     ModuleComponentIdentifier moduleComponentId = (ModuleComponentIdentifier) componentId;
                     BuildableModuleVersionResolveResult moduleResolveResult = new DefaultBuildableModuleVersionResolveResult();
-                    resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId), true)), moduleResolveResult);
+                    repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId), true)), moduleResolveResult);
+                    ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
 
                     if (moduleResolveResult.getFailure() != null) {
                         unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId, moduleResolveResult.getFailure()));
                     } else {
-                        moduleResolveResult.setArtifactResolver(new ErrorHandlingArtifactResolver(moduleResolveResult.getArtifactResolver()));
+                        ModuleVersionMetaData moduleMetaData = moduleResolveResult.getMetaData();
                         List<JvmLibraryArtifact> jvmLibraryArtifacts = Lists.newArrayList();
                         for (Class<? extends SoftwareArtifact> artifactType : artifactTypes) {
-                            DefaultBuildableMultipleArtifactResolveResult multiResolveResult = new DefaultBuildableMultipleArtifactResolveResult();
-                            moduleResolveResult.getArtifactResolver().resolve(moduleResolveResult.getMetaData(), artifactType, multiResolveResult);
-                            for (ArtifactResolveResult resolveResult : multiResolveResult.getResults().values()) {
+                            ArtifactResolveContext context = new ArtifactTypeResolveContext(artifactType);
+                            BuildableArtifactSetResolveResult multiResolveResult = new DefaultBuildableArtifactSetResolveResult();
+                            artifactResolver.resolveModuleArtifacts(moduleMetaData, context, multiResolveResult);
+                            for (ModuleVersionArtifactMetaData artifactMetaData : multiResolveResult.getArtifacts()) {
+                                BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
+                                artifactResolver.resolveArtifact(moduleMetaData, artifactMetaData, resolveResult);
+
                                 if (artifactType == JvmLibraryJavadocArtifact.class) {
                                     if (resolveResult.getFailure() != null) {
                                         jvmLibraryArtifacts.add(new DefaultJvmLibraryJavadocArtifact(resolveResult.getFailure()));

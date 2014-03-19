@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
-
-import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -96,14 +94,15 @@ class CachedRepositoryTest extends Specification {
         def artifact = Stub(ModuleVersionArtifactMetaData) {
             getId() >> artifactId
         }
-        def source = Mock(ModuleSource)
+        def moduleMetaData = Mock(ModuleVersionMetaData)
 
         when:
-        repo.resolve(artifact, result, source)
+        repo.resolveArtifact(moduleMetaData, artifact, result)
 
         then:
         1 * cache.supplyArtifact(artifactId, result) >> false
-        1 * delegate.resolve(artifact, result, source)
+        1 * delegate.resolveArtifact(moduleMetaData, artifact, result)
+        1 * result.getFailure() >> null
         1 * cache.newArtifact(artifactId, result)
         0 * _
     }
@@ -114,9 +113,10 @@ class CachedRepositoryTest extends Specification {
         def artifact = Stub(ModuleVersionArtifactMetaData) {
             getId() >> artifactId
         }
+        def moduleMetaData = Mock(ModuleVersionMetaData)
 
         when:
-        repo.resolve(artifact, result, Mock(ModuleSource))
+        repo.resolveArtifact(moduleMetaData, artifact, result)
 
         then:
         1 * cache.supplyArtifact(artifactId, result) >> true

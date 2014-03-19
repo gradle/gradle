@@ -21,13 +21,15 @@ import java.math.BigInteger;
 
 class ModuleDescriptorCacheEntry {
     public boolean isChanging;
+    public boolean isMetaDataOnly;
     public boolean isMissing;
     public long createTimestamp;
     public ModuleSource moduleSource;
     public BigInteger moduleDescriptorHash;
 
-    ModuleDescriptorCacheEntry(boolean isChanging, boolean isMissing, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
+    ModuleDescriptorCacheEntry(boolean isChanging, boolean isMetaDataOnly, boolean isMissing, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
         this.isChanging = isChanging;
+        this.isMetaDataOnly = isMetaDataOnly;
         this.isMissing = isMissing;
         this.createTimestamp = createTimestamp;
         this.moduleSource = moduleSource;

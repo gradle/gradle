@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
@@ -34,7 +35,6 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -78,12 +78,12 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         if (pomReader.hasParent()) {
             //Is there any other parent properties?
 
-            ModuleRevisionId parentModRevID = IvyUtil.createModuleRevisionId(
+            ModuleVersionIdentifier parentId = DefaultModuleVersionIdentifier.newId(
                     pomReader.getParentGroupId(),
                     pomReader.getParentArtifactId(),
                     pomReader.getParentVersion());
-            PomReader parentDescr = parseOtherPom(parserSettings, parentModRevID);
-            pomReader.setPomParent(parentDescr);
+            PomReader parentPomReader = parseOtherPom(parserSettings, parentId);
+            pomReader.setPomParent(parentPomReader);
         }
         pomReader.resolveGAV();
 
@@ -106,7 +106,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                         mdBuilder.getModuleDescriptor().getModuleRevisionId(), relocation);
                 LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
-                PomReader relocatedModule = parseOtherPom(parserSettings, relocation);
+                PomReader relocatedModule = parseOtherPom(parserSettings, DefaultModuleVersionIdentifier.newId(relocation));
 
                 Collection<PomDependencyData> pomDependencyDataList = relocatedModule.getDependencies().values();
                 for(PomDependencyData pomDependencyData : pomDependencyDataList) {
@@ -192,23 +192,21 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      * @throws SAXException
      */
     private PomReader parseImportedPom(DescriptorParseContext parseContext, PomDependencyMgt pomDependencyMgt) throws IOException, SAXException {
-        ModuleRevisionId importModRevID = IvyUtil.createModuleRevisionId(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getVersion());
-        return parseOtherPom(parseContext, importModRevID);
+        ModuleVersionIdentifier importedId = DefaultModuleVersionIdentifier.newId(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getVersion());
+        return parseOtherPom(parseContext, importedId);
     }
 
     /**
      * Parses other POM.
      *
      * @param parseContext Parse context
-     * @param parentModRevID Parent module revision ID
+     * @param parentId Parent module revision ID
      * @return POM reader
      * @throws IOException
      * @throws SAXException
      */
-    private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleRevisionId parentModRevID) throws IOException, SAXException {
-        Artifact pomArtifact = DefaultArtifact.newPomArtifact(parentModRevID, new Date());
-        ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(pomArtifact);
-        LocallyAvailableExternalResource localResource = parseContext.getArtifact(artifactIdentifier);
+    private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleVersionIdentifier parentId) throws IOException, SAXException {
+        LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(parentId);
         PomReader pomReader = new PomReader(localResource);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(localResource, parseContext, pomReader);
         doParsePom(parseContext, mdBuilder, pomReader);

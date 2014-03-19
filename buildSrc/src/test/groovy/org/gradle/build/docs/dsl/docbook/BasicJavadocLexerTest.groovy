@@ -100,6 +100,32 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
+    def discardsHtmlComments() {
+        when:
+        lexer.pushText("<p><!-- ignore me --></p>text <!-- -->2")
+        lexer.visit(visitor)
+
+        then:
+        1 * visitor.onStartHtmlElement('p')
+        1 * visitor.onStartHtmlElementComplete('p')
+        1 * visitor.onEndHtmlElement('p')
+        1 * visitor.onText("text 2")
+        1 * visitor.onEnd()
+        0 * visitor._
+    }
+
+    def handlesMissingEndOfComment() {
+        when:
+        lexer.pushText("<p><!-- ignore me ")
+        lexer.visit(visitor)
+
+        then:
+        1 * visitor.onStartHtmlElement('p')
+        1 * visitor.onStartHtmlElementComplete('p')
+        1 * visitor.onEnd()
+        0 * visitor._
+    }
+
     def parsesJavadocTags() {
         when:
         lexer.pushText("{@tag some value}")
