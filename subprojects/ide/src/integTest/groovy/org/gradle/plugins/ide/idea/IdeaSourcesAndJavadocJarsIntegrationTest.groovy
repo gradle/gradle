@@ -47,8 +47,9 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpe
         module.configuration("sources")
         module.configuration("javadoc")
         module.artifact(conf: "default")
-        module.artifact(type: "source", classifier: "sources", ext: "jar", conf: "sources")
-        module.artifact(type: "javadoc", classifier: "javadoc", ext: "jar", conf: "javadoc")
+        // use uncommon sources and javadoc classifiers to prove that artifact names don't matter
+        module.artifact(type: "source", classifier: "my-sources", ext: "jar", conf: "sources")
+        module.artifact(type: "javadoc", classifier: "my-javadoc", ext: "jar", conf: "javadoc")
         module.publish()
         module.allowAll()
         server.start()
@@ -57,7 +58,7 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpe
         runTask "idea", baseBuildScript + """repositories { ivy { url "$repo.uri" } }"""
 
         then:
-        imlFileContainsSourcesAndJavadocEntry()
+        imlFileContainsSourcesAndJavadocEntry("my-sources", "my-javadoc")
 
     }
 
@@ -90,14 +91,14 @@ idea {
 """
     }
 
-    private void imlFileContainsSourcesAndJavadocEntry() {
+    private void imlFileContainsSourcesAndJavadocEntry(sourcesClassifier = "sources", javadocClassifier = "javadoc") {
         def iml = parseImlFile("root")
 
         def sourcesUrl = iml.component.orderEntry.library.SOURCES.root.@url[0].text()
-        assert sourcesUrl.endsWith("/module-1.0-sources.jar!/")
+        assert sourcesUrl.endsWith("/module-1.0-${sourcesClassifier}.jar!/")
 
         def javadocUrl = iml.component.orderEntry.library.JAVADOC.root.@url[0].text()
-        assert javadocUrl.endsWith("/module-1.0-javadoc.jar!/")
+        assert javadocUrl.endsWith("/module-1.0-${javadocClassifier}.jar!/")
     }
 
     private MavenHttpRepository getMavenHttpRepo() {
