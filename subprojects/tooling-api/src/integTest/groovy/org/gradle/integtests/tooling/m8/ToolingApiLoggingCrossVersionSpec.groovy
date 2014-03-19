@@ -119,7 +119,7 @@ project.logger.debug("debug logging");
     }
 
     String filterToolingApiSpecific(String output) {
-        return output.replaceFirst("Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 2.0" + System.getProperty("line.separator"), "")
+        return output.replaceFirst("Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 3.0" + System.getProperty("line.separator"), "")
     }
 
     void shouldNotContainProviderLogging(String output) {

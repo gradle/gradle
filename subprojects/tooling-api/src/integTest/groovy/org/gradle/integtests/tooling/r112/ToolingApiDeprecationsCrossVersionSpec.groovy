@@ -95,7 +95,7 @@ task noop << {
     }
 
     def deprecationMessageProvider(def version) {
-        "Connecting to Gradle version " + version + " from the Gradle tooling API has been deprecated and is scheduled to be removed in version 2.0 of the Gradle tooling API"
+        "Connecting to Gradle version " + version + " from the Gradle tooling API has been deprecated and is scheduled to be removed in version 3.0 of the Gradle tooling API"
     }
 
     @ToolingApiVersion("<1.2")
@@ -161,7 +161,7 @@ task noop << {
     }
 
     def deprecationMessageApi(def version) {
-        "Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 2.0"
+        "Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 3.0"
     }
 
 }
