@@ -87,7 +87,6 @@ public class ResolveIvyFactory {
                 ivyContextualize((IvyAwareModuleVersionRepository) moduleVersionRepository, userResolverChain, configuration.getName());
             }
             if (moduleVersionRepository instanceof ExternalResourceResolver) {
-                // TODO:DAZ Should have type for this
                 ((ExternalResourceResolver) moduleVersionRepository).setRepositoryChain(parentLookupResolver);
             }
 

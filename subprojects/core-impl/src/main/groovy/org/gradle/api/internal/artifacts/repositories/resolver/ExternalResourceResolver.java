@@ -343,7 +343,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return new ArtifactResolver(getIvyPatterns(), getArtifactPatterns());
     }
 
-    // TODO:DAZ Remove the need for this, by using our own set of PatternMatchers
     public void setSettings(IvySettings settings) {
     }
 
