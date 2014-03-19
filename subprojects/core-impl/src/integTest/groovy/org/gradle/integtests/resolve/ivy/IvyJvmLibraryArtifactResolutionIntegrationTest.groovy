@@ -211,15 +211,24 @@ task verify << {
         .execute()
 
     assert result.components.size() == 1
-    for (component in components) {
+    for (component in result.components) {
         assert component.id.group == "some.group"
         assert component.id.module == "some-artifact"
         assert component.id.version == "1.0"
         assert component instanceof JvmLibrary
 
-        assert component.allArtifacts.empty
-        assert component.sourceArtifacts.empty
-        assert component.javadocArtifacts.empty
+        assert component.allArtifacts.size() == 2
+        assert component instanceof JvmLibrary
+
+        assert component.sourcesArtifacts.size() == 1
+        def sourceArtifact = component.sourcesArtifacts.iterator().next()
+        assert sourceArtifact instanceof JvmLibrarySourcesArtifact
+        assert sourceArtifact.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
+
+        assert component.javadocArtifacts.size() == 1
+        def javadocArtifact = component.javadocArtifacts.iterator().next()
+        assert javadocArtifact instanceof JvmLibraryJavadocArtifact
+        assert javadocArtifact.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
     }
 
     assert result.unresolvedComponents.empty
