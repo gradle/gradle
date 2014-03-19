@@ -101,7 +101,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
         private DefaultLocalArtifactMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
             Map<String, String> attrs = new HashMap<String, String>();
-            attrs.putAll(artifact.getQualifiedExtraAttributes());
+            attrs.putAll(artifact.getExtraAttributes());
             attrs.put("file", file.getAbsolutePath());
             this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
             this.selectorId = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact);

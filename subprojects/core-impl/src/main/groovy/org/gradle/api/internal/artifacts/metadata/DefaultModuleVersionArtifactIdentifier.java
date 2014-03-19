@@ -27,8 +27,7 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
     private final IvyArtifactName name;
 
     public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
-        this.moduleVersionIdentifier = moduleVersionIdentifier;
-        this.name = new DefaultIvyArtifactName(artifact);
+        this(moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
     }
 
     public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {

@@ -106,6 +106,28 @@ task check << {
         succeeds "check"
     }
 
+    def "dependency that references a classifier can resolve module with no metadata"() {
+        given:
+        def ivyModule = ivyRepo.module("org.gradle", "test", "1.45").withNoMetaData().artifact(classifier: "classifier").publish()
+
+        and:
+        buildFile << """
+repositories { ivy { url "${ivyRepo.uri}" } }
+configurations { compile }
+dependencies {
+    compile "org.gradle:test:1.45:classifier"
+}
+
+task check << {
+    assert configurations.compile.collect { it.name } == ['test-1.45-classifier.jar']
+}
+"""
+
+        expect:
+        ivyModule.jarFile.assertDoesNotExist()
+        succeeds "check"
+    }
+
     def "dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
         given:
         ivyRepo.module("org.gradle", "test", "1.45")
