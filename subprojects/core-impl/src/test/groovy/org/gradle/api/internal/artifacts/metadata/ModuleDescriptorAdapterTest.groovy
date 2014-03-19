@@ -130,8 +130,8 @@ class ModuleDescriptorAdapterTest extends Specification {
     }
 
     def "builds and caches artifacts from the module descriptor"() {
-        def artifact1 = Stub(Artifact)
-        def artifact2 = Stub(Artifact)
+        def artifact1 = artifact("one")
+        def artifact2 = artifact("two")
 
         given:
         moduleDescriptor.getAllArtifacts() >> ([artifact1, artifact2] as Artifact[])
@@ -140,15 +140,21 @@ class ModuleDescriptorAdapterTest extends Specification {
         def artifacts = metaData.artifacts
 
         then:
-        artifacts*.artifact == [artifact1, artifact2]
+        artifacts*.name.name == ["one", "two"]
 
         and:
         metaData.artifacts.is(artifacts)
     }
 
+    Artifact artifact(String name) {
+        return Stub(Artifact) {
+            getName() >> name
+        }
+    }
+
     def "builds and caches artifacts for a configuration"() {
-        def artifact1 = Stub(Artifact)
-        def artifact2 = Stub(Artifact)
+        def artifact1 = artifact("one")
+        def artifact2 = artifact("two")
         def config = Stub(Configuration)
 
         given:
@@ -160,10 +166,8 @@ class ModuleDescriptorAdapterTest extends Specification {
         def artifacts = metaData.getConfiguration("conf").artifacts
 
         then:
-        artifacts*.artifact == [artifact1, artifact2]
-
-        and:
-        artifacts as List == metaData.artifacts as List
+        artifacts*.name.name == ["one", "two"]
+        metaData.artifacts*.name.name == ["one", "two"]
 
         and:
         metaData.getConfiguration("conf").artifacts.is(artifacts)
@@ -172,9 +176,9 @@ class ModuleDescriptorAdapterTest extends Specification {
     def "artifacts include union of those inherited from other configurations"() {
         def config = Stub(Configuration)
         def parent = Stub(Configuration)
-        def artifact1 = Stub(Artifact)
-        def artifact2 = Stub(Artifact)
-        def artifact3 = Stub(Artifact)
+        def artifact1 = artifact("one")
+        def artifact2 = artifact("two")
+        def artifact3 = artifact("three")
 
         given:
         moduleDescriptor.getConfiguration("conf") >> config
@@ -188,7 +192,7 @@ class ModuleDescriptorAdapterTest extends Specification {
         def artifacts = metaData.getConfiguration("conf").artifacts
 
         then:
-        artifacts*.artifact == [artifact1, artifact2, artifact3]
+        artifacts*.name.name == ["one", "two", "three"]
     }
 
     def "builds and caches exclude rules for a configuration"() {

@@ -17,22 +17,25 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ModuleInternal;
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
-import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
 
 import java.util.Set;
 
 public class ProjectDependencyResolver implements DependencyToModuleVersionResolver, ModuleToModuleVersionResolver {
     private final ProjectComponentRegistry projectComponentRegistry;
-    private final DependencyToModuleVersionResolver resolver;
+    private final DependencyToModuleVersionResolver delegate;
     private final LocalComponentFactory localComponentFactory;
 
-    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, DependencyToModuleVersionResolver resolver, LocalComponentFactory localComponentFactory) {
+    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, LocalComponentFactory localComponentFactory, DependencyToModuleVersionResolver delegate) {
         this.projectComponentRegistry = projectComponentRegistry;
-        this.resolver = resolver;
+        this.delegate = delegate;
         this.localComponentFactory = localComponentFactory;
     }
 
@@ -41,36 +44,14 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         if (descriptor instanceof ProjectDependencyDescriptor) {
             ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
             LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(desc.getTargetProject().getPath());
-            result.resolved(componentMetaData.toResolveMetaData(), new ProjectArtifactResolver(componentMetaData));
+            result.resolved(componentMetaData.toResolveMetaData());
         } else {
-            resolver.resolve(dependency, result);
+            delegate.resolve(dependency, result);
         }
     }
 
     public void resolve(ModuleInternal module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result) {
         LocalComponentMetaData componentMetaData = localComponentFactory.convert(configurations, module);
-        result.resolved(componentMetaData.toResolveMetaData(), new ProjectArtifactResolver(componentMetaData));
-    }
-
-    private static class ProjectArtifactResolver implements ArtifactResolver {
-        private final LocalComponentMetaData publishMetaData;
-
-        public ProjectArtifactResolver(LocalComponentMetaData publishMetaData) {
-            this.publishMetaData = publishMetaData;
-        }
-
-        public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-            LocalArtifactMetaData artifactMetaData = publishMetaData.getArtifact(artifact.getId());
-            if (artifactMetaData != null) {
-                result.resolved(artifactMetaData.getFile());
-            } else {
-                result.notFound(artifact.getId());
-            }
-        }
-
-        public void resolve(ModuleVersionMetaData moduleMetadata, Class<? extends SoftwareArtifact> artifactType, BuildableMultipleArtifactResolveResult result) {
-            // TODO: how to handle this?
-            throw new UnsupportedOperationException("TODO");
-        }
+        result.resolved(componentMetaData.toResolveMetaData());
     }
 }

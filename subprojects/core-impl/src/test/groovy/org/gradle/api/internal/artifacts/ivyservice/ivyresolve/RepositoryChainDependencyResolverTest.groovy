@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -26,11 +27,12 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Ignore
 import spock.lang.Specification
 
-class UserResolverChainTest extends Specification {
+class RepositoryChainDependencyResolverTest extends Specification {
     final metaData = metaData("1.2")
     final dependencyId = Stub(ModuleVersionSelector)
     final dependency = Stub(DependencyMetaData)
@@ -41,10 +43,11 @@ class UserResolverChainTest extends Specification {
             a.version.compareTo(b.version)
         }
     }
+    final Transformer<ModuleVersionMetaData, RepositoryChainModuleResolution> transformer = Mock(Transformer)
     final result = Mock(BuildableModuleVersionResolveResult)
     final moduleSource = Mock(ModuleSource)
 
-    final UserResolverChain resolver = new UserResolverChain(matcher, latestStrategy)
+    final RepositoryChainDependencyResolver resolver = new RepositoryChainDependencyResolver(matcher, latestStrategy, transformer)
 
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
         def moduleRevId = moduleDescriptor.moduleRevisionId
@@ -71,10 +74,14 @@ class UserResolverChainTest extends Specification {
         1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo
-            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -96,10 +103,14 @@ class UserResolverChainTest extends Specification {
         1 * repo.getDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo
-            assert source.moduleSource == moduleSource
         }
         and:
         _ * repo.name >> "repo"
@@ -122,10 +133,14 @@ class UserResolverChainTest extends Specification {
         1 * repo.getDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo
-            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -236,10 +251,14 @@ class UserResolverChainTest extends Specification {
         1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo1
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo1
-            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -269,10 +288,14 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo2
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo2
-            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -300,10 +323,14 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo2
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo2
-            assert source.moduleSource == moduleSource
         }
         and:
         _ * repo1.name >> "repo"
@@ -331,11 +358,16 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
-            assert metaData == this.metaData
-            assert source.delegate == repo2
-            assert source.moduleSource == moduleSource
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo2
+            metaData
         }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
+            assert metaData == this.metaData
+        }
+
         and:
         _ * repo1.name >> "repo"
         _ * repo2.name >> "repo"
@@ -367,10 +399,14 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo2
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo2
-            assert source.moduleSource == moduleSource
         }
         and:
         _ * repo1.name >> "repo"
@@ -400,10 +436,14 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo2
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo2
-            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -435,10 +475,14 @@ class UserResolverChainTest extends Specification {
         1 * repo1.getDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo1
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo1
-            assert source.moduleSource == moduleSource
         }
         and:
         _ * repo1.name >> "repo"
@@ -465,10 +509,14 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo2
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo2
-            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -498,10 +546,14 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData, moduleSource)
         }
-        1 * result.resolved(_, _) >> { metaData, source ->
+        1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
+            assert it.module == metaData
+            assert it.moduleSource == moduleSource
+            assert it.repository == repo2
+            metaData
+        }
+        1 * result.resolved(_) >> { ModuleVersionMetaData metaData ->
             assert metaData == this.metaData
-            assert source.delegate == repo2
-            assert source.moduleSource == moduleSource
         }
 
         and:

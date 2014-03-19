@@ -34,10 +34,7 @@ import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableModuleVersionResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.internal.Factory;
@@ -52,12 +49,14 @@ import java.util.Map;
  */
 public class LoopbackDependencyResolver implements DependencyResolver {
     private final String name;
-    private final UserResolverChain userResolverChain;
+    private final DependencyToModuleVersionResolver dependencyResolver;
+    private final ArtifactResolver artifactResolver;
     private final CacheLockingManager cacheLockingManager;
 
-    public LoopbackDependencyResolver(String name, UserResolverChain userResolverChain, CacheLockingManager cacheLockingManager) {
+    public LoopbackDependencyResolver(String name, RepositoryChain repositoryChain, CacheLockingManager cacheLockingManager) {
         this.name = name;
-        this.userResolverChain = userResolverChain;
+        this.dependencyResolver = repositoryChain.getDependencyResolver();
+        this.artifactResolver = repositoryChain.getArtifactResolver();
         this.cacheLockingManager = cacheLockingManager;
     }
 
@@ -78,7 +77,7 @@ public class LoopbackDependencyResolver implements DependencyResolver {
                 IvyContext ivyContext = IvyContext.pushNewCopyContext();
                 try {
                     ivyContext.setResolveData(data);
-                    userResolverChain.resolve(dependency, result);
+                    dependencyResolver.resolve(dependency, result);
                 } finally {
                     IvyContext.popContext();
                 }
@@ -94,9 +93,10 @@ public class LoopbackDependencyResolver implements DependencyResolver {
                     DependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), false);
                     DefaultBuildableModuleVersionResolveResult resolveResult = new DefaultBuildableModuleVersionResolveResult();
                     DefaultDependencyMetaData dependency = new DefaultDependencyMetaData(dependencyDescriptor);
-                    userResolverChain.resolve(dependency, resolveResult);
+                    dependencyResolver.resolve(dependency, resolveResult);
                     DefaultBuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
-                    resolveResult.getArtifactResolver().resolve(new DefaultModuleVersionArtifactMetaData(resolveResult.getId(), artifact), artifactResolveResult);
+                    DefaultModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(resolveResult.getId(), artifact);
+                    artifactResolver.resolveArtifact(resolveResult.getMetaData(), artifactMetaData, artifactResolveResult);
                     File artifactFile = artifactResolveResult.getFile();
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
                 } catch (ModuleVersionNotFoundException e) {

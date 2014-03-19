@@ -31,14 +31,12 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
         ModuleVersionMetaData metaData = Stub() {
             getId() >> id
         }
-        ArtifactResolver resolver = Stub()
 
         when:
-        result.resolved(metaData, resolver)
+        result.resolved(metaData)
 
         then:
         result.id == id
-        result.artifactResolver == resolver
         result.metaData == metaData
     }
 
@@ -54,15 +52,6 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     def "cannot get meta-data when no result has been specified"() {
         when:
         result.metaData
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'No result has been specified.'
-    }
-
-    def "cannot get artifact resolver when no result has been specified"() {
-        when:
-        result.artifactResolver
 
         then:
         IllegalStateException e = thrown()
@@ -102,21 +91,9 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
         e == failure
     }
 
-    def "cannot get artifact resolver when resolve failed"() {
-        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
-
-        when:
-        result.failed(failure)
-        result.artifactResolver
-
-        then:
-        ModuleVersionResolveException e = thrown()
-        e == failure
-    }
-
     def "failure is null when successfully resolved"() {
         when:
-        result.resolved(Mock(ModuleVersionMetaData), Mock(ArtifactResolver))
+        result.resolved(Mock(ModuleVersionMetaData))
 
         then:
         result.failure == null

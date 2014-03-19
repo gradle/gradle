@@ -26,9 +26,11 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
@@ -50,7 +52,6 @@ import java.util.List;
 public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependencyResolver.class);
     private final LocalComponentFactory localComponentFactory;
-    private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final ResolveIvyFactory ivyFactory;
     private final ProjectComponentRegistry projectComponentRegistry;
     private final CacheLockingManager cacheLockingManager;
@@ -59,12 +60,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
 
-    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory, ResolvedArtifactFactory resolvedArtifactFactory,
+    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory,
                                      ProjectComponentRegistry projectComponentRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
                                      ResolutionResultsStoreFactory storeFactory, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.ivyFactory = ivyFactory;
         this.localComponentFactory = localComponentFactory;
-        this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.projectComponentRegistry = projectComponentRegistry;
         this.cacheLockingManager = cacheLockingManager;
         this.ivyContextManager = ivyContextManager;
@@ -80,13 +80,16 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         LOGGER.debug("Resolving {}", configuration);
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
-                DependencyToModuleVersionResolver dependencyResolver = ivyFactory.create(configuration, repositories, metadataProcessor);
+                RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataProcessor);
 
+                DependencyToModuleVersionResolver dependencyResolver = repositoryChain.getDependencyResolver();
                 dependencyResolver = new ClientModuleResolver(dependencyResolver);
-                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, dependencyResolver, localComponentFactory);
+                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, dependencyResolver);
                 dependencyResolver = projectDependencyResolver;
                 DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, versionMatcher);
                 idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveRule());
+
+                ArtifactResolver artifactResolver = createArtifactResolver(repositoryChain);
 
                 ModuleConflictResolver conflictResolver;
                 if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
@@ -96,7 +99,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 }
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
 
-                DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
+                DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, artifactResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
 
                 StoreSet stores = storeFactory.createStoreSet();
 
@@ -107,12 +110,19 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 BinaryStore oldModelStore = stores.nextBinaryStore();
                 Store<TransientConfigurationResults> oldModelCache = stores.newModelStore();
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
-                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, oldTransientModelBuilder);
+                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder, artifactResolver);
 
                 builder.resolve(configuration, newModelBuilder, oldModelBuilder);
                 DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder, cacheLockingManager);
                 results.resolved(new DefaultResolvedConfiguration(result), newModelBuilder.complete());
             }
         });
+    }
+
+    private ArtifactResolver createArtifactResolver(RepositoryChain repositoryChain) {
+        ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
+        artifactResolver = new ProjectArtifactResolver(projectComponentRegistry, artifactResolver);
+        artifactResolver = new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, artifactResolver);
+        return artifactResolver;
     }
 }

@@ -17,9 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.cache.*;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -136,6 +140,14 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         }
 
         return false;
+    }
+
+    public boolean mustRefreshModuleArtifacts(ModuleVersionIdentifier moduleVersionId, Set<ArtifactIdentifier> artifacts,
+                                              long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {
+        if (belongsToChangingModule && !moduleDescriptorInSync) {
+            return true;
+        }
+        return mustRefreshModule(moduleVersionId, new DefaultResolvedModuleVersion(moduleVersionId), ageMillis, belongsToChangingModule);
     }
 
     public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {

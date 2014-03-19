@@ -33,7 +33,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestSt
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishLocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectComponentRegistry;
@@ -123,6 +125,13 @@ class DependencyManagementBuildScopeServices {
 
     ModuleVersionsCache createModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new SingleFileBackedModuleVersionsCache(
+                timeProvider,
+                cacheLockingManager
+        );
+    }
+
+    ModuleArtifactsCache createModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+        return new DefaultModuleArtifactsCache(
                 timeProvider,
                 cacheLockingManager
         );
@@ -223,7 +232,7 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
+    ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
                                               ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex, CacheLockingManager cacheLockingManager,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryDependencyMetadataCache inMemoryDependencyMetadataCache,
                                               VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
@@ -231,6 +240,7 @@ class DependencyManagementBuildScopeServices {
         return new ResolveIvyFactory(
                 moduleVersionsCache,
                 moduleMetaDataCache,
+                moduleArtifactsCache,
                 artifactAtRepositoryCachedArtifactIndex,
                 cacheLockingManager,
                 startParameterResolutionOverride,
@@ -247,10 +257,6 @@ class DependencyManagementBuildScopeServices {
         ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
                 resolveIvyFactory,
                 publishModuleDescriptorConverter,
-                new ResolvedArtifactFactory(
-                        cacheLockingManager,
-                        ivyContextManager
-                ),
                 new DefaultProjectComponentRegistry(
                         publishModuleDescriptorConverter,
                         projectRegistry),

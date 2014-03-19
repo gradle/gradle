@@ -19,9 +19,11 @@ import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
@@ -35,12 +37,12 @@ import java.io.File;
  * If the parser asks for a resolver for a different revision, the resolver scope is all repositories.
  */
 public class ExternalResourceResolverDescriptorParseContext implements DescriptorParseContext {
-    private final DependencyToModuleVersionResolver mainResolver;
+    private final RepositoryChain mainResolvers;
     private final ExternalResourceResolver moduleResolver;
     private final ModuleRevisionId moduleRevisionId;
 
-    public ExternalResourceResolverDescriptorParseContext(DependencyToModuleVersionResolver mainResolver, ExternalResourceResolver moduleResolver, ModuleVersionIdentifier moduleVersionIdentifier) {
-        this.mainResolver = mainResolver;
+    public ExternalResourceResolverDescriptorParseContext(RepositoryChain mainResolvers, ExternalResourceResolver moduleResolver, ModuleVersionIdentifier moduleVersionIdentifier) {
+        this.mainResolvers = mainResolvers;
         this.moduleResolver = moduleResolver;
         this.moduleRevisionId = IvyUtil.createModuleRevisionId(moduleVersionIdentifier);
     }
@@ -53,21 +55,24 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         return moduleResolver.artifactExists(artifact);
     }
 
-    private LocallyAvailableExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact, DependencyToModuleVersionResolver resolver) {
-        File resolvedArtifactFile = resolveArtifactFile(artifact, resolver);
+    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier) {
+        File resolvedArtifactFile = resolveMetaDataArtifactFile(moduleVersionIdentifier, mainResolvers.getDependencyResolver(), mainResolvers.getArtifactResolver());
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(resolvedArtifactFile);
         return new DefaultLocallyAvailableExternalResource(resolvedArtifactFile.toURI().toString(), localResource);
     }
 
-    private File resolveArtifactFile(ModuleVersionArtifactMetaData artifact, DependencyToModuleVersionResolver resolver) {
+    private File resolveMetaDataArtifactFile(ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver dependencyResolver, ArtifactResolver artifactResolver) {
         BuildableModuleVersionResolveResult moduleVersionResolveResult = new DefaultBuildableModuleVersionResolveResult();
-        resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(artifact.getArtifact().getModuleRevisionId(), true)), moduleVersionResolveResult);
+        dependencyResolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(moduleVersionIdentifier), true)), moduleVersionResolveResult);
+
+        BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
+        ArtifactTypeResolveContext context = new ArtifactTypeResolveContext(ComponentMetaDataArtifact.class);
+        artifactResolver.resolveModuleArtifacts(moduleVersionResolveResult.getMetaData(), context, moduleArtifactsResolveResult);
+
         BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
-        moduleVersionResolveResult.getArtifactResolver().resolve(artifact, artifactResolveResult);
+        ModuleVersionArtifactMetaData artifactMetaData = moduleArtifactsResolveResult.getArtifacts().iterator().next();
+        artifactResolver.resolveArtifact(moduleVersionResolveResult.getMetaData(), artifactMetaData, artifactResolveResult);
         return artifactResolveResult.getFile();
     }
 
-    public LocallyAvailableExternalResource getArtifact(ModuleVersionArtifactMetaData artifact) {
-        return resolveArtifact(artifact, mainResolver);
-    }
 }

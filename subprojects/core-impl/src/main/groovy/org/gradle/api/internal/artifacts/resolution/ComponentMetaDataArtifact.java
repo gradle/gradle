@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts.resolution;
 
-package org.gradle.integtests.tooling.r112;
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.gradle.ProjectPublications;
-
-public class FetchPublicationsBuildAction implements BuildAction<ProjectPublications> {
-    public ProjectPublications execute(BuildController controller) {
-        return controller.getModel(ProjectPublications.class);
-    }
+// TODO:DAZ Move this to public API
+public interface ComponentMetaDataArtifact extends SoftwareArtifact {
 }

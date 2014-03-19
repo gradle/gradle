@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
 import java.util.List;
 import java.util.Set;
@@ -28,6 +29,10 @@ import java.util.Set;
  */
 public interface ModuleVersionMetaData {
     ModuleVersionIdentifier getId();
+
+    ModuleSource getSource();
+
+    ModuleVersionMetaData withSource(ModuleSource source);
 
     /**
      * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
@@ -44,6 +49,7 @@ public interface ModuleVersionMetaData {
 
     boolean isChanging();
 
+    // TODO:DAZ This is not set correctly when read from cache
     boolean isMetaDataOnly();
 
     String getStatus();

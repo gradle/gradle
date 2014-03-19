@@ -107,7 +107,6 @@ task retrieve(type: Sync) {
         parent.metaData.expectGet()
         parent.pom.expectGet()
 
-
         child.artifact.expectGet()
 
         and:
@@ -271,7 +270,6 @@ task retrieve(type: Sync) {
         child1.pom.expectGet()
         child2.pom.expectGet()
         parent.pom.expectGet()
-
 
         child1.artifact.expectGet()
         child2.artifact.expectGet()

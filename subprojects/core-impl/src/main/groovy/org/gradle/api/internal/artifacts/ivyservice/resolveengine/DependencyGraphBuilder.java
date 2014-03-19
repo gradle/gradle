@@ -46,13 +46,16 @@ public class DependencyGraphBuilder {
     private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
     private final InternalConflictResolver conflictResolver;
     private final ModuleToModuleVersionResolver moduleResolver;
+    private final ArtifactResolver artifactResolver;
 
     public DependencyGraphBuilder(DependencyToModuleVersionIdResolver dependencyResolver,
                                   ModuleToModuleVersionResolver moduleResolver,
+                                  ArtifactResolver artifactResolver,
                                   ModuleConflictResolver conflictResolver,
                                   DependencyToConfigurationResolver dependencyToConfigurationResolver) {
         this.dependencyResolver = dependencyResolver;
         this.moduleResolver = moduleResolver;
+        this.artifactResolver = artifactResolver;
         this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
         this.conflictResolver = new InternalConflictResolver(conflictResolver);
     }
@@ -63,7 +66,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableModuleVersionResolveResult rootModule = new DefaultBuildableModuleVersionResolveResult();
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
-        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, oldModelBuilder);
+        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, artifactResolver, oldModelBuilder);
         traverseGraph(resolveState);
 
         assembleResult(resolveState, oldModelBuilder, newModelBuilder);
@@ -354,7 +357,7 @@ public class DependencyGraphBuilder {
             }
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
             for (ModuleVersionArtifactMetaData artifact : dependencyArtifacts) {
-                artifacts.add(resolveState.builder.newArtifact(childConfiguration.id, artifact, targetModuleRevision.resolve().getArtifactResolver()));
+                artifacts.add(resolveState.builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getModuleVersion(), artifact));
             }
             return artifacts;
         }
@@ -417,14 +420,16 @@ public class DependencyGraphBuilder {
         private final RootConfigurationNode root;
         private final DependencyToModuleVersionIdResolver resolver;
         private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
+        private final ArtifactResolver artifactResolver;
         private final ResolvedConfigurationBuilder builder;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
         public ResolveState(ModuleVersionResolveResult rootResult, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver,
-                            DependencyToConfigurationResolver dependencyToConfigurationResolver, ResolvedConfigurationBuilder builder) {
+                            DependencyToConfigurationResolver dependencyToConfigurationResolver, ArtifactResolver artifactResolver, ResolvedConfigurationBuilder builder) {
             this.resolver = resolver;
             this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
+            this.artifactResolver = artifactResolver;
             this.builder = builder;
             ModuleVersionResolveState rootVersion = getRevision(rootResult.getId());
             rootVersion.setResolveResult(rootResult);
@@ -719,8 +724,12 @@ public class DependencyGraphBuilder {
         public Set<ResolvedArtifact> getArtifacts() {
             if (artifacts == null) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
-                for (ModuleVersionArtifactMetaData artifact : metaData.getArtifacts()) {
-                    artifacts.add(resolveState.builder.newArtifact(id, artifact, moduleRevision.resolve().getArtifactResolver()));
+
+                BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
+                resolveState.artifactResolver.resolveModuleArtifacts(metaData.getModuleVersion(), new ConfigurationResolveContext(metaData.getName()), result);
+
+                for (ModuleVersionArtifactMetaData artifact : result.getArtifacts()) {
+                    artifacts.add(resolveState.builder.newArtifact(id, metaData.getModuleVersion(), artifact));
                 }
             }
             return artifacts;

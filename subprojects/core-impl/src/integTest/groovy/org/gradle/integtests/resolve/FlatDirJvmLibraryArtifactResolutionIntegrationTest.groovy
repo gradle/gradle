@@ -16,7 +16,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 
+@Ignore
 class FlatDirJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     def "resolve sources artifacts"() {
         publishModule()

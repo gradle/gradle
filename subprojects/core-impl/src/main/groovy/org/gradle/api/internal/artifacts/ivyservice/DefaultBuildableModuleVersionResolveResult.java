@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
     private ModuleVersionMetaData metaData;
     private ModuleVersionResolveException failure;
-    private ArtifactResolver artifactResolver;
 
     public DefaultBuildableModuleVersionResolveResult failed(ModuleVersionResolveException failure) {
         metaData = null;
@@ -35,19 +34,13 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         failed(new ModuleVersionNotFoundException(versionSelector));
     }
 
-    public void resolved(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
+    public void resolved(ModuleVersionMetaData metaData) {
         this.metaData = metaData;
-        this.artifactResolver = artifactResolver;
     }
 
     public void setMetaData(ModuleVersionMetaData metaData) {
         assertResolved();
         this.metaData = metaData;
-    }
-
-    public void setArtifactResolver(ArtifactResolver artifactResolver) {
-        assertResolved();
-        this.artifactResolver = artifactResolver;
     }
 
     public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
@@ -58,11 +51,6 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
     public ModuleVersionMetaData getMetaData() throws ModuleVersionResolveException {
         assertResolved();
         return metaData;
-    }
-
-    public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
-        assertResolved();
-        return artifactResolver;
     }
 
     public ModuleVersionResolveException getFailure() {

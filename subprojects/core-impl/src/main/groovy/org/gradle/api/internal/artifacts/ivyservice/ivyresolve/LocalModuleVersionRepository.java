@@ -16,15 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
-import org.gradle.api.internal.artifacts.MavenCandidateArtifacts;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
-
-import java.util.Set;
 
 public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepository {
     private final ModuleVersionRepository delegate;
@@ -42,14 +40,6 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
     public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
     }
 
-    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        delegate.resolve(artifact, result, moduleSource);
-    }
-
-    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
-        return new MavenCandidateArtifacts().get(module, artifactType);
-    }
-
     public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         delegate.getDependency(dependency, result);
         if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
@@ -59,6 +49,14 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
 
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         result.missing();
+    }
+
+    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        delegate.resolveModuleArtifacts(moduleMetaData, context, result);
+    }
+
+    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+        delegate.resolveArtifact(moduleMetaData, artifact, result);
     }
 
     public String getId() {

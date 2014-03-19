@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories.legacy;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
@@ -25,10 +27,11 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
-import org.gradle.api.internal.artifacts.MavenCandidateArtifacts;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.MavenClassifierArtifactScheme;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,8 +116,8 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         }
     }
 
-    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        Artifact ivyArtifact = artifact.getArtifact();
+    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+        Artifact ivyArtifact = createIvyArtifact(moduleMetaData, artifact);
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
@@ -134,8 +137,33 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         }
     }
 
-    public Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
-        return new MavenCandidateArtifacts().get(module, artifactType);
+    private Artifact createIvyArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact) {
+        // TODO:DAZ Should really be looking up the Ivy Artifact from the ModuleDescriptor, to ensure we're not losing anything here, like URL or publication date.
+        IvyArtifactName ivyName = artifact.getName();
+        return new DefaultArtifact(IvyUtil.createModuleRevisionId(moduleMetaData.getId()), null, ivyName.getName(), ivyName.getType(), ivyName.getExtension(), ivyName.getAttributes());
+    }
+
+    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        if (context instanceof ConfigurationResolveContext) {
+            String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
+            result.resolved(moduleMetaData.getConfiguration(configurationName).getArtifacts());
+        } else {
+            Class<? extends SoftwareArtifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
+            try {
+                result.resolved(getCandidateArtifacts(moduleMetaData, artifactType));
+            } catch (Exception e) {
+                result.failed(new ArtifactResolveException(moduleMetaData.getId(), e));
+            }
+        }
+    }
+
+    private Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
+        if (artifactType == ComponentMetaDataArtifact.class) {
+            Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
+            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), metadataArtifact));
+        }
+
+        return new MavenClassifierArtifactScheme().get(module, artifactType);
     }
 
     private boolean downloadFailed(ArtifactDownloadReport artifactReport) {

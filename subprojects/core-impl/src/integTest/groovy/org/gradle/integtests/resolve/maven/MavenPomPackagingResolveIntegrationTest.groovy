@@ -39,14 +39,17 @@ configurations { compile }
 dependencies {
     $dependencies
 }
-task retrieve(type: Sync) {
+task deleteDir(type: Delete) {
+    delete 'libs'
+}
+task retrieve(type: Copy, dependsOn: deleteDir) {
     into 'libs'
     from configurations.compile
 }
 """
     }
 
-    def "looks for jar artifact for pom with packaging of type 'pom' in the same repository only"() {
+    def "includes jar artifact if present for pom with packaging of type 'pom'"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
         publishWithPackaging('pom')
@@ -57,6 +60,7 @@ task retrieve(type: Sync) {
         server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
 
         server.expectGet('/repo2/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectHead('/repo2/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
         server.expectGet('/repo2/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
 
         and:
@@ -68,11 +72,33 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        and:
         run 'retrieve'
 
         then: // Uses cached artifacts
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
+    }
+
+    def "ignores missing jar artifact for pom with packaging of type 'pom'"() {
+        when:
+        buildWithDependencies("compile 'group:projectA:1.0'")
+        publishWithPackaging('pom')
+
+        and:
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertIsEmptyDir()
+
+        when:
+        server.resetExpectations()
+        run 'retrieve'
+
+        then: // Uses cached artifacts
+        file('libs').assertIsEmptyDir()
     }
 
     def "will use jar artifact for pom with packaging that maps to jar"() {
@@ -90,6 +116,12 @@ task retrieve(type: Sync) {
         and:
         file('libs').assertHasDescendants('projectA-1.0.jar')
         file('libs/projectA-1.0.jar').assertIsCopyOf(projectA.artifactFile)
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
 
         where:
         packaging << ['', 'jar', 'eclipse-plugin', 'bundle']
@@ -113,6 +145,12 @@ task retrieve(type: Sync) {
         and:
         file('libs').assertHasDescendants('projectA-1.0.jar')
         file('libs/projectA-1.0.jar').assertIsCopyOf(projectA.artifactFile)
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
     }
 
     @Issue('GRADLE-2188')
@@ -138,6 +176,12 @@ task retrieve(type: Sync) {
 
         and:
         result.output.contains("Relying on packaging to define the extension of the main artifact has been deprecated")
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
     }
 
     def "fails and reports type-based location if neither packaging-based or type-based artifact can be located"() {
@@ -182,6 +226,12 @@ compile('group:projectA:1.0') {
         and:
         file('libs').assertHasDescendants('projectA-1.0.zip')
         file('libs/projectA-1.0.zip').assertIsCopyOf(projectA.artifactFile)
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
     }
 
     def "will use non-jar maven dependency type to determine artifact location"() {
@@ -189,13 +239,12 @@ compile('group:projectA:1.0') {
         buildWithDependencies("""
 compile 'group:mavenProject:1.0'
 """)
-        def mavenProject = mavenRepo().module('group', 'mavenProject', '1.0').artifact(type: "jar").hasType('pom').dependsOn('group', 'projectA', '1.0', 'zip').publish()
-       // def mavenProject = mavenRepo().module('group', 'mavenProject', '1.0').dependsOn('group', 'projectA', '1.0', 'zip').publish()
+        def mavenProject = mavenRepo().module('group', 'mavenProject', '1.0').hasType('pom').dependsOn('group', 'projectA', '1.0', 'zip').publish()
         publishWithPackaging('custom', 'zip')
 
         and:
         server.expectGet('/repo1/group/mavenProject/1.0/mavenProject-1.0.pom', mavenProject.pomFile)
-        server.expectGet('/repo1/group/mavenProject/1.0/mavenProject-1.0.jar', mavenProject.artifactFile)
+        server.expectHeadMissing('/repo1/group/mavenProject/1.0/mavenProject-1.0.jar')
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
 
         // TODO:GRADLE-2188 This call should not be required, since "type='zip'" on the dependency alleviates the need to check for the packaging artifact
@@ -206,8 +255,14 @@ compile 'group:mavenProject:1.0'
         succeeds 'retrieve'
 
         and:
-        file('libs').assertHasDescendants('mavenProject-1.0.jar','projectA-1.0.zip')
+        file('libs').assertHasDescendants('projectA-1.0.zip')
         file('libs/projectA-1.0.zip').assertIsCopyOf(projectA.artifactFile)
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
     }
 
     @FailsWith(value = AssertionError, reason = "Pending better fix for GRADLE-2188")
@@ -225,6 +280,7 @@ compile('group:projectA:1.0') {
 
         and:
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.zip', projectA.artifactFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.zip', projectA.artifactFile)
 
         then:
@@ -236,6 +292,12 @@ compile('group:projectA:1.0') {
 
         and: "Stop the http server here to allow failure to be declared (otherwise occurs in tearDown) - remove this when the test is fixed"
         server.stop()
+
+        // Check caching
+        when:
+        server.resetExpectations()
+        then:
+        succeeds 'retrieve'
     }
 
     private def publishWithPackaging(String packaging, String type = 'jar') {

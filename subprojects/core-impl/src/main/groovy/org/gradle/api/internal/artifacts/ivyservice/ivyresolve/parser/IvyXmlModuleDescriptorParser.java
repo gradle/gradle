@@ -31,11 +31,11 @@ import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -743,12 +743,10 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return parseModuleDescriptor(new UrlExternalResource(url), url);
         }
 
-        protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation,
-                String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
-            ModuleRevisionId parentMrid = createModuleRevisionId(parentOrganisation, parentModule, parentRevision);
-            Artifact pomArtifact = DefaultArtifact.newIvyArtifact(parentMrid, new Date());
-            ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(pomArtifact);
-            LocallyAvailableExternalResource externalResource = parseContext.getArtifact(artifactIdentifier);
+        protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation, String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
+            ModuleVersionIdentifier importedId = new DefaultModuleVersionIdentifier(parentOrganisation, parentModule, parentRevision);
+            LocallyAvailableExternalResource externalResource = parseContext.getMetaDataArtifact(importedId);
+
             return parseModuleDescriptor(externalResource, externalResource.getLocalResource().getFile().toURI().toURL());
         }
 
