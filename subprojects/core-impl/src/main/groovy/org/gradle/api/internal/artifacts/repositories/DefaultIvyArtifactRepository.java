@@ -34,7 +34,6 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.WrapUtil;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
@@ -97,21 +96,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         if (schemes.isEmpty()) {
             throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
         }
-        if (!WrapUtil.toSet("http", "https", "file").containsAll(schemes)) {
-            throw new InvalidUserDataException("You may only specify 'file', 'http' and 'https' urls for an Ivy repository.");
-        }
-        if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
-            return createResolver(transportFactory.createHttpTransport(getName(), getCredentials()));
-        }
-        if (WrapUtil.toSet("file").containsAll(schemes)) {
-            return createResolver(transportFactory.createFileTransport(getName()));
-        }
-        throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single Ivy repository. Please declare 2 separate repositories.");
+        return createResolver(transportFactory.createTransport(schemes, getName(), getCredentials()));
     }
 
-    private IvyResolver createResolver(RepositoryTransport httpTransport) {
+    private IvyResolver createResolver(RepositoryTransport transport) {
         return new IvyResolver(
-                getName(), httpTransport,
+                getName(), transport,
                 locallyAvailableResourceFinder,
                 metaDataProvider.dynamicResolve, resolverStrategy);
     }

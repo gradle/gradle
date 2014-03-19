@@ -15,14 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.transport.file.FileTransport;
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
+import org.gradle.api.internal.externalresource.transport.sftp.SftpTransport;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.WrapUtil;
+
+import java.util.Set;
 
 public class RepositoryTransportFactory {
     private final RepositoryArtifactCache downloadingCacheManager;
@@ -52,5 +57,25 @@ public class RepositoryTransportFactory {
 
     public RepositoryTransport createFileTransport(String name) {
         return new FileTransport(name, localCacheManager, temporaryFileProvider);
+    }
+
+    public RepositoryTransport createSftpTransport(String name, PasswordCredentials credentials) {
+        return new SftpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
+    }
+
+    public RepositoryTransport createTransport(Set<String> schemes, String name, PasswordCredentials credentials) {
+        if (!WrapUtil.toSet("http", "https", "file", "sftp").containsAll(schemes)) {
+            throw new InvalidUserDataException("You may only specify 'file', 'http', 'https' and 'sftp' urls for a repository.");
+        }
+        if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
+            return createHttpTransport(name, credentials);
+        }
+        if (WrapUtil.toSet("file").containsAll(schemes)) {
+            return createFileTransport(name);
+        }
+        if (WrapUtil.toSet("sftp").containsAll(schemes)) {
+            return createSftpTransport(name, credentials);
+        }
+        throw new InvalidUserDataException("You cannot mix different url schemes for a single repository. Please declare separate repositories.");
     }
 }

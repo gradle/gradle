@@ -15,9 +15,6 @@
  */
 package org.gradle.test.fixtures.ivy
 
-import org.apache.ivy.core.IvyPatternHelper
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
@@ -30,6 +27,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final String organisation
     final String module
     final String revision
+    final boolean m2Compatible
     final List dependencies = []
     final Map<String, Map> configurations = [:]
     final List artifacts = []
@@ -39,13 +37,14 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     int publishCount = 1
     XmlTransformer transformer = new XmlTransformer()
 
-    IvyFileModule(String ivyPattern, String artifactPattern, TestFile moduleDir, String organisation, String module, String revision) {
+    IvyFileModule(String ivyPattern, String artifactPattern, TestFile moduleDir, String organisation, String module, String revision, boolean m2Compatible) {
         this.ivyPattern = ivyPattern
         this.artifactPattern = artifactPattern
         this.moduleDir = moduleDir
         this.organisation = organisation
         this.module = module
         this.revision = revision
+        this.m2Compatible = m2Compatible
         configurations['runtime'] = [extendsFrom: [], transitive: true, visibility: 'public']
         configurations['default'] = [extendsFrom: ['runtime'], transitive: true, visibility: 'public']
     }
@@ -116,12 +115,12 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     TestFile getIvyFile() {
-        def path = IvyPatternHelper.substitute(ivyPattern, new ModuleRevisionId(new ModuleId(organisation, module), revision))
+        def path = M2CompatibleIvyPatternHelper.substitute(ivyPattern, organisation, module, revision, m2Compatible)
         return moduleDir.file(path)
     }
 
     TestFile getJarFile() {
-        def path = IvyPatternHelper.substitute(artifactPattern, new ModuleRevisionId(new ModuleId(organisation, module), revision), null, "jar", "jar")
+        def path = M2CompatibleIvyPatternHelper.substitute(artifactPattern, organisation, module, revision, null, "jar", "jar", m2Compatible)
         return moduleDir.file(path)
     }
 
