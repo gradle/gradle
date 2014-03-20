@@ -18,24 +18,21 @@ package org.gradle.integtests.tooling.r112;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by radim on 3/15/14.
- */
-public class FetchTasksBuildAction implements BuildAction<List<GradleTask>> {
+public class FetchTasksBuildAction implements BuildAction<List<Task>> {
     private final String projectPath;
 
     FetchTasksBuildAction(String projectPath) {
         this.projectPath = projectPath;
     }
 
-    public List<GradleTask> execute(BuildController controller) {
+    public List<Task> execute(BuildController controller) {
         BasicGradleProject project = null;
         for (BasicGradleProject p : controller.getBuildModel().getProjects()) {
             if (p.getPath().equals(projectPath)) {
@@ -44,6 +41,6 @@ public class FetchTasksBuildAction implements BuildAction<List<GradleTask>> {
             }
         }
 
-        return new ArrayList<GradleTask>(controller.getModel(project, BuildInvocations.class).getTasks());
+        return new ArrayList<Task>(controller.getModel(project, BuildInvocations.class).getTasks());
     }
 }

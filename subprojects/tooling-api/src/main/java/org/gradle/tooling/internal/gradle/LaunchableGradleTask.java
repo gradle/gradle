@@ -23,16 +23,6 @@ import java.io.Serializable;
 
 public class LaunchableGradleTask extends DefaultGradleTask implements Serializable, InternalLaunchable {
     // TODO(radimk): move to provider?
-    // TODO(radimk): unsupported method for getProject() if not set + test
-
-    public PartialGradleProject getProject() {
-        return project;
-    }
-
-    public LaunchableGradleTask setProject(PartialGradleProject project) {
-        this.project = project;
-        return this;
-    }
 
     public String getTaskName() {
         return path;

@@ -22,8 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
-import org.gradle.tooling.model.GradleTask
 import org.gradle.tooling.model.Launchable
+import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.TaskSelector
 import org.gradle.tooling.model.gradle.BuildInvocations
 
@@ -182,14 +182,14 @@ project(':b:c') {
     @TargetGradleVersion(">=1.12")
     def "get tasks for projects"() {
         when:
-        List<GradleTask> tasks = withConnection { connection ->
+        List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
         }
 
         then:
         tasks.size() == 2
         tasks*.name as Set == ['t2', 't3'] as Set
-        tasks*.project.each { it.name == 'b' && it.path == ':b'}
+        tasks*.project.each { assert it == null }
     }
 
     @TargetGradleVersion(">=1.12")
@@ -199,7 +199,7 @@ project(':b:c') {
             connector.searchUpwards(true)
         }
         when:
-        List<GradleTask> tasks = withConnection { connection ->
+        List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
         }
         Launchable task = tasks.find { it -> it.name == 't2'}
@@ -223,18 +223,17 @@ project(':b:c') {
         model.tasks.count { it.name != 'setupBuild' } == 5
 
         when:
-        def tasks = model.tasks.findAll { GradleTask it ->
-            it.project.path == ':b'
+        def tasks = model.tasks.findAll { Task it ->
+            it.path.startsWith(':b:') && !it.path.startsWith(':b:c:')
         }
         then:
         tasks*.name as Set == ['t2', 't3'] as Set
 
         when:
-        tasks = model.tasks.findAll { GradleTask it ->
-            it.project.path == ':b:c'
+        tasks = model.tasks.findAll { Task it ->
+            it.path.startsWith(':b:c:')
         }
         then:
         tasks*.name as Set == ['t1', 't2'] as Set
-
     }
 }

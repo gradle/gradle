@@ -62,7 +62,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         }
         return new DefaultBuildInvocations()
                 .setSelectors(selectors)
-                .setTasks(new ArrayList(gradleProjectBuilder.buildAll(project).findByPath(project.getPath()).getTasks()));
+                .setTasks(convertTasks(new ArrayList(gradleProjectBuilder.buildAll(project).findByPath(project.getPath()).getTasks())));
     }
 
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
@@ -72,7 +72,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             fillTaskList(gradleProject, tasks);
             return new DefaultBuildInvocations()
                     .setSelectors(buildRecursively(modelName, project.getRootProject()))
-                    .setTasks(tasks);
+                    .setTasks(convertTasks(tasks));
         } else {
             return buildAll(modelName, project);
         }
@@ -92,6 +92,13 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             selectors.addAll(buildRecursively(modelName, childProject));
         }
         return selectors;
+    }
+
+    private List<DefaultGradleTask> convertTasks(List<DefaultGradleTask> tasks) {
+        for (DefaultGradleTask task :  tasks) {
+            task.setProject(null);
+        }
+        return tasks;
     }
 
     private Multimap<String, String> findTasks(Project project) {
