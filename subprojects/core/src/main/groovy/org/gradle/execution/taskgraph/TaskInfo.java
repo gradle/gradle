@@ -199,4 +199,8 @@ public class TaskInfo implements Comparable<TaskInfo> {
     public int compareTo(TaskInfo otherInfo) {
         return task.compareTo(otherInfo.getTask());
     }
+
+    public String toString() {
+        return task.getPath();
+    }
 }

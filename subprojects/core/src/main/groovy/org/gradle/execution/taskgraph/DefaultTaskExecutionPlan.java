@@ -240,10 +240,11 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 visitingNodes.remove(taskNode);
                 path.pop();
                 executionPlan.put(taskNode.getTask(), taskNode);
+                // Add any finalizers to the queue
                 ArrayList<TaskInfo> finalizerTasks = new ArrayList<TaskInfo>();
                 addAllReversed(finalizerTasks, taskNode.getFinalizers());
                 for (TaskInfo finalizer : finalizerTasks) {
-                    if (!visitingNodes.contains(finalizer)) {
+                    if (!visitingNodes.contains(finalizer) && !nodeQueue.contains(finalizer)) {
                         nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), finalizer);
                     }
                 }
