@@ -67,10 +67,10 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         });
     }
 
-    public void resolveArtifact(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
+    public void resolveArtifact(final ModuleVersionArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
         cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, getId()), new Runnable() {
             public void run() {
-                repository.resolveArtifact(moduleMetaData, artifact, result);
+                repository.resolveArtifact(artifact, moduleSource, result);
             }
         });
     }

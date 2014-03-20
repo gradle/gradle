@@ -256,7 +256,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     public Set<ModuleVersionArtifactMetaData> getTypedArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
         if (artifactType == ComponentMetaDataArtifact.class) {
             Artifact pomArtifact = DefaultArtifact.newPomArtifact(IvyUtil.createModuleRevisionId(module.getId()), new Date());
-            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), pomArtifact));
+            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module, pomArtifact));
         }
 
         return new MavenCandidateArtifacts().get(module, artifactType);
@@ -277,7 +277,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
         Artifact artifact = new DefaultArtifact(module.getDescriptor().getModuleRevisionId(), null,
                 module.getId().getName(), type, "jar", extraAttributes);
-        return new DefaultModuleVersionArtifactMetaData(module.getId(), artifact);
+        return new DefaultModuleVersionArtifactMetaData(module, artifact);
     }
 
     protected static class TimestampedModuleSource implements ModuleSource {

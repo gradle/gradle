@@ -19,13 +19,14 @@ package org.gradle.api.internal.artifacts.metadata;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 
 public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifactMetaData {
     private final DefaultModuleVersionArtifactIdentifier id;
 
-    public DefaultModuleVersionArtifactMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
-        this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact);
+    public DefaultModuleVersionArtifactMetaData(ModuleVersionMetaData moduleVersionMetaData, Artifact artifact) {
+        this(new DefaultModuleVersionArtifactIdentifier(moduleVersionMetaData.getComponentId(), moduleVersionMetaData.getId(), artifact));
     }
 
     public DefaultModuleVersionArtifactMetaData(ModuleVersionArtifactIdentifier moduleVersionArtifactIdentifier) {
@@ -39,6 +40,10 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
 
     public ModuleVersionArtifactIdentifier getId() {
         return id;
+    }
+
+    public ComponentIdentifier getComponentId() {
+        return id.getComponentIdentifier();
     }
 
     public ModuleVersionIdentifier getModuleVersion() {

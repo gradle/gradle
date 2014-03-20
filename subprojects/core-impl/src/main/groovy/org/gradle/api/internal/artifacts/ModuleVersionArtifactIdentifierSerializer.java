@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
@@ -28,10 +30,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ModuleVersionArtifactIdentifierSerializer implements Serializer<ModuleVersionArtifactIdentifier> {
+    private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
     private final ModuleVersionIdentifierSerializer modIdSerializer = new ModuleVersionIdentifierSerializer();
 
     public void write(Encoder encoder, ModuleVersionArtifactIdentifier value) throws Exception {
         DefaultModuleVersionArtifactIdentifier artifact = (DefaultModuleVersionArtifactIdentifier) value;
+        componentIdentifierSerializer.write(encoder, artifact.getComponentIdentifier());
         modIdSerializer.write(encoder, artifact.getModuleVersionIdentifier());
         IvyArtifactName ivyArtifactName = artifact.getName();
         encoder.writeString(ivyArtifactName.getName());
@@ -46,6 +50,7 @@ public class ModuleVersionArtifactIdentifierSerializer implements Serializer<Mod
     }
 
     public ModuleVersionArtifactIdentifier read(Decoder decoder) throws Exception {
+        ComponentIdentifier componentIdentifier = componentIdentifierSerializer.read(decoder);
         ModuleVersionIdentifier moduleVersionIdentifier = modIdSerializer.read(decoder);
         String artifactName = decoder.readString();
         String type = decoder.readString();
@@ -62,6 +67,6 @@ public class ModuleVersionArtifactIdentifierSerializer implements Serializer<Mod
                 attributes.put(key, value);
             }
         }
-        return new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifactName, type, extension, attributes);
+        return new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifactName, type, extension, attributes);
     }
 }

@@ -18,11 +18,13 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
  * Meta-data for an artifact that belongs to some module version.
  */
 public interface ModuleVersionArtifactMetaData {
+    ComponentIdentifier getComponentId();
     ModuleVersionArtifactIdentifier getId();
 
     ModuleVersionIdentifier getModuleVersion();
