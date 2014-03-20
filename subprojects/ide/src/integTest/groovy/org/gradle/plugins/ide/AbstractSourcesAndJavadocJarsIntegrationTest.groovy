@@ -62,6 +62,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
 
     }
 
+    // TODO:DAZ This feature needs to be implemented and this test un-ignored
     @Ignore
     def "sources and javadoc jars from flatdir repositories are resolved and attached"() {
         file("repo/module-1.0.jar").createFile()
