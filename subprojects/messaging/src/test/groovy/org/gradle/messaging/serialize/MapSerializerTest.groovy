@@ -20,6 +20,15 @@ class MapSerializerTest extends SerializerSpec {
 
     def stringSerializer = new NullSafeStringSerializer()
 
+    def "retains order of serialized entries"() {
+        when:
+        def serializer = new MapSerializer(BaseSerializerFactory.LONG_SERIALIZER, stringSerializer)
+        Map values = serialize([10L: "one", 2L: "two", 30L: "three"], serializer) as Map
+
+        then:
+        values.keySet() as List == [10L, 2L, 30L]
+    }
+
     def "serialize map"() {
         when:
         def serializer = new MapSerializer(BaseSerializerFactory.LONG_SERIALIZER, stringSerializer)

@@ -32,7 +32,7 @@ class ListSerializerTest extends SerializerSpec {
         def serializer = new ListSerializer(BaseSerializerFactory.LONG_SERIALIZER)
 
         then:
-        serialize([1L, 5L, 99L], serializer) == [1L, 5L, 99L]
+        serialize([10L, 5L, 99L], serializer) == [10L, 5L, 99L]
     }
 
     def "serialize null entry"() {
