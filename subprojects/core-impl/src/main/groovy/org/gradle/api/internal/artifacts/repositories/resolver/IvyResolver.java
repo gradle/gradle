@@ -90,7 +90,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
         if (artifactType == ComponentMetaDataArtifact.class) {
             Artifact ivyArtifact = DefaultArtifact.newIvyArtifact(IvyUtil.createModuleRevisionId(module.getId()), new Date());
-            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), ivyArtifact));
+            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module, ivyArtifact));
         }
 
         throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));

@@ -25,7 +25,7 @@ class SetSerializerTest extends SerializerSpec {
         def serializer = new SetSerializer(stringSerializer)
 
         then:
-        serialize(["one", "two", "three"] as Set, serializer) == ["one", "two", "three"] as Set
+        serialize(["one", "two", "three"] as Set, serializer) as List == ["one", "two", "three"]
     }
 
     def "serialize set of longs"() {
@@ -33,7 +33,7 @@ class SetSerializerTest extends SerializerSpec {
         def serializer = new SetSerializer(BaseSerializerFactory.LONG_SERIALIZER)
 
         then:
-        serialize([1L, 5L, 99L] as Set, serializer) == [1L, 5L, 99L] as Set
+        serialize([1L, 5L, 99L] as Set, serializer) as List == [1L, 5L, 99L]
     }
 
     def "serialize null entry"() {
@@ -41,7 +41,7 @@ class SetSerializerTest extends SerializerSpec {
         def serializer = new SetSerializer(stringSerializer)
 
         then:
-        serialize(["one", null, "three"] as Set, serializer) == ["one", null, "three"] as Set
+        serialize(["one", null, "three"] as Set, serializer) as List == ["one", null, "three"]
     }
 
 }

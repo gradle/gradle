@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.connection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 import java.io.File;
@@ -120,4 +121,9 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
     public List<String> getTasks() {
         return tasks;
     }
+
+    public List<InternalLaunchable> getLaunchables() {
+        return maybeGet(null, "getLaunchables");
+    }
+
 }

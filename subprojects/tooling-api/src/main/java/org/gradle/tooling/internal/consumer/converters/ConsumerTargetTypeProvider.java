@@ -17,8 +17,6 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.tooling.internal.adapter.TargetTypeProvider;
-import org.gradle.tooling.internal.gradle.TaskListingTaskSelector;
-import org.gradle.tooling.model.TaskSelector;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
@@ -34,7 +32,6 @@ public class ConsumerTargetTypeProvider implements TargetTypeProvider {
         configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
         configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), IdeaModuleDependency.class);
         configuredTargetTypes.put(GradleFileBuildOutcome.class.getCanonicalName(), GradleFileBuildOutcome.class);
-        configuredTargetTypes.put(TaskSelector.class.getCanonicalName(), TaskListingTaskSelector.class);
     }
 
     public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {

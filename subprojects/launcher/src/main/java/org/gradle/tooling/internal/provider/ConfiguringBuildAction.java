@@ -16,26 +16,74 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
+import org.gradle.tooling.internal.gradle.TaskListingLaunchable;
+import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+import org.gradle.tooling.model.Task;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
+    private static List<InternalLaunchable> getLaunchables(ProviderOperationParameters parameters) {
+        List<InternalLaunchable> launchables = null;
+        try {
+            return parameters.getLaunchables();
+        } catch (UnsupportedMethodException ume) {
+            // older consumer version
+            return null;
+        }
+    }
+
+    private static List<String> computeTasks(ProviderOperationParameters parameters) {
+        ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
+        List<InternalLaunchable> launchables = null;
+        try {
+            launchables = parameters.getLaunchables();
+        } catch (UnsupportedMethodException ume) {
+            // older consumer version
+        }
+        if (launchables == null) {
+            return parameters.getTasks();
+        }
+        List<String> allTasks = new ArrayList<String>();
+        for (InternalLaunchable launchable : launchables) {
+            if (launchable instanceof Task) {
+                allTasks.add(((Task) launchable).getPath());
+            } else if (launchable instanceof TaskListingLaunchable) {
+                allTasks.addAll(((TaskListingLaunchable) launchable).getTasks());
+            } else if (DefaultGradleTaskSelector.class.getName().equals(launchable.getClass().getName())) {
+                TaskListingLaunchable selector = adapter.adapt(TaskListingLaunchable.class, launchable);
+                for (String task : selector.getTasks()) {
+                    allTasks.add(task);
+                }
+            } else {
+                throw new GradleException("Only Task or TaskSelector instances are supported. Found " + launchable.getClass());
+            }
+        }
+        return allTasks;
+    }
+
     private LogLevel buildLogLevel;
     private List<String> arguments;
     private List<String> tasks;
+    private List<InternalLaunchable> launchables;
     private BuildAction<? extends T> action;
     private File projectDirectory;
     private File gradleUserHomeDir;
@@ -55,6 +103,7 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
         this.buildLogLevel = parameters.getBuildLogLevel();
         this.arguments = parameters.getArguments(Collections.<String>emptyList());
         this.tasks = parameters.getTasks();
+        this.launchables = getLaunchables(parameters);
         this.action = action;
     }
 
@@ -70,7 +119,26 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
             startParameter.setGradleUserHomeDir(gradleUserHomeDir);
         }
 
-        if (tasks != null) {
+        if (launchables != null) {
+            List<String> allTasks = new ArrayList<String>();
+            String projectPath = null;
+            for (InternalLaunchable launchable : launchables) {
+                allTasks.add(launchable.getTaskName());
+                if (launchable.getProjectDir() != null) {
+                    if (projectPath != null && !projectPath.equals(launchable.getProjectPath())) {
+                        throw new InternalUnsupportedBuildArgumentException(
+                                "Problem with provided launchable arguments: " + launchables + ". "
+                                        + "\nOnly selector from the same Gradle project can be built.");
+                    }
+                    projectPath = launchable.getProjectPath();
+                    startParameter.setCurrentDir(launchable.getProjectDir());
+                }
+            }
+            if (projectPath != null && !projectPath.equals(':')) {
+                startParameter.setSearchUpwards(true);
+            }
+            startParameter.setTaskNames(allTasks);
+        } else if (tasks != null) {
             startParameter.setTaskNames(tasks);
         }
 

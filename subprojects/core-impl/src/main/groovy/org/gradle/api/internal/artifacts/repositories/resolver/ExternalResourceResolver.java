@@ -308,12 +308,12 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return repositoryCacheManager.downloadAndCacheArtifactFile(artifactId, resourceDownloader, resource);
     }
 
-    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         ArtifactIdentifier ivyArtifact = artifact.toArtifactIdentifier();
 
         File localFile;
         try {
-            localFile = download(ivyArtifact, moduleMetaData.getSource());
+            localFile = download(ivyArtifact, moduleSource);
         } catch (Throwable e) {
             result.failed(new ArtifactResolveException(artifact.getId(), e));
             return;
@@ -343,7 +343,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return new ArtifactResolver(getIvyPatterns(), getArtifactPatterns());
     }
 
-    // TODO:DAZ Remove the need for this, by using our own set of PatternMatchers
     public void setSettings(IvySettings settings) {
     }
 

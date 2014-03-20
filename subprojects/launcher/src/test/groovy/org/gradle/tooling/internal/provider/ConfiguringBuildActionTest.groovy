@@ -20,6 +20,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
@@ -99,5 +100,27 @@ class ConfiguringBuildActionTest extends Specification {
     def "is serializable"() {
         expect:
         assertThat(new ConfiguringBuildAction({} as ProviderOperationParameters, null, [foo: 'bar']), isSerializable())
+    }
+
+    def "accepts launchables from consumer"() {
+        given:
+        def projectDir = temp.createDir('projectDir')
+        def subProjectDir = projectDir.createDir('child')
+        def selector = Mock(InternalLaunchable)
+        _ * selector.taskName >> 'myTask'
+        _ * selector.projectDir >> subProjectDir
+        _ * selector.projectPath >> ':child'
+
+        ProviderOperationParameters providerParameters = Mock(ProviderOperationParameters)
+        _ * providerParameters.launchables >> [selector]
+        _ * providerParameters.projectDir >> projectDir
+        _ * providerParameters.tasks >> []
+        def action = new ConfiguringBuildAction(providerParameters, null, [:])
+
+        when:
+        def start = action.configureStartParameter()
+
+        then:
+        start.currentDir == subProjectDir
     }
 }

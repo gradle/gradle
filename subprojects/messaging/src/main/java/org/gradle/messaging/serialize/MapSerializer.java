@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.serialize;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MapSerializer<U, V> implements Serializer<Map<U, V>> {
@@ -29,7 +29,7 @@ public class MapSerializer<U, V> implements Serializer<Map<U, V>> {
 
     public Map<U, V> read(Decoder decoder) throws Exception {
         int size = decoder.readInt();
-        Map<U, V> valueMap = new HashMap<U, V>(size);
+        Map<U, V> valueMap = new LinkedHashMap<U, V>(size);
         for (int i = 0; i < size; i++) {
             U key = keySerializer.read(decoder);
             V value = valueSerializer.read(decoder);

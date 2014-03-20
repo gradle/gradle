@@ -253,7 +253,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     protected Set<ModuleVersionArtifactMetaData> getTypedArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
         if (artifactType == ComponentMetaDataArtifact.class) {
             Artifact pomArtifact = DefaultArtifact.newPomArtifact(IvyUtil.createModuleRevisionId(module.getId()), new Date());
-            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), pomArtifact));
+            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module, pomArtifact));
         }
 
         return new MavenClassifierArtifactScheme().get(module, artifactType);
@@ -262,7 +262,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     @Override
     protected Set<ModuleVersionArtifactMetaData> getOptionalMainArtifacts(ModuleVersionMetaData module) {
         if (module.isMetaDataOnly()) {
-            ModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(module.getId(), module.getId().getName(), "jar", "jar", Collections.<String, String>emptyMap());
+            ModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(module.getComponentId(), module.getId(), module.getId().getName(), "jar", "jar", Collections.<String, String>emptyMap());
             ModuleVersionArtifactMetaData possibleJarArtifact = new DefaultModuleVersionArtifactMetaData(artifactId);
             if (artifactExists(possibleJarArtifact)) {
                 return ImmutableSet.of(possibleJarArtifact);

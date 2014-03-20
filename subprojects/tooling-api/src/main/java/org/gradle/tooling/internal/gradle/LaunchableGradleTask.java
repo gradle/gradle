@@ -16,10 +16,30 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import org.gradle.tooling.model.TaskSelector;
+import org.gradle.tooling.internal.protocol.InternalLaunchable;
 
-import java.util.Set;
+import java.io.File;
+import java.io.Serializable;
 
-public interface TaskListingTaskSelector extends TaskSelector {
-    Set<String> getTasks();
+public class LaunchableGradleTask extends DefaultGradleTask implements Serializable, InternalLaunchable {
+    // TODO(radimk): move to provider?
+
+    public String getTaskName() {
+        return path;
+    }
+
+    public File getProjectDir() {
+        return null;
+    }
+
+    public String getProjectPath() {
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return "LaunchableGradleTask{"
+                + "name='" + name + '\''
+                + '}';
+    }
 }

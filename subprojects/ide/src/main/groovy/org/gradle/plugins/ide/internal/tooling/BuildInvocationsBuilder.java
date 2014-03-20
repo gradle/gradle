@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.internal.tooling;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -53,7 +52,9 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         for (String selectorName : aggregatedTasks.keySet()) {
             selectors.add(new DefaultGradleTaskSelector().
                     setName(selectorName).
-                    setTaskNames(Sets.newHashSet(aggregatedTasks.get(selectorName))).
+                    setTaskName(selectorName).
+                    setProjectDir(project.getProjectDir()).
+                    setProjectPath(project.getPath()).
                     setDescription(project.getParent() != null
                             ? String.format("%s:%s task selector", project.getPath(), selectorName)
                             : String.format("%s task selector", selectorName)).
@@ -61,7 +62,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         }
         return new DefaultBuildInvocations()
                 .setSelectors(selectors)
-                .setTasks(new ArrayList(gradleProjectBuilder.buildAll(project).findByPath(project.getPath()).getTasks()));
+                .setTasks(convertTasks(new ArrayList(gradleProjectBuilder.buildAll(project).findByPath(project.getPath()).getTasks())));
     }
 
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
@@ -71,7 +72,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             fillTaskList(gradleProject, tasks);
             return new DefaultBuildInvocations()
                     .setSelectors(buildRecursively(modelName, project.getRootProject()))
-                    .setTasks(tasks);
+                    .setTasks(convertTasks(tasks));
         } else {
             return buildAll(modelName, project);
         }
@@ -91,6 +92,13 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             selectors.addAll(buildRecursively(modelName, childProject));
         }
         return selectors;
+    }
+
+    private List<DefaultGradleTask> convertTasks(List<DefaultGradleTask> tasks) {
+        for (DefaultGradleTask task :  tasks) {
+            task.setProject(null);
+        }
+        return tasks;
     }
 
     private Multimap<String, String> findTasks(Project project) {

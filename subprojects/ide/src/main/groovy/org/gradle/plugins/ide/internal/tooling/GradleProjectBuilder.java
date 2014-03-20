@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleTask;
+import org.gradle.tooling.internal.gradle.LaunchableGradleTask;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
@@ -69,7 +70,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         List<DefaultGradleTask> out = new LinkedList<DefaultGradleTask>();
 
         for (Task t : tasks) {
-            out.add(new DefaultGradleTask()
+            out.add(new LaunchableGradleTask()
                     .setPath(t.getPath())
                     .setName(t.getName())
                     .setDisplayName(t.toString())

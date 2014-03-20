@@ -220,11 +220,11 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
     }
 
-    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate.getId(), artifact.getId());
         // Look in the cache for this resolver
         CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
-        final CachingModuleSource cachedModuleSource = (CachingModuleSource) moduleMetaData.getSource();
+        final CachingModuleSource cachedModuleSource = (CachingModuleSource) moduleSource;
         final BigInteger descriptorHash = cachedModuleSource.getDescriptorHash();
         if (cached != null) {
             long age = timeProvider.getCurrentTime() - cached.getCachedAt();
@@ -246,7 +246,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             }
         }
 
-        delegate.resolveArtifact(moduleMetaData.withSource(cachedModuleSource.getDelegate()), artifact, result);
+        delegate.resolveArtifact(artifact, cachedModuleSource.getDelegate(), result);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact, delegate.getName());
 
         if (result.getFailure() == null) {

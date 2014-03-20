@@ -109,7 +109,6 @@ task retrieveDynamicMissing(type: Sync) {
         projectB11.jar.expectHead()
         projectB11.jar.expectGet()
 
-        // TODO:DAZ This is a regression in retrieve dynamic versions with custom ivy resolver. Not sure if we care.
         projectB11.ivy.expectGet()
 
         and:
@@ -142,7 +141,6 @@ task retrieveDynamicMissing(type: Sync) {
         projectB20.jar.expectGet()
         executer.withDeprecationChecksDisabled()
 
-        // TODO:DAZ Extra get since moving version listing up into UserResolverChain (for custom ivy resolver only)
         projectB20.ivy.expectGet()
 
         and:

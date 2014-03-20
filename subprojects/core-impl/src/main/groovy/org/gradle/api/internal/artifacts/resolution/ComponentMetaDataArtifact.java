@@ -17,6 +17,5 @@ package org.gradle.api.internal.artifacts.resolution;
 
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 
-// TODO:DAZ Move this to public API
 public interface ComponentMetaDataArtifact extends SoftwareArtifact {
 }

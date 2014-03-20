@@ -109,11 +109,10 @@ public class StartParameterResolutionOverride {
         }
 
         public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-            // TODO:DAZ Fail when we have caching
-            original.resolveModuleArtifacts(moduleMetaData, context, result);
+            result.failed(new ArtifactResolveException(moduleMetaData.getId(), "No cached version available for offline mode"));
         }
 
-        public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             result.failed(new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
         }
 

@@ -20,8 +20,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import org.gradle.tooling.internal.gradle.BasicGradleTaskSelector;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
-import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 
@@ -29,18 +29,18 @@ import java.util.List;
 
 public class BuildInvocationsConverter {
     public DefaultBuildInvocations<GradleTask> convert(GradleProject project) {
-        List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
+        List<BasicGradleTaskSelector> selectors = Lists.newArrayList();
         List<GradleTask> tasks = Lists.newArrayList();
         buildRecursively(project, selectors, tasks);
         return new DefaultBuildInvocations<GradleTask>().setSelectors(selectors).setTasks(tasks);
     }
 
-    private void buildRecursively(GradleProject project, List<DefaultGradleTaskSelector> selectors, List<GradleTask> tasks) {
+    private void buildRecursively(GradleProject project, List<BasicGradleTaskSelector> selectors, List<GradleTask> tasks) {
         for (GradleProject childProject : project.getChildren()) {
             buildRecursively(childProject, selectors, tasks);
         }
         Multimap<String, String> aggregatedTasks = ArrayListMultimap.create();
-        for (DefaultGradleTaskSelector childSelector : selectors) {
+        for (BasicGradleTaskSelector childSelector : selectors) {
             aggregatedTasks.putAll(childSelector.getName(), childSelector.getTasks());
         }
         for (GradleTask task : project.getTasks()) {
@@ -48,7 +48,7 @@ public class BuildInvocationsConverter {
             tasks.add(task);
         }
         for (String selectorName : aggregatedTasks.keySet()) {
-            selectors.add(new DefaultGradleTaskSelector().
+            selectors.add(new BasicGradleTaskSelector().
                     setName(selectorName).
                     setTaskNames(Sets.newHashSet(aggregatedTasks.get(selectorName))).
                     setDescription(project.getParent() != null

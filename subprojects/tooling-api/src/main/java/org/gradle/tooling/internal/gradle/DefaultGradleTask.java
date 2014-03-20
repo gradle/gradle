@@ -17,8 +17,10 @@
 package org.gradle.tooling.internal.gradle;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Set;
 
-public class DefaultGradleTask implements Serializable {
+public class DefaultGradleTask implements Serializable, TaskListingLaunchable {
 
     String path;
     String name;
@@ -69,6 +71,10 @@ public class DefaultGradleTask implements Serializable {
     public DefaultGradleTask setProject(PartialGradleProject project) {
         this.project = project;
         return this;
+    }
+
+    public Set<String> getTasks() {
+        return Collections.singleton(getPath());
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.metadata;
+package org.gradle.tooling.internal.gradle;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import java.util.Set;
 
-/**
- * An immutable identifier for an artifact that belongs to some module version.
- */
-// TODO:DAZ This is really a ComponentArtifactIdentifier, and we should extra ModuleVersionArtifactIdentifier out of DefaultModuleVersionArtifactIdentifier
-public interface ModuleVersionArtifactIdentifier {
-    ComponentIdentifier getComponentIdentifier();
-    String getDisplayName();
+public interface TaskListingLaunchable {
+    Set<String> getTasks();
 }
