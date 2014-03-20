@@ -110,7 +110,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 BinaryStore oldModelStore = stores.nextBinaryStore();
                 Store<TransientConfigurationResults> oldModelCache = stores.newModelStore();
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
-                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder, artifactResolver);
+                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
 
                 builder.resolve(configuration, newModelBuilder, oldModelBuilder);
                 DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder, cacheLockingManager);

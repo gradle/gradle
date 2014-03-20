@@ -82,9 +82,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     private DefaultLenientConfiguration resolve() {
-        def results = new DefaultResolvedConfigurationBuilder(
-                new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()),
-                artifactResolver)
+        def results = new DefaultResolvedConfigurationBuilder(new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()))
         builder.resolve(configuration, resultBuilder, results)
         new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
     }
