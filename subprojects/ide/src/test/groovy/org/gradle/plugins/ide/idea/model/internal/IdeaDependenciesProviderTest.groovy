@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -96,6 +97,30 @@ public class IdeaDependenciesProviderTest extends Specification {
         result.findAll { it.scope == 'COMPILE' }.size() == 1
         result.findAll { it.scope == 'TEST' }.size() == 1
         result.findAll { it.scope == 'RUNTIME' }.size() == 1
+    }
+
+    def "ignore unknown configurations"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+
+        def dependenciesExtractor = Spy(IdeDependenciesExtractor)
+        def dependenciesProvider = new IdeaDependenciesProvider(dependenciesExtractor)
+        def module = project.ideaModule.module // Mock(IdeaModule)
+        module.offline = true
+        def extraConfiguration = project.configurations.create('extraConfiguration')
+
+        when:
+        project.dependencies.add('testCompile', project.files('lib/mockito.jar'))
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        // only for compile, runtime, testCompile, testRuntime
+        4 * dependenciesExtractor.extractProjectDependencies(_, { !it.contains(extraConfiguration) }, _)
+        4 * dependenciesExtractor.extractLocalFileDependencies({ !it.contains(extraConfiguration) }, _)
+        // offline: 4 * dependenciesExtractor.extractRepoFileDependencies(_, { !it.contains(extraConfiguration) }, _, _, _)
+        0 * dependenciesExtractor._
+        result.size() == 1
+        result.findAll { it.scope == 'TEST' }.size() == 1
     }
 
     private applyPluginToProjects() {

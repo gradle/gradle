@@ -31,7 +31,7 @@ import org.gradle.tooling.model.idea.IdeaDependency
 
 class IdeaDependenciesProvider {
 
-    private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
+    private final IdeDependenciesExtractor dependenciesExtractor
     Closure getPath;
 
     /**
@@ -43,6 +43,11 @@ class IdeaDependenciesProvider {
     Map<GeneratedIdeaScope, List<IdeaScopeMappingRule>> scopeMappings = new EnumMap<>(GeneratedIdeaScope)
 
     IdeaDependenciesProvider() {
+        this(new IdeDependenciesExtractor())
+    }
+
+    private IdeaDependenciesProvider(IdeDependenciesExtractor dependenciesExtractor) {
+        this.dependenciesExtractor = dependenciesExtractor
         scopeMappings.put(GeneratedIdeaScope.PROVIDED_TEST, [new IdeaScopeMappingRule(['providedRuntime', 'test'])])
         scopeMappings.put(GeneratedIdeaScope.PROVIDED,
                 [new IdeaScopeMappingRule(['providedCompile']), new IdeaScopeMappingRule(['providedRuntime'])])
@@ -71,6 +76,9 @@ class IdeaDependenciesProvider {
     private Set<Dependency> provideFromScopeRuleMappings(IdeaModule ideaModule) {
         Multimap<IdeDependencyKey<?, Dependency>, String> dependencyToConfigurations = LinkedHashMultimap.create()
         for (Configuration configuration : ideaModule.project.configurations) {
+            if (!isMappedToIdeaScope(configuration, ideaModule)) {
+                continue
+            }
             // project dependencies
             Collection<IdeProjectDependency> ideProjectDependencies =
                     dependenciesExtractor.extractProjectDependencies(ideaModule.project, [configuration], [])
@@ -141,6 +149,18 @@ class IdeaDependenciesProvider {
             }
         }
         dependencies
+    }
+
+    boolean isMappedToIdeaScope(Configuration configuration, IdeaModule ideaModule) {
+        if (scopeMappings.values().flatten().find { IdeaScopeMappingRule it -> it.configurationNames.contains(configuration.name) }) {
+            return true
+        }
+        for (Map<String, Collection<Configuration>> scopeMap : ideaModule.scopes.values()) {
+            if (scopeMap.values().flatten().find { Configuration it -> it.equals(configuration) }) {
+                return true
+            }
+        }
+        false
     }
 
     /** Looks for dependencies contained in all configurations to remove them from multimap and return as result. */
