@@ -18,7 +18,6 @@ package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec {
     protected ExecutionResult runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {
@@ -37,21 +36,8 @@ abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec {
         file
     }
 
-    protected parseFile(Map options, String filename) {
+    protected parseFile(Map options = [:], String filename) {
         def file = getFile(options, filename)
         new XmlSlurper().parse(file)
-    }
-
-    protected void createJavaSourceDirs(TestFile buildFile) {
-        buildFile.parentFile.file("src/main/java").createDir()
-        buildFile.parentFile.file("src/main/resources").createDir()
-    }
-
-    protected ExecutionResult runIdeaTask(buildScript) {
-        return runTask("idea", buildScript)
-    }
-
-    protected parseImlFile(Map options = [:], String projectName) {
-        parseFile(options, "${projectName}.iml")
     }
 }

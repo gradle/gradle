@@ -91,6 +91,10 @@ class EclipseClasspathFixture {
             assert entry.@sourcepath == jar.absolutePath.replace(File.separator, '/')
         }
 
+        String getSourcePath() {
+            entry.@sourcepath
+        }
+
         void assertHasSource(String jar) {
             assert entry.@sourcepath == jar
         }
@@ -105,6 +109,12 @@ class EclipseClasspathFixture {
 
         void assertHasNoSource() {
             assert !entry.@sourcepath
+        }
+
+        String getJavadocLocation() {
+            assert entry.attributes
+            assert entry.attributes[0].attribute[0].@name == 'javadoc_location'
+            entry.attributes[0].attribute[0].@value
         }
 
         void assertHasJavadoc(File file) {

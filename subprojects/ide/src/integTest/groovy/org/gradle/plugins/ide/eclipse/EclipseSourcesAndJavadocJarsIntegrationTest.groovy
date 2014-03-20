@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.idea
+package org.gradle.plugins.ide.eclipse
 
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 
-class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
+class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
     void executeIdeTask(String buildScript) {
-        runTask "ideaModule", buildScript
+        runTask "eclipseClasspath", buildScript
     }
 
     void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
-        def iml = parseFile("root.iml")
-
-        def sourcesUrl = iml.component.orderEntry.library.SOURCES.root.@url[0].text()
-        assert sourcesUrl.endsWith("/module-1.0-${sourcesClassifier}.jar!/")
-
-        def javadocUrl = iml.component.orderEntry.library.JAVADOC.root.@url[0].text()
-        assert javadocUrl.endsWith("/module-1.0-${javadocClassifier}.jar!/")
+        def classpath = new EclipseClasspathFixture(testDirectory, executer.gradleUserHomeDir)
+        def lib = classpath.libs[0]
+        assert lib.sourcePath.endsWith("/module-1.0-${sourcesClassifier}.jar")
+        assert lib.javadocLocation.endsWith("/module-1.0-${javadocClassifier}.jar!/")
     }
 }
