@@ -272,7 +272,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
             result.resolved(artifacts);
         } catch (Exception e) {
-            result.failed(new ArtifactResolveException(component.getId(), e));
+            result.failed(new ArtifactResolveException(component.getComponentId(), e));
         }
     }
 

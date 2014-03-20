@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
@@ -123,6 +124,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
         artifactResolver = new ProjectArtifactResolver(artifactResolver);
         artifactResolver = new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, artifactResolver);
+        artifactResolver = new ErrorHandlingArtifactResolver(artifactResolver);
         return artifactResolver;
     }
 }

@@ -146,7 +146,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
             try {
                 result.resolved(doGetCandidateArtifacts(moduleVersion, artifactType));
             } catch (Exception e) {
-                result.failed(new ArtifactResolveException(component.getId(), e));
+                result.failed(new ArtifactResolveException(component.getComponentId(), e));
             }
         }
     }
