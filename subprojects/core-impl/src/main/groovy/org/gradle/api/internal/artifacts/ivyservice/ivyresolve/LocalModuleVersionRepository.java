@@ -55,8 +55,8 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
         delegate.resolveModuleArtifacts(moduleMetaData, context, result);
     }
 
-    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-        delegate.resolveArtifact(moduleMetaData, artifact, result);
+    public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        delegate.resolveArtifact(artifact, moduleSource, result);
     }
 
     public String getId() {

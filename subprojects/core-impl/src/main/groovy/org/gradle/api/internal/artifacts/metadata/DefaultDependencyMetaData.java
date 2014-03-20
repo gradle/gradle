@@ -74,7 +74,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
             ModuleRevisionId id = toConfiguration.getModuleVersion().getDescriptor().getModuleRevisionId();
             Artifact artifact = new DefaultArtifact(id, null, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
-            artifacts.add(new DefaultModuleVersionArtifactMetaData(toConfiguration.getModuleVersion().getId(), artifact));
+            artifacts.add(new DefaultModuleVersionArtifactMetaData(toConfiguration.getModuleVersion(), artifact));
         }
         return artifacts;
     }

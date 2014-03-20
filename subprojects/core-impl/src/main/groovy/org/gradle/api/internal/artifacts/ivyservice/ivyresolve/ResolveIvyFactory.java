@@ -174,10 +174,10 @@ public class ResolveIvyFactory {
             });
         }
 
-        public void resolveArtifact(final ModuleVersionMetaData moduleMetaData, final ModuleVersionArtifactMetaData artifact, final BuildableArtifactResolveResult result) {
+        public void resolveArtifact(final ModuleVersionArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s", artifact), new Runnable() {
                 public void run() {
-                    artifactResolver.resolveArtifact(moduleMetaData, artifact, result);
+                    artifactResolver.resolveArtifact(artifact, moduleSource, result);
                 }
             });
         }

@@ -173,7 +173,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         if (artifacts == null) {
             artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
             for (Artifact artifact : moduleDescriptor.getAllArtifacts()) {
-                artifacts.add(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier, artifact));
+                artifacts.add(new DefaultModuleVersionArtifactMetaData(this, artifact));
             }
         }
         return artifacts;
@@ -185,8 +185,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         for (String ancestor : configurationMetaData.getHierarchy()) {
             for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
                 if (artifacts.add(artifact)) {
-                    DefaultModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(getId(), artifact);
-                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(artifactId));
+                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(this, artifact));
                 }
             }
         }

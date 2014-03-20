@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
@@ -34,7 +36,7 @@ public class ProjectArtifactResolver implements ArtifactResolver {
     }
 
     public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        if (isProjectModule(moduleMetaData)) {
+        if (isProjectModule(moduleMetaData.getComponentId())) {
             if (context instanceof ConfigurationResolveContext) {
                 String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
                 Set<ModuleVersionArtifactMetaData> artifacts = moduleMetaData.getConfiguration(configurationName).getArtifacts();
@@ -47,10 +49,10 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         delegate.resolveModuleArtifacts(moduleMetaData, context, result);
     }
 
-    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-        if (isProjectModule(moduleMetaData)) {
+    public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        if (isProjectModule(artifact.getComponentId())) {
             // TODO:DAZ We're now looking up the project separately per resolved artifact: need to ensure this isn't a problem
-            ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) moduleMetaData.getComponentId();
+            ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) artifact.getComponentId();
             LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(componentIdentifier.getProjectPath());
             LocalArtifactMetaData artifactMetaData = componentMetaData.getArtifact(artifact.getId());
             if (artifactMetaData != null) {
@@ -59,11 +61,11 @@ public class ProjectArtifactResolver implements ArtifactResolver {
                 result.notFound(artifact.getId());
             }
         } else {
-            delegate.resolveArtifact(moduleMetaData, artifact, result);
+            delegate.resolveArtifact(artifact, moduleSource, result);
         }
     }
 
-    private boolean isProjectModule(ModuleVersionMetaData moduleMetaData) {
-        return moduleMetaData.getComponentId() instanceof ProjectComponentIdentifier;
+    private boolean isProjectModule(ComponentIdentifier componentId) {
+        return componentId instanceof ProjectComponentIdentifier;
     }
 }

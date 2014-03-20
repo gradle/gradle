@@ -52,7 +52,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
     public void addArtifact(String configuration, Artifact artifact, File file) {
         moduleDescriptor.addArtifact(configuration, artifact);
-        DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(id, artifact, file);
+        DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(componentIdentifier, id, artifact, file);
         artifactsById.put(artifactMetaData.id, artifactMetaData);
         artifactsById.put(artifactMetaData.selectorId, artifactMetaData);
         artifactsByConfig.put(configuration, artifactMetaData);
@@ -94,17 +94,19 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     }
 
     private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData, ModuleVersionArtifactMetaData {
+        private final ComponentIdentifier componentIdentifier;
         private final DefaultModuleVersionArtifactIdentifier id;
         private final ModuleVersionArtifactIdentifier selectorId;
         private final Artifact artifact;
         private final File file;
 
-        private DefaultLocalArtifactMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
+        private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
+            this.componentIdentifier = componentIdentifier;
             Map<String, String> attrs = new HashMap<String, String>();
             attrs.putAll(artifact.getExtraAttributes());
             attrs.put("file", file.getAbsolutePath());
-            this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
-            this.selectorId = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact);
+            this.id = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
+            this.selectorId = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifact);
             this.artifact = artifact;
             this.file = file;
         }
@@ -119,6 +121,10 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
         public ArtifactIdentifier toArtifactIdentifier() {
             return new DefaultArtifactIdentifier(id);
+        }
+
+        public ComponentIdentifier getComponentId() {
+            return componentIdentifier;
         }
 
         public ModuleVersionArtifactIdentifier getId() {

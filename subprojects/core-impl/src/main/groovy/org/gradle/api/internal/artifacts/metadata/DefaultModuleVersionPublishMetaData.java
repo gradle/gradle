@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.io.File;
 import java.util.Collection;
@@ -27,8 +28,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersionPublishMetaData {
-    private final Map<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData>();
     private final ModuleVersionIdentifier id;
+    private final Map<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData>();
 
     public DefaultModuleVersionPublishMetaData(ModuleVersionIdentifier id) {
         this.id = id;
@@ -57,7 +58,7 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
         private final File file;
 
         private DefaultModuleVersionArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
-            this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact);
+            this.id = new DefaultModuleVersionArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), moduleVersionIdentifier, artifact);
             this.artifact = artifact;
             this.file = file;
         }

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
@@ -125,14 +126,14 @@ class CachedRepositoryTest extends Specification {
         def artifact = Stub(ModuleVersionArtifactMetaData) {
             getId() >> artifactId
         }
-        def moduleMetaData = Mock(ModuleVersionMetaData)
+        def moduleSource = Mock(ModuleSource)
 
         when:
-        repo.resolveArtifact(moduleMetaData, artifact, result)
+        repo.resolveArtifact(artifact, moduleSource, result)
 
         then:
         1 * cache.supplyArtifact(artifactId, result) >> false
-        1 * delegate.resolveArtifact(moduleMetaData, artifact, result)
+        1 * delegate.resolveArtifact(artifact, moduleSource, result)
         1 * result.getFailure() >> null
         1 * cache.newArtifact(artifactId, result)
         0 * _
@@ -144,10 +145,10 @@ class CachedRepositoryTest extends Specification {
         def artifact = Stub(ModuleVersionArtifactMetaData) {
             getId() >> artifactId
         }
-        def moduleMetaData = Mock(ModuleVersionMetaData)
+        def moduleSource = Mock(ModuleSource)
 
         when:
-        repo.resolveArtifact(moduleMetaData, artifact, result)
+        repo.resolveArtifact(artifact, moduleSource, result)
 
         then:
         1 * cache.supplyArtifact(artifactId, result) >> true

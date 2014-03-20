@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.internal.Factory;
@@ -80,7 +81,7 @@ public class DefaultResolvedConfigurationBuilder implements
     }
 
     public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ModuleVersionMetaData module, ModuleVersionArtifactMetaData artifact) {
-        Factory<File> artifactSource = new LazyArtifactSource(module, artifact, artifactResolver);
+        Factory<File> artifactSource = new LazyArtifactSource(artifact, module.getSource(), artifactResolver);
         Factory<ResolvedDependency> dependencySource = new LazyResolvedDependencySource(owner, builder, this);
         long id = idGenerator.generateId();
         ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), dependencySource, artifact.getName(), artifactSource, id);
@@ -118,18 +119,18 @@ public class DefaultResolvedConfigurationBuilder implements
 
     private static class LazyArtifactSource implements Factory<File> {
         private final ArtifactResolver artifactResolver;
-        private final ModuleVersionMetaData module;
+        private final ModuleSource moduleSource;
         private final ModuleVersionArtifactMetaData artifact;
 
-        private LazyArtifactSource(ModuleVersionMetaData module, ModuleVersionArtifactMetaData artifact, ArtifactResolver artifactResolver) {
+        private LazyArtifactSource(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, ArtifactResolver artifactResolver) {
             this.artifact = artifact;
             this.artifactResolver = artifactResolver;
-            this.module = module;
+            this.moduleSource = moduleSource;
         }
 
         public File create() {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
-            artifactResolver.resolveArtifact(module, artifact, result);
+            artifactResolver.resolveArtifact(artifact, moduleSource, result);
             return result.getFile();
         }
     }

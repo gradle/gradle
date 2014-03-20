@@ -118,8 +118,8 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         }
     }
 
-    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-        Artifact ivyArtifact = createIvyArtifact(moduleMetaData, artifact);
+    public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        Artifact ivyArtifact = createIvyArtifact(artifact);
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
@@ -139,10 +139,10 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         }
     }
 
-    private Artifact createIvyArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact) {
+    private Artifact createIvyArtifact(ModuleVersionArtifactMetaData artifact) {
         // TODO:DAZ Should really be looking up the Ivy Artifact from the ModuleDescriptor, to ensure we're not losing anything here, like URL or publication date.
         IvyArtifactName ivyName = artifact.getName();
-        return new DefaultArtifact(IvyUtil.createModuleRevisionId(moduleMetaData.getId()), null, ivyName.getName(), ivyName.getType(), ivyName.getExtension(), ivyName.getAttributes());
+        return new DefaultArtifact(IvyUtil.createModuleRevisionId(artifact.getModuleVersion()), null, ivyName.getName(), ivyName.getType(), ivyName.getExtension(), ivyName.getAttributes());
     }
 
     public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
@@ -170,7 +170,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
 
         if (artifactType == ComponentMetaDataArtifact.class) {
             Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
-            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), metadataArtifact));
+            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module, metadataArtifact));
         }
 
         throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
@@ -189,6 +189,6 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     private Set<ModuleVersionArtifactMetaData> createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {
         Artifact artifact = new DefaultArtifact(module.getDescriptor().getModuleRevisionId(), null,
                 module.getId().getName(), type, "jar", ImmutableMap.of("m:classifier", classifier));
-        return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module.getId(), artifact));
+        return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module, artifact));
     }
 }

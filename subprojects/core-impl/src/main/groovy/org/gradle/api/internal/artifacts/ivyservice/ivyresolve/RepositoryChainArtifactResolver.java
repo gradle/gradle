@@ -21,47 +21,44 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.internal.Transformers;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 // TODO:DAZ Unit test
 class RepositoryChainArtifactResolver implements ArtifactResolver {
-    private final List<ModuleVersionRepository> repositories = new ArrayList<ModuleVersionRepository>();
+    private final Map<String, ModuleVersionRepository> repositories = new LinkedHashMap<String, ModuleVersionRepository>();
 
     void add(ModuleVersionRepository repository) {
-        repositories.add(repository);
+        repositories.put(repository.getId(), repository);
     }
 
     public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetadata, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        findSourceRepository(moduleMetadata).resolveModuleArtifacts(unpackModuleSource(moduleMetadata), context, result);
+        findSourceRepository(moduleMetadata.getSource()).resolveModuleArtifacts(unpackSource(moduleMetadata), context, result);
     }
 
-    public void resolveArtifact(ModuleVersionMetaData moduleMetaData, ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-        findSourceRepository(moduleMetaData).resolveArtifact(unpackModuleSource(moduleMetaData), artifact, result);
+    public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource source, BuildableArtifactResolveResult result) {
+        findSourceRepository(source).resolveArtifact(artifact, unpackSource(source), result);
     }
 
-    private ModuleVersionRepository findSourceRepository(ModuleVersionMetaData moduleMetaData) {
-        String repositoryId = getSourceRepositoryId(moduleMetaData);
-        for (ModuleVersionRepository repository : repositories) {
-            if (repository.getId().equals(repositoryId)) {
-                return repository;
-            }
+    private ModuleVersionRepository findSourceRepository(ModuleSource originalSource) {
+        ModuleVersionRepository moduleVersionRepository = repositories.get(repositorySource(originalSource).getRepositoryId());
+        if (moduleVersionRepository == null) {
+            throw new IllegalStateException("Attempting to resolve artifacts from invalid repository");
         }
-        // This should never happen
-        throw new IllegalStateException("No repository found for id: " + repositoryId);
+        return moduleVersionRepository;
     }
 
-    private String getSourceRepositoryId(ModuleVersionMetaData moduleMetaData) {
-        if (moduleMetaData.getSource() instanceof RepositoryChainModuleSource) {
-            RepositoryChainModuleSource source = (RepositoryChainModuleSource) moduleMetaData.getSource();
-            return source.getRepositoryId();
-        }
-        throw new IllegalStateException(String.format("Repository source not set for %s", moduleMetaData.getId()));
+    private RepositoryChainModuleSource repositorySource(ModuleSource original) {
+        return Transformers.cast(RepositoryChainModuleSource.class).transform(original);
     }
 
-    private ModuleVersionMetaData unpackModuleSource(ModuleVersionMetaData moduleMetaData) {
-        RepositoryChainModuleSource source = (RepositoryChainModuleSource) moduleMetaData.getSource();
-        return moduleMetaData.withSource(source.getDelegate());
+    private ModuleSource unpackSource(ModuleSource original) {
+        return repositorySource(original).getDelegate();
+    }
+
+    private ModuleVersionMetaData unpackSource(ModuleVersionMetaData moduleMetadata) {
+        return moduleMetadata.withSource(repositorySource(moduleMetadata.getSource()).getDelegate());
     }
 }
