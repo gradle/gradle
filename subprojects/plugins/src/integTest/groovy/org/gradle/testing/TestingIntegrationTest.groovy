@@ -248,4 +248,58 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("TestCaseExtendsAbstractClass")
     }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2962")
+    def "incompatible user versions of classes that we also use don't affect test execution"() {
+
+        // These dependencies are quite particular.
+        // Both jars contain 'com.google.common.collect.ImmutableCollection'
+        // 'google-collections' contains '$EmptyImmutableCollection' which extends '$AbstractImmutableCollection' which is also in guava 15.
+        // In the google-collections version '$EmptyImmutableCollection' overrides `toArray()`.
+        // In guava 15, this method is final.
+        // This causes a verifier error when loading $EmptyImmutableCollection (can't override final method).
+
+        // Our test infrastructure loads org.gradle.util.SystemProperties, which depends on $EmptyImmutableCollection from guava 14.
+        // The below test is testing that out infrastructure doesn't throw a VerifyError while bootstrapping.
+        // This is testing classloader isolation, but this was not the real problem that triggered GRADLE-2962.
+        // The problem was that we tried to load the user's $EmptyImmutableCollection in a class loader structure we wouldn't have used anyway,
+        // but this caused the infrastructure to fail with an internal error because of the VerifyError.
+        // In a nutshell, this tests that we don't even try to load classes that are there, but that we shouldn't see.
+
+        when:
+        buildScript """
+            apply plugin: 'java'
+            repositories {
+                mavenCentral()
+            }
+            configurations { first {}; last {} }
+            dependencies {
+                // guarantee ordering
+                first 'com.google.guava:guava:15.0'
+                last 'com.google.collections:google-collections:1.0'
+                compile configurations.first + configurations.last
+
+                testCompile 'junit:junit:4.11'
+            }
+        """
+
+        and:
+        file("src/test/java/TestCase.java") << """
+            import org.junit.Test;
+            public class TestCase {
+                @Test
+                public void test() throws Exception {
+                    getClass().getClassLoader().loadClass("com.google.common.collect.ImmutableCollection\$EmptyImmutableCollection");
+                }
+            }
+        """
+
+        then:
+        fails "test"
+
+        and:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        def classResult = result.testClass("TestCase")
+        classResult.assertTestFailed("test", Matchers.containsString("com.google.common.collect.ImmutableCollection\$EmptyImmutableCollection overrides final method toArray"))
+    }
 }

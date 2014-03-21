@@ -21,8 +21,6 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.IOException;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.*;
 
 /**
@@ -73,20 +71,19 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        Class<?> cl;
-        try {
-            cl = super.loadClass(name, false);
-        } catch (NoClassDefFoundError e) {
-            if (classAllowed(name)) {
-                throw e;
+        for (ClassLoader systemClassLoader : SYSTEM_CLASS_LOADERS) {
+            try {
+                return systemClassLoader.loadClass(name);
+            } catch (ClassNotFoundException ignore) {
+                // ignore
             }
-            // The class isn't visible
+        }
+
+        if (!classAllowed(name)) {
             throw new ClassNotFoundException(String.format("%s not found.", name));
         }
 
-        if (!allowed(cl)) {
-            throw new ClassNotFoundException(String.format("%s not found.", cl.getName()));
-        }
+        Class<?> cl = super.loadClass(name, false);
         if (resolve) {
             resolveClass(cl);
         }
@@ -155,15 +152,6 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             }
         }
         return false;
-    }
-
-    private boolean allowed(final Class<?> clazz) {
-        boolean systemClass = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-            public Boolean run() {
-                return clazz.getClassLoader() == null || SYSTEM_CLASS_LOADERS.contains(clazz.getClassLoader());
-            }
-        });
-        return systemClass || classAllowed(clazz.getName());
     }
 
     private boolean classAllowed(String className) {
