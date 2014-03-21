@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import java.io.File;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public interface LocalArtifactMetaData extends ComponentArtifactMetaData {
-    ComponentArtifactIdentifier getId();
-
-    File getFile();
+/**
+ * The meta-data for a component instance that is required during dependency resolution.
+ */
+public interface ComponentMetaData {
+    /**
+     * Returns the identifier for this component.
+     */
+    ComponentIdentifier getComponentId();
 }

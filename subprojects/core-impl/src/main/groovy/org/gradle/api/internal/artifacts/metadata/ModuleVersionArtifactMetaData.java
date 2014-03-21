@@ -18,20 +18,20 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
  * Meta-data for an artifact that belongs to some module version.
  */
-public interface ModuleVersionArtifactMetaData {
-    ComponentIdentifier getComponentId();
+public interface ModuleVersionArtifactMetaData extends ComponentArtifactMetaData {
     ModuleVersionArtifactIdentifier getId();
 
+    /**
+     * Returns the module version that this artifact belongs to.
+     */
     ModuleVersionIdentifier getModuleVersion();
 
     /**
-     * Returns this artifact as an Ivy artifact. This method is here to allow the artifact to be exposed in a backward-compatible
-     * way.
+     * Returns this artifact as an Ivy artifact. This method is here to allow the artifact to be exposed in a backward-compatible way.
      */
     IvyArtifactName getName();
 

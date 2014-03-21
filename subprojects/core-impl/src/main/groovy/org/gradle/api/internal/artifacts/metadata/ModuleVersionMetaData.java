@@ -18,16 +18,15 @@ package org.gradle.api.internal.artifacts.metadata;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
 import java.util.List;
 import java.util.Set;
 
 /**
- * The meta-data for a module version required during dependency resolution.
+ * The meta-data for a module version that is required during dependency resolution.
  */
-public interface ModuleVersionMetaData {
+public interface ModuleVersionMetaData extends ComponentMetaData {
     ModuleVersionIdentifier getId();
 
     ModuleSource getSource();
@@ -58,6 +57,4 @@ public interface ModuleVersionMetaData {
     String getStatus();
 
     List<String> getStatusScheme();
-
-    ComponentIdentifier getComponentId();
 }

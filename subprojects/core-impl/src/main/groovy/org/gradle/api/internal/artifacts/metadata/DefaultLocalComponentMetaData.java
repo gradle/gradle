@@ -30,7 +30,7 @@ import java.io.File;
 import java.util.*;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
-    private final Map<ModuleVersionArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = new LinkedHashMap<ModuleVersionArtifactIdentifier, DefaultLocalArtifactMetaData>();
+    private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = new LinkedHashMap<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData>();
     private final Multimap<String, DefaultLocalArtifactMetaData> artifactsByConfig = LinkedHashMultimap.create();
     private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
@@ -62,7 +62,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return artifactsByConfig.values();
     }
 
-    public LocalArtifactMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier) {
+    public LocalArtifactMetaData getArtifact(ComponentArtifactIdentifier artifactIdentifier) {
         return artifactsById.get(artifactIdentifier);
     }
 

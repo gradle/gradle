@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,19 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public interface LocalComponentMetaData {
-    ModuleVersionIdentifier getId();
-
-    ModuleDescriptor getModuleDescriptor();
+/**
+ * An immutable identifier for an artifact that belongs to some component instance.
+ */
+public interface ComponentArtifactIdentifier {
+    /**
+     * Returns the id of the component that this artifact belongs to.
+     */
+    ComponentIdentifier getComponentIdentifier();
 
     /**
-     * Converts this component to resolve meta-data.
+     * Returns some human-consumable display name for this artifact.
      */
-    ModuleVersionMetaData toResolveMetaData();
-
-    /**
-     * Converts this component to publication meta-data.
-     */
-    BuildableModuleVersionPublishMetaData toPublishMetaData();
-
-    @Nullable
-    LocalArtifactMetaData getArtifact(ComponentArtifactIdentifier artifactIdentifier);
+    String getDisplayName();
 }
