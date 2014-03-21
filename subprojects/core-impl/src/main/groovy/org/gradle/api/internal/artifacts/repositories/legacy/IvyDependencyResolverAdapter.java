@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.legacy;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
@@ -27,9 +26,8 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.internal.artifacts.MavenCandidateArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
@@ -160,20 +158,12 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     }
 
     public Set<ModuleVersionArtifactMetaData> doGetCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
-        if (artifactType == JvmLibraryJavadocArtifact.class) {
-            return createArtifactMetaData(module, "javadoc", "javadoc");
-        }
-
-        if (artifactType == JvmLibrarySourcesArtifact.class) {
-            return createArtifactMetaData(module, "source", "sources");
-        }
-
         if (artifactType == ComponentMetaDataArtifact.class) {
             Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
             return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module, metadataArtifact));
         }
 
-        throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
+        return new MavenCandidateArtifacts().get(module, artifactType);
     }
 
     private boolean downloadFailed(ArtifactDownloadReport artifactReport) {
@@ -184,11 +174,5 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
 
     private boolean isChanging(ResolvedModuleRevision resolvedModuleRevision) {
         return new ChangingModuleDetector(resolver).isChangingModule(resolvedModuleRevision.getDescriptor());
-    }
-
-    private Set<ModuleVersionArtifactMetaData> createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {
-        Artifact artifact = new DefaultArtifact(module.getDescriptor().getModuleRevisionId(), null,
-                module.getId().getName(), type, "jar", ImmutableMap.of("m:classifier", classifier));
-        return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module, artifact));
     }
 }

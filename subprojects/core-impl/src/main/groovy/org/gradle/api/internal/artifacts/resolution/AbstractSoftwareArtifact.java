@@ -15,18 +15,37 @@
  */
 package org.gradle.api.internal.artifacts.resolution;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 
 import java.io.File;
 
 public abstract class AbstractSoftwareArtifact implements SoftwareArtifact {
     private final File file;
+    private final GradleException failure;
 
     protected AbstractSoftwareArtifact(File file) {
         this.file = file;
+        failure = null;
     }
 
-    public File getFile() {
+    protected AbstractSoftwareArtifact(GradleException failure) {
+        file = null;
+        this.failure = failure;
+    }
+
+    public File getFile() throws GradleException {
+        assertNoFailure();
         return file;
+    }
+
+    public GradleException getFailure() {
+        return failure;
+    }
+
+    private void assertNoFailure() {
+        if (failure != null) {
+            throw failure;
+        }
     }
 }
