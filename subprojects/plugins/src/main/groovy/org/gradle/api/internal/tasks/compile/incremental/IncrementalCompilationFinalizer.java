@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoWriter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -32,15 +32,15 @@ public class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec
 
     private final Compiler<JavaCompileSpec> delegate;
     private final ClassDependencyInfoExtractor extractor;
-    private final ClassDependencyInfoSerializer dependencyInfoSerializer;
+    private final ClassDependencyInfoWriter dependencyInfoWriter;
     private final JarSnapshotFeeder jarSnapshotFeeder;
     private final ClasspathJarFinder classpathJarFinder;
 
-    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, ClassDependencyInfoExtractor extractor, ClassDependencyInfoSerializer dependencyInfoSerializer,
+    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, ClassDependencyInfoExtractor extractor, ClassDependencyInfoWriter dependencyInfoWriter,
                                            JarSnapshotFeeder jarSnapshotFeeder, ClasspathJarFinder classpathJarFinder) {
         this.delegate = delegate;
         this.extractor = extractor;
-        this.dependencyInfoSerializer = dependencyInfoSerializer;
+        this.dependencyInfoWriter = dependencyInfoWriter;
         this.jarSnapshotFeeder = jarSnapshotFeeder;
         this.classpathJarFinder = classpathJarFinder;
     }
@@ -50,8 +50,8 @@ public class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec
 
         Clock clock = new Clock();
         ClassDependencyInfo info = extractor.extractInfo(spec.getDestinationDir(), "");
-        dependencyInfoSerializer.writeInfo(info);
-        LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), dependencyInfoSerializer);
+        dependencyInfoWriter.writeInfo(info);
+        LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), dependencyInfoWriter);
 
         clock = new Clock();
         jarSnapshotFeeder.storeJarSnapshots(classpathJarFinder.findJarArchives(spec.getClasspath()), info);

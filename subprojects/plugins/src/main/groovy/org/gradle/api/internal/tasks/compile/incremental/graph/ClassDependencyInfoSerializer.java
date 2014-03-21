@@ -20,7 +20,8 @@ import org.gradle.api.internal.tasks.compile.incremental.DummySerializer;
 
 import java.io.File;
 
-public class ClassDependencyInfoSerializer implements ClassDependencyInfoProvider {
+//TODO SF this needs to use our standard serialization machinery
+public class ClassDependencyInfoSerializer implements ClassDependencyInfoProvider, ClassDependencyInfoWriter {
     private File storage;
 
     public ClassDependencyInfoSerializer(File storage) {
@@ -28,7 +29,6 @@ public class ClassDependencyInfoSerializer implements ClassDependencyInfoProvide
     }
 
     public void writeInfo(ClassDependencyInfo info) {
-        //TODO SF this needs to use our standard serialization machinery
         DummySerializer.writeTargetTo(storage, info);
     }
 
