@@ -16,15 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental
 
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo
 import org.gradle.api.tasks.util.PatternSet
 import spock.lang.Specification
 
 class DefaultRebuildInfoTest extends Specification {
 
     def patternSet = Mock(PatternSet)
-    def processor = Mock(StaleClassProcessor)
-    def dependencyInfo = Mock(ClassDependencyInfo)
+    def processor = Mock(PatternSet)
 
     def "does nothing when no input classes"() {
         def info = new DefaultRebuildInfo([])
@@ -52,8 +50,8 @@ class DefaultRebuildInfoTest extends Specification {
         1 * patternSet.include("Bar.java")
         1 * patternSet.include("com/foo/Foo.java")
 
-        1 * processor.addStaleClass('Bar')
-        1 * processor.addStaleClass('com.foo.Foo')
+        1 * processor.include('Bar.class')
+        1 * processor.include('com/foo/Foo.class')
 
         0 * _._
     }

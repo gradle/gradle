@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.api.tasks.util.PatternSet;
@@ -33,24 +34,41 @@ import org.gradle.util.Clock;
 import java.io.File;
 import java.util.Set;
 
-public class SelectiveCompilation {
-    private final FileCollection source;
-    private final FileCollection classpath;
-    private static final Logger LOG = Logging.getLogger(SelectiveCompilation.class);
-    private String fullRebuildNeeded;
-    private boolean compilationNeeded = true;
+import static java.util.Arrays.asList;
 
-    public SelectiveCompilation(IncrementalTaskInputs inputs, FileTree source, FileCollection compileClasspath, final File compileDestination,
-                                final ClassDependencyInfoSerializer dependencyInfoSerializer, final JarSnapshotFeeder jarSnapshotFeeder, final SelectiveJavaCompiler compiler,
-                                Iterable<File> sourceDirs, final FileOperations operations) {
+public class SelectiveCompilation implements org.gradle.api.internal.tasks.compile.Compiler<JavaCompileSpec> {
+    private static final Logger LOG = Logging.getLogger(SelectiveCompilation.class);
+    private final IncrementalTaskInputs inputs;
+    private final ClassDependencyInfoSerializer dependencyInfoSerializer;
+    private final JarSnapshotFeeder jarSnapshotFeeder;
+    private final CleaningJavaCompiler cleaningCompiler;
+    private final CompilationSourceDirs sourceDirs;
+    private final FileOperations fileOperations;
+    private String fullRebuildNeeded;
+
+    public SelectiveCompilation(IncrementalTaskInputs inputs, ClassDependencyInfoSerializer dependencyInfoSerializer, JarSnapshotFeeder jarSnapshotFeeder,
+                                CleaningJavaCompiler cleaningCompiler, CompilationSourceDirs sourceDirs, FileOperations fileOperations) {
+        this.inputs = inputs;
+        this.dependencyInfoSerializer = dependencyInfoSerializer;
+        this.jarSnapshotFeeder = jarSnapshotFeeder;
+        this.cleaningCompiler = cleaningCompiler;
+        this.sourceDirs = sourceDirs;
+        this.fileOperations = fileOperations;
+    }
+
+    public WorkResult execute(JavaCompileSpec spec) {
         Clock clock = new Clock();
-        final InputOutputMapper mapper = new InputOutputMapper(sourceDirs, compileDestination);
+        final InputOutputMapper mapper = new InputOutputMapper(sourceDirs.getSourceDirs(), spec.getDestinationDir());
 
         //load dependency info
         final ClassDependencyInfo dependencyInfo = dependencyInfoSerializer.readInfo();
 
         //including only source java classes that were changed
-        final PatternSet changedSourceOnly = new PatternSet();
+        final PatternSet sourceToCompile = new PatternSet();
+
+        //stale classes for deletion
+        final PatternSet classesToDelete = new PatternSet();
+
         inputs.outOfDate(new Action<InputFileDetails>() {
             public void execute(InputFileDetails inputFileDetails) {
                 if (fullRebuildNeeded != null) {
@@ -60,8 +78,8 @@ public class SelectiveCompilation {
                 String name = inputFile.getName();
                 if (name.endsWith(".java")) {
                     JavaSourceClass source = mapper.toJavaSourceClass(inputFile);
-                    compiler.addStaleClass(source);
-                    changedSourceOnly.include(source.getRelativePath());
+                    classesToDelete.include(source.getOutputDeletePath());
+                    sourceToCompile.include(source.getRelativePath());
                     Set<String> actualDependents = dependencyInfo.getActualDependents(source.getClassName());
                     if (actualDependents == null) {
                         fullRebuildNeeded = "change to " + source.getClassName() + " requires full rebuild";
@@ -69,15 +87,15 @@ public class SelectiveCompilation {
                     }
                     for (String d : actualDependents) {
                         JavaSourceClass dSource = mapper.toJavaSourceClass(d);
-                        compiler.addStaleClass(dSource);
-                        changedSourceOnly.include(dSource.getRelativePath());
+                        classesToDelete.include(dSource.getOutputDeletePath());
+                        sourceToCompile.include(dSource.getRelativePath());
                     }
                 }
                 if (name.endsWith(".jar")) {
-                    JarArchive jarArchive = new JarArchive(inputFileDetails.getFile(), operations.zipTree(inputFileDetails.getFile()));
+                    JarArchive jarArchive = new JarArchive(inputFileDetails.getFile(), fileOperations.zipTree(inputFileDetails.getFile()));
                     JarChangeProcessor processor = new JarChangeProcessor(jarSnapshotFeeder, dependencyInfo);
                     RebuildInfo rebuildInfo = processor.processJarChange(inputFileDetails, jarArchive);
-                    RebuildInfo.Info info = rebuildInfo.configureCompilation(changedSourceOnly, compiler);
+                    RebuildInfo.Info info = rebuildInfo.configureCompilation(sourceToCompile, classesToDelete);
                     if (info == RebuildInfo.Info.FullRebuild) {
                         fullRebuildNeeded = "change to " + inputFile + " requires full rebuild";
                         return;
@@ -87,41 +105,42 @@ public class SelectiveCompilation {
         });
         if (fullRebuildNeeded != null) {
             LOG.lifecycle("Stale classes detection completed in {}. Rebuild needed: {}.", clock.getTime(), fullRebuildNeeded);
-            this.classpath = compileClasspath;
-            this.source = source;
-            return;
+            return cleaningCompiler.execute(spec);
         }
         inputs.removed(new Action<InputFileDetails>() {
             public void execute(InputFileDetails inputFileDetails) {
-                compiler.addStaleClass(mapper.toJavaSourceClass(inputFileDetails.getFile()));
-                //TODO SF needs to schedule for recompilation all dependencies of this class. What's the difference with inputs.outOfDate(details.removed?).
+                //TODO SF not really implemented yet
+                if (inputFileDetails.getFile().getName().endsWith(".java")) {
+                    classesToDelete.include(mapper.toJavaSourceClass(inputFileDetails.getFile()).getOutputDeletePath());
+                }
             }
         });
-        //since we're compiling selectively we need to include the classes compiled previously
-        if (changedSourceOnly.getIncludes().isEmpty()) {
-            this.compilationNeeded = false;
-            this.classpath = compileClasspath;
-            this.source = source;
-        } else {
-            this.classpath = compileClasspath.plus(new SimpleFileCollection(compileDestination));
-            this.source = source.matching(changedSourceOnly);
+
+        if (sourceToCompile.getIncludes().isEmpty()) {
+            //hurray! Compilation not needed!
+            return new WorkResult() {
+                public boolean getDidWork() {
+                    return true;
+                }
+            };
         }
-        LOG.lifecycle("Stale classes detection completed in {}. Stale classes: {}, Compile include patterns: {}, Files to delete: {}", clock.getTime(), compiler.getStaleClasses().size(), changedSourceOnly.getIncludes(), compiler.getStaleClasses());
-    }
 
-    public FileCollection getSource() {
-        return source;
-    }
+        //selectively configure the source
+        spec.setSource(spec.getSource().getAsFileTree().matching(sourceToCompile));
+        //since we're compiling selectively we need to include the classes compiled previously
+        spec.setClasspath(Iterables.concat(spec.getClasspath(), asList(spec.getDestinationDir())));
+        //get rid of stale files
+        Set<File> staleClassFiles = fileOperations.fileTree(spec.getDestinationDir()).matching(classesToDelete).getFiles();
+        for (File staleClassFile : staleClassFiles) {
+            staleClassFile.delete();
+        }
 
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    public boolean getCompilationNeeded() {
-        return compilationNeeded;
-    }
-
-    public boolean getFullRebuildRequired() {
-        return fullRebuildNeeded != null;
+        try {
+            //use the original compiler to avoid cleaning up all the files
+            return cleaningCompiler.getCompiler().execute(spec);
+        } finally {
+            LOG.lifecycle("Stale classes detection completed in {}. Stale classes: {}, Compile include patterns: {}, Files to delete: {}",
+                    clock.getTime(), classesToDelete.getIncludes().size(), sourceToCompile.getIncludes(), staleClassFiles.size());
+        }
     }
 }

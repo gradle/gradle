@@ -38,4 +38,8 @@ public class JavaSourceClass {
     public File getOutputFile() {
         return new File(compileDestination, relativePath.replaceAll("\\.java$", ".class"));
     }
+
+    public String getOutputDeletePath() {
+        return relativePath.replaceAll("\\.java$", ".class");
+    }
 }

@@ -16,8 +16,8 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.AntBuilder;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.internal.Factory;
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
 import org.gradle.language.jvm.internal.StaleClassCleaner;
 
@@ -34,7 +34,7 @@ public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompil
     }
 
     @Override
-    protected Compiler<JavaCompileSpec> getCompiler() {
+    public Compiler<JavaCompileSpec> getCompiler() {
         return compiler;
     }
 

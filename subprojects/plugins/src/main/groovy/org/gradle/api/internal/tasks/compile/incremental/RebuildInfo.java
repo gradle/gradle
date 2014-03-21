@@ -20,5 +20,5 @@ import org.gradle.api.tasks.util.PatternSet;
 
 interface RebuildInfo {
     enum Info { FullRebuild, Incremental }
-    Info configureCompilation(PatternSet changedSourceOnly, StaleClassProcessor compiler);
+    Info configureCompilation(PatternSet changedSourceOnly, PatternSet staleClasses);
 }

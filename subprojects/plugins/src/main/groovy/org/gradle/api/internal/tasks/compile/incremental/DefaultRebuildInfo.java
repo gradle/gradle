@@ -32,13 +32,14 @@ class DefaultRebuildInfo implements RebuildInfo {
         this.dependentClasses = dependentClasses;
     }
 
-    public Info configureCompilation(PatternSet changedSourceOnly, StaleClassProcessor staleClassProcessor) {
+    public Info configureCompilation(PatternSet sourceToCompile, PatternSet classesToDelete) {
         if (dependentClasses == null) {
             return Info.FullRebuild;
         }
         for (String c : dependentClasses) {
-            staleClassProcessor.addStaleClass(c);
-            changedSourceOnly.include(c.replaceAll("\\.", "/").concat(".java"));
+            String path = c.replaceAll("\\.", "/");
+            classesToDelete.include(path.concat(".class")); //TODO SF remember about inner classes
+            sourceToCompile.include(path.concat(".java"));
         }
         return Info.Incremental;
     }
