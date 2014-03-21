@@ -179,9 +179,9 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         return artifacts;
     }
 
-    protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
+    protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
         Set<Artifact> artifacts = new HashSet<Artifact>();
-        Set<ModuleVersionArtifactMetaData> artifactMetaData = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+        Set<ComponentArtifactMetaData> artifactMetaData = new LinkedHashSet<ComponentArtifactMetaData>();
         for (String ancestor : configurationMetaData.getHierarchy()) {
             for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
                 if (artifacts.add(artifact)) {
@@ -197,7 +197,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         private final Configuration descriptor;
         private final Set<String> hierarchy;
         private List<DependencyMetaData> dependencies;
-        private Set<ModuleVersionArtifactMetaData> artifacts;
+        private Set<ComponentArtifactMetaData> artifacts;
         private LinkedHashSet<ExcludeRule> excludeRules;
 
         private DefaultConfigurationMetaData(String name, Configuration descriptor, Set<String> hierarchy) {
@@ -277,7 +277,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
             return excludeRules;
         }
 
-        public Set<ModuleVersionArtifactMetaData> getArtifacts() {
+        public Set<ComponentArtifactMetaData> getArtifacts() {
             if (artifacts == null) {
                 artifacts = getArtifactsForConfiguration(this);
             }

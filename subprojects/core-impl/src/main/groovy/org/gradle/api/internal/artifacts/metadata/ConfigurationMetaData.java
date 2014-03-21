@@ -33,7 +33,7 @@ public interface ConfigurationMetaData {
 
     List<DependencyMetaData> getDependencies();
 
-    Set<ModuleVersionArtifactMetaData> getArtifacts();
+    Set<ComponentArtifactMetaData> getArtifacts();
 
     Set<ExcludeRule> getExcludeRules();
 

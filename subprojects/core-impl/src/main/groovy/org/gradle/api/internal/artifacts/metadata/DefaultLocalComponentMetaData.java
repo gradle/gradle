@@ -70,8 +70,8 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         // TODO:ADAM - need to clone the descriptor
         return new ModuleDescriptorAdapter(id, moduleDescriptor, componentIdentifier) {
             @Override
-            protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-                Set<ModuleVersionArtifactMetaData> result = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+            protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
+                Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
                 Set<ModuleVersionArtifactIdentifier> seen = new HashSet<ModuleVersionArtifactIdentifier>();
                 for (String configName : configurationMetaData.getHierarchy()) {
                     for (DefaultLocalArtifactMetaData localArtifactMetaData : artifactsByConfig.get(configName)) {

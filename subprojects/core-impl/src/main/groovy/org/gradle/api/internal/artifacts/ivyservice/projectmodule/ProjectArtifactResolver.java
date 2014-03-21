@@ -19,7 +19,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 import java.util.Set;
 
@@ -36,7 +39,7 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         if (isProjectModule(moduleMetaData.getComponentId())) {
             if (context instanceof ConfigurationResolveContext) {
                 String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
-                Set<ModuleVersionArtifactMetaData> artifacts = moduleMetaData.getConfiguration(configurationName).getArtifacts();
+                Set<ComponentArtifactMetaData> artifacts = moduleMetaData.getConfiguration(configurationName).getArtifacts();
                 result.resolved(artifacts);
                 return;
             }

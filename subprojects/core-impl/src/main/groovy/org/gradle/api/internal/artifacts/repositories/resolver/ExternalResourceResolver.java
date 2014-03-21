@@ -257,7 +257,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
         try {
-            Set<ModuleVersionArtifactMetaData> artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+            Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
             if (context instanceof ConfigurationResolveContext) {
                 String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
                 artifacts.addAll(moduleMetaData.getConfiguration(configurationName).getArtifacts());
@@ -275,9 +275,9 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
     }
 
-    protected abstract Set<ModuleVersionArtifactMetaData> getTypedArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType);
+    protected abstract Set<? extends ComponentArtifactMetaData> getTypedArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType);
 
-    protected abstract Set<ModuleVersionArtifactMetaData> getOptionalMainArtifacts(ModuleVersionMetaData module);
+    protected abstract Set<? extends ComponentArtifactMetaData> getOptionalMainArtifacts(ModuleVersionMetaData module);
 
     @Nullable
     protected abstract ArtifactIdentifier getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier);
