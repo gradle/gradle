@@ -31,4 +31,9 @@ public interface ComponentArtifactMetaData {
      * Returns the identifier for the component that this artifact belongs to.
      */
     ComponentIdentifier getComponentId();
+
+    /**
+     * Returns this artifact as an Ivy artifact. This method is here to allow the artifact to be exposed in a backward-compatible way.
+     */
+    IvyArtifactName getName();
 }
