@@ -123,12 +123,18 @@ public class Compile extends AbstractCompile {
             LOG.lifecycle("{} is not incremental (e.g. outputs have changed, no previous execution, etc). Using regular compile.", getPath());
             return false;
         }
+        ClassDependencyInfoSerializer dependencyInfoSerializer = getDependencyInfoSerializer();
+        if (!dependencyInfoSerializer.isInfoAvailable()) {
+            //TODO SF let's unit test a scenario when after regular compilation incremental compilation is scheduled
+            LOG.lifecycle("{} is not incremental because there is no class dependency data left from previous incremental build.", getPath());
+            return false;
+        }
 
         SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
 
         SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler, new OutputClassMapper(getDestinationDir()));
         SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, getSource(), getClasspath(), getDestinationDir(),
-                getDependencyInfoSerializer(), getJarSnapshotCache(), compiler, sourceDirs, (FileOperations) getProject());
+                dependencyInfoSerializer, getJarSnapshotCache(), compiler, sourceDirs, (FileOperations) getProject());
 
         if (!selectiveCompilation.getCompilationNeeded()) {
             LOG.lifecycle("{} does not require recompilation. Skipping the compiler.", getPath());
@@ -136,7 +142,7 @@ public class Compile extends AbstractCompile {
         }
 
         Clock clock = new Clock();
-        performCompilation(selectiveCompilation.getSource(), selectiveCompilation.getClasspath(), compiler);
+        performCompilation(selectiveCompilation.getSource(), selectiveCompilation.getClasspath(), selectiveCompilation.getFullRebuildRequired()? cleaningCompiler : compiler);
         LOG.lifecycle("{} - incremental compilation took {}", getPath(), clock.getTime());
 
         return true;

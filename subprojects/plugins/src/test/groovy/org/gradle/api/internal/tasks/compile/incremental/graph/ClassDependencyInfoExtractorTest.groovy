@@ -33,10 +33,10 @@ class ClassDependencyInfoExtractorTest extends Specification {
         info.getActualDependents(SomeClass.name) == [SomeOtherClass.name] as Set
         info.getActualDependents(SomeOtherClass.name) == [] as Set
         info.getActualDependents(YetAnotherClass.name) == [SomeOtherClass.name] as Set
-        info.getActualDependents(AccessedFromPrivateClass.name) == [SomeClass.name, SomeOtherClass.name] as Set
+        info.getActualDependents(AccessedFromPrivateClass.name) == [] as Set
         info.getActualDependents(HasPrivateConstants.name) == [] as Set
         info.getActualDependents(HasNonPrivateConstants.name) == null
-        info.getActualDependents(UsedByNonPrivateConstantsClass.name) == null
+        info.getActualDependents(UsedByNonPrivateConstantsClass.name) == [HasNonPrivateConstants.name] as Set
     }
 
     //TODO SF tighten and refactor the coverage

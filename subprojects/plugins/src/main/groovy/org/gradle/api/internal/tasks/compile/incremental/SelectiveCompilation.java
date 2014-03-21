@@ -122,4 +122,8 @@ public class SelectiveCompilation {
     public boolean getCompilationNeeded() {
         return compilationNeeded;
     }
+
+    public boolean getFullRebuildRequired() {
+        return fullRebuildNeeded != null;
+    }
 }
