@@ -40,7 +40,11 @@ import java.io.File;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
+public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
+
+    private final String name;
+    protected final OperatingSystem operatingSystem;
+    private final FileResolver fileResolver;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VisualCppToolChain.class);
 
@@ -57,13 +61,15 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
-        super(name, operatingSystem, fileResolver);
+
+        this.name = name;
+        this.operatingSystem = operatingSystem;
+        this.fileResolver = fileResolver;
         this.execActionFactory = execActionFactory;
         this.visualStudioLocator = visualStudioLocator;
         this.windowsSdkLocator = windowsSdkLocator;
     }
 
-    @Override
     protected String getTypeName() {
         return "Visual Studio";
     }
@@ -121,7 +127,39 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         return new VisualCppPlatformToolChain(visualCpp, windowsSdk, targetPlatform);
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getDisplayName() {
+        return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
+    }
+
     @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    public String getOutputType() {
+        return String.format("%s-%s", getName(), operatingSystem.getName());
+    }
+
+    public String getExecutableName(String executablePath) {
+        return operatingSystem.getExecutableName(executablePath);
+    }
+
+    public String getSharedLibraryName(String libraryName) {
+        return operatingSystem.getSharedLibraryName(libraryName);
+    }
+
+    public String getStaticLibraryName(String libraryName) {
+        return operatingSystem.getStaticLibraryName(libraryName);
+    }
+
+    protected File resolve(Object path) {
+        return fileResolver.resolve(path);
+    }
+
     public String getSharedLibraryLinkFileName(String libraryName) {
         return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }

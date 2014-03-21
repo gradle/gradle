@@ -24,8 +24,8 @@ public class DefaultToolRegistry implements ToolRegistry {
     private final Map<ToolType, GccToolInternal> gccTools = new HashMap<ToolType, GccToolInternal>();
 
     // TODO:DAZ Should not need default executable here?
-    public void register(ToolType toolType, String defaultExecutable) {
-        DefaultTool tool = new DefaultTool(toolType, defaultExecutable);
+    public void register(String name, ToolType toolType, String defaultExecutable) {
+        DefaultTool tool = new DefaultTool(name, toolType, defaultExecutable);
         gccTools.put(toolType, tool);
     }
 

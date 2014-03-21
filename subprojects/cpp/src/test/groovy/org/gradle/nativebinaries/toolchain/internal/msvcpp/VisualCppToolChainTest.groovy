@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability
@@ -34,6 +35,7 @@ class VisualCppToolChainTest extends Specification {
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
     final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
     final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
+    final Instantiator instantiator = Mock(Instantiator)
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
         locateVisualStudioInstalls(_) >> visualStudioLookup
     }

@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ import java.util.List;
  * An executable tool that forms part of a tool chain.
  */
 @Incubating
-public interface GccTool {
+public interface GccTool extends Named {
     /**
      * The name of the executable file for this tool.
      */

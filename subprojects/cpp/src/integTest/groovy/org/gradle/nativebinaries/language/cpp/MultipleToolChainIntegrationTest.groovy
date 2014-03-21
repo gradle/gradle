@@ -84,6 +84,7 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
     def "exception when building with unavailable tool chain"() {
         when:
+
         buildFile << """
             model {
                 toolChains {

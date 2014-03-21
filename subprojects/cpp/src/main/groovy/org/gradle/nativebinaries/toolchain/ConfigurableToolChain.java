@@ -16,43 +16,13 @@
 
 package org.gradle.nativebinaries.toolchain;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectSet;
+
 /**
  * A configurable tool chain.
- * */
-public interface ConfigurableToolChain extends ToolChain {
-
-    /**
-     * The C++ compiler.
-     */
-    GccTool getCCompiler();
-
-    /**
-     * The C compiler.
-     */
-    GccTool getCppCompiler();
-
-    /**
-     * The assembler.
-     */
-    GccTool getAssembler();
-
-    /**
-     * The linker.
-     */
-    GccTool getLinker();
-
-    /**
-     * The Objective-C compiler.
-     */
-    GccTool getObjcCompiler();
-
-    /**
-     * The Objective-CPP compiler.
-     */
-    GccTool getObjcppCompiler();
-
-    /**
-     * The static library archiver.
-     */
-    GccTool getStaticLibArchiver();
+ * @param <T> the GccTool class
+ */
+@Incubating
+public interface ConfigurableToolChain<T extends GccTool> extends ToolChain, NamedDomainObjectSet<T> {
 }

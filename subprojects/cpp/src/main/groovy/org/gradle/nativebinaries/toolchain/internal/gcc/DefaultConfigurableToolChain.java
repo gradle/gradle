@@ -15,63 +15,35 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.nativebinaries.toolchain.internal.ToolType;
+import org.gradle.api.Action;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
+import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.internal.tools.*;
 
-public class DefaultConfigurableToolChain implements ConfigurableToolChainInternal {
-    private final GccToolInternal cCompiler;
-    private final GccToolInternal staticLibArchiver;
-    private final GccToolInternal cppCompiler;
-    private final GccToolInternal objcCompiler;
-    private final GccToolInternal objcppCompiler;
-    private final GccToolInternal assembler;
-    private final GccToolInternal linker;
+import java.util.List;
+import java.util.Map;
+
+public class DefaultConfigurableToolChain<T extends GccTool> extends DefaultNamedDomainObjectSet<T> implements ConfigurableToolChain<T> {
     private final String name;
     private final String displayName;
 
-    public DefaultConfigurableToolChain(DefaultToolRegistry defaultTools, String name, String displayName) {
-        this.cCompiler = newConfiguredGccTool(defaultTools.getTool(ToolType.C_COMPILER));
-        this.cppCompiler = newConfiguredGccTool(defaultTools.getTool(ToolType.CPP_COMPILER));
-        this.assembler = newConfiguredGccTool(defaultTools.getTool(ToolType.ASSEMBLER));
-        this.objcCompiler = newConfiguredGccTool(defaultTools.getTool(ToolType.OBJECTIVEC_COMPILER));
-        this.objcppCompiler = newConfiguredGccTool(defaultTools.getTool(ToolType.OBJECTIVECPP_COMPILER));
-        this.linker = newConfiguredGccTool(defaultTools.getTool(ToolType.LINKER));
-        this.staticLibArchiver= newConfiguredGccTool(defaultTools.getTool(ToolType.STATIC_LIB_ARCHIVER));        this.name = name;
+    public DefaultConfigurableToolChain(Class<? extends T> type, Map<String, T> asMap, Instantiator instantiator, String name, String displayName) {
+        super(type, instantiator);
+        this.name = name;
         this.displayName = displayName;
+        for (T tool : asMap.values()) {
+            add(newConfiguredGccTool(tool));
+        }
     }
 
-    private GccToolInternal newConfiguredGccTool(GccToolInternal defaultTool) {
-        DefaultTool platformTool = new DefaultTool(defaultTool.getToolType(), defaultTool.getExecutable());
-        platformTool.withArguments(defaultTool.getArgAction());
-        return platformTool;
-    }
-
-    public GccToolInternal getCCompiler() {
-        return cCompiler;
-    }
-
-    public GccToolInternal getCppCompiler() {
-        return cppCompiler;
-    }
-
-    public GccToolInternal getAssembler() {
-        return assembler;
-    }
-
-    public GccToolInternal getLinker() {
-        return linker;
-    }
-
-    public GccToolInternal getStaticLibArchiver() {
-        return staticLibArchiver;
-    }
-
-    public GccToolInternal getObjcCompiler() {
-        return objcCompiler;
-    }
-
-    public GccToolInternal getObjcppCompiler() {
-        return objcppCompiler;
+    private T newConfiguredGccTool(T defaultTool) {
+        GccToolInternal gccToolInternal = (GccToolInternal) defaultTool;
+        DefaultTool platformTool = new DefaultTool(defaultTool.getName(), gccToolInternal.getToolType(), defaultTool.getExecutable());
+        Action<List<String>> argAction = gccToolInternal.getArgAction();
+        platformTool.withArguments(argAction);
+        return (T) platformTool;
     }
 
     public String getDisplayName() {

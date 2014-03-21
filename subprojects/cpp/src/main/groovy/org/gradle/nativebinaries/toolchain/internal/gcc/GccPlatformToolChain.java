@@ -97,7 +97,6 @@ class GccPlatformToolChain implements PlatformToolChain {
             return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool, toolRegistry.getTool(ToolType.STATIC_LIB_ARCHIVER).getArgAction());
     }
 
-
     private String getOutputFileSuffix() {
         return OperatingSystem.current().isWindows() ? ".obj" : ".o";
     }

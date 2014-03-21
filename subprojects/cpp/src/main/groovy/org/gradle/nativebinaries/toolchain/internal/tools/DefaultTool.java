@@ -28,8 +28,10 @@ public class DefaultTool implements GccToolInternal {
     private final ToolType toolType;
     private String executable;
     private List<Action<? super List<String>>> argActions = new ArrayList<Action<? super List<String>>>();
+    private String name;
 
-    public DefaultTool(ToolType toolType, String defaultExecutable) {
+    public DefaultTool(String name, ToolType toolType, String defaultExecutable) {
+        this.name = name;
         this.toolType = toolType;
         this.executable = defaultExecutable;
     }
@@ -59,5 +61,9 @@ public class DefaultTool implements GccToolInternal {
 
     public Action<List<String>> getArgAction() {
         return Actions.composite(argActions);
+    }
+
+    public String getName() {
+        return this.name;
     }
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.toolchain.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -53,7 +54,9 @@ class GccCompilerPlugin implements Plugin<Project> {
         modelRules.rule(new ModelRule() {
             void addGccToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(Gcc, { String name ->
-                    return instantiator.newInstance(GccToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory)
+                    GccToolChain gccToolChain = instantiator.newInstance(GccToolChain, instantiator, name, OperatingSystem.current(), fileResolver, execActionFactory)
+
+                    return gccToolChain
                 })
                 toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc)
             }

@@ -15,10 +15,20 @@
  */
 package org.gradle.nativebinaries.language.assembler.plugins
 
+import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.model.ModelRule
+import org.gradle.model.ModelRules
+import org.gradle.nativebinaries.toolchain.Clang
+import org.gradle.nativebinaries.toolchain.Gcc
+import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
+import org.gradle.nativebinaries.toolchain.internal.ToolType
 import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultTool
+
+import javax.inject.Inject
 
 /**
  * A plugin for projects wishing to build native binary components from Assembly language sources.
@@ -28,8 +38,33 @@ import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPl
 @Incubating
 class AssemblerPlugin implements Plugin<ProjectInternal> {
 
+
+    private ModelRules modelRules
+
+    @Inject
+    public AssemblerPlugin(ModelRules modelRules){
+        this.modelRules = modelRules
+    }
+
     void apply(ProjectInternal project) {
         project.plugins.apply(StandardToolChainsPlugin)
+
+        modelRules.rule(new ModelRule() {
+            void addAssembler(ToolChainRegistryInternal toolChainRegistry) {
+                toolChainRegistry.withType(Clang).all(new Action<Clang>(){
+                    void execute(Clang toolchain) {
+                        toolchain.add(new DefaultTool("assembler", ToolType.ASSEMBLER, "as"));
+                    }
+                })
+
+                toolChainRegistry.withType(Gcc).all(new Action<Gcc>(){
+                    void execute(Gcc toolchain) {
+                        toolchain.add(new DefaultTool("assembler", ToolType.ASSEMBLER, "as"));
+                    }
+                })
+            }
+        });
+
         project.plugins.apply(AssemblerNativeBinariesPlugin)
     }
 }

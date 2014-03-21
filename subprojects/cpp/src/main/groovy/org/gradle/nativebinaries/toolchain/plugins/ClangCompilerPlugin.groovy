@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.toolchain.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -53,7 +54,9 @@ class ClangCompilerPlugin implements Plugin<Project> {
         modelRules.rule(new ModelRule() {
             void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(Clang, { String name ->
-                    return instantiator.newInstance(ClangToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory)
+                    ClangToolChain clangToolChain = instantiator.newInstance(ClangToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory, instantiator)
+
+                    return clangToolChain
                 })
                 toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang)
             }

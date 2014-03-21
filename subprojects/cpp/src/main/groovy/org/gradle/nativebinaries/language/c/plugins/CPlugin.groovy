@@ -27,7 +27,6 @@ import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPl
  */
 @Incubating
 class CPlugin implements Plugin<ProjectInternal> {
-
     void apply(ProjectInternal project) {
         project.plugins.apply(StandardToolChainsPlugin)
         project.plugins.apply(CNativeBinariesPlugin)
