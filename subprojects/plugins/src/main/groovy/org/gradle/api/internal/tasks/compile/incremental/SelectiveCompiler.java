@@ -32,15 +32,15 @@ import java.util.Set;
 
 import static java.util.Arrays.asList;
 
-public class SelectiveCompilation implements org.gradle.api.internal.tasks.compile.Compiler<JavaCompileSpec> {
-    private static final Logger LOG = Logging.getLogger(SelectiveCompilation.class);
+public class SelectiveCompiler implements org.gradle.api.internal.tasks.compile.Compiler<JavaCompileSpec> {
+    private static final Logger LOG = Logging.getLogger(SelectiveCompiler.class);
     private final IncrementalTaskInputs inputs;
     private final CleaningJavaCompiler cleaningCompiler;
     private final FileOperations fileOperations;
     private final StaleClassesDetecter staleClassesDetecter;
 
-    public SelectiveCompilation(IncrementalTaskInputs inputs, CleaningJavaCompiler cleaningCompiler,
-                                FileOperations fileOperations, StaleClassesDetecter staleClassesDetecter) {
+    public SelectiveCompiler(IncrementalTaskInputs inputs, CleaningJavaCompiler cleaningCompiler,
+                             FileOperations fileOperations, StaleClassesDetecter staleClassesDetecter) {
         this.inputs = inputs;
         this.cleaningCompiler = cleaningCompiler;
         this.fileOperations = fileOperations;
