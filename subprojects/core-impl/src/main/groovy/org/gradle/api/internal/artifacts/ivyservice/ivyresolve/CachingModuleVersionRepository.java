@@ -288,9 +288,9 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
     }
 
-    static class ArtifactMetaDataToId implements Transformer<ModuleVersionArtifactIdentifier, ModuleVersionArtifactMetaData> {
-        public ModuleVersionArtifactIdentifier transform(ModuleVersionArtifactMetaData original) {
-            return original.getId();
+    static class ArtifactMetaDataToId implements Transformer<ModuleVersionArtifactIdentifier, ComponentArtifactMetaData> {
+        public ModuleVersionArtifactIdentifier transform(ComponentArtifactMetaData original) {
+            return ((ModuleVersionArtifactMetaData)original).getId();
         }
     }
 }

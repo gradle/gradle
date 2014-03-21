@@ -29,8 +29,8 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Factory;
@@ -105,7 +105,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                             ArtifactResolveContext context = new ArtifactTypeResolveContext(artifactType);
                             BuildableArtifactSetResolveResult multiResolveResult = new DefaultBuildableArtifactSetResolveResult();
                             artifactResolver.resolveModuleArtifacts(moduleMetaData, context, multiResolveResult);
-                            for (ModuleVersionArtifactMetaData artifactMetaData : multiResolveResult.getArtifacts()) {
+                            for (ComponentArtifactMetaData artifactMetaData : multiResolveResult.getArtifacts()) {
                                 BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
                                 artifactResolver.resolveArtifact(artifactMetaData, moduleMetaData.getSource(), resolveResult);
                                 if (artifactType == JvmLibraryJavadocArtifact.class) {
