@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.classloader
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Test
 import org.junit.runners.BlockJUnit4ClassRunner
@@ -233,6 +235,7 @@ class FilteringClassLoaderTest extends Specification {
         } catch (ClassNotFoundException expected) {}
     }
 
+    @Requires(TestPrecondition.JDK6_OR_LATER) // Using a mock for ClassLoader fails with a SecurityException on 1.5
     def "does not attempt to load not allowed class"() {
         given:
         def parent = Mock(ClassLoader)
