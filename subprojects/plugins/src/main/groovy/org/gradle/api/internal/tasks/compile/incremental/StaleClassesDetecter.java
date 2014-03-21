@@ -82,6 +82,7 @@ public class StaleClassesDetecter {
             if (name.endsWith(".jar")) {
                 JarArchive jarArchive = new JarArchive(inputFileDetails.getFile(), fileOperations.zipTree(inputFileDetails.getFile()));
                 JarChangeProcessor processor = new JarChangeProcessor(jarSnapshotFeeder, dependencyInfo);
+                //TODO SF simplify
                 RebuildInfo rebuildInfo = processor.processJarChange(inputFileDetails, jarArchive);
                 RebuildInfo.Info info = rebuildInfo.configureCompilation(staleClasses);
                 if (info == RebuildInfo.Info.FullRebuild) {
