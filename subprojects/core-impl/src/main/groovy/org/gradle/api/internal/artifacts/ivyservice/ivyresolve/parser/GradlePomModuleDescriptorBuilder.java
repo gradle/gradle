@@ -38,6 +38,8 @@ import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -90,6 +92,7 @@ public class GradlePomModuleDescriptorBuilder {
     static final Map<String, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<String, ConfMapper>();
 
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
+    private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
 
     static interface ConfMapper {
         public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional);
@@ -179,11 +182,19 @@ public class GradlePomModuleDescriptorBuilder {
         return ivyModuleDescriptor;
     }
 
-    public void setModuleRevId(ModuleRevisionId mrid, String group, String module, String version) {
-        this.mrid = mrid;
-        ivyModuleDescriptor.setModuleRevisionId(IvyUtil.createModuleRevisionId(group, module, version));
+    public void setModuleRevId(String group, String module, String version) {
+        String effectiveVersion = version;
+        if (version != null) {
+            Matcher matcher = TIMESTAMP_PATTERN.matcher(version);
+            if (matcher.matches()) {
+                effectiveVersion = matcher.group(1) + "-SNAPSHOT";
+            }
+        }
 
-        if ((version == null) || version.endsWith("SNAPSHOT")) {
+        this.mrid = ModuleRevisionId.newInstance(group, module, effectiveVersion);
+        ivyModuleDescriptor.setModuleRevisionId(mrid);
+
+        if (effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT")) {
             ivyModuleDescriptor.setStatus("integration");
         } else {
             ivyModuleDescriptor.setStatus("release");

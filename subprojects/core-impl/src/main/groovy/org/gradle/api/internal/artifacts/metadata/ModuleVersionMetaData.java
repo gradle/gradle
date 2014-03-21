@@ -32,6 +32,9 @@ public interface ModuleVersionMetaData {
 
     ModuleSource getSource();
 
+    /**
+     * Makes a copy of this meta-data with the given source.
+     */
     ModuleVersionMetaData withSource(ModuleSource source);
 
     /**

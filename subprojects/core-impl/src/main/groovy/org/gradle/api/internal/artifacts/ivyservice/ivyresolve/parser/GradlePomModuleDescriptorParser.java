@@ -90,7 +90,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         String groupId = pomReader.getGroupId();
         String artifactId = pomReader.getArtifactId();
         String version = pomReader.getVersion();
-        mdBuilder.setModuleRevId(parserSettings.getCurrentRevisionId(), groupId, artifactId, version);
+        mdBuilder.setModuleRevId(groupId, artifactId, version);
 
         mdBuilder.setHomePage(pomReader.getHomePage());
         mdBuilder.setDescription(pomReader.getDescription());

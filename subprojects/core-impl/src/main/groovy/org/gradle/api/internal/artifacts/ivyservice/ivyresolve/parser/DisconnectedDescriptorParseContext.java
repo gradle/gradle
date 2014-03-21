@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -28,10 +27,6 @@ import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 public class DisconnectedDescriptorParseContext implements DescriptorParseContext {
     public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
         return false;
-    }
-
-    public ModuleRevisionId getCurrentRevisionId() {
-        throw new UnsupportedOperationException();
     }
 
     public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier) {
