@@ -15,13 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionPublishMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,27 +46,26 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
         }
     }
 
-    private void addPublishedArtifact(ModuleVersionArtifactPublishMetaData metaData, BuildableModuleVersionPublishMetaData publication) {
-        Artifact artifact = metaData.getArtifact();
-        File artifactFile = metaData.getFile();
-        if (checkArtifactFileExists(artifact, artifactFile)) {
-            publication.addArtifact(artifact, artifactFile);
+    private void addPublishedArtifact(ModuleVersionArtifactPublishMetaData artifact, BuildableModuleVersionPublishMetaData publication) {
+        if (checkArtifactFileExists(artifact)) {
+            publication.addArtifact(artifact);
         }
     }
 
-    private boolean checkArtifactFileExists(Artifact artifact, File artifactFile) {
+    private boolean checkArtifactFileExists(ModuleVersionArtifactPublishMetaData artifact) {
+        File artifactFile = artifact.getFile();
         if (artifactFile.exists()) {
             return true;
         }
         // TODO:DAZ This hack is required so that we don't log a warning when the Signing plugin is used. We need to allow conditional configurations so we can remove this.
-        if (!isSigningArtifact(artifact)) {
-            String message = String.format("Attempted to publish an artifact '%s' that does not exist '%s'", artifact.getModuleRevisionId(), artifactFile);
+        if (!isSigningArtifact(artifact.getArtifactName())) {
+            String message = String.format("Attempted to publish an artifact '%s' that does not exist '%s'", artifact.getId(), artifactFile);
             DeprecationLogger.nagUserOfDeprecatedBehaviour(message);
         }
         return false;
     }
 
-    private boolean isSigningArtifact(Artifact artifact) {
+    private boolean isSigningArtifact(IvyArtifactName artifact) {
         return artifact.getType().endsWith(".asc") || artifact.getType().endsWith(".sig");
     }
 }
