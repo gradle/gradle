@@ -302,7 +302,9 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         def result = new DefaultTestExecutionResult(testDirectory)
-        def classResult = result.testClass("TestCase")
-        classResult.assertTestFailed("test", Matchers.containsString("com.google.common.collect.ImmutableCollection\$EmptyImmutableCollection overrides final method toArray"))
+        result.testClass("TestCase").with {
+            assertTestFailed("test", Matchers.containsString("java.lang.VerifyError"))
+            assertTestFailed("test", Matchers.containsString("\$EmptyImmutableCollection"))
+        }
     }
 }
