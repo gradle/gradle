@@ -13,12 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
+package org.gradle.api.internal.artifacts.metadata;
 
-import java.util.Map;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public interface MultipleArtifactResolveResult {
-    Map<ModuleVersionArtifactIdentifier, ArtifactResolveResult> getResults();
+/**
+ * An immutable identifier for an artifact that belongs to some component instance.
+ */
+public interface ComponentArtifactIdentifier {
+    /**
+     * Returns the id of the component that this artifact belongs to.
+     */
+    ComponentIdentifier getComponentIdentifier();
+
+    /**
+     * Returns some human-consumable display name for this artifact.
+     */
+    String getDisplayName();
 }

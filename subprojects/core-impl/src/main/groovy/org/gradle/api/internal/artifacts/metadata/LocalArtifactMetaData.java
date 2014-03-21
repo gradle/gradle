@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import java.io.File;
 
-public interface LocalArtifactMetaData {
-    ModuleVersionArtifactIdentifier getId();
+public interface LocalArtifactMetaData extends ComponentArtifactMetaData {
+    ComponentArtifactIdentifier getId();
 
     File getFile();
 }

@@ -19,21 +19,18 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionResolveExceptionTest extends Specification {
     def "formats message to include selector"() {
-        def exception1 = new ModuleVersionResolveException(createModuleRevisionId("org", "a", "1.2"), new RuntimeException())
+        def exception1 = new ModuleVersionResolveException(newSelector("org", "a", "1.2"), new RuntimeException())
         def exception2 = new ModuleVersionResolveException(newSelector("org", "a", "1.2+"), "%s is broken")
         def exception3 = new ModuleVersionResolveException(newId("org", "a", "1.2"), "%s is broken")
-        def exception4 = new ModuleVersionResolveException(createModuleRevisionId("org", "a", "1.2"), "%s is broken")
 
         expect:
         exception1.message == 'Could not resolve org:a:1.2.'
         exception2.message == 'org:a:1.2+ is broken'
         exception3.message == 'org:a:1.2 is broken'
-        exception4.message == 'org:a:1.2 is broken'
     }
 
     def "can add incoming paths to exception"() {
@@ -42,7 +39,7 @@ class ModuleVersionResolveExceptionTest extends Specification {
         def c = newId("org", "c", "1.0")
 
         def cause = new RuntimeException()
-        def exception = new ModuleVersionResolveException(createModuleRevisionId("a", "b", "c"), cause)
+        def exception = new ModuleVersionResolveException(newSelector("a", "b", "c"), cause)
         def onePath = exception.withIncomingPaths([[a, b, c]])
         def twoPaths = exception.withIncomingPaths([[a, b, c], [a, c]])
 

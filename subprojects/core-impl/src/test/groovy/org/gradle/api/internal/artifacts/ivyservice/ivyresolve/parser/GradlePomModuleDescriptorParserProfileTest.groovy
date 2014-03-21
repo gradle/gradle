@@ -46,8 +46,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
     </profiles>
 </project>
 """
-        and:
-        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
 
         when:
         def descriptor = parsePom()
@@ -90,8 +88,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
     </profiles>
 </project>
 """
-        and:
-        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
 
         when:
         def descriptor = parsePom()
@@ -152,7 +148,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
         parseContext.getMetaDataArtifact(_) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
 
         when:
@@ -228,7 +223,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
         parseContext.getMetaDataArtifact({ it.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
         parseContext.getMetaDataArtifact({ it.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
 
@@ -285,8 +279,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
     </profiles>
 </project>
 """
-        and:
-        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
 
         when:
         def descriptor = parsePom()
@@ -352,7 +344,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
         parseContext.getMetaDataArtifact(_) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
 
         when:
@@ -431,7 +422,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
         parseContext.getMetaDataArtifact({ it.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
         parseContext.getMetaDataArtifact({ it.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
 
@@ -503,7 +493,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
         parseContext.getMetaDataArtifact({ it.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
 
         when:

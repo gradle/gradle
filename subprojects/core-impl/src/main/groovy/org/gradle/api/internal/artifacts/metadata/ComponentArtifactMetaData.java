@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,24 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public interface LocalComponentMetaData {
-    ModuleVersionIdentifier getId();
-
-    ModuleDescriptor getModuleDescriptor();
+/**
+ * Meta-data for an artifact that belongs to some component.
+ */
+public interface ComponentArtifactMetaData {
+    /**
+     * Returns the identifier for this artifact.
+     */
+    ComponentArtifactIdentifier getId();
 
     /**
-     * Converts this component to resolve meta-data.
+     * Returns the identifier for the component that this artifact belongs to.
      */
-    ModuleVersionMetaData toResolveMetaData();
+    ComponentIdentifier getComponentId();
 
     /**
-     * Converts this component to publication meta-data.
+     * Returns this artifact as an Ivy artifact. This method is here to allow the artifact to be exposed in a backward-compatible way.
      */
-    BuildableModuleVersionPublishMetaData toPublishMetaData();
-
-    @Nullable
-    LocalArtifactMetaData getArtifact(ComponentArtifactIdentifier artifactIdentifier);
+    IvyArtifactName getName();
 }

@@ -35,4 +35,13 @@ public class ClassDependencyInfoSerializer {
     public ClassDependencyInfo readInfo() {
         return (ClassDependencyInfo) DummySerializer.readFrom(storage);
     }
+
+    public boolean isInfoAvailable() {
+        return storage.isFile();
+    }
+
+    @Override
+    public String toString() {
+        return storage.toString();
+    }
 }

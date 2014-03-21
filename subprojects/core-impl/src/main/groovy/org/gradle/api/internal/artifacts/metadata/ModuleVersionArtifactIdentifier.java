@@ -16,13 +16,8 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-
 /**
  * An immutable identifier for an artifact that belongs to some module version.
  */
-// TODO:DAZ This is really a ComponentArtifactIdentifier, and we should extra ModuleVersionArtifactIdentifier out of DefaultModuleVersionArtifactIdentifier
-public interface ModuleVersionArtifactIdentifier {
-    ComponentIdentifier getComponentIdentifier();
-    String getDisplayName();
+public interface ModuleVersionArtifactIdentifier extends ComponentArtifactIdentifier {
 }

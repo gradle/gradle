@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
+package org.gradle.api.internal.artifacts.metadata;
 
-public interface BuildableMultipleArtifactResolveResult extends MultipleArtifactResolveResult {
-    void addResult(ModuleVersionArtifactIdentifier artifact, ArtifactResolveResult result);
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+
+/**
+ * The meta-data for a component instance that is required during dependency resolution.
+ */
+public interface ComponentMetaData {
+    /**
+     * Returns the identifier for this component.
+     */
+    ComponentIdentifier getComponentId();
 }

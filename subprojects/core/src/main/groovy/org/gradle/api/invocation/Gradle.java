@@ -44,7 +44,7 @@ public interface Gradle extends PluginAware {
     /**
      * Returns the Gradle user home directory.
      *
-     * This directory is used to cache downloaded resources.
+     * This directory is used to cache downloaded resources, compiled build scripts and so on.
      *
      * @return The user home directory. Never returns null.
      */

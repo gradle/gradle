@@ -16,14 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.graph;
 
-import org.apache.commons.lang.mutable.MutableBoolean;
 import org.gradle.api.internal.tasks.compile.incremental.ClassDependents;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ClassDependencyInfo implements Serializable {
 
@@ -35,33 +31,18 @@ public class ClassDependencyInfo implements Serializable {
 
     public Set<String> getActualDependents(String className) {
         Set<String> out = new HashSet<String>();
-        Set<String> visited = new HashSet<String>();
-        MutableBoolean isDependentToAll = new MutableBoolean(false);
-        recurseDependents(visited, out, className, isDependentToAll);
-        if (isDependentToAll.isTrue()) {
+        ClassDependents deps = dependents.get(className);
+        if (deps == null) {
+            return Collections.emptySet();
+        }
+        if (deps.isDependentToAll()) {
             return null;
         }
-        out.remove(className);
-        return out;
-    }
-
-    private void recurseDependents(Set<String> visited, Collection<String> accumulator, String className, MutableBoolean dependentToAll) {
-        if (!visited.add(className)) {
-            return;
-        }
-        ClassDependents out = dependents.get(className);
-        if (out == null) {
-            return;
-        }
-        if (out.isDependentToAll()) {
-            dependentToAll.setValue(true);
-            return;
-        }
-        for (String dependent : out.getDependentClasses()) {
-            if (!dependent.contains("$") && !dependent.equals(className)) { //naive
-                accumulator.add(dependent);
+        for (String c : deps.getDependentClasses()) {
+            if (!c.contains("$") && !c.equals(className)) { //naive
+                out.add(c);
             }
-            recurseDependents(visited, accumulator, dependent, dependentToAll);
         }
+        return out;
     }
 }

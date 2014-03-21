@@ -49,8 +49,8 @@ import java.util.concurrent.Callable;
  *                |                               |
  *             filter                          filter
  *        (shared packages)                  (logging)
- *                |                              |
- *                +---------------+--------------+
+ *                |                               |
+ *                +---------------+---------------+
  *                                |
  *                          implementation
  *         (ActionExecutionWorker + worker action implementation)

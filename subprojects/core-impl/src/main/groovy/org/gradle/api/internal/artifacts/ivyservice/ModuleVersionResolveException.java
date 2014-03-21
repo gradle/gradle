@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.internal.exceptions.AbstractMultiCauseException;
-import org.gradle.internal.exceptions.Contextual;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.Contextual;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,21 +39,12 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
         this.messageFormat = messageFormat;
     }
 
-    public ModuleVersionResolveException(ModuleRevisionId id, String messageFormat) {
-        this(DefaultModuleVersionSelector.newSelector(id.getOrganisation(), id.getName(), id.getRevision()), messageFormat);
-    }
-
     public ModuleVersionResolveException(ModuleVersionIdentifier id, String messageFormat) {
         this(DefaultModuleVersionSelector.newSelector(id.getGroup(), id.getName(), id.getVersion()), messageFormat);
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {
         this(selector, "Could not resolve %s.");
-        initCause(cause);
-    }
-
-    public ModuleVersionResolveException(ModuleRevisionId id, Throwable cause) {
-        this(id, "Could not resolve %s.");
         initCause(cause);
     }
 
