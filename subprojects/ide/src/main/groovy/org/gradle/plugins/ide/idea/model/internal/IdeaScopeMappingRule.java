@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.idea.model.internal
+package org.gradle.plugins.ide.idea.model.internal;
+
+import com.google.common.collect.Sets;
+
+import java.util.Set;
 
 /**
  * A description how to assign IDEA classpath scopes to Gradle dependencies.
@@ -24,16 +28,16 @@ package org.gradle.plugins.ide.idea.model.internal
  */
 class IdeaScopeMappingRule {
 
-    Set<String> configurationNames
+    final Set<String> configurationNames;
 
-    IdeaScopeMappingRule(Collection<String> configurationNames) {
-        this.configurationNames = configurationNames as Set
+    IdeaScopeMappingRule(String ... configurationNames) {
+        this.configurationNames = Sets.newHashSet(configurationNames);
     }
 
     @Override
     public String toString() {
-        return "IdeaScopeMappingRule{" +
-                "configurationNames=" + configurationNames +
-                '}';
+        return "IdeaScopeMappingRule{"
+                + "configurationNames=" + configurationNames
+                + '}';
     }
 }
