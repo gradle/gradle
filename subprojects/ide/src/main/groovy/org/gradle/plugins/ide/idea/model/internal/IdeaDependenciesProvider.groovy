@@ -171,7 +171,7 @@ class IdeaDependenciesProvider {
             if (dependenciesToConfigs.get(dependencyKey).containsAll(configurations)) {
                 def isInMinus = false
                 for (String minusConfiguration : minusConfigurations) {
-                    if (dependenciesToConfigs.get(dependencyKey).containsAll(minusConfiguration)) {
+                    if (dependenciesToConfigs.get(dependencyKey).contains(minusConfiguration)) {
                         isInMinus = true
                         break
                     }
