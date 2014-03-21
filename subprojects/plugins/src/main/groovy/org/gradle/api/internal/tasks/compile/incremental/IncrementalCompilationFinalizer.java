@@ -1,0 +1,76 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.tasks.compile.incremental;
+
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
+import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.WorkResult;
+import org.gradle.util.Clock;
+
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+
+public class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
+
+    private static final Logger LOG = Logging.getLogger(IncrementalCompilationFinalizer.class);
+
+    private final Compiler<JavaCompileSpec> delegate;
+    private final ClassDependencyInfoExtractor extractor;
+    private final ClassDependencyInfoSerializer dependencyInfoSerializer;
+    private final JarSnapshotFeeder jarSnapshotFeeder;
+    private final FileOperations fileOperations;
+
+    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, ClassDependencyInfoExtractor extractor, ClassDependencyInfoSerializer dependencyInfoSerializer, JarSnapshotFeeder jarSnapshotFeeder, FileOperations fileOperations) {
+        this.delegate = delegate;
+        this.extractor = extractor;
+        this.dependencyInfoSerializer = dependencyInfoSerializer;
+        this.jarSnapshotFeeder = jarSnapshotFeeder;
+        this.fileOperations = fileOperations;
+    }
+
+    public WorkResult execute(JavaCompileSpec spec) {
+        WorkResult out = delegate.execute(spec);
+
+        Clock clock = new Clock();
+        ClassDependencyInfo info = extractor.extractInfo(spec.getDestinationDir(), "");
+        dependencyInfoSerializer.writeInfo(info);
+        LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), dependencyInfoSerializer);
+
+        clock = new Clock();
+        jarSnapshotFeeder.storeJarSnapshots(jarsOnClasspath(spec.getClasspath()), info);
+        LOG.lifecycle("Created and wrote jar snapshots in {}.", clock.getTime());
+
+        return out;
+    }
+
+    private Iterable<JarArchive> jarsOnClasspath(Iterable<File> compileClasspath) {
+        List<JarArchive> out = new LinkedList<JarArchive>();
+        for (File file : compileClasspath) {
+            if (file.getName().endsWith(".jar")) {
+                out.add(new JarArchive(file, fileOperations.zipTree(file)));
+            }
+        }
+        return out;
+    }
+}

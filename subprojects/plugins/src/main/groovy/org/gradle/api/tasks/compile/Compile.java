@@ -73,13 +73,14 @@ public class Compile extends AbstractCompile {
         SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
 
         //bunch of services that enable incremental java compilation. Should be pushed out to services/factories.
-        ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer();
+        ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer(); //TODO SF needs caching
         ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
-        JarSnapshotCache jarSnapshotCache = new JarSnapshotCache(new File(getProject().getRootProject().getProjectDir(), ".gradle/jar-snapshot-cache.bin")); //TODO SF global cache?
+        JarSnapshotCache jarSnapshotCache = new JarSnapshotCache(new File(getProject().getRootProject().getProjectDir(), ".gradle/jar-snapshot-cache.bin")); //TODO SF cannot be global
         JarSnapshotFeeder jarSnapshotFeeder = new JarSnapshotFeeder(jarSnapshotCache, new JarSnapshotter(new ClassSnapshotter(new DefaultHasher(), analyzer)));
         ClassDependencyInfoSerializer dependencyInfoSerializer = new ClassDependencyInfoSerializer(new File(getProject().getBuildDir(), "class-info.bin"));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
-        StaleClassesDetecter staleClassDetecter = new StaleClassesDetecter(new SourceToNameConverter(sourceDirs), dependencyInfoSerializer, (FileOperations) getProject(), jarSnapshotFeeder);
+        SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //can be replaced with converter that parses input source class
+        StaleClassesDetecter staleClassDetecter = new StaleClassesDetecter(sourceToNameConverter, dependencyInfoSerializer, (FileOperations) getProject(), jarSnapshotFeeder);
         IncrementalCompilationSupport incrementalSupport = new IncrementalCompilationSupport(jarSnapshotFeeder, dependencyInfoSerializer, (FileOperations) getProject(),
                 extractor, (CleaningJavaCompiler) cleaningCompiler, getPath(), staleClassDetecter);
         Compiler<JavaCompileSpec> compiler = incrementalSupport.prepareCompiler(inputs, sourceDirs);

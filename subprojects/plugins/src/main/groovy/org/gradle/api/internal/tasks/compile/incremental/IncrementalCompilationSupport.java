@@ -20,18 +20,11 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.util.Clock;
-
-import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
 
 public class IncrementalCompilationSupport {
 
@@ -56,51 +49,24 @@ public class IncrementalCompilationSupport {
         this.staleClassDetecter = staleClassDetecter;
     }
 
-    public void compilationComplete(Iterable<JarArchive> jarsOnClasspath, File compiledClassesDir) {
-        Clock clock = new Clock();
-        ClassDependencyInfo info = extractor.extractInfo(compiledClassesDir, "");
-        dependencyInfoSerializer.writeInfo(info);
-        LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), dependencyInfoSerializer);
-
-        clock = new Clock();
-        jarSnapshotFeeder.storeJarSnapshots(jarsOnClasspath, info);
-        LOG.lifecycle("Wrote jar snapshots in {}.", clock.getTime());
+    public Compiler<JavaCompileSpec> prepareCompiler(final IncrementalTaskInputs inputs, final CompilationSourceDirs sourceDirs) {
+        final Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
+        return new IncrementalCompilationFinalizer(compiler, extractor, dependencyInfoSerializer, jarSnapshotFeeder, fileOperations);
     }
 
-    public Compiler<JavaCompileSpec> prepareCompiler(final IncrementalTaskInputs inputs, final CompilationSourceDirs sourceDirs) {
+    private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
         if (!inputs.isIncremental()) {
             LOG.lifecycle("{} - is not incremental (e.g. outputs have changed, no previous execution, etc)", displayName);
-            return withCompleteAction(cleaningCompiler);
+            return cleaningCompiler;
         }
         if (!sourceDirs.areSourceDirsKnown()) {
             LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
-            return withCompleteAction(cleaningCompiler);
+            return cleaningCompiler;
         }
         if (!dependencyInfoSerializer.isInfoAvailable()) {
             LOG.lifecycle("{} - is not incremental. No class dependency data available from previous build.", displayName);
-            return withCompleteAction(cleaningCompiler);
+            return cleaningCompiler;
         }
-        SelectiveCompiler selectiveCompiler = new SelectiveCompiler(inputs, cleaningCompiler, staleClassDetecter, new IncrementalCompilationInitializer(fileOperations));
-        return withCompleteAction(selectiveCompiler);
-    }
-
-    private Compiler<JavaCompileSpec> withCompleteAction(final Compiler<JavaCompileSpec> delegate) {
-        return new Compiler<JavaCompileSpec>() {
-            public WorkResult execute(JavaCompileSpec spec) {
-                WorkResult out = delegate.execute(spec);
-                compilationComplete(jarsOnClasspath(spec.getClasspath()), spec.getDestinationDir());
-                return out;
-            }
-        };
-    }
-
-    private Iterable<JarArchive> jarsOnClasspath(Iterable<File> compileClasspath) {
-        List<JarArchive> out = new LinkedList<JarArchive>();
-        for (File file : compileClasspath) {
-            if (file.getName().endsWith(".jar")) {
-                out.add(new JarArchive(file, fileOperations.zipTree(file)));
-            }
-        }
-        return out;
+        return new SelectiveCompiler(inputs, cleaningCompiler, staleClassDetecter, new IncrementalCompilationInitializer(fileOperations));
     }
 }
