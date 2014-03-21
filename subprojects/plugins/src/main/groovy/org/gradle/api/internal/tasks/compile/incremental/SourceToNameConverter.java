@@ -22,39 +22,25 @@ import java.io.File;
 
 import static java.lang.String.format;
 
-public class InputOutputMapper {
+public class SourceToNameConverter {
 
     private Iterable<File> sourceDirs;
-    private File compileDestination;
 
-    public InputOutputMapper(Iterable<File> sourceDirs, File compileDestination) {
+    public SourceToNameConverter(Iterable<File> sourceDirs) {
         this.sourceDirs = sourceDirs;
-        this.compileDestination = compileDestination;
     }
 
-    public JavaSourceClass toJavaSourceClass(File javaSourceClass) {
+    public String getClassName(File javaSourceClass) {
         for (File sourceDir : sourceDirs) {
             if (javaSourceClass.getAbsolutePath().startsWith(sourceDir.getAbsolutePath())) { //perf tweak only
                 String relativePath = GFileUtils.relativePath(sourceDir, javaSourceClass);
                 if (!relativePath.startsWith("..")) {
-                    return new JavaSourceClass(relativePath, compileDestination);
+                    return relativePath.replaceAll("/", ".").replaceAll("\\.java$", "");
                 }
             }
         }
         throw new IllegalArgumentException(format("Unable to find source java class: '%s' because it does not belong to any of the source dirs: '%s'",
                 javaSourceClass, sourceDirs));
 
-    }
-
-    public JavaSourceClass toJavaSourceClass(String className) {
-        String relativePath = className.replaceAll("\\.", "/").concat(".java");
-        for (File sourceDir : sourceDirs) {
-            File sourceFile = new File(sourceDir, relativePath);
-            if (sourceFile.isFile()) {
-                return new JavaSourceClass(relativePath, compileDestination);
-            }
-        }
-        throw new IllegalArgumentException(format("Unable to find source java class for '%s'. The source file '%s' was not found in source dirs: '%s'",
-                className, relativePath, sourceDirs));
     }
 }

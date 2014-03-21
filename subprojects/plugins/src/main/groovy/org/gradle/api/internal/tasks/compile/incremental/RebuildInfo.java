@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.tasks.util.PatternSet;
+import java.util.Collection;
 
 interface RebuildInfo {
+    Info configureCompilation(Collection<String> staleClasses);
     enum Info { FullRebuild, Incremental }
-    Info configureCompilation(PatternSet changedSourceOnly, PatternSet staleClasses);
 }

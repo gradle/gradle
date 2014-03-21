@@ -21,20 +21,20 @@ package org.gradle.api.internal.tasks.compile.incremental
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
 
-class JavaSourceClassTest extends Specification {
+class SourceToNameConverterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Subject converter = new SourceToNameConverter([temp.file("src/main/java"), temp.file("src/main/java2")])
 
-    def "knows output file"() {
+    def "knows java source class relative path"() {
         expect:
-        new JavaSourceClass("com/Foo.java", temp.file("dir")).outputFile == temp.file("dir/com/Foo.class")
-        new JavaSourceClass("Foo.java", temp.file("dir")).outputFile == temp.file("dir/Foo.class")
-    }
+        converter.getClassName(temp.file("src/main/java/Foo.java")) == "Foo"
+        converter.getClassName(temp.file("src/main/java/org/bar/Bar.java")) == "org.bar.Bar"
+        converter.getClassName(temp.file("src/main/java2/com/Com.java")) == "com.Com"
 
-    def "knows class name"() {
-        expect:
-        new JavaSourceClass("com/Foo.java", temp.file("dir")).className == "com.Foo"
-        new JavaSourceClass("Foo.java", temp.file("dir")).className == "Foo"
+        when: converter.getClassName(temp.file("src/main/unknown/Xxx.java"))
+        then: thrown(IllegalArgumentException)
     }
 }

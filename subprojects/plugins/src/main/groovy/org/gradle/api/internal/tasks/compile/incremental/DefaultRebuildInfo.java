@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.tasks.util.PatternSet;
-
 import java.util.Collection;
 import java.util.Collections;
 
@@ -32,14 +30,12 @@ class DefaultRebuildInfo implements RebuildInfo {
         this.dependentClasses = dependentClasses;
     }
 
-    public Info configureCompilation(PatternSet sourceToCompile, PatternSet classesToDelete) {
+    public Info configureCompilation(Collection<String> staleClasses) {
         if (dependentClasses == null) {
             return Info.FullRebuild;
         }
         for (String c : dependentClasses) {
-            String path = c.replaceAll("\\.", "/");
-            classesToDelete.include(path.concat(".class")); //TODO SF remember about inner classes
-            sourceToCompile.include(path.concat(".java"));
+            staleClasses.add(c);
         }
         return Info.Incremental;
     }

@@ -16,43 +16,32 @@
 
 package org.gradle.api.internal.tasks.compile.incremental
 
-import org.gradle.api.tasks.util.PatternSet
 import spock.lang.Specification
 
 class DefaultRebuildInfoTest extends Specification {
 
-    def patternSet = Mock(PatternSet)
-    def processor = Mock(PatternSet)
+    def staleClasses = []
 
     def "does nothing when no input classes"() {
         def info = new DefaultRebuildInfo([])
-        0 * _._
         expect:
-        info.configureCompilation(patternSet, processor) == RebuildInfo.Info.Incremental
+        info.configureCompilation(staleClasses) == RebuildInfo.Info.Incremental
     }
 
     def "does not configures compilation when full rebuild required"() {
         def info = new DefaultRebuildInfo(null)
-        0 * _._
         expect:
-        info.configureCompilation(patternSet, processor) == RebuildInfo.Info.FullRebuild
+        info.configureCompilation(staleClasses) == RebuildInfo.Info.FullRebuild
     }
 
     def "configures compilation"() {
         def info = new DefaultRebuildInfo(['Bar', 'com.foo.Foo'])
 
         when:
-        def i = info.configureCompilation(patternSet, processor)
+        def i = info.configureCompilation(staleClasses)
 
         then:
         i == RebuildInfo.Info.Incremental
-
-        1 * patternSet.include("Bar.java")
-        1 * patternSet.include("com/foo/Foo.java")
-
-        1 * processor.include('Bar.class')
-        1 * processor.include('com/foo/Foo.class')
-
-        0 * _._
+        staleClasses == ["Bar", "com.foo.Foo"]
     }
 }
