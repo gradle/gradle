@@ -32,7 +32,7 @@ public class ClassDependencyInfoSerializer implements ClassDependencyInfoProvide
         DummySerializer.writeTargetTo(storage, info);
     }
 
-    public ClassDependencyInfo readInfo() {
+    public ClassDependencyInfo provideInfo() {
         return (ClassDependencyInfo) DummySerializer.readFrom(storage);
     }
 

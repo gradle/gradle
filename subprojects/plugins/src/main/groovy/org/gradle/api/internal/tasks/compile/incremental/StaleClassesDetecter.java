@@ -44,7 +44,7 @@ public class StaleClassesDetecter {
     }
 
     public StaleClasses detectStaleClasses(IncrementalTaskInputs inputs) {
-        final ClassDependencyInfo dependencyInfo = dependencyInfoProvider.readInfo();
+        final ClassDependencyInfo dependencyInfo = dependencyInfoProvider.provideInfo();
         InputChangeAction action = new InputChangeAction(dependencyInfo);
         inputs.outOfDate(action);
         if (action.fullRebuildReason != null) {

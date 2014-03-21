@@ -32,7 +32,7 @@ class ClassDependencyInfoSerializerTest extends Specification {
 
         when:
         s.writeInfo(new ClassDependencyInfo(["foo.Foo": new ClassDependents().addClass("bar.Bar")]))
-        def info = s.readInfo()
+        def info = s.provideInfo()
 
         then:
         info.getActualDependents("foo.Foo") == ["bar.Bar"] as Set

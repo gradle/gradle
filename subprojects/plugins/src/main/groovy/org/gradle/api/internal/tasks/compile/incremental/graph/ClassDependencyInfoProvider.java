@@ -17,5 +17,5 @@
 package org.gradle.api.internal.tasks.compile.incremental.graph;
 
 public interface ClassDependencyInfoProvider {
-    ClassDependencyInfo readInfo();
+    ClassDependencyInfo provideInfo();
 }
