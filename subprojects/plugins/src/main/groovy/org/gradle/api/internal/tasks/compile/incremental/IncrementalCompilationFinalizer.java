@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
@@ -27,10 +26,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.Clock;
 
-import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
-
 public class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
 
     private static final Logger LOG = Logging.getLogger(IncrementalCompilationFinalizer.class);
@@ -39,14 +34,15 @@ public class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec
     private final ClassDependencyInfoExtractor extractor;
     private final ClassDependencyInfoSerializer dependencyInfoSerializer;
     private final JarSnapshotFeeder jarSnapshotFeeder;
-    private final FileOperations fileOperations;
+    private final ClasspathJarFinder classpathJarFinder;
 
-    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, ClassDependencyInfoExtractor extractor, ClassDependencyInfoSerializer dependencyInfoSerializer, JarSnapshotFeeder jarSnapshotFeeder, FileOperations fileOperations) {
+    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, ClassDependencyInfoExtractor extractor, ClassDependencyInfoSerializer dependencyInfoSerializer,
+                                           JarSnapshotFeeder jarSnapshotFeeder, ClasspathJarFinder classpathJarFinder) {
         this.delegate = delegate;
         this.extractor = extractor;
         this.dependencyInfoSerializer = dependencyInfoSerializer;
         this.jarSnapshotFeeder = jarSnapshotFeeder;
-        this.fileOperations = fileOperations;
+        this.classpathJarFinder = classpathJarFinder;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
@@ -58,19 +54,9 @@ public class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec
         LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), dependencyInfoSerializer);
 
         clock = new Clock();
-        jarSnapshotFeeder.storeJarSnapshots(jarsOnClasspath(spec.getClasspath()), info);
+        jarSnapshotFeeder.storeJarSnapshots(classpathJarFinder.findJarArchives(spec.getClasspath()), info);
         LOG.lifecycle("Created and wrote jar snapshots in {}.", clock.getTime());
 
-        return out;
-    }
-
-    private Iterable<JarArchive> jarsOnClasspath(Iterable<File> compileClasspath) {
-        List<JarArchive> out = new LinkedList<JarArchive>();
-        for (File file : compileClasspath) {
-            if (file.getName().endsWith(".jar")) {
-                out.add(new JarArchive(file, fileOperations.zipTree(file)));
-            }
-        }
         return out;
     }
 }

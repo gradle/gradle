@@ -51,7 +51,7 @@ public class IncrementalCompilationSupport {
 
     public Compiler<JavaCompileSpec> prepareCompiler(final IncrementalTaskInputs inputs, final CompilationSourceDirs sourceDirs) {
         final Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
-        return new IncrementalCompilationFinalizer(compiler, extractor, dependencyInfoSerializer, jarSnapshotFeeder, fileOperations);
+        return new IncrementalCompilationFinalizer(compiler, extractor, dependencyInfoSerializer, jarSnapshotFeeder, new ClasspathJarFinder(fileOperations));
     }
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
