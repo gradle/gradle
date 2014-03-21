@@ -17,9 +17,17 @@ package org.gradle.api.sonar.runner
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
+import org.gradle.api.internal.classpath.DefaultModuleRegistry
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.resources.MissingResourceException
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.nativeplatform.services.FileSystems
+import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.ExecHandle
+import org.gradle.process.internal.JavaExecHandleBuilder
 import org.sonar.runner.Runner
 
 /**
@@ -41,14 +49,63 @@ class SonarRunner extends DefaultTask {
      */
     Properties sonarProperties
 
+    /**
+     * Specify if the analysis should be run in a separated process
+     */
+    boolean fork = false
+
+    private JavaExecHandleBuilder forkOptions
+
+    SonarRunner() {
+        forkOptions = new JavaExecHandleBuilder(
+                new BaseDirFileResolver(FileSystems.default, getProject().rootDir)
+        )
+    }
+
     @TaskAction
     void run() {
         def properties = getSonarProperties()
+
         if (LOGGER.infoEnabled) {
             LOGGER.info("Executing Sonar Runner with properties:\n{}",
                     properties.sort().collect { key, value -> "$key: $value" }.join("\n"))
         }
+
+        if (fork) {
+            forkAndExecute()
+            return
+        }
+
         def runner = Runner.create(properties)
         runner.execute()
+    }
+
+    JavaForkOptions getForkOptions() {
+        return forkOptions
+    }
+
+    void forkAndExecute() {
+
+        File sonarRunnerJar = getSonarRunnerJar()
+        forkOptions.setClasspath(new SimpleFileCollection(sonarRunnerJar))
+        forkOptions.setMain('org.sonar.runner.Main')
+
+        getSonarProperties().each { String key, Object value -> forkOptions.systemProperty(key, value) }
+
+        ExecHandle handle = forkOptions.build()
+        handle.start()
+                .waitForFinish()
+                .assertNormalExitValue();
+    }
+
+    private static File getSonarRunnerJar() {
+        File gradleHome = new DefaultModuleRegistry().getGradleHome();
+        for (File file : new File(gradleHome, "lib/plugins").listFiles()) {
+            if (file.getName().matches('sonar-runner-.*.jar')) {
+                return file
+            }
+        }
+
+        throw new MissingResourceException("Cannot find sonar runner library in gradle home");
     }
 }

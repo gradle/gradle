@@ -19,6 +19,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.internal.jvm.Jvm
+import org.gradle.process.JavaForkOptions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
@@ -373,5 +374,32 @@ class SonarRunnerPluginTest extends Specification {
 
         then:
         !properties.any { key, value -> key.startsWith("child.sonar.") }
+    }
+
+    def "sets default fork options correctly"() {
+
+        when:
+        boolean fork = parentProject.tasks.sonarRunner.fork
+        JavaForkOptions forkOptions = parentProject.tasks.sonarRunner.forkOptions
+
+        then:
+        !fork
+        forkOptions != null
+    }
+
+    def "configure ad hoc analysis with fork options"() {
+        def project = TestUtil.builder().withName("project1").build()
+        project.task(type: SonarRunner, "forkedAnalysis") {
+            fork = true
+            forkOptions.maxHeapSize = '512m'
+        }
+
+        when:
+        boolean fork = project.tasks.forkedAnalysis.fork
+        JavaForkOptions forkOptions = project.tasks.forkedAnalysis.forkOptions
+
+        then:
+        fork
+        forkOptions.allJvmArgs.contains '-Xmx512m'
     }
 }

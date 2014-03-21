@@ -18,6 +18,7 @@ package org.gradle.api.sonar.runner
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.ServletContainer
 import org.gradle.util.AvailablePortFinder
@@ -67,6 +68,25 @@ sonar.embeddedDatabase.port=$databasePort
 
     def "execute 'sonarRunner' task"() {
         when:
+        runSonarRunnerTask()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "execute 'sonarRunner' task in separate process"() {
+
+        testResources.dir.file("build.gradle") << """
+project.tasks.sonarRunner.fork = true
+"""
+        when:
+        runSonarRunnerTask()
+
+        then:
+        noExceptionThrown()
+    }
+
+    private ExecutionResult runSonarRunnerTask() {
         executer.requireIsolatedDaemons()
                 .requireGradleHome()
                 .withArgument("-i")
@@ -75,8 +95,5 @@ sonar.embeddedDatabase.port=$databasePort
                 .withArgument("-Dsonar.host.url=http://localhost:${container.port}")
                 .withArgument("-Dsonar.jdbc.url=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
                 .withTasks("sonarRunner").run()
-
-        then:
-        noExceptionThrown()
     }
 }
