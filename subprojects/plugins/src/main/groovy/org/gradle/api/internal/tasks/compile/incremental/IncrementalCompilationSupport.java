@@ -42,16 +42,18 @@ public class IncrementalCompilationSupport {
     private final ClassDependencyInfoExtractor extractor;
     private final CleaningJavaCompiler cleaningCompiler;
     private final String displayName;
+    private final StaleClassesDetecter staleClassDetecter;
 
-    public IncrementalCompilationSupport(JarSnapshotFeeder jarSnapshotFeeder,
-                                         ClassDependencyInfoSerializer dependencyInfoSerializer, FileOperations fileOperations,
-                                         ClassDependencyInfoExtractor extractor, CleaningJavaCompiler cleaningCompiler, String displayName) {
+    public IncrementalCompilationSupport(JarSnapshotFeeder jarSnapshotFeeder, ClassDependencyInfoSerializer dependencyInfoSerializer,
+                                         FileOperations fileOperations, ClassDependencyInfoExtractor extractor,
+                                         CleaningJavaCompiler cleaningCompiler, String displayName, StaleClassesDetecter staleClassDetecter) {
         this.jarSnapshotFeeder = jarSnapshotFeeder;
         this.dependencyInfoSerializer = dependencyInfoSerializer;
         this.fileOperations = fileOperations;
         this.extractor = extractor;
         this.cleaningCompiler = cleaningCompiler;
         this.displayName = displayName;
+        this.staleClassDetecter = staleClassDetecter;
     }
 
     public void compilationComplete(Iterable<JarArchive> jarsOnClasspath, File compiledClassesDir) {
@@ -78,7 +80,7 @@ public class IncrementalCompilationSupport {
             LOG.lifecycle("{} - is not incremental. No class dependency data available from previous build.", displayName);
             return withCompleteAction(cleaningCompiler);
         }
-        SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, dependencyInfoSerializer, jarSnapshotFeeder, cleaningCompiler, sourceDirs, fileOperations);
+        SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, cleaningCompiler, fileOperations, staleClassDetecter);
         return withCompleteAction(selectiveCompilation);
     }
 

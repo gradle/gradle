@@ -78,9 +78,11 @@ public class Compile extends AbstractCompile {
         JarSnapshotCache jarSnapshotCache = new JarSnapshotCache(new File(getProject().getRootProject().getProjectDir(), ".gradle/jar-snapshot-cache.bin")); //TODO SF global cache?
         JarSnapshotFeeder jarSnapshotFeeder = new JarSnapshotFeeder(jarSnapshotCache, new JarSnapshotter(new ClassSnapshotter(new DefaultHasher(), analyzer)));
         ClassDependencyInfoSerializer dependencyInfoSerializer = new ClassDependencyInfoSerializer(new File(getProject().getBuildDir(), "class-info.bin"));
+        CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
+        StaleClassesDetecter staleClassDetecter = new StaleClassesDetecter(new SourceToNameConverter(sourceDirs), dependencyInfoSerializer, (FileOperations) getProject(), jarSnapshotFeeder);
         IncrementalCompilationSupport incrementalSupport = new IncrementalCompilationSupport(jarSnapshotFeeder, dependencyInfoSerializer, (FileOperations) getProject(),
-                extractor, (CleaningJavaCompiler) cleaningCompiler, getPath());
-        Compiler<JavaCompileSpec> compiler = incrementalSupport.prepareCompiler(inputs, new CompilationSourceDirs(source));
+                extractor, (CleaningJavaCompiler) cleaningCompiler, getPath(), staleClassDetecter);
+        Compiler<JavaCompileSpec> compiler = incrementalSupport.prepareCompiler(inputs, sourceDirs);
         performCompilation(compiler);
     }
 

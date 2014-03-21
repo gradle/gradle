@@ -19,19 +19,21 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.util.List;
 
 import static java.lang.String.format;
 
 public class SourceToNameConverter {
 
-    private Iterable<File> sourceDirs;
+    private CompilationSourceDirs sourceDirs;
 
-    public SourceToNameConverter(Iterable<File> sourceDirs) {
+    public SourceToNameConverter(CompilationSourceDirs sourceDirs) {
         this.sourceDirs = sourceDirs;
     }
 
     public String getClassName(File javaSourceClass) {
-        for (File sourceDir : sourceDirs) {
+        List<File> dirs = sourceDirs.getSourceDirs();
+        for (File sourceDir : dirs) {
             if (javaSourceClass.getAbsolutePath().startsWith(sourceDir.getAbsolutePath())) { //perf tweak only
                 String relativePath = GFileUtils.relativePath(sourceDir, javaSourceClass);
                 if (!relativePath.startsWith("..")) {
@@ -40,7 +42,7 @@ public class SourceToNameConverter {
             }
         }
         throw new IllegalArgumentException(format("Unable to find source java class: '%s' because it does not belong to any of the source dirs: '%s'",
-                javaSourceClass, sourceDirs));
+                javaSourceClass, dirs));
 
     }
 }

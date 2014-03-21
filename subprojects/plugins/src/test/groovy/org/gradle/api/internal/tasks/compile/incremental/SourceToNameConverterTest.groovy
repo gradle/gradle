@@ -26,7 +26,10 @@ import spock.lang.Subject
 class SourceToNameConverterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    @Subject converter = new SourceToNameConverter([temp.file("src/main/java"), temp.file("src/main/java2")])
+    def srcDirs = Stub(CompilationSourceDirs) {
+        getSourceDirs() >> [temp.file("src/main/java"), temp.file("src/main/java2")]
+    }
+    @Subject converter = new SourceToNameConverter(srcDirs)
 
     def "knows java source class relative path"() {
         expect:

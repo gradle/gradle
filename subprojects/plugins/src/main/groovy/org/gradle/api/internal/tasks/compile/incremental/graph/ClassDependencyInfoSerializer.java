@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.compile.incremental.DummySerializer;
 
 import java.io.File;
 
-public class ClassDependencyInfoSerializer {
+public class ClassDependencyInfoSerializer implements ClassDependencyInfoProvider {
     private File storage;
 
     public ClassDependencyInfoSerializer(File storage) {
