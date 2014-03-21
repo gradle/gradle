@@ -144,7 +144,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
                 String message = String.format("Unable to receive command from connection: '%s'", connection);
                 LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
                 daemonConnection.completed(new DaemonFailure(new RuntimeException(message, e)));
-                //TODO SF exception handling / send typed exception / refactor / unit test and apply the same for below
+                //TODO SF refactor for unit test coverage
                 return null;
             }
         }
