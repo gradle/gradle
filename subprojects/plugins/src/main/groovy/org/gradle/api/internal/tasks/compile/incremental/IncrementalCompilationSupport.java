@@ -80,7 +80,7 @@ public class IncrementalCompilationSupport {
             LOG.lifecycle("{} - is not incremental. No class dependency data available from previous build.", displayName);
             return withCompleteAction(cleaningCompiler);
         }
-        SelectiveCompiler selectiveCompiler = new SelectiveCompiler(inputs, cleaningCompiler, fileOperations, staleClassDetecter);
+        SelectiveCompiler selectiveCompiler = new SelectiveCompiler(inputs, cleaningCompiler, staleClassDetecter, new IncrementalCompilationInitializer(fileOperations));
         return withCompleteAction(selectiveCompiler);
     }
 
