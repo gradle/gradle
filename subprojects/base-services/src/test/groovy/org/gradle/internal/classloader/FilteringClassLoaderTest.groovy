@@ -232,4 +232,30 @@ class FilteringClassLoaderTest extends Specification {
             fail()
         } catch (ClassNotFoundException expected) {}
     }
+
+    def "does not attempt to load not allowed class"() {
+        given:
+        def parent = Mock(ClassLoader)
+        def loader = new FilteringClassLoader(parent)
+
+        and:
+        loader.allowPackage("good")
+
+        when:
+        loader.loadClass("good.Clazz")
+
+        //noinspection GroovyAccessibility
+        then:
+        1 * parent.loadClass("good.Clazz", false) >> String
+        0 * parent._
+
+        when:
+        loader.loadClass("bad.Clazz")
+
+        then:
+        thrown(ClassNotFoundException)
+
+        and:
+        0 * parent._
+    }
 }
