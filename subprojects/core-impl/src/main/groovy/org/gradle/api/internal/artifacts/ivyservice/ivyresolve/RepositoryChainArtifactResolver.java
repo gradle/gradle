@@ -19,7 +19,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.internal.Transformers;
 
@@ -38,7 +38,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         findSourceRepository(moduleMetadata.getSource()).resolveModuleArtifacts(unpackSource(moduleMetadata), context, result);
     }
 
-    public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource source, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource source, BuildableArtifactResolveResult result) {
         findSourceRepository(source).resolveArtifact(artifact, unpackSource(source), result);
     }
 

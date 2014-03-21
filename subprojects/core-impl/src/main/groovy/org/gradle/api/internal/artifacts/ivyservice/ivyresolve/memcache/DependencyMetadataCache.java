@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 import java.io.File;
@@ -32,7 +32,7 @@ class DependencyMetadataCache {
     private final Map<ModuleVersionSelector, CachedModuleVersionResult> localMetaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
     private final Map<ModuleVersionSelector, CachedModuleVersionResult> metaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
     private final Map<CachedModuleArtifactsKey, Set<ModuleVersionArtifactMetaData>> moduleArtifacts = new HashMap<CachedModuleArtifactsKey, Set<ModuleVersionArtifactMetaData>>();
-    private final Map<ModuleVersionArtifactIdentifier, File> artifacts = new HashMap<ModuleVersionArtifactIdentifier, File>();
+    private final Map<ComponentArtifactIdentifier, File> artifacts = new HashMap<ComponentArtifactIdentifier, File>();
     private DependencyMetadataCacheStats stats;
 
     DependencyMetadataCache(DependencyMetadataCacheStats stats) {
@@ -87,7 +87,7 @@ class DependencyMetadataCache {
         }
     }
 
-    public boolean supplyArtifact(ModuleVersionArtifactIdentifier id, BuildableArtifactResolveResult result) {
+    public boolean supplyArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {
         File fromCache = artifacts.get(id);
         if (fromCache != null) {
             result.resolved(fromCache);
@@ -97,7 +97,7 @@ class DependencyMetadataCache {
         return false;
     }
 
-    public void newArtifact(ModuleVersionArtifactIdentifier id, BuildableArtifactResolveResult result) {
+    public void newArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {
         artifacts.put(id, result.getFile());
     }
 }

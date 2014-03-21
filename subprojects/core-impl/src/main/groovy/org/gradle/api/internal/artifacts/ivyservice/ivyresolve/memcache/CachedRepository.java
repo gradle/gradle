@@ -23,10 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 
 class CachedRepository implements LocalAwareModuleVersionRepository {
     final DependencyMetadataCache cache;
@@ -77,8 +74,8 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
         }
     }
 
-    public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        ModuleVersionArtifactIdentifier artifactId = artifact.getId();
+    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        ComponentArtifactIdentifier artifactId = artifact.getId();
         if (!cache.supplyArtifact(artifactId, result)) {
             delegate.resolveArtifact(artifact, moduleSource, result);
             if (result.getFailure() == null) {

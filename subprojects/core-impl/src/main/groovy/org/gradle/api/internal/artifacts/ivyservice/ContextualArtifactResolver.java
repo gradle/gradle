@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 public class ContextualArtifactResolver implements ArtifactResolver {
@@ -44,7 +44,7 @@ public class ContextualArtifactResolver implements ArtifactResolver {
         });
     }
 
-    public void resolveArtifact(final ModuleVersionArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
+    public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
         lockingManager.useCache(String.format("Resolve %s", artifact), new Runnable() {
             public void run() {
                 ivyContextManager.withIvy(new Action<Ivy>() {

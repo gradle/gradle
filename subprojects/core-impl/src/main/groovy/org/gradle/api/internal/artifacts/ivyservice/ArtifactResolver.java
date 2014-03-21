@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 public interface ArtifactResolver {
@@ -28,6 +28,6 @@ public interface ArtifactResolver {
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    // TODO:DAZ Make this less ModuleVersion centric: Should take a ComponentArtifactIdentifier, and ModuleSource should be an attribute of the ModuleVersion subtype only
-    void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result);
+    // TODO:DAZ Make this less ModuleVersion centric: ModuleSource should be an attribute of the ModuleVersion subtype only
+    void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result);
 }
