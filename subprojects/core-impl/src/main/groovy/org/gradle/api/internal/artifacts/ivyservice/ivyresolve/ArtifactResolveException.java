@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.util.GUtil;
 
@@ -35,15 +35,15 @@ public class ArtifactResolveException extends GradleException {
         super(format(module, message));
     }
 
-    public ArtifactResolveException(ModuleVersionArtifactIdentifier artifact, Throwable cause) {
+    public ArtifactResolveException(ComponentArtifactIdentifier artifact, Throwable cause) {
         super(format(artifact, ""), cause);
     }
 
-    public ArtifactResolveException(ModuleVersionArtifactIdentifier artifact, String message) {
+    public ArtifactResolveException(ComponentArtifactIdentifier artifact, String message) {
         super(format(artifact, message));
     }
 
-    private static String format(ModuleVersionArtifactIdentifier artifact, String message) {
+    private static String format(ComponentArtifactIdentifier artifact, String message) {
         StringBuilder builder = new StringBuilder();
         builder.append("Could not download artifact '");
         builder.append(artifact.getDisplayName());
