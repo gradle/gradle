@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 import java.util.Set;
 
-public class MavenCandidateArtifacts {
+public class MavenClassifierArtifactScheme {
     public Set<ModuleVersionArtifactMetaData> get(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
         if (artifactType == JvmLibraryJavadocArtifact.class) {
             return createArtifactMetaData(module, "javadoc", "javadoc");

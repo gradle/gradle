@@ -27,7 +27,7 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
-import org.gradle.api.internal.artifacts.MavenCandidateArtifacts;
+import org.gradle.api.internal.artifacts.MavenClassifierArtifactScheme;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
@@ -163,7 +163,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
             return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module, metadataArtifact));
         }
 
-        return new MavenCandidateArtifacts().get(module, artifactType);
+        return new MavenClassifierArtifactScheme().get(module, artifactType);
     }
 
     private boolean downloadFailed(ArtifactDownloadReport artifactReport) {

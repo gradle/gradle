@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.MavenCandidateArtifacts;
+import org.gradle.api.internal.artifacts.MavenClassifierArtifactScheme;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
@@ -260,7 +260,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module, pomArtifact));
         }
 
-        return new MavenCandidateArtifacts().get(module, artifactType);
+        return new MavenClassifierArtifactScheme().get(module, artifactType);
     }
 
     @Override
