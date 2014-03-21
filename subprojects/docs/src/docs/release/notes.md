@@ -296,6 +296,7 @@ We would like to thank the following community members for making contributions 
 * [Mark Johnson](https://github.com/elucify) - documentation improvements
 * [Paul Merlin](https://github.com/eskatos) - ignored tests tab for HTML test report
 * [Jason Gauci](https://github.com/MisterTea) - Support for large zips
+* [Zsolt Kúti](https://github.com/tinca) - Fixes for Gradle on FreeBSD
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
