@@ -38,8 +38,8 @@ class JarSnapshotTest extends Specification {
         JarSnapshot s2 = new JarSnapshot(["com.Foo": new ClassSnapshot("f".bytes, ['X'])])
 
         expect:
-        s1.getDependentsDelta(s2).dependentClasses == ["X", "Y", "Z"]
-        s2.getDependentsDelta(s1).dependentClasses == [] //ignore class additions
+        s1.getDependentsDelta(s2).dependentClasses == ["X", "Y", "Z"] as Set
+        s2.getDependentsDelta(s1).dependentClasses == [] as Set //ignore class additions
     }
 
     def "knows when other snapshots have class with different hash"() {
@@ -50,8 +50,8 @@ class JarSnapshotTest extends Specification {
                 "Car": new ClassSnapshot("xxx".bytes, ['Z'])])
 
         expect:
-        s1.getDependentsDelta(s2).dependentClasses == ["X", "Y", "Z"]
-        s2.getDependentsDelta(s1).dependentClasses == ["Z"]
+        s1.getDependentsDelta(s2).dependentClasses == ["X", "Y", "Z"] as Set
+        s2.getDependentsDelta(s1).dependentClasses == ["Z"] as Set
     }
 
     def "informs that all classes are dependent"() {
@@ -60,7 +60,7 @@ class JarSnapshotTest extends Specification {
         JarSnapshot s2 = new JarSnapshot([:])
 
         expect:
-        s1.getDependentsDelta(s2).dependentClasses == null //all dependent, ugly. The whole test case needs to be simplified. TODO SF
-        s2.getDependentsDelta(s1).dependentClasses == []
+        s1.getDependentsDelta(s2).dependentToAll
+        s2.getDependentsDelta(s1).dependentClasses == [] as Set
     }
 }

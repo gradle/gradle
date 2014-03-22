@@ -18,35 +18,34 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
-public class JarChangeProcessor {
+public class JarChangeDependentsFinder {
 
     private JarSnapshotFeeder jarSnapshotFeeder;
 
-    public JarChangeProcessor(JarSnapshotFeeder jarSnapshotFeeder) {
+    public JarChangeDependentsFinder(JarSnapshotFeeder jarSnapshotFeeder) {
         this.jarSnapshotFeeder = jarSnapshotFeeder;
     }
 
     //TODO SF coverage
-    public RebuildInfo processJarChange(InputFileDetails jarChangeDetails, JarArchive jarArchive) {
+    public DependentsSet getActualDependents(InputFileDetails jarChangeDetails, JarArchive jarArchive) {
         JarSnapshot existing = jarSnapshotFeeder.changedJar(jarChangeDetails.getFile());
         if (jarChangeDetails.isAdded()) {
-            return DefaultRebuildInfo.NOTHING_TO_REBUILD;
+            return new ClassDependents();
         }
 
         if (existing == null) {
             //we don't know what classes were dependents of the jar in the previous build
             //for example, a class (in jar) with a constant might have changed into a class without a constant - we need to rebuild everything
-            return DefaultRebuildInfo.FULL_REBUILD;
+            return new ClassDependents().setDependentToAll();
         }
 
         if (jarChangeDetails.isRemoved()) {
-            return DefaultRebuildInfo.FULL_REBUILD;
+            return new ClassDependents().setDependentToAll();
         }
 
         if (jarChangeDetails.isModified()) {
             JarSnapshot snapshotNoDeps = jarSnapshotFeeder.newSnapshotWithoutDependents(jarArchive);
-            final JarDependentsDelta delta = existing.getDependentsDelta(snapshotNoDeps);
-            return new DefaultRebuildInfo(delta.getDependentClasses());
+            return existing.getDependentsDelta(snapshotNoDeps);
         }
 
         throw new IllegalArgumentException("Unknown input file details provided: " + jarChangeDetails);

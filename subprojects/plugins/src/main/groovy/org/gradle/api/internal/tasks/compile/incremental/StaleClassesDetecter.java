@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyIn
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,14 +62,13 @@ public class StaleClassesDetecter {
             this.dependencyInfo = dependencyInfo;
         }
 
-        public void execute(InputFileDetails inputFileDetails) {
+        public void execute(InputFileDetails input) {
             if (fullRebuildReason != null) {
                 return;
             }
-            File inputFile = inputFileDetails.getFile();
-            String name = inputFile.getName();
+            String name = input.getFile().getName();
             if (name.endsWith(".java")) {
-                String className = sourceToNameConverter.getClassName(inputFile);
+                String className = sourceToNameConverter.getClassName(input.getFile());
                 staleClasses.add(className);
                 Set<String> actualDependents = dependencyInfo.getActualDependents(className);
                 if (actualDependents == null) {
@@ -80,14 +78,14 @@ public class StaleClassesDetecter {
                 staleClasses.addAll(actualDependents);
             }
             if (name.endsWith(".jar")) {
-                JarArchive jarArchive = new JarArchive(inputFileDetails.getFile(), fileOperations.zipTree(inputFileDetails.getFile()));
-                JarChangeProcessor processor = new JarChangeProcessor(jarSnapshotFeeder);
-                //TODO SF simplify
-                RebuildInfo rebuildInfo = processor.processJarChange(inputFileDetails, jarArchive);
-                RebuildInfo.Info info = rebuildInfo.configureCompilation(staleClasses);
-                if (info == RebuildInfo.Info.FullRebuild) {
-                    fullRebuildReason = "change to " + inputFile + " requires full rebuild";
+                JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
+                JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarSnapshotFeeder);
+                DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
+                if (actualDependents.isDependentToAll()) {
+                    fullRebuildReason = "change to " + input.getFile() + " requires full rebuild";
+                    return;
                 }
+                staleClasses.addAll(actualDependents.getDependentClasses());
             }
         }
 

@@ -17,15 +17,19 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class ClassDependents implements Serializable {
+public class ClassDependents implements Serializable, DependentsSet {
 
     private final Set<String> dependentClasses = new LinkedHashSet<String>();
     private boolean dependentToAll;
 
     public Set<String> getDependentClasses() {
+        if (isDependentToAll()) {
+            throw new IllegalArgumentException("This class is dependent to all");
+        }
         return dependentClasses;
     }
 
@@ -38,7 +42,12 @@ public class ClassDependents implements Serializable {
         return this;
     }
 
-    public void setDependentToAll() {
+    public ClassDependents setDependentToAll() {
         dependentToAll = true;
+        return this;
+    }
+
+    public void addAll(Collection<String> dependents) {
+        dependentClasses.addAll(dependents);
     }
 }

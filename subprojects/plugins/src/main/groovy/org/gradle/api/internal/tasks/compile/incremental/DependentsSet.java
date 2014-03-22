@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import java.util.Collection;
+import java.util.Set;
 
-interface RebuildInfo {
-    Info configureCompilation(Collection<String> staleClasses);
-    enum Info { FullRebuild, Incremental }
+public interface DependentsSet {
+    Set<String> getDependentClasses();
+    boolean isDependentToAll(); //TODO SF, should be 'isDependencyToAll'
 }

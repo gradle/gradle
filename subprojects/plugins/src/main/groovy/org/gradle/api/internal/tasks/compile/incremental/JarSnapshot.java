@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 
 class JarSnapshot implements Serializable {
 
@@ -27,26 +29,20 @@ class JarSnapshot implements Serializable {
         this.classSnapshots = classSnapshots;
     }
 
-    JarDependentsDelta getDependentsDelta(JarSnapshot other) {
-        final List<String> allDependents = new LinkedList<String>();
+    DependentsSet getDependentsDelta(JarSnapshot current) {
+        final ClassDependents allDependents = new ClassDependents();
         for (String thisCls : classSnapshots.keySet()) {
-            ClassSnapshot otherCls = other.classSnapshots.get(thisCls);
+            ClassSnapshot otherCls = current.classSnapshots.get(thisCls);
+            //if class was removed from current snapshot or hash does not match
             if (otherCls == null || !Arrays.equals(otherCls.hash, classSnapshots.get(thisCls).hash)) {
                 Collection<String> dependents = classSnapshots.get(thisCls).dependentClasses;
-                if (dependents == null) { //TODO SF don't model as null
-                    return new JarDependentsDelta() {
-                        public Collection<String> getDependentClasses() {
-                            return null;
-                        }
-                    };
+                if (dependents == null) {
+                    //dependent to all, TODO SF don't model as null
+                    return new ClassDependents().setDependentToAll();
                 }
                 allDependents.addAll(dependents);
             }
         }
-        return new JarDependentsDelta() {
-            public Collection<String> getDependentClasses() {
-                return allDependents;
-            }
-        };
+        return allDependents;
     }
 }
