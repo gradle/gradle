@@ -16,28 +16,28 @@
 
 
 
-package org.gradle.api.internal.tasks.compile.incremental
+package org.gradle.api.internal.tasks.compile.incremental.graph
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-class ClassNameProviderTest extends Specification {
+class OutputToNameConverterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    @Subject provider = new ClassNameProvider(temp.createDir("root/dir"))
+    @Subject provider = new OutputToNameConverter(temp.createDir("root/dir"))
 
     def "provides class name"() {
         expect:
-        "foo.bar.Foo" == provider.provideName(temp.file("root/dir/foo/bar/Foo.class"))
-        "Foo" == provider.provideName(temp.file("root/dir/Foo.class"))
-        'Foo$Bar' == provider.provideName(temp.file('root/dir/Foo$Bar.class'))
+        "foo.bar.Foo" == provider.getClassName(temp.file("root/dir/foo/bar/Foo.class"))
+        "Foo" == provider.getClassName(temp.file("root/dir/Foo.class"))
+        'Foo$Bar' == provider.getClassName(temp.file('root/dir/Foo$Bar.class'))
     }
 
     def "fails when class is outside of root"() {
         when:
-        provider.provideName(temp.file("foo/Foo.class"))
+        provider.getClassName(temp.file("foo/Foo.class"))
         then:
         thrown(IllegalArgumentException)
     }

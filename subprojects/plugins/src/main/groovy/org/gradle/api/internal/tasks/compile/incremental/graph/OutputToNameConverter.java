@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.graph;
 
 import java.io.File;
 
 import static org.gradle.util.GFileUtils.relativePath;
 
-public class ClassNameProvider {
+class OutputToNameConverter {
 
     private final File compiledClassesDir;
 
-    public ClassNameProvider(File compiledClassesDir) {
+    public OutputToNameConverter(File compiledClassesDir) {
         this.compiledClassesDir = compiledClassesDir;
     }
 
-    public String provideName(File classFile) {
+    public String getClassName(File classFile) {
         String path = relativePath(compiledClassesDir, classFile);
         if (path.startsWith("/") || path.startsWith(".")) {
             throw new IllegalArgumentException("Given input class file: '" + classFile + "' is not located inside of '" + compiledClassesDir + "'.");

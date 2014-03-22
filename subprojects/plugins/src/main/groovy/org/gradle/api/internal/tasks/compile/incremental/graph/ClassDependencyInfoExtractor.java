@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.graph;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.tasks.compile.incremental.ClassDependents;
-import org.gradle.api.internal.tasks.compile.incremental.ClassNameProvider;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 
@@ -39,10 +38,10 @@ public class ClassDependencyInfoExtractor {
     public ClassDependencyInfo extractInfo(File compiledClassesDir, String packagePrefix) {
         Map<String, ClassDependents> dependents = new HashMap<String, ClassDependents>();
         Iterator output = FileUtils.iterateFiles(compiledClassesDir, new String[]{"class"}, true);
-        ClassNameProvider nameProvider = new ClassNameProvider(compiledClassesDir);
+        OutputToNameConverter nameProvider = new OutputToNameConverter(compiledClassesDir);
         while (output.hasNext()) {
             File classFile = (File) output.next();
-            String className = nameProvider.provideName(classFile);
+            String className = nameProvider.getClassName(classFile);
             if (!className.startsWith(packagePrefix)) {
                 continue;
             }
