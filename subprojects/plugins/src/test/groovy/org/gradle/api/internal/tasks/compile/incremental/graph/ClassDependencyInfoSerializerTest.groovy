@@ -35,6 +35,6 @@ class ClassDependencyInfoSerializerTest extends Specification {
         def info = s.provideInfo()
 
         then:
-        info.getActualDependents("foo.Foo") == ["bar.Bar"] as Set
+        info.getRelevantDependents("foo.Foo") == ["bar.Bar"] as Set
     }
 }

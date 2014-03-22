@@ -44,7 +44,7 @@ public class ClassSnapshotter {
         if (dependentToAll) {
             return new ClassSnapshot(hash, null);
         } else {
-            Set<String> dependents = parentDependencyInfo.getActualDependents(className);
+            Set<String> dependents = parentDependencyInfo.getRelevantDependents(className);
             return new ClassSnapshot(hash, dependents);
         }
     }

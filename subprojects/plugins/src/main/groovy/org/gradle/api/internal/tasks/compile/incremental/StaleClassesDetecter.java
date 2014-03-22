@@ -70,7 +70,7 @@ public class StaleClassesDetecter {
             if (name.endsWith(".java")) {
                 String className = sourceToNameConverter.getClassName(input.getFile());
                 staleClasses.add(className);
-                Set<String> actualDependents = dependencyInfo.getActualDependents(className);
+                Set<String> actualDependents = dependencyInfo.getRelevantDependents(className);
                 if (actualDependents == null) {
                     fullRebuildReason = "change to " + className + " requires full rebuild";
                     return;

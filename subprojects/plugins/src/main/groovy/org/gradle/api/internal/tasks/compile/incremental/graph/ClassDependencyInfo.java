@@ -19,7 +19,10 @@ package org.gradle.api.internal.tasks.compile.incremental.graph;
 import org.gradle.api.internal.tasks.compile.incremental.ClassDependents;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class ClassDependencyInfo implements Serializable {
 
@@ -29,7 +32,7 @@ public class ClassDependencyInfo implements Serializable {
         this.dependents = dependents;
     }
 
-    public Set<String> getActualDependents(String className) {
+    public Set<String> getRelevantDependents(String className) {
         Set<String> out = new HashSet<String>();
         ClassDependents deps = dependents.get(className);
         if (deps == null) {

@@ -31,13 +31,13 @@ class ClassDependencyInfoExtractorTest extends Specification {
         def info = extractor.extractInfo(classesDir, "org.gradle.api.internal.tasks.compile.incremental")
 
         expect:
-        info.getActualDependents(SomeClass.name) == [SomeOtherClass.name] as Set
-        info.getActualDependents(SomeOtherClass.name) == [] as Set
-        info.getActualDependents(YetAnotherClass.name) == [SomeOtherClass.name] as Set
-        info.getActualDependents(AccessedFromPrivateClass.name) == [] as Set
-        info.getActualDependents(HasPrivateConstants.name) == [] as Set
-        info.getActualDependents(HasNonPrivateConstants.name) == null
-        info.getActualDependents(UsedByNonPrivateConstantsClass.name) == [HasNonPrivateConstants.name] as Set
+        info.getRelevantDependents(SomeClass.name) == [SomeOtherClass.name] as Set
+        info.getRelevantDependents(SomeOtherClass.name) == [] as Set
+        info.getRelevantDependents(YetAnotherClass.name) == [SomeOtherClass.name] as Set
+        info.getRelevantDependents(AccessedFromPrivateClass.name) == [] as Set
+        info.getRelevantDependents(HasPrivateConstants.name) == [] as Set
+        info.getRelevantDependents(HasNonPrivateConstants.name) == null
+        info.getRelevantDependents(UsedByNonPrivateConstantsClass.name) == [HasNonPrivateConstants.name] as Set
     }
 
     //TODO SF tighten and refactor the coverage
