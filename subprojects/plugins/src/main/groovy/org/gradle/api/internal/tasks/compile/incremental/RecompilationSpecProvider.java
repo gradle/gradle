@@ -24,24 +24,23 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 
-public class StaleClassesDetecter {
+public class RecompilationSpecProvider {
 
     private final SourceToNameConverter sourceToNameConverter;
     private final ClassDependencyInfoProvider dependencyInfoProvider;
     private final FileOperations fileOperations;
     private final JarSnapshotFeeder jarSnapshotFeeder;
 
-    public StaleClassesDetecter(SourceToNameConverter sourceToNameConverter, ClassDependencyInfoProvider dependencyInfoProvider, FileOperations fileOperations, JarSnapshotFeeder jarSnapshotFeeder) {
+    public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, ClassDependencyInfoProvider dependencyInfoProvider, FileOperations fileOperations, JarSnapshotFeeder jarSnapshotFeeder) {
         this.sourceToNameConverter = sourceToNameConverter;
         this.dependencyInfoProvider = dependencyInfoProvider;
         this.fileOperations = fileOperations;
         this.jarSnapshotFeeder = jarSnapshotFeeder;
     }
 
-    public StaleClasses detectStaleClasses(IncrementalTaskInputs inputs) {
+    public RecompilationSpec provideRecompilationInfo(IncrementalTaskInputs inputs) {
         final ClassDependencyInfo dependencyInfo = dependencyInfoProvider.provideInfo();
         InputChangeAction action = new InputChangeAction(dependencyInfo);
         inputs.outOfDate(action);
@@ -52,8 +51,8 @@ public class StaleClassesDetecter {
         return action;
     }
 
-    private class InputChangeAction implements Action<InputFileDetails>, StaleClasses {
-        private final List<String> staleClasses = new LinkedList<String>();
+    private class InputChangeAction implements Action<InputFileDetails>, RecompilationSpec {
+        private final Collection<String> classesToCompile = new LinkedHashSet<String>();
         private final ClassDependencyInfo dependencyInfo;
         private String fullRebuildReason;
 
@@ -68,13 +67,13 @@ public class StaleClassesDetecter {
             String name = input.getFile().getName();
             if (name.endsWith(".java")) {
                 String className = sourceToNameConverter.getClassName(input.getFile());
-                staleClasses.add(className);
+                classesToCompile.add(className);
                 DependentsSet actualDependents = dependencyInfo.getRelevantDependents(className);
                 if (actualDependents.isDependencyToAll()) {
                     fullRebuildReason = "change to " + className + " requires full rebuild";
                     return;
                 }
-                staleClasses.addAll(actualDependents.getDependentClasses());
+                classesToCompile.addAll(actualDependents.getDependentClasses());
             }
             if (name.endsWith(".jar")) {
                 JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
@@ -84,12 +83,12 @@ public class StaleClassesDetecter {
                     fullRebuildReason = "change to " + input.getFile() + " requires full rebuild";
                     return;
                 }
-                staleClasses.addAll(actualDependents.getDependentClasses());
+                classesToCompile.addAll(actualDependents.getDependentClasses());
             }
         }
 
         public Collection<String> getClassNames() {
-            return staleClasses;
+            return classesToCompile;
         }
 
         public boolean isFullRebuildNeeded() {

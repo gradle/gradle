@@ -35,11 +35,11 @@ public class IncrementalCompilationSupport {
     private final ClassDependencyInfoExtractor extractor;
     private final CleaningJavaCompiler cleaningCompiler;
     private final String displayName;
-    private final StaleClassesDetecter staleClassDetecter;
+    private final RecompilationSpecProvider staleClassDetecter;
 
     public IncrementalCompilationSupport(JarSnapshotFeeder jarSnapshotFeeder, ClassDependencyInfoSerializer dependencyInfoSerializer,
                                          FileOperations fileOperations, ClassDependencyInfoExtractor extractor,
-                                         CleaningJavaCompiler cleaningCompiler, String displayName, StaleClassesDetecter staleClassDetecter) {
+                                         CleaningJavaCompiler cleaningCompiler, String displayName, RecompilationSpecProvider staleClassDetecter) {
         this.jarSnapshotFeeder = jarSnapshotFeeder;
         this.dependencyInfoSerializer = dependencyInfoSerializer;
         this.fileOperations = fileOperations;

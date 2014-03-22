@@ -80,7 +80,7 @@ public class Compile extends AbstractCompile {
         ClassDependencyInfoSerializer dependencyInfoSerializer = new ClassDependencyInfoSerializer(new File(getProject().getBuildDir(), "class-info.bin"));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //can be replaced with converter that parses input source class
-        StaleClassesDetecter staleClassDetecter = new StaleClassesDetecter(sourceToNameConverter, dependencyInfoSerializer, (FileOperations) getProject(), jarSnapshotFeeder);
+        RecompilationSpecProvider staleClassDetecter = new RecompilationSpecProvider(sourceToNameConverter, dependencyInfoSerializer, (FileOperations) getProject(), jarSnapshotFeeder);
         IncrementalCompilationSupport incrementalSupport = new IncrementalCompilationSupport(jarSnapshotFeeder, dependencyInfoSerializer, (FileOperations) getProject(),
                 extractor, (CleaningJavaCompiler) cleaningCompiler, getPath(), staleClassDetecter);
         Compiler<JavaCompileSpec> compiler = incrementalSupport.prepareCompiler(inputs, sourceDirs);

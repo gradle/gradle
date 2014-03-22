@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import java.util.Collection;
 
-public interface StaleClasses {
+public interface RecompilationSpec {
     Collection<String> getClassNames();
     boolean isFullRebuildNeeded();
     String getFullRebuildReason();

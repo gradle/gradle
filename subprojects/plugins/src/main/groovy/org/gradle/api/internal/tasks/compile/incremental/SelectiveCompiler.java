@@ -28,20 +28,20 @@ public class SelectiveCompiler implements org.gradle.api.internal.tasks.compile.
     private static final Logger LOG = Logging.getLogger(SelectiveCompiler.class);
     private final IncrementalTaskInputs inputs;
     private final CleaningJavaCompiler cleaningCompiler;
-    private final StaleClassesDetecter staleClassesDetecter;
+    private final RecompilationSpecProvider recompilationSpecProvider;
     private final IncrementalCompilationInitializer incrementalCompilationInitilizer;
 
     public SelectiveCompiler(IncrementalTaskInputs inputs, CleaningJavaCompiler cleaningCompiler,
-                             StaleClassesDetecter staleClassesDetecter, IncrementalCompilationInitializer compilationInitializer) {
+                             RecompilationSpecProvider recompilationSpecProvider, IncrementalCompilationInitializer compilationInitializer) {
         this.inputs = inputs;
         this.cleaningCompiler = cleaningCompiler;
-        this.staleClassesDetecter = staleClassesDetecter;
+        this.recompilationSpecProvider = recompilationSpecProvider;
         incrementalCompilationInitilizer = compilationInitializer;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
         Clock clock = new Clock();
-        StaleClasses staleClasses = staleClassesDetecter.detectStaleClasses(inputs);
+        RecompilationSpec staleClasses = recompilationSpecProvider.provideRecompilationInfo(inputs);
 
         if (staleClasses.isFullRebuildNeeded()) {
             LOG.lifecycle("Stale classes detection completed in {}. Full rebuild is needed due to: {}.", clock.getTime(), staleClasses.getFullRebuildReason());
