@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoWriter;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;

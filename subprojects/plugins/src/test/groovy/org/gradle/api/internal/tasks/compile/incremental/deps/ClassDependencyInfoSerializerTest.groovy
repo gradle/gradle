@@ -16,29 +16,25 @@
 
 
 
-package org.gradle.api.internal.tasks.compile.incremental.graph
+package org.gradle.api.internal.tasks.compile.incremental.deps
 
+import org.gradle.api.internal.tasks.compile.incremental.ClassDependents
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Subject
 
-class OutputToNameConverterTest extends Specification {
+class ClassDependencyInfoSerializerTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    @Subject provider = new OutputToNameConverter(temp.createDir("root/dir"))
 
-    def "provides class name"() {
-        expect:
-        "foo.bar.Foo" == provider.getClassName(temp.file("root/dir/foo/bar/Foo.class"))
-        "Foo" == provider.getClassName(temp.file("root/dir/Foo.class"))
-        'Foo$Bar' == provider.getClassName(temp.file('root/dir/Foo$Bar.class'))
-    }
+    def "stores dependency info"() {
+        def s = new ClassDependencyInfoSerializer(temp.file("foo.bin"))
 
-    def "fails when class is outside of root"() {
         when:
-        provider.getClassName(temp.file("foo/Foo.class"))
+        s.writeInfo(new ClassDependencyInfo(["foo.Foo": ClassDependents.dependentsSet(["bar.Bar"])]))
+        def info = s.provideInfo()
+
         then:
-        thrown(IllegalArgumentException)
+        info.getRelevantDependents("foo.Foo").dependentClasses == ["bar.Bar"] as Set
     }
 }

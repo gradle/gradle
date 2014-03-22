@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 
 import java.util.HashMap;
 import java.util.Map;

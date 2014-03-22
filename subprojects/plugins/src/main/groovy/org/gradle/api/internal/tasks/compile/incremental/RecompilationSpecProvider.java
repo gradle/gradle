@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoProvider;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoProvider;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 

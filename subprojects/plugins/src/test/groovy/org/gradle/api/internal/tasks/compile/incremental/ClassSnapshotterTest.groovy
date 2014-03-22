@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental
 import org.gradle.api.internal.hash.Hasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
 import spock.lang.Specification
 import spock.lang.Subject
 

@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.api.internal.tasks.compile.incremental.graph
+package org.gradle.api.internal.tasks.compile.incremental.deps
 
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.*
 import spock.lang.Specification
