@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
@@ -75,6 +76,8 @@ public class ResolveIvyFactory {
                                   Iterable<? extends ResolutionAwareRepository> repositories,
                                   ModuleMetadataProcessor metadataProcessor) {
         ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
+        CachePolicy cachePolicy = configuration.getResolutionStrategy().getCachePolicy();
+
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
         UserResolverChain userResolverChain = new UserResolverChain(versionMatcher, latestStrategy);
@@ -97,7 +100,7 @@ public class ResolveIvyFactory {
                 ModuleVersionRepository wrapperRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
                 wrapperRepository = startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
                 localAwareRepository = new CachingModuleVersionRepository(wrapperRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
-                        configuration.getResolutionStrategy().getCachePolicy(), timeProvider, metadataProcessor, getModuleExtractor(moduleVersionRepository));
+                        cachePolicy, timeProvider, metadataProcessor, getModuleExtractor(moduleVersionRepository));
             }
             if (moduleVersionRepository.isDynamicResolveMode()) {
                 localAwareRepository = new IvyDynamicResolveModuleVersionRepository(localAwareRepository);

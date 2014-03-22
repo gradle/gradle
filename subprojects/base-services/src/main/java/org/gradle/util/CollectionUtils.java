@@ -365,6 +365,21 @@ public abstract class CollectionUtils {
     }
 
     /**
+     * Utility for adding an array to a collection.
+     *
+     * @param t1 The collection to add to
+     * @param t2 The iterable to add each item of to the collection
+     * @param <T> The element type of t1
+     * @return t1
+     */
+    public static <T> Collection<T> addAll(Collection<T> t1, T... t2) {
+        for (T t : t2) {
+            t1.add(t);
+        }
+        return t1;
+    }
+
+    /**
      * The result of diffing two sets.
      *
      * @param <T> The type of element the sets contain

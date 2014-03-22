@@ -237,10 +237,16 @@ class CollectionUtilsTest extends Specification {
         null      | null as Object[]   | "separator"
     }
 
-    def "addAll"() {
+    def "addAll from iterable"() {
         expect:
         addAll([], [1, 2, 3] as Iterable) == [1, 2, 3]
         addAll([] as Set, [1, 2, 3, 1] as Iterable) == [1, 2, 3] as Set
+    }
+
+    def "addAll from array"() {
+        expect:
+        addAll([], 1, 2, 3) == [1, 2, 3]
+        addAll([] as Set, 1, 2, 3, 1) == [1, 2, 3] as Set
     }
 
     def "injection"() {
