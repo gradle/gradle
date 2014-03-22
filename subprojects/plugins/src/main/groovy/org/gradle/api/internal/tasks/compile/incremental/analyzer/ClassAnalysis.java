@@ -20,7 +20,7 @@ import java.util.List;
 
 public class ClassAnalysis {
     private final List<String> classDependencies;
-    private boolean dependencyToAll;
+    private final boolean dependencyToAll;
 
     public ClassAnalysis(List<String> classDependencies, boolean dependencyToAll) {
         this.classDependencies = classDependencies;
