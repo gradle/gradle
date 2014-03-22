@@ -141,7 +141,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         changedFiles == ['AnotherPersonImpl', 'PersonImpl', 'Person'] as Set
     }
 
-    def "is sensitive to class deletion"() {
+    def "is sensitive to deletion and change"() {
         run "compileJava"
 
         assert file("src/main/java/org/PersonImpl.java").delete()
@@ -248,5 +248,26 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         then:
         changedFiles.containsAll(['B', 'C'])
         unchangedFiles.isEmpty()
+    }
+
+    def "removal of class causes deletion of inner classes"() {
+        file("src/main/java/org/B.java") << """package org;
+            public class B {
+                public static class InnerB {}
+            }
+        """
+
+        when: run "compileJava"
+
+        then:
+        def classes = [file('build/classes/main/org/B.class'), file('build/classes/main/org/B$InnerB.class')]
+        classes.each { assert it.exists() }
+
+        when:
+        assert file("src/main/java/org/B.java").delete()
+        run "compileJava"
+
+        then:
+        classes.each { assert !it.exists() }
     }
 }

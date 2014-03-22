@@ -48,7 +48,8 @@ public class SelectiveCompiler implements org.gradle.api.internal.tasks.compile.
             return cleaningCompiler.execute(spec);
         }
 
-        if (staleClasses.getClassNames().isEmpty()) {
+        incrementalCompilationInitilizer.initializeCompilation(spec, staleClasses.getClassNames());
+        if (spec.getSource().isEmpty()) {
             //hurray! Compilation not needed!
             return new WorkResult() {
                 public boolean getDidWork() {
@@ -56,8 +57,6 @@ public class SelectiveCompiler implements org.gradle.api.internal.tasks.compile.
                 }
             };
         }
-
-        incrementalCompilationInitilizer.initializeCompilation(spec, staleClasses.getClassNames());
 
         try {
             //use the original compiler to avoid cleaning up all the files

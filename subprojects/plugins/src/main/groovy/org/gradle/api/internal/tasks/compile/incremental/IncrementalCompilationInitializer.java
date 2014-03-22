@@ -40,7 +40,11 @@ public class IncrementalCompilationInitializer {
 
         for (String staleClass : staleClasses) {
             String path = staleClass.replaceAll("\\.", "/");
-            classesToDelete.include(path.concat(".class")); //TODO SF remember about inner classes
+            classesToDelete.include(path.concat(".class"));
+            classesToDelete.include(path.concat("$*.class"));
+
+            //the stale class might be a source class that was deleted
+            //it's no harm to include it in sourceToCompile anyway
             sourceToCompile.include(path.concat(".java"));
         }
 
