@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import java.io.Serializable;
 import java.util.Collection;
 
-public class ClassSnapshot implements Serializable {
+class ClassSnapshot implements Serializable {
 
     private final byte[] hash;
     private final Collection<String> dependentClasses;

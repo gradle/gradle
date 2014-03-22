@@ -27,7 +27,7 @@ import java.util.Set;
 
 import static java.util.Arrays.asList;
 
-public class IncrementalCompilationInitializer {
+class IncrementalCompilationInitializer {
     private final FileOperations fileOperations;
 
     public IncrementalCompilationInitializer(FileOperations fileOperations) {

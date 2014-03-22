@@ -28,7 +28,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.Clock;
 
-public class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
+class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
 
     private static final Logger LOG = Logging.getLogger(IncrementalCompilationFinalizer.class);
 
