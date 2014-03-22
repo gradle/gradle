@@ -16,17 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 public class JarChangeProcessor {
 
     private JarSnapshotFeeder jarSnapshotFeeder;
-    private ClassDependencyInfo dependencyInfo;
 
-    public JarChangeProcessor(JarSnapshotFeeder jarSnapshotFeeder, ClassDependencyInfo dependencyInfo) {
+    public JarChangeProcessor(JarSnapshotFeeder jarSnapshotFeeder) {
         this.jarSnapshotFeeder = jarSnapshotFeeder;
-        this.dependencyInfo = dependencyInfo;
     }
 
     //TODO SF coverage
@@ -47,8 +44,8 @@ public class JarChangeProcessor {
         }
 
         if (jarChangeDetails.isModified()) {
-            JarSnapshot newSnapshot = jarSnapshotFeeder.createSnapshot(jarArchive, dependencyInfo);
-            final JarDependentsDelta delta = existing.getDependentsDelta(newSnapshot);
+            JarSnapshot snapshotNoDeps = jarSnapshotFeeder.newSnapshotWithoutDependents(jarArchive);
+            final JarDependentsDelta delta = existing.getDependentsDelta(snapshotNoDeps);
             return new DefaultRebuildInfo(delta.getDependentClasses());
         }
 

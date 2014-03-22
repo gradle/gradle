@@ -19,10 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class JarSnapshotFeeder {
 
@@ -53,7 +50,7 @@ public class JarSnapshotFeeder {
         jarSnapshotCache.putSnapshots(newSnapshots);
     }
 
-    public JarSnapshot createSnapshot(JarArchive jarArchive, ClassDependencyInfo dependencyInfo) {
-        return jarSnapshotter.createSnapshot(jarArchive.contents, dependencyInfo);
+    public JarSnapshot newSnapshotWithoutDependents(JarArchive jarArchive) {
+        return jarSnapshotter.createSnapshot(jarArchive.contents, new ClassDependencyInfo(Collections.<String, ClassDependents>emptyMap()));
     }
 }
