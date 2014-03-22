@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.jar;
+
+import org.gradle.api.internal.tasks.compile.incremental.ClassDependents;
+import org.gradle.api.internal.tasks.compile.incremental.DependentsSet;
 
 import java.io.Serializable;
 import java.util.Arrays;

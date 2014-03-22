@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.api.internal.tasks.compile.incremental
+package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.util.PatternSet;

@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.api.internal.tasks.compile.incremental
+package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

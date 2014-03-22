@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental
+package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.internal.hash.Hasher
+import org.gradle.api.internal.tasks.compile.incremental.ClassDependents
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo

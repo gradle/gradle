@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.api.internal.tasks.compile.incremental
+package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
