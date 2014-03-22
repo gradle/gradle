@@ -18,7 +18,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps
 
-import org.gradle.api.internal.tasks.compile.incremental.ClassDependents
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

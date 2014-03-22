@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.internal.hash.Hasher
-import org.gradle.api.internal.tasks.compile.incremental.ClassDependents
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependents
 import spock.lang.Specification
 import spock.lang.Subject
 

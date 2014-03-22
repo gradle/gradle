@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-import org.gradle.api.internal.tasks.compile.incremental.ClassDependents;
-import org.gradle.api.internal.tasks.compile.incremental.DependentsSet;
-
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;

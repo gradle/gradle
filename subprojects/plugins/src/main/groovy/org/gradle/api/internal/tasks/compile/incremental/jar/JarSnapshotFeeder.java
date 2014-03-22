@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import java.io.File;
 import java.util.*;

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.internal.tasks.compile.incremental.ClassDependents;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 
