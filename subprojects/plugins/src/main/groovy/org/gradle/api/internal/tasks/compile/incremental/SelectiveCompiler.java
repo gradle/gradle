@@ -41,7 +41,7 @@ public class SelectiveCompiler implements org.gradle.api.internal.tasks.compile.
 
     public WorkResult execute(JavaCompileSpec spec) {
         Clock clock = new Clock();
-        RecompilationSpec staleClasses = recompilationSpecProvider.provideRecompilationInfo(inputs);
+        RecompilationSpec staleClasses = recompilationSpecProvider.provideRecompilationSpec(inputs);
 
         if (staleClasses.isFullRebuildNeeded()) {
             LOG.lifecycle("Stale classes detection completed in {}. Full rebuild is needed due to: {}.", clock.getTime(), staleClasses.getFullRebuildReason());

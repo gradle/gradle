@@ -43,7 +43,7 @@ public class RecompilationSpecProvider {
         this.jarSnapshotFeeder = jarSnapshotFeeder;
     }
 
-    public RecompilationSpec provideRecompilationInfo(IncrementalTaskInputs inputs) {
+    public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs) {
         final ClassDependencyInfo dependencyInfo = dependencyInfoProvider.provideInfo();
         InputChangeAction action = new InputChangeAction(dependencyInfo);
         inputs.outOfDate(action);
