@@ -31,11 +31,6 @@ public interface ModuleVersionArtifactMetaData extends ComponentArtifactMetaData
     ModuleVersionIdentifier getModuleVersion();
 
     /**
-     * Returns this artifact as an Ivy artifact. This method is here to allow the artifact to be exposed in a backward-compatible way.
-     */
-    IvyArtifactName getName();
-
-    /**
      * Produces an ArtifactIdentifier for this artifact (it's not actually an identifier - just a bucket of attributes).
      */
     ArtifactIdentifier toArtifactIdentifier();

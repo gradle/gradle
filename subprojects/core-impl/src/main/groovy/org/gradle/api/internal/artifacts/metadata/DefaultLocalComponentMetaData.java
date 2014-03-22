@@ -20,10 +20,8 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.io.File;
@@ -70,8 +68,8 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         // TODO:ADAM - need to clone the descriptor
         return new ModuleDescriptorAdapter(id, moduleDescriptor, componentIdentifier) {
             @Override
-            protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-                Set<ModuleVersionArtifactMetaData> result = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+            protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
+                Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
                 Set<ModuleVersionArtifactIdentifier> seen = new HashSet<ModuleVersionArtifactIdentifier>();
                 for (String configName : configurationMetaData.getHierarchy()) {
                     for (DefaultLocalArtifactMetaData localArtifactMetaData : artifactsByConfig.get(configName)) {
@@ -93,7 +91,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return publishMetaData;
     }
 
-    private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData, ModuleVersionArtifactMetaData {
+    private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData {
         private final ComponentIdentifier componentIdentifier;
         private final DefaultModuleVersionArtifactIdentifier id;
         private final ModuleVersionArtifactIdentifier selectorId;
@@ -102,6 +100,9 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
         private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
             this.componentIdentifier = componentIdentifier;
+            // Local artifact has two 'identifiers' - The first is used to identify it uniquely, and uses (name, type, extension, file-path, custom-attrs) as the
+            // identifier. Mostly these are all included for backwards compatibility. The second is used to identify the artifact when using an artifact override
+            // in a project dependency. The second identifier isn't necessarily unique.
             Map<String, String> attrs = new HashMap<String, String>();
             attrs.putAll(artifact.getExtraAttributes());
             attrs.put("file", file.getAbsolutePath());
@@ -111,23 +112,15 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             this.file = file;
         }
 
-        public ModuleVersionIdentifier getModuleVersion() {
-            return id.getModuleVersionIdentifier();
-        }
-
         public IvyArtifactName getName() {
             return id.getName();
-        }
-
-        public ArtifactIdentifier toArtifactIdentifier() {
-            return new DefaultArtifactIdentifier(id);
         }
 
         public ComponentIdentifier getComponentId() {
             return componentIdentifier;
         }
 
-        public ModuleVersionArtifactIdentifier getId() {
+        public ComponentArtifactIdentifier getId() {
             return id;
         }
 

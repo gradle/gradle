@@ -19,8 +19,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 /**
@@ -67,7 +67,7 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         });
     }
 
-    public void resolveArtifact(final ModuleVersionArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
+    public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
         cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, getId()), new Runnable() {
             public void run() {
                 repository.resolveArtifact(artifact, moduleSource, result);

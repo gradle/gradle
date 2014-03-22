@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.internal.Factory;
 import org.gradle.internal.id.IdGenerator;
@@ -80,7 +80,7 @@ public class DefaultResolvedConfigurationBuilder implements
         builder.resolvedDependency(id);
     }
 
-    public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ModuleVersionMetaData module, ModuleVersionArtifactMetaData artifact) {
+    public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ModuleVersionMetaData module, ComponentArtifactMetaData artifact) {
         Factory<File> artifactSource = new LazyArtifactSource(artifact, module.getSource(), artifactResolver);
         Factory<ResolvedDependency> dependencySource = new LazyResolvedDependencySource(owner, builder, this);
         long id = idGenerator.generateId();
@@ -120,9 +120,9 @@ public class DefaultResolvedConfigurationBuilder implements
     private static class LazyArtifactSource implements Factory<File> {
         private final ArtifactResolver artifactResolver;
         private final ModuleSource moduleSource;
-        private final ModuleVersionArtifactMetaData artifact;
+        private final ComponentArtifactMetaData artifact;
 
-        private LazyArtifactSource(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, ArtifactResolver artifactResolver) {
+        private LazyArtifactSource(ComponentArtifactMetaData artifact, ModuleSource moduleSource, ArtifactResolver artifactResolver) {
             this.artifact = artifact;
             this.artifactResolver = artifactResolver;
             this.moduleSource = moduleSource;

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
@@ -63,7 +64,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         artifactResolver.resolveModuleArtifacts(moduleVersionResolveResult.getMetaData(), context, moduleArtifactsResolveResult);
 
         BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
-        ModuleVersionArtifactMetaData artifactMetaData = moduleArtifactsResolveResult.getArtifacts().iterator().next();
+        ComponentArtifactMetaData artifactMetaData = moduleArtifactsResolveResult.getArtifacts().iterator().next();
         artifactResolver.resolveArtifact(artifactMetaData, moduleVersionResolveResult.getMetaData().getSource(), artifactResolveResult);
         return artifactResolveResult.getFile();
     }

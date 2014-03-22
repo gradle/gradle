@@ -44,6 +44,10 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
         artifactsById.put(publishMetaData.getId(), publishMetaData);
     }
 
+    public void addArtifact(ModuleVersionArtifactPublishMetaData artifact) {
+        artifactsById.put(artifact.getId(), artifact);
+    }
+
     public Collection<ModuleVersionArtifactPublishMetaData> getArtifacts() {
         return artifactsById.values();
     }
@@ -53,7 +57,7 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
     }
 
     private static class DefaultModuleVersionArtifactPublishMetaData implements ModuleVersionArtifactPublishMetaData {
-        private final ModuleVersionArtifactIdentifier id;
+        private final DefaultModuleVersionArtifactIdentifier id;
         private final Artifact artifact;
         private final File file;
 
@@ -61,6 +65,10 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
             this.id = new DefaultModuleVersionArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), moduleVersionIdentifier, artifact);
             this.artifact = artifact;
             this.file = file;
+        }
+
+        public IvyArtifactName getArtifactName() {
+            return id.getName();
         }
 
         public Artifact getArtifact() {

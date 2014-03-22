@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.idea.model.internal
+package org.gradle.plugins.ide.idea.model.internal;
 
-import org.gradle.api.Project
-import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.gradle.plugins.ide.idea.model.ModuleDependency
+import org.gradle.api.Project;
+import org.gradle.plugins.ide.idea.IdeaPlugin;
+import org.gradle.plugins.ide.idea.model.IdeaModel;
+import org.gradle.plugins.ide.idea.model.ModuleDependency;
 
 class ModuleDependencyBuilder {
-    ModuleDependency create(Project project, String scope) {
-        if (project.plugins.hasPlugin(IdeaPlugin)) {
-            new ModuleDependency(project.idea.module.name, scope)
+    public ModuleDependency create(Project project, String scope) {
+        if (project.getPlugins().hasPlugin(IdeaPlugin.class)) {
+            return new ModuleDependency(((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName(), scope);
         } else {
-            new ModuleDependency(project.name, scope)
+            return new ModuleDependency(project.getName(), scope);
         }
     }
 }

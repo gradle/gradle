@@ -220,8 +220,10 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
     }
 
-    public void resolveArtifact(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate.getId(), artifact.getId());
+    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        // TODO:ADAM - Don't assume this
+        ModuleVersionArtifactMetaData moduleVersionArtifactMetaData = (ModuleVersionArtifactMetaData) artifact;
+        ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate.getId(), moduleVersionArtifactMetaData.getId());
         // Look in the cache for this resolver
         CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
         final CachingModuleSource cachedModuleSource = (CachingModuleSource) moduleSource;
@@ -229,7 +231,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         if (cached != null) {
             long age = timeProvider.getCurrentTime() - cached.getCachedAt();
             final boolean isChangingModule = cachedModuleSource.isChangingModule();
-            ArtifactIdentifier artifactIdentifier = artifact.toArtifactIdentifier();
+            ArtifactIdentifier artifactIdentifier = moduleVersionArtifactMetaData.toArtifactIdentifier();
             if (cached.isMissing()) {
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
@@ -286,9 +288,9 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
     }
 
-    static class ArtifactMetaDataToId implements Transformer<ModuleVersionArtifactIdentifier, ModuleVersionArtifactMetaData> {
-        public ModuleVersionArtifactIdentifier transform(ModuleVersionArtifactMetaData original) {
-            return original.getId();
+    static class ArtifactMetaDataToId implements Transformer<ModuleVersionArtifactIdentifier, ComponentArtifactMetaData> {
+        public ModuleVersionArtifactIdentifier transform(ComponentArtifactMetaData original) {
+            return ((ModuleVersionArtifactMetaData)original).getId();
         }
     }
 }

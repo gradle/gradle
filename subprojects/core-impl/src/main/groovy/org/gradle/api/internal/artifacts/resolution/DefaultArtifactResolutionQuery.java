@@ -29,8 +29,8 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Factory;
@@ -48,9 +48,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ModuleMetadataProcessor metadataProcessor;
     private final CacheLockingManager lockingManager;
 
-    private Set<ComponentIdentifier> componentIds = Sets.newHashSet();
+    private Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
     private Class<? extends SoftwareComponent<?>> componentType;
-    private Set<Class<? extends SoftwareArtifact>> artifactTypes = Sets.newHashSet();
+    private Set<Class<? extends SoftwareArtifact>> artifactTypes = Sets.newLinkedHashSet();
 
     public DefaultArtifactResolutionQuery(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
                                           ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor, CacheLockingManager lockingManager) {
@@ -61,8 +61,13 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         this.lockingManager = lockingManager;
     }
 
-    public ArtifactResolutionQuery forComponents(Set<? extends ComponentIdentifier> componentIds) {
-        this.componentIds.addAll(componentIds);
+    public ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds) {
+        CollectionUtils.addAll(this.componentIds, componentIds);
+        return this;
+    }
+
+    public ArtifactResolutionQuery forComponents(ComponentIdentifier... componentIds) {
+        CollectionUtils.addAll(this.componentIds, componentIds);
         return this;
     }
 
@@ -89,7 +94,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
                 for (ComponentIdentifier componentId : componentIds) {
                     if (!(componentId instanceof ModuleComponentIdentifier)) {
-                        throw new AssertionError("unknown component identifier type: " + componentId.getClass().getName());
+                        throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.", componentId.getDisplayName(), componentId.getClass().getName()));
                     }
                     ModuleComponentIdentifier moduleComponentId = (ModuleComponentIdentifier) componentId;
                     BuildableModuleVersionResolveResult moduleResolveResult = new DefaultBuildableModuleVersionResolveResult();
@@ -105,7 +110,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                             ArtifactResolveContext context = new ArtifactTypeResolveContext(artifactType);
                             BuildableArtifactSetResolveResult multiResolveResult = new DefaultBuildableArtifactSetResolveResult();
                             artifactResolver.resolveModuleArtifacts(moduleMetaData, context, multiResolveResult);
-                            for (ModuleVersionArtifactMetaData artifactMetaData : multiResolveResult.getArtifacts()) {
+                            for (ComponentArtifactMetaData artifactMetaData : multiResolveResult.getArtifacts()) {
                                 BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
                                 artifactResolver.resolveArtifact(artifactMetaData, moduleMetaData.getSource(), resolveResult);
 
@@ -122,7 +127,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                                         jvmLibraryArtifacts.add(new DefaultJvmLibrarySourcesArtifact(resolveResult.getFile()));
                                     }
                                 } else {
-                                    throw new AssertionError("unknown artifact type: " + artifactType.getName());
+                                    throw new IllegalArgumentException(String.format("Cannot resolve artifacts with unsupported type %s.", artifactType.getName()));
                                 }
                             }
                         }

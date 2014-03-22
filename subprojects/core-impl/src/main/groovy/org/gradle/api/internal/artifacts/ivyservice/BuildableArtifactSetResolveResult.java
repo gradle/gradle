@@ -16,12 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 
 import java.util.Collection;
 
 public interface BuildableArtifactSetResolveResult extends ArtifactSetResolveResult {
-    void resolved(Collection<? extends ModuleVersionArtifactMetaData> artifacts);
+    void resolved(Collection<? extends ComponentArtifactMetaData> artifacts);
 
     void failed(ArtifactResolveException failure);
 }

@@ -21,5 +21,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import java.io.File;
 
 public interface BuildableModuleVersionPublishMetaData extends ModuleVersionPublishMetaData {
+    void addArtifact(ModuleVersionArtifactPublishMetaData artifact);
+
     void addArtifact(Artifact artifact, File file);
 }

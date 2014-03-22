@@ -31,10 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Interna
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
-import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -728,7 +725,7 @@ public class DependencyGraphBuilder {
                 BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
                 resolveState.artifactResolver.resolveModuleArtifacts(metaData.getModuleVersion(), new ConfigurationResolveContext(metaData.getName()), result);
 
-                for (ModuleVersionArtifactMetaData artifact : result.getArtifacts()) {
+                for (ComponentArtifactMetaData artifact : result.getArtifacts()) {
                     artifacts.add(resolveState.builder.newArtifact(id, metaData.getModuleVersion(), artifact));
                 }
             }

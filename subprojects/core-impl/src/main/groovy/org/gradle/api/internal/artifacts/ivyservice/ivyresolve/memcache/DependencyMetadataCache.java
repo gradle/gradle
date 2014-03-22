@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 
 import java.io.File;
 import java.util.HashMap;
@@ -31,8 +31,8 @@ import java.util.Set;
 class DependencyMetadataCache {
     private final Map<ModuleVersionSelector, CachedModuleVersionResult> localMetaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
     private final Map<ModuleVersionSelector, CachedModuleVersionResult> metaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
-    private final Map<CachedModuleArtifactsKey, Set<ModuleVersionArtifactMetaData>> moduleArtifacts = new HashMap<CachedModuleArtifactsKey, Set<ModuleVersionArtifactMetaData>>();
-    private final Map<ModuleVersionArtifactIdentifier, File> artifacts = new HashMap<ModuleVersionArtifactIdentifier, File>();
+    private final Map<CachedModuleArtifactsKey, Set<ComponentArtifactMetaData>> moduleArtifacts = new HashMap<CachedModuleArtifactsKey, Set<ComponentArtifactMetaData>>();
+    private final Map<ComponentArtifactIdentifier, File> artifacts = new HashMap<ComponentArtifactIdentifier, File>();
     private DependencyMetadataCacheStats stats;
 
     DependencyMetadataCache(DependencyMetadataCacheStats stats) {
@@ -73,7 +73,7 @@ class DependencyMetadataCache {
     }
 
     public boolean supplyModuleArtifacts(CachedModuleArtifactsKey key, BuildableArtifactSetResolveResult result) {
-        Set<ModuleVersionArtifactMetaData> artifacts = moduleArtifacts.get(key);
+        Set<ComponentArtifactMetaData> artifacts = moduleArtifacts.get(key);
         if (artifacts != null) {
             result.resolved(artifacts);
             return true;
@@ -87,7 +87,7 @@ class DependencyMetadataCache {
         }
     }
 
-    public boolean supplyArtifact(ModuleVersionArtifactIdentifier id, BuildableArtifactResolveResult result) {
+    public boolean supplyArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {
         File fromCache = artifacts.get(id);
         if (fromCache != null) {
             result.resolved(fromCache);
@@ -97,7 +97,7 @@ class DependencyMetadataCache {
         return false;
     }
 
-    public void newArtifact(ModuleVersionArtifactIdentifier id, BuildableArtifactResolveResult result) {
+    public void newArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {
         artifacts.put(id, result.getFile());
     }
 }
