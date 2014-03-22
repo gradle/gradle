@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
-public class ClassRelevancyFilter {
+class ClassRelevancyFilter {
 
     private String excludedClassName;
 
