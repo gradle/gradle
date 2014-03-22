@@ -30,8 +30,9 @@ allows us to implement new features and remove some internal complexity.
 * Remove methods from `ArtifactRepositoryContainer` and `RepositoryHandler` that accept an Ivy `DependencyResolver` as parameter.
 * Remove methods from `ArtifactRepositoryContainer` that return `DependencyResolver`.
 * Remove `RepositoryHandler.mavenRepo()`.
-* Change the `MavenResolver` implementation so that it no longer extends `DependencyResolver`.
+* Change the `AbstractMavenResolver` so that it no longer extends `DependencyResolver`.
 * Change the `FlatDirRepository` implementation so that it no longer uses a `DependencyResolver` implementation.
+* Remove Ivy packages from the Gradle API filter.
 * Remove Ivy version from the output of `gradle -v`.
 * Remove loopback resolver, ModuleVersionRepository -> Ivy adapter.
 
@@ -101,6 +102,14 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 * Change the default result and report directory for the `Test` type to include the task's name, so that the default
   does not conflict with the default for any other `Test` task.
 * Change the default TestNG output directory.
+
+## Remove usages of JNA and JNA-Posix
+
+Replace all usages of JNA and JNA-Posix with native-platform. Currently, this means that console support and
+UNIX file permissions with JVMs earlier than Java 7 will not be supported on the following platforms:
+
+* Linux-ia64
+* Solaris-x86, -amd64, -sparc, -sparcv9
 
 ## Rename this spec
 
@@ -230,15 +239,6 @@ Promote the `sonar-runner` plugin and remove the `sonar` plugin.
 ## Remove support for running Gradle on Java 5
 
 Would still be able to compile for Java 5. Would need to improve cross-compilation support.
-
-## Remove usages of JNA and JNA-Posix
-
-Replace all usages of JNA and JNA-Posix with native-platform. Currently, this means that console support and
-UNIX file permissions with JVMs earlier than Java 7 will not be supported on the following platforms:
-
-* Linux-ia64
-* Solaris-x86, -amd64, -sparc, -sparcv9
-* FreeBSD-i386, -amd64
 
 ## Decorate classes at load time instead of subclassing
 
