@@ -280,13 +280,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
                 </configurations>
                 <publications/>
                 <dependencies defaultconfmapping="myconf->default">
-                    <dependency name="mymodule2"/>
+                    <dependency name="mymodule2" rev="1.2"/>
                 </dependencies>
             </ivy-module>
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, false).descriptor
+        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
         def dependency = descriptor.dependencies.first()
 
         then:
@@ -309,25 +309,25 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
                 </configurations>
                 <publications/>
                 <dependencies>
-                    <dependency name="mymodule2" conf="a"/>
-                    <dependency name="mymodule2" conf="a->other"/>
-                    <dependency name="mymodule2" conf="*->@"/>
-                    <dependency name="mymodule2" conf="a->other;%->@"/>
-                    <dependency name="mymodule2" conf="*,!a->@"/>
-                    <dependency name="mymodule2" conf="a->*"/>
-                    <dependency name="mymodule2" conf="a->one,two;a,b->three;*->four;%->none"/>
-                    <dependency name="mymodule2" conf="a->#"/>
-                    <dependency name="mymodule2" conf="a->a;%->@"/>
-                    <dependency name="mymodule2" conf="a->a;*,!a->b"/>
-                    <dependency name="mymodule2" conf="*->*"/>
-                    <dependency name="mymodule2" conf=""/>
-                    <dependency name="mymodule2"/>
+                    <dependency name="mymodule2" rev="1.2" conf="a"/>
+                    <dependency name="mymodule2" rev="1.2" conf="a->other"/>
+                    <dependency name="mymodule2" rev="1.2" conf="*->@"/>
+                    <dependency name="mymodule2" rev="1.2" conf="a->other;%->@"/>
+                    <dependency name="mymodule2" rev="1.2" conf="*,!a->@"/>
+                    <dependency name="mymodule2" rev="1.2" conf="a->*"/>
+                    <dependency name="mymodule2" rev="1.2" conf="a->one,two;a,b->three;*->four;%->none"/>
+                    <dependency name="mymodule2" rev="1.2" conf="a->#"/>
+                    <dependency name="mymodule2" rev="1.2" conf="a->a;%->@"/>
+                    <dependency name="mymodule2" rev="1.2" conf="a->a;*,!a->b"/>
+                    <dependency name="mymodule2" rev="1.2" conf="*->*"/>
+                    <dependency name="mymodule2" rev="1.2" conf=""/>
+                    <dependency name="mymodule2" rev="1.2"/>
                 </dependencies>
             </ivy-module>
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, false).descriptor
+        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
 
         then:
         def dependency1 = descriptor.dependencies[0]
@@ -419,20 +419,20 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
                 </configurations>
                 <publications/>
                 <dependencies defaultconf="a" defaultconfmapping="a->a1;b->b1,b2">
-                    <dependency name="mymodule2"/>
-                    <dependency name="mymodule2" conf=""/>
-                    <dependency name="mymodule2" conf="a"/>
-                    <dependency name="mymodule2" conf="b"/>
-                    <dependency name="mymodule2" conf="a->other"/>
-                    <dependency name="mymodule2" conf="*->@"/>
-                    <dependency name="mymodule2" conf="c->other"/>
-                    <dependency name="mymodule2" conf="a->"/>
+                    <dependency name="mymodule2" rev="1.2"/>
+                    <dependency name="mymodule2" rev="1.2" conf=""/>
+                    <dependency name="mymodule2" rev="1.2" conf="a"/>
+                    <dependency name="mymodule2" rev="1.2" conf="b"/>
+                    <dependency name="mymodule2" rev="1.2" conf="a->other"/>
+                    <dependency name="mymodule2" rev="1.2" conf="*->@"/>
+                    <dependency name="mymodule2" rev="1.2" conf="c->other"/>
+                    <dependency name="mymodule2" rev="1.2" conf="a->"/>
                 </dependencies>
             </ivy-module>
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, false).descriptor
+        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
 
         then:
         def dependency1 = descriptor.dependencies[0]
@@ -500,7 +500,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, false).descriptor
+        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
 
         then:
         descriptor.allArtifacts.length == 3
@@ -517,6 +517,36 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         descriptor.getArtifacts("b")*.name == ['mymodule', 'art2', 'art3']
         descriptor.getArtifacts("c")*.name == ['mymodule', 'art2']
         descriptor.getArtifacts("d")*.name == ['mymodule', 'art2']
+    }
+
+    def "parses extra attributes and extra info"() {
+        given:
+        def file = temporaryFolder.createFile("ivy.xml")
+        file.text = """
+           <ivy-module version="2.0" xmlns:b="namespace-b" xmlns:c="namespace-c">
+                <info organisation="myorg"
+                      module="mymodule"
+                      revision="myrev"
+                      b:a="1"
+                      b:b="2"
+                      c:a="3">
+                    <b:a>info 1</b:a>
+                    <c:a>info 2</c:a>
+                </info>
+            </ivy-module>
+        """
+
+        when:
+        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+
+        then:
+        descriptor.moduleRevisionId.qualifiedExtraAttributes.size() == 3
+        descriptor.moduleRevisionId.qualifiedExtraAttributes['b:a'] == "1"
+        descriptor.moduleRevisionId.qualifiedExtraAttributes['b:b'] == "2"
+        descriptor.moduleRevisionId.qualifiedExtraAttributes['c:a'] == "3"
+        descriptor.extraInfo.size() == 2
+        descriptor.extraInfo['b:a'] == "info 1"
+        descriptor.extraInfo['c:a'] == "info 2"
     }
 
     def verifyFullDependencies(DependencyDescriptor[] dependencies) {
