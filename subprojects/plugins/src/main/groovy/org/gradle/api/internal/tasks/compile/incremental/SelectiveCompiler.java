@@ -41,16 +41,16 @@ public class SelectiveCompiler implements org.gradle.api.internal.tasks.compile.
 
     public WorkResult execute(JavaCompileSpec spec) {
         Clock clock = new Clock();
-        RecompilationSpec staleClasses = recompilationSpecProvider.provideRecompilationSpec(inputs);
+        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs);
 
-        if (staleClasses.isFullRebuildNeeded()) {
-            LOG.lifecycle("Stale classes detection completed in {}. Full rebuild is needed due to: {}.", clock.getTime(), staleClasses.getFullRebuildReason());
+        if (recompilationSpec.isFullRebuildNeeded()) {
+            LOG.lifecycle("Detection of classes for compilation took {}. Full rebuild is needed due to a change to: {}.", clock.getTime(), recompilationSpec.getFullRebuildCause());
             return cleaningCompiler.execute(spec);
         }
 
-        incrementalCompilationInitilizer.initializeCompilation(spec, staleClasses.getClassNames());
+        incrementalCompilationInitilizer.initializeCompilation(spec, recompilationSpec.getClassNames());
         if (spec.getSource().isEmpty()) {
-            //hurray! Compilation not needed!
+            LOG.lifecycle("Detection of classes for compilation took {}. It seems no recompilation is needed!", clock.getTime());
             return new WorkResult() {
                 public boolean getDidWork() {
                     return true;
@@ -62,7 +62,7 @@ public class SelectiveCompiler implements org.gradle.api.internal.tasks.compile.
             //use the original compiler to avoid cleaning up all the files
             return cleaningCompiler.getCompiler().execute(spec);
         } finally {
-            LOG.lifecycle("Incremental compilation of {} class(es) took {}.", staleClasses.getClassNames().size(), clock.getTime());
+            LOG.lifecycle("Detection of classes for compilation ({}) plus the compilation took {}.", clock.getTime(), recompilationSpec.getClassNames().size());
         }
     }
 }

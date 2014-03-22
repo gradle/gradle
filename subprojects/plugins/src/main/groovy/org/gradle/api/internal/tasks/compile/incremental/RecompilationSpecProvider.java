@@ -18,17 +18,10 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoProvider;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarArchive;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarChangeDependentsFinder;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-
-import java.util.Collection;
-import java.util.LinkedHashSet;
 
 public class RecompilationSpecProvider {
 
@@ -45,62 +38,41 @@ public class RecompilationSpecProvider {
     }
 
     public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs) {
-        final ClassDependencyInfo dependencyInfo = dependencyInfoProvider.provideInfo();
-        InputChangeAction action = new InputChangeAction(dependencyInfo);
+        //creating an action that will be executed against all changes
+        JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(dependencyInfoProvider.provideInfo(), sourceToNameConverter);
+        JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarSnapshotFeeder);
+        InputChangeAction action = new InputChangeAction(javaChangeProcessor, jarChangeProcessor);
+
+        //go!
         inputs.outOfDate(action);
-        if (action.fullRebuildReason != null) {
-            return action;
+        if (action.spec.fullRebuildCause != null) {
+            //short circuit in case we already know that that full rebuild is needed
+            return action.spec;
         }
         inputs.removed(action);
-        return action;
+        return action.spec;
     }
 
-    private class InputChangeAction implements Action<InputFileDetails>, RecompilationSpec {
-        private final Collection<String> classesToCompile = new LinkedHashSet<String>();
-        private final ClassDependencyInfo dependencyInfo;
-        private String fullRebuildReason;
+    private static class InputChangeAction implements Action<InputFileDetails> {
+        private final DefaultRecompilationSpec spec = new DefaultRecompilationSpec();
+        private final JavaChangeProcessor javaChangeProcessor;
+        private final JarChangeProcessor jarChangeProcessor;
 
-        public InputChangeAction(ClassDependencyInfo dependencyInfo) {
-            this.dependencyInfo = dependencyInfo;
+        public InputChangeAction(JavaChangeProcessor javaChangeProcessor, JarChangeProcessor jarChangeProcessor) {
+            this.javaChangeProcessor = javaChangeProcessor;
+            this.jarChangeProcessor = jarChangeProcessor;
         }
 
         public void execute(InputFileDetails input) {
-            if (fullRebuildReason != null) {
+            if (spec.fullRebuildCause != null) {
                 return;
             }
-            String name = input.getFile().getName();
-            if (name.endsWith(".java")) {
-                String className = sourceToNameConverter.getClassName(input.getFile());
-                classesToCompile.add(className);
-                DependentsSet actualDependents = dependencyInfo.getRelevantDependents(className);
-                if (actualDependents.isDependencyToAll()) {
-                    fullRebuildReason = "change to " + className + " requires full rebuild";
-                    return;
-                }
-                classesToCompile.addAll(actualDependents.getDependentClasses());
+            if (input.getFile().getName().endsWith(".java")) {
+                javaChangeProcessor.processChange(input, spec);
             }
-            if (name.endsWith(".jar")) {
-                JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
-                JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarSnapshotFeeder);
-                DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
-                if (actualDependents.isDependencyToAll()) {
-                    fullRebuildReason = "change to " + input.getFile() + " requires full rebuild";
-                    return;
-                }
-                classesToCompile.addAll(actualDependents.getDependentClasses());
+            if (input.getFile().getName().endsWith(".jar")) {
+                jarChangeProcessor.processChange(input, spec);
             }
-        }
-
-        public Collection<String> getClassNames() {
-            return classesToCompile;
-        }
-
-        public boolean isFullRebuildNeeded() {
-            return fullRebuildReason != null;
-        }
-
-        public String getFullRebuildReason() {
-            return fullRebuildReason;
         }
     }
 }
