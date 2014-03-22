@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInf
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;

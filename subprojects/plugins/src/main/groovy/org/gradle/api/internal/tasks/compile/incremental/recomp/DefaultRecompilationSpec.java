@@ -14,13 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 
-public interface RecompilationSpec {
-    Collection<String> getClassNames();
-    boolean isFullRebuildNeeded();
-    File getFullRebuildCause();
+class DefaultRecompilationSpec implements RecompilationSpec {
+
+    final Collection<String> classesToCompile = new LinkedHashSet<String>();
+    File fullRebuildCause;
+
+    public Collection<String> getClassNames() {
+        return classesToCompile;
+    }
+
+    public boolean isFullRebuildNeeded() {
+        return fullRebuildCause != null;
+    }
+
+    public File getFullRebuildCause() {
+        return fullRebuildCause;
+    }
 }

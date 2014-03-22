@@ -14,26 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarArchive;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarChangeDependentsFinder;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
-public class JavaChangeProcessor {
+class JarChangeProcessor {
 
-    private final ClassDependencyInfo dependencyInfo;
-    private final SourceToNameConverter sourceToNameConverter;
+    private final FileOperations fileOperations;
+    private final JarSnapshotFeeder jarSnapshotFeeder;
 
-    public JavaChangeProcessor(ClassDependencyInfo dependencyInfo, SourceToNameConverter sourceToNameConverter) {
-        this.dependencyInfo = dependencyInfo;
-        this.sourceToNameConverter = sourceToNameConverter;
+    public JarChangeProcessor(FileOperations fileOperations, JarSnapshotFeeder jarSnapshotFeeder) {
+        this.fileOperations = fileOperations;
+        this.jarSnapshotFeeder = jarSnapshotFeeder;
     }
 
     public void processChange(InputFileDetails input, DefaultRecompilationSpec spec) {
-        String className = sourceToNameConverter.getClassName(input.getFile());
-        spec.classesToCompile.add(className);
-        DependentsSet actualDependents = dependencyInfo.getRelevantDependents(className);
+        JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
+        JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarSnapshotFeeder);
+        DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
         if (actualDependents.isDependencyToAll()) {
             spec.fullRebuildCause = input.getFile();
             return;
