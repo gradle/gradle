@@ -30,17 +30,17 @@ public class JarChangeDependentsFinder {
     public DependentsSet getActualDependents(InputFileDetails jarChangeDetails, JarArchive jarArchive) {
         JarSnapshot existing = jarSnapshotFeeder.changedJar(jarChangeDetails.getFile());
         if (jarChangeDetails.isAdded()) {
-            return new ClassDependents();
+            return ClassDependents.emptyDependents();
         }
 
         if (existing == null) {
             //we don't know what classes were dependents of the jar in the previous build
             //for example, a class (in jar) with a constant might have changed into a class without a constant - we need to rebuild everything
-            return new ClassDependents().setDependentToAll();
+            return ClassDependents.dependencyToAll();
         }
 
         if (jarChangeDetails.isRemoved()) {
-            return new ClassDependents().setDependentToAll();
+            return ClassDependents.dependencyToAll();
         }
 
         if (jarChangeDetails.isModified()) {

@@ -21,11 +21,27 @@ import java.util.Collection;
 
 public class ClassSnapshot implements Serializable {
 
-    final byte[] hash;
-    final Collection<String> dependentClasses;
+    private final byte[] hash;
+    private final Collection<String> dependentClasses;
+
+    public ClassSnapshot(byte[] hash) {
+        this(hash, (Collection<String>) null);
+    }
+
+    public ClassSnapshot(byte[] hash, DependentsSet dependents) {
+        this(hash, dependents.getDependentClasses());
+    }
 
     public ClassSnapshot(byte[] hash, Collection<String> dependentClasses) {
         this.hash = hash;
         this.dependentClasses = dependentClasses;
+    }
+
+    public DependentsSet getDependents() {
+        return ClassDependents.dependentsSet(dependentClasses);
+    }
+
+    public byte[] getHash() {
+        return hash;
     }
 }

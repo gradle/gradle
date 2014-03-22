@@ -36,12 +36,13 @@ class ClassSnapshotterTest extends Specification {
 
         then:
         1 * analyzer.getClassAnalysis("Foo", new File("f")) >> Mock(ClassAnalysis) {
-            isDependentToAll() >> true
+            isDependencyToAll() >> true
         }
         1 * hasher.hash(new File("f")) >> "f".bytes
         0 * _
 
-        s.dependentClasses == null
+        s.dependents.dependentClasses == null
+        s.dependents.dependencyToAll
         s.hash == "f".bytes
     }
 
@@ -51,13 +52,13 @@ class ClassSnapshotterTest extends Specification {
 
         then:
         1 * analyzer.getClassAnalysis("Foo", new File("f")) >> Mock(ClassAnalysis) {
-            isDependentToAll() >> false
+            isDependencyToAll() >> false
         }
-        1 * info.getRelevantDependents("Foo") >> ["X", "Y"]
+        1 * info.getRelevantDependents("Foo") >> ClassDependents.dependentsSet(["X", "Y"])
         1 * hasher.hash(new File("f")) >> "f".bytes
         0 * _
 
-        s.dependentClasses == ["X", "Y"] as Set
+        s.dependents.dependentClasses == ["X", "Y"] as Set
         s.hash == "f".bytes
     }
 }

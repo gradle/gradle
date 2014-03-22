@@ -17,35 +17,36 @@
 package org.gradle.api.internal.tasks.compile.incremental.graph;
 
 import org.gradle.api.internal.tasks.compile.incremental.ClassDependents;
+import org.gradle.api.internal.tasks.compile.incremental.DependentsSet;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class ClassDependencyInfo implements Serializable {
 
-    private final Map<String, ClassDependents> dependents;
+    private final Map<String, DependentsSet> dependents;
 
-    public ClassDependencyInfo(Map<String, ClassDependents> dependents) {
+    public ClassDependencyInfo(Map<String, DependentsSet> dependents) {
         this.dependents = dependents;
     }
 
-    public Set<String> getRelevantDependents(String className) {
-        Set<String> out = new HashSet<String>();
-        ClassDependents deps = dependents.get(className);
+    public DependentsSet getRelevantDependents(String className) {
+        DependentsSet deps = dependents.get(className);
         if (deps == null) {
-            return Collections.emptySet();
+            return ClassDependents.emptyDependents();
         }
-        if (deps.isDependentToAll()) {
-            return null;
+        if (deps.isDependencyToAll()) {
+            return deps;
         }
+        Set<String> out = new HashSet<String>();
         for (String c : deps.getDependentClasses()) {
-            if (!c.contains("$") && !c.equals(className)) { //naive
+            //filter out the inner classes and current class name
+            if (!c.contains("$") && !c.equals(className)) {
                 out.add(c);
             }
         }
-        return out;
+        return ClassDependents.dependentsSet(out);
     }
 }

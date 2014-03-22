@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyIn
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
 
 public class ClassSnapshotter {
     private Hasher hasher;
@@ -36,15 +35,15 @@ public class ClassSnapshotter {
     public ClassSnapshot createSnapshot(String className, File classFile, ClassDependencyInfo parentDependencyInfo) {
         boolean dependentToAll;
         try {
-            dependentToAll = analyzer.getClassAnalysis(className, classFile).isDependentToAll();
+            dependentToAll = analyzer.getClassAnalysis(className, classFile).isDependencyToAll();
         } catch (IOException e) {
             throw new RuntimeException("Problems creating jar snapshot.", e);
         }
         byte[] hash = hasher.hash(classFile);
         if (dependentToAll) {
-            return new ClassSnapshot(hash, null);
+            return new ClassSnapshot(hash);
         } else {
-            Set<String> dependents = parentDependencyInfo.getRelevantDependents(className);
+            DependentsSet dependents = parentDependencyInfo.getRelevantDependents(className);
             return new ClassSnapshot(hash, dependents);
         }
     }

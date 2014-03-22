@@ -18,36 +18,47 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ClassDependents implements Serializable, DependentsSet {
 
-    private final Set<String> dependentClasses = new LinkedHashSet<String>();
-    private boolean dependentToAll;
+    private final Set<String> dependentClasses;
+
+    private ClassDependents(Collection<String> dependentClasses) {
+        if (dependentClasses == null) {
+            this.dependentClasses = null;
+        } else {
+            this.dependentClasses = new LinkedHashSet<String>(dependentClasses);
+        }
+    }
 
     public Set<String> getDependentClasses() {
-        if (isDependentToAll()) {
-            throw new IllegalArgumentException("This class is dependent to all");
-        }
         return dependentClasses;
     }
 
-    public boolean isDependentToAll() {
-        return dependentToAll;
+    public boolean isDependencyToAll() {
+        return dependentClasses == null;
     }
 
     public ClassDependents addClass(String className) {
+        if (dependentClasses == null) {
+            throw new UnsupportedOperationException("This dependents set is a dependency to all.");
+        }
         dependentClasses.add(className);
         return this;
     }
 
-    public ClassDependents setDependentToAll() {
-        dependentToAll = true;
-        return this;
+    public static ClassDependents dependencyToAll() {
+        return dependentsSet(null);
     }
 
-    public void addAll(Collection<String> dependents) {
-        dependentClasses.addAll(dependents);
+    public static ClassDependents emptyDependents() {
+        return dependentsSet(Collections.<String>emptyList());
+    }
+
+    public static ClassDependents dependentsSet(Collection<String> dependentClasses) {
+        return new ClassDependents(dependentClasses);
     }
 }

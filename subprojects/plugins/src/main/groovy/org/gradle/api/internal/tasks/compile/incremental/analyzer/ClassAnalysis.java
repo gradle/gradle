@@ -20,18 +20,18 @@ import java.util.List;
 
 public class ClassAnalysis {
     private final List<String> classDependencies;
-    private boolean dependentToAll;
+    private boolean dependencyToAll;
 
-    public ClassAnalysis(List<String> classDependencies, boolean dependentToAll) {
+    public ClassAnalysis(List<String> classDependencies, boolean dependencyToAll) {
         this.classDependencies = classDependencies;
-        this.dependentToAll = dependentToAll;
+        this.dependencyToAll = dependencyToAll;
     }
 
     public List<String> getClassDependencies() {
         return classDependencies;
     }
 
-    public boolean isDependentToAll() {
-        return dependentToAll;
+    public boolean isDependencyToAll() {
+        return dependencyToAll;
     }
 }

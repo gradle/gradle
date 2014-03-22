@@ -50,25 +50,29 @@ public class ClassDependencyInfoExtractor {
                 ClassAnalysis analysis = analyzer.getClassAnalysis(className, classFile);
                 for (String dependency : analysis.getClassDependencies()) {
                     if (!dependency.equals(className) && dependency.startsWith(packagePrefix)) {
-                        getOrCreateDependentMapping(dependents, dependency).addClass(className);
+                        populate(dependents, dependency, className);
                     }
                 }
-                if (analysis.isDependentToAll()) {
-                    getOrCreateDependentMapping(dependents, className).setDependentToAll();
+                if (analysis.isDependencyToAll()) {
+                    dependents.put(className, ClassDependents.dependencyToAll());
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Problems extracting class dependency from " + classFile, e);
             }
         }
-        return new ClassDependencyInfo(dependents);
+        return new ClassDependencyInfo((Map) dependents);
     }
 
-    private ClassDependents getOrCreateDependentMapping(Map<String, ClassDependents> dependents, String dependency) {
+    private ClassDependents populate(Map<String, ClassDependents> dependents, String dependency, String className) {
         ClassDependents d = dependents.get(dependency);
         if (d == null) {
-            d = new ClassDependents();
+            //init dependents
+            d = ClassDependents.emptyDependents();
             dependents.put(dependency, d);
+        } else if (d.isDependencyToAll()) {
+            //don't add class if it is a dependency to all
+            return d;
         }
-        return d;
+        return d.addClass(className);
     }
 }

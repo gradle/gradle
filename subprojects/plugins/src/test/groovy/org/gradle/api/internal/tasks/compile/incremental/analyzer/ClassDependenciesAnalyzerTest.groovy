@@ -46,28 +46,28 @@ class ClassDependenciesAnalyzerTest extends Specification {
     def "knows if a class have non-private constants"() {
         expect:
         analyze(HasNonPrivateConstants).classDependencies == [UsedByNonPrivateConstantsClass.name]
-        analyze(HasNonPrivateConstants).dependentToAll
+        analyze(HasNonPrivateConstants).dependencyToAll
 
         analyze(HasPublicConstants).classDependencies == []
-        analyze(HasPublicConstants).dependentToAll
+        analyze(HasPublicConstants).dependencyToAll
 
         analyze(HasPrivateConstants).classDependencies == [HasNonPrivateConstants.name]
-        !analyze(HasPrivateConstants).dependentToAll
+        !analyze(HasPrivateConstants).dependencyToAll
     }
 
     def "knows if a class uses annotations"() {
         expect:
         analyze(UsesRuntimeAnnotation).classDependencies == []
         analyze(SomeRuntimeAnnotation).classDependencies == []
-        analyze(SomeRuntimeAnnotation).dependentToAll
+        analyze(SomeRuntimeAnnotation).dependencyToAll
 
         analyze(UsesClassAnnotation).classDependencies == []
         analyze(SomeClassAnnotation).classDependencies == []
-        analyze(SomeClassAnnotation).dependentToAll
+        analyze(SomeClassAnnotation).dependencyToAll
 
         analyze(UsesSourceAnnotation).classDependencies == [] //source annotations are wiped from the bytecode
         analyze(SomeSourceAnnotation).classDependencies == []
-        analyze(SomeSourceAnnotation).dependentToAll
+        analyze(SomeSourceAnnotation).dependencyToAll
     }
 
     InputStream classStream(Class aClass) {

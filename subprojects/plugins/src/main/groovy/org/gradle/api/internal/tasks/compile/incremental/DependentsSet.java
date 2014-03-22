@@ -20,5 +20,5 @@ import java.util.Set;
 
 public interface DependentsSet {
     Set<String> getDependentClasses();
-    boolean isDependentToAll(); //TODO SF, should be 'isDependencyToAll'
+    boolean isDependencyToAll();
 }

@@ -26,7 +26,6 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 public class StaleClassesDetecter {
 
@@ -70,18 +69,18 @@ public class StaleClassesDetecter {
             if (name.endsWith(".java")) {
                 String className = sourceToNameConverter.getClassName(input.getFile());
                 staleClasses.add(className);
-                Set<String> actualDependents = dependencyInfo.getRelevantDependents(className);
-                if (actualDependents == null) {
+                DependentsSet actualDependents = dependencyInfo.getRelevantDependents(className);
+                if (actualDependents.isDependencyToAll()) {
                     fullRebuildReason = "change to " + className + " requires full rebuild";
                     return;
                 }
-                staleClasses.addAll(actualDependents);
+                staleClasses.addAll(actualDependents.getDependentClasses());
             }
             if (name.endsWith(".jar")) {
                 JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
                 JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarSnapshotFeeder);
                 DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
-                if (actualDependents.isDependentToAll()) {
+                if (actualDependents.isDependencyToAll()) {
                     fullRebuildReason = "change to " + input.getFile() + " requires full rebuild";
                     return;
                 }

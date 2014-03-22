@@ -18,7 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 class JarSnapshot implements Serializable {
@@ -30,19 +31,19 @@ class JarSnapshot implements Serializable {
     }
 
     DependentsSet getDependentsDelta(JarSnapshot current) {
-        final ClassDependents allDependents = new ClassDependents();
+        final List<String> allDependents = new LinkedList<String>();
         for (String thisCls : classSnapshots.keySet()) {
             ClassSnapshot otherCls = current.classSnapshots.get(thisCls);
             //if class was removed from current snapshot or hash does not match
-            if (otherCls == null || !Arrays.equals(otherCls.hash, classSnapshots.get(thisCls).hash)) {
-                Collection<String> dependents = classSnapshots.get(thisCls).dependentClasses;
-                if (dependents == null) {
-                    //dependent to all, TODO SF don't model as null
-                    return new ClassDependents().setDependentToAll();
+            if (otherCls == null || !Arrays.equals(otherCls.getHash(), classSnapshots.get(thisCls).getHash())) {
+                DependentsSet dependents = classSnapshots.get(thisCls).getDependents();
+                if (dependents.isDependencyToAll()) {
+                    //one of the classes changed/removed in the jar is a 'dependencyToAll', let's return it, there is no point in further collection of dependents.
+                    return dependents;
                 }
-                allDependents.addAll(dependents);
+                allDependents.addAll(dependents.getDependentClasses());
             }
         }
-        return allDependents;
+        return ClassDependents.dependentsSet(allDependents);
     }
 }

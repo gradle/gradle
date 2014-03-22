@@ -51,6 +51,6 @@ public class JarSnapshotFeeder {
     }
 
     public JarSnapshot newSnapshotWithoutDependents(JarArchive jarArchive) {
-        return jarSnapshotter.createSnapshot(jarArchive.contents, new ClassDependencyInfo(Collections.<String, ClassDependents>emptyMap()));
+        return jarSnapshotter.createSnapshot(jarArchive.contents, new ClassDependencyInfo(Collections.<String, DependentsSet>emptyMap()));
     }
 }

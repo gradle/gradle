@@ -56,11 +56,11 @@ class JarSnapshotTest extends Specification {
 
     def "informs that all classes are dependent"() {
         JarSnapshot s1 = new JarSnapshot(["com.Foo": new ClassSnapshot("f".bytes, ['X']),
-                "Bar": new ClassSnapshot("b".bytes, null)])
+                "Bar": new ClassSnapshot("b".bytes)])
         JarSnapshot s2 = new JarSnapshot([:])
 
         expect:
-        s1.getDependentsDelta(s2).dependentToAll
+        s1.getDependentsDelta(s2).dependencyToAll
         s2.getDependentsDelta(s1).dependentClasses == [] as Set
     }
 }

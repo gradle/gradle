@@ -26,18 +26,20 @@ class ClassDependencyInfoExtractorTest extends Specification {
 
     @Subject ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(new ClassDependenciesAnalyzer())
 
-    def "knows recursive dependency tree"() {
+    def "knows relevant dependents"() {
         def classesDir = new File(ClassDependencyInfoExtractorTest.classLoader.getResource("").toURI())
         def info = extractor.extractInfo(classesDir, "org.gradle.api.internal.tasks.compile.incremental")
 
         expect:
-        info.getRelevantDependents(SomeClass.name) == [SomeOtherClass.name] as Set
-        info.getRelevantDependents(SomeOtherClass.name) == [] as Set
-        info.getRelevantDependents(YetAnotherClass.name) == [SomeOtherClass.name] as Set
-        info.getRelevantDependents(AccessedFromPrivateClass.name) == [] as Set
-        info.getRelevantDependents(HasPrivateConstants.name) == [] as Set
-        info.getRelevantDependents(HasNonPrivateConstants.name) == null
-        info.getRelevantDependents(UsedByNonPrivateConstantsClass.name) == [HasNonPrivateConstants.name] as Set
+        info.getRelevantDependents(SomeClass.name).dependentClasses == [SomeOtherClass.name] as Set
+        info.getRelevantDependents(SomeOtherClass.name).dependentClasses == [] as Set
+        info.getRelevantDependents(YetAnotherClass.name).dependentClasses == [SomeOtherClass.name] as Set
+        info.getRelevantDependents(AccessedFromPrivateClass.name).dependentClasses == [] as Set
+        info.getRelevantDependents(HasPrivateConstants.name).dependentClasses == [] as Set
+        info.getRelevantDependents(UsedByNonPrivateConstantsClass.name).dependentClasses == [HasNonPrivateConstants.name] as Set
+
+        info.getRelevantDependents(HasNonPrivateConstants.name).dependencyToAll
+        info.getRelevantDependents(HasNonPrivateConstants.name).dependentClasses == null
     }
 
     //TODO SF tighten and refactor the coverage
