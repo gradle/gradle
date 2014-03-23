@@ -30,7 +30,7 @@ Only relevant output classes are changed, remaining output classes are untouched
 - serialize to disk after compile task run, deserialize before compilation
 - use simplest possible serialization mechanism
 
-### Test Coverage
+## Test Coverage
 
 - detects deletion of a source file
     - class that is not used by any other class, the output class file is removed. No other output files are changed.
@@ -50,9 +50,42 @@ Only relevant output classes are changed, remaining output classes are untouched
 - anything on the compile classpath that does not originate from the java source will require full rebuild upon change.
     - classpath jar or directory added.
     - classpath jar or directory removed.
-    - classpath jar or directory added.
+    - classpath jar or directory changed.
+- two compile tasks share the same source files but different classpath
 
-# Story: basic incremental compilation across multi-project build
+# Story: Handle transitive source dependencies
+
+## Test coverage
+
+- given `class C extends B { }; class B extends A { }; class A` then when the source file for `A` is changed, the source files for `B` and `C` should be recompiled
+
+# Story: Handle duplicate source files
+
+- when two source files that define the same class are present in the source files, then only changes to the first source file should be considered. Changes to the
+second source file should be ignored
+- possibly warn when duplicate source files are present in the inputs.
+
+## Test coverage
+
+TBD
+
+# Story: Incremental compilation ignores resources in compilation classpath
+
+Ignore changes to resource (eg a manifest or some other non-class file) in the compilation classpath.
+
+# Story: Incremental compilation in the presence of joint compilation
+
+Need to consider the classes implicitly available in the output directory, which are also included on the compile classpath.
+
+# Story: Incremental compilation in the presence of compile failures
+
+Don't switch to full compilation when previous execution failed due to compilation failures.
+
+# Story: Performance tests for incremental compilation
+
+Need to measure the performance of incremental vs full compilation
+
+# Story: Basic incremental compilation across tasks
 
 ### Coverage
 
@@ -70,17 +103,14 @@ Seems simpler and might be good enough as a starter.
 This way, the incremental compilation knows what classes have changed in given project dependency.
 This approach should be reliable but it may be slower. We need to unzip the jar and hash the contents.
 
-# Story: Incremental compilation in the presence of joint compilation
+### Open issues
 
-Need to consider the classes implicitly available in the output directory, which are also included on the compile classpath.
+- handle duplicate classes in compilation classpath
 
-# Story: Incremental compilation in the presence of compile failures
+# Story: Improve performance for cached incremental compilation state
 
-Don't switch to full compilation when previous execution failed due to compilation failures.
-
-# Story: Performance tests for incremental compilation
-
-Need to measure the performance of incremental vs full compilation
+- share cached state between tasks
+- cache state in-memory for daemon
 
 # Story: Don't compile a source file when the API of its compile dependencies has not changed
 
@@ -91,3 +121,7 @@ when compiling.
 We don't necessarily need a full incremental Java compilation to improve this. For example, the Java compilation task may consider the API of the compile classpath - if it has
 changed, then compile all source files, and if it has not, skip the task (assuming everything else is up to date). This means that a change to a method body does not propagate
 through the dependency graph.
+
+# Story: Deprecate and remove Ant based dependency analysis
+
+- need to promote `options.incremental` flag.
