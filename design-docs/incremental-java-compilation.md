@@ -2,14 +2,14 @@
 
 Generally, we want the developer cycles to get faster, overall build performance better.
 
-- faster java compilation where little input source java classes have changed - the compiler is instructed to compile a fixed set of input classes instead of all.
+- faster java compilation where few input java source files have changed - the compiler is instructed to compile a fixed set of input source files instead of all.
 - faster multi-project build: upstream project contains changed java classes. Those classes are not used by downstream projects.
     Hence, some(all) downstream projects may completely skip compilation step (or at least, compile incrementally/selectively)
-- less output classes are changed. This way, tools like JRebel are faster as they listen to the changed output classes, the less classes changed, the faster JRebel reload is.
+- fewer output classes are changed. This way, tools like JRebel are faster as they listen to the changed output classes, the less classes changed, the faster JRebel reload is.
 
 # Story: basic incremental compilation within a single project
 
-Faster compilation when little input classes (leaf classes) changed. The selection of classes for compilation needs to be reliable.
+Faster compilation when few input source files have changed. The selection of classes for compilation needs to be reliable.
 Only relevant output classes are changed, remaining output classes are untouched.
 
 ## Implementation notes for the initial story
@@ -30,14 +30,27 @@ Only relevant output classes are changed, remaining output classes are untouched
 - serialize to disk after compile task run, deserialize before compilation
 - use simplest possible serialization mechanism
 
-### Coverage
+### Test Coverage
 
-- detects deletion of class
-- detects adding of a new class
-- detects change in a class
+- detects deletion of a source file
+    - class that is not used by any other class, the output class file is removed. No other output files are changed.
+    - class is used by another class, compilation fails.
+    - removes output files for inner and anonymous classes.
+- detects adding of a new source file
+    - output files are added. No other output files are changed.
+- detects change in a source file
+    - class that is not used by any other class, output class file has changed. No other output files are changed.
+    - removes output files for inner and anonymous classes that no longer exist.
+    - class that is used by another class, the output class files of both are changed. No other output files are changed.
 - understands class dependencies, require dependents to be rebuild
-- anything on the classpath that is not originating from the java source will require full rebuild upon change.
-    Most importantly, any jar dependency changes, directories on classpath that are from source, assume full rebuild.
+    - transitive dependencies.
+    - cycles in class dependencies.
+    - class that is a source-only annotation is changed, all source files are recompiled.
+    - class that contains a constant is changed, all source files are recompiled.
+- anything on the compile classpath that does not originate from the java source will require full rebuild upon change.
+    - classpath jar or directory added.
+    - classpath jar or directory removed.
+    - classpath jar or directory added.
 
 # Story: basic incremental compilation across multi-project build
 
@@ -57,9 +70,19 @@ Seems simpler and might be good enough as a starter.
 This way, the incremental compilation knows what classes have changed in given project dependency.
 This approach should be reliable but it may be slower. We need to unzip the jar and hash the contents.
 
-# Other stories / ideas
+# Story: Incremental compilation in the presence of joint compilation
 
-## Don't compile a source file when the API of its compile dependencies has not changed
+Need to consider the classes implicitly available in the output directory, which are also included on the compile classpath.
+
+# Story: Incremental compilation in the presence of compile failures
+
+Don't switch to full compilation when previous execution failed due to compilation failures.
+
+# Story: Performance tests for incremental compilation
+
+Need to measure the performance of incremental vs full compilation
+
+# Story: Don't compile a source file when the API of its compile dependencies has not changed
 
 Currently, changing the body of a method invalidates all class files that have been compiled against the method's class. Instead, only the method's class should be recompiled.
 Similarly, changing a resource file invalidates all class files that included that resource file in the compile classpath. Instead, resource files should be ignored
