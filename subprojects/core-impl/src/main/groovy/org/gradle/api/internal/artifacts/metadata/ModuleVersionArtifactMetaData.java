@@ -32,6 +32,7 @@ public interface ModuleVersionArtifactMetaData extends ComponentArtifactMetaData
 
     /**
      * Produces an ArtifactIdentifier for this artifact (it's not actually an identifier - just a bucket of attributes).
+     * TODO:ADAM - remove this
      */
     ArtifactIdentifier toArtifactIdentifier();
 }
