@@ -22,3 +22,9 @@ sonarRunner {
     }
 }
 // END SNIPPET languages
+
+// START SNIPPET fork
+tasks.sonarRunner.fork = true
+
+tasks.sonarRunner.forkOptions.maxHeapSize = '512m'
+// END SNIPPET fork
