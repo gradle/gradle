@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
 public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
-    private ModuleVersionMetaData metaData;
+    private ComponentMetaData metaData;
     private ModuleVersionResolveException failure;
 
     public DefaultBuildableModuleVersionResolveResult failed(ModuleVersionResolveException failure) {
@@ -34,11 +34,11 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         failed(new ModuleVersionNotFoundException(versionSelector));
     }
 
-    public void resolved(ModuleVersionMetaData metaData) {
+    public void resolved(ComponentMetaData metaData) {
         this.metaData = metaData;
     }
 
-    public void setMetaData(ModuleVersionMetaData metaData) {
+    public void setMetaData(ComponentMetaData metaData) {
         assertResolved();
         this.metaData = metaData;
     }
@@ -48,7 +48,7 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         return metaData.getId();
     }
 
-    public ModuleVersionMetaData getMetaData() throws ModuleVersionResolveException {
+    public ComponentMetaData getMetaData() throws ModuleVersionResolveException {
         assertResolved();
         return metaData;
     }

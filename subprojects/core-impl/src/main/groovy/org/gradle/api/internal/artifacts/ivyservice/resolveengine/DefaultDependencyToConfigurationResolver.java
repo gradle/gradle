@@ -18,17 +18,20 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DefaultDependencyToConfigurationResolver implements DependencyToConfigurationResolver {
     // TODO - don't pass in 'from' configuration - the dependency should have whatever context it needs
-    public Set<ConfigurationMetaData> resolveTargetConfigurations(DependencyMetaData dependencyMetaData, ConfigurationMetaData fromConfiguration, ModuleVersionMetaData targetModuleVersion) {
+    public Set<ConfigurationMetaData> resolveTargetConfigurations(DependencyMetaData dependencyMetaData, ConfigurationMetaData fromConfiguration, ComponentMetaData targetComponent) {
         // TODO - resolve directly to config meta data
-        ModuleDescriptor targetDescriptor = targetModuleVersion.getDescriptor();
+        ModuleDescriptor targetDescriptor = targetComponent.getDescriptor();
         DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
         Set<String> targetConfigurationNames = new LinkedHashSet<String>();
         for (String config : dependencyDescriptor.getModuleConfigurations()) {
@@ -45,9 +48,9 @@ public class DefaultDependencyToConfigurationResolver implements DependencyToCon
             if (targetDescriptor.getConfiguration(targetConfigurationName) == null) {
                 throw new RuntimeException(String.format("Module version %s, configuration '%s' declares a dependency on configuration '%s' which is not declared in the module descriptor for %s",
                         fromConfiguration.getModuleVersion().getId(), fromConfiguration.getName(),
-                        targetConfigurationName, targetModuleVersion.getId()));
+                        targetConfigurationName, targetComponent.getId()));
             }
-            ConfigurationMetaData targetConfiguration = targetModuleVersion.getConfiguration(targetConfigurationName);
+            ConfigurationMetaData targetConfiguration = targetComponent.getConfiguration(targetConfigurationName);
             targets.add(targetConfiguration);
         }
         return targets;

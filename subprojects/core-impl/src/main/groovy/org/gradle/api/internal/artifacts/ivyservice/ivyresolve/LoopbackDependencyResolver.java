@@ -35,8 +35,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.internal.Factory;
 
 import java.io.File;
@@ -95,7 +95,7 @@ public class LoopbackDependencyResolver implements DependencyResolver {
                     DefaultDependencyMetaData dependency = new DefaultDependencyMetaData(dependencyDescriptor);
                     dependencyResolver.resolve(dependency, resolveResult);
                     DefaultBuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
-                    DefaultModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(resolveResult.getMetaData(), artifact);
+                    ComponentArtifactMetaData artifactMetaData = resolveResult.getMetaData().artifact(artifact);
                     artifactResolver.resolveArtifact(artifactMetaData, resolveResult.getMetaData().getSource(), artifactResolveResult);
                     File artifactFile = artifactResolveResult.getFile();
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
