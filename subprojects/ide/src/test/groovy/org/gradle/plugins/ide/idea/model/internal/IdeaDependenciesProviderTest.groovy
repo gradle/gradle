@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -56,8 +57,14 @@ public class IdeaDependenciesProviderTest extends Specification {
 
         then:
         result.size() == 2
-        result.findAll { it.scope == 'COMPILE' }.size() == 1
-        result.findAll { it.scope == 'TEST' }.size() == 1
+        result.findAll { SingleEntryModuleLibrary it ->
+            it.scope == 'COMPILE' &&
+            it.libraryFile.path.endsWith('guava.jar')
+        }.size() == 1
+        result.findAll { SingleEntryModuleLibrary it ->
+            it.scope == 'TEST' &&
+            it.libraryFile.path.endsWith('mockito.jar')
+        }.size() == 1
     }
 
     def "compile dependency on child project"() {
@@ -94,9 +101,18 @@ public class IdeaDependenciesProviderTest extends Specification {
 
         then:
         result.size() == 3
-        result.findAll { it.scope == 'COMPILE' }.size() == 1
-        result.findAll { it.scope == 'TEST' }.size() == 1
-        result.findAll { it.scope == 'RUNTIME' }.size() == 1
+        result.findAll { SingleEntryModuleLibrary it ->
+            it.scope == 'COMPILE' &&
+                    it.libraryFile.path.endsWith('foo-api.jar')
+        }.size() == 1
+        result.findAll { SingleEntryModuleLibrary it ->
+            it.scope == 'TEST' &&
+                    it.libraryFile.path.endsWith('foo-impl.jar')
+        }.size() == 1
+        result.findAll { SingleEntryModuleLibrary it ->
+            it.scope == 'RUNTIME' &&
+                    it.libraryFile.path.endsWith('foo-impl.jar')
+        }.size() == 1
     }
 
     def "ignore unknown configurations"() {
