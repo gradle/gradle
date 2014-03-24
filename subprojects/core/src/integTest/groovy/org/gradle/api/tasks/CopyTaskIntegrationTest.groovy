@@ -437,14 +437,16 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                 }
                 task copy(type: Copy) {
                     into 'dest'
-                    include '**/sub/**'
-                    exclude '*.b'
+                    include '**/two/**'
+                    exclude '**/*.b'
                     with spec
                 }"""
         )
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
-                'subdir/one/sub/onesub.a'
+                'subdir/one/one.a',
+                'subdir/one/sub/onesub.a',
+                'subdir/two/two.a'
         )
     }
 
