@@ -185,11 +185,11 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform).available
 
         with(toolChain.getPlatformConfiguration(platform).apply(newConfigurableToolChain())) {
-            argsFor(cppCompiler)== ["-m32"]
-            argsFor(linker) == ["-m32"]
-            argsFor(getCCompiler()) == ["-m32"]
-            argsFor(assembler) == ["--32"]
-            argsFor(staticLibArchiver) == []
+            argsFor(getByName("cppCompiler"))== ["-m32"]
+            argsFor(getByName("cCompiler")) == ["-m32"]
+            argsFor(getByName("linker")) == ["-m32"]
+            argsFor(getByName("assembler")) == ["--32"]
+            argsFor(getByName("staticLibArchiver")) == []
         }
     }
 
