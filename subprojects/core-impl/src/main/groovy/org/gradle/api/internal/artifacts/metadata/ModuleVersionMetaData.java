@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
 import java.util.Set;
@@ -24,6 +25,8 @@ import java.util.Set;
  * The meta-data for a module version that is required during dependency resolution.
  */
 public interface ModuleVersionMetaData extends ComponentMetaData {
+    ModuleComponentIdentifier getComponentId();
+
     ModuleVersionMetaData withSource(ModuleSource source);
 
     Set<ModuleVersionArtifactMetaData> getArtifacts();

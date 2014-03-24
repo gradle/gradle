@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
@@ -49,7 +49,7 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         this(identifier, moduleDescriptor, DefaultModuleComponentIdentifier.newId(identifier));
     }
 
-    public ModuleDescriptorAdapter(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ComponentIdentifier componentIdentifier) {
+    public ModuleDescriptorAdapter(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
         super(moduleVersionIdentifier, moduleDescriptor, componentIdentifier);
     }
 
@@ -65,6 +65,11 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         ModuleDescriptorAdapter copy = copy();
         copy.setModuleSource(source);
         return copy;
+    }
+
+    @Override
+    public ModuleComponentIdentifier getComponentId() {
+        return (ModuleComponentIdentifier) super.getComponentId();
     }
 
     public boolean isMetaDataOnly() {
