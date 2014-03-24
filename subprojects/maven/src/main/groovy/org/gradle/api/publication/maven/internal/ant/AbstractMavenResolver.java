@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
@@ -46,10 +45,8 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
@@ -178,17 +175,10 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
 
     public void publish(ModuleVersionPublishMetaData moduleVersion) {
         ModuleVersionIdentifier id = moduleVersion.getId();
-        ModuleRevisionId ivyId = IvyUtil.createModuleRevisionId(id.getGroup(), id.getName(), id.getVersion());
         for (ModuleVersionArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
-            collectArtifact(createIvyArtifact(ivyId, artifact), artifact.getFile());
+            collectArtifact(artifact.toIvyArtifact(), artifact.getFile());
         }
         publish();
-    }
-
-    private Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId, ModuleVersionArtifactPublishMetaData artifact) {
-        // TODO:DAZ Should really be looking up the Ivy Artifact from the ModuleDescriptor, to ensure we're not losing anything here, like URL or publication date.
-        IvyArtifactName ivyName = artifact.getArtifactName();
-        return new DefaultArtifact(moduleRevisionId, null, ivyName.getName(), ivyName.getType(), ivyName.getExtension(), ivyName.getAttributes());
     }
 
     private void collectArtifact(Artifact artifact, File src) {
