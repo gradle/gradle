@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -34,6 +35,10 @@ public interface ComponentMetaData {
      */
     ComponentIdentifier getComponentId();
 
+    /**
+     * Returns the module version identifier for this component. This is a legacy identifier and is here while we transition the meta-data away from ivy-like
+     * module versions to the more general component instances.
+     */
     ModuleVersionIdentifier getId();
 
     /**
@@ -59,6 +64,12 @@ public interface ComponentMetaData {
      */
     @Nullable
     ConfigurationMetaData getConfiguration(String name);
+
+    /**
+     * Converts the given Ivy artifact to the corresponding artifact meta-data. This method is here to allow us to migrate away from the Ivy types and
+     * will be removed.
+     */
+    ComponentArtifactMetaData artifact(Artifact artifact);
 
     /**
      * Returns the known artifacts for this component. There may be additional component available that are not included in this set.

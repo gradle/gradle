@@ -169,6 +169,10 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         return configuration;
     }
 
+    public ComponentArtifactMetaData artifact(Artifact artifact) {
+        return new DefaultModuleVersionArtifactMetaData(this, artifact);
+    }
+
     public Set<ModuleVersionArtifactMetaData> getArtifacts() {
         if (artifacts == null) {
             artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();

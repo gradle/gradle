@@ -149,6 +149,9 @@ class ModuleDescriptorAdapterTest extends Specification {
     Artifact artifact(String name) {
         return Stub(Artifact) {
             getName() >> name
+            getType() >> "type"
+            getExt() >> "ext"
+            getExtraAttributes() >> [classifier: "classifier"]
         }
     }
 
@@ -171,6 +174,19 @@ class ModuleDescriptorAdapterTest extends Specification {
 
         and:
         metaData.getConfiguration("conf").artifacts.is(artifacts)
+    }
+
+    def "can adapt an Ivy artifact to a Gradle artifact"() {
+        def artifact = artifact("one")
+
+        expect:
+        def artifactMetaData = metaData.artifact(artifact)
+        artifactMetaData.componentId == metaData.componentId
+        artifactMetaData.id.componentIdentifier == metaData.componentId
+        artifactMetaData.name.name == "one"
+        artifactMetaData.name.type == "type"
+        artifactMetaData.name.extension == "ext"
+        artifactMetaData.name.classifier == "classifier"
     }
 
     def "artifacts include union of those inherited from other configurations"() {
