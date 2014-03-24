@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import java.util.List;
 
-public interface MutableModuleVersionMetaData extends ModuleVersionMetaData, MutableComponentMetaData {
+public interface MutableModuleVersionMetaData extends ModuleVersionMetaData {
     /**
      * Creates a deep copy of this meta-data.
      */

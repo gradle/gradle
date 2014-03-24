@@ -23,6 +23,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
 import java.io.File;
 import java.util.*;
@@ -66,7 +67,15 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
     public ModuleVersionMetaData toResolveMetaData() {
         // TODO:ADAM - need to clone the descriptor
-        return new ModuleDescriptorAdapter(id, moduleDescriptor, componentIdentifier) {
+        return new AbstractModuleDescriptorBackedMetaData(id, moduleDescriptor, componentIdentifier) {
+            public MutableModuleVersionMetaData copy() {
+                throw new UnsupportedOperationException();
+            }
+
+            public ModuleVersionMetaData withSource(ModuleSource source) {
+                throw new UnsupportedOperationException();
+            }
+
             @Override
             protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
                 Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();

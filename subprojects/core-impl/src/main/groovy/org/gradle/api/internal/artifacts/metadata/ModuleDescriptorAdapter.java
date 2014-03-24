@@ -16,30 +16,16 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.util.CollectionUtils;
 
-import java.util.*;
-
-public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
-    private static final List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
-
-    private final ModuleVersionIdentifier moduleVersionIdentifier;
-    private final ModuleDescriptor moduleDescriptor;
-    private final ComponentIdentifier componentIdentifier;
-    private ModuleSource moduleSource;
-    private boolean changing;
-    private boolean metaDataOnly;
-    private String status;
-    private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
-    private List<DependencyMetaData> dependencies;
-    private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
-    private Set<ModuleVersionArtifactMetaData> artifacts;
+public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
 
     public static ModuleDescriptorAdapter defaultForDependency(DependencyMetaData dependencyMetaData) {
         DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
@@ -57,235 +43,19 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     }
 
     public ModuleDescriptorAdapter(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ComponentIdentifier componentIdentifier) {
-        this.moduleVersionIdentifier = moduleVersionIdentifier;
-        this.moduleDescriptor = moduleDescriptor;
-        this.componentIdentifier = componentIdentifier;
-        status = moduleDescriptor.getStatus();
+        super(moduleVersionIdentifier, moduleDescriptor, componentIdentifier);
     }
 
     public ModuleDescriptorAdapter copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor, componentIdentifier);
-        copy.dependencies = dependencies;
-        copy.changing = changing;
-        copy.metaDataOnly = metaDataOnly;
-        copy.status = status;
-        copy.statusScheme = statusScheme;
-        copy.moduleSource = moduleSource;
+        ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(getId(), getDescriptor(), getComponentId());
+        copyTo(copy);
         return copy;
-    }
-
-    @Override
-    public String toString() {
-        return moduleVersionIdentifier.toString();
-    }
-
-    public ModuleVersionIdentifier getId() {
-        return moduleVersionIdentifier;
-    }
-
-    public ModuleSource getSource() {
-        return moduleSource;
     }
 
     public ModuleVersionMetaData withSource(ModuleSource source) {
         ModuleDescriptorAdapter copy = copy();
-        copy.moduleSource = source;
+        copy.setModuleSource(source);
         return copy;
-    }
-
-    public ModuleDescriptor getDescriptor() {
-        return moduleDescriptor;
-    }
-
-    public boolean isChanging() {
-        return changing;
-    }
-
-    public boolean isMetaDataOnly() {
-        return metaDataOnly;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public List<String> getStatusScheme() {
-        return statusScheme;
-    }
-
-    public ComponentIdentifier getComponentId() {
-        return componentIdentifier;
-    }
-
-    public void setChanging(boolean changing) {
-        this.changing = changing;
-    }
-
-    public void setMetaDataOnly(boolean metaDataOnly) {
-        this.metaDataOnly = metaDataOnly;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public void setStatusScheme(List<String> statusScheme) {
-        this.statusScheme = statusScheme;
-    }
-
-    public List<DependencyMetaData> getDependencies() {
-        if (dependencies == null) {
-            dependencies = new ArrayList<DependencyMetaData>();
-            for (final DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
-                dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
-            }
-        }
-        return dependencies;
-    }
-
-    public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
-        this.dependencies = CollectionUtils.toList(dependencies);
-        for (DefaultConfigurationMetaData configuration : configurations.values()) {
-            configuration.dependencies = null;
-        }
-    }
-
-    public DefaultConfigurationMetaData getConfiguration(final String name) {
-        DefaultConfigurationMetaData configuration = configurations.get(name);
-        if (configuration == null) {
-            Configuration descriptor = moduleDescriptor.getConfiguration(name);
-            if (descriptor == null) {
-                return null;
-            }
-            Set<String> hierarchy = new LinkedHashSet<String>();
-            hierarchy.add(name);
-            for (String parent : descriptor.getExtends()) {
-                hierarchy.addAll(getConfiguration(parent).hierarchy);
-            }
-            configuration = new DefaultConfigurationMetaData(name, descriptor, hierarchy);
-            configurations.put(name, configuration);
-        }
-        return configuration;
-    }
-
-    public ModuleVersionArtifactMetaData artifact(Artifact artifact) {
-        return new DefaultModuleVersionArtifactMetaData(this, artifact);
-    }
-
-    public Set<ModuleVersionArtifactMetaData> getArtifacts() {
-        if (artifacts == null) {
-            artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
-            for (Artifact artifact : moduleDescriptor.getAllArtifacts()) {
-                artifacts.add(new DefaultModuleVersionArtifactMetaData(this, artifact));
-            }
-        }
-        return artifacts;
-    }
-
-    protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-        Set<Artifact> artifacts = new HashSet<Artifact>();
-        Set<ComponentArtifactMetaData> artifactMetaData = new LinkedHashSet<ComponentArtifactMetaData>();
-        for (String ancestor : configurationMetaData.getHierarchy()) {
-            for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-                if (artifacts.add(artifact)) {
-                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(this, artifact));
-                }
-            }
-        }
-        return artifactMetaData;
-    }
-
-    private class DefaultConfigurationMetaData implements ConfigurationMetaData {
-        private final String name;
-        private final Configuration descriptor;
-        private final Set<String> hierarchy;
-        private List<DependencyMetaData> dependencies;
-        private Set<ComponentArtifactMetaData> artifacts;
-        private LinkedHashSet<ExcludeRule> excludeRules;
-
-        private DefaultConfigurationMetaData(String name, Configuration descriptor, Set<String> hierarchy) {
-            this.name = name;
-            this.descriptor = descriptor;
-            this.hierarchy = hierarchy;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s:%s", moduleVersionIdentifier, name);
-        }
-
-        public ModuleVersionMetaData getComponent() {
-            return ModuleDescriptorAdapter.this;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Set<String> getHierarchy() {
-            return hierarchy;
-        }
-
-        public boolean isTransitive() {
-            return descriptor.isTransitive();
-        }
-
-        public List<DependencyMetaData> getDependencies() {
-            if (dependencies == null) {
-                dependencies = new ArrayList<DependencyMetaData>();
-                for (DependencyMetaData dependency : ModuleDescriptorAdapter.this.getDependencies()) {
-                    if (include(dependency)) {
-                        dependencies.add(dependency);
-                    }
-                }
-            }
-            return dependencies;
-        }
-
-        private boolean include(DependencyMetaData dependency) {
-            String[] moduleConfigurations = dependency.getDescriptor().getModuleConfigurations();
-            for (int i = 0; i < moduleConfigurations.length; i++) {
-                String moduleConfiguration = moduleConfigurations[i];
-                if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
-                    return true;
-                }
-                if (moduleConfiguration.equals("*")) {
-                    boolean include = true;
-                    for (int j = i + 1; j < moduleConfigurations.length && moduleConfigurations[j].startsWith("!"); j++) {
-                        if (moduleConfigurations[j].substring(1).equals(getName())) {
-                            include = false;
-                            break;
-                        }
-                    }
-                    if (include) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        public Set<ExcludeRule> getExcludeRules() {
-            if (excludeRules == null) {
-                excludeRules = new LinkedHashSet<ExcludeRule>();
-                for (ExcludeRule excludeRule : moduleDescriptor.getAllExcludeRules()) {
-                    for (String config : excludeRule.getConfigurations()) {
-                        if (hierarchy.contains(config)) {
-                            excludeRules.add(excludeRule);
-                            break;
-                        }
-                    }
-                }
-            }
-            return excludeRules;
-        }
-
-        public Set<ComponentArtifactMetaData> getArtifacts() {
-            if (artifacts == null) {
-                artifacts = getArtifactsForConfiguration(this);
-            }
-            return artifacts;
-        }
     }
 }
