@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.metadata;
 
-import java.util.List;
-
-public interface MutableModuleVersionMetaData extends ModuleVersionMetaData, MutableComponentMetaData {
+public interface MutableComponentMetaData extends ComponentMetaData {
     /**
      * Creates a deep copy of this meta-data.
      */
-    MutableModuleVersionMetaData copy();
-
-    void setChanging(boolean changing);
-    void setStatus(String status);
-    void setStatusScheme(List<String> statusScheme);
-
-    /**
-     * Replaces the dependencies of this module version.
-     */
-    void setDependencies(Iterable<? extends DependencyMetaData> dependencies);
+    MutableComponentMetaData copy();
 }
