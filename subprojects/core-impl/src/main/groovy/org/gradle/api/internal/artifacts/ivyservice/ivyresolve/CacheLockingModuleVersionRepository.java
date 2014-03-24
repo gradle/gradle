@@ -20,8 +20,8 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 /**
  * A wrapper around a {@link ModuleVersionRepository} that handles locking/unlocking the cache.
@@ -59,10 +59,10 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         });
     }
 
-    public void resolveModuleArtifacts(final ModuleVersionMetaData moduleMetaData, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
-        cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", context, moduleMetaData, getId()), new Runnable() {
+    public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
+        cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", context, component, getId()), new Runnable() {
             public void run() {
-                repository.resolveModuleArtifacts(moduleMetaData, context, result);
+                repository.resolveModuleArtifacts(component, context, result);
             }
         });
     }

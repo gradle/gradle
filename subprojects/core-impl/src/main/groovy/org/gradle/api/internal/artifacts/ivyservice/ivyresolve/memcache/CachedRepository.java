@@ -23,7 +23,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 class CachedRepository implements LocalAwareModuleVersionRepository {
     final DependencyMetadataCache cache;
@@ -66,10 +69,10 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
         }
     }
 
-    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        CachedModuleArtifactsKey key = new CachedModuleArtifactsKey(moduleMetaData.getId(), context.getId());
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        CachedModuleArtifactsKey key = new CachedModuleArtifactsKey(component.getId(), context.getId());
         if (!cache.supplyModuleArtifacts(key, result)) {
-            delegate.resolveModuleArtifacts(moduleMetaData, context, result);
+            delegate.resolveModuleArtifacts(component, context, result);
             cache.newModuleArtifacts(key, result);
         }
     }

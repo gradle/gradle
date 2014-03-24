@@ -255,23 +255,24 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return getMetaDataArtifactFor(DefaultModuleVersionIdentifier.newId(dependency.getDescriptor().getDependencyRevisionId()));
     }
 
-    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
         try {
+            ModuleVersionMetaData moduleVersion = (ModuleVersionMetaData) component;
             Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
             if (context instanceof ConfigurationResolveContext) {
                 String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
-                artifacts.addAll(moduleMetaData.getConfiguration(configurationName).getArtifacts());
+                artifacts.addAll(component.getConfiguration(configurationName).getArtifacts());
 
                 // See if there are any optional artifacts for this module
-                artifacts.addAll(getOptionalMainArtifacts(moduleMetaData));
+                artifacts.addAll(getOptionalMainArtifacts(moduleVersion));
             } else {
                 Class<? extends SoftwareArtifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
-                artifacts.addAll(getTypedArtifacts(moduleMetaData, artifactType));
+                artifacts.addAll(getTypedArtifacts(moduleVersion, artifactType));
             }
 
             result.resolved(artifacts);
         } catch (Exception e) {
-            result.failed(new ArtifactResolveException(moduleMetaData.getId(), e));
+            result.failed(new ArtifactResolveException(component.getId(), e));
         }
     }
 

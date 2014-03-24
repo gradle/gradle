@@ -143,16 +143,17 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         return new DefaultArtifact(IvyUtil.createModuleRevisionId(artifact.getModuleVersion()), null, ivyName.getName(), ivyName.getType(), ivyName.getExtension(), ivyName.getAttributes());
     }
 
-    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        ModuleVersionMetaData moduleVersion = (ModuleVersionMetaData) component;
         if (context instanceof ConfigurationResolveContext) {
             String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
-            result.resolved(moduleMetaData.getConfiguration(configurationName).getArtifacts());
+            result.resolved(component.getConfiguration(configurationName).getArtifacts());
         } else {
             Class<? extends SoftwareArtifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
             try {
-                result.resolved(doGetCandidateArtifacts(moduleMetaData, artifactType));
+                result.resolved(doGetCandidateArtifacts(moduleVersion, artifactType));
             } catch (Exception e) {
-                result.failed(new ArtifactResolveException(moduleMetaData.getId(), e));
+                result.failed(new ArtifactResolveException(component.getId(), e));
             }
         }
     }

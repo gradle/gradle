@@ -196,27 +196,27 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         result.resolved(metaData, new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), cachedMetaData.getModuleSource()));
     }
 
-    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, moduleMetaData.getId(), context.getId());
-        final CachingModuleSource cachedModuleSource = (CachingModuleSource) moduleMetaData.getSource();
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), context.getId());
+        final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
         BigInteger moduleDescriptorHash = cachedModuleSource.getDescriptorHash();
 
         if (cachedModuleArtifacts != null) {
-            if (!cachePolicy.mustRefreshModuleArtifacts(moduleMetaData.getId(), null, cachedModuleArtifacts.getAgeMillis(),
-                                                        cachedModuleSource.isChangingModule(), moduleDescriptorHash.equals(cachedModuleArtifacts.getDescriptorHash()))) {
+            if (!cachePolicy.mustRefreshModuleArtifacts(component.getId(), null, cachedModuleArtifacts.getAgeMillis(),
+                    cachedModuleSource.isChangingModule(), moduleDescriptorHash.equals(cachedModuleArtifacts.getDescriptorHash()))) {
                 Set<ModuleVersionArtifactMetaData> artifactMetaDataSet = CollectionUtils.collect(cachedModuleArtifacts.getArtifacts(), new ArtifactIdToMetaData());
                 result.resolved(artifactMetaDataSet);
                 return;
             }
 
-            LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'", context.getDescription(), moduleMetaData.getId(), delegate.getName());
+            LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'", context.getDescription(), component.getId(), delegate.getName());
         }
 
-        delegate.resolveModuleArtifacts(moduleMetaData, context, result);
+        delegate.resolveModuleArtifacts(component, context, result);
 
         if (result.getFailure() == null) {
             Set<ModuleVersionArtifactIdentifier> artifactIdentifierSet = CollectionUtils.collect(result.getArtifacts(), new ArtifactMetaDataToId());
-            moduleArtifactsCache.cacheArtifacts(delegate, moduleMetaData.getId(), context.getId(), moduleDescriptorHash, artifactIdentifierSet);
+            moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), context.getId(), moduleDescriptorHash, artifactIdentifierSet);
         }
     }
 

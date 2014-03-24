@@ -19,7 +19,7 @@ import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
 public class ContextualArtifactResolver implements ArtifactResolver {
     private final CacheLockingManager lockingManager;
@@ -32,12 +32,12 @@ public class ContextualArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolveModuleArtifacts(final ModuleVersionMetaData moduleMetaData, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
-        lockingManager.useCache(String.format("Resolve %s for %s", context.getDescription(), moduleMetaData), new Runnable() {
+    public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
+        lockingManager.useCache(String.format("Resolve %s for %s", context.getDescription(), component), new Runnable() {
             public void run() {
                 ivyContextManager.withIvy(new Action<Ivy>() {
                     public void execute(Ivy ivy) {
-                        delegate.resolveModuleArtifacts(moduleMetaData, context, result);
+                        delegate.resolveModuleArtifacts(component, context, result);
                     }
                 });
             }

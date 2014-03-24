@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
@@ -32,6 +33,8 @@ public interface ComponentMetaData {
      * Returns the identifier for this component.
      */
     ComponentIdentifier getComponentId();
+
+    ModuleVersionIdentifier getId();
 
     /**
      * Returns the source (eg location) for this component.

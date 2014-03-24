@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.internal.Transformers;
 
 import java.util.LinkedHashMap;
@@ -34,8 +34,8 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         repositories.put(repository.getId(), repository);
     }
 
-    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetadata, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        findSourceRepository(moduleMetadata.getSource()).resolveModuleArtifacts(unpackSource(moduleMetadata), context, result);
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        findSourceRepository(component.getSource()).resolveModuleArtifacts(unpackSource(component), context, result);
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource source, BuildableArtifactResolveResult result) {
@@ -58,7 +58,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         return repositorySource(original).getDelegate();
     }
 
-    private ModuleVersionMetaData unpackSource(ModuleVersionMetaData moduleMetadata) {
-        return moduleMetadata.withSource(repositorySource(moduleMetadata.getSource()).getDelegate());
+    private ComponentMetaData unpackSource(ComponentMetaData component) {
+        return component.withSource(repositorySource(component.getSource()).getDelegate());
     }
 }
