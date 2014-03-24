@@ -56,7 +56,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     }
 
     private File resolveMetaDataArtifactFile(ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver dependencyResolver, ArtifactResolver artifactResolver) {
-        BuildableModuleVersionResolveResult moduleVersionResolveResult = new DefaultBuildableModuleVersionResolveResult();
+        BuildableComponentResolveResult moduleVersionResolveResult = new DefaultBuildableComponentResolveResult();
         dependencyResolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(moduleVersionIdentifier), true)), moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();

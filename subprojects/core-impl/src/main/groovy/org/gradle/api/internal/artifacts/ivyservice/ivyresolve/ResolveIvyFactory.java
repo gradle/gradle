@@ -161,7 +161,7 @@ public class ResolveIvyFactory {
             return this;
         }
 
-        public void resolve(final DependencyMetaData dependency, final BuildableModuleVersionResolveResult result) {
+        public void resolve(final DependencyMetaData dependency, final BuildableComponentResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s", dependency), new Runnable() {
                 public void run() {
                     dependencyResolver.resolve(dependency, result);

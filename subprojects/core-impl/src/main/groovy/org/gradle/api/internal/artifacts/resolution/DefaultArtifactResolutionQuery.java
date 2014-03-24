@@ -97,7 +97,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                         throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.", componentId.getDisplayName(), componentId.getClass().getName()));
                     }
                     ModuleComponentIdentifier moduleComponentId = (ModuleComponentIdentifier) componentId;
-                    BuildableModuleVersionResolveResult moduleResolveResult = new DefaultBuildableModuleVersionResolveResult();
+                    BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
                     repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId), true)), moduleResolveResult);
                     ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
 

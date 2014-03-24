@@ -20,11 +20,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
-public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
+public class DefaultBuildableComponentResolveResult implements BuildableComponentResolveResult {
     private ComponentMetaData metaData;
     private ModuleVersionResolveException failure;
 
-    public DefaultBuildableModuleVersionResolveResult failed(ModuleVersionResolveException failure) {
+    public DefaultBuildableComponentResolveResult failed(ModuleVersionResolveException failure) {
         metaData = null;
         this.failure = failure;
         return this;

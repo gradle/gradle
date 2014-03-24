@@ -19,7 +19,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
-public interface ModuleVersionResolveResult {
+public interface ComponentResolveResult {
     /**
      * Returns the module version id of the component.
      *

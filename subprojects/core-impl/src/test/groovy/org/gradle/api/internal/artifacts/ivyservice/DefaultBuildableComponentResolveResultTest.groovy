@@ -23,8 +23,8 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-class DefaultBuildableModuleVersionResolveResultTest extends Specification {
-    def result = new DefaultBuildableModuleVersionResolveResult()
+class DefaultBuildableComponentResolveResultTest extends Specification {
+    def result = new DefaultBuildableComponentResolveResult()
 
     def "can query id and meta-data when resolved"() {
         ModuleVersionIdentifier id = Stub()

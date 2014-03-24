@@ -24,5 +24,5 @@ public interface DependencyToModuleVersionResolver {
     /**
      * Resolves the given dependency to component instance. Failures are packaged up in the returned result.
      */
-    void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result);
+    void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result);
 }

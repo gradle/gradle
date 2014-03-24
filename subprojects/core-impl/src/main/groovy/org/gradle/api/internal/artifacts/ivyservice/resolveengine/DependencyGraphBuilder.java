@@ -60,7 +60,7 @@ public class DependencyGraphBuilder {
     public void resolve(ConfigurationInternal configuration,
                         ResolutionResultBuilder newModelBuilder,
                         ResolvedConfigurationBuilder oldModelBuilder) throws ResolveException {
-        DefaultBuildableModuleVersionResolveResult rootModule = new DefaultBuildableModuleVersionResolveResult();
+        DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
         ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, artifactResolver, oldModelBuilder);
@@ -422,7 +422,7 @@ public class DependencyGraphBuilder {
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
-        public ResolveState(ModuleVersionResolveResult rootResult, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver,
+        public ResolveState(ComponentResolveResult rootResult, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver,
                             DependencyToConfigurationResolver dependencyToConfigurationResolver, ArtifactResolver artifactResolver, ResolvedConfigurationBuilder builder) {
             this.resolver = resolver;
             this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
@@ -603,7 +603,7 @@ public class DependencyGraphBuilder {
         ModuleState state = ModuleState.New;
         ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
         ModuleVersionIdResolveResult idResolveResult;
-        ModuleVersionResolveResult resolveResult;
+        ComponentResolveResult resolveResult;
         ModuleVersionResolveException failure;
 
         private ModuleVersionResolveState(ModuleResolveState module, ModuleVersionIdentifier id, ResolveState resolveState) {
@@ -641,7 +641,7 @@ public class DependencyGraphBuilder {
             }
         }
 
-        public ModuleVersionResolveResult resolve() {
+        public ComponentResolveResult resolve() {
             if (resolveResult != null) {
                 return resolveResult;
             }
@@ -665,7 +665,7 @@ public class DependencyGraphBuilder {
             return metaData;
         }
 
-        public void setResolveResult(ModuleVersionResolveResult resolveResult) {
+        public void setResolveResult(ComponentResolveResult resolveResult) {
             this.resolveResult = resolveResult;
             this.metaData = resolveResult.getMetaData();
             this.failure = null;

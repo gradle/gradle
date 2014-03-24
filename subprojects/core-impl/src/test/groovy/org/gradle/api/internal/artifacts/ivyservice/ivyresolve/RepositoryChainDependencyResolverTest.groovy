@@ -22,7 +22,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
@@ -44,7 +44,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         }
     }
     final Transformer<ModuleVersionMetaData, RepositoryChainModuleResolution> transformer = Mock(Transformer)
-    final result = Mock(BuildableModuleVersionResolveResult)
+    final result = Mock(BuildableComponentResolveResult)
     final moduleSource = Mock(ModuleSource)
 
     final RepositoryChainDependencyResolver resolver = new RepositoryChainDependencyResolver(matcher, latestStrategy, transformer)

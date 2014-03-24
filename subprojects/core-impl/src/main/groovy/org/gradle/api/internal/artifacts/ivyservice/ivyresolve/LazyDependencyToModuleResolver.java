@@ -51,7 +51,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
 
     private abstract class AbstractVersionResolveResult implements ModuleVersionIdResolveResult {
         final DependencyMetaData dependency;
-        private BuildableModuleVersionResolveResult resolveResult;
+        private BuildableComponentResolveResult resolveResult;
 
         public AbstractVersionResolveResult(DependencyMetaData dependency) {
             this.dependency = dependency;
@@ -61,9 +61,9 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return null;
         }
 
-        public ModuleVersionResolveResult resolve() {
+        public ComponentResolveResult resolve() {
             if (resolveResult == null) {
-                resolveResult = new DefaultBuildableModuleVersionResolveResult();
+                resolveResult = new DefaultBuildableComponentResolveResult();
                 try {
                     try {
                         dependencyResolver.resolve(dependency, resolveResult);

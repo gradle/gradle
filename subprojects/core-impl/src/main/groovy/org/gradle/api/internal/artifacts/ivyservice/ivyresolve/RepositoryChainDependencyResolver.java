@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
@@ -54,7 +54,7 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
         moduleVersionRepositoryNames.add(repository.getName());
     }
 
-    public void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result) {
+    public void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
         LOGGER.debug("Attempting to resolve module '{}' using repositories {}", requested, moduleVersionRepositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
