@@ -50,9 +50,9 @@ class SonarRunner extends DefaultTask {
     Properties sonarProperties
 
     /**
-     * Specify if the analysis should be run in a separated process
+     * Specify if the analysis should be run in a separate process.
      */
-    boolean fork = false
+    boolean fork
 
     private JavaExecHandleBuilder forkOptions
 
@@ -80,6 +80,9 @@ class SonarRunner extends DefaultTask {
         runner.execute()
     }
 
+    /**
+     * Returns options for running the analysis in a child process.
+     */
     JavaForkOptions getForkOptions() {
         return forkOptions
     }
