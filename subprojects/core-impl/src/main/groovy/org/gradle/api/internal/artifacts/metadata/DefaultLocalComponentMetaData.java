@@ -55,7 +55,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         moduleDescriptor.addArtifact(configuration, artifact);
         DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(componentIdentifier, id, artifact, file);
         artifactsById.put(artifactMetaData.id, artifactMetaData);
-        artifactsById.put(artifactMetaData.selectorId, artifactMetaData);
         artifactsByConfig.put(configuration, artifactMetaData);
         artifactsByIvy.put(artifact.getId(), artifactMetaData);
     }
@@ -83,22 +82,22 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData {
         private final ComponentIdentifier componentIdentifier;
         private final DefaultModuleVersionArtifactIdentifier id;
-        private final ModuleVersionArtifactIdentifier selectorId;
         private final Artifact artifact;
         private final File file;
 
         private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
             this.componentIdentifier = componentIdentifier;
-            // Local artifact has two 'identifiers' - The first is used to identify it uniquely, and uses (name, type, extension, file-path, custom-attrs) as the
-            // identifier. Mostly these are all included for backwards compatibility. The second is used to identify the artifact when using an artifact override
-            // in a project dependency. The second identifier isn't necessarily unique.
             Map<String, String> attrs = new HashMap<String, String>();
             attrs.putAll(artifact.getExtraAttributes());
             attrs.put("file", file == null ? "null" : file.getAbsolutePath());
             this.id = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
-            this.selectorId = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifact);
             this.artifact = artifact;
             this.file = file;
+        }
+
+        @Override
+        public String toString() {
+            return id.toString();
         }
 
         public IvyArtifactName getName() {
