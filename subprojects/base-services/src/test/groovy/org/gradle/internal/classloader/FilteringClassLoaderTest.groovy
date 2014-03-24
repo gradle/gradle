@@ -235,7 +235,10 @@ class FilteringClassLoaderTest extends Specification {
         } catch (ClassNotFoundException expected) {}
     }
 
-    @Requires(TestPrecondition.JDK6_OR_LATER) // Using a mock for ClassLoader fails with a SecurityException on 1.5
+    @Requires([
+        TestPrecondition.JDK6_OR_LATER, // Using a mock for ClassLoader fails with a SecurityException on 1.5
+        TestPrecondition.NOT_JDK_IBM // Using a mock for ClassLoader fails with a SecurityException on IDM JDK
+    ])
     def "does not attempt to load not allowed class"() {
         given:
         def parent = Mock(ClassLoader)
