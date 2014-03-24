@@ -39,7 +39,7 @@ public interface DependencyMetaData {
      * Returns the artifacts defined by this dependency, if any.
      */
     // TODO:ADAM - fromConfiguration should be implicit in this metadata
-    Set<ModuleVersionArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration);
+    Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration);
 
     /**
      * Returns a copy of this dependency with the given requested version.

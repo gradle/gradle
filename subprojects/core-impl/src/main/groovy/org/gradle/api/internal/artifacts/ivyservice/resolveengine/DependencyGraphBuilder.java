@@ -31,7 +31,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Interna
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
-import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,7 +149,7 @@ public class DependencyGraphBuilder {
      */
     private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder oldModelBuilder, ResolutionResultBuilder newModelBuilder) {
         FailureState failureState = new FailureState(resolveState.root);
-        newModelBuilder.start(resolveState.root.moduleRevision.id, resolveState.root.metaData.getModuleVersion().getComponentId());
+        newModelBuilder.start(resolveState.root.moduleRevision.id, resolveState.root.metaData.getComponent().getComponentId());
 
         // Visit the nodes
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
@@ -348,13 +351,13 @@ public class DependencyGraphBuilder {
         }
 
         private Set<ResolvedArtifact> getArtifacts(ConfigurationNode childConfiguration) {
-            Set<ModuleVersionArtifactMetaData> dependencyArtifacts = dependencyMetaData.getArtifacts(from.metaData, childConfiguration.metaData);
+            Set<ComponentArtifactMetaData> dependencyArtifacts = dependencyMetaData.getArtifacts(from.metaData, childConfiguration.metaData);
             if (dependencyArtifacts.isEmpty()) {
                 return Collections.emptySet();
             }
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-            for (ModuleVersionArtifactMetaData artifact : dependencyArtifacts) {
-                artifacts.add(resolveState.builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getModuleVersion(), artifact));
+            for (ComponentArtifactMetaData artifact : dependencyArtifacts) {
+                artifacts.add(resolveState.builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getComponent(), artifact));
             }
             return artifacts;
         }
@@ -723,10 +726,10 @@ public class DependencyGraphBuilder {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
 
                 BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
-                resolveState.artifactResolver.resolveModuleArtifacts(metaData.getModuleVersion(), new ConfigurationResolveContext(metaData.getName()), result);
+                resolveState.artifactResolver.resolveModuleArtifacts(metaData.getComponent(), new ConfigurationResolveContext(metaData.getName()), result);
 
                 for (ComponentArtifactMetaData artifact : result.getArtifacts()) {
-                    artifacts.add(resolveState.builder.newArtifact(id, metaData.getModuleVersion(), artifact));
+                    artifacts.add(resolveState.builder.newArtifact(id, metaData.getComponent(), artifact));
                 }
             }
             return artifacts;

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
 import java.util.Set;
@@ -26,6 +27,8 @@ public interface ModuleVersionMetaData extends ComponentMetaData {
     ModuleVersionMetaData withSource(ModuleSource source);
 
     Set<ModuleVersionArtifactMetaData> getArtifacts();
+
+    ModuleVersionArtifactMetaData artifact(Artifact artifact);
 
     // TODO:DAZ This is not set correctly when read from cache
     boolean isMetaDataOnly();

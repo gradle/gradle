@@ -161,7 +161,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     public Set<ModuleVersionArtifactMetaData> doGetCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
         if (artifactType == ComponentMetaDataArtifact.class) {
             Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
-            return ImmutableSet.<ModuleVersionArtifactMetaData>of(new DefaultModuleVersionArtifactMetaData(module, metadataArtifact));
+            return ImmutableSet.of(module.artifact(metadataArtifact));
         }
 
         return new MavenClassifierArtifactScheme().get(module, artifactType);

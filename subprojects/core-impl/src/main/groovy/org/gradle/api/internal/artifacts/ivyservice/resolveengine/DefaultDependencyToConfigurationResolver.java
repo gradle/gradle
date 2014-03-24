@@ -47,7 +47,7 @@ public class DefaultDependencyToConfigurationResolver implements DependencyToCon
             // TODO - move this down below
             if (targetDescriptor.getConfiguration(targetConfigurationName) == null) {
                 throw new RuntimeException(String.format("Module version %s, configuration '%s' declares a dependency on configuration '%s' which is not declared in the module descriptor for %s",
-                        fromConfiguration.getModuleVersion().getId(), fromConfiguration.getName(),
+                        fromConfiguration.getComponent().getId(), fromConfiguration.getName(),
                         targetConfigurationName, targetComponent.getId()));
             }
             ConfigurationMetaData targetConfiguration = targetComponent.getConfiguration(targetConfigurationName);

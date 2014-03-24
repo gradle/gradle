@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Downloaded
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
@@ -90,7 +89,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
         if (artifactType == ComponentMetaDataArtifact.class) {
             Artifact ivyArtifact = DefaultArtifact.newIvyArtifact(IvyUtil.createModuleRevisionId(module.getId()), new Date());
-            return ImmutableSet.of(new DefaultModuleVersionArtifactMetaData(module, ivyArtifact));
+            return ImmutableSet.of(module.artifact(ivyArtifact));
         }
 
         throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));

@@ -169,7 +169,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         return configuration;
     }
 
-    public ComponentArtifactMetaData artifact(Artifact artifact) {
+    public ModuleVersionArtifactMetaData artifact(Artifact artifact) {
         return new DefaultModuleVersionArtifactMetaData(this, artifact);
     }
 
@@ -215,7 +215,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
             return String.format("%s:%s", moduleVersionIdentifier, name);
         }
 
-        public ModuleVersionMetaData getModuleVersion() {
+        public ModuleVersionMetaData getComponent() {
             return ModuleDescriptorAdapter.this;
         }
 
