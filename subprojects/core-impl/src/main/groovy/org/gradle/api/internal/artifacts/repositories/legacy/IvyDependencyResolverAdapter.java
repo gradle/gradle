@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.legacy;
 import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
@@ -117,7 +116,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        Artifact ivyArtifact = createIvyArtifact((ModuleVersionArtifactMetaData) artifact);
+        Artifact ivyArtifact = ((ModuleVersionArtifactMetaData) artifact).toIvyArtifact();
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
@@ -135,12 +134,6 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         } else {
             result.notFound(artifact.getId());
         }
-    }
-
-    private Artifact createIvyArtifact(ModuleVersionArtifactMetaData artifact) {
-        // TODO:DAZ Should really be looking up the Ivy Artifact from the ModuleDescriptor, to ensure we're not losing anything here, like URL or publication date.
-        IvyArtifactName ivyName = artifact.getName();
-        return new DefaultArtifact(IvyUtil.createModuleRevisionId(artifact.getModuleVersion()), null, ivyName.getName(), ivyName.getType(), ivyName.getExtension(), ivyName.getAttributes());
     }
 
     public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {

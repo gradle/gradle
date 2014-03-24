@@ -17,13 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 
@@ -53,7 +51,7 @@ public class IvyResolverBackedModuleVersionPublisher implements ModuleVersionPub
             ModuleRevisionId ivyId = IvyUtil.createModuleRevisionId(id.getGroup(), id.getName(), id.getVersion());
             resolver.beginPublishTransaction(ivyId, true);
             for (ModuleVersionArtifactPublishMetaData artifactMetaData : moduleVersion.getArtifacts()) {
-                Artifact artifact = createIvyArtifact(ivyId, artifactMetaData);
+                Artifact artifact = artifactMetaData.toIvyArtifact();
                 File artifactFile = artifactMetaData.getFile();
                 resolver.publish(artifact, artifactFile, true);
             }
@@ -66,9 +64,4 @@ public class IvyResolverBackedModuleVersionPublisher implements ModuleVersionPub
         }
     }
 
-    private Artifact createIvyArtifact(ModuleRevisionId moduleRevisionId, ModuleVersionArtifactPublishMetaData artifact) {
-        // TODO:DAZ Should really be looking up the Ivy Artifact from the ModuleDescriptor, to ensure we're not losing anything here, like URL or publication date.
-        IvyArtifactName ivyName = artifact.getArtifactName();
-        return new DefaultArtifact(moduleRevisionId, null, ivyName.getName(), ivyName.getType(), ivyName.getExtension(), ivyName.getAttributes());
-    }
 }

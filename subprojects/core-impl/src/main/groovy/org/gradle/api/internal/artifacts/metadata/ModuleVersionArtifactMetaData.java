@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ArtifactIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 /**
  * Meta-data for an artifact that belongs to some module version.
@@ -26,9 +26,9 @@ public interface ModuleVersionArtifactMetaData extends ComponentArtifactMetaData
     ModuleVersionArtifactIdentifier getId();
 
     /**
-     * Returns the module version that this artifact belongs to.
+     * Converts this artifact to an Ivy artifact. This method is here while we transition away from the Ivy types.
      */
-    ModuleVersionIdentifier getModuleVersion();
+    Artifact toIvyArtifact();
 
     /**
      * Produces an ArtifactIdentifier for this artifact (it's not actually an identifier - just a bucket of attributes).
