@@ -37,7 +37,8 @@ public interface ComponentMetaData {
 
     /**
      * Returns the module version identifier for this component. This is a legacy identifier and is here while we transition the meta-data away from ivy-like
-     * module versions to the more general component instances.
+     * module versions to the more general component instances. Currently, the module version and component identifiers are used interchangeably, however, over
+     * time more things will use the component identifier. At some point, the module version identifier will become optional for a component.
      */
     ModuleVersionIdentifier getId();
 
