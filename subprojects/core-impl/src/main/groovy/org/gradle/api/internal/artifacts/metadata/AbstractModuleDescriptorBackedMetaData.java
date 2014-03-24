@@ -24,7 +24,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.*;
 
-public abstract class AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
+public abstract class AbstractModuleDescriptorBackedMetaData implements ComponentMetaData {
     private static final List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
 
     private final ModuleVersionIdentifier moduleVersionIdentifier;
@@ -32,12 +32,10 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements MutableM
     private final ComponentIdentifier componentIdentifier;
     private ModuleSource moduleSource;
     private boolean changing;
-    private boolean metaDataOnly;
     private String status;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private List<DependencyMetaData> dependencies;
     private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
-    private Set<ModuleVersionArtifactMetaData> artifacts;
 
     public AbstractModuleDescriptorBackedMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ComponentIdentifier componentIdentifier) {
         this.moduleVersionIdentifier = moduleVersionIdentifier;
@@ -49,7 +47,6 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements MutableM
     protected void copyTo(AbstractModuleDescriptorBackedMetaData copy) {
         copy.dependencies = dependencies;
         copy.changing = changing;
-        copy.metaDataOnly = metaDataOnly;
         copy.status = status;
         copy.statusScheme = statusScheme;
         copy.moduleSource = moduleSource;
@@ -80,10 +77,6 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements MutableM
         return changing;
     }
 
-    public boolean isMetaDataOnly() {
-        return metaDataOnly;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -98,10 +91,6 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements MutableM
 
     public void setChanging(boolean changing) {
         this.changing = changing;
-    }
-
-    public void setMetaDataOnly(boolean metaDataOnly) {
-        this.metaDataOnly = metaDataOnly;
     }
 
     public void setStatus(String status) {
@@ -147,32 +136,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements MutableM
         return configuration;
     }
 
-    public ModuleVersionArtifactMetaData artifact(Artifact artifact) {
-        return new DefaultModuleVersionArtifactMetaData(this, artifact);
-    }
-
-    public Set<ModuleVersionArtifactMetaData> getArtifacts() {
-        if (artifacts == null) {
-            artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
-            for (Artifact artifact : moduleDescriptor.getAllArtifacts()) {
-                artifacts.add(new DefaultModuleVersionArtifactMetaData(this, artifact));
-            }
-        }
-        return artifacts;
-    }
-
-    protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-        Set<Artifact> artifacts = new HashSet<Artifact>();
-        Set<ComponentArtifactMetaData> artifactMetaData = new LinkedHashSet<ComponentArtifactMetaData>();
-        for (String ancestor : configurationMetaData.getHierarchy()) {
-            for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-                if (artifacts.add(artifact)) {
-                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(this, artifact));
-                }
-            }
-        }
-        return artifactMetaData;
-    }
+    protected abstract Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configuration);
 
     private class DefaultConfigurationMetaData implements ConfigurationMetaData {
         private final String name;
@@ -193,7 +157,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements MutableM
             return String.format("%s:%s", moduleVersionIdentifier, name);
         }
 
-        public ModuleVersionMetaData getComponent() {
+        public ComponentMetaData getComponent() {
             return AbstractModuleDescriptorBackedMetaData.this;
         }
 

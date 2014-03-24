@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -25,7 +26,13 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
+    private boolean metaDataOnly;
+    private Set<ModuleVersionArtifactMetaData> artifacts;
 
     public static ModuleDescriptorAdapter defaultForDependency(DependencyMetaData dependencyMetaData) {
         DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
@@ -50,6 +57,7 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
         ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(getId(), getDescriptor(), getComponentId());
         copyTo(copy);
+        copy.metaDataOnly = metaDataOnly;
         return copy;
     }
 
@@ -58,4 +66,40 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         copy.setModuleSource(source);
         return copy;
     }
+
+    public boolean isMetaDataOnly() {
+        return metaDataOnly;
+    }
+
+    public void setMetaDataOnly(boolean metaDataOnly) {
+        this.metaDataOnly = metaDataOnly;
+    }
+
+    public ModuleVersionArtifactMetaData artifact(Artifact artifact) {
+        return new DefaultModuleVersionArtifactMetaData(this, artifact);
+    }
+
+    public Set<ModuleVersionArtifactMetaData> getArtifacts() {
+        if (artifacts == null) {
+            artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+            for (Artifact artifact : getDescriptor().getAllArtifacts()) {
+                artifacts.add(artifact(artifact));
+            }
+        }
+        return artifacts;
+    }
+
+    protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
+        Set<Artifact> artifacts = new HashSet<Artifact>();
+        Set<ComponentArtifactMetaData> artifactMetaData = new LinkedHashSet<ComponentArtifactMetaData>();
+        for (String ancestor : configurationMetaData.getHierarchy()) {
+            for (Artifact artifact : getDescriptor().getArtifacts(ancestor)) {
+                if (artifacts.add(artifact)) {
+                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(this, artifact));
+                }
+            }
+        }
+        return artifactMetaData;
+    }
+
 }

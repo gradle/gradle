@@ -20,6 +20,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -30,6 +31,7 @@ import java.util.*;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
     private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = new LinkedHashMap<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData>();
+    private final Map<ArtifactRevisionId, DefaultLocalArtifactMetaData> artifactsByIvy = new LinkedHashMap<ArtifactRevisionId, DefaultLocalArtifactMetaData>();
     private final Multimap<String, DefaultLocalArtifactMetaData> artifactsByConfig = LinkedHashMultimap.create();
     private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
@@ -55,6 +57,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         artifactsById.put(artifactMetaData.id, artifactMetaData);
         artifactsById.put(artifactMetaData.selectorId, artifactMetaData);
         artifactsByConfig.put(configuration, artifactMetaData);
+        artifactsByIvy.put(artifact.getId(), artifactMetaData);
     }
 
     public Collection<? extends LocalArtifactMetaData> getArtifacts() {
@@ -65,31 +68,8 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return artifactsById.get(artifactIdentifier);
     }
 
-    public ModuleVersionMetaData toResolveMetaData() {
-        // TODO:ADAM - need to clone the descriptor
-        return new AbstractModuleDescriptorBackedMetaData(id, moduleDescriptor, componentIdentifier) {
-            public MutableModuleVersionMetaData copy() {
-                throw new UnsupportedOperationException();
-            }
-
-            public ModuleVersionMetaData withSource(ModuleSource source) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-                Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
-                Set<ModuleVersionArtifactIdentifier> seen = new HashSet<ModuleVersionArtifactIdentifier>();
-                for (String configName : configurationMetaData.getHierarchy()) {
-                    for (DefaultLocalArtifactMetaData localArtifactMetaData : artifactsByConfig.get(configName)) {
-                        if (seen.add(localArtifactMetaData.id)) {
-                            result.add(localArtifactMetaData);
-                        }
-                    }
-                }
-                return result;
-            }
-        };
+    public ComponentMetaData toResolveMetaData() {
+        return new LocalComponentResolveMetaData();
     }
 
     public BuildableModuleVersionPublishMetaData toPublishMetaData() {
@@ -114,7 +94,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             // in a project dependency. The second identifier isn't necessarily unique.
             Map<String, String> attrs = new HashMap<String, String>();
             attrs.putAll(artifact.getExtraAttributes());
-            attrs.put("file", file.getAbsolutePath());
+            attrs.put("file", file == null ? "null" : file.getAbsolutePath());
             this.id = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
             this.selectorId = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifact);
             this.artifact = artifact;
@@ -135,6 +115,44 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
         public File getFile() {
             return file;
+        }
+    }
+
+    private class LocalComponentResolveMetaData extends AbstractModuleDescriptorBackedMetaData {
+        public LocalComponentResolveMetaData() {
+            // TODO:ADAM - need to clone the descriptor
+            super(id, moduleDescriptor, componentIdentifier);
+        }
+
+        public MutableModuleVersionMetaData copy() {
+            throw new UnsupportedOperationException();
+        }
+
+        public ModuleVersionMetaData withSource(ModuleSource source) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ComponentArtifactMetaData artifact(Artifact artifact) {
+            DefaultLocalArtifactMetaData candidate = artifactsByIvy.get(artifact.getId());
+            return candidate != null ? candidate : new DefaultLocalArtifactMetaData(componentIdentifier, id, artifact, null);
+        }
+
+        public Set<ComponentArtifactMetaData> getArtifacts() {
+            return new LinkedHashSet<ComponentArtifactMetaData>(artifactsById.values());
+        }
+
+        @Override
+        protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
+            Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
+            Set<ModuleVersionArtifactIdentifier> seen = new HashSet<ModuleVersionArtifactIdentifier>();
+            for (String configName : configurationMetaData.getHierarchy()) {
+                for (DefaultLocalArtifactMetaData localArtifactMetaData : artifactsByConfig.get(configName)) {
+                    if (seen.add(localArtifactMetaData.id)) {
+                        result.add(localArtifactMetaData);
+                    }
+                }
+            }
+            return result;
         }
     }
 }

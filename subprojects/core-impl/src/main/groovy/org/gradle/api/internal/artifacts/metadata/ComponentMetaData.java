@@ -74,7 +74,7 @@ public interface ComponentMetaData {
     /**
      * Returns the known artifacts for this component. There may be additional component available that are not included in this set.
      */
-    Set<ModuleVersionArtifactMetaData> getArtifacts();
+    Set<? extends ComponentArtifactMetaData> getArtifacts();
 
     boolean isChanging();
 
