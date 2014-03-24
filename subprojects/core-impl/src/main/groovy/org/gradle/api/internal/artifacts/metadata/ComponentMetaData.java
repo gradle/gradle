@@ -16,7 +16,13 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * The meta-data for a component instance that is required during dependency resolution.
@@ -26,4 +32,39 @@ public interface ComponentMetaData {
      * Returns the identifier for this component.
      */
     ComponentIdentifier getComponentId();
+
+    /**
+     * Returns the source (eg location) for this component.
+     */
+    ModuleSource getSource();
+
+    /**
+     * Makes a copy of this meta-data with the given source.
+     */
+    ComponentMetaData withSource(ModuleSource source);
+
+    /**
+     * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
+     * and will be removed.
+     */
+    ModuleDescriptor getDescriptor();
+
+    List<DependencyMetaData> getDependencies();
+
+    /**
+     * Locates the configuration with the given name, if any.
+     */
+    @Nullable
+    ConfigurationMetaData getConfiguration(String name);
+
+    /**
+     * Returns the known artifacts for this component. There may be additional component available that are not included in this set.
+     */
+    Set<ModuleVersionArtifactMetaData> getArtifacts();
+
+    boolean isChanging();
+
+    String getStatus();
+
+    List<String> getStatusScheme();
 }
