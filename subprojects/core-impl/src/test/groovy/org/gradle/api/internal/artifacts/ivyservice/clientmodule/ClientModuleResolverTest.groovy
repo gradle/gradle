@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
@@ -37,7 +37,7 @@ class ClientModuleResolverTest extends Specification {
     def "replaces meta-data for a client module dependency"() {
         ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
         DependencyMetaData dependencyMetaData = Mock()
-        BuildableModuleVersionResolveResult result = Mock()
+        BuildableComponentResolveResult result = Mock()
         ModuleVersionMetaData resolvedMetaData = Mock()
 
         given:
@@ -62,7 +62,7 @@ class ClientModuleResolverTest extends Specification {
     def "does not replace meta-data for unknown module version"() {
         DependencyDescriptor dependencyDescriptor = Mock()
         DependencyMetaData dependencyMetaData = Mock()
-        BuildableModuleVersionResolveResult result = Mock()
+        BuildableComponentResolveResult result = Mock()
 
         given:
         _ * dependencyMetaData.descriptor >> dependencyDescriptor
@@ -79,7 +79,7 @@ class ClientModuleResolverTest extends Specification {
     def "does not replace meta-data for broken module version"() {
         ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
         DependencyMetaData dependencyMetaData = Mock()
-        BuildableModuleVersionResolveResult result = Mock()
+        BuildableComponentResolveResult result = Mock()
 
         given:
         _ * dependencyMetaData.descriptor >> dependencyDescriptor

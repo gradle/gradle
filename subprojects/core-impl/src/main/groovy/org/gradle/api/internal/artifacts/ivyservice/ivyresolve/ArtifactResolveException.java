@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.util.GUtil;
@@ -27,12 +27,12 @@ public class ArtifactResolveException extends GradleException {
         super(message);
     }
 
-    public ArtifactResolveException(ModuleVersionIdentifier module, Throwable cause) {
-        super(format(module, ""), cause);
+    public ArtifactResolveException(ComponentIdentifier component, Throwable cause) {
+        super(format(component, ""), cause);
     }
 
-    public ArtifactResolveException(ModuleVersionIdentifier module, String message) {
-        super(format(module, message));
+    public ArtifactResolveException(ComponentIdentifier component, String message) {
+        super(format(component, message));
     }
 
     public ArtifactResolveException(ComponentArtifactIdentifier artifact, Throwable cause) {
@@ -55,10 +55,10 @@ public class ArtifactResolveException extends GradleException {
         return builder.toString();
     }
 
-    private static String format(ModuleVersionIdentifier module, String message) {
+    private static String format(ComponentIdentifier component, String message) {
         StringBuilder builder = new StringBuilder();
-        builder.append("Could not determine artifacts for module '");
-        builder.append(module);
+        builder.append("Could not determine artifacts for component '");
+        builder.append(component.getDisplayName());
         builder.append("'");
         if (GUtil.isTrue(message)) {
             builder.append(": ");

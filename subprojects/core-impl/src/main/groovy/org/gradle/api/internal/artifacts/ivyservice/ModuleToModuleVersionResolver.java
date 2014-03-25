@@ -25,5 +25,5 @@ import java.util.Set;
  * Resolves a module to the meta-data for a module.
  */
 public interface ModuleToModuleVersionResolver {
-    void resolve(ModuleInternal module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result);
+    void resolve(ModuleInternal module, Set<? extends Configuration> configurations, BuildableComponentResolveResult result);
 }

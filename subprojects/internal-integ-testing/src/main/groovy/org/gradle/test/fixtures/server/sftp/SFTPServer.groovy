@@ -16,8 +16,6 @@
 
 package org.gradle.test.fixtures.server.sftp
 
-import com.jcraft.jsch.JSch
-import com.jcraft.jsch.UserInfo
 import org.apache.commons.io.FileUtils
 import org.apache.sshd.SshServer
 import org.apache.sshd.common.NamedFactory
@@ -31,6 +29,7 @@ import org.apache.sshd.server.session.ServerSession
 import org.apache.sshd.server.sftp.SftpSubsystem
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.AvailablePortFinder
 import org.junit.rules.ExternalResource
 
 import java.security.PublicKey
@@ -44,13 +43,12 @@ class SFTPServer extends ExternalResource {
     private TestFile configDir
 
     private SshServer sshd;
-    private com.jcraft.jsch.Session session
 
     def fileRequests = [] as Set
 
     public SFTPServer(TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider;
-        def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+        def portFinder = AvailablePortFinder.createPrivate()
         port = portFinder.nextAvailable
         this.hostAddress = "127.0.0.1"
     }
@@ -61,42 +59,10 @@ class SFTPServer extends ExternalResource {
 
         sshd = setupConfiguredTestSshd();
         sshd.start();
-        createSshSession();
     }
 
     protected void after() {
-        session?.disconnect();
         sshd?.stop()
-    }
-
-    private createSshSession() {
-        JSch sch = new JSch();
-        session = sch.getSession("sshd", "localhost", port);
-        session.setUserInfo(new UserInfo() {
-            public String getPassphrase() {
-                return null;
-            }
-
-            public String getPassword() {
-                return "sshd";
-            }
-
-            public boolean promptPassword(String message) {
-                return true;
-            }
-
-            public boolean promptPassphrase(String message) {
-                return false;
-            }
-
-            public boolean promptYesNo(String message) {
-                return true;
-            }
-
-            public void showMessage(String message) {
-            }
-        });
-        session.connect()
     }
 
     private SshServer setupConfiguredTestSshd() {
@@ -141,7 +107,7 @@ class SFTPServer extends ExternalResource {
 
     static class DummyPasswordAuthenticator implements PasswordAuthenticator {
         // every combination where username == password is accepted
-        boolean authenticate(String username, String password, org.apache.sshd.server.session.ServerSession session) {
+        boolean authenticate(String username, String password, ServerSession session) {
             return username && password && username == password;
         }
     }

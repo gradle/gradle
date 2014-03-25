@@ -29,6 +29,7 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.search.ModuleEntry;
 import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
@@ -39,13 +40,15 @@ import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
@@ -60,7 +63,7 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, DependencyResolver {
+public abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, DependencyResolver, ModuleVersionPublisher {
     
     private ArtifactPomContainer artifactPomContainer;
 
@@ -85,7 +88,7 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
     }
 
     public ModuleVersionPublisher createPublisher() {
-        return new IvyResolverBackedModuleVersionPublisher(this);
+        return this;
     }
 
     public DependencyResolver createLegacyDslObject() {
@@ -155,6 +158,30 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
     }
 
     public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    public void beginPublishTransaction(ModuleRevisionId module, boolean overwrite) throws IOException {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    public void abortPublishTransaction() throws IOException {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    public void commitPublishTransaction() throws IOException {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    public void publish(ModuleVersionPublishMetaData moduleVersion) {
+        ModuleVersionIdentifier id = moduleVersion.getId();
+        for (ModuleVersionArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
+            collectArtifact(artifact.toIvyArtifact(), artifact.getFile());
+        }
+        publish();
+    }
+
+    private void collectArtifact(Artifact artifact, File src) {
         if (isIgnorable(artifact)) {
             return;
         }
@@ -165,15 +192,7 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         return artifact.getType().equals("ivy");
     }
 
-    public void beginPublishTransaction(ModuleRevisionId module, boolean overwrite) throws IOException {
-        // do nothing
-    }
-
-    public void abortPublishTransaction() throws IOException {
-        // do nothing
-    }
-
-    public void commitPublishTransaction() throws IOException {
+    private void publish() {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         mavenSettingsSupplier.supply(installDeployTaskSupport);
@@ -216,16 +235,16 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         // do nothing
     }
 
+    public void setSettings(IvySettings settings) {
+        // do nothing
+    }
+
     public RepositoryCacheManager getRepositoryCacheManager() {
         return new NoOpRepositoryCacheManager(getName());
     }
 
     public ArtifactPomContainer getArtifactPomContainer() {
         return artifactPomContainer;
-    }
-
-    public void setArtifactPomContainer(ArtifactPomContainer artifactPomContainer) {
-        this.artifactPomContainer = artifactPomContainer;
     }
 
     public Settings getSettings() {
@@ -282,10 +301,6 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
 
     public PomFilterContainer getPomFilterContainer() {
         return pomFilterContainer;
-    }
-
-    public void setPomFilterContainer(PomFilterContainer pomFilterContainer) {
-        this.pomFilterContainer = pomFilterContainer;
     }
 
     public void beforeDeployment(Action<? super MavenDeployment> action) {

@@ -183,7 +183,7 @@ class FilteringClassLoaderTest extends Specification {
         classLoader.visit(visitor)
 
         then:
-        1 * visitor.visitSpec({it instanceof FilteringClassLoader.Spec}) >> { FilteringClassLoader.Spec spec ->
+        1 * visitor.visitSpec({ it instanceof FilteringClassLoader.Spec }) >> { FilteringClassLoader.Spec spec ->
             spec.classNames == [Test.name]
             spec.disallowedClassNames == [Before.name]
             spec.packageNames == ["org.junit"]
@@ -235,13 +235,9 @@ class FilteringClassLoaderTest extends Specification {
         } catch (ClassNotFoundException expected) {}
     }
 
-    @Requires([
-        TestPrecondition.JDK6_OR_LATER, // Using a mock for ClassLoader fails with a SecurityException on 1.5
-        TestPrecondition.NOT_JDK_IBM // Using a mock for ClassLoader fails with a SecurityException on IDM JDK
-    ])
     def "does not attempt to load not allowed class"() {
         given:
-        def parent = Mock(ClassLoader)
+        def parent = Mock(ClassLoader, useObjenesis: false)
         def loader = new FilteringClassLoader(parent)
 
         and:

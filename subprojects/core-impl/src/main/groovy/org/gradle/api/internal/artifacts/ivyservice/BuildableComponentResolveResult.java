@@ -17,26 +17,26 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
-public interface BuildableModuleVersionResolveResult extends ModuleVersionResolveResult {
+public interface BuildableComponentResolveResult extends ComponentResolveResult {
     /**
-     * Marks the module version as resolved, with the given meta-data and artifact resolver.
+     * Marks the component as resolved, with the given meta-data.
      */
-    void resolved(ModuleVersionMetaData metaData);
+    void resolved(ComponentMetaData metaData);
 
     /**
      * Marks the resolve as failed with the given exception.
      */
-    BuildableModuleVersionResolveResult failed(ModuleVersionResolveException failure);
+    BuildableComponentResolveResult failed(ModuleVersionResolveException failure);
 
     /**
-     * Marks the module version as not found.
+     * Marks the component as not found.
      */
     void notFound(ModuleVersionSelector versionSelector);
 
     /**
      * Replaces the meta-data in the result. Result must already be resolved.
      */
-    void setMetaData(ModuleVersionMetaData metaData);
+    void setMetaData(ComponentMetaData metaData);
 }

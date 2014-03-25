@@ -5,7 +5,6 @@ dependencies {
     integTestCompile project(':launcher')
     integTestCompile project(':coreImpl')
     integTestCompile libraries.ant
-    integTestCompile libraries.xmlunit
     integTestCompile libraries.jsoup
 
     integTestRuntime rootProject.configurations.testRuntime.allDependencies

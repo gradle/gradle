@@ -64,17 +64,17 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return dependencyDescriptor;
     }
 
-    public Set<ModuleVersionArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
+    public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
         String[] targetConfigurations = fromConfiguration.getHierarchy().toArray(new String[fromConfiguration.getHierarchy().size()]);
         DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getDependencyArtifacts(targetConfigurations);
         if (dependencyArtifacts.length == 0) {
             return Collections.emptySet();
         }
-        Set<ModuleVersionArtifactMetaData> artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+        Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
         for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-            ModuleRevisionId id = toConfiguration.getModuleVersion().getDescriptor().getModuleRevisionId();
+            ModuleRevisionId id = toConfiguration.getComponent().getDescriptor().getModuleRevisionId();
             Artifact artifact = new DefaultArtifact(id, null, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
-            artifacts.add(new DefaultModuleVersionArtifactMetaData(toConfiguration.getModuleVersion(), artifact));
+            artifacts.add(toConfiguration.getComponent().artifact(artifact));
         }
         return artifacts;
     }

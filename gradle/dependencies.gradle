@@ -31,7 +31,7 @@ libraries.commons_io = dependencies.module(versions.commons_io)
 libraries.commons_lang = 'commons-lang:commons-lang:2.6@jar'
 libraries.commons_collections = 'commons-collections:commons-collections:3.2.1@jar'
 libraries.ivy = dependencies.module('org.apache.ivy:ivy:2.2.0'){
-    dependency "com.jcraft:jsch:0.1.46"
+    dependency "com.jcraft:jsch:0.1.51"
 }
 libraries.jcip = "net.jcip:jcip-annotations:1.0@jar"
 libraries.inject = dependencies.module('javax.inject:javax.inject:1')

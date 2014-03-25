@@ -40,8 +40,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
         then:
         metaData.artifacts.size() == 1
-        def artifacts = metaData.artifacts as List
-        def publishArtifact = artifacts[0]
+        def publishArtifact = (metaData.artifacts as List).first()
         publishArtifact.id
         publishArtifact.file == file
 
@@ -49,7 +48,39 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         metaData.getArtifact(publishArtifact.id) == publishArtifact
 
         and:
+        def resolveMetaData = metaData.toResolveMetaData()
+        resolveMetaData.artifacts.size() == 1
+        def resolveArtifact = (resolveMetaData.artifacts as List).first()
+        resolveArtifact.componentId == resolveMetaData.componentId
+
+        and:
         moduleDescriptor.getArtifacts("conf") == [artifact]
+    }
+
+    def "can lookup an artifact given an Ivy artifact"() {
+        def artifact = artifact()
+        def file = new File("artifact.zip")
+
+        given:
+        moduleDescriptor.addConfiguration(new Configuration("conf"))
+
+        and:
+        metaData.addArtifact("conf", artifact, file)
+
+        expect:
+        def resolveArtifact = metaData.toResolveMetaData().artifact(artifact)
+        resolveArtifact.file == file
+        resolveArtifact == metaData.getArtifact(resolveArtifact.id)
+    }
+
+    def "can lookup an unknown artifact given an Ivy artifact"() {
+        def artifact = artifact()
+
+        expect:
+        def resolveArtifact = metaData.toResolveMetaData().artifact(artifact)
+        resolveArtifact != null
+        resolveArtifact.file == null
+        metaData.getArtifact(resolveArtifact.id) == null
     }
 
     def "handles artifacts with duplicate attributes and different files"() {
@@ -78,6 +109,9 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
         and:
         artifactMetadata1.id != artifactMetadata2.id
+
+        and:
+        resolveMetaData.artifacts == [artifactMetadata1, artifactMetadata2] as Set
 
         and:
         metaData.getArtifact(artifactMetadata1.id).file == file1

@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
@@ -110,7 +111,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 BinaryStore oldModelStore = stores.nextBinaryStore();
                 Store<TransientConfigurationResults> oldModelCache = stores.newModelStore();
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
-                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder, artifactResolver);
+                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
 
                 builder.resolve(configuration, newModelBuilder, oldModelBuilder);
                 DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder, cacheLockingManager);
@@ -121,8 +122,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
     private ArtifactResolver createArtifactResolver(RepositoryChain repositoryChain) {
         ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
-        artifactResolver = new ProjectArtifactResolver(projectComponentRegistry, artifactResolver);
+        artifactResolver = new ProjectArtifactResolver(artifactResolver);
         artifactResolver = new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, artifactResolver);
+        artifactResolver = new ErrorHandlingArtifactResolver(artifactResolver);
         return artifactResolver;
     }
 }

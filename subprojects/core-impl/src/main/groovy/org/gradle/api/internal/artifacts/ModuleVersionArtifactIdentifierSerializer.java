@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
@@ -67,6 +68,6 @@ public class ModuleVersionArtifactIdentifierSerializer implements Serializer<Mod
                 attributes.put(key, value);
             }
         }
-        return new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifactName, type, extension, attributes);
+        return new DefaultModuleVersionArtifactIdentifier((ModuleComponentIdentifier) componentIdentifier, moduleVersionIdentifier, artifactName, type, extension, attributes);
     }
 }

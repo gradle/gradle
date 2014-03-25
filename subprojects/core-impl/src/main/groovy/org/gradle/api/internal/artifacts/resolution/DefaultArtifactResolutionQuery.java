@@ -27,11 +27,12 @@ import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
@@ -97,23 +98,22 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                         throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.", componentId.getDisplayName(), componentId.getClass().getName()));
                     }
                     ModuleComponentIdentifier moduleComponentId = (ModuleComponentIdentifier) componentId;
-                    BuildableModuleVersionResolveResult moduleResolveResult = new DefaultBuildableModuleVersionResolveResult();
+                    BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
                     repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId), true)), moduleResolveResult);
-                    ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
+                    ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(repositoryChain.getArtifactResolver());
 
                     if (moduleResolveResult.getFailure() != null) {
                         unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId, moduleResolveResult.getFailure()));
                     } else {
-                        ModuleVersionMetaData moduleMetaData = moduleResolveResult.getMetaData();
+                        ComponentMetaData component = moduleResolveResult.getMetaData();
                         List<JvmLibraryArtifact> jvmLibraryArtifacts = Lists.newArrayList();
                         for (Class<? extends SoftwareArtifact> artifactType : artifactTypes) {
                             ArtifactResolveContext context = new ArtifactTypeResolveContext(artifactType);
                             BuildableArtifactSetResolveResult multiResolveResult = new DefaultBuildableArtifactSetResolveResult();
-                            artifactResolver.resolveModuleArtifacts(moduleMetaData, context, multiResolveResult);
+                            artifactResolver.resolveModuleArtifacts(component, context, multiResolveResult);
                             for (ComponentArtifactMetaData artifactMetaData : multiResolveResult.getArtifacts()) {
                                 BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
-                                artifactResolver.resolveArtifact(artifactMetaData, moduleMetaData.getSource(), resolveResult);
-
+                                artifactResolver.resolveArtifact(artifactMetaData, component.getSource(), resolveResult);
                                 if (artifactType == JvmLibraryJavadocArtifact.class) {
                                     if (resolveResult.getFailure() != null) {
                                         jvmLibraryArtifacts.add(new DefaultJvmLibraryJavadocArtifact(resolveResult.getFailure()));

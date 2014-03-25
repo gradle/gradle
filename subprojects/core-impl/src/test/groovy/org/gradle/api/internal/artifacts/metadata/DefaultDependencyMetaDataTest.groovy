@@ -111,16 +111,22 @@ class DefaultDependencyMetaDataTest extends Specification {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
         def metaData = new DefaultDependencyMetaData(descriptor)
         def fromConfiguration = Stub(ConfigurationMetaData)
+        def targetComponent = Stub(ComponentMetaData)
         def toConfiguration = Stub(ConfigurationMetaData)
+        def artifact1 = Stub(ComponentArtifactMetaData)
+        def artifact2 = Stub(ComponentArtifactMetaData)
 
         given:
         fromConfiguration.hierarchy >> (['config', 'super'] as LinkedHashSet)
+        toConfiguration.component >> targetComponent
         descriptor.addDependencyArtifact("config", new DefaultDependencyArtifactDescriptor(descriptor, "art1", "type", "ext", null, [:]))
         descriptor.addDependencyArtifact("other", new DefaultDependencyArtifactDescriptor(descriptor, "art2", "type", "ext", null, [:]))
         descriptor.addDependencyArtifact("super", new DefaultDependencyArtifactDescriptor(descriptor, "art3", "type", "ext", null, [:]))
+        targetComponent.artifact({it.name == 'art1'}) >> artifact1
+        targetComponent.artifact({it.name == 'art3'}) >> artifact2
 
         expect:
-        metaData.getArtifacts(fromConfiguration, toConfiguration)*.name*.name == ['art1', 'art3']
+        metaData.getArtifacts(fromConfiguration, toConfiguration) == [artifact1, artifact2] as Set
     }
 
     def "returns a build component selector if descriptor indicates a project dependency"() {

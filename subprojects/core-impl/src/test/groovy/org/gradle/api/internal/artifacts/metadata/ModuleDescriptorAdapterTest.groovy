@@ -20,10 +20,8 @@ package org.gradle.api.internal.artifacts.metadata
 
 import org.apache.ivy.core.module.descriptor.*
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import spock.lang.Specification
 
@@ -149,6 +147,9 @@ class ModuleDescriptorAdapterTest extends Specification {
     Artifact artifact(String name) {
         return Stub(Artifact) {
             getName() >> name
+            getType() >> "type"
+            getExt() >> "ext"
+            getExtraAttributes() >> [classifier: "classifier"]
         }
     }
 
@@ -171,6 +172,19 @@ class ModuleDescriptorAdapterTest extends Specification {
 
         and:
         metaData.getConfiguration("conf").artifacts.is(artifacts)
+    }
+
+    def "can adapt an Ivy artifact to a Gradle artifact"() {
+        def artifact = artifact("one")
+
+        expect:
+        def artifactMetaData = metaData.artifact(artifact)
+        artifactMetaData.componentId == metaData.componentId
+        artifactMetaData.id.componentIdentifier == metaData.componentId
+        artifactMetaData.name.name == "one"
+        artifactMetaData.name.type == "type"
+        artifactMetaData.name.extension == "ext"
+        artifactMetaData.name.classifier == "classifier"
     }
 
     def "artifacts include union of those inherited from other configurations"() {
@@ -272,8 +286,8 @@ class ModuleDescriptorAdapterTest extends Specification {
 
     def "uses component ID if provided in constructor"() {
         when:
-        ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier('group', 'name', 'version')
-        ComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(':myPath')
+        def moduleVersionIdentifier = new DefaultModuleVersionIdentifier('group', 'name', 'version')
+        def componentIdentifier = new DefaultModuleComponentIdentifier('group', 'override', '1.2')
         def metaData = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor, componentIdentifier)
 
         then:

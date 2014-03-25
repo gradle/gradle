@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ModuleInternal;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleToModuleVersionResolver;
@@ -39,7 +39,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         this.localComponentFactory = localComponentFactory;
     }
 
-    public void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result) {
+    public void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result) {
         DependencyDescriptor descriptor = dependency.getDescriptor();
         if (descriptor instanceof ProjectDependencyDescriptor) {
             ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
@@ -50,7 +50,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         }
     }
 
-    public void resolve(ModuleInternal module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result) {
+    public void resolve(ModuleInternal module, Set<? extends Configuration> configurations, BuildableComponentResolveResult result) {
         LocalComponentMetaData componentMetaData = localComponentFactory.convert(configurations, module);
         result.resolved(componentMetaData.toResolveMetaData());
     }

@@ -17,22 +17,22 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
-public interface ModuleVersionResolveResult {
+public interface ComponentResolveResult {
     /**
-     * Returns the id of this module version.
+     * Returns the module version id of the component.
      *
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
     ModuleVersionIdentifier getId() throws ModuleVersionResolveException;
 
     /**
-     * Returns the meta-data for this module version.
+     * Returns the meta-data for the component.
      *
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
      */
-    ModuleVersionMetaData getMetaData() throws ModuleVersionResolveException;
+    ComponentMetaData getMetaData() throws ModuleVersionResolveException;
 
     /**
      * Returns the resolve failure, if any.

@@ -35,8 +35,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.internal.Factory;
 
 import java.io.File;
@@ -72,7 +72,7 @@ public class LoopbackDependencyResolver implements DependencyResolver {
         final DependencyResolver loopback = this;
         return cacheLockingManager.useCache(String.format("Resolve %s", dd), new Factory<ResolvedModuleRevision>() {
             public ResolvedModuleRevision create() {
-                DefaultBuildableModuleVersionResolveResult result = new DefaultBuildableModuleVersionResolveResult();
+                DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
                 DefaultDependencyMetaData dependency = new DefaultDependencyMetaData(dd);
                 IvyContext ivyContext = IvyContext.pushNewCopyContext();
                 try {
@@ -91,11 +91,11 @@ public class LoopbackDependencyResolver implements DependencyResolver {
             public ArtifactOrigin create() {
                 try {
                     DependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), false);
-                    DefaultBuildableModuleVersionResolveResult resolveResult = new DefaultBuildableModuleVersionResolveResult();
+                    DefaultBuildableComponentResolveResult resolveResult = new DefaultBuildableComponentResolveResult();
                     DefaultDependencyMetaData dependency = new DefaultDependencyMetaData(dependencyDescriptor);
                     dependencyResolver.resolve(dependency, resolveResult);
                     DefaultBuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
-                    DefaultModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(resolveResult.getMetaData(), artifact);
+                    ComponentArtifactMetaData artifactMetaData = resolveResult.getMetaData().artifact(artifact);
                     artifactResolver.resolveArtifact(artifactMetaData, resolveResult.getMetaData().getSource(), artifactResolveResult);
                     File artifactFile = artifactResolveResult.getFile();
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());

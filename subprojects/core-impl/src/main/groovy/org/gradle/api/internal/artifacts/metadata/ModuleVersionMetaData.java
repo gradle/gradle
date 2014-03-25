@@ -15,45 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
-import java.util.List;
 import java.util.Set;
 
 /**
  * The meta-data for a module version that is required during dependency resolution.
  */
 public interface ModuleVersionMetaData extends ComponentMetaData {
-    ModuleVersionIdentifier getId();
+    ModuleComponentIdentifier getComponentId();
 
-    ModuleSource getSource();
-
-    /**
-     * Makes a copy of this meta-data with the given source.
-     */
     ModuleVersionMetaData withSource(ModuleSource source);
-
-    /**
-     * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
-     */
-    ModuleDescriptor getDescriptor();
-
-    List<DependencyMetaData> getDependencies();
-
-    @Nullable
-    ConfigurationMetaData getConfiguration(String name);
 
     Set<ModuleVersionArtifactMetaData> getArtifacts();
 
-    boolean isChanging();
+    ModuleVersionArtifactMetaData artifact(Artifact artifact);
 
     boolean isMetaDataOnly();
-
-    String getStatus();
-
-    List<String> getStatusScheme();
 }

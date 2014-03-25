@@ -26,8 +26,8 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 import java.util.concurrent.TimeUnit;
 
@@ -108,8 +108,8 @@ public class StartParameterResolutionOverride {
             result.failed(new ModuleVersionResolveException(dependency.getRequested(), "No cached version of %s available for offline mode."));
         }
 
-        public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-            result.failed(new ArtifactResolveException(moduleMetaData.getId(), "No cached version available for offline mode"));
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+            result.failed(new ArtifactResolveException(component.getComponentId(), "No cached version available for offline mode"));
         }
 
         public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {

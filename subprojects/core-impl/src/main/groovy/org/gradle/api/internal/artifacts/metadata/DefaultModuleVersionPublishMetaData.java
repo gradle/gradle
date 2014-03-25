@@ -71,7 +71,7 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
             return id.getName();
         }
 
-        public Artifact getArtifact() {
+        public Artifact toIvyArtifact() {
             return artifact;
         }
 

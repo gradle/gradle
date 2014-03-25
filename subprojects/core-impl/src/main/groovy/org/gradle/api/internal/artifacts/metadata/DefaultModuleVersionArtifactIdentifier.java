@@ -19,20 +19,20 @@ package org.gradle.api.internal.artifacts.metadata;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 import java.util.Map;
 
 public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArtifactIdentifier {
-    private final ComponentIdentifier componentIdentifier;
+    private final ModuleComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final IvyArtifactName name;
 
-    public DefaultModuleVersionArtifactIdentifier(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
+    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
         this(componentIdentifier, moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
     }
 
-    public DefaultModuleVersionArtifactIdentifier(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
+    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = moduleVersionIdentifier;
         this.name = new DefaultIvyArtifactName(name, type, extension, attributes);
@@ -48,7 +48,7 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
 
     // TODO:DAZ This should participate in equals and hashcode (or should be created from moduleVersionIdentifier)
     // Will happen when we consolidate type hierarchies for local and module component artifacts.
-    public ComponentIdentifier getComponentIdentifier() {
+    public ModuleComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
     }
 

@@ -31,7 +31,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Interna
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
-import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +63,7 @@ public class DependencyGraphBuilder {
     public void resolve(ConfigurationInternal configuration,
                         ResolutionResultBuilder newModelBuilder,
                         ResolvedConfigurationBuilder oldModelBuilder) throws ResolveException {
-        DefaultBuildableModuleVersionResolveResult rootModule = new DefaultBuildableModuleVersionResolveResult();
+        DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
         ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, artifactResolver, oldModelBuilder);
@@ -146,7 +149,7 @@ public class DependencyGraphBuilder {
      */
     private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder oldModelBuilder, ResolutionResultBuilder newModelBuilder) {
         FailureState failureState = new FailureState(resolveState.root);
-        newModelBuilder.start(resolveState.root.moduleRevision.id, resolveState.root.metaData.getModuleVersion().getComponentId());
+        newModelBuilder.start(resolveState.root.moduleRevision.id, resolveState.root.metaData.getComponent().getComponentId());
 
         // Visit the nodes
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
@@ -334,7 +337,7 @@ public class DependencyGraphBuilder {
 
         private void calculateTargetConfigurations() {
             targetConfigurations.clear();
-            ModuleVersionMetaData targetModuleVersion = targetModuleRevision.getMetaData();
+            ComponentMetaData targetModuleVersion = targetModuleRevision.getMetaData();
             if (targetModuleVersion == null) {
                 // Broken version
                 return;
@@ -348,13 +351,13 @@ public class DependencyGraphBuilder {
         }
 
         private Set<ResolvedArtifact> getArtifacts(ConfigurationNode childConfiguration) {
-            Set<ModuleVersionArtifactMetaData> dependencyArtifacts = dependencyMetaData.getArtifacts(from.metaData, childConfiguration.metaData);
+            Set<ComponentArtifactMetaData> dependencyArtifacts = dependencyMetaData.getArtifacts(from.metaData, childConfiguration.metaData);
             if (dependencyArtifacts.isEmpty()) {
                 return Collections.emptySet();
             }
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-            for (ModuleVersionArtifactMetaData artifact : dependencyArtifacts) {
-                artifacts.add(resolveState.builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getModuleVersion(), artifact));
+            for (ComponentArtifactMetaData artifact : dependencyArtifacts) {
+                artifacts.add(resolveState.builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getComponent(), artifact, resolveState.artifactResolver));
             }
             return artifacts;
         }
@@ -422,7 +425,7 @@ public class DependencyGraphBuilder {
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
-        public ResolveState(ModuleVersionResolveResult rootResult, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver,
+        public ResolveState(ComponentResolveResult rootResult, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver,
                             DependencyToConfigurationResolver dependencyToConfigurationResolver, ArtifactResolver artifactResolver, ResolvedConfigurationBuilder builder) {
             this.resolver = resolver;
             this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
@@ -599,11 +602,11 @@ public class DependencyGraphBuilder {
         final ModuleVersionIdentifier id;
         final ResolveState resolveState;
         final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();
-        ModuleVersionMetaData metaData;
+        ComponentMetaData metaData;
         ModuleState state = ModuleState.New;
         ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
         ModuleVersionIdResolveResult idResolveResult;
-        ModuleVersionResolveResult resolveResult;
+        ComponentResolveResult resolveResult;
         ModuleVersionResolveException failure;
 
         private ModuleVersionResolveState(ModuleResolveState module, ModuleVersionIdentifier id, ResolveState resolveState) {
@@ -641,7 +644,7 @@ public class DependencyGraphBuilder {
             }
         }
 
-        public ModuleVersionResolveResult resolve() {
+        public ComponentResolveResult resolve() {
             if (resolveResult != null) {
                 return resolveResult;
             }
@@ -658,14 +661,14 @@ public class DependencyGraphBuilder {
             return resolveResult;
         }
 
-        public ModuleVersionMetaData getMetaData() {
+        public ComponentMetaData getMetaData() {
             if (metaData == null) {
                 resolve();
             }
             return metaData;
         }
 
-        public void setResolveResult(ModuleVersionResolveResult resolveResult) {
+        public void setResolveResult(ComponentResolveResult resolveResult) {
             this.resolveResult = resolveResult;
             this.metaData = resolveResult.getMetaData();
             this.failure = null;
@@ -723,10 +726,10 @@ public class DependencyGraphBuilder {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
 
                 BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
-                resolveState.artifactResolver.resolveModuleArtifacts(metaData.getModuleVersion(), new ConfigurationResolveContext(metaData.getName()), result);
+                resolveState.artifactResolver.resolveModuleArtifacts(metaData.getComponent(), new ConfigurationResolveContext(metaData.getName()), result);
 
                 for (ComponentArtifactMetaData artifact : result.getArtifacts()) {
-                    artifacts.add(resolveState.builder.newArtifact(id, metaData.getModuleVersion(), artifact));
+                    artifacts.add(resolveState.builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver));
                 }
             }
             return artifacts;

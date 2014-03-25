@@ -70,8 +70,8 @@ public class IvyDynamicResolveModuleVersionRepository implements LocalAwareModul
         metaData.setDependencies(transformed);
     }
 
-    public void resolveModuleArtifacts(ModuleVersionMetaData moduleMetaData, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        repository.resolveModuleArtifacts(moduleMetaData, context, result);
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        repository.resolveModuleArtifacts(component, context, result);
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
