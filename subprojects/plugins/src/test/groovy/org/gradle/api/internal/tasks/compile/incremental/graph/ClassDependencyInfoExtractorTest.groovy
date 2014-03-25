@@ -16,13 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.graph
 
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.AccessedFromPrivateClass
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.HasNonPrivateConstants
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.HasPrivateConstants
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.SomeClass
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.SomeOtherClass
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.UsedByNonPrivateConstantsClass
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.YetAnotherClass
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.*
 import spock.lang.Specification
 
 class ClassDependencyInfoExtractorTest extends Specification {
@@ -33,10 +27,10 @@ class ClassDependencyInfoExtractorTest extends Specification {
         info.getActualDependents(SomeClass.name) == [SomeOtherClass.name] as Set
         info.getActualDependents(SomeOtherClass.name) == [] as Set
         info.getActualDependents(YetAnotherClass.name) == [SomeOtherClass.name] as Set
-        info.getActualDependents(AccessedFromPrivateClass.name) == [] as Set
+        info.getActualDependents(AccessedFromPrivateClass.name) == [SomeClass.name, SomeOtherClass.name] as Set
         info.getActualDependents(HasPrivateConstants.name) == [] as Set
         info.getActualDependents(HasNonPrivateConstants.name) == null
-        info.getActualDependents(UsedByNonPrivateConstantsClass.name) == [HasNonPrivateConstants.name] as Set
+        info.getActualDependents(UsedByNonPrivateConstantsClass.name) == [HasNonPrivateConstants.name, HasPrivateConstants.name] as Set
     }
 
     //TODO SF tighten and refactor the coverage

@@ -59,48 +59,19 @@ public class SelectiveCompilation {
 
         //including only source java classes that were changed
         final PatternSet changedSourceOnly = new PatternSet();
-        inputs.outOfDate(new Action<InputFileDetails>() {
-            public void execute(InputFileDetails inputFileDetails) {
-                if (fullRebuildNeeded != null) {
-                    return;
-                }
-                File inputFile = inputFileDetails.getFile();
-                String name = inputFile.getName();
-                if (name.endsWith(".java")) {
-                    JavaSourceClass source = mapper.toJavaSourceClass(inputFile);
-                    compiler.addStaleClass(source);
-                    changedSourceOnly.include(source.getRelativePath());
-                    Set<String> actualDependents = dependencyInfo.getActualDependents(source.getClassName());
-                    if (actualDependents == null) {
-                        fullRebuildNeeded = "change to " + source.getClassName() + " requires full rebuild";
-                        return;
-                    }
-                    for (String d : actualDependents) {
-                        JavaSourceClass dSource = mapper.toJavaSourceClass(d);
-                        compiler.addStaleClass(dSource);
-                        changedSourceOnly.include(dSource.getRelativePath());
-                    }
-                }
-                if (name.endsWith(".jar")) {
-                    fullRebuildNeeded = "change to " + inputFile + " requires full rebuild";
-                    return;
-                }
-            }
-        });
+        InputFileDetailsAction action = new InputFileDetailsAction(mapper, compiler, changedSourceOnly, dependencyInfo);
+        inputs.outOfDate(action);
+        inputs.removed(action);
         if (fullRebuildNeeded != null) {
             LOG.lifecycle("Stale classes detection completed in {}. Rebuild needed: {}.", clock.getTime(), fullRebuildNeeded);
             this.classpath = compileClasspath;
             this.source = source;
             return;
         }
-        inputs.removed(new Action<InputFileDetails>() {
-            public void execute(InputFileDetails inputFileDetails) {
-                compiler.addStaleClass(mapper.toJavaSourceClass(inputFileDetails.getFile()));
-                //TODO SF needs to schedule for recompilation all dependencies of this class. What's the difference with inputs.outOfDate(details.removed?).
-            }
-        });
-        //since we're compiling selectively we need to include the classes compiled previously
-        if (changedSourceOnly.getIncludes().isEmpty()) {
+
+        compiler.deleteStaleClasses();
+        Set<File> filesToCompile = source.matching(changedSourceOnly).getFiles();
+        if (filesToCompile.isEmpty()) {
             this.compilationNeeded = false;
             this.classpath = compileClasspath;
             this.source = source;
@@ -108,7 +79,7 @@ public class SelectiveCompilation {
             this.classpath = compileClasspath.plus(new SimpleFileCollection(compileDestination));
             this.source = source.matching(changedSourceOnly);
         }
-        LOG.lifecycle("Stale classes detection completed in {}. Stale classes: {}, Compile include patterns: {}, Files to delete: {}", clock.getTime(), compiler.getStaleClasses().size(), changedSourceOnly.getIncludes(), compiler.getStaleClasses());
+        LOG.lifecycle("Stale classes detection completed in {}. Compile include patterns: {}.", clock.getTime(), changedSourceOnly.getIncludes());
     }
 
     public FileCollection getSource() {
@@ -125,5 +96,46 @@ public class SelectiveCompilation {
 
     public boolean getFullRebuildRequired() {
         return fullRebuildNeeded != null;
+    }
+
+    private class InputFileDetailsAction implements Action<InputFileDetails> {
+        private final InputOutputMapper mapper;
+        private final SelectiveJavaCompiler compiler;
+        private final PatternSet changedSourceOnly;
+        private final ClassDependencyInfo dependencyInfo;
+
+        public InputFileDetailsAction(InputOutputMapper mapper, SelectiveJavaCompiler compiler, PatternSet changedSourceOnly, ClassDependencyInfo dependencyInfo) {
+            this.mapper = mapper;
+            this.compiler = compiler;
+            this.changedSourceOnly = changedSourceOnly;
+            this.dependencyInfo = dependencyInfo;
+        }
+
+        public void execute(InputFileDetails inputFileDetails) {
+            if (fullRebuildNeeded != null) {
+                return;
+            }
+            File inputFile = inputFileDetails.getFile();
+            String name = inputFile.getName();
+            if (name.endsWith(".java")) {
+                JavaSourceClass source = mapper.toJavaSourceClass(inputFile);
+                compiler.addStaleClass(source);
+                changedSourceOnly.include(source.getRelativePath());
+                Set<String> actualDependents = dependencyInfo.getActualDependents(source.getClassName());
+                if (actualDependents == null) {
+                    fullRebuildNeeded = "change to " + source.getClassName() + " requires full rebuild";
+                    return;
+                }
+                for (String d : actualDependents) {
+                    JavaSourceClass dSource = mapper.toJavaSourceClass(d);
+                    compiler.addStaleClass(dSource);
+                    changedSourceOnly.include(dSource.getRelativePath());
+                }
+            }
+            if (name.endsWith(".jar")) {
+                fullRebuildNeeded = "change to " + inputFile + " requires full rebuild";
+                return;
+            }
+        }
     }
 }

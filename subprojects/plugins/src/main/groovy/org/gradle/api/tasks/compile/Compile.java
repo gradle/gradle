@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.compile;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -33,7 +31,6 @@ import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyIn
 import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -48,6 +45,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Compiles Java source files.
@@ -89,20 +88,7 @@ public class Compile extends AbstractCompile {
         }
         incrementalCompilation.compilationComplete(compileOptions,
                 new ClassDependencyInfoExtractor(getDestinationDir()),
-                getDependencyInfoSerializer(), jarsOnClasspath());
-    }
-
-    private Iterable<JarArchive> jarsOnClasspath() {
-        Iterable<JarArchive> jarArchives = Iterables.transform(compileClasspath.filter(new Spec<File>() {
-            public boolean isSatisfiedBy(File element) {
-                return element.getName().endsWith(".jar");
-            }
-        }), new Function<File, JarArchive>() {
-            public JarArchive apply(File input) {
-                return new JarArchive(input, getProject().zipTree(input));
-            }
-        });
-        return jarArchives;
+                getDependencyInfoSerializer(), Collections.<JarArchive>emptyList());
     }
 
     private ClassDependencyInfoSerializer getDependencyInfoSerializer() {
@@ -132,7 +118,7 @@ public class Compile extends AbstractCompile {
 
         SingleMessageLogger.incubatingFeatureUsed("Incremental java compilation");
 
-        SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler, new OutputClassMapper(getDestinationDir()));
+        SelectiveJavaCompiler compiler = new SelectiveJavaCompiler(javaCompiler, getProject().fileTree(getDestinationDir()));
         SelectiveCompilation selectiveCompilation = new SelectiveCompilation(inputs, getSource(), getClasspath(), getDestinationDir(),
                 dependencyInfoSerializer, getJarSnapshotCache(), compiler, sourceDirs, (FileOperations) getProject());
 
@@ -154,7 +140,7 @@ public class Compile extends AbstractCompile {
             if (s instanceof SourceDirectorySet) {
                 sourceDirs.addAll(((SourceDirectorySet) s).getSrcDirs());
             } else {
-                return Collections.emptyList();
+                return emptyList();
             }
         }
         return sourceDirs;

@@ -31,6 +31,7 @@ public class ClassDependencyInfo implements Serializable {
 
     public Set<String> getActualDependents(String className) {
         Set<String> out = new HashSet<String>();
+        Set<String> visited = new HashSet<String>();
         ClassDependents deps = dependents.get(className);
         if (deps == null) {
             return Collections.emptySet();
@@ -38,11 +39,21 @@ public class ClassDependencyInfo implements Serializable {
         if (deps.isDependentToAll()) {
             return null;
         }
-        for (String c : deps.getDependentClasses()) {
-            if (!c.contains("$") && !c.equals(className)) { //naive
-                out.add(c);
-            }
-        }
+        recurseDependents(visited, out, className, deps);
+        out.remove(className);
         return out;
+    }
+
+    private void recurseDependents(Set<String> visited, Collection<String> accumulator, String className, ClassDependents incomingDependents) {
+        if (!visited.add(className) || incomingDependents == null) {
+            return;
+        }
+        for (String dependent : incomingDependents.getDependentClasses()) {
+            if (!dependent.contains("$") && !dependent.equals(className)) { //naive
+                accumulator.add(dependent);
+            }
+            ClassDependents currentDependents = this.dependents.get(dependent);
+            recurseDependents(visited, accumulator, dependent, currentDependents);
+        }
     }
 }

@@ -16,47 +16,51 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.Clock;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Set;
 
 public class SelectiveJavaCompiler implements Compiler<JavaCompileSpec> {
     private Compiler<JavaCompileSpec> compiler;
-    private final OutputClassMapper outputClassMapper;
-    private List<File> staleClasses = new LinkedList<File>();
+    private final FileTree destinationDir;
+    private final PatternSet staleClasses = new PatternSet();
     private final static Logger LOG = Logging.getLogger(SelectiveJavaCompiler.class);
 
-    public SelectiveJavaCompiler(Compiler<JavaCompileSpec> compiler, OutputClassMapper outputClassMapper) {
+    public SelectiveJavaCompiler(Compiler<JavaCompileSpec> compiler, FileTree destinationDir) {
         this.compiler = compiler;
-        this.outputClassMapper = outputClassMapper;
+        this.destinationDir = destinationDir;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
-        Clock clock = new Clock();
-        for (File file : staleClasses) {
-            file.delete();
-        }
-        LOG.lifecycle("Deleting {} stale classes took {}", staleClasses.size(), clock.getTime());
         return compiler.execute(spec);
     }
 
+    void deleteStaleClasses() {
+        Clock clock = new Clock();
+        Set<File> files = destinationDir.matching(staleClasses).getFiles();
+        for (File file : files) {
+            file.delete();
+        }
+        LOG.lifecycle("Deleting {} stale classes took {}", files.size(), clock.getTime());
+    }
+
     public void addStaleClass(JavaSourceClass source) {
-        //TODO SF remove
-        staleClasses.add(source.getOutputFile());
+        addStaleClass(source.getClassName());
     }
 
     public void addStaleClass(String className) {
-        staleClasses.add(outputClassMapper.getOutputFile(className));
-    }
-
-    public List<File> getStaleClasses() {
-        return staleClasses;
+        String path = className.replaceAll("\\.", "/");
+        String cls = path.concat(".class");
+        String inner = path.concat("$*.class");
+        staleClasses.include(cls);
+        staleClasses.include(inner);
     }
 }

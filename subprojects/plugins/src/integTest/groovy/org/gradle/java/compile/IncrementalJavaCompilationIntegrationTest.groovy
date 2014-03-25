@@ -17,7 +17,6 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -119,7 +118,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         then: changedFiles == ['PersonImpl', 'Person'] as Set
     }
 
-    def "compiles set of classes that depend on changed ones"() {
+    def "detects class transitive dependents"() {
         when: run "compileJava"
 
         then:
@@ -129,11 +128,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         when:
         file("src/main/java/org/Person.java").text = """package org;
         public interface Person {
-            String name();
-        }"""
-        file("src/main/java/org/PersonImpl.java").text = """package org;
-        public class PersonImpl implements Person {
-            public String name() { return "Szczepan"; }
+            String toString();
         }"""
 
         run "compileJava"
@@ -142,7 +137,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         changedFiles == ['AnotherPersonImpl', 'PersonImpl', 'Person'] as Set
     }
 
-    def "is sensitive to class deletion"() {
+    def "is sensitive to deletion and change"() {
         run "compileJava"
 
         assert file("src/main/java/org/PersonImpl.java").delete()
@@ -201,32 +196,24 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         changedFiles.containsAll(['WithConst', 'AnotherPersonImpl', 'PersonImpl', 'Person'])
     }
 
-    @Ignore
-    def "understands inter-project dependencies"() {
-        settingsFile << "include 'api'"
-        buildFile << "dependencies { compile project(':api') }"
-
-        file("api/src/main/java/org/A.java") << """package org; public class A {}"""
-        file("api/src/main/java/org/B.java") << """package org; public class B {}"""
-
-        file("src/main/java/org/ConsumesA.java") << """package org;
-            public class ConsumesA { A a = new A(); }
-        """
-        file("src/main/java/org/ConsumesB.java") << """package org;
-            public class ConsumesB { B b = new B(); }
-        """
-
-        run "compileJava"
-
-        file("api/src/main/java/org/B.java").text = """package org; public class B {
-            public B() { System.out.println("foo"); }
-        }
+    def "removal of class causes deletion of inner classes"() {
+        file("src/main/java/org/B.java") << """package org;
+            public class B {
+                public static class InnerB {}
+            }
         """
 
         when: run "compileJava"
 
         then:
-        changedFiles == ['ConsumesB'] as Set
-        unchangedFiles.contains('ConsumesA')
+        def classes = [file('build/classes/main/org/B.class'), file('build/classes/main/org/B$InnerB.class')]
+        classes.each { assert it.exists() }
+
+        when:
+        assert file("src/main/java/org/B.java").delete()
+        run "compileJava"
+
+        then:
+        classes.each { assert !it.exists() }
     }
 }
