@@ -29,22 +29,42 @@ import java.util.List;
 public interface PlatformConfigurableToolChain extends ToolChain {
 
     /**
-     * Add configuration for a target platform.
+     * Add configuration for a target platform with additional configuration action.
      */
     public void target(Platform platform, Action<ConfigurableToolChain> action);
 
     /**
-     * Add configuration for a target platform.
+     * Add support for target platform.
+     */
+    public void target(Platform platform);
+
+    /**
+     * Add support for a set of target platforms.
+     */
+    public void target(DomainObjectSet<Platform> platform);
+
+    /**
+     * Add support for target platform specified by name.
+     */
+    public void target(String platformName);
+
+    /**
+     * Add support for target platform specified by name.
+     */
+    public void target(List<String> platformNames);
+
+    /**
+     * Add configuration for a set of target platforms with additional configuration action.
      */
     public void target(DomainObjectSet<Platform> platform, Action<ConfigurableToolChain> action);
 
     /**
-     * Add configuration for a target platform specified by name.
+     * Add configuration for a target platform specified by name with additional configuration action.
      */
     public void target(String platformName, Action<ConfigurableToolChain> action);
 
     /**
-     * Add configuration for multiple target platforms specified by name.
+     * Add configuration for multiple target platforms specified by name with additional configuration action.
      */
     public void target(List<String> platformNames, Action<ConfigurableToolChain> action);
 

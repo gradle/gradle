@@ -71,6 +71,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                                 args << "-m32"
                             }
                         }
+                        target("sparc")
                     }
                 }
                 platforms {
@@ -80,12 +81,15 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                     i386 {
                         architecture "i386"
                     }
+                    sparc {
+                        architecture "sparc"
+                    }
                 }
             }
 """
 
         and:
-        succeeds "armMainExecutable", "i386MainExecutable"
+        succeeds "armMainExecutable", "i386MainExecutable", "sparcMainExecutable"
 
         then:
         executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "x86"
@@ -93,6 +97,8 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
 
         executable("build/binaries/mainExecutable/i386/main").binaryInfo.arch.name == "x86"
         executable("build/binaries/mainExecutable/i386/main").exec().out == helloWorldApp.englishOutput
+
+        executable("build/binaries/mainExecutable/sparc/main").exec().out == helloWorldApp.englishOutput
     }
 
     def "can add action to tool chain that modifies tool arguments prior to execution"() {

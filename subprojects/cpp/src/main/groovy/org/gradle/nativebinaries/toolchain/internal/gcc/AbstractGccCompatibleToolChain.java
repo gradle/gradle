@@ -90,6 +90,26 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             }
         }
     }
+    public void target(Platform platform) {
+        target(platform, new NoConfigurationAction());
+    }
+
+    public void target(DomainObjectSet<Platform> platforms) {
+        target(platforms, new NoConfigurationAction());
+    }
+
+    public void target(String platformName) {
+        target(platformName, new NoConfigurationAction());
+    }
+
+    public void target(List<String> platformNames) {
+        target(platformNames, new NoConfigurationAction());
+    }
+
+    private class NoConfigurationAction implements Action<ConfigurableToolChain> {
+        public void execute(ConfigurableToolChain configurableToolChain) {
+        }
+    }
 
     public void target(Platform platform, Action<ConfigurableToolChain> action) {
         target(platform.getName(), action);
