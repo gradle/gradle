@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.integtests.resolve
 import org.gradle.api.artifacts.resolution.JvmLibraryArtifact
 import org.gradle.test.fixtures.file.TestFile
@@ -25,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 class JvmLibraryArtifactResolveTestFixture {
     private final TestFile buildFile
     private repository
+    private componentVersion = "1.0"
     private artifactTypes = []
     private expectedSources = []
     private expectedSourceFailures = []
@@ -40,8 +39,22 @@ class JvmLibraryArtifactResolveTestFixture {
         this.repository = repository
     }
 
+    def withComponentVersion(def componentVersion) {
+        this.componentVersion = componentVersion
+        this
+    }
+
     def requestingTypes(Class<? extends JvmLibraryArtifact>... artifactTypes) {
         this.artifactTypes = artifactTypes as List
+        this
+    }
+
+    def clearExpectations() {
+        this.missingComponent = false
+        this.expectedSources = []
+        this.expectedJavadoc = []
+        this.expectedSourceFailures = []
+        this.expectedJavadocFailures = []
         this
     }
 
@@ -55,6 +68,11 @@ class JvmLibraryArtifactResolveTestFixture {
         this
     }
 
+    def expectSourceArtifactNotFound(def sourceArtifact) {
+        expectedSourceFailures << "Artifact 'some.group:some-artifact:$componentVersion:$sourceArtifact' not found."
+        this
+    }
+
     def expectSourceArtifactFailure(def failure) {
         // TODO:DAZ Validate more than just the failure message
         expectedSourceFailures << failure
@@ -63,6 +81,11 @@ class JvmLibraryArtifactResolveTestFixture {
 
     def expectJavadocArtifact(def javadocArtifact) {
         expectedJavadoc << javadocArtifact
+        this
+    }
+
+    def expectJavadocArtifactNotFound(def sourceArtifact) {
+        expectedJavadocFailures << "Artifact 'some.group:some-artifact:$componentVersion:$sourceArtifact' not found."
         this
     }
 
@@ -85,15 +108,15 @@ repositories {
         if (missingComponent) {
             prepareComponentNotFound()
         } else {
-            prepareSuccess()
+            createVerifyTask("verify")
         }
     }
 
-    private void prepareSuccess() {
+    void createVerifyTask(def taskName) {
         buildFile << """
-task verify << {
+task $taskName << {
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "1.0")] as Set)
+        .forComponents([new DefaultModuleComponentIdentifier("some.group", "some-artifact", "$componentVersion")] as Set)
         .withArtifacts(JvmLibrary$artifactTypesString)
         .execute()
 
@@ -101,17 +124,21 @@ task verify << {
     def jvmLibrary = result.components.iterator().next()
     assert jvmLibrary.id.group == "some.group"
     assert jvmLibrary.id.module == "some-artifact"
-    assert jvmLibrary.id.version == "1.0"
+    assert jvmLibrary.id.version == "$componentVersion"
     assert jvmLibrary instanceof JvmLibrary
 
     def sourceArtifactFiles = []
     def sourceArtifactFailures = []
-    jvmLibrary.sourcesArtifacts.each {
-        assert it instanceof JvmLibrarySourcesArtifact
-        if (it.failure != null) {
-            sourceArtifactFailures << it.failure.message
+    jvmLibrary.sourcesArtifacts.each { artifact ->
+        assert artifact instanceof JvmLibrarySourcesArtifact
+        if (artifact.failure != null) {
+            sourceArtifactFailures << artifact.failure.message
         } else {
-            sourceArtifactFiles << it.file.name
+            copy {
+                from artifact.file
+                into "sources"
+            }
+            sourceArtifactFiles << artifact.file.name
         }
     }
     assert sourceArtifactFiles as Set == ${toQuotedList(expectedSources)} as Set
@@ -119,12 +146,16 @@ task verify << {
 
     def javadocArtifactFiles = []
     def javadocArtifactFailures = []
-    jvmLibrary.javadocArtifacts.each {
-        assert it instanceof JvmLibraryJavadocArtifact
-        if (it.failure != null) {
-            javadocArtifactFailures << it.failure.message
+    jvmLibrary.javadocArtifacts.each { artifact ->
+        assert artifact instanceof JvmLibraryJavadocArtifact
+        if (artifact.failure != null) {
+            javadocArtifactFailures << artifact.failure.message
         } else {
-            javadocArtifactFiles << it.file.name
+            copy {
+                from artifact.file
+                into "javadoc"
+            }
+            javadocArtifactFiles << artifact.file.name
         }
     }
     assert javadocArtifactFiles as Set == ${toQuotedList(expectedJavadoc)} as Set

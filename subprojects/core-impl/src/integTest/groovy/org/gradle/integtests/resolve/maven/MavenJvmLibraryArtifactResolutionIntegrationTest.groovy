@@ -77,6 +77,77 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         checkArtifactsResolvedAndCached()
     }
 
+    // TODO:DAZ Test for regular cache expiry
+    def "fetches missing snapshot artifacts with --refresh-dependencies"() {
+        def snapshotModule = repo.module("some.group", "some-artifact", "1.0-SNAPSHOT")
+        def snapshotSources = snapshotModule.artifact(classifier: "sources")
+        snapshotModule.publish()
+
+        fixture.withComponentVersion("1.0-SNAPSHOT")
+                .requestingTypes(JvmLibrarySourcesArtifact)
+                .expectSourceArtifactNotFound("some-artifact-sources.jar")
+                .prepare()
+
+        when:
+        snapshotModule.metaData.expectGet()
+        snapshotModule.pom.expectGet()
+        snapshotSources.expectGetMissing()
+
+        then:
+        checkArtifactsResolvedAndCached()
+
+        when:
+        executer.withArgument("--refresh-dependencies")
+        fixture.clearExpectations()
+                .expectSourceArtifact("some-artifact-1.0-SNAPSHOT-sources.jar")
+                .createVerifyTask("verifyRefresh")
+
+        and:
+        snapshotModule.metaData.expectGet()
+        snapshotModule.pom.expectHead()
+        snapshotSources.expectGet()
+
+        then:
+        succeeds("verifyRefresh")
+    }
+
+    def "updates snapshot artifacts with --refresh-dependencies"() {
+        def snapshotModule = repo.module("some.group", "some-artifact", "1.0-SNAPSHOT")
+        def snapshotSources = snapshotModule.artifact(classifier: "sources")
+        snapshotModule.publish()
+
+        fixture.withComponentVersion("1.0-SNAPSHOT")
+                .requestingTypes(JvmLibrarySourcesArtifact)
+                .expectSourceArtifact("some-artifact-1.0-SNAPSHOT-sources.jar")
+                .prepare()
+
+        when:
+        snapshotModule.metaData.expectGet()
+        snapshotModule.pom.expectGet()
+        snapshotSources.expectGet()
+
+        then:
+        checkArtifactsResolvedAndCached()
+
+        when:
+        def snapshot = file("sources/some-artifact-1.0-SNAPSHOT-sources.jar").snapshot()
+        snapshotModule.publishWithChangedContent()
+        executer.withArgument("--refresh-dependencies")
+
+        and:
+        snapshotModule.metaData.expectGet()
+        snapshotModule.pom.expectHead()
+        snapshotModule.pom.sha1.expectGet()
+        snapshotModule.pom.expectGet()
+        snapshotSources.expectHead()
+        snapshotSources.sha1.expectGet()
+        snapshotSources.expectGet()
+
+        then:
+        succeeds("verify")
+        file("sources/some-artifact-1.0-SNAPSHOT-sources.jar").assertHasChangedSince(snapshot)
+    }
+
     def "resolves artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 
@@ -92,8 +163,8 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         publishArtifacts("sources", "javadoc")
         // TODO:DAZ These artifacts should be missing, not failures
         fixture.requestingTypes()
-                .expectSourceArtifactFailure("Artifact 'some.group:some-artifact:1.0:some-artifact-sources.jar' not found.")
-                .expectJavadocArtifactFailure("Artifact 'some.group:some-artifact:1.0:some-artifact-javadoc.jar' not found.")
+                .expectSourceArtifactNotFound("some-artifact-sources.jar")
+                .expectJavadocArtifactNotFound("some-artifact-javadoc.jar")
                 .prepare()
 
         when:
@@ -110,7 +181,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
         fixture.requestingTypes()
                 .expectSourceArtifact("some-artifact-1.0-sources.jar")
-                .expectJavadocArtifactFailure("Artifact 'some.group:some-artifact:1.0:some-artifact-javadoc.jar' not found.")
+                .expectJavadocArtifactNotFound("some-artifact-javadoc.jar")
                 .prepare()
 
         when:
@@ -122,8 +193,8 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         checkArtifactsResolvedAndCached()
     }
 
-    def "resolve and does not cache broken artifacts"() {
-        publishArtifacts("sources")
+    def "resolves and recovers from broken artifacts"() {
+        publishArtifacts("sources", "javadoc")
 
         fixture.requestingTypes()
                 .expectSourceArtifact("some-artifact-1.0-sources.jar")
@@ -140,12 +211,18 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         succeeds("verify")
 
         when:
+        fixture.clearExpectations()
+                .expectSourceArtifact("some-artifact-1.0-sources.jar")
+                .expectJavadocArtifact("some-artifact-1.0-javadoc.jar")
+                .createVerifyTask("verifyFixed")
+
+        and:
         server.resetExpectations()
         // Only the broken artifact is not cached
-        module.artifact(classifier: "javadoc").expectGetBroken()
+        module.artifact(classifier: "javadoc").expectGet()
 
         then:
-        succeeds("verify")
+        succeeds("verifyFixed")
     }
 
     def checkArtifactsResolvedAndCached() {

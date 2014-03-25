@@ -29,11 +29,11 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         server.start()
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
         fixture.withRepository("ivy { url '$repo.uri' }")
+
+        publishModule()
     }
 
     def "resolve sources artifacts"() {
-        publishModule()
-
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
                 .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
                 .prepare()
@@ -47,8 +47,6 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolve javadoc artifacts"() {
-        publishModule()
-
         fixture.requestingTypes(JvmLibraryJavadocArtifact)
                 .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
                 .prepare()
@@ -62,8 +60,6 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolve all artifacts"() {
-        publishModule()
-
         fixture.requestingTypes()
                 .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
                 .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
@@ -78,6 +74,64 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         checkArtifactsResolvedAndCached()
     }
 
+    // TODO:DAZ These tests should use a changing module and regular cache expiry
+    def "fetches missing artifacts for module with --refresh-dependencies"() {
+        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+                .expectSourceArtifactNotFound("some-artifact-my-sources.jar")
+                .prepare()
+
+        when:
+        module.ivy.expectGet()
+        module.getArtifact(classifier: "my-sources").expectGetMissing()
+
+        then:
+        checkArtifactsResolvedAndCached()
+
+        when:
+        executer.withArgument("--refresh-dependencies")
+        fixture.clearExpectations()
+                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+                .createVerifyTask("verifyRefresh")
+
+        and:
+        module.ivy.expectHead()
+        module.getArtifact(classifier: "my-sources").expectGet()
+
+        then:
+        succeeds("verifyRefresh")
+    }
+
+    def "updates artifacts for module with --refresh-dependencies"() {
+        final sourceArtifact = module.getArtifact(classifier: "my-sources")
+        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+                .prepare()
+
+        when:
+        module.ivy.expectGet()
+        sourceArtifact.expectGet()
+
+        then:
+        checkArtifactsResolvedAndCached()
+
+        when:
+        def snapshot = file("sources/some-artifact-1.0-my-sources.jar").snapshot()
+        module.publishWithChangedContent()
+        executer.withArgument("--refresh-dependencies")
+
+        and:
+        module.ivy.expectHead()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
+        sourceArtifact.expectHead()
+        sourceArtifact.sha1.expectGet()
+        sourceArtifact.expectGet()
+
+        then:
+        succeeds("verify")
+        file("sources/some-artifact-1.0-my-sources.jar").assertHasChangedSince(snapshot)
+    }
+
     def "resolve artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 
@@ -90,9 +144,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolve missing artifacts of existing component"() {
-        publishModule()
-        fixture.expectSourceArtifactFailure("Artifact 'some.group:some-artifact:1.0:some-artifact-my-sources.jar' not found.")
-                .expectJavadocArtifactFailure("Artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar' not found.")
+        fixture.expectSourceArtifactNotFound("some-artifact-my-sources.jar")
+                .expectJavadocArtifactNotFound("some-artifact-my-javadoc.jar")
                 .prepare()
 
         when:
@@ -105,9 +158,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolve partially missing artifacts"() {
-        publishModule()
         fixture.expectSourceArtifact("some-artifact-1.0-my-sources.jar")
-                .expectJavadocArtifactFailure("Artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar' not found.")
+                .expectJavadocArtifactNotFound("some-artifact-my-javadoc.jar")
                 .prepare()
 
         when:
@@ -120,7 +172,6 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolve partially broken artifacts"() {
-        publishModule()
         fixture.expectSourceArtifact("some-artifact-1.0-my-sources.jar")
                 .expectJavadocArtifactFailure("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar'")
                 .prepare()
@@ -134,11 +185,18 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         succeeds("verify")
 
         when:
+        fixture.clearExpectations()
+                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+                .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
+                .createVerifyTask("verifyFixed")
+
+        and:
         server.resetExpectations()
-        module.getArtifact(classifier: "my-javadoc").expectGetBroken()
+        // Only the broken artifact is not cached
+        module.getArtifact(classifier: "my-javadoc").expectGet()
 
         then:
-        succeeds("verify")
+        succeeds("verifyFixed")
     }
 
     def checkArtifactsResolvedAndCached() {
