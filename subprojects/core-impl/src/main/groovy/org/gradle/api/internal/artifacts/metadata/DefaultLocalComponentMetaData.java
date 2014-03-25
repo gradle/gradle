@@ -81,7 +81,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
     private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData {
         private final ComponentIdentifier componentIdentifier;
-        private final DefaultModuleVersionArtifactIdentifier id;
+        private final DefaultLocalArtifactIdentifier id;
         private final Artifact artifact;
         private final File file;
 
@@ -90,7 +90,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             Map<String, String> attrs = new HashMap<String, String>();
             attrs.putAll(artifact.getExtraAttributes());
             attrs.put("file", file == null ? "null" : file.getAbsolutePath());
-            this.id = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
+            this.id = new DefaultLocalArtifactIdentifier(componentIdentifier, moduleVersionIdentifier.toString(), artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
             this.artifact = artifact;
             this.file = file;
         }
@@ -143,7 +143,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         @Override
         protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
             Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
-            Set<ModuleVersionArtifactIdentifier> seen = new HashSet<ModuleVersionArtifactIdentifier>();
+            Set<ComponentArtifactIdentifier> seen = new HashSet<ComponentArtifactIdentifier>();
             for (String configName : configurationMetaData.getHierarchy()) {
                 for (DefaultLocalArtifactMetaData localArtifactMetaData : artifactsByConfig.get(configName)) {
                     if (seen.add(localArtifactMetaData.id)) {
