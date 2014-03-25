@@ -91,10 +91,11 @@ In contrast, Invoking the build with the `build` _task_ would only build the roo
 
 This new capability makes it easier for integrators to provide more powerful interfaces for invoking Gradle builds.
 
-### Easier to determine ignored tests in HTML test report
+### Easier to identify ignored tests in HTML test report
 
 The HTML test report now has a dedicated tab for ignored tests, at the overview and package level.
 This makes it much easier to see which tests were ignored at a glance.
+
 Thanks to [Paul Merlin](https://github.com/eskatos) for this improvement.
 
 ### Support for building large zips
