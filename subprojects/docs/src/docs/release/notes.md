@@ -36,10 +36,13 @@ in the distribution to learn more. Expect deeper integration with CUnit (and oth
 
 ### Component metadata rules can control whether a component version is considered changing (i)
 
-Component metadata rules can now control whether a component version is considered changing, or in other words, whether the contents
-of one and the same component version may change over time. (A common example for a changing component version is a Maven snapshot dependency.)
-This makes it possible to implement custom strategies for deciding if a component version is changing. In the following example, every
-component version whose group is `my.company` and whose version number ends in `-dev` will be considered changing:
+Component metadata rules ([introduced in Gradle 1.8](http://www.gradle.org/docs/1.8/release-notes#component-metadata-rules)) can now be used to specify whether a component version is considered _changing_.
+
+A _changing_ component is expected to change over time without a change to the version number.
+A commonly used and well understood example of a changing component is a “`-SNAPSHOT`” dependency from an Apache Maven repository (which Gradle implicitly considers to be changing).
+
+This new feature makes it possible to implement custom strategies for deciding if a component version is changing.
+In the following example, every component version whose group is “`my.company`” and whose version number ends in “`-dev`” will be considered changing:
 
     dependencies {
         components {
@@ -52,6 +55,8 @@ component version whose group is `my.company` and whose version number ends in `
     }
 
 This feature is especially useful when dealing with Ivy repositories, as it is a generalized form of Ivy's `changingPattern` concept.
+
+See [ComponentMetadataHandler](javadoc/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html) for more information.
 
 ### Tooling API exposes information on a project's publications (i)
 
