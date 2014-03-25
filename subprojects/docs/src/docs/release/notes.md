@@ -60,7 +60,9 @@ See [ComponentMetadataHandler](javadoc/org/gradle/api/artifacts/dsl/ComponentMet
 
 ### Tooling API exposes information on a project's publications (i)
 
-Tooling API clients can now get basic information on a project's publications:
+The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically. The new [`ProjectPublications` Tooling API model type](javadoc/org/gradle/tooling/model/gradle/ProjectPublications.html) provides basic information about a project's publications.
+
+The following example demonstrates, in Groovy, using the `ProjectPublications` model to print out the group/name/version of each publication.
 
     def projectConnection = ...
     def projectPath = ':myProject'
@@ -79,9 +81,15 @@ Both publications declared in the old (`artifacts` block, `Upload` task) and new
 
 ### Tooling API exposes more information on how to launch a Gradle build (i)
 
-A new model BuildInvocations is added for Tooling API clients to find objects that can be used when launching a build.
-Currently tasks and task selectors (also called aggregated tasks [GRADLE-2434]).
+The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically. The new [`BuildInvocations` Tooling API model type](javadoc/org/gradle/tooling/model/gradle/BuildInvocations.html) provides information about the possible ways to invoke the build.
 
+It provides the invokable tasks of a project, and importantly also its applicable task _selectors_.
+A task selector effectively refers to all of the tasks of a project and its children of the same name.
+For example, it is common in a multi project build for all projects to have a `build` task.
+Invoking the build via the Tooling API with the `build` task _selector_ would effectively build the entire multi project build.
+In contrast, Invoking the build with the `build` _task_ would only build the root project (or which ever project is being targeted).
+
+This new capability makes it easier for integrators to provide more powerful interfaces for invoking Gradle builds.
 
 ### New API for artifact resolution (i)
 
