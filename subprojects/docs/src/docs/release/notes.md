@@ -91,51 +91,6 @@ In contrast, Invoking the build with the `build` _task_ would only build the roo
 
 This new capability makes it easier for integrators to provide more powerful interfaces for invoking Gradle builds.
 
-### New API for artifact resolution (i)
-
-Gradle 1.12 introduces a new, incubating API for resolving component artifacts. With this addition, Gradle now offers separate dedicated APIs for resolving
-components and artifacts. (Component resolution is mainly concerned with computing the dependency graph, whereas artifact resolution is
-mainly concerned with locating and downloading artifacts.) The entry points to the component and artifact resolution APIs are `configuration.incoming` and
-`dependencies.createArtifactResolutionQuery()`, respectively.
-
-Here is an example usage of the new API:
-
-    def query = dependencies.createArtifactResolutionQuery()
-        .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
-        .forArtifacts(JvmLibrary)
-
-    def result = query.execute() // artifacts are downloaded at this point
-
-    for (component in result.components) {
-        assert component instanceof JvmLibrary
-        println component.id
-        component.sourceArtifacts.each { println it.file }
-        component.javadocArtifacts.each { println it.file }
-    }
-
-    assert result.unresolvedComponents.isEmpty()
-
-Artifact resolution can be limited to selected artifact types:
-
-    def query = dependencies.createArtifactResolutionQuery()
-        .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
-        .forArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
-
-    def result = query.execute()
-
-    for (component in result.components) {
-        assert !component.sourceArtifacts.isEmpty()
-        assert component.javadocArtifacts.isEmpty()
-    }
-
-Artifacts for many components can be resolved together:
-
-    def query = dependencies.createArtifactResolutionQuery()
-        .forComponents(setOfComponentIds)
-        .forArtifacts(JvmLibrary)
-
-So far, only one component type (`JvmLibrary`) is available, but others will follow, also for platforms other than the JVM.
-
 ### Easier to determine ignored tests in HTML test report
 
 The HTML test report now has a dedicated tab for ignored tests, at the overview and package level.
