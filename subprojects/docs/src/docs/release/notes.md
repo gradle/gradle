@@ -190,8 +190,9 @@ All versions of integrating tools released since the release of Gradle 1.2 (Sept
 
 ### Incremental Scala compilation
 
-The version of 'zinc' tool that Gradle uses to perform incremental scala compilation has been upgraded to a newer version (0.3.0).
-This might be a breaking change for users who explicitly configured some low version of zinc in their build scripts (there should be very few such users, if any).
+The version of the Scala incremental compiler, Zinc, that Gradle uses has been upgraded to a version 0.3.0.
+This might be a breaking change for users who explicitly configured a low version of zinc in their build scripts.
+There should be very few such users, if any.
 
 ### Changes to incubating native support
 
