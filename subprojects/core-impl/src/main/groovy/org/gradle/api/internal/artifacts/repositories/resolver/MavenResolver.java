@@ -32,10 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -272,13 +269,6 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             }
         }
         return Collections.emptySet();
-    }
-
-    private ModuleVersionArtifactMetaData createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {
-        Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
-        Artifact artifact = new DefaultArtifact(module.getDescriptor().getModuleRevisionId(), null,
-                module.getId().getName(), type, "jar", extraAttributes);
-        return new DefaultModuleVersionArtifactMetaData(module, artifact);
     }
 
     protected static class TimestampedModuleSource implements ModuleSource {

@@ -15,8 +15,6 @@
  */
 package org.gradle.internal.classloader
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Test
 import org.junit.runners.BlockJUnit4ClassRunner
