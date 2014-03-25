@@ -16,16 +16,19 @@
 
 package org.gradle.test.fixtures.server.sftp
 
-import com.jcraft.jsch.JSch
-import com.jcraft.jsch.UserInfo
 import org.apache.commons.io.FileUtils
 import org.apache.sshd.SshServer
 import org.apache.sshd.common.NamedFactory
 import org.apache.sshd.common.Session
-import org.apache.sshd.server.*
+import org.apache.sshd.common.file.FileSystemView
+import org.apache.sshd.common.file.SshFile
+import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemView
+import org.apache.sshd.server.Command
+import org.apache.sshd.server.PasswordAuthenticator
+import org.apache.sshd.server.PublickeyAuthenticator
 import org.apache.sshd.server.command.ScpCommandFactory
-import org.apache.sshd.server.filesystem.NativeFileSystemFactory
-import org.apache.sshd.server.filesystem.NativeSshFile
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.apache.sshd.server.session.ServerSession
 import org.apache.sshd.server.sftp.SftpSubsystem
@@ -36,17 +39,17 @@ import org.junit.rules.ExternalResource
 import java.security.PublicKey
 
 class SFTPServer extends ExternalResource {
-    final String hostAddress;
+    final String hostAddress
     int port
 
     private final TestDirectoryProvider testDirectoryProvider
     private TestFile baseDir
     private TestFile configDir
 
-    private SshServer sshd;
-    private com.jcraft.jsch.Session session
+    private SshServer sshd
 
     def fileRequests = [] as Set
+
 
     public SFTPServer(TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider;
@@ -61,42 +64,14 @@ class SFTPServer extends ExternalResource {
 
         sshd = setupConfiguredTestSshd();
         sshd.start();
-        createSshSession();
     }
 
     protected void after() {
-        session?.disconnect();
-        sshd?.stop()
+        stop()
     }
 
-    private createSshSession() {
-        JSch sch = new JSch();
-        session = sch.getSession("sshd", "localhost", port);
-        session.setUserInfo(new UserInfo() {
-            public String getPassphrase() {
-                return null;
-            }
-
-            public String getPassword() {
-                return "sshd";
-            }
-
-            public boolean promptPassword(String message) {
-                return true;
-            }
-
-            public boolean promptPassphrase(String message) {
-                return false;
-            }
-
-            public boolean promptYesNo(String message) {
-                return true;
-            }
-
-            public void showMessage(String message) {
-            }
-        });
-        session.connect()
+    public stop() {
+        sshd?.stop()
     }
 
     private SshServer setupConfiguredTestSshd() {
@@ -106,7 +81,7 @@ class SFTPServer extends ExternalResource {
 
         SshServer sshServer = SshServer.setUpDefaultServer();
         sshServer.setPort(port);
-        sshServer.setFileSystemFactory(new TestNativeFileSystemFactory(baseDir.absolutePath, new FileRequestLogger() {
+        sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory(baseDir.absolutePath, new FileRequestLogger() {
             void logRequest(String message) {
                 fileRequests << message;
             }
@@ -150,13 +125,13 @@ class SFTPServer extends ExternalResource {
         abstract void logRequest(String message)
     }
 
-    static class TestNativeFileSystemFactory extends NativeFileSystemFactory {
+    static class TestVirtualFileSystemFactory extends VirtualFileSystemFactory {
 
         String rootPath
 
         List<FileRequestLogger> logger
 
-        public TestNativeFileSystemFactory(String rootPath, FileRequestLogger... logger) {
+        public TestVirtualFileSystemFactory(String rootPath, FileRequestLogger... logger) {
             this.rootPath = rootPath
             this.logger = Arrays.asList(logger)
         }
@@ -165,27 +140,19 @@ class SFTPServer extends ExternalResource {
          * Create the appropriate user file system view.
          */
         public FileSystemView createFileSystemView(Session session) {
-            String userName = session.getUsername();
-            FileSystemView fsView = new TestNativeFileSystemView(rootPath, userName, logger, caseInsensitive);
-            return fsView;
+            return new TestVirtualFileSystemView(rootPath, session.getUsername(), logger);
         }
     }
 
-    static class TestNativeFileSystemView implements FileSystemView {
-        // the first and the last character will always be '/'
-        // It is always with respect to the root directory.
-        private String currDir;
+    static class TestVirtualFileSystemView extends VirtualFileSystemView {
 
-        private String userName;
-
-        private boolean caseInsensitive = false;
-
-        List<FileRequestLogger> logger
+        List<FileRequestLogger> loggers
 
         /**
          * Constructor - internal do not use directly, use {@link NativeFileSystemFactory} instead
          */
-        public TestNativeFileSystemView(String rootpath, String userName, List<FileRequestLogger> requestLoggerList, boolean caseInsensitive) {
+        public TestVirtualFileSystemView(String rootpath, String userName, List<FileRequestLogger> requestLoggerList) {
+            super(userName, rootpath);
             if (!rootpath) {
                 throw new IllegalArgumentException("rootPath must be set");
             }
@@ -194,47 +161,23 @@ class SFTPServer extends ExternalResource {
                 throw new IllegalArgumentException("user can not be null");
             }
 
-            this.logger = requestLoggerList;
-            this.caseInsensitive = caseInsensitive;
-
-            currDir = rootpath;
-            this.userName = userName;
-        }
-
-        /**
-         * Get file object.
-         */
-        public SshFile getFile(String file) {
-            return getFile(currDir, file);
-        }
-
-        public SshFile getFile(SshFile baseDir, String file) {
-            return getFile(baseDir.getAbsolutePath(), file);
+            this.loggers = requestLoggerList;
         }
 
         protected SshFile getFile(String dir, String file) {
-            // get actual file object
-
-            String physicalName = NativeSshFile.getPhysicalName("/", dir, file, caseInsensitive);
-            File fileObj = new File(physicalName);
-            logFileRequest(dir, fileObj.absolutePath);
-            // strip the root directory and return
-            String userFileName = physicalName.substring("/".length() - 1);
-            return new NativeSshFile(userFileName, fileObj, userName);
+            logFileRequest(file);
+            return super.getFile(dir, file);
         }
 
-        void logFileRequest(String dir, String file) {
+        void logFileRequest(String file) {
             //log xml and jar requests only
             if (file.endsWith("xml") || file.endsWith(".jar")) {
-                String normalizedPath = (file - dir).replaceAll("\\\\", '/') - "/"
-                logger.each {
-                    it.logRequest(normalizedPath)
+                loggers.each {
+                    it.logRequest(file - '/')
                 }
             }
         }
     }
-
-
 
 }
 

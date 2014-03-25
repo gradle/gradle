@@ -48,38 +48,6 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         !repository.resolve.dynamicMode
     }
 
-    def "cannot create a resolver for url with unknown scheme"() {
-        repository.name = 'name'
-        repository.artifactPattern 'pattern1'
-
-        given:
-        fileResolver.resolveUri('pattern1') >> new URI('scheme:resource1')
-
-        when:
-        repository.createResolver()
-
-        then:
-        InvalidUserDataException e = thrown()
-        e.message == "You may only specify 'file', 'http' and 'https' urls for an Ivy repository."
-    }
-
-    def "cannot creates a resolver for mixed url scheme"() {
-        repository.name = 'name'
-        repository.artifactPattern 'pattern1'
-        repository.artifactPattern 'pattern2'
-
-        given:
-        fileResolver.resolveUri('pattern1') >> new URI('http:resource1')
-        fileResolver.resolveUri('pattern2') >> new URI('file:resource2')
-
-        when:
-        repository.createResolver()
-
-        then:
-        InvalidUserDataException e = thrown()
-        e.message == "You cannot mix file and http(s) urls for a single Ivy repository. Please declare 2 separate repositories."
-    }
-
     def "creates a resolver for HTTP patterns"() {
         repository.name = 'name'
         repository.artifactPattern 'http://host/[organisation]/[artifact]-[revision].[ext]'
@@ -89,7 +57,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
         fileResolver.resolveUri('http://other/') >> new URI('http://other/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
+
 
         when:
         def resolver = repository.createResolver()
@@ -114,7 +83,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('repo/') >> fileUri
-        transportFactory.createFileTransport('name') >> transport()
+        transportFactory.createTransport({ it == ['file'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -137,7 +106,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('repo/') >> fileUri
-        transportFactory.createFileTransport('name') >> transport()
+        transportFactory.createTransport({ it == ['file'] as Set}, 'name', credentials) >> transport()
 
         when:
         def wrapper = repository.createLegacyDslObject()
@@ -161,7 +130,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -183,7 +152,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -209,7 +178,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -236,7 +205,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -260,7 +229,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -282,7 +251,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             artifact '[layoutPattern]'
         }
         repository.artifactPattern 'http://other/[additionalPattern]'
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host')
