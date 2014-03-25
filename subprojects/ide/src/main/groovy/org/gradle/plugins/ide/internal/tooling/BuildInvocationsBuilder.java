@@ -16,9 +16,8 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -31,6 +30,7 @@ import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
@@ -48,8 +48,8 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             throw new GradleException("Unknown model name " + modelName);
         }
         List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
-        Multimap<String, String> aggregatedTasks = findTasks(project);
-        for (String selectorName : aggregatedTasks.keySet()) {
+        Set<String> aggregatedTasks = findTasks(project);
+        for (String selectorName : aggregatedTasks) {
             selectors.add(new DefaultGradleTaskSelector().
                     setName(selectorName).
                     setTaskName(selectorName).
@@ -101,14 +101,14 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         return tasks;
     }
 
-    private Multimap<String, String> findTasks(Project project) {
-        Multimap<String, String> aggregatedTasks = ArrayListMultimap.create();
+    private Set<String> findTasks(Project project) {
+        Set<String> aggregatedTasks = Sets.newHashSet();
         for (Project child : project.getSubprojects()) {
-            Multimap<String, String> childTasks = findTasks(child);
-            aggregatedTasks.putAll(childTasks);
+            Set<String> childTasks = findTasks(child);
+            aggregatedTasks.addAll(childTasks);
         }
         for (Task task : project.getTasks()) {
-            aggregatedTasks.put(task.getName(), task.getPath());
+            aggregatedTasks.add(task.getName());
         }
         return aggregatedTasks;
     }
