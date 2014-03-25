@@ -118,15 +118,10 @@ This means you should not enable this property if you are building JARs to be us
 
 Thanks to [Jason Gauci](https://github.com/MisterTea) for this improvement.
 
-### Consumption of active POM profile information
+### Support for consuming Apache Maven POMs with active profiles
 
-Publishing artifacts to a Maven repository including their profile information for relying on properties, dependencies or dependency management defaults
-is not a recommended practice. Reality is that a significant number of published artifacts make use of this practice which leads to unresolvable transitive
-dependencies. Gradle is now able to consume this metadata for profiles that are marked as [active by default](https://maven.apache.org/pom.html#Activation).
-The following profile metadata is parsed and evaluated:
-
-* Properties elements
-* Dependency management elements
+Gradle now respects POM profiles that are [active by default](https://maven.apache.org/pom.html#Activation), during dependency resolution.
+More specifically, the properties and dependency management information is now respected.
 
 ### Customise Clang tool chain (i)
 
