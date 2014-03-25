@@ -175,10 +175,16 @@ in the next major Gradle version (Gradle 2.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-### Deprecations in Tooling API communication
+### Tooling API version compatibility
 
-* Using Tooling API to connect to provider using older distribution than Gradle 1.0-milestone-8 is now deprecated and scheduled for removal in version Gradle 2.0.
-* Using Tooling API client version older than 1.2 to connect to a provider from current distribution is now deprecated and scheduled for removal in version Gradle 2.0.
+The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically.
+It is used by IDEs and other _tooling_ to integrate with Gradle.
+
+* Connecting to 1.0-milestone-8 and earlier providers is now deprecated (in effect, the Gradle 2.0 Tooling API client will not work with 1.0-milestone-8 and earlier builds)
+* Client versions older than 1.2 are now deprecated (in effect, the Gradle 1.2 and earlier Tooling API clients will not work with Gradle 2.0 and later builds)
+
+If your project is building with Gradle 1.0-milestone-8 or earlier, you are __strongly__ encouraged to upgrade to a more recent Gradle version.
+All versions of integrating tools released since the release of Gradle 1.2 (September 2012) should be using a Tooling API client newer than version 1.2.
 
 ## Potential breaking changes
 
