@@ -100,7 +100,7 @@ Thanks to [Paul Merlin](https://github.com/eskatos) for this improvement.
 
 ### Support for building large zips
 
-It is now possible to build zips with the [Zip64 extension](http://en.wikipedia.org/wiki/Zip_\(file_format\)#ZIP64), enabling building large zip files.
+It is now possible to build zips with the [Zip64 extension](http://en.wikipedia.org/wiki/Zip_\(file_format\)#ZIP64), enabling the building of large zip files.
 
     task largeZip(type: Zip) {
         from 'lotsOfLargeFiles'
