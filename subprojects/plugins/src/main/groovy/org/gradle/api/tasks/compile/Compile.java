@@ -191,11 +191,25 @@ public class Compile extends AbstractCompile {
         return compileOptions;
     }
 
+    /**
+     * This method was never intended to be used by the users.
+     *
+     * @return the compiler
+     */
+    @Deprecated
     public Compiler<JavaCompileSpec> getJavaCompiler() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Compile.getJavaCompiler()");
         return cleaningCompiler;
     }
 
+    /**
+     * This method was never intended to be used by the users.
+     *
+     * @param javaCompiler to set
+     */
+    @Deprecated
     public void setJavaCompiler(Compiler<JavaCompileSpec> javaCompiler) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Compile.setJavaCompiler(Compiler<JavaCompileSpec>)");
         this.cleaningCompiler = javaCompiler;
     }
 }
