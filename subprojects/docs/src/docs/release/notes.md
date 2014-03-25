@@ -60,7 +60,8 @@ See [ComponentMetadataHandler](javadoc/org/gradle/api/artifacts/dsl/ComponentMet
 
 ### Tooling API exposes information on a project's publications (i)
 
-The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically. The new [`ProjectPublications` Tooling API model type](javadoc/org/gradle/tooling/model/gradle/ProjectPublications.html) provides basic information about a project's publications.
+The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically.
+The new [`ProjectPublications` Tooling API model type](javadoc/org/gradle/tooling/model/gradle/ProjectPublications.html) provides basic information about a project's publications.
 
 The following example demonstrates, in Groovy, using the `ProjectPublications` model to print out the group/name/version of each publication.
 
@@ -81,7 +82,8 @@ Both publications declared in the old (`artifacts` block, `Upload` task) and new
 
 ### Tooling API exposes more information on how to launch a Gradle build (i)
 
-The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically. The new [`BuildInvocations` Tooling API model type](javadoc/org/gradle/tooling/model/gradle/BuildInvocations.html) provides information about the possible ways to invoke the build.
+The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically.
+The new [`BuildInvocations` Tooling API model type](javadoc/org/gradle/tooling/model/gradle/BuildInvocations.html) provides information about the possible ways to invoke the build.
 
 It provides the invokable tasks of a project, and importantly also its applicable task _selectors_.
 A task selector effectively refers to all of the tasks of a project and its children of the same name.
