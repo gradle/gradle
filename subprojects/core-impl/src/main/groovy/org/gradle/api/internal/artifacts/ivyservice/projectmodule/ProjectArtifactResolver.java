@@ -19,16 +19,16 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
 
 import java.util.Set;
 
 public class ProjectArtifactResolver implements ArtifactResolver {
-    private final ProjectComponentRegistry projectComponentRegistry;
     private final ArtifactResolver delegate;
 
-    public ProjectArtifactResolver(ProjectComponentRegistry projectComponentRegistry, ArtifactResolver delegate) {
-        this.projectComponentRegistry = projectComponentRegistry;
+    public ProjectArtifactResolver(ArtifactResolver delegate) {
         this.delegate = delegate;
     }
 
@@ -48,12 +48,9 @@ public class ProjectArtifactResolver implements ArtifactResolver {
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         if (isProjectModule(artifact.getComponentId())) {
-            // TODO:DAZ We're now looking up the project separately per resolved artifact: need to ensure this isn't a problem
-            ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) artifact.getComponentId();
-            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(componentIdentifier.getProjectPath());
-            LocalArtifactMetaData artifactMetaData = componentMetaData.getArtifact(artifact.getId());
-            if (artifactMetaData != null) {
-                result.resolved(artifactMetaData.getFile());
+            LocalArtifactMetaData localArtifact = (LocalArtifactMetaData) artifact;
+            if (localArtifact.getFile() != null) {
+                result.resolved(localArtifact.getFile());
             } else {
                 result.notFound(artifact.getId());
             }
