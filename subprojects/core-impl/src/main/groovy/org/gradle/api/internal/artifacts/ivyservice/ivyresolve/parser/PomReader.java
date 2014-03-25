@@ -539,8 +539,7 @@ public class PomReader implements PomParent {
         }
 
         public String getId() {
-            String id = getFirstChildText(element, PROFILE_ID);
-            return replaceProps(id);
+            return getFirstChildText(element, PROFILE_ID);
         }
 
         public Map<String, String> getProperties() {

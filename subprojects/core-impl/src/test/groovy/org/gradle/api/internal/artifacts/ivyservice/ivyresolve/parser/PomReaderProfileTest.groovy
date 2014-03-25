@@ -52,6 +52,158 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         pomReader.parseActivePomProfiles().size() == 0
     }
 
+    def "parse POM with a mix of active and inactive profiles"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <prop1>myproperty1</prop1>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+        <profile>
+            <id>profile-2</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <prop2>myproperty2</prop2>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-three</groupId>
+                        <artifactId>artifact-three</artifactId>
+                        <version>version-three</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+        <profile>
+            <id>profile-3</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <prop3>myproperty3</prop3>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-four</groupId>
+                        <artifactId>artifact-four</artifactId>
+                        <version>version-four</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        pomReader.parseActivePomProfiles().size() == 1
+        pomReader.properties.size() == 5
+        !pomReader.properties.containsKey('prop1')
+        !pomReader.properties.containsKey('prop3')
+        pomReader.properties['prop2'] == 'myproperty2'
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-four', 'artifact-four', 'jar', null))
+        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null))
+    }
+
+    def "cannot use POM property to set profile ID"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <properties>
+        <activate.id>profile-1</activate.id>
+    </properties>
+    <profiles>
+        <profile>
+            <id>\${activate.id}</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <groupId.prop>group-two</groupId.prop>
+                <artifactId.prop>artifact-two</artifactId.prop>
+                <version.prop>version-two</version.prop>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 1
+        activePomProfiles[0].id == '${activate.id}'
+    }
+
+    def "cannot use POM property to control profile activation"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <properties>
+        <activate.profile>true</activate.profile>
+    </properties>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>\${activate.profile}</activeByDefault>
+            </activation>
+            <properties>
+                <groupId.prop>group-two</groupId.prop>
+                <artifactId.prop>artifact-two</artifactId.prop>
+                <version.prop>version-two</version.prop>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 0
+        !pomReader.properties.containsKey('groupId.prop')
+        !pomReader.properties.containsKey('artifactId.prop')
+        !pomReader.properties.containsKey('version.prop')
+    }
+
     def "parse POM with active profile providing properties"() {
         when:
         pomFile << """
@@ -414,6 +566,56 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         assertResolvedPomDependencyManagement(key, 'version-two')
     }
 
+    def "finds dependency default with properties defined in main body of POM"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <properties>
+        <groupId.prop>group-two</groupId.prop>
+        <artifactId.prop>artifact-two</artifactId.prop>
+        <version.prop>version-two</version.prop>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>\${groupId.prop}</groupId>
+                        <artifactId>\${artifactId.prop}</artifactId>
+                        <version>\${version.prop}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+
+        then:
+        pomReader.getDependencyMgt().size() == 1
+        assertResolvedPomDependencyManagement(key, 'version-two')
+        pomReader.findDependencyDefaults(key) == pomReader.dependencyMgt[key]
+    }
+
     def "finds dependency default if declared in active profile"() {
         when:
         pomFile << """
@@ -648,5 +850,75 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
         pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
         !pomReader.findDependencyDefaults(keyGroupThree)
+    }
+
+    def "uses child properties over parent properties if defined in active profile with the different values"() {
+        when:
+        String parentPom = """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-two</groupId>
+    <artifactId>artifact-two</artifactId>
+    <version>version-two</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <groupId.prop>group-three</groupId.prop>
+                <artifactId.prop>artifact-three</artifactId.prop>
+                <version.prop>version-three</version.prop>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+        PomReader parentPomReader = createPomReader('parent-pom.xml', parentPom)
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-two</groupId>
+        <artifactId>artifact-two</artifactId>
+        <version>version-two</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>\${groupId.prop}</groupId>
+            <artifactId>\${artifactId.prop}</artifactId>
+            <version>\${version.prop}</version>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <groupId.prop>group-four</groupId.prop>
+                <artifactId.prop>artifact-four</artifactId.prop>
+                <version.prop>version-four</version.prop>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader.setPomParent(parentPomReader)
+        MavenDependencyKey key = new MavenDependencyKey('group-four', 'artifact-four', 'jar', null)
+
+        then:
+        pomReader.getDependencies().size() == 1
+        assertResolvedPomDependency(key, 'version-four')
     }
 }
