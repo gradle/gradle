@@ -121,7 +121,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
     private ArtifactResolver createArtifactResolver(RepositoryChain repositoryChain) {
         ArtifactResolver artifactResolver = repositoryChain.getArtifactResolver();
-        artifactResolver = new ProjectArtifactResolver(projectComponentRegistry, artifactResolver);
+        artifactResolver = new ProjectArtifactResolver(artifactResolver);
         artifactResolver = new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, artifactResolver);
         return artifactResolver;
     }
