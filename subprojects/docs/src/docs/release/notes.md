@@ -87,45 +87,39 @@ mainly concerned with locating and downloading artifacts.) The entry points to t
 
 Here is an example usage of the new API:
 
-```
-def query = dependencies.createArtifactResolutionQuery()
-    .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
-    .forArtifacts(JvmLibrary)
+    def query = dependencies.createArtifactResolutionQuery()
+        .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
+        .forArtifacts(JvmLibrary)
 
-def result = query.execute() // artifacts are downloaded at this point
+    def result = query.execute() // artifacts are downloaded at this point
 
-for (component in result.components) {
-    assert component instanceof JvmLibrary
-    println component.id
-    component.sourceArtifacts.each { println it.file }
-    component.javadocArtifacts.each { println it.file }
-}
+    for (component in result.components) {
+        assert component instanceof JvmLibrary
+        println component.id
+        component.sourceArtifacts.each { println it.file }
+        component.javadocArtifacts.each { println it.file }
+    }
 
-assert result.unresolvedComponents.isEmpty()
-```
+    assert result.unresolvedComponents.isEmpty()
 
 Artifact resolution can be limited to selected artifact types:
 
-```
-def query = dependencies.createArtifactResolutionQuery()
-    .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
-    .forArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
+    def query = dependencies.createArtifactResolutionQuery()
+        .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
+        .forArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
 
-def result = query.execute()
+    def result = query.execute()
 
-for (component in result.components) {
-    assert !component.sourceArtifacts.isEmpty()
-    assert component.javadocArtifacts.isEmpty()
-}
-```
+    for (component in result.components) {
+        assert !component.sourceArtifacts.isEmpty()
+        assert component.javadocArtifacts.isEmpty()
+    }
 
 Artifacts for many components can be resolved together:
 
-```
-def query = dependencies.createArtifactResolutionQuery()
-    .forComponents(setOfComponentIds)
-    .forArtifacts(JvmLibrary)
-```
+    def query = dependencies.createArtifactResolutionQuery()
+        .forComponents(setOfComponentIds)
+        .forArtifacts(JvmLibrary)
 
 So far, only one component type (`JvmLibrary`) is available, but others will follow, also for platforms other than the JVM.
 
