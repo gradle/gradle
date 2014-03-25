@@ -23,14 +23,13 @@ You simply need to include your CUnit test sources, and provide a hook for Gradl
 
 Gradle will then generate the required boiler-plate CUnit code, build a test executable, and run your tests.
 
-    > gradle -q runFailingOperatorsTest
+<pre><tt>> gradle -q runFailingOperatorsTest
 
-    There were test failures:
-      1. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:6  - plus(0, -2) == -2
-      2. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:7  - plus(2, 2) == 4
+There were test failures:
+  1. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:6  - plus(0, -2) == -2
+  2. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:7  - plus(2, 2) == 4
 
-    BUILD FAILED
-
+BUILD FAILED</tt></pre>
 
 See the [user guide chapter](docs/userguide/nativeBinaries.html#native_binaries:cunit) and the cunit sample (`samples/native-binaries/cunit`)
 in the distribution to learn more. Expect deeper integration with CUnit (and other native testing tools) in the future.
