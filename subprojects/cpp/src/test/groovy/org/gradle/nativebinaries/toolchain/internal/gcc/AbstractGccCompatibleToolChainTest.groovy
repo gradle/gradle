@@ -53,9 +53,9 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolSearchPath, instantiator)
     def platform = Stub(Platform)
 
-    def setup(){
-        instantiator.newInstance(DefaultConfigurableToolChain.class, _) >> {args ->
-            new DefaultConfigurableToolChain(args[1][0], args[1][1], args[1][2], args[1][3],args[1][4] )
+    def setup() {
+        instantiator.newInstance(DefaultConfigurableToolChain.class, _) >> { args ->
+            new DefaultConfigurableToolChain(args[1][0], args[1][1], args[1][2], args[1][3], args[1][4])
         }
     }
 
@@ -117,6 +117,32 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform).available
     }
 
+    def "selected toolChain applies platform configuration action"() {
+        Platform platform1 = Mock(Platform)
+        Platform platform2 = Mock(Platform)
+        platform1.getName() >> "platform1"
+        platform2.getName() >> "platform2"
+        when:
+        toolSearchPath.locate(_, _) >> tool
+
+        int platformActionApplied = 0
+        toolChain.target([platform1.getName(), platform2.getName()], new Action<ConfigurableToolChain>() {
+            void execute(ConfigurableToolChain configurableToolChain) {
+                platformActionApplied++;
+            }
+        });
+        PlatformToolChain selected = toolChain.select(platform1)
+        then:
+        selected.isAvailable();
+        assert platformActionApplied == 1
+        when:
+
+        selected = toolChain.select(platform2)
+        then:
+        selected.isAvailable()
+        assert platformActionApplied == 2
+    }
+
     def "supplies no additional arguments to target native binary for tool chain default"() {
         when:
         toolSearchPath.locate(_, _) >> tool
@@ -155,7 +181,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform).available
 
         with(toolChain.getPlatformConfiguration(platform).apply(newConfigurableToolChain())) {
-            argsFor(getByName("linker")) ==  [linkerArg]
+            argsFor(getByName("linker")) == [linkerArg]
 
             argsFor(getByName("cppCompiler")) == [compilerArg]
             argsFor(getByName("cCompiler")) == [compilerArg]
@@ -185,7 +211,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.select(platform).available
 
         with(toolChain.getPlatformConfiguration(platform).apply(newConfigurableToolChain())) {
-            argsFor(getByName("cppCompiler"))== ["-m32"]
+            argsFor(getByName("cppCompiler")) == ["-m32"]
             argsFor(getByName("cCompiler")) == ["-m32"]
             argsFor(getByName("linker")) == ["-m32"]
             argsFor(getByName("assembler")) == ["--32"]
@@ -241,7 +267,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getOperatingSystem() >> new DefaultOperatingSystem("other", OperatingSystem.SOLARIS)
 
         and:
-        toolChain.target(platform, new Action<ConfigurableToolChain>(){
+        toolChain.target(platform, new Action<ConfigurableToolChain>() {
             void execute(ConfigurableToolChain configurableToolChain) {
                 configurationApplied = true;
             }
@@ -287,10 +313,10 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         tools.put("staticLibArchiver", new DefaultTool("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, ""))
 
         ConfigurableToolChain configurableToolChain = new DefaultConfigurableToolChain(GccTool.class,
-                    tools,
-                    instantiator,
-                    "PlatformTestToolChain",
-                    "Platform specific toolchain")
+                tools,
+                instantiator,
+                "PlatformTestToolChain",
+                "Platform specific toolchain")
 
         return configurableToolChain;
     }

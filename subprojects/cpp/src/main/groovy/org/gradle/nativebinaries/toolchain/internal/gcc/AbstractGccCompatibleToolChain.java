@@ -16,6 +16,8 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -27,6 +29,7 @@ import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.nativebinaries.toolchain.internal.tools.*;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.*;
@@ -92,8 +95,21 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         target(platform.getName(), action);
     }
 
+    public void target(DomainObjectSet<Platform> platforms, Action<ConfigurableToolChain> action) {
+        Set<String> platformNames = CollectionUtils.collect(platforms, new Transformer<String, Platform>() {
+            public String transform(Platform original) {
+                return original.getName();
+            }
+        });
+        target(new DefaultTargetPlatformConfiguration(platformNames, action));
+    }
+
     public void target(String platformName, Action<ConfigurableToolChain> action) {
-        target(new DefaultTargetPlatformConfiguration(platformName, action));
+        target(new DefaultTargetPlatformConfiguration(asList(platformName), action));
+    }
+
+    public void target(List<String> platformNames, Action<ConfigurableToolChain> action) {
+        target(new DefaultTargetPlatformConfiguration(platformNames, action));
     }
 
     void target(TargetPlatformConfiguration targetPlatformConfiguration) {
@@ -267,16 +283,16 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     private class DefaultTargetPlatformConfiguration implements TargetPlatformConfiguration {
 
         //TODO this should be a container of platforms
-        private final String platformName;
+        private final Collection<String> platformNames;
         private Action<ConfigurableToolChain> configurationAction;
 
-        public DefaultTargetPlatformConfiguration(String targetPlatformName, Action<ConfigurableToolChain> configurationAction) {
-            this.platformName = targetPlatformName;
+        public DefaultTargetPlatformConfiguration(Collection<String> targetPlatformNames, Action<ConfigurableToolChain> configurationAction) {
+            this.platformNames = targetPlatformNames;
             this.configurationAction = configurationAction;
         }
 
         public boolean supportsPlatform(Platform targetPlatform) {
-            return platformName.equals(targetPlatform.getName());
+            return platformNames.contains(targetPlatform.getName());
         }
 
         public ConfigurableToolChain apply(ConfigurableToolChain configurableToolChain) {

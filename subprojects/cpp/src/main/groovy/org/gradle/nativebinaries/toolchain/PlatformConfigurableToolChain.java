@@ -16,8 +16,11 @@
 package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.nativebinaries.platform.Platform;
+
+import java.util.List;
 
 /**
  * A ToolChain that can handle additional platforms simply by configuring the NativeBinary.
@@ -31,8 +34,18 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     public void target(Platform platform, Action<ConfigurableToolChain> action);
 
     /**
+     * Add configuration for a target platform.
+     */
+    public void target(DomainObjectSet<Platform> platform, Action<ConfigurableToolChain> action);
+
+    /**
      * Add configuration for a target platform specified by name.
      */
     public void target(String platformName, Action<ConfigurableToolChain> action);
+
+    /**
+     * Add configuration for multiple target platforms specified by name.
+     */
+    public void target(List<String> platformNames, Action<ConfigurableToolChain> action);
 
 }
