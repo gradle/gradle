@@ -123,7 +123,7 @@ Thanks to [Jason Gauci](https://github.com/MisterTea) for this improvement.
 ### Support for consuming Apache Maven POMs with active profiles
 
 Gradle now respects POM profiles that are [active by default](https://maven.apache.org/pom.html#Activation), during dependency resolution.
-More specifically, the properties and dependency management information is now respected.
+More specifically, the properties, dependencies and dependency management information is now respected.
 
 ### Customise Clang tool chain (i)
 

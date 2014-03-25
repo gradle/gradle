@@ -139,4 +139,58 @@ task retrieve(type: Sync) {
         then:
         file("libs").assertHasDescendants("artifactA-1.2.jar", "artifactB-1.4.jar")
     }
+
+    def "resolves dependency from active profile"() {
+        server.start()
+
+        given:
+        def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
+        requestedModule.pomFile.text = """
+<project>
+    <groupId>groupA</groupId>
+    <artifactId>artifactA</artifactId>
+    <version>1.2</version>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>groupB</groupId>
+                    <artifactId>artifactB</artifactId>
+                    <version>1.4</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def transitiveModule = mavenHttpRepo.module("groupB", "artifactB", "1.4").publish()
+
+        and:
+        buildFile << """
+repositories { maven { url '${mavenHttpRepo.uri}' } }
+configurations { compile }
+dependencies { compile 'groupA:artifactA:1.2' }
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        and:
+        requestedModule.pom.expectGet()
+        requestedModule.artifact.expectGet()
+        transitiveModule.pom.expectGet()
+        transitiveModule.artifact.expectGet()
+
+        when:
+        run "retrieve"
+
+        then:
+        file("libs").assertHasDescendants("artifactA-1.2.jar", "artifactB-1.4.jar")
+    }
 }

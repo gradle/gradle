@@ -343,17 +343,9 @@ public class PomReader implements PomParent {
 
     private Map<MavenDependencyKey, PomDependencyData> resolveDependencies() {
         Map<MavenDependencyKey, PomDependencyData> dependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyData>();
-        Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCIES);
-        if (dependenciesElement != null) {
-            NodeList childs = dependenciesElement.getChildNodes();
-            for (int i = 0; i < childs.getLength(); i++) {
-                Node node = childs.item(i);
-                if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-                    PomDependencyData pomDependencyData = new PomDependencyData((Element) node);
-                    MavenDependencyKey key = pomDependencyData.getId();
-                    dependencies.put(key, pomDependencyData);
-                }
-            }
+
+        for(PomDependencyData dependency : getDependencyData(projectElement)) {
+            dependencies.put(dependency.getId(), dependency);
         }
 
         // Maven adds inherited dependencies last
@@ -363,7 +355,29 @@ public class PomReader implements PomParent {
             }
         }
 
+        for(PomProfile pomProfile : parseActivePomProfiles()) {
+            for(PomDependencyData dependency : pomProfile.getDependencies()) {
+                dependencies.put(dependency.getId(), dependency);
+            }
+        }
+
         return dependencies;
+    }
+
+    private List<PomDependencyData> getDependencyData(Element parentElement) {
+        List<PomDependencyData> depElements = new ArrayList<PomDependencyData>();
+        Element dependenciesElement = getFirstChildElement(parentElement, DEPENDENCIES);
+        if (dependenciesElement != null) {
+            NodeList childs = dependenciesElement.getChildNodes();
+            for (int i = 0; i < childs.getLength(); i++) {
+                Node node = childs.item(i);
+                if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
+                    depElements.add(new PomDependencyData((Element) node));
+                }
+            }
+        }
+
+        return depElements;
     }
 
     /**
@@ -533,6 +547,7 @@ public class PomReader implements PomParent {
     public class PomProfileElement implements PomProfile {
         private final Element element;
         private List<PomDependencyMgt> declaredDependencyMgts;
+        private List<PomDependencyData> declaredDependencies;
 
         PomProfileElement(Element element) {
             this.element = element;
@@ -552,6 +567,14 @@ public class PomReader implements PomParent {
             }
 
             return declaredDependencyMgts;
+        }
+
+        public List<PomDependencyData> getDependencies() {
+            if(declaredDependencies == null) {
+                declaredDependencies = getDependencyData(element);
+            }
+
+            return declaredDependencies;
         }
     }
 
