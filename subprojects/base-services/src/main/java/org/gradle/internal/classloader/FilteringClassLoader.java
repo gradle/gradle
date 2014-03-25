@@ -71,12 +71,10 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        for (ClassLoader systemClassLoader : SYSTEM_CLASS_LOADERS) {
-            try {
-                return systemClassLoader.loadClass(name);
-            } catch (ClassNotFoundException ignore) {
-                // ignore
-            }
+        try {
+            return EXT_CLASS_LOADER.loadClass(name);
+        } catch (ClassNotFoundException ignore) {
+            // ignore
         }
 
         if (!classAllowed(name)) {
