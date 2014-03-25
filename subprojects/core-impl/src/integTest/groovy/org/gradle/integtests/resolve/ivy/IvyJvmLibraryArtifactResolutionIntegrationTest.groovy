@@ -21,14 +21,15 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 
 class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
-    def repo = ivyHttpRepo
-    def module = repo.module("some.group", "some-artifact", "1.0")
+    def fileRepo = ivyRepo
+    def httpRepo = ivyHttpRepo
+    def module = httpRepo.module("some.group", "some-artifact", "1.0")
     JvmLibraryArtifactResolveTestFixture fixture
 
     def setup() {
         server.start()
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
-        fixture.withRepository("ivy { url '$repo.uri' }")
+        fixture.withRepository("ivy { url '$httpRepo.uri' }")
 
         publishModule()
     }
@@ -197,6 +198,27 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
         then:
         succeeds("verifyFixed")
+    }
+
+    def "resolve and does not cache artifacts from local repository"() {
+        fixture.withRepository("ivy { url '$fileRepo.uri' }")
+                .requestingTypes()
+                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+                .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
+                .prepare()
+
+        when:
+        succeeds("verify")
+
+        and:
+        def snapshot = file("sources/some-artifact-1.0-my-sources.jar").snapshot()
+
+        and:
+        module.publishWithChangedContent()
+
+        then:
+        succeeds("verify")
+        file("sources/some-artifact-1.0-my-sources.jar").assertHasChangedSince(snapshot)
     }
 
     def checkArtifactsResolvedAndCached() {

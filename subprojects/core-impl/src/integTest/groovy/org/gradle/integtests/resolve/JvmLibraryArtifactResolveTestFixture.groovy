@@ -37,6 +37,7 @@ class JvmLibraryArtifactResolveTestFixture {
 
     def withRepository(def repository) {
         this.repository = repository
+        this
     }
 
     def withComponentVersion(def componentVersion) {

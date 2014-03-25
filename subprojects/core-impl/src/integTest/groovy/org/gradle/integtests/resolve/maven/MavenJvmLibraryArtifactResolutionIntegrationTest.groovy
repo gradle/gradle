@@ -21,6 +21,7 @@ import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 
 class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     def repo = mavenHttpRepo
+    def fileRepo = mavenRepo
     def module = repo.module("some.group", "some-artifact", "1.0")
     JvmLibraryArtifactResolveTestFixture fixture
 
@@ -28,11 +29,11 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         server.start()
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
         fixture.withRepository("maven { url '$repo.uri' }")
+
+        publishArtifacts("sources", "javadoc")
     }
 
     def "resolves and caches sources artifacts"() {
-        publishArtifacts("sources", "javadoc")
-
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
                 .expectSourceArtifact("some-artifact-1.0-sources.jar")
                 .prepare()
@@ -46,8 +47,6 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     }
 
     def "resolve javadoc artifacts"() {
-        publishArtifacts("sources", "javadoc")
-
         fixture.requestingTypes(JvmLibraryJavadocArtifact)
                 .expectJavadocArtifact("some-artifact-1.0-javadoc.jar")
                 .prepare()
@@ -61,8 +60,6 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     }
 
     def "resolves and caches all artifacts"() {
-        publishArtifacts("sources", "javadoc")
-
         fixture.requestingTypes()
                 .expectSourceArtifact("some-artifact-1.0-sources.jar")
                 .expectJavadocArtifact("some-artifact-1.0-javadoc.jar")
@@ -160,7 +157,6 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     }
 
     def "resolve and caches missing artifacts of existing component"() {
-        publishArtifacts("sources", "javadoc")
         // TODO:DAZ These artifacts should be missing, not failures
         fixture.requestingTypes()
                 .expectSourceArtifactNotFound("some-artifact-sources.jar")
@@ -177,8 +173,6 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     }
 
     def "resolves and caches partially missing artifacts"() {
-        publishArtifacts("sources")
-
         fixture.requestingTypes()
                 .expectSourceArtifact("some-artifact-1.0-sources.jar")
                 .expectJavadocArtifactNotFound("some-artifact-javadoc.jar")
@@ -194,8 +188,6 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     }
 
     def "resolves and recovers from broken artifacts"() {
-        publishArtifacts("sources", "javadoc")
-
         fixture.requestingTypes()
                 .expectSourceArtifact("some-artifact-1.0-sources.jar")
                 .expectJavadocArtifactFailure("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-javadoc.jar'")
@@ -223,6 +215,26 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
         then:
         succeeds("verifyFixed")
+    }
+
+    def "resolve and does not cache artifacts from local repository"() {
+        fixture.withRepository("maven { url '$fileRepo.uri' }")
+                .requestingTypes(JvmLibrarySourcesArtifact)
+                .expectSourceArtifact("some-artifact-1.0-sources.jar")
+                .prepare()
+
+        when:
+        succeeds("verify")
+
+        and:
+        def snapshot = file("sources/some-artifact-1.0-sources.jar").snapshot()
+
+        and:
+        module.publishWithChangedContent()
+
+        then:
+        succeeds("verify")
+        file("sources/some-artifact-1.0-sources.jar").assertHasChangedSince(snapshot)
     }
 
     def checkArtifactsResolvedAndCached() {
