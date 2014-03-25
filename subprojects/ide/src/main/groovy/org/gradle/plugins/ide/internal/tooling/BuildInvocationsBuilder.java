@@ -21,9 +21,9 @@ import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.plugins.ide.internal.tooling.gradle.DefaultGradleProject;
+import org.gradle.tooling.internal.gradle.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.internal.gradle.DefaultGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
 import org.gradle.tooling.internal.gradle.PartialGradleProject;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
@@ -68,7 +68,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
         if (implicitProject) {
             DefaultGradleProject gradleProject = gradleProjectBuilder.buildAll(project);
-            List<DefaultGradleTask> tasks = new ArrayList<DefaultGradleTask>();
+            List<LaunchableGradleTask> tasks = new ArrayList<LaunchableGradleTask>();
             fillTaskList(gradleProject, tasks);
             return new DefaultBuildInvocations()
                     .setSelectors(buildRecursively(modelName, project.getRootProject()))
@@ -78,10 +78,10 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         }
     }
 
-    private void fillTaskList(PartialGradleProject gradleProject, List<DefaultGradleTask> tasks) {
+    private void fillTaskList(DefaultGradleProject gradleProject, List<LaunchableGradleTask> tasks) {
         tasks.addAll(gradleProject.getTasks());
         for (PartialGradleProject childProject : gradleProject.getChildren()) {
-            fillTaskList(childProject, tasks);
+            fillTaskList((DefaultGradleProject) childProject, tasks);
         }
     }
 
@@ -94,11 +94,17 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         return selectors;
     }
 
-    private List<DefaultGradleTask> convertTasks(List<DefaultGradleTask> tasks) {
-        for (DefaultGradleTask task :  tasks) {
-            task.setProject(null);
+    // build tasks without project reference
+    private List<LaunchableGradleTask> convertTasks(List<LaunchableGradleTask> tasks) {
+        List<LaunchableGradleTask> convertedTasks = Lists.newArrayList();
+        for (LaunchableGradleTask task : tasks) {
+            convertedTasks.add(new LaunchableGradleTask()
+                    .setPath(task.getPath())
+                    .setName(task.getName())
+                    .setDisplayName(task.toString())
+                    .setDescription(task.getDescription()));
         }
-        return tasks;
+        return convertedTasks;
     }
 
     private Set<String> findTasks(Project project) {

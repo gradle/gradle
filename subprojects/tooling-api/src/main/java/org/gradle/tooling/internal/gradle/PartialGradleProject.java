@@ -71,15 +71,6 @@ public class PartialGradleProject implements GradleProjectIdentity, Serializable
         return this;
     }
 
-    public Collection<DefaultGradleTask> getTasks() {
-        return tasks;
-    }
-
-    public PartialGradleProject setTasks(List<DefaultGradleTask> tasks) {
-        this.tasks = tasks;
-        return this;
-    }
-
     public String getPath() {
         return path;
     }

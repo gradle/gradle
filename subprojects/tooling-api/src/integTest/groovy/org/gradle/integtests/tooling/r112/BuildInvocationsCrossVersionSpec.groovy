@@ -25,6 +25,7 @@ import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.model.Launchable
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.TaskSelector
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 @ToolingApiVersion(">=1.12")
@@ -189,12 +190,20 @@ project(':b:c') {
         then:
         tasks.size() == 2
         tasks*.name as Set == ['t2', 't3'] as Set
-        tasks*.project.each { assert it == null }
+
+        when:
+        tasks[0].project
+        then:
+        UnsupportedMethodException e = thrown()
+        e != null
     }
 
     @TargetGradleVersion(">=1.12")
     def "build tasks from BuildInvocations model as Launchable"() {
         when:
+        toolingApi.withConnector { connector ->
+            connector.searchUpwards(true)
+        }
         List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
         }

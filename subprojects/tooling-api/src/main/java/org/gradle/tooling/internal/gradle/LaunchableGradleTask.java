@@ -21,8 +21,51 @@ import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import java.io.File;
 import java.io.Serializable;
 
-public class LaunchableGradleTask extends DefaultGradleTask implements Serializable, InternalLaunchable {
-    // TODO(radimk): move to provider?
+public class LaunchableGradleTask implements Serializable, InternalLaunchable {
+
+    String path;
+    String name;
+    String description;
+    String displayName;
+
+    public LaunchableGradleTask() {
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public LaunchableGradleTask setPath(String path) {
+        this.path = path;
+        return this;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public LaunchableGradleTask setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public LaunchableGradleTask setDisplayName(String displayName) {
+        this.displayName = displayName;
+        return this;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public LaunchableGradleTask setDescription(String description) {
+        this.description = description;
+        return this;
+    }
 
     public String getTaskName() {
         return path;
@@ -39,7 +82,7 @@ public class LaunchableGradleTask extends DefaultGradleTask implements Serializa
     @Override
     public String toString() {
         return "LaunchableGradleTask{"
-                + "name='" + name + '\''
+                + "path='" + path + '\''
                 + '}';
     }
 }
