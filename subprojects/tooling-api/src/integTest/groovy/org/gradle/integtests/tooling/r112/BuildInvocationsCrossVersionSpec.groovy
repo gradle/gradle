@@ -194,10 +194,6 @@ project(':b:c') {
 
     @TargetGradleVersion(">=1.12")
     def "build tasks from BuildInvocations model as Launchable"() {
-        given:
-        toolingApi.withConnector { connector ->
-            connector.searchUpwards(true)
-        }
         when:
         List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
