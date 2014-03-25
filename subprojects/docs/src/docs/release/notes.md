@@ -225,7 +225,7 @@ Given…
 A shouldRunAfter [task ordering](userguide/more_about_tasks.html#sec:ordering_tasks) will be applied to the dependencies so that,
 `c.shouldRunAfter d` and `b.shouldRunAfter c`.
 
-This is in alignment with Ant's ordering of target dependencies.
+This is in alignment with Ant's ordering of target dependencies and resolves a long standing Gradle enhancement request [GRADLE-1102].
 
 ### Invalid large zip files now fail the build
 
