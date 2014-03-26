@@ -26,7 +26,7 @@ class CopySpecActionImplTest extends Specification {
     CopyActionProcessingStreamAction action = Mock()
     Instantiator instantiator = Mock()
     FileSystem fileSystem = Mock()
-    CopySpecInternal copySpecInternal = Mock()
+    CopySpecResolver copySpecResolver = Mock()
     FileTree source = Mock()
     Action<CopySpecInternal> copySpecInternalAction
 
@@ -36,10 +36,10 @@ class CopySpecActionImplTest extends Specification {
 
     def "can visit spec source"() {
         when:
-        copySpecInternalAction.execute(copySpecInternal)
+        copySpecInternalAction.execute(copySpecResolver)
 
         then:
-        1 * copySpecInternal.getSource() >> source
+        1 * copySpecResolver.getSource() >> source
         1 * source.visit(_ as CopyFileVisitorImpl)
     }
 }

@@ -383,7 +383,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     public void testCopyWithCopyspec() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """
-                def spec = copySpec {
+                def parentSpec = copySpec {
                     from 'src'
                     exclude '**/ignore/**'
                     include '*/*.a'
@@ -391,7 +391,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                 }
                 task copy(type: Copy) {
                     into 'dest'
-                    with spec
+                    with parentSpec
                 }"""
         )
         usingBuildFile(buildFile).withTasks("copy").run()
@@ -405,7 +405,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     public void testTransformWithCopyspec() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """
-                def spec = copySpec {
+                def parentSpec = copySpec {
                     from 'src'
                     include '*/*.a'
                     into 'subdir'
@@ -413,7 +413,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                 }
                 task copy(type: Copy) {
                     into 'dest'
-                    with spec
+                    with parentSpec
                     eachFile { fcd -> fcd.relativePath = fcd.relativePath.prepend('transformed') }
                 }"""
         )
@@ -429,7 +429,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     public void testIncludeExcludeWithCopyspec() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """
-                def spec = copySpec {
+                def parentSpec = copySpec {
                     from 'src'
                     include '**/one/**'
                     exclude '**/ignore/**'
@@ -439,7 +439,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                     into 'dest'
                     include '**/two/**'
                     exclude '**/*.b'
-                    with spec
+                    with parentSpec
                 }"""
         )
         usingBuildFile(buildFile).withTasks("copy").run()
@@ -459,7 +459,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     public void testMultipleFilterWithCopyspec() {
         TestFile buildFile = testFile('build.gradle').writelns(
                 """
-                  def spec = copySpec {
+                  def parentSpec = copySpec {
                     from('src/two/two.a')
                     filter { (Integer.parseInt(it) / 2) as String }
                   }
@@ -468,7 +468,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                    expand(one: 1)
                    filter { (Integer.parseInt(it) * 10) as String }
                    filter { (Integer.parseInt(it) + 2) as String }
-                   with spec
+                   with parentSpec
                 }
                 """
         )
@@ -482,13 +482,13 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testRenameWithCopySpec() {
         TestFile buildFile = testFile("build.gradle") << '''
-            def spec = copySpec {
+            def parentSpec = copySpec {
                from 'src/one'
                exclude '**/ignore/**'
                rename '(.*).b$', '$1.renamed'
             }
             task (copy, type:Copy) {
-               with spec
+               with parentSpec
                into 'dest'
                rename { it.startsWith('one.') ? "renamed_$it" : it }
             }'''

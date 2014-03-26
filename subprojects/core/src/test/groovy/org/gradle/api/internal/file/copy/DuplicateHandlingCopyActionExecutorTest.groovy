@@ -30,7 +30,7 @@ import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
 
-class DuplicateHandlingCopyActionDecoratorTest extends Specification {
+class DuplicateHandlingCopyActionExecutorTest extends Specification {
 
     private static interface MyCopySpec extends CopySpec, CopySpecInternal {}
 
@@ -47,10 +47,11 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
     @Rule ConfigureLogging logging = new ConfigureLogging(appender)
 
     @Shared Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
-    def driver = new CopyActionExecuter(instantiator, fileSystem)
+    def executer = new CopyActionExecuter(instantiator, fileSystem)
     def copySpec = Mock(MyCopySpec) {
         getChildren() >> []
     }
+    def copySpecResolver = Mock(CopySpecResolver)
 
     def duplicatesIncludedByDefault() {
         given:
@@ -99,7 +100,7 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
-        copySpec.duplicatesStrategy >> DuplicatesStrategy.EXCLUDE
+        copySpecResolver.duplicatesStrategy >> DuplicatesStrategy.EXCLUDE
 
         when:
         visit()
@@ -113,7 +114,7 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
-        copySpec.duplicatesStrategy >> DuplicatesStrategy.FAIL
+        copySpecResolver.duplicatesStrategy >> DuplicatesStrategy.FAIL
 
         when:
         visit()
@@ -128,7 +129,7 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
-        copySpec.duplicatesStrategy >> DuplicatesStrategy.WARN
+        copySpecResolver.duplicatesStrategy >> DuplicatesStrategy.WARN
 
         when:
         visit()
@@ -170,9 +171,9 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
 
 
     void files(String... fileNames) {
-        copySpec.destPath >> new RelativePath(false, '/root')
+        copySpecResolver.destPath >> new RelativePath(false, '/root')
         def fileTree = Mock(FileTree)
-        copySpec.getSource() >> fileTree
+        copySpecResolver.getSource() >> fileTree
         fileTree.visit(_ as FileVisitor) >> { FileVisitor visitor ->
             fileNames.each { filename ->
                 def fvd = Mock(FileVisitDetails) {
@@ -182,15 +183,15 @@ class DuplicateHandlingCopyActionDecoratorTest extends Specification {
             }
             fileTree
         }
-        copySpec.walk(_) >> { Action it -> it.execute(copySpec) }
+        copySpec.walk(_) >> { Action it -> it.execute(copySpecResolver) }
     }
 
     void actions(Closure... actions) {
-        copySpec.allCopyActions >> actions.collect { new ClosureBackedAction<>(it) }
+        copySpecResolver.allCopyActions >> actions.collect { new ClosureBackedAction<>(it) }
     }
 
     void visit() {
-        driver.execute(copySpec, delegate)
+        executer.execute(copySpec, delegate)
     }
 
 }

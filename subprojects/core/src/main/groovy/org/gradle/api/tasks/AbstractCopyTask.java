@@ -92,7 +92,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @InputFiles @SkipWhenEmpty @Optional
     public FileCollection getSource() {
         if (rootSpec.hasSource()){
-            return rootSpec.getAllSource();
+            return rootSpec.buildRootResolver().getAllSource();
         }else{
             return DeprecationLogger.whileDisabled(new Factory<FileCollection>() {
                 public FileCollection create() {

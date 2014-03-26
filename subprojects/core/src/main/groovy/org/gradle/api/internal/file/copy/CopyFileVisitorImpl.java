@@ -24,13 +24,13 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
 public class CopyFileVisitorImpl implements FileVisitor {
-    private final CopySpecInternal spec;
+    private final CopySpecResolver copySpecResolver;
     private final CopyActionProcessingStreamAction action;
     private final Instantiator instantiator;
     private final FileSystem fileSystem;
 
-    public CopyFileVisitorImpl(CopySpecInternal spec, CopyActionProcessingStreamAction action, Instantiator instantiator, FileSystem fileSystem) {
-        this.spec = spec;
+    public CopyFileVisitorImpl(CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, FileSystem fileSystem) {
+        this.copySpecResolver = spec;
         this.action = action;
         this.instantiator = instantiator;
         this.fileSystem = fileSystem;
@@ -51,7 +51,7 @@ public class CopyFileVisitorImpl implements FileVisitor {
 
     private void processFile(FileVisitDetails visitDetails) {
         DefaultFileCopyDetails details = createDefaultFileCopyDetails(visitDetails);
-        for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
+        for (Action<? super FileCopyDetails> action : copySpecResolver.getAllCopyActions()) {
             action.execute(details);
             if (details.isExcluded()) {
                 return;
@@ -61,6 +61,6 @@ public class CopyFileVisitorImpl implements FileVisitor {
     }
 
     private DefaultFileCopyDetails createDefaultFileCopyDetails(FileVisitDetails visitDetails) {
-        return instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, spec, fileSystem);
+        return instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, copySpecResolver, fileSystem);
     }
 }

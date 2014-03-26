@@ -90,6 +90,6 @@ class EarTest extends AbstractArchiveTaskTest {
         assertEquals(2, d.securityRoles.size())
         assertEquals("admin", (d.securityRoles as List)[0].roleName)
         assertEquals("superadmin", (d.securityRoles as List)[1].roleName)
-        assertEquals(1, d.transformer.actions.size())
+        assertEquals(1, d.transformer.getCopyActions.size())
     }
 }

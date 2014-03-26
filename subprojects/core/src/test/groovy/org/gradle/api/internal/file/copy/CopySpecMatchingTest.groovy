@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class CopySpecMatchingTest extends Specification {
 
-    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.resolver(), new DirectInstantiator(), null)
+    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.resolver(), new DirectInstantiator())
 
     FileTree fileTree = Mock()
 
@@ -44,7 +44,7 @@ class CopySpecMatchingTest extends Specification {
 
         when:
         copySpec.filesMatching("**/a*", matchingAction)
-        copySpec.allCopyActions.each { copyAction ->
+        copySpec.copyActions.each { copyAction ->
             copyAction.execute(details1)
             copyAction.execute(details2)
         }
@@ -67,7 +67,7 @@ class CopySpecMatchingTest extends Specification {
 
         when:
         copySpec.filesNotMatching("**/a*", matchingAction)
-        copySpec.allCopyActions.each { copyAction ->
+        copySpec.copyActions.each { copyAction ->
             copyAction.execute(details1)
             copyAction.execute(details2)
         }
@@ -78,11 +78,12 @@ class CopySpecMatchingTest extends Specification {
 
     def matchingSpecInherited() {
         given:
-        DefaultCopySpec childSpec = copySpec.addChild()
+        DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.resolver(), new DirectInstantiator())
+        CopySpecResolver childResolver = childSpec.buildResolverRelativeToParent(copySpec.buildRootResolver())
         when:
         copySpec.filesMatching("**/*.java", Actions.doNothing())
         then:
-        1 == childSpec.allCopyActions.size()
-        childSpec.allCopyActions[0] instanceof MatchingCopyAction
+        1 == childResolver.allCopyActions.size()
+        childResolver.allCopyActions[0] instanceof MatchingCopyAction
     }
 }

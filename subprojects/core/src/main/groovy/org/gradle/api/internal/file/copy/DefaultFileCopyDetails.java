@@ -30,22 +30,22 @@ import java.util.Map;
 
 public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
     private final FileVisitDetails fileDetails;
-    private final CopySpecInternal spec;
+    private final CopySpecResolver specResolver;
     private final FilterChain filterChain = new FilterChain();
     private RelativePath relativePath;
     private boolean excluded;
     private Integer mode;
     private DuplicatesStrategy duplicatesStrategy;
 
-    public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecInternal spec, Chmod chmod) {
+    public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, Chmod chmod) {
         super(chmod);
         this.fileDetails = fileDetails;
-        this.spec = spec;
-        this.duplicatesStrategy = spec.getDuplicatesStrategy();
+        this.specResolver = specResolver;
+        this.duplicatesStrategy = specResolver.getDuplicatesStrategy();
     }
 
     public boolean isIncludeEmptyDirs() {
-        return spec.getIncludeEmptyDirs();
+        return specResolver.getIncludeEmptyDirs();
     }
 
     public String getDisplayName() {
@@ -122,7 +122,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     public RelativePath getRelativePath() {
         if (relativePath == null) {
             RelativePath path = fileDetails.getRelativePath();
-            relativePath = spec.getDestPath().append(path.isFile(), path.getSegments());
+            relativePath = specResolver.getDestPath().append(path.isFile(), path.getSegments());
         }
         return relativePath;
     }
@@ -141,7 +141,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     private Integer getSpecMode() {
-        return fileDetails.isDirectory() ? spec.getDirMode() : spec.getFileMode();
+        return fileDetails.isDirectory() ? specResolver.getDirMode() : specResolver.getFileMode();
     }
 
     public void setRelativePath(RelativePath path) {
