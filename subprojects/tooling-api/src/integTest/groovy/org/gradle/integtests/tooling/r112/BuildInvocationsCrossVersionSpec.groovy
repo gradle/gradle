@@ -59,9 +59,6 @@ project(':b:c') {
         println "t2 in $project.name"
     }
 }'''
-        projectDir.file('a').mkdir()
-        projectDir.file('b').mkdir()
-        projectDir.file('b', 'c').mkdir()
     }
 
     @TargetGradleVersion(">=1.8 <=1.11")
@@ -209,6 +206,23 @@ project(':b:c') {
         then:
         result.result.assertTasksExecuted(':b:t2')
         result.result.assertTaskNotExecuted(':b:c:t2')
+    }
+
+    @TargetGradleVersion(">=1.0-milestone-5")
+    def "build task from connection as Launchable"() {
+        when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
+        BuildInvocations model = withConnection { connection ->
+            connection.getModel(BuildInvocations)
+        }
+        Task task = model.tasks.find { Task it ->
+            it.name == 't2' && it.path == ':b:t2' }
+        def result = withBuild { BuildLauncher it ->
+            it.forLaunchables(task)
+        }
+
+        then:
+        result.result.assertTasksExecuted(':b:t2')
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")
