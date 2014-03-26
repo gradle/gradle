@@ -150,6 +150,18 @@ task retrieve(type: Sync) {
     <groupId>groupA</groupId>
     <artifactId>artifactA</artifactId>
     <version>1.2</version>
+    <dependencies>
+        <dependency>
+            <groupId>groupB</groupId>
+            <artifactId>artifactB</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>groupB</groupId>
+            <artifactId>artifactB</artifactId>
+            <version>1.7</version>
+        </dependency>
+    </dependencies>
     <profiles>
         <profile>
             <id>profile-1</id>
