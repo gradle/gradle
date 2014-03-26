@@ -17,6 +17,7 @@ package org.gradle.plugins.ide
 
 import org.gradle.test.fixtures.ivy.IvyHttpModule
 import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.maven.HttpArtifact
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
@@ -102,13 +103,11 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         and:
         module.pom.expectGet()
         module.artifact.expectGet()
-        sourceArtifact.expectHeadBroken()
-        javadocArtifact.expectHead()
+        sourceArtifact.expectGetBroken()
         javadocArtifact.expectGetBroken()
 
-        // TODO:BEN These only occur in IDEA and I don't think they should
-        sourceArtifact.allowGetOrHead()
-        javadocArtifact.allowGetOrHead()
+        expectBehaviorAfterBrokenMavenArtifact(sourceArtifact)
+        expectBehaviorAfterBrokenMavenArtifact(javadocArtifact)
 
         then:
         succeeds ideTask
@@ -183,12 +182,13 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         and:
         module.ivy.expectGet()
         module.jar.expectGet()
-        module.getArtifact(classifier: "my-sources").expectGetBroken()
-        module.getArtifact(classifier: "my-javadoc").expectGetBroken()
+        def sourceArtifact = module.getArtifact(classifier: "my-sources")
+        def javadocArtifact = module.getArtifact(classifier: "my-javadoc")
+        sourceArtifact.expectGetBroken()
+        javadocArtifact.expectGetBroken()
 
-        // TODO:BEN These only occur in IDEA and I don't think they should
-        module.getArtifact(classifier: "my-sources").allowGetOrHead()
-        module.getArtifact(classifier: "my-javadoc").allowGetOrHead()
+        expectBehaviorAfterBrokenIvyArtifact(sourceArtifact)
+        expectBehaviorAfterBrokenIvyArtifact(javadocArtifact)
 
         then:
         succeeds ideTask
@@ -277,4 +277,6 @@ task resolve << {
     abstract void ideFileContainsSourcesAndJavadocEntry()
     abstract void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier, String javadocClassifier)
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
+    abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
+    abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)
 }
