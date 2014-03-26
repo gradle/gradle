@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matchers
 import org.junit.Test
+import spock.lang.Issue
 
 class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
 
@@ -87,5 +88,25 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
         file('buildSrc/src/main/java/Broken.java') << 'broken!'
         ExecutionFailure failure = executer.runWithFailure()
         failure.assertHasDescription('Execution failed for task \':compileJava\'.')
+    }
+
+    @Test
+    @Issue("http://issues.gradle.org//browse/GRADLE-3052")
+    void buildTaskCanHaveInputsAndOutputs() {
+        def message = "This is from the hello task"
+        file("build.gradle") << """
+            task hello << { println "$message" }
+
+            task build(type: GradleBuild) {
+              tasks = ["hello"]
+              startParameter.searchUpwards = false
+              outputs.file "build.gradle" // having an output (or input) triggers the bug
+            }
+        """
+
+        def run = executer.withTasks("build").run()
+        def output = run.output
+
+        assert output.contains(message)
     }
 }
