@@ -333,10 +333,8 @@ public class DefaultCopySpecTest {
 
     }
 
-    // THIS IS A BREAKING BEHAVIOUR CHANGE
     @Test
-    void "properties accessed directly consider spec as root"() {
-        // That is they do not inherit from any parent...
+    void "properties accessed directly on specs created using from inherit from parents"() {
 
         //set non defaults on parent
         spec.caseSensitive = false
@@ -350,11 +348,34 @@ public class DefaultCopySpecTest {
         })
 
         //children still have defaults
-        assert child.caseSensitive == true;
-        assert child.getIncludeEmptyDirs() == true;
-        assert child.duplicatesStrategy == DuplicatesStrategy.INCLUDE
-        assert child.fileMode == null
-        assert child.dirMode == null
+        assert child.caseSensitive == false;
+        assert child.getIncludeEmptyDirs() == false;
+        assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        assert child.fileMode == 1
+        assert child.dirMode == 2
+
+    }
+
+    @Test
+    void "properties accessed directly on specs created using into inherit from parents"() {
+
+        //set non defaults on parent
+        spec.caseSensitive = false
+        spec.includeEmptyDirs = false
+        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        spec.fileMode = 1
+        spec.dirMode = 2
+
+        DefaultCopySpec child = unpackWrapper(spec.into("child") {
+
+        })
+
+        //children still have defaults
+        assert child.caseSensitive == false;
+        assert child.getIncludeEmptyDirs() == false;
+        assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        assert child.fileMode == 1
+        assert child.dirMode == 2
 
     }
 

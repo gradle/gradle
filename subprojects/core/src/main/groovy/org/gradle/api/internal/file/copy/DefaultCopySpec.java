@@ -37,12 +37,12 @@ import java.util.regex.Pattern;
 
 @NonExtensible
 public class DefaultCopySpec implements CopySpecInternal {
-    private final FileResolver fileResolver;
+    protected final FileResolver fileResolver;
     private final Set<Object> sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
-    private final List<CopySpecInternal> childSpecs;
-    private final Instantiator instantiator;
+    protected final List<CopySpecInternal> childSpecs;
+    protected final Instantiator instantiator;
     private final List<Action<? super FileCopyDetails>> copyActions = new ArrayList<Action<? super FileCopyDetails>>();
     private Integer dirMode;
     private Integer fileMode;
@@ -99,14 +99,14 @@ public class DefaultCopySpec implements CopySpecInternal {
         return addChildAtPosition(0);
     }
 
-    private CopySpecInternal addChildAtPosition(int position) {
-        DefaultCopySpec child = instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
+    protected CopySpecInternal addChildAtPosition(int position) {
+        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileResolver, instantiator, buildRootResolver());
         childSpecs.add(position, child);
         return child;
     }
 
     public CopySpecInternal addChild() {
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, instantiator);
+        DefaultCopySpec child = new SingleParentCopySpec(fileResolver, instantiator, buildRootResolver());
         childSpecs.add(child);
         return child;
     }
@@ -504,3 +504,4 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
 }
+
