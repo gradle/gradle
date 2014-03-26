@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 import java.util.Map;
 
+// TODO:DAZ Should extend common base class
 public class M2ResourcePattern extends IvyResourcePattern {
     public M2ResourcePattern(String pattern) {
         super(pattern);

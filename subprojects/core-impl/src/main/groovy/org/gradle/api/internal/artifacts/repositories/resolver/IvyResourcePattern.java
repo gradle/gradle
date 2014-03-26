@@ -45,8 +45,8 @@ public class IvyResourcePattern implements ResourcePattern {
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }
 
-    public String toVersionListPattern(ArtifactIdentifier artifactId) {
-        Map<String, Object> attributes = toAttributes(artifactId);
+    public String toVersionListPattern(ModuleVersionArtifactMetaData artifactId) {
+        Map<String, Object> attributes = toAttributes(artifactId.toArtifactIdentifier());
         attributes.remove(IvyPatternHelper.REVISION_KEY);
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }

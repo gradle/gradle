@@ -30,7 +30,7 @@ public interface ResourcePattern {
      * Returns the pattern which can be used to search for versions of the given artifact.
      * The returned pattern should include at least one [revision] placeholder.
      */
-    String toVersionListPattern(ArtifactIdentifier artifact);
+    String toVersionListPattern(ModuleVersionArtifactMetaData artifact);
 
     /**
      * Returns the path to the given module.

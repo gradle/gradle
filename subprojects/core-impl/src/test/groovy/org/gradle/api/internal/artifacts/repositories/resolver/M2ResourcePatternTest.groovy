@@ -43,8 +43,8 @@ class M2ResourcePatternTest extends Specification {
 
     def "substitutes module attributes into pattern to determine module pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def artifact1 = artifactId("group", "projectA", "1.2")
-        def artifact2 = artifactId("org.group", "projectA", "1.2")
+        def artifact1 = artifact("group", "projectA", "1.2")
+        def artifact2 = artifact("org.group", "projectA", "1.2")
 
         expect:
         pattern.toVersionListPattern(artifact1) == 'prefix/group/projectA/[revision]/ivys/[revision]/ivy.xml'

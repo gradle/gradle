@@ -151,7 +151,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private void listVersionsForAllPatterns(List<String> patternList, ModuleVersionArtifactMetaData artifact, VersionList versionList) {
         for (String pattern : patternList) {
             ResourcePattern resourcePattern = toResourcePattern(pattern);
-            versionList.visit(resourcePattern, artifact.toArtifactIdentifier());
+            versionList.visit(resourcePattern, artifact);
         }
     }
 
