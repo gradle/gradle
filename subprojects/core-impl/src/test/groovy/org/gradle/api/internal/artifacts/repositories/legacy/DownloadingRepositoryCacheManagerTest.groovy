@@ -15,13 +15,14 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.legacy
-
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.plugins.repository.Resource
 import org.apache.ivy.plugins.repository.ResourceDownloader
-import org.gradle.api.artifacts.ArtifactIdentifier
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.internal.filestore.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResource
@@ -30,10 +31,10 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DownloadingRepositoryCacheManagerTest extends Specification {
-    FileStore<ArtifactIdentifier> fileStore = Mock()
+    FileStore<ModuleVersionArtifactMetaData> fileStore = Mock()
     CacheLockingManager lockingManager = Mock()
     TemporaryFileProvider tmpFileProvider = Mock()
-    ArtifactIdentifier artifactIdentifier = new DefaultArtifactIdentifier("group", "module", "version", "name", "type", "ext", "classifier")
+    ModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "name", "type", "ext"))
     Artifact artifact = Mock()
     ResourceDownloader resourceDownloader = Mock()
     Resource resource = Mock();
@@ -52,14 +53,14 @@ class DownloadingRepositoryCacheManagerTest extends Specification {
         _ * tmpFileProvider._ >> downloadFile
 
         when:
-        downloadingRepositoryCacheManager.downloadAndCacheArtifactFile(artifactIdentifier, artifact, resourceDownloader, resource)
+        downloadingRepositoryCacheManager.downloadAndCacheArtifactFile(artifactMetaData, artifact, resourceDownloader, resource)
 
         then:
         1 * lockingManager.useCache(_, _) >> {name, action ->
             return action.create()
         }
         1 * resourceDownloader.download(artifact, resource, downloadFile)
-        1 * fileStore.move(artifactIdentifier, downloadFile) >> {key, action ->
+        1 * fileStore.move(artifactMetaData, downloadFile) >> {key, action ->
             return fileStoreEntry
         }
     }

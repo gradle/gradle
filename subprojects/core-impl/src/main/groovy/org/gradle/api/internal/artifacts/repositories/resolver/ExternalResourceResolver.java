@@ -24,7 +24,6 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -76,7 +75,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private RepositoryChain repositoryChain;
 
     private final ExternalResourceRepository repository;
-    private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
+    private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
     private final ResolverStrategy resolverStrategy;
 
     protected VersionLister versionLister;
@@ -85,7 +84,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     public ExternalResourceResolver(String name,
                                     ExternalResourceRepository repository,
                                     VersionLister versionLister,
-                                    LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
+                                    LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
                                     MetaDataParser metaDataParser,
                                     ResolverStrategy resolverStrategy) {
         this.name = name;
@@ -315,7 +314,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     private LocallyAvailableExternalResource downloadAndCacheResource(ModuleVersionArtifactMetaData artifact, ExternalResource resource) throws IOException {
         final ExternalResourceDownloader resourceDownloader = new VerifyingExternalResourceDownloader(getChecksumAlgorithms(), getRepository());
-        return repositoryCacheManager.downloadAndCacheArtifactFile(artifact.toArtifactIdentifier(), resourceDownloader, resource);
+        return repositoryCacheManager.downloadAndCacheArtifactFile(artifact, resourceDownloader, resource);
     }
 
     public void resolveArtifact(ComponentArtifactMetaData componentArtifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
@@ -358,23 +357,23 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     public void publish(ModuleVersionPublishMetaData moduleVersion) throws IOException {
         for (ModuleVersionArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
-            publish(artifact.getArtifactIdentifier(), artifact.getFile());
+            publish(new DefaultModuleVersionArtifactMetaData(artifact.getId()), artifact.getFile());
         }
     }
 
-    private void publish(ArtifactIdentifier artifactId, File src) throws IOException {
+    private void publish(ModuleVersionArtifactMetaData artifact, File src) throws IOException {
         String destinationPattern;
-        if ("ivy".equals(artifactId.getType()) && !getIvyPatterns().isEmpty()) {
+        if ("ivy".equals(artifact.getName().getType()) && !getIvyPatterns().isEmpty()) {
             destinationPattern = getIvyPatterns().get(0);
         } else if (!getArtifactPatterns().isEmpty()) {
             destinationPattern = getArtifactPatterns().get(0);
         } else {
-            throw new IllegalStateException("impossible to publish " + artifactId + " using " + this + ": no artifact pattern defined");
+            throw new IllegalStateException("impossible to publish " + artifact + " using " + this + ": no artifact pattern defined");
         }
-        String destination = toResourcePattern(destinationPattern).toPath(artifactId);
+        String destination = toResourcePattern(destinationPattern).toPath(artifact);
 
         put(src, destination);
-        LOGGER.info("Published {} to {}", artifactId.getName(), destination);
+        LOGGER.info("Published {} to {}", artifact, destination);
     }
 
     private void put(File src, String destination) throws IOException {
@@ -525,7 +524,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         private ExternalResource findStaticResourceUsingPatterns(List<String> patternList, ModuleVersionArtifactMetaData artifact, boolean forDownload) {
             for (String pattern : patternList) {
                 ResourcePattern resourcePattern = toResourcePattern(pattern);
-                String resourceName = resourcePattern.toPath(artifact.toArtifactIdentifier());
+                String resourceName = resourcePattern.toPath(artifact);
                 LOGGER.debug("Loading {}", resourceName);
                 ExternalResource resource = getResource(resourceName, artifact, forDownload);
                 if (resource.exists()) {
@@ -541,7 +540,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         private ExternalResource getResource(String source, ModuleVersionArtifactMetaData target, boolean forDownload) {
             try {
                 if (forDownload) {
-                    LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(target.toArtifactIdentifier());
+                    LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(target);
                     ExternalResource resource = repository.getResource(source, localCandidates);
                     return resource == null ? new MissingExternalResource(source) : resource;
                 } else {

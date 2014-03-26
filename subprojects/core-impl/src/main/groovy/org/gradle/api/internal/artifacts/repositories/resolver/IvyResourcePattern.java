@@ -17,8 +17,9 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 import java.util.HashMap;
@@ -40,13 +41,13 @@ public class IvyResourcePattern implements ResourcePattern {
         return String.format("Ivy pattern '%s'", pattern);
     }
 
-    public String toPath(ArtifactIdentifier artifact) {
+    public String toPath(ModuleVersionArtifactMetaData artifact) {
         Map<String, Object> attributes = toAttributes(artifact);
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }
 
     public String toVersionListPattern(ModuleVersionArtifactMetaData artifactId) {
-        Map<String, Object> attributes = toAttributes(artifactId.toArtifactIdentifier());
+        Map<String, Object> attributes = toAttributes(artifactId);
         attributes.remove(IvyPatternHelper.REVISION_KEY);
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }
@@ -59,15 +60,18 @@ public class IvyResourcePattern implements ResourcePattern {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    protected Map<String, Object> toAttributes(ArtifactIdentifier artifact) {
+    // TODO:DAZ Handle extra attributes
+    protected Map<String, Object> toAttributes(ModuleVersionArtifactMetaData artifact) {
         HashMap<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(IvyPatternHelper.ORGANISATION_KEY, artifact.getModuleVersionIdentifier().getGroup());
-        attributes.put(IvyPatternHelper.MODULE_KEY, artifact.getModuleVersionIdentifier().getName());
-        attributes.put(IvyPatternHelper.REVISION_KEY, artifact.getModuleVersionIdentifier().getVersion());
-        attributes.put(IvyPatternHelper.ARTIFACT_KEY, artifact.getName());
-        attributes.put(IvyPatternHelper.TYPE_KEY, artifact.getType());
-        attributes.put(IvyPatternHelper.EXT_KEY, artifact.getExtension());
-        attributes.put("classifier", artifact.getClassifier());
+        ModuleComponentIdentifier moduleVersionIdentifier = artifact.getId().getComponentIdentifier();
+        IvyArtifactName ivyArtifact = artifact.getName();
+        attributes.put(IvyPatternHelper.ORGANISATION_KEY, moduleVersionIdentifier.getGroup());
+        attributes.put(IvyPatternHelper.MODULE_KEY, moduleVersionIdentifier.getModule());
+        attributes.put(IvyPatternHelper.REVISION_KEY, moduleVersionIdentifier.getVersion());
+        attributes.put(IvyPatternHelper.ARTIFACT_KEY, ivyArtifact.getName());
+        attributes.put(IvyPatternHelper.TYPE_KEY, ivyArtifact.getType());
+        attributes.put(IvyPatternHelper.EXT_KEY, ivyArtifact.getExtension());
+        attributes.put("classifier", ivyArtifact.getClassifier());
         return attributes;
     }
 

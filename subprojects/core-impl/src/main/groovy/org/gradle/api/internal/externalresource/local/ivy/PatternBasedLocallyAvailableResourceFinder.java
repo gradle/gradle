@@ -16,9 +16,9 @@
 package org.gradle.api.internal.externalresource.local.ivy;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.externalresource.local.AbstractLocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
@@ -29,20 +29,20 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ArtifactIdentifier> {
+public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> {
 
     public PatternBasedLocallyAvailableResourceFinder(File baseDir, ResourcePattern pattern) {
         super(createProducer(baseDir, pattern));
     }
 
-    private static Transformer<Factory<List<File>>, ArtifactIdentifier> createProducer(final File baseDir, final ResourcePattern pattern) {
-        return new Transformer<Factory<List<File>>, ArtifactIdentifier>() {
-            public Factory<List<File>> transform(final ArtifactIdentifier artifactId) {
+    private static Transformer<Factory<List<File>>, ModuleVersionArtifactMetaData> createProducer(final File baseDir, final ResourcePattern pattern) {
+        return new Transformer<Factory<List<File>>, ModuleVersionArtifactMetaData>() {
+            public Factory<List<File>> transform(final ModuleVersionArtifactMetaData artifact) {
                 return new Factory<List<File>>() {
                     public List<File> create() {
                         final List<File> files = new LinkedList<File>();
-                        if (artifactId != null) {
-                            getMatchingFiles(artifactId).visit(new EmptyFileVisitor() {
+                        if (artifact != null) {
+                            getMatchingFiles(artifact).visit(new EmptyFileVisitor() {
                                 public void visitFile(FileVisitDetails fileDetails) {
                                     files.add(fileDetails.getFile());
                                 }
@@ -53,8 +53,8 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
                 };
             }
 
-            private MinimalFileTree getMatchingFiles(ArtifactIdentifier artifactIdentifier) {
-                String patternString = pattern.toPath(artifactIdentifier);
+            private MinimalFileTree getMatchingFiles(ModuleVersionArtifactMetaData artifact) {
+                String patternString = pattern.toPath(artifact);
                 return new SingleIncludePatternFileTree(baseDir, patternString);
             }
 

@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.gradle.api.artifacts.ArtifactIdentifier
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
@@ -33,8 +29,8 @@ class M2ResourcePatternTest extends Specification {
         final String group = "group"
         final String name = "projectA"
         final String version = "1.2"
-        def artifact1 = artifactId(group, name, version)
-        def artifact2 = artifactId("org.group", "projectA", "1.2")
+        def artifact1 = artifact(group, name, version)
+        def artifact2 = artifact("org.group", "projectA", "1.2")
 
         expect:
         pattern.toPath(artifact1) == 'prefix/group/projectA/1.2/ivys/1.2/ivy.xml'
@@ -79,10 +75,6 @@ class M2ResourcePatternTest extends Specification {
 
         then:
         thrown(UnsupportedOperationException)
-    }
-
-    private static ArtifactIdentifier artifactId(String group, String name, String version) {
-        return new DefaultArtifactIdentifier(DefaultModuleVersionIdentifier.newId(group, name, version), "ivy", "ivy", "xml", null)
     }
 
     private static ModuleVersionArtifactMetaData artifact(String group, String name, String version) {

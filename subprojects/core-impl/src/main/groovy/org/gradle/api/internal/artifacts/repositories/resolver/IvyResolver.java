@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
@@ -43,7 +42,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     private final boolean dynamicResolve;
 
     public IvyResolver(String name, RepositoryTransport transport,
-                       LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
+                       LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
                        boolean dynamicResolve, ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()),
                 locallyAvailableResourceFinder, new DownloadedIvyModuleDescriptorParser(resolverStrategy),

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.gradle.api.artifacts.ArtifactIdentifier
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
@@ -27,8 +25,8 @@ import spock.lang.Specification
 class IvyResourcePatternTest extends Specification {
     def "substitutes artifact attributes into pattern"() {
         def pattern = new IvyResourcePattern("prefix/[organisation]-[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def artifact1 = artifactId("group", "projectA", "1.2")
-        def artifact2 = artifactId("org.group", "projectA", "1.2")
+        def artifact1 = artifact("group", "projectA", "1.2")
+        def artifact2 = artifact("org.group", "projectA", "1.2")
 
         expect:
         pattern.toPath(artifact1) == 'prefix/group-projectA/1.2/ivys/1.2/ivy.xml'
@@ -43,10 +41,6 @@ class IvyResourcePatternTest extends Specification {
         expect:
         pattern.toVersionListPattern(artifact1) == 'prefix/group-projectA/[revision]/ivys/[revision]/ivy.xml'
         pattern.toVersionListPattern(artifact2) == 'prefix/org.group-projectA/[revision]/ivys/[revision]/ivy.xml'
-    }
-
-    private static ArtifactIdentifier artifactId(String group, String name, String version) {
-        return new DefaultArtifactIdentifier(DefaultModuleVersionIdentifier.newId(group, name, version), "ivy", "ivy", "xml", null)
     }
 
     private static ModuleVersionArtifactMetaData artifact(String group, String name, String version) {

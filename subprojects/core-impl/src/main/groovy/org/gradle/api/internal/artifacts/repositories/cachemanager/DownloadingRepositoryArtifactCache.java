@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -35,12 +35,12 @@ import java.io.IOException;
  */
 public class DownloadingRepositoryArtifactCache implements RepositoryArtifactCache {
 
-    private final FileStore<ArtifactIdentifier> fileStore;
+    private final FileStore<ModuleVersionArtifactMetaData> fileStore;
     private final CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex;
     private final TemporaryFileProvider temporaryFileProvider;
     private final CacheLockingManager cacheLockingManager;
 
-    public DownloadingRepositoryArtifactCache(FileStore<ArtifactIdentifier> fileStore, CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex,
+    public DownloadingRepositoryArtifactCache(FileStore<ModuleVersionArtifactMetaData> fileStore, CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex,
                                               TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         this.fileStore = fileStore;
         this.artifactUrlCachedResolutionIndex = artifactUrlCachedResolutionIndex;
@@ -52,13 +52,13 @@ public class DownloadingRepositoryArtifactCache implements RepositoryArtifactCac
         return false;
     }
 
-    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(final ArtifactIdentifier artifactId, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) throws IOException {
+    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(final ModuleVersionArtifactMetaData artifact, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) throws IOException {
         final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             resourceDownloader.download(resource, tmpFile);
-            return cacheLockingManager.useCache(String.format("Store %s", artifactId), new Factory<LocallyAvailableExternalResource>() {
+            return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<LocallyAvailableExternalResource>() {
                 public LocallyAvailableExternalResource create() {
-                    LocallyAvailableResource cachedResource = fileStore.move(artifactId, tmpFile);
+                    LocallyAvailableResource cachedResource = fileStore.move(artifact, tmpFile);
                     File fileInFileStore = cachedResource.getFile();
                     ExternalResourceMetaData metaData = resource.getMetaData();
                     artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
