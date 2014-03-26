@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.junit.Rule
 
+// TODO:DAZ Move these to AbstractSourcesAndJavadocJarsIntegrationTest
 class EclipseClasspathResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
@@ -60,7 +61,9 @@ task listJars << {
 
         when:
         server.resetExpectations()
+        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0-sources.jar', sourceJar)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0-sources.jar', sourceJar)
+        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0-javadoc.jar', javadocJar)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0-javadoc.jar', javadocJar)
 
         then:
@@ -93,8 +96,8 @@ task listJars << {
         server.resetExpectations()
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-sources.jar')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-javadoc.jar')
+        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0-sources.jar')
+        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0-javadoc.jar')
 
         then:
         succeeds 'eclipseClasspath'

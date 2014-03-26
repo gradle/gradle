@@ -19,6 +19,7 @@ import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
+// TODO:DAZ Test handles broken HEAD and GET requests (can then delete some Eclipse-only testing)
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule HttpServer server
 

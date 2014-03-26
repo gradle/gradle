@@ -33,21 +33,24 @@ class EclipseClasspathRemoteResolutionIntegrationTest extends AbstractEclipseInt
         executer.requireOwnGradleUserHomeDir()
     }
 
+    // TODO:DAZ Move the testing of broken modules into AbstractSourcesAndJavadocJarsIntegrationTest and remove this
     @Test
     void "does not break when source or javadoc artifacts are missing or broken"() {
 //        given:
-        def projectA = repo.module('group', 'projectA', '1.0').publish()
-        def projectB = repo.module('group', 'projectB', '1.0').publish()
+        def projectA = repo.module('group', 'projectA', '1.0').withSourceAndJavadoc().publish()
+        def projectB = repo.module('group', 'projectB', '1.0').withSourceAndJavadoc().publish()
         server.start()
 
 //        when:
         server.resetExpectations()
         projectA.pom.expectGet()
         projectA.artifact.expectGet()
-        projectA.artifact(classifier: 'sources').expectGetMissing()
-        projectA.artifact(classifier: 'javadoc').expectGetMissing()
+        projectA.artifact(classifier: 'sources').expectHeadMissing()
+        projectA.artifact(classifier: 'javadoc').expectHeadMissing()
         projectB.pom.expectGet()
         projectB.artifact.expectGet()
+        projectB.artifact(classifier: 'sources').expectHead()
+        projectB.artifact(classifier: 'javadoc').expectHead()
         projectB.artifact(classifier: 'sources').expectGetBroken()
         projectB.artifact(classifier: 'javadoc').expectGetBroken()
 
@@ -62,6 +65,7 @@ dependencies {
     compile 'group:projectA:1.0', 'group:projectB:1.0'
 }
 eclipse {
+    classpath.downloadSources = true
     classpath.downloadJavadoc = true
 }
 """
