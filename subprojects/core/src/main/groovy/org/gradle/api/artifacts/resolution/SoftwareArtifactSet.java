@@ -23,6 +23,7 @@ import org.gradle.api.Nullable;
 /**
  * A set of artifacts of a particular type for a software component.
  *
+ * @param <T> the type of software artifact belonging to this set
  * @since 1.12
  */
 @Incubating
