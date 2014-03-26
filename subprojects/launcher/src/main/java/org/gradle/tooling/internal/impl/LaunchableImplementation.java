@@ -19,8 +19,6 @@ package org.gradle.tooling.internal.impl;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 
-import java.io.File;
-
 /**
  * SPI for launchables providing information necessary to initiate the build.
  *
@@ -29,6 +27,5 @@ import java.io.File;
 public interface LaunchableImplementation extends InternalLaunchable {
     /** Task path for real tasks, selector name for task selectors. */
     String getTaskName();
-    @Nullable File getProjectDir();
     @Nullable String getProjectPath();
 }

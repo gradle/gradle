@@ -92,7 +92,7 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
                 if (launchable instanceof LaunchableImplementation) {
                     LaunchableImplementation launchableImpl = (LaunchableImplementation) launchable;
                     allTasks.add(launchableImpl.getTaskName());
-                    if (launchableImpl.getProjectDir() != null) {
+                    if (launchableImpl.getProjectPath() != null) {
                         if (projectPath != null && !projectPath.equals(launchableImpl.getProjectPath())) {
                             throw new InternalUnsupportedBuildArgumentException(
                                     "Problem with provided launchable arguments: " + launchables + ". "
@@ -100,7 +100,6 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
                             );
                         }
                         projectPath = launchableImpl.getProjectPath();
-                        startParameter.setCurrentDir(launchableImpl.getProjectDir());
                     }
                 } else {
                     throw new InternalUnsupportedBuildArgumentException(
@@ -109,8 +108,8 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
                     );
                 }
             }
-            if (projectPath != null && !projectPath.equals(':')) {
-                startParameter.setSearchUpwards(true);
+            if (projectPath != null) {
+                startParameter.setProjectPath(projectPath);
             }
             startParameter.setTaskNames(allTasks);
         } else if (tasks != null) {

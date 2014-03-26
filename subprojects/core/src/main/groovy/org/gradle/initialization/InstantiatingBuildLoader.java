@@ -43,9 +43,12 @@ public class InstantiatingBuildLoader implements BuildLoader {
     }
 
     private void attachDefaultProject(GradleInternal gradle) {
+        String  explicitProjectPath = gradle.getStartParameter().getProjectPath();
         File explicitProjectDir = gradle.getStartParameter().getProjectDir();
         File explicitBuildFile = gradle.getStartParameter().getBuildFile();
-        ProjectSpec spec = explicitBuildFile != null
+        ProjectSpec spec = explicitProjectPath != null
+                ? new ProjectPathProjectSpec(explicitProjectPath)
+                : explicitBuildFile != null
                 ? new BuildFileProjectSpec(explicitBuildFile)
                 : explicitProjectDir == null ? new DefaultProjectSpec(gradle.getStartParameter().getCurrentDir()) : new ProjectDirectoryProjectSpec(explicitProjectDir);
         try {

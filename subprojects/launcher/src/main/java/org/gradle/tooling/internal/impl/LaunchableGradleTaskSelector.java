@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.impl;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.model.TaskSelector;
 
-import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -30,7 +29,6 @@ public class LaunchableGradleTaskSelector implements TaskSelector, LaunchableImp
     private String displayName;
     private String description;
     private String taskName;
-    private File projectDir;
     private String projectPath;
 
     public String getName() {
@@ -67,15 +65,6 @@ public class LaunchableGradleTaskSelector implements TaskSelector, LaunchableImp
 
     public LaunchableGradleTaskSelector setTaskName(String taskName) {
         this.taskName = taskName;
-        return this;
-    }
-
-    public File getProjectDir() {
-        return projectDir;
-    }
-
-    public LaunchableGradleTaskSelector setProjectDir(File projectDir) {
-        this.projectDir = projectDir;
         return this;
     }
 

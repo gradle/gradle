@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.impl;
 
-import java.io.File;
 import java.io.Serializable;
 
 public class LaunchableGradleTask implements Serializable, LaunchableImplementation {
@@ -67,10 +66,6 @@ public class LaunchableGradleTask implements Serializable, LaunchableImplementat
 
     public String getTaskName() {
         return path;
-    }
-
-    public File getProjectDir() {
-        return null;
     }
 
     public String getProjectPath() {

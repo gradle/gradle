@@ -104,16 +104,12 @@ class ConfiguringBuildActionTest extends Specification {
 
     def "accepts launchables from consumer"() {
         given:
-        def projectDir = temp.createDir('projectDir')
-        def subProjectDir = projectDir.createDir('child')
         def selector = Mock(LaunchableImplementation)
         _ * selector.taskName >> 'myTask'
-        _ * selector.projectDir >> subProjectDir
         _ * selector.projectPath >> ':child'
 
         ProviderOperationParameters providerParameters = Mock(ProviderOperationParameters)
         _ * providerParameters.launchables >> [selector]
-        _ * providerParameters.projectDir >> projectDir
         _ * providerParameters.tasks >> []
         def action = new ConfiguringBuildAction(providerParameters, null, [:])
 
@@ -121,6 +117,6 @@ class ConfiguringBuildActionTest extends Specification {
         def start = action.configureStartParameter()
 
         then:
-        start.currentDir == subProjectDir
+        start.projectPath == ':child'
     }
 }

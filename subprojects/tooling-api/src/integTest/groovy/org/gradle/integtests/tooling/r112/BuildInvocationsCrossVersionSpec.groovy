@@ -93,9 +93,6 @@ project(':b:c') {
     def "build task selectors from action"() {
         given:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-        toolingApi.withConnector { connector ->
-            connector.searchUpwards(true)
-        }
         when:
         BuildInvocations projectSelectors = withConnection { connection ->
             connection.action(new FetchTaskSelectorsBuildAction('b')).run() }
@@ -125,9 +122,6 @@ project(':b:c') {
     def "build task selectors from connection"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-        toolingApi.withConnector { connector ->
-            connector.searchUpwards(true)
-        }
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
         }
@@ -204,9 +198,6 @@ project(':b:c') {
     def "build tasks from BuildInvocations model as Launchable"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
-        toolingApi.withConnector { connector ->
-            connector.searchUpwards(true)
-        }
         List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
         }

@@ -53,7 +53,6 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             selectors.add(new LaunchableGradleTaskSelector().
                     setName(selectorName).
                     setTaskName(selectorName).
-                    setProjectDir(project.getProjectDir()).
                     setProjectPath(project.getPath()).
                     setDescription(project.getParent() != null
                             ? String.format("%s:%s task selector", project.getPath(), selectorName)
