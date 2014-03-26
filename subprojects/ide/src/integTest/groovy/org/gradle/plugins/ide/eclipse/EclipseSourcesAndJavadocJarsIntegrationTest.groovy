@@ -18,8 +18,9 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 
 class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
-    void executeIdeTask(String buildScript) {
-        runTask "eclipseClasspath", buildScript
+    @Override
+    String getIdeTask() {
+        return "eclipseClasspath"
     }
 
     void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {

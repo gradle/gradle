@@ -14,26 +14,64 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide
+
+import org.gradle.test.fixtures.ivy.IvyHttpModule
 import org.gradle.test.fixtures.ivy.IvyHttpRepository
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
-// TODO:DAZ Test handles broken HEAD and GET requests (can then delete some Eclipse-only testing)
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule HttpServer server
 
-    def "sources and javadoc jars from maven repositories are resolved and attached"() {
+    def setup() {
+        server.start()
+        executer.requireOwnGradleUserHomeDir()
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << baseBuildScript
+    }
+
+    private useIvyRepo(def repo) {
+        buildFile << """repositories { ivy { url "$repo.uri" } }"""
+    }
+
+    private useMavenRepo(def repo) {
+        buildFile << """repositories { maven { url "$repo.uri" } }"""
+    }
+
+    def "sources and javadoc jars from maven repositories are not downloaded if not required"() {
+        def repo = mavenHttpRepo
+        def module = repo.module("some", "module", "1.0").withSourceAndJavadoc().publish()
+
+        when:
+        useMavenRepo(repo)
+
+        and:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        then:
+        succeeds "resolve"
+    }
+
+    def "sources and javadoc jars from maven repositories are resolved, attached and cached"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
         module.artifact(classifier: "sources")
         module.artifact(classifier: "javadoc")
         module.publish()
         module.allowAll()
-        server.start()
 
         when:
-        executeIdeTask(baseBuildScript + """repositories { maven { url "$repo.uri" } }""")
+        useMavenRepo(repo)
+        succeeds ideTask
+
+        then:
+        ideFileContainsSourcesAndJavadocEntry()
+
+        when:
+        server.resetExpectations()
+        succeeds ideTask
 
         then:
         ideFileContainsSourcesAndJavadocEntry()
@@ -42,58 +80,120 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
     def "ignores missing sources and javadoc jars in maven repositories"() {
         def repo = mavenHttpRepo
         repo.module("some", "module", "1.0").publish().allowAll()
-        server.start()
 
         when:
-        executeIdeTask(baseBuildScript + """repositories { maven { url "$repo.uri" } }""")
+        useMavenRepo(repo)
+        succeeds ideTask
 
         then:
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    def "sources and javadoc jars from ivy repositories are resolved and attached"() {
-        def repo = ivyHttpRepo
+    void "ignores broken source or javadoc artifacts in maven repository"() {
+        def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
-        module.configuration("default")
-        module.configuration("sources")
-        module.configuration("javadoc")
-        module.artifact(conf: "default")
-        // use uncommon sources and javadoc classifiers to prove that artifact names don't matter
-        module.artifact(type: "source", classifier: "my-sources", ext: "jar", conf: "sources")
-        module.artifact(type: "javadoc", classifier: "my-javadoc", ext: "jar", conf: "javadoc")
+        final sourceArtifact = module.artifact(classifier: "sources")
+        final javadocArtifact = module.artifact(classifier: "javadoc")
         module.publish()
-        module.allowAll()
-        server.start()
 
         when:
-        executeIdeTask(baseBuildScript + """repositories { ivy { url "$repo.uri" } }""")
+        useMavenRepo(repo)
+
+        and:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+        // TODO:DAZ Make one of these break on HEAD (once we handle this in Artifact Query API)
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGetBroken()
+        javadocArtifact.expectHead()
+        javadocArtifact.expectGetBroken()
+
+        // TODO:BEN These only occur in IDEA and I don't think they should
+        sourceArtifact.allowGetOrHead()
+        javadocArtifact.allowGetOrHead()
+
+        then:
+        succeeds ideTask
+        ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
+    def "sources and javadoc jars from ivy repositories are not downloaded if not required"() {
+        def repo = ivyHttpRepo
+        def module = repo.module("some", "module", "1.0")
+        addCompleteConfigurations(module)
+        module.publish()
+
+        when:
+        useIvyRepo(repo)
+
+        and:
+        module.ivy.expectGet()
+        module.jar.expectGet()
+
+        then:
+        succeeds "resolve"
+    }
+
+    def "sources and javadoc jars from ivy repositories are resolved, attached and cached"() {
+        def repo = ivyHttpRepo
+        def module = repo.module("some", "module", "1.0")
+        addCompleteConfigurations(module)
+        module.publish()
+        module.allowAll()
+
+        when:
+        useIvyRepo(repo)
+        succeeds ideTask
 
         then:
         ideFileContainsSourcesAndJavadocEntry("my-sources", "my-javadoc")
 
+        when:
+        server.resetExpectations()
+        succeeds ideTask
+
+        then:
+        ideFileContainsSourcesAndJavadocEntry("my-sources", "my-javadoc")
     }
 
     def "ignores missing sources and javadoc jars in ivy repositories"() {
         def repo = ivyHttpRepo
         final module = repo.module("some", "module", "1.0")
-        module.configuration("default")
-        module.configuration("sources")
-        module.configuration("javadoc")
-        module.artifact(conf: "default")
-        // use uncommon sources and javadoc classifiers to prove that artifact names don't matter
-        module.artifact(type: "source", classifier: "my-sources", ext: "jar", conf: "sources")
-        module.artifact(type: "javadoc", classifier: "my-javadoc", ext: "jar", conf: "javadoc")
+        addCompleteConfigurations(module)
         module.publish()
 
-        module.getArtifact(classifier: "my-sources").expectHeadMissing()
-        module.getArtifact(classifier: "my-javadoc").expectHeadMissing()
-        module.allowAll()
-        server.start()
-
         when:
-        executeIdeTask(baseBuildScript + """repositories { ivy { url "$repo.uri" } }""")
+        useIvyRepo(repo)
+        module.getArtifact(classifier: "my-sources").expectGetMissing()
+        module.getArtifact(classifier: "my-javadoc").expectGetMissing()
+        module.allowAll()
 
         then:
+        succeeds ideTask
+        ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
+    void "ignores broken source or javadoc artifacts in ivy repository"() {
+        def repo = ivyHttpRepo
+        def module = repo.module("some", "module", "1.0")
+        addCompleteConfigurations(module)
+        module.publish()
+
+        when:
+        useIvyRepo(repo)
+
+        and:
+        module.ivy.expectGet()
+        module.jar.expectGet()
+        module.getArtifact(classifier: "my-sources").expectGetBroken()
+        module.getArtifact(classifier: "my-javadoc").expectGetBroken()
+
+        // TODO:BEN These only occur in IDEA and I don't think they should
+        module.getArtifact(classifier: "my-sources").allowGetOrHead()
+        module.getArtifact(classifier: "my-javadoc").allowGetOrHead()
+
+        then:
+        succeeds ideTask
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
@@ -106,10 +206,10 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         module.getArtifact(classifier: "javadoc", ext: "jar").file << "content"
         module.publish()
         module.allowAll()
-        server.start()
 
         when:
-        executeIdeTask(baseBuildScript + """repositories { ivy { url "$repo.uri" } }""")
+        useIvyRepo(repo)
+        succeeds ideTask
 
         then:
         ideFileContainsSourcesAndJavadocEntry("sources", "javadoc")
@@ -121,10 +221,21 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         file("repo/module-1.0-javadoc.jar").createFile()
 
         when:
-        executeIdeTask(baseBuildScript + """repositories { flatDir { dir "repo" } }""")
+        buildFile << """repositories { flatDir { dir "repo" } }"""
+        succeeds ideTask
 
         then:
         ideFileContainsSourcesAndJavadocEntry()
+    }
+
+    private static void addCompleteConfigurations(IvyHttpModule module) {
+        module.configuration("default")
+        module.configuration("sources")
+        module.configuration("javadoc")
+        module.artifact(conf: "default")
+        // use uncommon sources and javadoc classifiers to prove that artifact names don't matter
+        module.artifact(type: "source", classifier: "my-sources", ext: "jar", conf: "sources")
+        module.artifact(type: "javadoc", classifier: "my-javadoc", ext: "jar", conf: "javadoc")
     }
 
     MavenHttpRepository getMavenHttpRepo() {
@@ -156,12 +267,16 @@ eclipse {
         downloadJavadoc = true
     }
 }
+
+task resolve << {
+    configurations.compile.each { println it }
+}
 """
     }
 
-    abstract void executeIdeTask(String buildScript)
+    abstract String getIdeTask()
 
     abstract void ideFileContainsSourcesAndJavadocEntry()
-    abstract void ideFileContainsNoSourcesAndJavadocEntry()
     abstract void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier, String javadocClassifier)
+    abstract void ideFileContainsNoSourcesAndJavadocEntry()
 }

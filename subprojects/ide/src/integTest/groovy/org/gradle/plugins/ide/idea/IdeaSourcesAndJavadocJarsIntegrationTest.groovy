@@ -18,8 +18,9 @@ package org.gradle.plugins.ide.idea
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 
 class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
-    void executeIdeTask(String buildScript) {
-        runTask "ideaModule", buildScript
+    @Override
+    String getIdeTask() {
+        return "ideaModule"
     }
 
     void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
