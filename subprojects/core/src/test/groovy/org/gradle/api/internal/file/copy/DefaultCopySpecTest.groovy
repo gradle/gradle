@@ -195,34 +195,6 @@ public class DefaultCopySpecTest {
         assertThat(spec.copyActions.size(), equalTo(1))
     }
 
-//    @Test
-//    public void testSpecInheritsActionsFromParent() {
-//        Action parentAction = context.mock(Action, 'parent')
-//        Action childAction = context.mock(Action, 'child')
-//
-//        copySpecResolver.eachFile parentAction
-//        CopySpec childSpec = copySpecResolver.from('src') {
-//            eachFile childAction
-//        }
-//
-//        assertThat(unpackWrapper(childSpec).allCopyActions, equalTo([parentAction, childAction]))
-//    }
-
-//    @Test
-//    public void testHasNoPermissionsByDefault() {
-//        assert copySpecResolver.fileMode == null
-//        assert copySpecResolver.dirMode == null
-//    }
-//
-//    @Test
-//    public void testInheritsPermissionsFromParent() {
-//        copySpecResolver.fileMode = 0x1
-//        copySpecResolver.dirMode = 0x2
-//
-//        CopySpec child = copySpecResolver.from('src') {}
-//        Assert.assertEquals(0x1, child.fileMode)
-//        Assert.assertEquals(0x2, child.dirMode)
-//    }
 
     @Test
     public void testHasNoSourceByDefault() {
@@ -241,23 +213,6 @@ public class DefaultCopySpecTest {
         assertTrue(spec.hasSource())
     }
 
-//    @Test
-//    public void duplicatesStrategyDefaultsToInclude() {
-//        assert copySpecResolver.duplicatesStrategy == DuplicatesStrategy.INCLUDE
-//    }
-//
-//    @Test
-//    public void childInheritsDuplicatesStrategyFromParent() {
-//        def child = copySpecResolver.from('dir') {}
-//
-//        assert child.duplicatesStrategy == DuplicatesStrategy.INCLUDE
-//
-//        copySpecResolver.duplicatesStrategy = 'EXCLUDE'
-//        assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
-//
-//        child.duplicatesStrategy = 'INCLUDE'
-//        assert child.duplicatesStrategy == DuplicatesStrategy.INCLUDE
-//    }
 
     @Test
     public void testMatchingCreatesAppropriateAction() {
