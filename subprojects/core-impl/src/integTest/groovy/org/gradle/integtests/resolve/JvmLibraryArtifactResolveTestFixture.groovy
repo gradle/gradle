@@ -25,8 +25,10 @@ class JvmLibraryArtifactResolveTestFixture {
     private repository
     private componentVersion = "1.0"
     private artifactTypes = []
+    private expectedSourcesListFailure
     private expectedSources = []
     private expectedSourceFailures = []
+    private expectedJavadocListFailure
     private expectedJavadoc = []
     private expectedJavadocFailures = []
     private boolean missingComponent
@@ -56,6 +58,8 @@ class JvmLibraryArtifactResolveTestFixture {
         this.expectedJavadoc = []
         this.expectedSourceFailures = []
         this.expectedJavadocFailures = []
+        this.expectedSourcesListFailure = null
+        this.expectedJavadocListFailure = null
         this
     }
 
@@ -74,6 +78,11 @@ class JvmLibraryArtifactResolveTestFixture {
         this
     }
 
+    def expectSourceArtifactListFailure(def failure) {
+        expectedSourcesListFailure = failure
+        this
+    }
+
     def expectSourceArtifactFailure(def failure) {
         // TODO:DAZ Validate more than just the failure message
         expectedSourceFailures << failure
@@ -87,6 +96,11 @@ class JvmLibraryArtifactResolveTestFixture {
 
     def expectJavadocArtifactNotFound(def sourceArtifact) {
         expectedJavadocFailures << "Artifact 'some.group:some-artifact:$componentVersion:$sourceArtifact' not found."
+        this
+    }
+
+    def expectJavadocArtifactListFailure(def failure) {
+        expectedJavadocListFailure = failure
         this
     }
 
@@ -127,10 +141,16 @@ task $taskName << {
     assert jvmLibrary.id.module == "some-artifact"
     assert jvmLibrary.id.version == "$componentVersion"
     assert jvmLibrary instanceof JvmLibrary
-
+"""
+        if (expectedSourcesListFailure != null) {
+            buildFile << """
+    assert jvmLibrary.sourcesArtifacts.failure.message == "${expectedSourcesListFailure}"
+"""
+        } else {
+            buildFile << """
     def sourceArtifactFiles = []
     def sourceArtifactFailures = []
-    jvmLibrary.sourcesArtifacts.each { artifact ->
+    jvmLibrary.sourcesArtifacts.artifacts.each { artifact ->
         assert artifact instanceof JvmLibrarySourcesArtifact
         if (artifact.failure != null) {
             sourceArtifactFailures << artifact.failure.message
@@ -144,10 +164,18 @@ task $taskName << {
     }
     assert sourceArtifactFiles as Set == ${toQuotedList(expectedSources)} as Set
     assert sourceArtifactFailures as Set == ${toQuotedList(expectedSourceFailures)} as Set
+"""
+        }
 
+        if (expectedJavadocListFailure != null) {
+            buildFile << """
+    assert jvmLibrary.javadocArtifacts.failure.message == "${expectedJavadocListFailure}"
+"""
+        } else {
+            buildFile << """
     def javadocArtifactFiles = []
     def javadocArtifactFailures = []
-    jvmLibrary.javadocArtifacts.each { artifact ->
+    jvmLibrary.javadocArtifacts.artifacts.each { artifact ->
         assert artifact instanceof JvmLibraryJavadocArtifact
         if (artifact.failure != null) {
             javadocArtifactFailures << artifact.failure.message
@@ -161,9 +189,10 @@ task $taskName << {
     }
     assert javadocArtifactFiles as Set == ${toQuotedList(expectedJavadoc)} as Set
     assert javadocArtifactFailures as Set == ${toQuotedList(expectedJavadocFailures)} as Set
+"""
+        }
 
-    assert jvmLibrary.allArtifacts as Set == (jvmLibrary.sourcesArtifacts as Set) + (jvmLibrary.javadocArtifacts as Set)
-
+        buildFile << """
     assert result.unresolvedComponents.empty
 }
 """

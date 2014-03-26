@@ -154,7 +154,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         file("sources/some-artifact-1.0-SNAPSHOT-sources.jar").assertHasChangedSince(snapshot)
     }
 
-    def "resolves artifacts of non-existing component"() {
+    def "reports failure to resolve artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 
         when:
@@ -177,7 +177,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         checkArtifactsResolvedAndCached()
     }
 
-    def "resolves and caches partially missing artifacts"() {
+    def "resolves and caches artifacts where some are present"() {
         fixture.requestingTypes()
                 .expectSourceArtifact("some-artifact-1.0-sources.jar")
                 .prepare()
@@ -194,15 +194,13 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
     def "resolves and recovers from broken artifacts"() {
         fixture.requestingTypes()
-                .expectSourceArtifact("some-artifact-1.0-sources.jar")
+                .expectSourceArtifactListFailure("Could not determine artifacts for component 'some.group:some-artifact:1.0'")
                 .expectJavadocArtifactFailure("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-javadoc.jar'")
                 .prepare()
 
         when:
-        // TODO:DAZ Also test for broken artifact listing
         module.pom.expectGet()
-        sourceArtifact.expectHead()
-        sourceArtifact.expectGet()
+        sourceArtifact.expectHeadBroken()
         javadocArtifact.expectHead()
         javadocArtifact.expectGetBroken()
 
@@ -217,7 +215,8 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
         and:
         server.resetExpectations()
-        // Only the broken artifact is not cached
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGet()
         javadocArtifact.expectGet()
 
         then:

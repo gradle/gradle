@@ -24,6 +24,6 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface JvmLibrary extends SoftwareComponent<JvmLibraryArtifact> {
-    Iterable<JvmLibrarySourcesArtifact> getSourcesArtifacts();
-    Iterable<JvmLibraryJavadocArtifact> getJavadocArtifacts();
+    SoftwareArtifactSet<JvmLibrarySourcesArtifact> getSourcesArtifacts();
+    SoftwareArtifactSet<JvmLibraryJavadocArtifact> getJavadocArtifacts();
 }

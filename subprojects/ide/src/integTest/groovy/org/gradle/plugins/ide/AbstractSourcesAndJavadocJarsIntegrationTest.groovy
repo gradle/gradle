@@ -102,9 +102,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         and:
         module.pom.expectGet()
         module.artifact.expectGet()
-        // TODO:DAZ Make one of these break on HEAD (once we handle this in Artifact Query API)
-        sourceArtifact.expectHead()
-        sourceArtifact.expectGetBroken()
+        sourceArtifact.expectHeadBroken()
         javadocArtifact.expectHead()
         javadocArtifact.expectGetBroken()
 

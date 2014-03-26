@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 
+// TODO:DAZ Test can resolve multiple source/javadoc artifacts declared in 'sources'/'javadoc' configuration
 class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     def fileRepo = ivyRepo
     def httpRepo = ivyHttpRepo
@@ -133,7 +134,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         file("sources/some-artifact-1.0-my-sources.jar").assertHasChangedSince(snapshot)
     }
 
-    def "resolve artifacts of non-existing component"() {
+    def "reports failure to resolve artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 
         when:
@@ -144,7 +145,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         succeeds("verify")
     }
 
-    def "resolve missing artifacts of existing component"() {
+    def "reports failure to resolve missing artifacts"() {
         fixture.expectSourceArtifactNotFound("some-artifact-my-sources.jar")
                 .expectJavadocArtifactNotFound("some-artifact-my-javadoc.jar")
                 .prepare()
@@ -158,7 +159,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         checkArtifactsResolvedAndCached()
     }
 
-    def "resolve partially missing artifacts"() {
+    def "resolves when some artifacts are missing"() {
         fixture.expectSourceArtifact("some-artifact-1.0-my-sources.jar")
                 .expectJavadocArtifactNotFound("some-artifact-my-javadoc.jar")
                 .prepare()
@@ -172,7 +173,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         checkArtifactsResolvedAndCached()
     }
 
-    def "resolve partially broken artifacts"() {
+    def "resolves when some artifacts are broken"() {
         fixture.expectSourceArtifact("some-artifact-1.0-my-sources.jar")
                 .expectJavadocArtifactFailure("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar'")
                 .prepare()
