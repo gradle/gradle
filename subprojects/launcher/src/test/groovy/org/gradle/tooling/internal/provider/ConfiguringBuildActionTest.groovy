@@ -20,7 +20,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.protocol.InternalLaunchable
+import org.gradle.tooling.internal.impl.LaunchableImplementation
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
@@ -106,7 +106,7 @@ class ConfiguringBuildActionTest extends Specification {
         given:
         def projectDir = temp.createDir('projectDir')
         def subProjectDir = projectDir.createDir('child')
-        def selector = Mock(InternalLaunchable)
+        def selector = Mock(LaunchableImplementation)
         _ * selector.taskName >> 'myTask'
         _ * selector.projectDir >> subProjectDir
         _ * selector.projectPath >> ':child'

@@ -16,12 +16,10 @@
 
 package org.gradle.tooling.internal.impl;
 
-import org.gradle.tooling.internal.protocol.InternalLaunchable;
-
 import java.io.File;
 import java.io.Serializable;
 
-public class LaunchableGradleTask implements Serializable, InternalLaunchable {
+public class LaunchableGradleTask implements Serializable, LaunchableImplementation {
 
     String path;
     String name;

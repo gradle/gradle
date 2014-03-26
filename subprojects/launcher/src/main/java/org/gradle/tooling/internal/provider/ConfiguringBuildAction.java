@@ -22,6 +22,7 @@ import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.tooling.internal.impl.LaunchableImplementation;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -88,15 +89,24 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
             List<String> allTasks = new ArrayList<String>();
             String projectPath = null;
             for (InternalLaunchable launchable : launchables) {
-                allTasks.add(launchable.getTaskName());
-                if (launchable.getProjectDir() != null) {
-                    if (projectPath != null && !projectPath.equals(launchable.getProjectPath())) {
-                        throw new InternalUnsupportedBuildArgumentException(
-                                "Problem with provided launchable arguments: " + launchables + ". "
-                                        + "\nOnly selector from the same Gradle project can be built.");
+                if (launchable instanceof LaunchableImplementation) {
+                    LaunchableImplementation launchableImpl = (LaunchableImplementation) launchable;
+                    allTasks.add(launchableImpl.getTaskName());
+                    if (launchableImpl.getProjectDir() != null) {
+                        if (projectPath != null && !projectPath.equals(launchableImpl.getProjectPath())) {
+                            throw new InternalUnsupportedBuildArgumentException(
+                                    "Problem with provided launchable arguments: " + launchables + ". "
+                                            + "\nOnly selector from the same Gradle project can be built."
+                            );
+                        }
+                        projectPath = launchableImpl.getProjectPath();
+                        startParameter.setCurrentDir(launchableImpl.getProjectDir());
                     }
-                    projectPath = launchable.getProjectPath();
-                    startParameter.setCurrentDir(launchable.getProjectDir());
+                } else {
+                    throw new InternalUnsupportedBuildArgumentException(
+                            "Problem with provided launchable arguments: " + launchables + ". "
+                                    + "\nOnly objects from this provider can be built."
+                    );
                 }
             }
             if (projectPath != null && !projectPath.equals(':')) {

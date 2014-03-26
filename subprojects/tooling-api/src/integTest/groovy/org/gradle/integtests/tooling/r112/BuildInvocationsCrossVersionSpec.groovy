@@ -92,6 +92,7 @@ project(':b:c') {
     @TargetGradleVersion(">=1.12")
     def "build task selectors from action"() {
         given:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
         toolingApi.withConnector { connector ->
             connector.searchUpwards(true)
         }
@@ -123,6 +124,7 @@ project(':b:c') {
     @TargetGradleVersion(">=1.0-milestone-5")
     def "build task selectors from connection"() {
         when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
         toolingApi.withConnector { connector ->
             connector.searchUpwards(true)
         }
@@ -201,6 +203,7 @@ project(':b:c') {
     @TargetGradleVersion(">=1.12")
     def "build tasks from BuildInvocations model as Launchable"() {
         when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
         toolingApi.withConnector { connector ->
             connector.searchUpwards(true)
         }

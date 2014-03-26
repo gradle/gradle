@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.impl;
+
+import org.gradle.api.Nullable;
+import org.gradle.tooling.internal.protocol.InternalLaunchable;
+
+import java.io.File;
 
 /**
- * A marker interface for launchables.
- *
- * The real implementation exists elsewhere and is only interesting for provider.
- * Consumer will see public part of the contract from *.model.* packages and will send it back
- * to provider as it is when a build is launched.
+ * SPI for launchables providing information necessary to initiate the build.
  *
  * @since 1.12
  */
-public interface InternalLaunchable extends InternalProtocolInterface {
+public interface LaunchableImplementation extends InternalLaunchable {
+    /** Task path for real tasks, selector name for task selectors. */
+    String getTaskName();
+    @Nullable File getProjectDir();
+    @Nullable String getProjectPath();
 }
