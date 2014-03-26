@@ -117,7 +117,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
             stateAtOpen = fileLock.getState();
             takeOwnership(String.format("Access %s", cacheDisplayName));
-        } catch(Throwable throwable) {
+        } catch (Throwable throwable) {
             if (fileLock != null) {
                 fileLock.close();
                 fileLock = null;
@@ -323,9 +323,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
         lock.lock();
         try {
             caches.add(indexedCache);
-            if (fileLock != null) {
-                indexedCache.onStartWork(operations.getDescription(), stateAtOpen);
-            }
         } finally {
             lock.unlock();
         }

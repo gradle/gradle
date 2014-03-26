@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.MavenClassifierArtifactScheme;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
@@ -79,12 +80,12 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     public Set<? extends ComponentArtifactMetaData> getTypedArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
         if (artifactType == JvmLibraryJavadocArtifact.class) {
             ConfigurationMetaData configuration = module.getConfiguration("javadoc");
-            return configuration != null ? configuration.getArtifacts() : Collections.<ComponentArtifactMetaData>emptySet();
+            return configuration != null ? configuration.getArtifacts() : new MavenClassifierArtifactScheme().get(module, artifactType);
         }
 
         if (artifactType == JvmLibrarySourcesArtifact.class) {
             ConfigurationMetaData configuration = module.getConfiguration("sources");
-            return configuration != null ? configuration.getArtifacts() : Collections.<ComponentArtifactMetaData>emptySet();
+            return configuration != null ? configuration.getArtifacts() : new MavenClassifierArtifactScheme().get(module, artifactType);
         }
 
         if (artifactType == ComponentMetaDataArtifact.class) {

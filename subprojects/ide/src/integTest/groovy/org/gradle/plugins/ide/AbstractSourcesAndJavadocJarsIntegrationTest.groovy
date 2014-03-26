@@ -62,6 +62,24 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
 
     }
 
+    def "sources and javadoc jars stored with maven scheme in ivy repositories are resolved and attached"() {
+        def repo = ivyHttpRepo
+        def module = repo.module("some", "module", "1.0")
+        module.configuration("default")
+        module.artifact(conf: "default")
+        module.getArtifact(classifier: "sources", ext: "jar").file << "content"
+        module.getArtifact(classifier: "javadoc", ext: "jar").file << "content"
+        module.publish()
+        module.allowAll()
+        server.start()
+
+        when:
+        executeIdeTask(baseBuildScript + """repositories { ivy { url "$repo.uri" } }""")
+
+        then:
+        ideFileContainsSourcesAndJavadocEntry("sources", "javadoc")
+    }
+
     // TODO:DAZ This feature needs to be implemented and this test un-ignored
     @Ignore
     def "sources and javadoc jars from flatdir repositories are resolved and attached"() {
