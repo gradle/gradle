@@ -221,6 +221,25 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         file("sources/some-artifact-1.0-my-sources.jar").assertHasChangedSince(snapshot)
     }
 
+    def "can resolve artifacts with maven scheme from ivy repository"() {
+        // Published with no configurations
+        def moduleWithMavenScheme = httpRepo.module("some.group", "some-artifact", "1.1")
+        moduleWithMavenScheme.artifact(classifier: "sources")
+        moduleWithMavenScheme.publish()
+
+        fixture.withComponentVersion("1.1")
+                .requestingTypes(JvmLibrarySourcesArtifact)
+                .expectSourceArtifact("some-artifact-1.1-sources.jar")
+                .prepare()
+
+        when:
+        moduleWithMavenScheme.ivy.expectGet()
+        moduleWithMavenScheme.getArtifact(classifier: "sources").expectGet()
+
+        then:
+        checkArtifactsResolvedAndCached()
+    }
+
     def checkArtifactsResolvedAndCached() {
         assert succeeds("verify")
         server.resetExpectations()
