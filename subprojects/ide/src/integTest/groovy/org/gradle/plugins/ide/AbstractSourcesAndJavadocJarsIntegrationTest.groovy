@@ -38,6 +38,18 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         ideFileContainsSourcesAndJavadocEntry()
     }
 
+    def "ignores missing sources and javadoc jars in maven repositories"() {
+        def repo = mavenHttpRepo
+        repo.module("some", "module", "1.0").publish().allowAll()
+        server.start()
+
+        when:
+        executeIdeTask(baseBuildScript + """repositories { maven { url "$repo.uri" } }""")
+
+        then:
+        ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
     def "sources and javadoc jars from ivy repositories are resolved and attached"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -58,6 +70,30 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         then:
         ideFileContainsSourcesAndJavadocEntry("my-sources", "my-javadoc")
 
+    }
+
+    def "ignores missing sources and javadoc jars in ivy repositories"() {
+        def repo = ivyHttpRepo
+        final module = repo.module("some", "module", "1.0")
+        module.configuration("default")
+        module.configuration("sources")
+        module.configuration("javadoc")
+        module.artifact(conf: "default")
+        // use uncommon sources and javadoc classifiers to prove that artifact names don't matter
+        module.artifact(type: "source", classifier: "my-sources", ext: "jar", conf: "sources")
+        module.artifact(type: "javadoc", classifier: "my-javadoc", ext: "jar", conf: "javadoc")
+        module.publish()
+
+        module.getArtifact(classifier: "my-sources").expectHeadMissing()
+        module.getArtifact(classifier: "my-javadoc").expectHeadMissing()
+        module.allowAll()
+        server.start()
+
+        when:
+        executeIdeTask(baseBuildScript + """repositories { ivy { url "$repo.uri" } }""")
+
+        then:
+        ideFileContainsNoSourcesAndJavadocEntry()
     }
 
     def "sources and javadoc jars stored with maven scheme in ivy repositories are resolved and attached"() {
@@ -125,5 +161,6 @@ eclipse {
     abstract void executeIdeTask(String buildScript)
 
     abstract void ideFileContainsSourcesAndJavadocEntry()
+    abstract void ideFileContainsNoSourcesAndJavadocEntry()
     abstract void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier, String javadocClassifier)
 }

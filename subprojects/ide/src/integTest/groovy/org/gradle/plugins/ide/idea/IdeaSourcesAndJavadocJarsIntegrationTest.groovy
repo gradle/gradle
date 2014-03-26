@@ -31,4 +31,12 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
         def javadocUrl = iml.component.orderEntry.library.JAVADOC.root.@url[0].text()
         assert javadocUrl.endsWith("/module-1.0-${javadocClassifier}.jar!/")
     }
+
+    void ideFileContainsNoSourcesAndJavadocEntry() {
+        def iml = parseFile("root.iml")
+
+        assert iml.component.orderEntry.library.SOURCES.root.size() == 0
+
+        assert iml.component.orderEntry.library.JAVADOC.root.size() == 0
+    }
 }
