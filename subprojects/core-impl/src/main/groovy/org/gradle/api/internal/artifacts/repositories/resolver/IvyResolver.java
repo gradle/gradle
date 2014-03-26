@@ -15,26 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import com.google.common.collect.ImmutableSet;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Set;
 
 public class IvyResolver extends ExternalResourceResolver implements PatternBasedResolver {
 
@@ -73,27 +63,23 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         addIvyPattern(descriptorPattern);
     }
 
-    public Set<? extends ComponentArtifactMetaData> getTypedArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
-        if (artifactType == JvmLibraryJavadocArtifact.class) {
-            ConfigurationMetaData configuration = module.getConfiguration("javadoc");
-            return configuration != null ? configuration.getArtifacts() : findOptionalArtifacts(module, "javadoc", "javadoc");
+    @Override
+    protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result, boolean localOnly) {
+        ConfigurationMetaData configuration = module.getConfiguration("javadoc");
+        if (configuration != null) {
+            result.resolved(configuration.getArtifacts());
+        } else {
+            super.resolveJavadocArtifacts(module, result, localOnly);
         }
-
-        if (artifactType == JvmLibrarySourcesArtifact.class) {
-            ConfigurationMetaData configuration = module.getConfiguration("sources");
-            return configuration != null ? configuration.getArtifacts() : findOptionalArtifacts(module, "source", "sources");
-        }
-
-        if (artifactType == ComponentMetaDataArtifact.class) {
-            Artifact ivyArtifact = DefaultArtifact.newIvyArtifact(IvyUtil.createModuleRevisionId(module.getId()), new Date());
-            return ImmutableSet.of(module.artifact(ivyArtifact));
-        }
-
-        throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
     }
 
     @Override
-    protected Set<ComponentArtifactMetaData> getOptionalMainArtifacts(ModuleVersionMetaData module) {
-        return Collections.emptySet();
+    protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result, boolean localOnly) {
+        ConfigurationMetaData configuration = module.getConfiguration("sources");
+        if (configuration != null) {
+            result.resolved(configuration.getArtifacts());
+        } else {
+            super.resolveSourceArtifacts(module, result, localOnly);
+        }
     }
 }
