@@ -22,9 +22,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.plugins.ide.internal.tooling.gradle.DefaultGradleProject;
-import org.gradle.tooling.internal.gradle.LaunchableGradleTask;
+import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
-import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector;
+import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector;
 import org.gradle.tooling.internal.gradle.PartialGradleProject;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
@@ -47,10 +47,10 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         if (!canBuild(modelName)) {
             throw new GradleException("Unknown model name " + modelName);
         }
-        List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
+        List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
         Set<String> aggregatedTasks = findTasks(project);
         for (String selectorName : aggregatedTasks) {
-            selectors.add(new DefaultGradleTaskSelector().
+            selectors.add(new LaunchableGradleTaskSelector().
                     setName(selectorName).
                     setTaskName(selectorName).
                     setProjectDir(project.getProjectDir()).
@@ -85,8 +85,8 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         }
     }
 
-    private List<DefaultGradleTaskSelector> buildRecursively(String modelName, Project project) {
-        List<DefaultGradleTaskSelector> selectors = Lists.newArrayList();
+    private List<LaunchableGradleTaskSelector> buildRecursively(String modelName, Project project) {
+        List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
         selectors.addAll(buildAll(modelName, project).getTaskSelectors());
         for (Project childProject : project.getSubprojects()) {
             selectors.addAll(buildRecursively(modelName, childProject));

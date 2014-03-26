@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.api.DefaultTask
-import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector
+import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.TestUtil
 import spock.lang.Shared
@@ -64,16 +64,16 @@ class BuildInvocationsBuilderTest extends Specification {
         def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", project, true)
 
         then:
-        def t1Selector = model.taskSelectors.find { DefaultGradleTaskSelector it ->
+        def t1Selector = model.taskSelectors.find { LaunchableGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith("t1")
         }
         t1Selector?.projectDir == project.projectDir
         t1Selector?.projectPath == ':'
-        def child1T1selector = model.taskSelectors.find { DefaultGradleTaskSelector it ->
+        def child1T1selector = model.taskSelectors.find { LaunchableGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith(":child1:t1")
         }
         child1T1selector?.projectDir == child1.projectDir
-        def child1aT1selector = model.taskSelectors.find { DefaultGradleTaskSelector it ->
+        def child1aT1selector = model.taskSelectors.find { LaunchableGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith(":child1:child1a:t1")
         }
         child1aT1selector?.projectDir == child1a.projectDir

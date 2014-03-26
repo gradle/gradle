@@ -16,8 +16,8 @@
 
 package org.gradle.plugins.ide.internal.tooling.gradle;
 
-import org.gradle.tooling.internal.gradle.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.PartialGradleProject;
+import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 
 public class LaunchableGradleProjectTask extends LaunchableGradleTask {
     private PartialGradleProject project;

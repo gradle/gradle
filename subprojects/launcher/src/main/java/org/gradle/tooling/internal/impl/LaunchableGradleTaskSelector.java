@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.gradle;
+package org.gradle.tooling.internal.impl;
 
 import org.gradle.api.Nullable;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
@@ -26,7 +26,7 @@ import java.io.Serializable;
 /**
  * Data used for {@link org.gradle.tooling.model.TaskSelector}.
  */
-public class DefaultGradleTaskSelector implements TaskSelector, InternalLaunchable, Serializable {
+public class LaunchableGradleTaskSelector implements TaskSelector, InternalLaunchable, Serializable {
     private String name;
     private String displayName;
     private String description;
@@ -38,7 +38,7 @@ public class DefaultGradleTaskSelector implements TaskSelector, InternalLaunchab
         return name;
     }
 
-    public DefaultGradleTaskSelector setName(String name) {
+    public LaunchableGradleTaskSelector setName(String name) {
         this.name = name;
         return this;
     }
@@ -48,7 +48,7 @@ public class DefaultGradleTaskSelector implements TaskSelector, InternalLaunchab
         return description;
     }
 
-    public DefaultGradleTaskSelector setDescription(String description) {
+    public LaunchableGradleTaskSelector setDescription(String description) {
         this.description = description;
         return this;
     }
@@ -57,7 +57,7 @@ public class DefaultGradleTaskSelector implements TaskSelector, InternalLaunchab
         return displayName;
     }
 
-    public DefaultGradleTaskSelector setDisplayName(String displayName) {
+    public LaunchableGradleTaskSelector setDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
     }
@@ -66,7 +66,7 @@ public class DefaultGradleTaskSelector implements TaskSelector, InternalLaunchab
         return taskName;
     }
 
-    public DefaultGradleTaskSelector setTaskName(String taskName) {
+    public LaunchableGradleTaskSelector setTaskName(String taskName) {
         this.taskName = taskName;
         return this;
     }
@@ -75,7 +75,7 @@ public class DefaultGradleTaskSelector implements TaskSelector, InternalLaunchab
         return projectDir;
     }
 
-    public DefaultGradleTaskSelector setProjectDir(File projectDir) {
+    public LaunchableGradleTaskSelector setProjectDir(File projectDir) {
         this.projectDir = projectDir;
         return this;
     }
@@ -84,14 +84,14 @@ public class DefaultGradleTaskSelector implements TaskSelector, InternalLaunchab
         return projectPath;
     }
 
-    public DefaultGradleTaskSelector setProjectPath(String projectPath) {
+    public LaunchableGradleTaskSelector setProjectPath(String projectPath) {
         this.projectPath = projectPath;
         return this;
     }
 
     @Override
     public String toString() {
-        return "DefaultGradleTaskSelector{"
+        return "LaunchableGradleTaskSelector{"
                 + "name='" + name + "' "
                 + "description='" + description + "'}";
     }

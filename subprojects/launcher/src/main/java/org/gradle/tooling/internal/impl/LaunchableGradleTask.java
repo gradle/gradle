@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.gradle;
+package org.gradle.tooling.internal.impl;
 
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 

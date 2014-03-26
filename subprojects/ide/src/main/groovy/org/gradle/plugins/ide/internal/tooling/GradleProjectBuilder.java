@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.plugins.ide.internal.tooling.gradle.DefaultGradleProject;
 import org.gradle.plugins.ide.internal.tooling.gradle.LaunchableGradleProjectTask;
-import org.gradle.tooling.internal.gradle.LaunchableGradleTask;
+import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;

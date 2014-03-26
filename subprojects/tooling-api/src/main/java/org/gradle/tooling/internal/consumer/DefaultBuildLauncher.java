@@ -95,16 +95,16 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     private void maybeAddLaunchableParameter(List<InternalLaunchable> launchablesParams, Launchable launchable) {
+        Object original = launchable;
         try {
-            Object original = launchable;
             if (Proxy.isProxyClass(launchable.getClass())) {
                 original = new ProtocolToModelAdapter().unpack(launchable);
             }
-            if (original instanceof InternalLaunchable) {
-                launchablesParams.add((InternalLaunchable) original);
-            }
         } catch (IllegalArgumentException iae) {
             // ignore: launchable created on consumer side for older provider
+        }
+        if (original instanceof InternalLaunchable) {
+            launchablesParams.add((InternalLaunchable) original);
         }
     }
 
