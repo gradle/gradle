@@ -48,7 +48,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Integer fileMode;
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
-
     private DuplicatesStrategy duplicatesStrategy;
 
     public DefaultCopySpec(FileResolver resolver, Instantiator instantiator) {
@@ -139,10 +138,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public boolean isCaseSensitive() {
-        if (caseSensitive != null) {
-            return caseSensitive;
-        }
-        return true;
+       return buildRootResolver().isCaseSensitive();
     }
 
     public void setCaseSensitive(boolean caseSensitive) {
@@ -150,10 +146,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public boolean getIncludeEmptyDirs() {
-        if (includeEmptyDirs != null) {
-            return includeEmptyDirs;
-        }
-        return true;
+        return buildRootResolver().getIncludeEmptyDirs();
     }
 
     public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
@@ -161,10 +154,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public DuplicatesStrategy getDuplicatesStrategy() {
-        if (duplicatesStrategy != null) {
-            return duplicatesStrategy;
-        }
-        return DuplicatesStrategy.INCLUDE;
+        return buildRootResolver().getDuplicatesStrategy();
     }
 
     public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
@@ -295,17 +285,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public Integer getDirMode() {
-        if (dirMode != null) {
-            return dirMode;
-        }
-        return null;
+       return buildRootResolver().getDirMode();
     }
 
     public Integer getFileMode() {
-        if (fileMode != null) {
-            return fileMode;
-        }
-        return null;
+       return buildRootResolver().getFileMode();
     }
 
     public CopyProcessingSpec setDirMode(Integer mode) {

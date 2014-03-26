@@ -19,6 +19,7 @@ import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.Action
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.specs.Spec
@@ -307,6 +308,56 @@ public class DefaultCopySpecTest {
         assert spec.childSpecs[1] == child2
         assert spec.childSpecs[2] == child3
     }
+
+    @Test
+    void "properties accessed directly have defaults"() {
+
+        assert spec.caseSensitive == true;
+        assert spec.getIncludeEmptyDirs() == true;
+        assert spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        assert spec.fileMode == null
+        assert spec.dirMode == null
+
+        spec.caseSensitive = false
+        spec.includeEmptyDirs = false
+        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        spec.fileMode = 1
+        spec.dirMode = 2
+
+        assert spec.caseSensitive == false;
+        assert spec.getIncludeEmptyDirs() == false;
+        assert spec.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        assert spec.fileMode == 1
+        assert spec.dirMode == 2
+
+
+    }
+
+    // THIS IS A BREAKING BEHAVIOUR CHANGE
+    @Test
+    void "properties accessed directly consider spec as root"() {
+        // That is they do not inherit from any parent...
+
+        //set non defaults on parent
+        spec.caseSensitive = false
+        spec.includeEmptyDirs = false
+        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        spec.fileMode = 1
+        spec.dirMode = 2
+
+        DefaultCopySpec child = unpackWrapper(spec.from("child") {
+
+        })
+
+        //children still have defaults
+        assert child.caseSensitive == true;
+        assert child.getIncludeEmptyDirs() == true;
+        assert child.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        assert child.fileMode == null
+        assert child.dirMode == null
+
+    }
+
 
     DefaultCopySpec unpackWrapper(CopySpec copySpec) {
         (copySpec as CopySpecWrapper).delegate as DefaultCopySpec
