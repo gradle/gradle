@@ -24,14 +24,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.MavenClassifierArtifactScheme;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -63,8 +60,10 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     }
 
     @Nullable
-    protected ArtifactIdentifier getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new DefaultArtifactIdentifier(moduleVersionIdentifier, "ivy", "ivy", "xml", null);
+    protected ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
+        DefaultModuleVersionArtifactIdentifier artifactId =
+                new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, "ivy", "ivy", "xml", Collections.<String, String>emptyMap());
+        return new DefaultModuleVersionArtifactMetaData(artifactId);
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {

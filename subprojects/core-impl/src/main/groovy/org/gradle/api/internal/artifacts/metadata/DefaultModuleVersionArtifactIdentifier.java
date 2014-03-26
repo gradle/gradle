@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.util.Map;
 
@@ -30,6 +31,10 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
 
     public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
         this(componentIdentifier, moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
+    }
+
+    public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
+        this(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), moduleVersionIdentifier, name, type, extension, attributes);
     }
 
     public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {

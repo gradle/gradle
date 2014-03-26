@@ -32,10 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -105,11 +102,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return dd.getRequested().getVersion().endsWith("SNAPSHOT");
     }
 
-    protected File download(ArtifactIdentifier artifactId, ModuleSource moduleSource) throws IOException {
+    protected File download(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource) throws IOException {
         if (moduleSource instanceof TimestampedModuleSource) {
-            return downloadArtifact(artifactId, createArtifactResolver((TimestampedModuleSource) moduleSource));
+            return downloadArtifact(artifact, createArtifactResolver((TimestampedModuleSource) moduleSource));
         } else {
-            return downloadArtifact(artifactId, createArtifactResolver());
+            return downloadArtifact(artifact, createArtifactResolver());
         }
     }
 
@@ -158,9 +155,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     @Override
-    protected ArtifactIdentifier getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
+    protected ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
         if (isUsepoms()) {
-            return new DefaultArtifactIdentifier(moduleVersionIdentifier, moduleVersionIdentifier.getName(), "pom", "pom", null);
+            DefaultModuleVersionArtifactIdentifier artifactId =
+                    new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, moduleVersionIdentifier.getName(), "pom", "pom", Collections.<String, String>emptyMap());
+            return new DefaultModuleVersionArtifactMetaData(artifactId);
         }
 
         return null;
