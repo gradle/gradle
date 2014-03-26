@@ -60,8 +60,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     @Nullable
     protected ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
-        DefaultModuleVersionArtifactIdentifier artifactId =
-                new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, "ivy", "ivy", "xml", Collections.<String, String>emptyMap());
+        DefaultModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, "ivy", "ivy", "xml");
         return new DefaultModuleVersionArtifactMetaData(artifactId);
     }
 

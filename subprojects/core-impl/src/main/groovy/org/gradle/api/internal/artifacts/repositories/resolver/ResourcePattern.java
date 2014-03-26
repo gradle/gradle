@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 public interface ResourcePattern {
     /**
@@ -39,5 +40,5 @@ public interface ResourcePattern {
     /**
      * Returns the path to the module version for the given artifact.
      */
-    String toModuleVersionPath(ArtifactIdentifier artifact);
+    String toModuleVersionPath(ModuleVersionArtifactMetaData artifact);
 }

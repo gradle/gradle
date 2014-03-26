@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArtifactIdentifier {
@@ -33,8 +34,8 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
         this(componentIdentifier, moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
     }
 
-    public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
-        this(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), moduleVersionIdentifier, name, type, extension, attributes);
+    public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension) {
+        this(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), moduleVersionIdentifier, name, type, extension, Collections.<String, String>emptyMap());
     }
 
     public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {

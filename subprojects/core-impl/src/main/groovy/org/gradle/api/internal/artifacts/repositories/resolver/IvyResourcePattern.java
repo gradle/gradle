@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +55,7 @@ public class IvyResourcePattern implements ResourcePattern {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    public String toModuleVersionPath(ArtifactIdentifier artifact) {
+    public String toModuleVersionPath(ModuleVersionArtifactMetaData artifact) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 

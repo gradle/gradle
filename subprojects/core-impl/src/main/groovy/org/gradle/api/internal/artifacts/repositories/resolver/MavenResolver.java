@@ -155,8 +155,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     @Override
     protected ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
         if (isUsepoms()) {
-            DefaultModuleVersionArtifactIdentifier artifactId =
-                    new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, moduleVersionIdentifier.getName(), "pom", "pom", Collections.<String, String>emptyMap());
+            DefaultModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, moduleVersionIdentifier.getName(), "pom", "pom");
             return new DefaultModuleVersionArtifactMetaData(artifactId);
         }
 
@@ -165,7 +164,8 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     private TimestampedModuleSource findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
-        DefaultArtifactIdentifier pomArtifact = new DefaultArtifactIdentifier(moduleVersionIdentifier, moduleVersionIdentifier.getName(), "pom", "pom", null);
+        ModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, moduleVersionIdentifier.getName(), "pom", "pom");
+        DefaultModuleVersionArtifactMetaData pomArtifact = new DefaultModuleVersionArtifactMetaData(artifactId);
         String metadataLocation = toResourcePattern(getWholePattern()).toModuleVersionPath(pomArtifact) + "/maven-metadata.xml";
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 

@@ -22,6 +22,9 @@ import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import spock.lang.Specification
 
 class M2ResourcePatternTest extends Specification {
@@ -60,8 +63,8 @@ class M2ResourcePatternTest extends Specification {
 
     def "can build module version path"() {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def artifact1 = artifactId("group", "projectA", "1.2")
-        def artifact2 = artifactId("org.group", "projectA", "1.2")
+        def artifact1 = artifact("group", "projectA", "1.2")
+        def artifact2 = artifact("org.group", "projectA", "1.2")
 
         expect:
         pattern.toModuleVersionPath(artifact1) == 'prefix/group/projectA/1.2'
@@ -80,5 +83,10 @@ class M2ResourcePatternTest extends Specification {
 
     private static ArtifactIdentifier artifactId(String group, String name, String version) {
         return new DefaultArtifactIdentifier(DefaultModuleVersionIdentifier.newId(group, name, version), "ivy", "ivy", "xml", null)
+    }
+
+    private static ModuleVersionArtifactMetaData artifact(String group, String name, String version) {
+        final moduleVersionId = DefaultModuleVersionIdentifier.newId(group, name, version)
+        return new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(moduleVersionId, "ivy", "ivy", "xml"))
     }
 }
