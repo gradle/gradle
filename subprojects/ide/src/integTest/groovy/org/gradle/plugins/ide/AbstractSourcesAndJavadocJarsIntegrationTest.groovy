@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide
-
 import org.gradle.test.fixtures.ivy.IvyHttpRepository
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule HttpServer server
@@ -62,7 +60,24 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
 
     }
 
-    @Ignore
+    def "sources and javadoc jars stored with maven scheme in ivy repositories are resolved and attached"() {
+        def repo = ivyHttpRepo
+        def module = repo.module("some", "module", "1.0")
+        module.configuration("default")
+        module.artifact(conf: "default")
+        module.getArtifact(classifier: "sources", ext: "jar").file << "content"
+        module.getArtifact(classifier: "javadoc", ext: "jar").file << "content"
+        module.publish()
+        module.allowAll()
+        server.start()
+
+        when:
+        executeIdeTask(baseBuildScript + """repositories { ivy { url "$repo.uri" } }""")
+
+        then:
+        ideFileContainsSourcesAndJavadocEntry("sources", "javadoc")
+    }
+
     def "sources and javadoc jars from flatdir repositories are resolved and attached"() {
         file("repo/module-1.0.jar").createFile()
         file("repo/module-1.0-sources.jar").createFile()
