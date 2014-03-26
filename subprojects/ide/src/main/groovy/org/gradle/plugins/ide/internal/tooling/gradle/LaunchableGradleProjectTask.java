@@ -14,32 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.gradle;
+package org.gradle.plugins.ide.internal.tooling.gradle;
 
-import org.gradle.tooling.internal.protocol.InternalLaunchable;
+import org.gradle.tooling.internal.gradle.PartialGradleProject;
+import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 
-import java.io.File;
-import java.io.Serializable;
+public class LaunchableGradleProjectTask extends LaunchableGradleTask {
+    private PartialGradleProject project;
 
-public class LaunchableGradleTask extends DefaultGradleTask implements Serializable, InternalLaunchable {
-    // TODO(radimk): move to provider?
 
-    public String getTaskName() {
-        return path;
+    public PartialGradleProject getProject() {
+        return project;
     }
 
-    public File getProjectDir() {
-        return null;
-    }
-
-    public String getProjectPath() {
-        return null;
-    }
-
-    @Override
-    public String toString() {
-        return "LaunchableGradleTask{"
-                + "name='" + name + '\''
-                + '}';
+    public LaunchableGradleProjectTask setProject(PartialGradleProject project) {
+        this.project = project;
+        return this;
     }
 }

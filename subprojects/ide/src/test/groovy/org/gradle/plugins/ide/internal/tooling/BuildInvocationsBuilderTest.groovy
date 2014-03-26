@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.api.DefaultTask
-import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector
+import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.TestUtil
 import spock.lang.Shared
@@ -49,7 +49,7 @@ class BuildInvocationsBuilderTest extends Specification {
         expect:
         def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", startProject)
         model.taskSelectors*.name as Set == selectorNames as Set
-        model.taskSelectors*.projectDir as Set == [startProject.projectDir] as Set
+        model.taskSelectors*.projectPath as Set == [startProject.path] as Set
         // model.taskSelectors.find { it.name == 't1' }?.tasks == t1Tasks as Set
 
         where:
@@ -64,19 +64,18 @@ class BuildInvocationsBuilderTest extends Specification {
         def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", project, true)
 
         then:
-        def t1Selector = model.taskSelectors.find { DefaultGradleTaskSelector it ->
+        def t1Selector = model.taskSelectors.find { LaunchableGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith("t1")
         }
-        t1Selector?.projectDir == project.projectDir
         t1Selector?.projectPath == ':'
-        def child1T1selector = model.taskSelectors.find { DefaultGradleTaskSelector it ->
+        def child1T1selector = model.taskSelectors.find { LaunchableGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith(":child1:t1")
         }
-        child1T1selector?.projectDir == child1.projectDir
-        def child1aT1selector = model.taskSelectors.find { DefaultGradleTaskSelector it ->
+        child1T1selector?.projectPath == child1.path
+        def child1aT1selector = model.taskSelectors.find { LaunchableGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith(":child1:child1a:t1")
         }
-        child1aT1selector?.projectDir == child1a.projectDir
+        child1aT1selector?.projectPath == child1a.path
         model.taskSelectors*.name.each { it != null }
         model.taskSelectors*.description.each { it != null }
         model.taskSelectors*.displayName.each { it != null }

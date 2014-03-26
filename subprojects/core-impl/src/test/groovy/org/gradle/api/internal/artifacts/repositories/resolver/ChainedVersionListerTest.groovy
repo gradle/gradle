@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.artifacts.ModuleIdentifier
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.resource.ResourceException
 import org.gradle.api.internal.resource.ResourceNotFoundException
 import spock.lang.Specification
@@ -33,7 +33,7 @@ class ChainedVersionListerTest extends Specification {
 
     ResourcePattern pattern = Mock()
     ModuleIdentifier module = Mock()
-    ArtifactIdentifier artifact = Mock()
+    ModuleVersionArtifactMetaData artifact = Mock()
 
     def chainedVersionLister = new ChainedVersionLister(lister1, lister2)
 

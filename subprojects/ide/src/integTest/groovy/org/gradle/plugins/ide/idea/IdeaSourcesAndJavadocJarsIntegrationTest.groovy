@@ -18,8 +18,9 @@ package org.gradle.plugins.ide.idea
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 
 class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
-    void executeIdeTask(String buildScript) {
-        runTask "ideaModule", buildScript
+    @Override
+    String getIdeTask() {
+        return "ideaModule"
     }
 
     void ideFileContainsSourcesAndJavadocEntry(String sourcesClassifier = "sources", String javadocClassifier = "javadoc") {
@@ -30,5 +31,13 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
 
         def javadocUrl = iml.component.orderEntry.library.JAVADOC.root.@url[0].text()
         assert javadocUrl.endsWith("/module-1.0-${javadocClassifier}.jar!/")
+    }
+
+    void ideFileContainsNoSourcesAndJavadocEntry() {
+        def iml = parseFile("root.iml")
+
+        assert iml.component.orderEntry.library.SOURCES.root.size() == 0
+
+        assert iml.component.orderEntry.library.JAVADOC.root.size() == 0
     }
 }

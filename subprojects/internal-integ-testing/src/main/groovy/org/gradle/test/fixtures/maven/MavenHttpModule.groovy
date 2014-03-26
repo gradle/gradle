@@ -50,6 +50,12 @@ class MavenHttpModule implements MavenModule, HttpModule {
         return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
     }
 
+    MavenHttpModule withSourceAndJavadoc() {
+        artifact(classifier: "sources")
+        artifact(classifier: "javadoc")
+        return this
+    }
+
     MavenHttpModule publish() {
         backingModule.publish()
         return this

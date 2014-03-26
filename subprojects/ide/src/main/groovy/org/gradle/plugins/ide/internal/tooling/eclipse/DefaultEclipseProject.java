@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import com.google.common.collect.Lists;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.plugins.ide.internal.tooling.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.*;

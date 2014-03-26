@@ -57,6 +57,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean buildProjectDependencies = true;
     private File currentDir;
     private File projectDir;
+    private String projectPath;
     private boolean searchUpwards;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
@@ -119,6 +120,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         prepareNewBuild(p);
         p.buildFile = buildFile;
         p.projectDir = projectDir;
+        p.projectPath = projectPath;
         p.settingsFile = settingsFile;
         p.useEmptySettings = useEmptySettings;
         p.taskNames = new ArrayList<String>(taskNames);
@@ -508,6 +510,24 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public File getProjectDir() {
         return projectDir;
+    }
+
+    /**
+     * Sets the project path to use to select the default project. Use null to use the default criteria for selecting the default project.
+     *
+     * @param projectPath The project path. May be null.
+     */
+    public void setProjectPath(String projectPath) {
+        this.projectPath = projectPath;
+    }
+
+    /**
+     * Returns the project path to use to select the default project.
+     *
+     * @return The project path. May be null when the project path is not used to select the default project.
+     */
+    public String getProjectPath() {
+        return projectPath;
     }
 
     /**

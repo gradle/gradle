@@ -19,19 +19,14 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
-import org.gradle.api.internal.artifacts.MavenClassifierArtifactScheme;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -47,7 +42,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     private final boolean dynamicResolve;
 
     public IvyResolver(String name, RepositoryTransport transport,
-                       LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
+                       LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
                        boolean dynamicResolve, ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()),
                 locallyAvailableResourceFinder, new DownloadedIvyModuleDescriptorParser(resolverStrategy),
@@ -63,8 +58,9 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     }
 
     @Nullable
-    protected ArtifactIdentifier getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new DefaultArtifactIdentifier(moduleVersionIdentifier, "ivy", "ivy", "xml", null);
+    protected ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
+        DefaultModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, "ivy", "ivy", "xml");
+        return new DefaultModuleVersionArtifactMetaData(artifactId);
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {
@@ -80,12 +76,12 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     public Set<? extends ComponentArtifactMetaData> getTypedArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
         if (artifactType == JvmLibraryJavadocArtifact.class) {
             ConfigurationMetaData configuration = module.getConfiguration("javadoc");
-            return configuration != null ? configuration.getArtifacts() : new MavenClassifierArtifactScheme().get(module, artifactType);
+            return configuration != null ? configuration.getArtifacts() : findOptionalArtifacts(module, "javadoc", "javadoc");
         }
 
         if (artifactType == JvmLibrarySourcesArtifact.class) {
             ConfigurationMetaData configuration = module.getConfiguration("sources");
-            return configuration != null ? configuration.getArtifacts() : new MavenClassifierArtifactScheme().get(module, artifactType);
+            return configuration != null ? configuration.getArtifacts() : findOptionalArtifacts(module, "source", "sources");
         }
 
         if (artifactType == ComponentMetaDataArtifact.class) {

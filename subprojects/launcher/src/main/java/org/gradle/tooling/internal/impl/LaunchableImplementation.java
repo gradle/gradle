@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-sourceSets.main.java.srcDirs = []
-sourceSets.main.groovy.srcDirs = ['src/main/java', 'src/main/groovy']
+package org.gradle.tooling.internal.impl;
 
-dependencies {
-    compile libraries.groovy
+import org.gradle.api.Nullable;
+import org.gradle.tooling.internal.protocol.InternalLaunchable;
 
-    compile project(':scala')
-    compile project(':core')
-    compile project(':launcher')
-    compile project(':plugins')
-    compile project(':ear')
-    compile project(':toolingApi')
-    compile libraries.slf4j_api
-    compile libraries.inject
-
-    testCompile libraries.xmlunit
-    testCompile project(':coreImpl')
+/**
+ * SPI for launchables providing information necessary to initiate the build.
+ *
+ * @since 1.12
+ */
+public interface LaunchableImplementation extends InternalLaunchable {
+    /** Task path for real tasks, selector name for task selectors. */
+    String getTaskName();
+    @Nullable String getProjectPath();
 }
-
-useTestFixtures()

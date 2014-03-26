@@ -25,6 +25,7 @@ import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.model.Launchable
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.TaskSelector
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 @ToolingApiVersion(">=1.12")
@@ -58,9 +59,6 @@ project(':b:c') {
         println "t2 in $project.name"
     }
 }'''
-        projectDir.file('a').mkdir()
-        projectDir.file('b').mkdir()
-        projectDir.file('b', 'c').mkdir()
     }
 
     @TargetGradleVersion(">=1.8 <=1.11")
@@ -91,9 +89,7 @@ project(':b:c') {
     @TargetGradleVersion(">=1.12")
     def "build task selectors from action"() {
         given:
-        toolingApi.withConnector { connector ->
-            connector.searchUpwards(true)
-        }
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
         when:
         BuildInvocations projectSelectors = withConnection { connection ->
             connection.action(new FetchTaskSelectorsBuildAction('b')).run() }
@@ -122,9 +118,7 @@ project(':b:c') {
     @TargetGradleVersion(">=1.0-milestone-5")
     def "build task selectors from connection"() {
         when:
-        toolingApi.withConnector { connector ->
-            connector.searchUpwards(true)
-        }
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
         }
@@ -189,16 +183,18 @@ project(':b:c') {
         then:
         tasks.size() == 2
         tasks*.name as Set == ['t2', 't3'] as Set
-        tasks*.project.each { assert it == null }
+
+        when:
+        tasks[0].project
+        then:
+        UnsupportedMethodException e = thrown()
+        e != null
     }
 
     @TargetGradleVersion(">=1.12")
     def "build tasks from BuildInvocations model as Launchable"() {
-        given:
-        toolingApi.withConnector { connector ->
-            connector.searchUpwards(true)
-        }
         when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
         List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
         }
@@ -210,6 +206,23 @@ project(':b:c') {
         then:
         result.result.assertTasksExecuted(':b:t2')
         result.result.assertTaskNotExecuted(':b:c:t2')
+    }
+
+    @TargetGradleVersion(">=1.0-milestone-5")
+    def "build task from connection as Launchable"() {
+        when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
+        BuildInvocations model = withConnection { connection ->
+            connection.getModel(BuildInvocations)
+        }
+        Task task = model.tasks.find { Task it ->
+            it.name == 't2' && it.path == ':b:t2' }
+        def result = withBuild { BuildLauncher it ->
+            it.forLaunchables(task)
+        }
+
+        then:
+        result.result.assertTasksExecuted(':b:t2')
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")

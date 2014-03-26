@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.gradle;
+package org.gradle.plugins.ide.internal.tooling.gradle;
 
+import org.gradle.tooling.internal.gradle.DefaultGradleScript;
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
+import org.gradle.tooling.internal.gradle.PartialGradleProject;
+import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.internal.protocol.InternalGradleProject;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 public class DefaultGradleProject extends PartialGradleProject implements InternalGradleProject, Serializable, GradleProjectIdentity {
     private DefaultGradleScript buildScript = new DefaultGradleScript();
-    private List<DefaultGradlePublication> publications = Collections.emptyList();
+    private List<LaunchableGradleTask> tasks = new LinkedList<LaunchableGradleTask>();
 
     public DefaultGradleProject() {}
 
@@ -58,6 +62,15 @@ public class DefaultGradleProject extends PartialGradleProject implements Intern
         return this;
     }
 
+    public Collection<LaunchableGradleTask> getTasks() {
+        return tasks;
+    }
+
+    public PartialGradleProject setTasks(List<LaunchableGradleTask> tasks) {
+        this.tasks = tasks;
+        return this;
+    }
+
     public DefaultGradleScript getBuildScript() {
         return buildScript;
     }
@@ -69,14 +82,5 @@ public class DefaultGradleProject extends PartialGradleProject implements Intern
     @Override
     public DefaultGradleProject findByPath(String path) {
         return (DefaultGradleProject) super.findByPath(path);
-    }
-
-    public Collection<DefaultGradlePublication> getPublications() {
-        return publications;
-    }
-
-    public DefaultGradleProject setPublications(List<DefaultGradlePublication> publications) {
-        this.publications = publications;
-        return this;
     }
 }

@@ -17,11 +17,12 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 import java.util.Map;
 
+// TODO:DAZ Should extend common base class
 public class M2ResourcePattern extends IvyResourcePattern {
     public M2ResourcePattern(String pattern) {
         super(pattern);
@@ -43,13 +44,13 @@ public class M2ResourcePattern extends IvyResourcePattern {
     }
 
     @Override
-    public String toPath(ArtifactIdentifier artifact) {
+    public String toPath(ModuleVersionArtifactMetaData artifact) {
         Map<String, Object> attributes = toAttributes(artifact);
         return IvyPatternHelper.substituteTokens(getPattern(), attributes);
     }
 
     @Override
-    public String toModuleVersionPath(ArtifactIdentifier artifact) {
+    public String toModuleVersionPath(ModuleVersionArtifactMetaData artifact) {
         String pattern = getPattern();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
             throw new UnsupportedOperationException("Cannot locate module version for non-maven layout.");
@@ -59,7 +60,7 @@ public class M2ResourcePattern extends IvyResourcePattern {
     }
 
     @Override
-    protected Map<String, Object> toAttributes(ArtifactIdentifier artifact) {
+    protected Map<String, Object> toAttributes(ModuleVersionArtifactMetaData artifact) {
         return mapOrganisation(super.toAttributes(artifact));
     }
 

@@ -21,19 +21,13 @@ import org.gradle.api.artifacts.resolution.SoftwareComponent;
 
 public abstract class AbstractSoftwareComponent<T extends SoftwareArtifact> implements SoftwareComponent<T> {
     private final ComponentIdentifier componentId;
-    private final Iterable<T> artifacts;
 
-    protected AbstractSoftwareComponent(ComponentIdentifier componentId, Iterable<T> artifacts) {
+    protected AbstractSoftwareComponent(ComponentIdentifier componentId) {
         this.componentId = componentId;
-        this.artifacts = artifacts;
     }
 
     public ComponentIdentifier getId() {
         return componentId;
-    }
-
-    public Iterable<T> getAllArtifacts() {
-        return artifacts;
     }
 
     @Override

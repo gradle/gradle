@@ -19,9 +19,9 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.internal.gradle.DefaultGradleTask;
-import org.gradle.tooling.internal.gradle.LaunchableGradleTask;
+import org.gradle.plugins.ide.internal.tooling.gradle.DefaultGradleProject;
+import org.gradle.plugins.ide.internal.tooling.gradle.LaunchableGradleProjectTask;
+import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
@@ -66,16 +66,17 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return gradleProject;
     }
 
-    private static List<DefaultGradleTask> tasks(DefaultGradleProject owner, TaskContainer tasks) {
-        List<DefaultGradleTask> out = new LinkedList<DefaultGradleTask>();
+    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainer tasks) {
+        List<LaunchableGradleTask> out = new LinkedList<LaunchableGradleTask>();
 
         for (Task t : tasks) {
-            out.add(new LaunchableGradleTask()
+            out.add(new LaunchableGradleProjectTask()
+                    .setProject(owner)
                     .setPath(t.getPath())
                     .setName(t.getName())
                     .setDisplayName(t.toString())
                     .setDescription(t.getDescription())
-                    .setProject(owner));
+                    );
         }
 
         return out;

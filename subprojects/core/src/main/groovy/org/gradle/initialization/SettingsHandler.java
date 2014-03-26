@@ -45,9 +45,12 @@ public class SettingsHandler {
         StartParameter startParameter = gradle.getStartParameter();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter);
 
+        String explicitProjectPath = startParameter.getProjectPath();
         File explicitProjectDir = startParameter.getProjectDir();
         File explicitBuildFile = startParameter.getBuildFile();
-        ProjectSpec spec = explicitBuildFile != null
+        ProjectSpec spec = explicitProjectPath != null
+                ? new ProjectPathProjectSpec(explicitProjectPath)
+                : explicitBuildFile != null
                 ? new BuildFileProjectSpec(explicitBuildFile)
                 : explicitProjectDir == null ? new DefaultProjectSpec(startParameter.getCurrentDir()) : new ProjectDirectoryProjectSpec(explicitProjectDir);
 

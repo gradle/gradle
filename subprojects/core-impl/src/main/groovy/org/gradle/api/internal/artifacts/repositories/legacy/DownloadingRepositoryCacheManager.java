@@ -31,9 +31,15 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.artifacts.ArtifactIdentifier;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.filestore.FileStore;
@@ -50,11 +56,11 @@ import java.text.ParseException;
 public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DownloadingRepositoryCacheManager.class);
 
-    private final FileStore<ArtifactIdentifier> fileStore;
+    private final FileStore<ModuleVersionArtifactMetaData> fileStore;
     private final TemporaryFileProvider temporaryFileProvider;
     private final CacheLockingManager cacheLockingManager;
 
-    public DownloadingRepositoryCacheManager(String name, FileStore<ArtifactIdentifier> fileStore,
+    public DownloadingRepositoryCacheManager(String name, FileStore<ModuleVersionArtifactMetaData> fileStore,
                                              TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         super(name);
         this.fileStore = fileStore;
@@ -85,7 +91,10 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }
 
-                File artifactFile = downloadAndCacheArtifactFile(new DefaultArtifactIdentifier(artifact.getId()), artifact, resourceDownloader, artifactRef.getResource());
+                ModuleVersionIdentifier moduleVersionId = DefaultModuleVersionIdentifier.newId(artifact.getModuleRevisionId());
+                ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleVersionId);
+                ModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionId, artifact);
+                File artifactFile = downloadAndCacheArtifactFile(new DefaultModuleVersionArtifactMetaData(artifactId), artifact, resourceDownloader, artifactRef.getResource());
 
                 adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
                 adr.setSize(artifactFile.length());
@@ -107,7 +116,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         return adr;
     }
 
-    private File downloadAndCacheArtifactFile(final ArtifactIdentifier id, Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
+    private File downloadAndCacheArtifactFile(final ModuleVersionArtifactMetaData id, Artifact artifact, ResourceDownloader resourceDownloader, Resource resource) throws IOException {
         final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             resourceDownloader.download(artifact, resource, tmpFile);

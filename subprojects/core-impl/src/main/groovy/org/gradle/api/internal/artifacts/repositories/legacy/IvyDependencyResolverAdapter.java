@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.legacy;
 import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
@@ -25,8 +26,9 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
+import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
-import org.gradle.api.internal.artifacts.MavenClassifierArtifactScheme;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
@@ -37,6 +39,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.text.ParseException;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -157,7 +161,24 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
             return ImmutableSet.of(module.artifact(metadataArtifact));
         }
 
-        return new MavenClassifierArtifactScheme().get(module, artifactType);
+        if (artifactType == JvmLibraryJavadocArtifact.class) {
+            return createArtifactMetaData(module, "javadoc", "javadoc");
+        }
+
+        if (artifactType == JvmLibrarySourcesArtifact.class) {
+            return createArtifactMetaData(module, "source", "sources");
+        }
+
+        throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
+    }
+
+    private Set<ModuleVersionArtifactMetaData> createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {
+        Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
+        Artifact artifact = new DefaultArtifact(module.getDescriptor().getModuleRevisionId(), null, module.getId().getName(), type, "jar", extraAttributes);
+        if (resolver.exists(artifact)) {
+            return ImmutableSet.of(module.artifact(artifact));
+        }
+        return Collections.emptySet();
     }
 
     private boolean downloadFailed(ArtifactDownloadReport artifactReport) {

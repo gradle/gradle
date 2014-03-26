@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -33,7 +33,7 @@ public class LocalFileRepositoryArtifactCache implements RepositoryArtifactCache
         return true;
     }
 
-    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(ArtifactIdentifier artifactId, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException {
+    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(ModuleVersionArtifactMetaData artifactId, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException {
         // Does not download, copy or cache local files.
         assert resource.isLocal();
         File file = new File(resource.getName());

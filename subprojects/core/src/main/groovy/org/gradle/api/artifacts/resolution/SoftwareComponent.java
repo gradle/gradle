@@ -31,5 +31,4 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 @Incubating
 public interface SoftwareComponent<T extends SoftwareArtifact> {
     ComponentIdentifier getId();
-    Iterable<T> getAllArtifacts();
 }

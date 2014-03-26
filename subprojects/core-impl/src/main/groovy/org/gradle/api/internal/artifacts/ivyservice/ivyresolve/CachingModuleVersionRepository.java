@@ -212,7 +212,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'", context.getDescription(), component.getId(), delegate.getName());
         }
 
-        delegate.resolveModuleArtifacts(component, context, result);
+        delegate.resolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()), context, result);
 
         if (result.getFailure() == null) {
             Set<ModuleVersionArtifactIdentifier> artifactIdentifierSet = CollectionUtils.collect(result.getArtifacts(), new ArtifactMetaDataToId());

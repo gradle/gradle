@@ -16,10 +16,6 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.Nullable;
-
-import java.io.File;
-
 /**
  * A marker interface for launchables.
  *
@@ -30,8 +26,4 @@ import java.io.File;
  * @since 1.12
  */
 public interface InternalLaunchable extends InternalProtocolInterface {
-    /** Task path for real tasks, selector name for task selectors. */
-    String getTaskName();
-    @Nullable File getProjectDir();
-    @Nullable String getProjectPath();
 }

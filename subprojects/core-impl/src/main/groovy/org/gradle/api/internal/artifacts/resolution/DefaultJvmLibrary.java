@@ -15,24 +15,26 @@
  */
 package org.gradle.api.internal.artifacts.resolution;
 
-import com.google.common.collect.Iterables;
-
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.resolution.JvmLibrary;
-import org.gradle.api.artifacts.resolution.JvmLibraryArtifact;
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
+import org.gradle.api.artifacts.resolution.*;
 
 public class DefaultJvmLibrary extends AbstractSoftwareComponent<JvmLibraryArtifact> implements JvmLibrary {
-    public DefaultJvmLibrary(ComponentIdentifier componentId, Iterable<JvmLibraryArtifact> artifacts) {
-        super(componentId, artifacts);
+    private final SoftwareArtifactSet<JvmLibrarySourcesArtifact> sourceArtifacts;
+    private final SoftwareArtifactSet<JvmLibraryJavadocArtifact> javadocArtifacts;
+
+    public DefaultJvmLibrary(ComponentIdentifier componentId,
+                             SoftwareArtifactSet<JvmLibrarySourcesArtifact> sourceArtifacts,
+                             SoftwareArtifactSet<JvmLibraryJavadocArtifact> javadocArtifacts) {
+        super(componentId);
+        this.sourceArtifacts = sourceArtifacts;
+        this.javadocArtifacts = javadocArtifacts;
     }
 
-    public Iterable<JvmLibrarySourcesArtifact> getSourcesArtifacts() {
-        return Iterables.filter(getAllArtifacts(), JvmLibrarySourcesArtifact.class);
+    public SoftwareArtifactSet<JvmLibrarySourcesArtifact> getSourcesArtifacts() {
+        return sourceArtifacts;
     }
 
-    public Iterable<JvmLibraryJavadocArtifact> getJavadocArtifacts() {
-        return Iterables.filter(getAllArtifacts(), JvmLibraryJavadocArtifact.class);
+    public SoftwareArtifactSet<JvmLibraryJavadocArtifact> getJavadocArtifacts() {
+        return javadocArtifacts;
     }
 }

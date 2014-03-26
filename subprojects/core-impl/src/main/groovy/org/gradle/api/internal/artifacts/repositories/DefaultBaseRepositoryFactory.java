@@ -18,12 +18,12 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.legacy.FixedResolverArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
@@ -41,7 +41,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final FileResolver fileResolver;
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
-    private final LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder;
+    private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
     private final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory;
     private final ResolverStrategy resolverStrategy;
 
@@ -49,7 +49,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         FileResolver fileResolver,
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder,
+                                        LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
                                         LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
                                         ResolverStrategy resolverStrategy) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;

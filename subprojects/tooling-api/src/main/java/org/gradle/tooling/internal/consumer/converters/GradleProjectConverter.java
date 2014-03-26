@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
+import org.gradle.tooling.internal.gradle.DefaultConvertedGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleTask;
 import org.gradle.tooling.internal.gradle.PartialGradleProject;
 import org.gradle.tooling.internal.protocol.TaskVersion1;
@@ -26,14 +27,14 @@ import java.util.List;
 
 public class GradleProjectConverter {
 
-    public PartialGradleProject convert(EclipseProjectVersion3 project) {
+    public DefaultConvertedGradleProject convert(EclipseProjectVersion3 project) {
         //build children recursively
-        List<PartialGradleProject> children = new LinkedList<PartialGradleProject>();
+        List<DefaultConvertedGradleProject> children = new LinkedList<DefaultConvertedGradleProject>();
         for (EclipseProjectVersion3 p : project.getChildren()) {
             children.add(convert(p));
         }
         //build parent
-        PartialGradleProject parent = new PartialGradleProject()
+        DefaultConvertedGradleProject parent = new DefaultConvertedGradleProject()
                 .setPath(project.getPath())
                 .setName(project.getName())
                 .setChildren(children)

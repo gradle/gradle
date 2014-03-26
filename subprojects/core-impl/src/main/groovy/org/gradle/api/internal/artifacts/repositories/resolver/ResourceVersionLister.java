@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceException;
 import org.slf4j.Logger;
@@ -45,8 +45,8 @@ public class ResourceVersionLister implements VersionLister {
         return new DefaultVersionList() {
             final Set<String> directories = new HashSet<String>();
 
-            public void visit(ResourcePattern resourcePattern, ArtifactIdentifier artifactId) throws ResourceException {
-                String partiallyResolvedPattern = resourcePattern.toVersionListPattern(artifactId);
+            public void visit(ResourcePattern resourcePattern, ModuleVersionArtifactMetaData artifact) throws ResourceException {
+                String partiallyResolvedPattern = resourcePattern.toVersionListPattern(artifact);
                 LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
                 try {
                     List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);

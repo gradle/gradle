@@ -24,7 +24,7 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.gradle.BasicGradleTaskSelector
-import org.gradle.tooling.internal.gradle.DefaultGradleTaskSelector
+import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Launchable
@@ -135,9 +135,11 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         0 * handler._
     }
 
+    static interface InternalTaskSelectorImplementation extends TaskSelector, InternalLaunchable {
+    }
 
     def "can configure task selector build operation"() {
-        TaskSelector ts = Mock(DefaultGradleTaskSelector)
+        TaskSelector ts = Mock(InternalTaskSelectorImplementation)
         _ * ts.name >> 'myTask'
         ResultHandlerVersion1<Void> adaptedHandler
         ResultHandler<Void> handler = Mock()
