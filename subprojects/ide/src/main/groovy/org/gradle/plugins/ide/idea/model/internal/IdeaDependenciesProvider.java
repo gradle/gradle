@@ -57,7 +57,7 @@ public class IdeaDependenciesProvider {
      * Applied in order: if a dependency is found in all listed configurations it is provided as
      * a dependency in given scope(s).
      */
-    Map<GeneratedIdeaScope, List<IdeaScopeMappingRule>> scopeMappings = new EnumMap(GeneratedIdeaScope.class);
+    Map<GeneratedIdeaScope, List<IdeaScopeMappingRule>> scopeMappings = new EnumMap<GeneratedIdeaScope, List<IdeaScopeMappingRule>>(GeneratedIdeaScope.class);
 
     public IdeaDependenciesProvider() {
         this(new IdeDependenciesExtractor());
