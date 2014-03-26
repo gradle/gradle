@@ -23,6 +23,8 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     def repo = mavenHttpRepo
     def fileRepo = mavenRepo
     def module = repo.module("some.group", "some-artifact", "1.0")
+    def sourceArtifact = module.artifact(classifier: "sources")
+    def javadocArtifact = module.artifact(classifier: "javadoc")
     JvmLibraryArtifactResolveTestFixture fixture
 
     def setup() {
@@ -30,17 +32,18 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
         fixture.withRepository("maven { url '$repo.uri' }")
 
-        publishArtifacts("sources", "javadoc")
+        module.publish()
     }
 
-    def "resolves and caches sources artifacts"() {
+    def "resolves and caches source artifacts"() {
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
                 .expectSourceArtifact("some-artifact-1.0-sources.jar")
                 .prepare()
 
         when:
         module.pom.expectGet()
-        module.getArtifact(classifier: "sources").expectGet()
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGet()
 
         then:
         checkArtifactsResolvedAndCached()
@@ -53,7 +56,8 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
         when:
         module.pom.expectGet()
-        module.artifact(classifier: "javadoc").expectGet()
+        javadocArtifact.expectHead()
+        javadocArtifact.expectGet()
 
         then:
         checkArtifactsResolvedAndCached()
@@ -67,14 +71,16 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
         when:
         module.pom.expectGet()
-        module.artifact(classifier: "sources").expectGet()
-        module.artifact(classifier: "javadoc").expectGet()
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGet()
+        javadocArtifact.expectHead()
+        javadocArtifact.expectGet()
 
         then:
         checkArtifactsResolvedAndCached()
     }
 
-    // TODO:DAZ Test for regular cache expiry
+    // TODO:DAZ Test for regular cache expiry, once it can be configured
     def "fetches missing snapshot artifacts with --refresh-dependencies"() {
         def snapshotModule = repo.module("some.group", "some-artifact", "1.0-SNAPSHOT")
         def snapshotSources = snapshotModule.artifact(classifier: "sources")
@@ -82,13 +88,12 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
         fixture.withComponentVersion("1.0-SNAPSHOT")
                 .requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifactNotFound("some-artifact-sources.jar")
                 .prepare()
 
         when:
         snapshotModule.metaData.expectGet()
         snapshotModule.pom.expectGet()
-        snapshotSources.expectGetMissing()
+        snapshotSources.expectHeadMissing()
 
         then:
         checkArtifactsResolvedAndCached()
@@ -102,6 +107,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         and:
         snapshotModule.metaData.expectGet()
         snapshotModule.pom.expectHead()
+        snapshotSources.expectHead()
         snapshotSources.expectGet()
 
         then:
@@ -121,6 +127,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         when:
         snapshotModule.metaData.expectGet()
         snapshotModule.pom.expectGet()
+        snapshotSources.expectHead()
         snapshotSources.expectGet()
 
         then:
@@ -136,6 +143,8 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         snapshotModule.pom.expectHead()
         snapshotModule.pom.sha1.expectGet()
         snapshotModule.pom.expectGet()
+        snapshotSources.expectHead()
+        // TODO:DAZ This extra head request should not be required
         snapshotSources.expectHead()
         snapshotSources.sha1.expectGet()
         snapshotSources.expectGet()
@@ -157,16 +166,12 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     }
 
     def "resolve and caches missing artifacts of existing component"() {
-        // TODO:DAZ These artifacts should be missing, not failures
-        fixture.requestingTypes()
-                .expectSourceArtifactNotFound("some-artifact-sources.jar")
-                .expectJavadocArtifactNotFound("some-artifact-javadoc.jar")
-                .prepare()
+        fixture.requestingTypes().prepare()
 
         when:
         module.pom.expectGet()
-        module.artifact(classifier: "sources").expectGetMissing()
-        module.artifact(classifier: "javadoc").expectGetMissing()
+        sourceArtifact.expectHeadMissing()
+        javadocArtifact.expectHeadMissing()
 
         then:
         checkArtifactsResolvedAndCached()
@@ -175,13 +180,13 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     def "resolves and caches partially missing artifacts"() {
         fixture.requestingTypes()
                 .expectSourceArtifact("some-artifact-1.0-sources.jar")
-                .expectJavadocArtifactNotFound("some-artifact-javadoc.jar")
                 .prepare()
 
         when:
         module.pom.expectGet()
-        module.artifact(classifier: "sources").expectGet()
-        module.artifact(classifier: "javadoc").expectGetMissing()
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGet()
+        javadocArtifact.expectHeadMissing()
 
         then:
         checkArtifactsResolvedAndCached()
@@ -194,10 +199,12 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
                 .prepare()
 
         when:
+        // TODO:DAZ Also test for broken artifact listing
         module.pom.expectGet()
-        module.artifact(classifier: "sources").expectGet()
-        module.artifact(classifier: "javadoc").expectGetBroken()
-
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGet()
+        javadocArtifact.expectHead()
+        javadocArtifact.expectGetBroken()
 
         then:
         succeeds("verify")
@@ -211,7 +218,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         and:
         server.resetExpectations()
         // Only the broken artifact is not cached
-        module.artifact(classifier: "javadoc").expectGet()
+        javadocArtifact.expectGet()
 
         then:
         succeeds("verifyFixed")
@@ -242,12 +249,5 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         server.resetExpectations()
         assert succeeds("verify")
         true
-    }
-
-    private publishArtifacts(String... classifiers) {
-        for (classifier in classifiers) {
-            module.artifact(classifier: classifier)
-        }
-        module.publish()
     }
 }

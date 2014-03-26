@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Nullable;
@@ -278,6 +281,17 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     protected abstract Set<? extends ComponentArtifactMetaData> getOptionalMainArtifacts(ModuleVersionMetaData module);
 
+    protected Set<ModuleVersionArtifactMetaData> findOptionalArtifacts(ModuleVersionMetaData module, String type, String classifier) {
+        Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
+        Artifact artifact = new DefaultArtifact(module.getDescriptor().getModuleRevisionId(), null, module.getId().getName(), type, "jar", extraAttributes);
+        ModuleVersionArtifactMetaData artifactMetaData = module.artifact(artifact);
+
+        if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData)) {
+            return ImmutableSet.of(artifactMetaData);
+        }
+        return Collections.emptySet();
+    }
+
     @Nullable
     protected abstract ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier);
 
@@ -292,6 +306,11 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
         return createArtifactResolver().artifactExists(artifact);
+    }
+
+    // TODO:DAZ This is currently required to handle maven snapshots: if the timestamp was part of the identifier this wouldn't be required
+    protected ArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
+        return createArtifactResolver();
     }
 
     private LocallyAvailableExternalResource downloadAndCacheResource(ModuleVersionArtifactMetaData artifact, ExternalResource resource) throws IOException {
@@ -318,7 +337,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected File download(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource) throws IOException {
-        return downloadArtifact(artifact, createArtifactResolver());
+        return downloadArtifact(artifact, createArtifactResolver(moduleSource));
     }
 
     protected File downloadArtifact(ModuleVersionArtifactMetaData artifact, ArtifactResolver artifactResolver) throws IOException {

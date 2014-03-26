@@ -75,7 +75,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         checkArtifactsResolvedAndCached()
     }
 
-    // TODO:DAZ These tests should use a changing module and regular cache expiry
+    // TODO:DAZ Test with changing module and regular cache expiry, once the expiry can be configured
     def "fetches missing artifacts for module with --refresh-dependencies"() {
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
                 .expectSourceArtifactNotFound("some-artifact-my-sources.jar")
@@ -234,6 +234,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
         when:
         moduleWithMavenScheme.ivy.expectGet()
+        moduleWithMavenScheme.getArtifact(classifier: "sources").expectHead()
         moduleWithMavenScheme.getArtifact(classifier: "sources").expectGet()
 
         then:

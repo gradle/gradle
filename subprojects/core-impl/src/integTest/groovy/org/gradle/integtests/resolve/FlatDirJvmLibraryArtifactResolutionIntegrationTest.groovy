@@ -56,10 +56,7 @@ class FlatDirJvmLibraryArtifactResolutionIntegrationTest extends AbstractDepende
     def "resolve missing source and javadoc artifacts"() {
         file("repo/some-artifact-1.0.jar").createFile()
 
-        fixture.requestingTypes()
-                .expectSourceArtifactNotFound("some-artifact-sources.jar")
-                .expectJavadocArtifactNotFound("some-artifact-javadoc.jar")
-                .prepare()
+        fixture.requestingTypes().prepare()
 
         expect:
         succeeds("verify")
@@ -71,7 +68,6 @@ class FlatDirJvmLibraryArtifactResolutionIntegrationTest extends AbstractDepende
 
         fixture.requestingTypes()
                 .expectSourceArtifact("some-artifact-1.0-sources.jar")
-                .expectJavadocArtifactNotFound("some-artifact-javadoc.jar")
                 .prepare()
 
         expect:
