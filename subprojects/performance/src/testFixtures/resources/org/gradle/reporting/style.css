@@ -48,9 +48,11 @@ th.test-execution {
 
 #controls {
     text-align: right;
+    font-size: 10pt;
 }
 
 #controls label {
+    font-weight: bold;
     cursor: pointer;
 }
 

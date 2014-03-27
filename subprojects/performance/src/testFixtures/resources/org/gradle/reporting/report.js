@@ -21,9 +21,10 @@ $(document).ready(function () {
                 var id = title.replace(/[^\w]/g, '-').toLowerCase();
                 if (groups.indexOf(id) < 0) {
                     groups.push(id);
-                    controls.append("<label for='" + id + "'>" + title + "</label>");
+                    var div = controls.append("<div/>");
+                    div.append("<label for='" + id + "'>" + title + "</label>");
                     var checkbox = $("<input>", {type: "checkbox", id: id, checked: true});
-                    controls.append(checkbox);
+                    div.append(checkbox);
                     checkbox.change(function () {
                         if (checkbox.is(':checked')) {
                             $("." + id).show();
