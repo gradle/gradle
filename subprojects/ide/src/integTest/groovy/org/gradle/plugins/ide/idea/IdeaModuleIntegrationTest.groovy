@@ -397,9 +397,142 @@ dependencies {
         assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
 
         def orderEntries = iml.component.orderEntry
+        assert orderEntries.findAll { it.@type == 'module-library' }.size() == 3
+        assert orderEntries.any { it.@type == 'module-library' && // no scope means COMPILE
+                it.library.CLASSES.root.@url.text().contains ('api-artifact-1.0.jar') }
         assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'RUNTIME' &&
-            it.library.CLASSES.root.@url.text().contains ('impl-artifact-1.0.jar') }
+                it.library.CLASSES.root.@url.text().contains ('impl-artifact-1.0.jar') }
         assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'TEST' &&
                 it.library.CLASSES.root.@url.text().contains ('impl-artifact-1.0.jar') }
+    }
+
+    @Test
+    void "provided wins over compile scope for compile configuration"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "api-artifact").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+dependencies {
+    compile 'org.gradle:api-artifact:1.0'
+}
+
+idea {
+  module {
+    scopes.PROVIDED.plus += configurations.compile
+  }
+}
+"""
+        def iml = parseFile(print: true, 'root.iml')
+
+        //then
+        assert iml.component.orderEntry.@scope.collect { it.text() == ['PROVIDED'] }
+
+        def orderEntries = iml.component.orderEntry
+        assert orderEntries.findAll { it.@type == 'module-library' }.size() == 1
+        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'PROVIDED' &&
+                it.library.CLASSES.root.@url.text().contains ('api-artifact-1.0.jar') }
+    }
+
+    @Test
+    void "custom configuration gets first scope"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "api-artifact").publish()
+        maven(repoDir).module("foo", "bar").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+configurations {
+  myCustom
+}
+
+dependencies {
+    myCustom 'foo:bar:1.0'
+    compile 'org.gradle:api-artifact:1.0'
+}
+
+idea {
+  module {
+    scopes.PROVIDED.plus += configurations.myCustom
+    scopes.COMPILE.plus += configurations.myCustom
+  }
+}
+"""
+        def iml = parseFile(print: true, 'root.iml')
+
+        //then
+        assert iml.component.orderEntry.@scope.collect { it.text() == ['PROVIDED'] }
+
+        def orderEntries = iml.component.orderEntry
+        assert orderEntries.findAll { it.@type == 'module-library' }.size() == 2
+        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'PROVIDED' &&
+                it.library.CLASSES.root.@url.text().contains ('bar-1.0.jar') }
+        assert orderEntries.any { it.@type == 'module-library' &&
+                it.library.CLASSES.root.@url.text().contains ('api-artifact-1.0.jar') }
+    }
+
+    @Test
+    void "custom configuration can be added to TEST and RUNTIME"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "api-artifact").publish()
+        maven(repoDir).module("foo", "bar").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+configurations {
+  myCustom
+}
+
+dependencies {
+    myCustom 'foo:bar:1.0'
+    compile 'org.gradle:api-artifact:1.0'
+}
+
+idea {
+  module {
+    scopes.RUNTIME_TEST = [:]
+    scopes.RUNTIME_TEST.plus = [configurations.myCustom]
+    // scopes.TEST.plus += configurations.myCustom
+    // scopes.RUNTIME.plus += configurations.myCustom
+  }
+}
+"""
+        def iml = parseFile(print: true, 'root.iml')
+
+        //then
+        assert iml.component.orderEntry.@scope.collect { it.text() == ['TEST', 'RUNTIME'] }
+
+        def orderEntries = iml.component.orderEntry
+        assert orderEntries.findAll { it.@type == 'module-library' }.size() == 3
+        assert orderEntries.any { it.@type == 'module-library' &&
+                it.library.CLASSES.root.@url.text().contains ('api-artifact-1.0.jar') }
+        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'TEST' &&
+                it.library.CLASSES.root.@url.text().contains ('bar-1.0.jar') }
+        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'RUNTIME' &&
+                it.library.CLASSES.root.@url.text().contains ('bar-1.0.jar') }
     }
 }
