@@ -16,24 +16,30 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.maven.MavenFileModule
+import org.gradle.test.fixtures.maven.MavenHttpModule
+import org.gradle.test.fixtures.maven.MavenHttpRepository
 import spock.lang.FailsWith
 import spock.lang.Issue
 
 class MavenPomPackagingResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    MavenFileModule projectA
+    MavenHttpRepository repo1
+    MavenHttpRepository repo2
+    MavenHttpModule projectARepo1
+    MavenHttpModule projectARepo2
 
     public setup() {
         server.start()
-
-        projectA = mavenRepo().module('group', 'projectA')
+        repo1 = mavenHttpRepo("repo1")
+        repo2 = mavenHttpRepo("repo2")
+        projectARepo1 = repo1.module('group', 'projectA')
+        projectARepo2 = repo2.module('group', 'projectA')
     }
 
     private void buildWithDependencies(def dependencies) {
         buildFile << """
 repositories {
-    maven { url 'http://localhost:${server.port}/repo1' }
-    maven { url 'http://localhost:${server.port}/repo2' }
+    maven { url '${repo1.uri}' }
+    maven { url '${repo2.uri}' }
 }
 configurations { compile }
 dependencies {
@@ -52,16 +58,16 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
     def "includes jar artifact if present for pom with packaging of type 'pom'"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
-        publishWithPackaging('pom')
+        projectARepo2.hasPackaging("pom").publish()
 
         and:
         // First attempts to resolve in repo1
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom')
-        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
+        projectARepo1.pom.expectGetMissing()
+        projectARepo1.artifact.expectHeadMissing()
 
-        server.expectGet('/repo2/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHead('/repo2/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGet('/repo2/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        projectARepo2.pom.expectGet()
+        projectARepo2.artifact.expectHead()
+        projectARepo2.artifact.expectGet()
 
         and:
         run 'retrieve'
@@ -80,11 +86,11 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
     def "ignores missing jar artifact for pom with packaging of type 'pom'"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
-        publishWithPackaging('pom')
+        projectARepo1.hasPackaging("pom").publishPom()
 
         and:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
+        projectARepo1.pom.expectGet()
+        projectARepo1.artifact.expectHeadMissing()
 
         and:
         run 'retrieve'
@@ -103,18 +109,18 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
     def "will use jar artifact for pom with packaging that maps to jar"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
-        publishWithPackaging(packaging)
+        projectARepo1.hasPackaging(packaging).publish()
 
         and:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        projectARepo1.pom.expectGet()
+        projectARepo1.artifact.expectGet()
 
         then:
         succeeds 'retrieve'
 
         and:
         file('libs').assertHasDescendants('projectA-1.0.jar')
-        file('libs/projectA-1.0.jar').assertIsCopyOf(projectA.artifactFile)
+        file('libs/projectA-1.0.jar').assertIsCopyOf(projectARepo1.artifactFile)
 
         // Check caching
         when:
@@ -131,19 +137,19 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
     def "will use jar artifact for pom with packaging 'orbit'"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
-        publishWithPackaging('orbit')
+        projectARepo1.hasPackaging('orbit').publish()
 
         and:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.orbit')
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        projectARepo1.pom.expectGet()
+        projectARepo1.artifact(type: 'orbit').expectHeadMissing()
+        projectARepo1.artifact.expectGet()
 
         then:
         succeeds 'retrieve'
 
         and:
         file('libs').assertHasDescendants('projectA-1.0.jar')
-        file('libs/projectA-1.0.jar').assertIsCopyOf(projectA.artifactFile)
+        file('libs/projectA-1.0.jar').assertIsCopyOf(projectARepo1.artifactFile)
 
         // Check caching
         when:
@@ -156,12 +162,12 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
     def "where 'module.custom' exists, will use it as main artifact for pom with packaging 'custom' and emit deprecation warning"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
-        publishWithPackaging('custom', 'custom')
+        projectARepo1.hasPackaging("custom").hasType("custom").publish()
 
         and:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.custom', projectA.artifactFile)
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.custom', projectA.artifactFile)
+        projectARepo1.pom.expectGet()
+        projectARepo1.artifact.expectHead()
+        projectARepo1.artifact.expectGet()
 
         and:
         executer.withDeprecationChecksDisabled()
@@ -171,7 +177,7 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
 
         and:
         file('libs').assertHasDescendants('projectA-1.0.custom')
-        file('libs/projectA-1.0.custom').assertIsCopyOf(projectA.artifactFile)
+        file('libs/projectA-1.0.custom').assertIsCopyOf(projectARepo1.artifactFile)
 
         and:
         result.output.contains("Relying on packaging to define the extension of the main artifact has been deprecated")
@@ -186,12 +192,12 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
     def "fails and reports type-based location if neither packaging-based or type-based artifact can be located"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
-        publishWithPackaging('custom')
+        projectARepo1.hasPackaging("custom").publishPom()
 
         and:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.custom')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.jar')
+        projectARepo1.pom.expectGet()
+        projectARepo1.artifact(type: 'custom').expectHeadMissing()
+        projectARepo1.artifact(type: 'jar').expectGetMissing()
 
         then:
         fails 'retrieve'
@@ -210,21 +216,23 @@ compile('group:projectA:1.0') {
     }
 }
 """)
-        publishWithPackaging('custom')
+        projectARepo1.hasPackaging("custom").hasType("custom")
+        projectARepo1.artifact(type: 'zip')
+        projectARepo1.publish()
 
         and:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        projectARepo1.pom.expectGet()
 
         // TODO:GRADLE-2188 This call should not be required, since "type='zip'" on the dependency alleviates the need to check for the packaging artifact
-        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.custom')
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.zip', projectA.artifactFile)
+        projectARepo1.artifact(type: 'custom').expectHeadMissing()
+        projectARepo1.artifact(type: 'zip').expectGet()
 
         then:
         succeeds 'retrieve'
 
         and:
         file('libs').assertHasDescendants('projectA-1.0.zip')
-        file('libs/projectA-1.0.zip').assertIsCopyOf(projectA.artifactFile)
+        file('libs/projectA-1.0.zip').assertIsCopyOf(projectARepo1.artifact(type: 'zip').file)
 
         // Check caching
         when:
@@ -238,24 +246,26 @@ compile('group:projectA:1.0') {
         buildWithDependencies("""
 compile 'group:mavenProject:1.0'
 """)
-        def mavenProject = mavenRepo().module('group', 'mavenProject', '1.0').hasType('pom').dependsOn('group', 'projectA', '1.0', 'zip').publish()
-        publishWithPackaging('custom', 'zip')
+        def mavenProject = repo1.module('group', 'mavenProject', '1.0').hasPackaging('pom').dependsOn('group', 'projectA', '1.0', 'zip').publishPom()
+        projectARepo1.hasPackaging("custom")
+        projectARepo1.artifact(type: 'zip')
+        projectARepo1.publish()
 
         and:
-        server.expectGet('/repo1/group/mavenProject/1.0/mavenProject-1.0.pom', mavenProject.pomFile)
-        server.expectHeadMissing('/repo1/group/mavenProject/1.0/mavenProject-1.0.jar')
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        mavenProject.pom.expectGet()
+        mavenProject.artifact.expectHeadMissing()
 
+        projectARepo1.pom.expectGet()
         // TODO:GRADLE-2188 This call should not be required, since "type='zip'" on the dependency alleviates the need to check for the packaging artifact
-        server.expectHeadMissing('/repo1/group/projectA/1.0/projectA-1.0.custom')
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.zip', projectA.artifactFile)
+        projectARepo1.artifact(type: 'custom').expectHeadMissing()
+        projectARepo1.artifact(type: 'zip').expectGet()
 
         then:
         succeeds 'retrieve'
 
         and:
         file('libs').assertHasDescendants('projectA-1.0.zip')
-        file('libs/projectA-1.0.zip').assertIsCopyOf(projectA.artifactFile)
+        file('libs/projectA-1.0.zip').assertIsCopyOf(projectARepo1.artifact(type: 'zip').file)
 
         // Check caching
         when:
@@ -275,19 +285,20 @@ compile('group:projectA:1.0') {
     }
 }
 """)
-        publishWithPackaging('zip')
+        projectARepo1.hasPackaging("zip").hasType("zip").publish()
 
         and:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.zip', projectA.artifactFile)
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.zip', projectA.artifactFile)
+        projectARepo1.pom.expectGet()
+        // TODO - should not need this head request
+        projectARepo1.artifact.expectHead()
+        projectARepo1.artifact.expectGet()
 
         then:
         succeeds 'retrieve'
 
         and:
         file('libs').assertHasDescendants('projectA-1.0.zip')
-        file('libs/projectA-1.0.zip').assertIsCopyOf(projectA.artifactFile)
+        file('libs/projectA-1.0.zip').assertIsCopyOf(projectARepo1.artifactFile)
 
         and: "Stop the http server here to allow failure to be declared (otherwise occurs in tearDown) - remove this when the test is fixed"
         server.stop()
@@ -297,12 +308,6 @@ compile('group:projectA:1.0') {
         server.resetExpectations()
         then:
         succeeds 'retrieve'
-    }
-
-    private def publishWithPackaging(String packaging, String type = 'jar') {
-        projectA.packaging = packaging
-        projectA.type = type
-        projectA.publish()
     }
 
 }
