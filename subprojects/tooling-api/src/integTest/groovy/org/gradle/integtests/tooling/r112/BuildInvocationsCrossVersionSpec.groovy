@@ -131,7 +131,7 @@ project(':b:c') {
         }
 
         then:
-        result.result.assertTasksExecuted(':t1', ':b:c:t1')
+        result.result.executedTasks as Set == [':t1', ':b:c:t1'] as Set
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")
