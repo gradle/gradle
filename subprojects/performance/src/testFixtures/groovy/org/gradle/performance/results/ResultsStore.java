@@ -149,7 +149,22 @@ public class ResultsStore implements DataReporter {
                     }
                     versions.close();
                     uniqueVersions.close();
-                    return new ArrayList<String>(allVersions);
+
+                    ArrayList<String> result = new ArrayList<String>();
+                    result.addAll(allVersions);
+
+                    PreparedStatement uniqueBranches = connection.prepareStatement("select distinct vcsBranch from testExecution");
+                    ResultSet branches = uniqueBranches.executeQuery();
+                    Set<String> allBranches = new TreeSet<String>();
+                    while (branches.next()) {
+                        allBranches.add(branches.getString(1));
+                    }
+                    branches.close();
+                    uniqueBranches.close();
+
+                    result.addAll(allBranches);
+
+                    return result;
                 }
             });
         } catch (Exception e) {
@@ -167,6 +182,7 @@ public class ResultsStore implements DataReporter {
                             return GradleVersion.version(o1).compareTo(GradleVersion.version(o2));
                         }
                     });
+                    Set<String> allBranches = new TreeSet<String>();
                     PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
                     PreparedStatement operationsForExecution = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
                     executionsForName.setString(1, testName);
@@ -186,6 +202,7 @@ public class ResultsStore implements DataReporter {
                         performanceResults.setVcsCommit(testExecutions.getString(10));
 
                         results.add(performanceResults);
+                        allBranches.add(performanceResults.getVcsBranch());
 
                         operationsForExecution.setLong(1, id);
                         ResultSet builds = operationsForExecution.executeQuery();
@@ -216,7 +233,7 @@ public class ResultsStore implements DataReporter {
                     operationsForExecution.close();
                     executionsForName.close();
 
-                    return new TestExecutionHistory(testName, new ArrayList<String>(allVersions), results);
+                    return new TestExecutionHistory(testName, new ArrayList<String>(allVersions), new ArrayList<String>(allBranches), results);
                 }
             });
         } catch (Exception e) {

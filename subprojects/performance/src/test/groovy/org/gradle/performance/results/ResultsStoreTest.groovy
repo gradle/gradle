@@ -168,18 +168,18 @@ class ResultsStoreTest extends ResultSpecification {
         readStore?.close()
     }
 
-    def "returns baseline versions in ascending order"() {
+    def "the known versions for a test is the union of all baseline versions in ascending order and the union of test branches"() {
         given:
         def writeStore = new ResultsStore(dbFile)
 
-        def results1 = results()
+        def results1 = results(vcsBranch: "master")
         results1.baseline("1.8-rc-2").results << operation()
         results1.baseline("1.0").results << operation()
-        def results2 = results()
+        def results2 = results(vcsBranch: "release")
         results2.baseline("1.8-rc-1").results << operation()
         results2.baseline("1.0").results << operation()
         results2.baseline("1.10").results << operation()
-        def results3 = results()
+        def results3 = results(vcsBranch: "master")
         results3.baseline("1.8").results << operation()
         results3.baseline("1.10").results << operation()
 
@@ -194,24 +194,26 @@ class ResultsStoreTest extends ResultSpecification {
 
         then:
         results.baselineVersions == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10"]
+        results.branches == ["master", "release"]
+        results.knownVersions == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10", "master", "release"]
 
         cleanup:
         writeStore?.close()
         readStore?.close()
     }
 
-    def "can query the set of baseline versions"() {
+    def "the set of known versions is the union of all baseline versions and branches"() {
         given:
         def writeStore = new ResultsStore(dbFile)
 
-        def results1 = results(testId: "test-1")
+        def results1 = results(testId: "test-1", vcsBranch: "master")
         results1.baseline("1.8-rc-2").results << operation()
         results1.baseline("1.0").results << operation()
-        def results2 = results(testId: "test-2")
+        def results2 = results(testId: "test-2", vcsBranch: "release")
         results2.baseline("1.8-rc-1").results << operation()
         results2.baseline("1.0").results << operation()
         results2.baseline("1.10").results << operation()
-        def results3 = results(testId: "test-3")
+        def results3 = results(testId: "test-3", vcsBranch: "release")
         results3.baseline("1.8").results << operation()
         results3.baseline("2.0").results << operation()
 
@@ -225,7 +227,7 @@ class ResultsStoreTest extends ResultSpecification {
         def results = readStore.getVersions()
 
         then:
-        results == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10", "2.0"]
+        results == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10", "2.0", "master", "release"]
 
         cleanup:
         writeStore?.close()

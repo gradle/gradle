@@ -17,8 +17,8 @@
 package org.gradle.performance.results;
 
 import com.googlecode.jatl.Html;
-import org.gradle.performance.fixture.BaselineVersion;
 import org.gradle.performance.fixture.PerformanceResults;
+import org.gradle.performance.fixture.VersionResults;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -50,8 +50,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         end();
                         tr().classAttr("control-groups");
                             th().colspan("3").end();
-                            th().colspan(String.valueOf(versions.size() + 1)).text("Average execution time").end();
-                            th().colspan(String.valueOf(versions.size() + 1)).text("Average heap usage").end();
+                            th().colspan(String.valueOf(versions.size())).text("Average execution time").end();
+                            th().colspan(String.valueOf(versions.size())).text("Average heap usage").end();
                         end();
                         tr();
                             th().text("Date").end();
@@ -60,11 +60,9 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             for (String version : versions) {
                                 th().classAttr("numeric").text(version).end();
                             }
-                            th().classAttr("numeric").text("Current").end();
                             for (String version : versions) {
                                 th().classAttr("numeric").text(version).end();
                             }
-                            th().classAttr("numeric").text("Current").end();
                         end();
                         for (int i = 0; i < testHistory.getResults().size() && i < 5; i++) {
                             PerformanceResults performanceResults = testHistory.getResults().get(i);
@@ -73,27 +71,25 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 td().text(performanceResults.getVersionUnderTest()).end();
                                 td().text(performanceResults.getVcsBranch()).end();
                                 for (String version : versions) {
-                                    BaselineVersion baselineVersion = performanceResults.baseline(version);
+                                    VersionResults versionResults = performanceResults.version(version);
                                     td().classAttr("numeric");
-                                    if (baselineVersion.getResults().isEmpty()) {
+                                    if (versionResults.getResults().isEmpty()) {
                                         text("");
                                     } else {
-                                        text(baselineVersion.getResults().getExecutionTime().getAverage().format());
+                                        text(versionResults.getResults().getExecutionTime().getAverage().format());
                                     }
                                     end();
                                 }
-                                td().classAttr("numeric").text(performanceResults.getCurrent().getExecutionTime().getAverage().format()).end();
                                 for (String version : versions) {
-                                    BaselineVersion baselineVersion = performanceResults.baseline(version);
+                                    VersionResults versionResults = performanceResults.version(version);
                                     td().classAttr("numeric");
-                                    if (baselineVersion.getResults().isEmpty()) {
+                                    if (versionResults.getResults().isEmpty()) {
                                         text("");
                                     } else {
-                                        text(baselineVersion.getResults().getTotalMemoryUsed().getAverage().format());
+                                        text(versionResults.getResults().getTotalMemoryUsed().getAverage().format());
                                     }
                                     end();
                                 }
-                                td().classAttr("numeric").text(performanceResults.getCurrent().getTotalMemoryUsed().getAverage().format()).end();
                             end();
                         }
                         tr();

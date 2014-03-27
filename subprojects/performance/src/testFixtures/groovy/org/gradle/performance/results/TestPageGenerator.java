@@ -19,9 +19,9 @@ package org.gradle.performance.results;
 import com.google.common.base.Joiner;
 import com.googlecode.jatl.Html;
 import org.gradle.api.Transformer;
-import org.gradle.performance.fixture.BaselineVersion;
 import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.fixture.PerformanceResults;
+import org.gradle.performance.fixture.VersionResults;
 import org.gradle.performance.measure.DataSeries;
 
 import java.io.IOException;
@@ -82,42 +82,36 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                     table().classAttr("history");
                         tr().classAttr("control-groups");
                             th().colspan("3").end();
-                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
-                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage (old measurement)").end();
-                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average total heap usage").end();
-                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average max heap usage").end();
-                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average max uncollected heap").end();
-                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average max committed heap").end();
+                            th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average execution time").end();
+                            th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average heap usage (old measurement)").end();
+                            th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average total heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average max heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average max uncollected heap").end();
+                            th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average max committed heap").end();
                             th().colspan("5").text("Details").end();
                         end();
                         tr();
                             th().text("Date").end();
                             th().text("Test version").end();
                             th().text("Branch").end();
-                            for (String version : testHistory.getBaselineVersions()) {
+                            for (String version : testHistory.getKnownVersions()) {
                                 th().classAttr("numeric").text(version).end();
                             }
-                            th().classAttr("numeric").text("Current").end();
-                            for (String version : testHistory.getBaselineVersions()) {
+                            for (String version : testHistory.getKnownVersions()) {
                                 th().classAttr("numeric").text(version).end();
                             }
-                            th().classAttr("numeric").text("Current").end();
-                            for (String version : testHistory.getBaselineVersions()) {
+                            for (String version : testHistory.getKnownVersions()) {
                                 th().classAttr("numeric").text(version).end();
                             }
-                            th().classAttr("numeric").text("Current").end();
-                            for (String version : testHistory.getBaselineVersions()) {
+                            for (String version : testHistory.getKnownVersions()) {
                                 th().classAttr("numeric").text(version).end();
                             }
-                            th().classAttr("numeric").text("Current").end();
-                            for (String version : testHistory.getBaselineVersions()) {
+                            for (String version : testHistory.getKnownVersions()) {
                                 th().classAttr("numeric").text(version).end();
                             }
-                            th().classAttr("numeric").text("Current").end();
-                            for (String version : testHistory.getBaselineVersions()) {
+                            for (String version : testHistory.getKnownVersions()) {
                                 th().classAttr("numeric").text(version).end();
                             }
-                            th().classAttr("numeric").text("Current").end();
                             th().text("Test project").end();
                             th().text("Tasks").end();
                             th().text("Operating System").end();
@@ -177,20 +171,14 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
         }
 
             private void renderMetricForVersions(TestExecutionHistory testHistory, PerformanceResults testExecution, Transformer<DataSeries<?>, MeasuredOperationList> transformer) {
-                for (String version : testHistory.getBaselineVersions()) {
-                    BaselineVersion baselineVersion = testExecution.baseline(version);
-                    DataSeries<?> data = transformer.transform(baselineVersion.getResults());
+                for (String version : testHistory.getKnownVersions()) {
+                    VersionResults versionResults = testExecution.version(version);
+                    DataSeries<?> data = transformer.transform(versionResults.getResults());
                     if (data.isEmpty()) {
                         td().text("").end();
                     } else {
                         td().classAttr("numeric").text(data.getAverage().format()).end();
                     }
-                }
-                DataSeries<?> data = transformer.transform(testExecution.getCurrent());
-                if (data.isEmpty()) {
-                    td().text("").end();
-                } else {
-                    td().classAttr("numeric").text(data.getAverage().format()).end();
                 }
             }
         };
