@@ -100,7 +100,6 @@ project(':b:c') {
 
         then:
         result.result.assertTasksExecuted(':b:c:t1')
-        result.result.assertTaskNotExecuted(':t1')
 
         when:
         BuildInvocations rootProjectSelectors = withConnection { connection ->
