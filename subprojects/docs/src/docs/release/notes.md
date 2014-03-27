@@ -1,4 +1,6 @@
 
+
+
 Gradle 1.12 will be the last release before Gradle 2.0
 
 ## New and noteworthy
@@ -7,7 +9,7 @@ Here are the new features introduced in this Gradle release.
 
 ### CUnit integration (i)
 
-The new Gradle `cunit` plugin provides support for compiling and executing CUnit tests in your native-binary project.
+The new Gradle `cunit` plugin provides support for compiling and executing [CUnit](http://cunit.sourceforge.net) tests in your native-binary project.
 
 You simply need to include your CUnit test sources, and provide a hook for Gradle to register the suites and tests defined.
 
@@ -63,15 +65,10 @@ See [ComponentMetadataHandler](javadoc/org/gradle/api/artifacts/dsl/ComponentMet
 The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically.
 The new [`ProjectPublications` Tooling API model type](javadoc/org/gradle/tooling/model/gradle/ProjectPublications.html) provides basic information about a project's publications.
 
-The following example demonstrates, in Groovy, using the `ProjectPublications` model to print out the group/name/version of each publication.
+The following example demonstrates using the `ProjectPublications` model to print out the group/name/version of each publication.
 
     def projectConnection = ...
-    def projectPath = ':myProject'
-    def action = { BuildController bc ->
-        BasicGradleProject project = bc.buildModel.getProjects().find { it -> projectPath.equals(it.getPath()) }
-        bc.getModel(project, ProjectPublications.class).getPublications()
-    } as BuildAction
-    def publications = projectConnection.action(action).run()
+    def publications = projectConnection.getModel(ProjectPublications)
     for (publication in project.publications) {
         println publication.id.group
         println publication.id.name
@@ -86,10 +83,10 @@ The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle 
 The new [`BuildInvocations` Tooling API model type](javadoc/org/gradle/tooling/model/gradle/BuildInvocations.html) provides information about the possible ways to invoke the build.
 
 It provides the invokable tasks of a project, and importantly also its applicable task _selectors_.
-A task selector effectively refers to all of the tasks of a project and its children of the same name.
+A task selector effectively refers to all of the tasks with a given name in a project and its child projects.
 For example, it is common in a multi project build for all projects to have a `build` task.
-Invoking the build via the Tooling API with the `build` task _selector_ would effectively build the entire multi project build.
-In contrast, Invoking the build with the `build` _task_ would only build the root project (or which ever project is being targeted).
+Invoking the build via the Tooling API with the `build` task _selector_ would run the `build` task in every project, effectively building the entire multi project build.
+In contrast, invoking the build with the `build` _task_ would only build the root project (or which ever project is being targeted).
 
 This new capability makes it easier for integrators to provide more powerful interfaces for invoking Gradle builds.
 
@@ -125,13 +122,18 @@ Thanks to [Jason Gauci](https://github.com/MisterTea) for this improvement.
 Gradle now respects POM profiles that are [active by default](https://maven.apache.org/pom.html#Activation), during dependency resolution.
 More specifically, the properties, dependencies and dependency management information is now respected.
 
-### Customise Clang tool chain (i)
+### Customise Clang compiler tool chain (i)
 
-TODO - You can now configure the Clang tool chain in the same way as the GCC tool chain, using the `cCompiler`, `cppCompiler` etc properties.
+In earlier Gradle versions, it was possible to customize the GCC compiler tool chain in various ways. For example, you could use the `cCompiler.executable` property
+to specify a custom C compiler to use.
+
+Now you can customize the Clang tool chain in exactly the same way as the GCC tool chain.
+
+For more details see [Clang](dsl/org.gradle.nativebinaries.toolchain.Clang.html) and [GCC](dsl/org.gradle.nativebinaries.toolchain.Gcc.html).
 
 ### Improved Visual Studio project file generation (i)
 
-Gradle 1.11 add support for [generating Visual Studio configuration files](http://www.gradle.org/docs/current/release-notes#generate-visual-studio-configuration-for-a-native-binary-project).
+Gradle 1.11 added support for [generating Visual Studio configuration files](http://www.gradle.org/docs/current/release-notes#generate-visual-studio-configuration-for-a-native-binary-project).
 This feature has been improved in the following ways in Gradle 1.12:
 
 * Visual studio log files are generated into `.vs` instead of the project directory
@@ -171,8 +173,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically.
 It is used by IDEs and other _tooling_ to integrate with Gradle.
 
-* Connecting to 1.0-milestone-8 and earlier providers is now deprecated (in effect, the Gradle 2.0 Tooling API client will not work with 1.0-milestone-8 and earlier builds)
-* Client versions older than 1.2 are now deprecated (in effect, the Gradle 1.2 and earlier Tooling API clients will not work with Gradle 2.0 and later builds)
+* Connecting to 1.0-milestone-8 and earlier providers is now deprecated and will not be supported in Gradle 2.0. This means that the Gradle 2.0 Tooling API client will
+not be able to run builds that use Gradle 1.0-milestone-8 and earlier.
+* Client versions older than 1.2 are now deprecated and will not be supported in Gradle 2.0. This means that the Gradle 1.2 and earlier Tooling API clients will not
+be able to run builds that use Gradle 2.0 and later.
 
 If your project is building with Gradle 1.0-milestone-8 or earlier, you are __strongly__ encouraged to upgrade to a more recent Gradle version.
 All versions of integrating tools released since the release of Gradle 1.2 (September 2012) should be using a Tooling API client newer than version 1.2.
@@ -182,13 +186,13 @@ All versions of integrating tools released since the release of Gradle 1.2 (Sept
 ### Incremental Scala compilation
 
 The version of the Scala incremental compiler, Zinc, that Gradle uses has been upgraded to a version 0.3.0.
-This might be a breaking change for users who explicitly configured a low version of zinc in their build scripts.
+This might be a breaking change for users who explicitly configured an early version of zinc in their build scripts.
 There should be very few such users, if any.
 
 ### Changes to incubating native support
 
 * '-Xlinker' is no longer automatically added to linker args for GCC or Clang. If you want to pass an argument directly to 'ld' you need to add this escape yourself.
-* Tasks for windows resource compilation are now named 'compileXXXX' instead of 'resourceCompileXXX'.
+* Tasks for Windows resource compilation are now named 'compileXXXX' instead of 'resourceCompileXXX'.
 
 ### Change to JUnit XML file for skipped tests
 
