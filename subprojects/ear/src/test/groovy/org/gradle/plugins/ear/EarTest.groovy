@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ear
 
+import org.gradle.api.Action
+import org.gradle.api.internal.file.copy.CopySpecResolver
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
@@ -41,10 +43,6 @@ class EarTest extends AbstractArchiveTaskTest {
         assertEquals(Ear.EAR_EXTENSION, ear.extension)
     }
 
-    @Test public void testLibDirName() {
-        ear.libDirName = "APP-INF/lib"
-        assertEquals(ear.libDirName, ear.lib.destPath as String)
-    }
 
     @Test public void testDeploymentDescriptor() {
         ear.deploymentDescriptor = new DefaultDeploymentDescriptor(null)
@@ -90,6 +88,6 @@ class EarTest extends AbstractArchiveTaskTest {
         assertEquals(2, d.securityRoles.size())
         assertEquals("admin", (d.securityRoles as List)[0].roleName)
         assertEquals("superadmin", (d.securityRoles as List)[1].roleName)
-        assertEquals(1, d.transformer.getCopyActions.size())
+        assertEquals(1, d.transformer.actions.size())
     }
 }
