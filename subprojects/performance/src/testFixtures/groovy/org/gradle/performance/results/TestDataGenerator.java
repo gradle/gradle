@@ -63,28 +63,19 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
 
     void render(TestExecutionHistory testHistory, Transformer<String, MeasuredOperationList> valueRenderer, PrintWriter out) {
         List<PerformanceResults> sortedResults = testHistory.getResultsOldestFirst();
-        out.println("  [{");
-        out.println("    \"label\": \"current\",");
-        out.print("    \"data\": [ ");
-        for (int j = 0; j < sortedResults.size(); j++) {
-            PerformanceResults results = sortedResults.get(j);
-            if (j > 0) {
-                out.print(", ");
+        out.println("  [");
+        for (int i = 0; i < testHistory.getKnownVersions().size(); i++) {
+            String version = testHistory.getKnownVersions().get(i);
+            if (i > 0) {
+                out.println(",");
             }
-            out.print("[" + j + ", " + valueRenderer.transform(results.getCurrent()) + "]");
-        }
-        out.println("]");
-        out.print("  }");
-        for (int i = 0; i < testHistory.getBaselineVersions().size(); i++) {
-            String version = testHistory.getBaselineVersions().get(i);
-            out.println(",");
             out.println("  {");
             out.println("    \"label\": \"" + version + "\",");
             out.print("\"data\": [");
             boolean empty = true;
             for (int j = 0; j < sortedResults.size(); j++) {
                 PerformanceResults results = sortedResults.get(j);
-                MeasuredOperationList measuredOperations = results.baseline(version).getResults();
+                MeasuredOperationList measuredOperations = results.version(version).getResults();
                 if (!measuredOperations.isEmpty()) {
                     if (!empty) {
                         out.print(", ");

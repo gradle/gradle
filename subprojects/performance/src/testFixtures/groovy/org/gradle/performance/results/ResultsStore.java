@@ -157,7 +157,7 @@ public class ResultsStore implements DataReporter {
                     ResultSet branches = uniqueBranches.executeQuery();
                     Set<String> allBranches = new TreeSet<String>();
                     while (branches.next()) {
-                        allBranches.add(branches.getString(1));
+                        allBranches.add(branches.getString(1).trim());
                     }
                     branches.close();
                     uniqueBranches.close();
@@ -198,7 +198,7 @@ public class ResultsStore implements DataReporter {
                         performanceResults.setArgs(toArray(testExecutions.getObject(6)));
                         performanceResults.setOperatingSystem(testExecutions.getString(7));
                         performanceResults.setJvm(testExecutions.getString(8));
-                        performanceResults.setVcsBranch(testExecutions.getString(9));
+                        performanceResults.setVcsBranch(testExecutions.getString(9).trim());
                         performanceResults.setVcsCommit(testExecutions.getString(10));
 
                         results.add(performanceResults);
