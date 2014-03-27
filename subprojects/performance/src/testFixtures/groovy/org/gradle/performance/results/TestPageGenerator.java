@@ -78,8 +78,9 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                     end();
                     div().id("tooltip").end();
                     h3().text("Test history").end();
+                    div().id("controls").end();
                     table().classAttr("history");
-                        tr();
+                        tr().classAttr("control-groups");
                             th().colspan("3").end();
                             th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
                             th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage (old measurement)").end();

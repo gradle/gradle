@@ -46,6 +46,14 @@ th.test-execution {
     background-color: #ecf4fa;
 }
 
+#controls {
+    text-align: right;
+}
+
+#controls label {
+    cursor: pointer;
+}
+
 .chart {
     width: 1000px;
     height: 280px;

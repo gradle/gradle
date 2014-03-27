@@ -38,6 +38,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 div().id("content");
                     h2().text("All tests").end();
                     List<String> testNames = store.getTestNames();
+                    div().id("controls").end();
                     table().classAttr("history");
                     for (String testName : testNames) {
                         TestExecutionHistory testHistory = store.getTestResults(testName);
@@ -46,7 +47,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 text(testName);
                             end();
                         end();
-                        tr();
+                        tr().classAttr("control-groups");
                             th().colspan("3").end();
                             th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
                             th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage").end();
@@ -72,20 +73,24 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 td().text(performanceResults.getVcsBranch()).end();
                                 for (String version : testHistory.getBaselineVersions()) {
                                     BaselineVersion baselineVersion = performanceResults.baseline(version);
+                                    td().classAttr("numeric");
                                     if (baselineVersion.getResults().isEmpty()) {
-                                        td().text("").end();
+                                        text("");
                                     } else {
-                                        td().classAttr("numeric").text(baselineVersion.getResults().getExecutionTime().getAverage().format()).end();
+                                        text(baselineVersion.getResults().getExecutionTime().getAverage().format());
                                     }
+                                    end();
                                 }
                                 td().classAttr("numeric").text(performanceResults.getCurrent().getExecutionTime().getAverage().format()).end();
                                 for (String version : testHistory.getBaselineVersions()) {
                                     BaselineVersion baselineVersion = performanceResults.baseline(version);
+                                    td().classAttr("numeric");
                                     if (baselineVersion.getResults().isEmpty()) {
-                                        td().text("").end();
+                                        text("");
                                     } else {
-                                        td().classAttr("numeric").text(baselineVersion.getResults().getTotalMemoryUsed().getAverage().format()).end();
+                                        text(baselineVersion.getResults().getTotalMemoryUsed().getAverage().format());
                                     }
+                                    end();
                                 }
                                 td().classAttr("numeric").text(performanceResults.getCurrent().getTotalMemoryUsed().getAverage().format()).end();
                             end();
