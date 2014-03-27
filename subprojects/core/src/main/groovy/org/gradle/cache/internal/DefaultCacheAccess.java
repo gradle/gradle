@@ -323,6 +323,10 @@ public class DefaultCacheAccess implements CacheCoordinator {
         lock.lock();
         try {
             caches.add(indexedCache);
+            if (fileLock != null) {
+                String description = operations.isInCacheAction() ? operations.getDescription() : "cache creation";
+                indexedCache.onStartWork(description, stateAtOpen);
+            }
         } finally {
             lock.unlock();
         }
