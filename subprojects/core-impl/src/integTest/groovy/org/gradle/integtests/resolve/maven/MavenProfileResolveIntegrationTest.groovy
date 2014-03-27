@@ -17,11 +17,19 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.resolve.ResolveTestFixture
 
 class MavenProfileResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def "uses properties from active profile to resolve dependency"() {
-        server.start()
+    ResolveTestFixture resolve
 
+    def setup() {
+        settingsFile << "rootProject.name = 'test' "
+        resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+        server.start()
+    }
+
+    def "uses properties from active profile to resolve dependency"() {
         given:
         def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
         requestedModule.pomFile.text = """
@@ -59,10 +67,6 @@ class MavenProfileResolveIntegrationTest extends AbstractDependencyResolutionTes
 repositories { maven { url '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:artifactA:1.2' }
-task retrieve(type: Sync) {
-    into 'libs'
-    from configurations.compile
-}
 """
 
         and:
@@ -72,15 +76,19 @@ task retrieve(type: Sync) {
         transitiveModule.artifact.expectGet()
 
         when:
-        run "retrieve"
+        run "checkDeps"
 
         then:
-        file("libs").assertHasDescendants("artifactA-1.2.jar", "artifactB-1.4.jar")
+        resolve.expectGraph {
+            root(":", ":test:unspecified") {
+                module("groupA:artifactA:1.2") {
+                    module("groupB:artifactB:1.4")
+                }
+            }
+        }
     }
 
     def "uses dependency management defaults from active profile to resolve dependency"() {
-        server.start()
-
         given:
         def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
         requestedModule.pomFile.text = """
@@ -121,10 +129,6 @@ task retrieve(type: Sync) {
 repositories { maven { url '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:artifactA:1.2' }
-task retrieve(type: Sync) {
-    into 'libs'
-    from configurations.compile
-}
 """
 
         and:
@@ -134,15 +138,19 @@ task retrieve(type: Sync) {
         transitiveModule.artifact.expectGet()
 
         when:
-        run "retrieve"
+        run "checkDeps"
 
         then:
-        file("libs").assertHasDescendants("artifactA-1.2.jar", "artifactB-1.4.jar")
+        resolve.expectGraph {
+            root(":", ":test:unspecified") {
+                module("groupA:artifactA:1.2") {
+                    module("groupB:artifactB:1.4")
+                }
+            }
+        }
     }
 
     def "resolves dependency from active profile"() {
-        server.start()
-
         given:
         def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
         requestedModule.pomFile.text = """
@@ -187,10 +195,6 @@ task retrieve(type: Sync) {
 repositories { maven { url '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:artifactA:1.2' }
-task retrieve(type: Sync) {
-    into 'libs'
-    from configurations.compile
-}
 """
 
         and:
@@ -200,9 +204,15 @@ task retrieve(type: Sync) {
         transitiveModule.artifact.expectGet()
 
         when:
-        run "retrieve"
+        run "checkDeps"
 
         then:
-        file("libs").assertHasDescendants("artifactA-1.2.jar", "artifactB-1.4.jar")
+        resolve.expectGraph {
+            root(":", ":test:unspecified") {
+                module("groupA:artifactA:1.2") {
+                    module("groupB:artifactB:1.4")
+                }
+            }
+        }
     }
 }
