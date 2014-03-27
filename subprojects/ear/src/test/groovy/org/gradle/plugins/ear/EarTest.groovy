@@ -16,8 +16,6 @@
 
 package org.gradle.plugins.ear
 
-import org.gradle.api.Action
-import org.gradle.api.internal.file.copy.CopySpecResolver
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
@@ -30,7 +28,8 @@ class EarTest extends AbstractArchiveTaskTest {
 
     Ear ear
 
-    @Before public void setUp() {
+    @Before
+    public void setUp() {
         ear = createTask(Ear)
         configure(ear)
     }
@@ -39,17 +38,20 @@ class EarTest extends AbstractArchiveTaskTest {
         ear
     }
 
-    @Test public void testEar() {
+    @Test
+    public void testEar() {
         assertEquals(Ear.EAR_EXTENSION, ear.extension)
     }
 
 
-    @Test public void testDeploymentDescriptor() {
+    @Test
+    public void testDeploymentDescriptor() {
         ear.deploymentDescriptor = new DefaultDeploymentDescriptor(null)
         checkDeploymentDescriptor()
     }
 
-    @Test public void testDeploymentDescriptorWithNullManifest() {
+    @Test
+    public void testDeploymentDescriptorWithNullManifest() {
         ear.deploymentDescriptor = null
         checkDeploymentDescriptor()
     }
