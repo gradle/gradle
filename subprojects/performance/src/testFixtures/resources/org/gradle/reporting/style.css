@@ -15,6 +15,10 @@ h2 {
     font-size: 8pt;
 }
 
+table {
+    border-collapse: collapse;
+}
+
 table.history {
     margin-top: 20px;
     font-size: 10pt;
@@ -22,6 +26,9 @@ table.history {
 
 th, td {
     white-space: nowrap;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 8px;
     padding-right: 8px;
     text-align: left;
 }
@@ -33,6 +40,10 @@ th.numeric, td.numeric {
 th.test-execution {
     font-size: 14pt;
     padding-top: 1em;
+}
+
+.table-row-even {
+    background-color: #ecf4fa;
 }
 
 .chart {

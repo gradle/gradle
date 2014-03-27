@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     junit 'junit:junit:4.11'
-    reports "jquery:jquery.min:1.8.0@js"
+    reports "jquery:jquery.min:1.11.0@js"
     reports "flot:flot:0.8.1:min@js"
 
     compile libraries.groovy
