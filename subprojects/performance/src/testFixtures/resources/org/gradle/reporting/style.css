@@ -51,6 +51,14 @@ th.test-execution {
     font-size: 10pt;
 }
 
+.min-value {
+    color: #008000;
+}
+
+.max-value {
+    color: red;
+}
+
 #controls label {
     font-weight: bold;
     cursor: pointer;

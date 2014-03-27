@@ -22,11 +22,16 @@ import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.fixture.PerformanceResults;
 import org.gradle.performance.fixture.VersionResults;
+import org.gradle.performance.measure.Amount;
+import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
+import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
     @Override
@@ -81,19 +86,20 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                     div().id("controls").end();
                     table().classAttr("history");
                         tr().classAttr("control-groups");
-                            th().colspan("3").end();
+                            th().colspan("4").end();
                             th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average execution time").end();
                             th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average heap usage (old measurement)").end();
                             th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average total heap usage").end();
                             th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average max heap usage").end();
                             th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average max uncollected heap").end();
                             th().colspan(String.valueOf(testHistory.getKnownVersions().size())).text("Average max committed heap").end();
-                            th().colspan("5").text("Details").end();
+                            th().colspan("4").text("Details").end();
                         end();
                         tr();
                             th().text("Date").end();
                             th().text("Test version").end();
                             th().text("Branch").end();
+                            th().text("Git commit").end();
                             for (String version : testHistory.getKnownVersions()) {
                                 th().classAttr("numeric").text(version).end();
                             }
@@ -116,40 +122,40 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                             th().text("Tasks").end();
                             th().text("Operating System").end();
                             th().text("JVM").end();
-                            th().text("Commit Id").end();
                         end();
                         for (PerformanceResults performanceResults : testHistory.getResults()) {
                             tr();
                                 td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
                                 td().text(performanceResults.getVersionUnderTest()).end();
                                 td().text(performanceResults.getVcsBranch()).end();
-                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
-                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                td().text(performanceResults.getVcsCommit()).end();
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                    public DataSeries<Duration> transform(MeasuredOperationList original) {
                                         return original.getExecutionTime();
                                     }
                                 });
-                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
-                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getTotalMemoryUsed();
                                     }
                                 });
-                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
-                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getTotalHeapUsage();
                                     }
                                 });
-                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
-                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxHeapUsage();
                                     }
                                 });
-                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
-                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxUncollectedHeap();
                                     }
                                 });
-                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
-                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxCommittedHeap();
                                     }
                                 });
@@ -161,7 +167,6 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                                 end();
                                 td().text(performanceResults.getOperatingSystem()).end();
                                 td().text(performanceResults.getJvm()).end();
-                                td().text(performanceResults.getVcsCommit()).end();
                             end();
                         }
                     end();
@@ -170,14 +175,43 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             endAll();
         }
 
-            private void renderMetricForVersions(TestExecutionHistory testHistory, PerformanceResults testExecution, Transformer<DataSeries<?>, MeasuredOperationList> transformer) {
+            private <T> void renderMetricForVersions(TestExecutionHistory testHistory, PerformanceResults testExecution, Transformer<DataSeries<T>, MeasuredOperationList> transformer) {
+                List<Amount<T>> values = new ArrayList<Amount<T>>();
+                Amount<T> min = null;
+                Amount<T> max = null;
                 for (String version : testHistory.getKnownVersions()) {
                     VersionResults versionResults = testExecution.version(version);
-                    DataSeries<?> data = transformer.transform(versionResults.getResults());
+                    DataSeries<T> data = transformer.transform(versionResults.getResults());
                     if (data.isEmpty()) {
+                        values.add(null);
+                    } else {
+                        Amount<T> value = data.getAverage();
+                        values.add(value);
+                        if (min == null || value.compareTo(min) < 0) {
+                            min = value;
+                        }
+                        if (max == null || value.compareTo(max) > 0) {
+                            max = value;
+                        }
+                    }
+                }
+                if (min != null && min.equals(max)) {
+                    min = null;
+                    max = null;
+                }
+
+                for (Amount<?> value : values) {
+                    if (value == null) {
                         td().text("").end();
                     } else {
-                        td().classAttr("numeric").text(data.getAverage().format()).end();
+                        String classAttr = "numeric";
+                        if (value.equals(min)) {
+                            classAttr += " min-value";
+                        }
+                        if (value.equals(max)) {
+                            classAttr += " max-value";
+                        }
+                        td().classAttr(classAttr).text(value.format()).end();
                     }
                 }
             }
