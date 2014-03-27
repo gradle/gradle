@@ -138,7 +138,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public boolean isCaseSensitive() {
-       return buildRootResolver().isCaseSensitive();
+        return buildRootResolver().isCaseSensitive();
     }
 
     public void setCaseSensitive(boolean caseSensitive) {
@@ -285,11 +285,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public Integer getDirMode() {
-       return buildRootResolver().getDirMode();
+        return buildRootResolver().getDirMode();
     }
 
     public Integer getFileMode() {
-       return buildRootResolver().getFileMode();
+        return buildRootResolver().getFileMode();
     }
 
     public CopyProcessingSpec setDirMode(Integer mode) {
@@ -342,7 +342,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     public class DefaultCopySpecResolver implements CopySpecResolver {
 
-        private CopySpecResolver parentResolver = null;
+        private CopySpecResolver parentResolver;
         private PathNotationParser<String> pathNotationParser;
 
         private DefaultCopySpecResolver(CopySpecResolver parent) {

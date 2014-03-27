@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -289,18 +289,18 @@ public class DefaultCopySpecResolutionTest {
     @Test
     public void canWalkDownTreeCreatedUsingWithIntegrationTest() {
 
-        DefaultCopySpec child_one = new DefaultCopySpec(fileResolver, instantiator)
-        child_one.into("child_one");
-        parentSpec.with(child_one);
+        DefaultCopySpec childOne = new DefaultCopySpec(fileResolver, instantiator)
+        childOne.into("child_one");
+        parentSpec.with(childOne);
 
-        DefaultCopySpec child_two = new DefaultCopySpec(fileResolver, instantiator)
-        child_two.into("child_two");
-        parentSpec.with(child_two);
+        DefaultCopySpec childTwo = new DefaultCopySpec(fileResolver, instantiator)
+         childTwo.into("child_two");
+        parentSpec.with( childTwo);
 
         DefaultCopySpec grandchild = new DefaultCopySpec(fileResolver, instantiator)
         grandchild.into("grandchild");
-        child_one.with(grandchild);
-        child_two.with(grandchild);
+        childOne.with(grandchild);
+         childTwo.with(grandchild);
 
         List<RelativePath> paths = new ArrayList<RelativePath>()
         parentSpec.buildRootResolver().walk(new Action<CopySpecResolver>() {
