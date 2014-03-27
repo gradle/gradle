@@ -29,6 +29,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     @Override
     public void render(final ResultsStore store, Writer writer) throws IOException {
         new Html(writer) {{
+            List<String> versions = store.getVersions();
             html();
                 head();
                     headSection(this);
@@ -49,18 +50,18 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         end();
                         tr().classAttr("control-groups");
                             th().colspan("3").end();
-                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
-                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage").end();
+                            th().colspan(String.valueOf(versions.size() + 1)).text("Average execution time").end();
+                            th().colspan(String.valueOf(versions.size() + 1)).text("Average heap usage").end();
                         end();
                         tr();
                             th().text("Date").end();
                             th().text("Test version").end();
                             th().text("Branch").end();
-                            for (String version : testHistory.getBaselineVersions()) {
+                            for (String version : versions) {
                                 th().classAttr("numeric").text(version).end();
                             }
                             th().classAttr("numeric").text("Current").end();
-                            for (String version : testHistory.getBaselineVersions()) {
+                            for (String version : versions) {
                                 th().classAttr("numeric").text(version).end();
                             }
                             th().classAttr("numeric").text("Current").end();
@@ -71,7 +72,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
                                 td().text(performanceResults.getVersionUnderTest()).end();
                                 td().text(performanceResults.getVcsBranch()).end();
-                                for (String version : testHistory.getBaselineVersions()) {
+                                for (String version : versions) {
                                     BaselineVersion baselineVersion = performanceResults.baseline(version);
                                     td().classAttr("numeric");
                                     if (baselineVersion.getResults().isEmpty()) {
@@ -82,7 +83,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                     end();
                                 }
                                 td().classAttr("numeric").text(performanceResults.getCurrent().getExecutionTime().getAverage().format()).end();
-                                for (String version : testHistory.getBaselineVersions()) {
+                                for (String version : versions) {
                                     BaselineVersion baselineVersion = performanceResults.baseline(version);
                                     td().classAttr("numeric");
                                     if (baselineVersion.getResults().isEmpty()) {

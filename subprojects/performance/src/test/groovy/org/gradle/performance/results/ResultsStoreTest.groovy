@@ -200,6 +200,38 @@ class ResultsStoreTest extends ResultSpecification {
         readStore?.close()
     }
 
+    def "can query the set of baseline versions"() {
+        given:
+        def writeStore = new ResultsStore(dbFile)
+
+        def results1 = results(testId: "test-1")
+        results1.baseline("1.8-rc-2").results << operation()
+        results1.baseline("1.0").results << operation()
+        def results2 = results(testId: "test-2")
+        results2.baseline("1.8-rc-1").results << operation()
+        results2.baseline("1.0").results << operation()
+        results2.baseline("1.10").results << operation()
+        def results3 = results(testId: "test-3")
+        results3.baseline("1.8").results << operation()
+        results3.baseline("2.0").results << operation()
+
+        writeStore.report(results1)
+        writeStore.report(results2)
+        writeStore.report(results3)
+        writeStore.close()
+
+        when:
+        def readStore = new ResultsStore(dbFile)
+        def results = readStore.getVersions()
+
+        then:
+        results == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10", "2.0"]
+
+        cleanup:
+        writeStore?.close()
+        readStore?.close()
+    }
+
     def "returns empty results for unknown id"() {
         given:
         def store = new ResultsStore(dbFile)

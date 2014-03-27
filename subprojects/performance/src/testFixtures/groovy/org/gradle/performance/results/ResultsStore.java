@@ -130,6 +130,33 @@ public class ResultsStore implements DataReporter {
         }
     }
 
+    public List<String> getVersions() {
+        try {
+            return withConnection(new ConnectionAction<List<String>>() {
+                public List<String> execute(Connection connection) throws Exception {
+                    Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
+                        public int compare(String o1, String o2) {
+                            return GradleVersion.version(o1).compareTo(GradleVersion.version(o2));
+                        }
+                    });
+                    PreparedStatement uniqueVersions = connection.prepareStatement("select distinct version from testOperation");
+                    ResultSet versions = uniqueVersions.executeQuery();
+                    while (versions.next()) {
+                        String version = versions.getString(1);
+                        if (version != null) {
+                            allVersions.add(version);
+                        }
+                    }
+                    versions.close();
+                    uniqueVersions.close();
+                    return new ArrayList<String>(allVersions);
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Could not load version list from datastore '%s'.", dbFile), e);
+        }
+    }
+
     public TestExecutionHistory getTestResults(final String testName) {
         try {
             return withConnection(new ConnectionAction<TestExecutionHistory>() {
