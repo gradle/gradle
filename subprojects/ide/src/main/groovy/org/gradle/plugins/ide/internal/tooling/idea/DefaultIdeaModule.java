@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.plugins.ide.internal.tooling.gradle.DefaultGradleProject;
+import org.gradle.tooling.internal.impl.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
