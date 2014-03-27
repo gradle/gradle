@@ -135,6 +135,45 @@ project(':b:c') {
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")
+    def "build task selectors from connection in specified order"() {
+        when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
+        BuildInvocations model = withConnection { connection ->
+            connection.getModel(BuildInvocations)
+        }
+        TaskSelector selectorT1 = model.taskSelectors.find {  it.name == 't1' }
+        TaskSelector selectorT2 = model.taskSelectors.find { it.name == 't2' }
+        def result = withBuild { BuildLauncher it ->
+            it.forLaunchables(selectorT1, selectorT2)
+        }
+        def lines = result.result.output.readLines()
+        def t1 = lines.indexOf(':t1')
+        def bt2 = lines.indexOf(':b:t2')
+        def bct1 = lines.indexOf(':b:c:t1')
+        def bct2 = lines.indexOf(':b:c:t2')
+        then:
+        t1 < bt2
+        bct1 < bt2
+        t1 < bct2
+        bct1 < bct2
+
+        when:
+        result = withBuild { BuildLauncher it ->
+            it.forLaunchables(selectorT2, selectorT1)
+        }
+        lines = result.result.output.readLines()
+        t1 = lines.indexOf(':t1')
+        bt2 = lines.indexOf(':b:t2')
+        bct1 = lines.indexOf(':b:c:t1')
+        bct2 = lines.indexOf(':b:c:t2')
+        then:
+        t1 > bt2
+        bct1 > bt2
+        t1 > bct2
+        bct1 > bct2
+    }
+
+    @TargetGradleVersion(">=1.0-milestone-5")
     def "can request task selectors for project"() {
         given:
         BuildInvocations model = withConnection { connection ->
