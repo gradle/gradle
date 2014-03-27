@@ -21,11 +21,9 @@ import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.plugins.ide.internal.tooling.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
 import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector;
-import org.gradle.tooling.internal.gradle.PartialGradleProject;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
 import java.util.ArrayList;
@@ -65,32 +63,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
     }
 
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
-        if (implicitProject) {
-            DefaultGradleProject gradleProject = gradleProjectBuilder.buildAll(project);
-            List<LaunchableGradleTask> tasks = new ArrayList<LaunchableGradleTask>();
-            fillTaskList(gradleProject, tasks);
-            return new DefaultBuildInvocations()
-                    .setSelectors(buildRecursively(modelName, project.getRootProject()))
-                    .setTasks(convertTasks(tasks));
-        } else {
-            return buildAll(modelName, project);
-        }
-    }
-
-    private void fillTaskList(DefaultGradleProject gradleProject, List<LaunchableGradleTask> tasks) {
-        tasks.addAll(gradleProject.getTasks());
-        for (PartialGradleProject childProject : gradleProject.getChildren()) {
-            fillTaskList((DefaultGradleProject) childProject, tasks);
-        }
-    }
-
-    private List<LaunchableGradleTaskSelector> buildRecursively(String modelName, Project project) {
-        List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
-        selectors.addAll(buildAll(modelName, project).getTaskSelectors());
-        for (Project childProject : project.getSubprojects()) {
-            selectors.addAll(buildRecursively(modelName, childProject));
-        }
-        return selectors;
+        return buildAll(modelName, implicitProject ? project.getRootProject() : project);
     }
 
     // build tasks without project reference

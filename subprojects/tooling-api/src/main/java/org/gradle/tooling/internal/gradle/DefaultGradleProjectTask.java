@@ -16,8 +16,15 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import java.util.Set;
+public class DefaultGradleProjectTask extends DefaultGradleTask {
+    PartialGradleProject project;
 
-public interface TaskListingLaunchable {
-    Set<String> getTaskNames();
+    public PartialGradleProject getProject() {
+        return project;
+    }
+
+    public DefaultGradleProjectTask setProject(PartialGradleProject project) {
+        this.project = project;
+        return this;
+    }
 }

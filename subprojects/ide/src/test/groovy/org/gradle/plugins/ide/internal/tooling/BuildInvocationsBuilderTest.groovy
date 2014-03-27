@@ -64,20 +64,16 @@ class BuildInvocationsBuilderTest extends Specification {
         def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", project, true)
 
         then:
+        model.taskSelectors.size() == 3
+        model.taskSelectors.each { it ->
+            assert it.projectPath == ':'
+            assert it.name != null
+            assert it.displayName != null
+            assert it.description != null
+        }
         def t1Selector = model.taskSelectors.find { LaunchableGradleTaskSelector it ->
             it.name == 't1' && it.description.startsWith("t1")
         }
-        t1Selector?.projectPath == ':'
-        def child1T1selector = model.taskSelectors.find { LaunchableGradleTaskSelector it ->
-            it.name == 't1' && it.description.startsWith(":child1:t1")
-        }
-        child1T1selector?.projectPath == child1.path
-        def child1aT1selector = model.taskSelectors.find { LaunchableGradleTaskSelector it ->
-            it.name == 't1' && it.description.startsWith(":child1:child1a:t1")
-        }
-        child1aT1selector?.projectPath == child1a.path
-        model.taskSelectors*.name.each { it != null }
-        model.taskSelectors*.description.each { it != null }
-        model.taskSelectors*.displayName.each { it != null }
+        model.taskSelectors*.name as Set == ['t1', 't2', 't3'] as Set
     }
 }

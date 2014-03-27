@@ -104,7 +104,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     def "can configure task selector build operation for consumer generated selectors"() {
         TaskSelector ts = Mock(BasicGradleTaskSelector)
         _ * ts.name >> 'myTask'
-        _ * ts.tasks >> [':a:myTask', ':b:myTask']
+        _ * ts.taskNames >> [':a:myTask', ':b:myTask']
         ResultHandlerVersion1<Void> adaptedHandler
         ResultHandler<Void> handler = Mock()
         OutputStream stdout = Stub()
@@ -174,13 +174,13 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     def "preserves task selectors order in build operation"() {
         TaskSelector ts1 = Mock(BasicGradleTaskSelector)
         _ * ts1.name >> 'firstTask'
-        _ * ts1.tasks >> [':firstTask']
+        _ * ts1.taskNames >> [':firstTask']
         TaskSelector ts2 = Mock(BasicGradleTaskSelector)
         _ * ts2.name >> 'secondTask'
-        _ * ts2.tasks >> [':secondTask']
+        _ * ts2.taskNames >> [':secondTask']
         TaskSelector ts3 = Mock(BasicGradleTaskSelector)
         _ * ts3.name >> 'thirdTask'
-        _ * ts3.tasks >> [':thirdTask']
+        _ * ts3.taskNames >> [':thirdTask']
         ResultHandlerVersion1<Void> adaptedHandler
         ResultHandler<Void> handler = Mock()
         OutputStream stdout = Stub()

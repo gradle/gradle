@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.tooling.internal.gradle.DefaultConvertedGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultGradleProjectTask;
 import org.gradle.tooling.internal.gradle.DefaultGradleTask;
 import org.gradle.tooling.internal.gradle.PartialGradleProject;
 import org.gradle.tooling.internal.protocol.TaskVersion1;
@@ -43,11 +44,12 @@ public class GradleProjectConverter {
         //build tasks
         List<DefaultGradleTask> tasks = new LinkedList<DefaultGradleTask>();
         for (TaskVersion1 t : project.getTasks()) {
-            tasks.add(new DefaultGradleTask()
+            tasks.add(new DefaultGradleProjectTask()
+                    .setProject(parent)
                     .setName(t.getName())
                     .setPath(t.getPath())
                     .setDescription(t.getDescription())
-                    .setProject(parent));
+                    );
         }
         parent.setTasks(tasks);
 

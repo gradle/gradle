@@ -122,13 +122,14 @@ project(':b:c') {
             connection.getModel(BuildInvocations)
         }
         TaskSelector selector = model.taskSelectors.find { TaskSelector it ->
-            it.name == 't1' && it.description.startsWith(':b:') && !it.description.startsWith(':b:c:') }
+            it.name == 't1'
+        }
         def result = withBuild { BuildLauncher it ->
             it.forLaunchables(selector)
         }
 
         then:
-        result.result.assertTasksExecuted(':b:c:t1')
+        result.result.assertTasksExecuted(':t1', ':b:c:t1')
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")
@@ -144,20 +145,6 @@ project(':b:c') {
         }
         then:
         selectors*.name as Set == ['t1', 't2', 't3'] as Set
-
-        when:
-        selectors = model.taskSelectors.findAll { TaskSelector it ->
-            it.description.startsWith(':b:') && !it.description.startsWith(':b:c:')
-        }
-        then:
-        selectors*.name as Set == ['t1', 't2', 't3'] as Set
-
-        when:
-        selectors = model.taskSelectors.findAll { TaskSelector it ->
-            it.description.startsWith(':b:c:')
-        }
-        then:
-        selectors*.name as Set == ['t1', 't2'] as Set
     }
 
     @TargetGradleVersion("<1.0-milestone-5")
@@ -215,37 +202,39 @@ project(':b:c') {
             connection.getModel(BuildInvocations)
         }
         Task task = model.tasks.find { Task it ->
-            it.name == 't2' && it.path == ':b:t2' }
+            it.name == 't1'
+        }
         def result = withBuild { BuildLauncher it ->
             it.forLaunchables(task)
         }
 
         then:
-        result.result.assertTasksExecuted(':b:t2')
+        result.result.assertTasksExecuted(':t1')
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")
-    def "can request tasks for project"() {
+    def "can request tasks for root project"() {
+        // TODO make sure it is for root project if default project is different
+
         given:
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
         }
 
         expect:
-        model.tasks.count { it.name != 'setupBuild' } == 5
+        model.tasks.count { it.name != 'setupBuild' } == 1
 
         when:
-        def tasks = model.tasks.findAll { Task it ->
-            it.path.startsWith(':b:') && !it.path.startsWith(':b:c:')
-        }
+        def task = model.tasks.find { Task it -> it.name != 'setupBuild' }
+
         then:
-        tasks*.name as Set == ['t2', 't3'] as Set
+        task.name == 't1'
+        task.path == ':t1'
 
         when:
-        tasks = model.tasks.findAll { Task it ->
-            it.path.startsWith(':b:c:')
-        }
+        task.project
+
         then:
-        tasks*.name as Set == ['t1', 't2'] as Set
+        UnsupportedMethodException e = thrown()
     }
 }
