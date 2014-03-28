@@ -227,6 +227,7 @@ public class IdeaDependenciesProvider {
     List<IdeDependencyKey<?, Dependency>> extractDependencies(Multimap<IdeDependencyKey<?, Dependency>, String> dependenciesToConfigs,
                             Collection<String> configurations, Collection<String> minusConfigurations) {
         List<IdeDependencyKey<?, Dependency>> deps = new ArrayList<IdeDependencyKey<?, Dependency>>();
+        List<IdeDependencyKey<?, Dependency>> minusDeps = new ArrayList<IdeDependencyKey<?, Dependency>>();
         for (IdeDependencyKey<?, Dependency> dependencyKey : dependenciesToConfigs.keySet()) {
             if (dependenciesToConfigs.get(dependencyKey).containsAll(configurations)) {
                 boolean isInMinus = false;
@@ -238,10 +239,12 @@ public class IdeaDependenciesProvider {
                 }
                 if (!isInMinus) {
                     deps.add(dependencyKey);
+                } else {
+                    minusDeps.add(dependencyKey);
                 }
             }
         }
-        for (IdeDependencyKey<?, Dependency> key : deps) {
+        for (IdeDependencyKey<?, Dependency> key : Iterables.concat(deps, minusDeps)) {
             dependenciesToConfigs.removeAll(key);
         }
         return deps;
