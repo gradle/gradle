@@ -17,7 +17,6 @@
 package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.ResultsStore
@@ -37,9 +36,7 @@ class AbstractPerformanceTest extends Specification {
             warmUpRuns: 1,
             targetVersions: ['1.0', '1.4', '1.8', 'last'],
             maxExecutionTimeRegression: Duration.millis(500),
-            // Our performance tests on Windows seem to need more heap
-            // TODO - find out if this is a real problem
-            maxMemoryRegression: OperatingSystem.current().isWindows() ? DataAmount.mbytes(10) : DataAmount.mbytes(3)
+            maxMemoryRegression: DataAmount.mbytes(25)
     )
 
     def setup() {
