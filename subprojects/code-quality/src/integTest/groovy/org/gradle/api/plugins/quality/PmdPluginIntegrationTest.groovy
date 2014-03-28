@@ -136,6 +136,21 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
+    def "can enable console output"() {
+        buildFile << """
+            pmd {
+                consoleOutput = true
+            }
+        """
+        badCode()
+
+        expect:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
+        output.contains("org/gradle/Class1Test.java:1\tEmpty initializer was found")
+    }
+
     private void writeBuildFile() {
         file("build.gradle") << """
             apply plugin: "java"

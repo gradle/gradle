@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.Project
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
@@ -74,6 +75,13 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      */
     boolean ignoreFailures
 
+    /**
+     * Whether or not to allow the console output of pmd.
+     *
+     * Example: consoleOutput = true
+     */
+    boolean consoleOutput
+
     @Inject Pmd(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
         reports = instantiator.newInstance(PmdReportsImpl, this)
         this.antBuilder = antBuilder
@@ -114,6 +122,14 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
                     }
                     if (reports.xml.enabled) {
                         formatter(type: 'xml', toFile: reports.xml.destination)
+                    }
+
+                    if (consoleOutput) {
+                        def consoleOutputType = 'text';
+                        if (project.getGradle().getStartParameter().isColorOutput()) {
+                            consoleOutputType = 'textcolor';
+                        }
+                        formatter(type: consoleOutputType, toConsole: true)
                     }
                 }
             def failureCount = ant.project.properties["pmdFailureCount"]
