@@ -88,4 +88,16 @@ class IvySftpModule implements IvyModule {
     void assertIvyAndJarFilePublished() {
         backingModule.assertIvyAndJarFilePublished()
     }
+
+    String getOrganisation() {
+        return backingModule.organisation
+    }
+
+    String getModule() {
+        return backingModule.module
+    }
+
+    String getRevision() {
+        return backingModule.revision
+    }
 }
