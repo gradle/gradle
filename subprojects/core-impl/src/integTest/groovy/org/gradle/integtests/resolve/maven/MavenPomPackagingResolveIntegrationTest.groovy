@@ -106,6 +106,71 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
         file('libs').assertIsEmptyDir()
     }
 
+    def "for a snapshot module with with packaging of type 'pom', will check for jar artifact that was previously missing on cache expiry"() {
+        when:
+        def snapshotA = repo1.module('group', 'projectA', '1.1-SNAPSHOT')
+        snapshotA.hasPackaging("pom").publish()
+
+        and:
+        buildWithDependencies("compile 'group:projectA:1.1-SNAPSHOT'")
+        buildFile << """
+if (project.hasProperty('skipCache')) {
+    configurations.compile.resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
+}
+"""
+
+        and:
+        snapshotA.metaData.expectGet()
+        snapshotA.pom.expectGet()
+        snapshotA.artifact.expectHeadMissing()
+
+        and:
+        run 'retrieve'
+
+        then:
+        skipped ':retrieve'
+
+        // Jar artifact presence is cached
+        when:
+        server.resetExpectations()
+
+        and:
+        run 'retrieve'
+
+        then:
+        skipped ':retrieve'
+
+        // New artifact is detected
+        when:
+        server.resetExpectations()
+        snapshotA.metaData.expectGet()
+        snapshotA.pom.expectHead()
+        snapshotA.artifact.expectHead()
+        snapshotA.artifact.expectGet()
+
+        and:
+        executer.withArgument('-PskipCache')
+        run 'retrieve'
+
+        then:
+        executed ':retrieve'
+        file('libs').assertHasDescendants('projectA-1.1-SNAPSHOT.jar')
+
+        // Jar artifact removal is detected
+        when:
+        server.resetExpectations()
+        snapshotA.metaData.expectGet()
+        snapshotA.pom.expectHead()
+        snapshotA.artifact.expectHeadMissing()
+
+        and:
+        executer.withArgument('-PskipCache')
+        run 'retrieve'
+
+        then:
+        skipped ':retrieve'
+    }
+
     def "will use jar artifact for pom with packaging that maps to jar"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")
