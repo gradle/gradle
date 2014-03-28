@@ -19,9 +19,12 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ivy.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Unroll
 
+@Requires(TestPrecondition.JDK6_OR_LATER)
 @Unroll
 class IvySftpRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
