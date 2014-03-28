@@ -85,12 +85,14 @@ class IdeaPluginTest extends Specification {
         then:
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(project.sourceCompatibility).level
 
-        def configurations = project.configurations
+        // def configurations = project.configurations
         project.idea.module.scopes == [
-                COMPILE: [plus: [configurations.compile], minus: []],
-                RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
-                TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]],
-                PROVIDED: [plus: [], minus: []]
+                PROVIDED_TEST: [plus: [], minus: []],
+                PROVIDED: [plus: [], minus: []],
+                COMPILE: [plus: [], minus: []],
+                RUNTIME_TEST: [plus: [], minus: []],
+                RUNTIME: [plus: [], minus: []],
+                TEST: [plus: [], minus: []],
         ]
     }
 

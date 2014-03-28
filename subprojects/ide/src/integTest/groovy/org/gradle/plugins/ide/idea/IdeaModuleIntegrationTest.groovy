@@ -535,4 +535,34 @@ idea {
         assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'RUNTIME' &&
                 it.library.CLASSES.root.@url.text().contains ('bar-1.0.jar') }
     }
+
+    @Test
+    void "no libraries generated without java plugin"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "api-artifact").publish()
+        maven(repoDir).module("foo", "bar").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+configurations {
+  compile
+}
+
+dependencies {
+    compile 'org.gradle:api-artifact:1.0'
+}
+"""
+        def iml = parseFile(print: true, 'root.iml')
+
+        //then
+        def orderEntries = iml.component.orderEntry
+        assert orderEntries.findAll { it.@type == 'module-library' }.size() == 0
+    }
 }

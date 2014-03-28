@@ -155,6 +155,9 @@ public class IdeaDependenciesProvider {
         Set<Dependency> dependencies = new LinkedHashSet<Dependency>();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             Map<String, Collection<Configuration>> plusMinusConfigurations = ideaModule.getScopes().get(scope.name());
+            if (plusMinusConfigurations == null) {
+                continue;
+            }
             Collection<Configuration> minusConfigurations = plusMinusConfigurations != null ? plusMinusConfigurations.get("minus") : null;
             Collection<String> minusConfigurationNames = minusConfigurations != null
                     ? Lists.newArrayList(Iterables.transform(
