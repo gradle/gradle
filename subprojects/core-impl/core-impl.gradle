@@ -16,7 +16,9 @@ dependencies {
     compile libraries.slf4j_api
     compile libraries.maven_ant_tasks
     compile libraries.nekohtml
+    compile libraries.sshd
     runtime libraries.xbean //maven3 classes dependency
+    runtime "org.bouncycastle:bcprov-jdk15:1.46@jar"
 
     compile fileTree("$buildDir/libs/jarjar") {
         builtBy 'jarJarMaven3'
@@ -27,7 +29,7 @@ dependencies {
     testCompile libraries.groovy
 
     //this dependency is necessary to run IvySFtpResolverIntegrationTest on ibm jdk
-    integTestRuntime "org.bouncycastle:bcprov-jdk15:1.46@jar"
+    //integTestRuntime "org.bouncycastle:bcprov-jdk15:1.46@jar"
 }
 
 task jarJarMaven3(type: JarJar) {

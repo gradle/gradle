@@ -17,11 +17,10 @@ package org.gradle.api.internal.externalresource.transport.file;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
+import org.gradle.api.internal.externalresource.transport.AbstractRepositoryTransport;
 import org.gradle.api.internal.externalresource.transport.DefaultExternalResourceRepository;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -30,14 +29,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
-public class FileTransport implements RepositoryTransport {
-    private final String name;
-    private final RepositoryArtifactCache repositoryCacheManager;
+public class FileTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
 
     public FileTransport(String name, RepositoryArtifactCache repositoryCacheManager, TemporaryFileProvider temporaryFileProvider) {
-        this.name = name;
-        this.repositoryCacheManager = repositoryCacheManager;
+        super(name, repositoryCacheManager);
         repository = createRepository(temporaryFileProvider);
     }
 
@@ -50,19 +46,8 @@ public class FileTransport implements RepositoryTransport {
         return new DefaultExternalResourceRepository(name, connector, connector, connector, temporaryFileProvider, new NoOpCacheAwareExternalResourceAccessor(connector));
     }
 
-    public void configureCacheManager(ExternalResourceResolver resolver) {
-        resolver.setRepositoryCacheManager(repositoryCacheManager);
-    }
-
     public String convertToPath(URI uri) {
         return normalisePath(new File(uri).getAbsolutePath());
-    }
-
-    private String normalisePath(String path) {
-        if (path.endsWith("/")) {
-            return path;
-        }
-        return path + "/";
     }
 
     private static class NoOpCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {

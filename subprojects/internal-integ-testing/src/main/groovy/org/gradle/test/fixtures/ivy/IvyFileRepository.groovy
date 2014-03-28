@@ -15,16 +15,15 @@
  */
 package org.gradle.test.fixtures.ivy
 
-import org.apache.ivy.core.IvyPatternHelper
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.test.fixtures.file.TestFile
 
 class IvyFileRepository implements IvyRepository {
     final TestFile rootDir
+    final boolean m2Compatible
 
-    IvyFileRepository(TestFile rootDir) {
+    IvyFileRepository(TestFile rootDir, boolean m2Compatible = false) {
         this.rootDir = rootDir
+        this.m2Compatible = m2Compatible
     }
 
     URI getUri() {
@@ -69,9 +68,9 @@ class IvyFileRepository implements IvyRepository {
 
     private IvyFileModule createModule(String organisation, String module, String revision) {
         def revisionString = revision.toString()
-        def path = IvyPatternHelper.substitute(dirPattern, new ModuleRevisionId(new ModuleId(organisation, module), revisionString))
+        def path = M2CompatibleIvyPatternHelper.substitute(dirPattern, organisation, module, revision, m2Compatible)
         def moduleDir = rootDir.file(path)
-        return new IvyFileModule(ivyFilePattern, artifactFilePattern, moduleDir, organisation, module, revisionString)
+        return new IvyFileModule(ivyFilePattern, artifactFilePattern, moduleDir, organisation, module, revisionString, m2Compatible)
     }
 }
 

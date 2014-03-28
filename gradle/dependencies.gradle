@@ -150,3 +150,4 @@ libraries.jmock = [
     'cglib:cglib-nodep:2.2'
 ]
 libraries.gson = "com.google.code.gson:gson:2.2.4"
+libraries.sshd = "org.apache.sshd:sshd-core:0.10.0"
