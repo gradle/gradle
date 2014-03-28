@@ -29,7 +29,7 @@ class ConfigurationPerformanceTest extends AbstractPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9', '1.10', '1.11', 'last']
+        runner.targetVersions = ['1.0', '1.1', 'last']
 
         when:
         def result = runner.run()
@@ -40,8 +40,8 @@ class ConfigurationPerformanceTest extends AbstractPerformanceTest {
         where:
         testProject       | maxExecutionTimeRegression
         "small"           | millis(1000)
-        "multi"           | millis(1000)
+        "multi"           | millis(1200)
         "lotDependencies" | millis(800)
-        "manyProjects"    | millis(1200)
+        "manyProjects"    | millis(1500)
     }
 }
