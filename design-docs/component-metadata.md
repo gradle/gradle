@@ -140,6 +140,8 @@ A rule should declare that these extra attributes form an input to the rule, in 
 While this is perhaps not important for Ivy extra attributes, which are cheap to determine, this will be more important for
 Artifactory properties (see below).
 
+The ivy.xml `<info>` element also permits child elements with string values. Make these available via `IvyModuleDescriptor` as well.
+
 A medium-term goal is to sync the Component Metadata Rules DSL with the new general-purpose Rules DSL. So the same mechanism will be
 used for implementing rules to apply configuration to a native binary and rules to process custom metadata attributes. This story should
 simply attempt to introduce a DSL to declare such rules.
@@ -162,6 +164,7 @@ simply attempt to introduce a DSL to declare such rules.
 
 * Add a model for Ivy-specific module metadata and make this available via `ModuleVersionMetaData`
     * Include any extra attributes defined in the `<info>` element. Do not include the namespace qualifier.
+    * Include any name/value pairs defined as child elements of the `<info>` element. Do not include the namespace qualifier.
     * The actual values should already be available (and cached) via the underlying Ivy ModuleDescriptor
     * The API should assume that other metadata models may be present as well
 * For any rule that declares IvyModuleDescriptor as an input:
@@ -181,7 +184,6 @@ simply attempt to introduce a DSL to declare such rules.
 
 ### Open issues
 
-* The ivy.xml `<info>` element permits arbitrary child elements. Make these available via `IvyModuleDescriptor` as well.
 
 ## Use Artifactory properties to determine status of module
 
