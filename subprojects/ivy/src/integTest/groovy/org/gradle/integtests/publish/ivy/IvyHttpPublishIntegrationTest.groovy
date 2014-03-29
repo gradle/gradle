@@ -111,10 +111,10 @@ uploadArchives {
 
         and:
         server.authenticationScheme = authScheme
-        module.expectJarPut('testuser', 'password')
-        module.expectJarSha1Put('testuser', 'password')
-        module.expectIvyPut('testuser', 'password')
-        module.expectIvySha1Put('testuser', 'password')
+        module.jar.expectPut('testuser', 'password')
+        module.jar.sha1.expectPut('testuser', 'password')
+        module.ivy.expectPut('testuser', 'password')
+        module.ivy.sha1.expectPut('testuser', 'password')
 
         when:
         run 'uploadArchives'
@@ -280,10 +280,10 @@ uploadTools {
 """
 
         and:
-        module.expectJarPut('testuser', 'password')
-        module.expectJarSha1Put('testuser', 'password')
-        module.expectIvyPut('testuser', 'password')
-        module.expectIvySha1Put('testuser', 'password')
+        module.jar.expectPut('testuser', 'password')
+        module.jar.sha1.expectPut('testuser', 'password')
+        module.ivy.expectPut('testuser', 'password')
+        module.ivy.sha1.expectPut('testuser', 'password')
 
         when:
         run 'uploadTools'

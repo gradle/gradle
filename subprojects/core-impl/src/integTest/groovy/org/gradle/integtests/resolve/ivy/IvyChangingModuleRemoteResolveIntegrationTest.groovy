@@ -70,7 +70,7 @@ task retrieve(type: Copy) {
         module.ivy.sha1.expectGet()
         module.ivy.expectGet()
         module.jar.expectHead()
-        module.expectArtifactGet(name: 'other')
+        module.getArtifact(name: 'other').expectGet()
         moduleB.ivy.expectGet()
         moduleB.jar.expectGet()
 
@@ -255,7 +255,7 @@ task retrieve(type: Copy) {
         module.jar.expectHead()
         module.jar.sha1.expectGet()
         module.jar.expectGet()
-        module.expectArtifactGet(name: 'other')
+        module.getArtifact(name: 'other').expectGet()
 
         and: "We request 1.1 (changing) again, with zero expiry for dynamic revision cache"
         executer.withArguments("-PdoNotCacheChangingModules")
@@ -334,7 +334,7 @@ task retrieve(type: Copy) {
         module.jar.expectHead()
         module.jar.sha1.expectGet()
         module.jar.expectGet()
-        module.expectArtifactGet(name: 'other')
+        module.getArtifact(name: 'other').expectGet()
 
         and: "We request 1-CHANGING again"
         executer.withArguments()

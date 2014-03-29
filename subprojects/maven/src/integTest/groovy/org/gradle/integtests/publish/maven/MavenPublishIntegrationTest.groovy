@@ -17,6 +17,7 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.M2Installation
+import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
@@ -343,6 +344,8 @@ uploadArchives {
         def password = 'password'
         server.start()
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().version))
+        def repo = new MavenHttpRepository(server, mavenRepo)
+
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
 apply plugin: 'java'
@@ -352,7 +355,7 @@ version = '1.0'
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "http://localhost:${server.port}/repo") {
+            repository(url: "${repo.uri}") {
                authentication(userName: "${username}", password: "${password}")
             }
         }
@@ -363,28 +366,23 @@ uploadArchives {
         server.authenticationScheme = authScheme
 
         and:
-        def module = mavenRepo.module('org.test', 'root')
-        def moduleDir = module.moduleDir
-        moduleDir.mkdirs()
-        expectPublishArtifact(moduleDir, "/repo/org/test/root/1.0", "root-1.0.jar", username, password)
-        expectPublishArtifact(moduleDir, "/repo/org/test/root/1.0", "root-1.0.pom", username, password)
-        server.expectGetMissing("/repo/org/test/root/maven-metadata.xml")
-        expectPublishArtifact(moduleDir, "/repo/org/test/root", "maven-metadata.xml", username, password)
+        def module = repo.module('org.test', 'root')
+        module.artifact.expectPut(username, password)
+        module.artifact.sha1.expectPut(username, password)
+        module.artifact.md5.expectPut(username, password)
+        module.pom.expectPut(username, password)
+        module.pom.sha1.expectPut(username, password)
+        module.pom.md5.expectPut(username, password)
+        module.rootMetaData.expectGetMissing()
+        module.rootMetaData.expectPut(username, password)
+        module.rootMetaData.sha1.expectPut(username, password)
+        module.rootMetaData.md5.expectPut(username, password)
 
         then:
         succeeds 'uploadArchives'
 
-        and:
-        module.assertArtifactsPublished('root-1.0.pom', 'root-1.0.jar', 'maven-metadata.xml')
-
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
         // TODO: Does not work with DIGEST authentication
-    }
-
-    private def expectPublishArtifact(def moduleDir, def path, def name, def username, def password) {
-        server.expectPut("$path/$name", username, password, moduleDir.file("$name"))
-        server.expectPut("$path/${name}.md5", username, password, moduleDir.file("${name}.md5"))
-        server.expectPut("$path/${name}.sha1", username, password, moduleDir.file("${name}.sha1"))
     }
 }
