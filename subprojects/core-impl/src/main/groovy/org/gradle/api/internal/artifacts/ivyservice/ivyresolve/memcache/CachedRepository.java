@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
+// TODO:DAZ Investigate whether we need in-memory caching for localListModuleVersions(), listModuleVersions(), resolveModuleArtifacts()
 class CachedRepository implements LocalAwareModuleVersionRepository {
     final DependencyMetadataCache cache;
     final LocalAwareModuleVersionRepository delegate;
@@ -70,11 +71,7 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
     }
 
     public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        CachedModuleArtifactsKey key = new CachedModuleArtifactsKey(component.getId(), context.getId());
-        if (!cache.supplyModuleArtifacts(key, result)) {
-            delegate.resolveModuleArtifacts(component, context, result);
-            cache.newModuleArtifacts(key, result);
-        }
+        delegate.resolveModuleArtifacts(component, context, result);
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {

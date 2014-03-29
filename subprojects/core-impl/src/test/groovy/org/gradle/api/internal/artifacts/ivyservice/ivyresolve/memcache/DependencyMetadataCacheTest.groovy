@@ -16,15 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
 
@@ -123,38 +118,6 @@ class DependencyMetadataCacheTest extends Specification {
         then:
         !fromCache
         0 * result._
-    }
-
-    def "caches and supplies module artifacts"() {
-        final ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId("g", "m", "v")
-        def fooKey = new CachedModuleArtifactsKey(id, "context")
-        def fooArtifact = Stub(ModuleVersionArtifactMetaData)
-        def fooResult = new DefaultBuildableArtifactSetResolveResult()
-
-        def differentKey = new CachedModuleArtifactsKey(id, "otherContext")
-        def differentResult = Mock(BuildableArtifactSetResolveResult)
-
-        def anotherFooResult = Mock(BuildableArtifactSetResolveResult)
-
-        def fooSet = [fooArtifact] as Set
-
-        given:
-        fooResult.resolved(fooSet)
-        cache.newModuleArtifacts(fooKey, fooResult)
-
-        when:
-        def differentCached = cache.supplyModuleArtifacts(differentKey, differentResult)
-
-        then:
-        !differentCached
-        0 * differentResult._
-
-        when:
-        def fooCached = cache.supplyModuleArtifacts(fooKey, anotherFooResult)
-
-        then:
-        fooCached
-        1 * anotherFooResult.resolved(fooSet)
     }
 
     def "caches and supplies artifacts"() {
