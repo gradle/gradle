@@ -67,6 +67,48 @@ public class IdeaDependenciesProviderTest extends Specification {
         }.size() == 1
     }
 
+    def "dependency is excluded if added to minus configuration"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+
+        def dependenciesProvider = new IdeaDependenciesProvider()
+        def module = project.ideaModule.module // Mock(IdeaModule)
+        project.configurations.create('excluded')
+        module.offline = true
+
+        when:
+        project.dependencies.add('compile', project.files('lib/guava.jar'))
+        project.dependencies.add('excluded', project.files('lib/guava.jar'))
+        module.scopes.COMPILE.minus += project.configurations.getByName('excluded')
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        result.size() == 0
+    }
+
+    def "dependency is excluded if added to any minus configuration"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+
+        def dependenciesProvider = new IdeaDependenciesProvider()
+        def module = project.ideaModule.module // Mock(IdeaModule)
+        project.configurations.create('excluded1')
+        project.configurations.create('excluded2')
+        module.offline = true
+
+        when:
+        project.dependencies.add('compile', project.files('lib/guava.jar'))
+        project.dependencies.add('compile', project.files('lib/slf4j-api.jar'))
+        project.dependencies.add('excluded1', project.files('lib/guava.jar'))
+        project.dependencies.add('excluded2', project.files('lib/slf4j-api.jar'))
+        module.scopes.COMPILE.minus += project.configurations.getByName('excluded1')
+        module.scopes.COMPILE.minus += project.configurations.getByName('excluded2')
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        result.size() == 0
+    }
+
     def "compile dependency on child project"() {
         applyPluginToProjects()
         project.apply(plugin: 'java')

@@ -45,7 +45,7 @@ class MavenHttpModule implements MavenModule, HttpModule {
      * Adds an additional artifact to this module.
      * @param options Can specify any of: type or classifier
      */
-    HttpArtifact artifact(Map<String, ?> options) {
+    HttpArtifact artifact(Map<String, ?> options = [:]) {
         backingModule.artifact(options)
         return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
     }
@@ -83,6 +83,11 @@ class MavenHttpModule implements MavenModule, HttpModule {
 
     MavenHttpModule dependsOn(String group, String artifactId, String version) {
         backingModule.dependsOn(group, artifactId, version)
+        return this
+    }
+
+    MavenHttpModule dependsOn(String group, String artifactId, String version, String type) {
+        backingModule.dependsOn(group, artifactId, version, type)
         return this
     }
 

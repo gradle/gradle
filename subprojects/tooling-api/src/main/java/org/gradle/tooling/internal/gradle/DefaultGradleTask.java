@@ -26,7 +26,6 @@ public class DefaultGradleTask implements Serializable, TaskListingLaunchable {
     String name;
     String description;
     String displayName;
-    PartialGradleProject project;
 
     public String getPath() {
         return path;
@@ -64,16 +63,7 @@ public class DefaultGradleTask implements Serializable, TaskListingLaunchable {
         return this;
     }
 
-    public PartialGradleProject getProject() {
-        return project;
-    }
-
-    public DefaultGradleTask setProject(PartialGradleProject project) {
-        this.project = project;
-        return this;
-    }
-
-    public Set<String> getTasks() {
+    public Set<String> getTaskNames() {
         return Collections.singleton(getPath());
     }
 
@@ -81,6 +71,7 @@ public class DefaultGradleTask implements Serializable, TaskListingLaunchable {
     public String toString() {
         return "GradleTask{"
                 + "name='" + name + '\''
+                + " path='" + path + '\''
                 + '}';
     }
 }

@@ -15,21 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 /**
- * A wrapper around a {@link ModuleVersionRepository} that handles locking/unlocking the cache.
+ * A wrapper around a {@link org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository} presents a LocalAware interface
  */
-public class CacheLockingModuleVersionRepository implements LocalArtifactsModuleVersionRepository {
-    private final LocalArtifactsModuleVersionRepository repository;
-    private final CacheLockingManager cacheLockingManager;
+public class LocalArtifactsModuleVersionRepositoryAdapter implements LocalArtifactsModuleVersionRepository {
+    private final ModuleVersionRepository repository;
 
-    public CacheLockingModuleVersionRepository(LocalArtifactsModuleVersionRepository repository, CacheLockingManager cacheLockingManager) {
+    public LocalArtifactsModuleVersionRepositoryAdapter(ModuleVersionRepository repository) {
         this.repository = repository;
-        this.cacheLockingManager = cacheLockingManager;
     }
 
     public String getId() {
@@ -41,38 +41,24 @@ public class CacheLockingModuleVersionRepository implements LocalArtifactsModule
     }
 
     public void listModuleVersions(final DependencyMetaData dependency, final BuildableModuleVersionSelectionResolveResult result) {
-        cacheLockingManager.longRunningOperation(String.format("List %s using repository %s", dependency, getId()), new Runnable() {
-            public void run() {
-                repository.listModuleVersions(dependency, result);
-            }
-        });
+        repository.listModuleVersions(dependency, result);
     }
 
     public void getDependency(final DependencyMetaData dependency, final BuildableModuleVersionMetaDataResolveResult result) {
-        cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, getId()), new Runnable() {
-            public void run() {
-                repository.getDependency(dependency, result);
-            }
-        });
+        repository.getDependency(dependency, result);
     }
 
     public void localResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        repository.localResolveModuleArtifacts(component, context, result);
+        if (repository instanceof LocalArtifactsModuleVersionRepository) {
+            ((LocalArtifactsModuleVersionRepository) repository).localResolveModuleArtifacts(component, context, result);
+        }
     }
 
     public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
-        cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", context, component, getId()), new Runnable() {
-            public void run() {
-                repository.resolveModuleArtifacts(component, context, result);
-            }
-        });
+        repository.resolveModuleArtifacts(component, context, result);
     }
 
     public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-        cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, getId()), new Runnable() {
-            public void run() {
-                repository.resolveArtifact(artifact, moduleSource, result);
-            }
-        });
+        repository.resolveArtifact(artifact, moduleSource, result);
     }
 }

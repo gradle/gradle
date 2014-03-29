@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
+import org.gradle.test.fixtures.maven.HttpArtifact
 
 class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
     @Override
@@ -39,5 +40,16 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
         assert iml.component.orderEntry.library.SOURCES.root.size() == 0
 
         assert iml.component.orderEntry.library.JAVADOC.root.size() == 0
+    }
+
+    @Override
+    void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact) {
+        httpArtifact.expectHead()
+        httpArtifact.expectGet()
+    }
+
+    @Override
+    void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact) {
+        httpArtifact.expectGet()
     }
 }

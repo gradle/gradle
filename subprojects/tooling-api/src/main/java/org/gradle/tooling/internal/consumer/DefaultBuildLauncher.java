@@ -82,7 +82,7 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
             if (launchable instanceof Task) {
                 taskPaths.add(((Task) launchable).getPath());
             } else if (launchable instanceof TaskListingLaunchable) {
-                taskPaths.addAll(((TaskListingLaunchable) launchable).getTasks());
+                taskPaths.addAll(((TaskListingLaunchable) launchable).getTaskNames());
             } else if (!(launchable instanceof TaskSelector)) {
                 throw new GradleException("Only Task or TaskSelector instances are supported: "
                         + (launchable != null ? launchable.getClass() : "null"));

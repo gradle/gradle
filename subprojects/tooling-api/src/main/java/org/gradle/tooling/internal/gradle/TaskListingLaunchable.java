@@ -19,5 +19,5 @@ package org.gradle.tooling.internal.gradle;
 import java.util.Set;
 
 public interface TaskListingLaunchable {
-    Set<String> getTasks();
+    Set<String> getTaskNames();
 }

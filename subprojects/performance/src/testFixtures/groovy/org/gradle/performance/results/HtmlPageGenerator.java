@@ -35,10 +35,13 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                 .href("css/style.css")
                 .end();
         html.script()
-                .src("js/jquery.min-1.8.0.js")
+                .src("js/jquery.min-1.11.0.js")
                 .end();
         html.script()
                 .src("js/flot-0.8.1-min.js")
+                .end();
+        html.script()
+                .src("js/report.js")
                 .end();
     }
 

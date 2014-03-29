@@ -30,6 +30,7 @@ import org.gradle.plugins.ide.idea.model.IdeaModuleIml
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.gradle.plugins.ide.idea.model.IdeaWorkspace
 import org.gradle.plugins.ide.idea.model.PathFactory
+import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
@@ -158,13 +159,10 @@ class IdeaPlugin extends IdePlugin {
         project.ideaModule {
             module.conventionMapping.sourceDirs = { project.sourceSets.main.allSource.srcDirs as LinkedHashSet }
             module.conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.srcDirs as LinkedHashSet }
-            def configurations = project.configurations
-            module.scopes = [
-                    PROVIDED: [plus: [], minus: []],
-                    COMPILE: [plus: [configurations.compile], minus: []],
-                    RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
-                    TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
-            ]
+            module.scopes = [:]
+            for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
+                module.scopes.put(scope.name(), [plus: [], minus: []])
+            }
             module.conventionMapping.singleEntryLibraries = {
                 [
                         RUNTIME: project.sourceSets.main.output.dirs,

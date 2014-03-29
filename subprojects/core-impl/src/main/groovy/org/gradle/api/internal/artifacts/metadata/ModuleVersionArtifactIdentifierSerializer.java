@@ -13,61 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.metadata;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
-import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.MapSerializer;
 import org.gradle.messaging.serialize.Serializer;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+
+import static org.gradle.messaging.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class ModuleVersionArtifactIdentifierSerializer implements Serializer<ModuleVersionArtifactIdentifier> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
-    private final ModuleVersionIdentifierSerializer modIdSerializer = new ModuleVersionIdentifierSerializer();
+    private final MapSerializer<String, String> attributesSerializer = new MapSerializer<String, String>(STRING_SERIALIZER, STRING_SERIALIZER);
 
     public void write(Encoder encoder, ModuleVersionArtifactIdentifier value) throws Exception {
         DefaultModuleVersionArtifactIdentifier artifact = (DefaultModuleVersionArtifactIdentifier) value;
         componentIdentifierSerializer.write(encoder, artifact.getComponentIdentifier());
-        modIdSerializer.write(encoder, artifact.getModuleVersionIdentifier());
         IvyArtifactName ivyArtifactName = artifact.getName();
         encoder.writeString(ivyArtifactName.getName());
         encoder.writeString(ivyArtifactName.getType());
         encoder.writeNullableString(ivyArtifactName.getExtension());
-        Map<String, String> attributes = ivyArtifactName.getAttributes();
-        encoder.writeSmallInt(attributes.size());
-        for (Map.Entry<String, String> entry : attributes.entrySet()) {
-            encoder.writeString(entry.getKey());
-            encoder.writeString(entry.getValue());
-        }
+        attributesSerializer.write(encoder, ivyArtifactName.getAttributes());
     }
 
     public ModuleVersionArtifactIdentifier read(Decoder decoder) throws Exception {
-        ComponentIdentifier componentIdentifier = componentIdentifierSerializer.read(decoder);
-        ModuleVersionIdentifier moduleVersionIdentifier = modIdSerializer.read(decoder);
+        ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
         String artifactName = decoder.readString();
         String type = decoder.readString();
         String extension = decoder.readNullableString();
-        int attrCount = decoder.readSmallInt();
-        Map<String, String> attributes;
-        if (attrCount == 0) {
-            attributes = Collections.emptyMap();
-        } else {
-            attributes = new HashMap<String, String>(attrCount);
-            for (int i = 0; i < attrCount; i++) {
-                String key = decoder.readString();
-                String value = decoder.readString();
-                attributes.put(key, value);
-            }
-        }
-        return new DefaultModuleVersionArtifactIdentifier((ModuleComponentIdentifier) componentIdentifier, moduleVersionIdentifier, artifactName, type, extension, attributes);
+        Map<String, String> attributes = attributesSerializer.read(decoder);
+        return new DefaultModuleVersionArtifactIdentifier(componentIdentifier, DefaultModuleVersionIdentifier.newId(componentIdentifier), artifactName, type, extension, attributes);
     }
 }

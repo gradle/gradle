@@ -592,6 +592,19 @@
             </tr>
             <tr>
                 <td>
+                    <link linkend="nativeBinaries">
+                        <literal>cunit</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for running <ulink url="http://cunit.sourceforge.net">CUnit</ulink> tests.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <link linkend='jacoco_plugin'>
                         <literal>jacoco</literal>
                     </link>

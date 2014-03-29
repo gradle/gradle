@@ -25,12 +25,15 @@ import java.util.List;
 public class TestExecutionHistory {
     private final String name;
     private final List<String> versions;
+    private final List<String> branches;
     private final List<PerformanceResults> newestFirst;
     private List<PerformanceResults> oldestFirst;
+    private List<String> knownVersions;
 
-    public TestExecutionHistory(String name, List<String> versions, List<PerformanceResults> newestFirst) {
+    public TestExecutionHistory(String name, List<String> versions, List<String> branches, List<PerformanceResults> newestFirst) {
         this.name = name;
         this.versions = versions;
+        this.branches = branches;
         this.newestFirst = newestFirst;
     }
 
@@ -44,6 +47,20 @@ public class TestExecutionHistory {
 
     public List<String> getBaselineVersions() {
         return versions;
+    }
+
+    public List<String> getBranches() {
+        return branches;
+    }
+
+    public List<String> getKnownVersions() {
+        if (knownVersions == null) {
+            ArrayList<String> result = new ArrayList<String>();
+            result.addAll(versions);
+            result.addAll(branches);
+            knownVersions = result;
+        }
+        return knownVersions;
     }
 
     /**

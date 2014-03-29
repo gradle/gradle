@@ -97,7 +97,8 @@ public class ResolveIvyFactory {
             if (moduleVersionRepository.isLocal()) {
                 localAwareRepository = new LocalModuleVersionRepository(moduleVersionRepository, metadataProcessor);
             } else {
-                ModuleVersionRepository wrapperRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
+                LocalArtifactsModuleVersionRepository wrapperRepository = new LocalArtifactsModuleVersionRepositoryAdapter(moduleVersionRepository);
+                wrapperRepository = new CacheLockingModuleVersionRepository(wrapperRepository, cacheLockingManager);
                 wrapperRepository = startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
                 localAwareRepository = new CachingModuleVersionRepository(wrapperRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
                         cachePolicy, timeProvider, metadataProcessor, getModuleExtractor(moduleVersionRepository));

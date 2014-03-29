@@ -74,17 +74,17 @@ public class StartParameterResolutionOverride {
         }
     }
 
-    public ModuleVersionRepository overrideModuleVersionRepository(ModuleVersionRepository original) {
+    public LocalArtifactsModuleVersionRepository overrideModuleVersionRepository(LocalArtifactsModuleVersionRepository original) {
         if (startParameter.isOffline()) {
             return new OfflineModuleVersionRepository(original);
         }
         return original;
     }
 
-    private static class OfflineModuleVersionRepository implements ModuleVersionRepository {
-        private final ModuleVersionRepository original;
+    private static class OfflineModuleVersionRepository implements ModuleVersionRepository, LocalArtifactsModuleVersionRepository {
+        private final LocalArtifactsModuleVersionRepository original;
 
-        public OfflineModuleVersionRepository(ModuleVersionRepository original) {
+        public OfflineModuleVersionRepository(LocalArtifactsModuleVersionRepository original) {
             this.original = original;
         }
 
@@ -108,6 +108,10 @@ public class StartParameterResolutionOverride {
             result.failed(new ModuleVersionResolveException(dependency.getRequested(), "No cached version of %s available for offline mode."));
         }
 
+        public void localResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+            original.localResolveModuleArtifacts(component, context, result);
+        }
+
         public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
             result.failed(new ArtifactResolveException(component.getComponentId(), "No cached version available for offline mode"));
         }
@@ -115,6 +119,5 @@ public class StartParameterResolutionOverride {
         public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             result.failed(new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
         }
-
     }
 }

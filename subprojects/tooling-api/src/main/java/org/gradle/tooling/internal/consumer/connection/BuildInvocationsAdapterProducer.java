@@ -40,7 +40,7 @@ public class BuildInvocationsAdapterProducer extends AbstractModelProducer {
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }
             GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);
-            final DefaultBuildInvocations convert = new BuildInvocationsConverter().convert(gradleProject);
+            final DefaultBuildInvocations convert = new BuildInvocationsConverter().convert(gradleProject, adapter);
             return adapter.adapt(type, convert);
         }
         return delegate.produceModel(type, operationParameters);

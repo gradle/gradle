@@ -34,6 +34,10 @@ public class DefaultBuildableArtifactSetResolveResult implements BuildableArtifa
         this.failure = failure;
     }
 
+    public boolean hasResult() {
+        return artifacts != null || failure != null;
+    }
+
     public ArtifactResolveException getFailure() {
         return failure;
     }
@@ -51,7 +55,7 @@ public class DefaultBuildableArtifactSetResolveResult implements BuildableArtifa
     }
 
     private void assertHasResult() {
-        if (failure == null && artifacts == null) {
+        if (!hasResult()) {
             throw new IllegalStateException("No result has been specified.");
         }
     }

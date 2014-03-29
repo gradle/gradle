@@ -14,21 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.tooling.gradle;
+package org.gradle.performance.fixture;
 
-import org.gradle.tooling.internal.gradle.PartialGradleProject;
-import org.gradle.tooling.internal.impl.LaunchableGradleTask;
-
-public class LaunchableGradleProjectTask extends LaunchableGradleTask {
-    private PartialGradleProject project;
-
-
-    public PartialGradleProject getProject() {
-        return project;
-    }
-
-    public LaunchableGradleProjectTask setProject(PartialGradleProject project) {
-        this.project = project;
-        return this;
-    }
+public interface VersionResults {
+    MeasuredOperationList getResults();
 }

@@ -55,12 +55,12 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
     private final CachePolicy cachePolicy;
 
-    private final ModuleVersionRepository delegate;
+    private final LocalArtifactsModuleVersionRepository delegate;
     private final BuildCommencedTimeProvider timeProvider;
     private final ModuleMetadataProcessor metadataProcessor;
     private final Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor;
 
-    public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
+    public CachingModuleVersionRepository(LocalArtifactsModuleVersionRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                           ModuleArtifactsCache moduleArtifactsCache, CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                           CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
                                           ModuleMetadataProcessor metadataProcessor, Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor) {
@@ -197,8 +197,20 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     }
 
     public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), context.getId());
         final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
+
+        // First try to determine the artifacts locally (via module metadata): don't use the cache in this case
+        delegate.localResolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()), context, result);
+        if (result.hasResult()) {
+            return;
+        }
+
+        resolveAndCacheModuleArtifacts(component, context, result);
+    }
+
+    private void resolveAndCacheModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
+        ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), context.getId());
         BigInteger moduleDescriptorHash = cachedModuleSource.getDescriptorHash();
 
         if (cachedModuleArtifacts != null) {

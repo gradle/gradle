@@ -270,6 +270,22 @@ Source artifacts contained in a 'sources' configuration in ivy.xml will be now b
 
 ### Open issues
 
+* If the files defined by a ivy-specific scheme are not available, should we then use the maven convention to look for artifacts?
+  Or, for backward-compatibility should we first use the maven scheme, trying the ivy-specific scheme if not found?
+
+## Story: Source and javadoc artifacts are updated for maven snapshot based on configured cache expiry
+
+Currently the Artifact Query API relies on `detachedConfiguration`, which uses an unconfigurable ResolutionStrategy. This means that
+the source and javadoc for a changing module may not be updated when the corresponding artifact is updated.
+
+### Test cases
+
+Some test cases that are not directly related, but require this feature to be implemented:
+
+* Source and javadoc for Maven SNAPSHOT modules are updated when cacheChangingModulesFor 0, 'seconds' is applied to configuration containing module.
+* No requests for source and javadoc are made with build is executed with `--offline`, even when cache has expired
+* Can recover from a broken HTTP request by switching to use `--offline`.
+
 ## Story: Source and Javadoc artifacts are exposed for a local Java component
 
 TBD

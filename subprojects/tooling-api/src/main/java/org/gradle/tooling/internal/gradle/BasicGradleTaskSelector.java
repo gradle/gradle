@@ -59,7 +59,7 @@ public class BasicGradleTaskSelector implements TaskSelector, TaskListingLauncha
         return this;
     }
 
-    public Set<String> getTasks() {
+    public Set<String> getTaskNames() {
         return tasks;
     }
 

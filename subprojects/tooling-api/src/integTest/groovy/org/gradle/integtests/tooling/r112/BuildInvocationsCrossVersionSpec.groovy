@@ -22,6 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
+import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.GradleTask
 import org.gradle.tooling.model.Launchable
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.TaskSelector
@@ -100,7 +102,6 @@ project(':b:c') {
 
         then:
         result.result.assertTasksExecuted(':b:c:t1')
-        result.result.assertTaskNotExecuted(':t1')
 
         when:
         BuildInvocations rootProjectSelectors = withConnection { connection ->
@@ -123,13 +124,53 @@ project(':b:c') {
             connection.getModel(BuildInvocations)
         }
         TaskSelector selector = model.taskSelectors.find { TaskSelector it ->
-            it.name == 't1' && it.description.startsWith(':b:') && !it.description.startsWith(':b:c:') }
+            it.name == 't1'
+        }
         def result = withBuild { BuildLauncher it ->
             it.forLaunchables(selector)
         }
 
         then:
-        result.result.assertTasksExecuted(':b:c:t1')
+        result.result.executedTasks as Set == [':t1', ':b:c:t1'] as Set
+    }
+
+    @TargetGradleVersion(">=1.0-milestone-5")
+    def "build task selectors from connection in specified order"() {
+        when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
+        BuildInvocations model = withConnection { connection ->
+            connection.getModel(BuildInvocations)
+        }
+        TaskSelector selectorT1 = model.taskSelectors.find {  it.name == 't1' }
+        TaskSelector selectorT2 = model.taskSelectors.find { it.name == 't2' }
+        def result = withBuild { BuildLauncher it ->
+            it.forLaunchables(selectorT1, selectorT2)
+        }
+        def lines = result.result.output.readLines()
+        def t1 = lines.indexOf(':t1')
+        def bt2 = lines.indexOf(':b:t2')
+        def bct1 = lines.indexOf(':b:c:t1')
+        def bct2 = lines.indexOf(':b:c:t2')
+        then:
+        t1 < bt2
+        bct1 < bt2
+        t1 < bct2
+        bct1 < bct2
+
+        when:
+        result = withBuild { BuildLauncher it ->
+            it.forLaunchables(selectorT2, selectorT1)
+        }
+        lines = result.result.output.readLines()
+        t1 = lines.indexOf(':t1')
+        bt2 = lines.indexOf(':b:t2')
+        bct1 = lines.indexOf(':b:c:t1')
+        bct2 = lines.indexOf(':b:c:t2')
+        then:
+        t1 > bt2
+        bct1 > bt2
+        t1 > bct2
+        bct1 > bct2
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")
@@ -145,20 +186,6 @@ project(':b:c') {
         }
         then:
         selectors*.name as Set == ['t1', 't2', 't3'] as Set
-
-        when:
-        selectors = model.taskSelectors.findAll { TaskSelector it ->
-            it.description.startsWith(':b:') && !it.description.startsWith(':b:c:')
-        }
-        then:
-        selectors*.name as Set == ['t1', 't2', 't3'] as Set
-
-        when:
-        selectors = model.taskSelectors.findAll { TaskSelector it ->
-            it.description.startsWith(':b:c:')
-        }
-        then:
-        selectors*.name as Set == ['t1', 't2'] as Set
     }
 
     @TargetGradleVersion("<1.0-milestone-5")
@@ -216,37 +243,137 @@ project(':b:c') {
             connection.getModel(BuildInvocations)
         }
         Task task = model.tasks.find { Task it ->
-            it.name == 't2' && it.path == ':b:t2' }
+            it.name == 't1'
+        }
         def result = withBuild { BuildLauncher it ->
             it.forLaunchables(task)
         }
 
         then:
-        result.result.assertTasksExecuted(':b:t2')
+        result.result.assertTasksExecuted(':t1')
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")
-    def "can request tasks for project"() {
+    def "build tasks Launchables in order"() {
+        when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
+        GradleProject model = withConnection { connection ->
+            connection.getModel(GradleProject)
+        }
+        GradleTask taskT1 = model.tasks.find { it.name == 't1' }
+        GradleTask taskBT2 = model.findByPath(':b').tasks.find { it.name == 't2' }
+        GradleTask taskBCT1 = model.findByPath(':b:c').tasks.find { it.name == 't1' }
+        def result = withBuild { BuildLauncher it ->
+            it.forLaunchables(taskT1, taskBT2, taskBCT1)
+        }
+        def lines = result.result.output.readLines()
+        def t1 = lines.indexOf(':t1')
+        def bt2 = lines.indexOf(':b:t2')
+        def bct1 = lines.indexOf(':b:c:t1')
+        then:
+        result.result.assertTasksExecuted(':t1', ':b:t2', ':b:c:t1')
+        t1 < bt2
+        bt2 < bct1
+
+        when:
+        result = withBuild { BuildLauncher it ->
+            it.forLaunchables(taskBCT1, taskBT2, taskT1)
+        }
+        lines = result.result.output.readLines()
+        t1 = lines.indexOf(':t1')
+        bt2 = lines.indexOf(':b:t2')
+        bct1 = lines.indexOf(':b:c:t1')
+        then:
+        result.result.assertTasksExecuted(':b:c:t1', ':b:t2', ':t1')
+        bct1 < bt2
+        bt2 < t1
+    }
+
+    @TargetGradleVersion(">=1.12")
+    def "build tasks and selectors in order"() {
+        when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
+        GradleProject model = withConnection { connection ->
+            connection.getModel(GradleProject)
+        }
+        GradleTask taskT1 = model.tasks.find { it.name == 't1' }
+        BuildInvocations bSelectors = withConnection { connection ->
+            connection.action(new FetchTaskSelectorsBuildAction('b')).run()
+        }
+        TaskSelector selectorBT1 = bSelectors.taskSelectors.find { it.name == 't1' }
+        TaskSelector selectorBT3 = bSelectors.taskSelectors.find { it.name == 't3' }
+        def result = withBuild { BuildLauncher it ->
+            it.forLaunchables(selectorBT1, selectorBT3, taskT1)
+        }
+        then:
+        result.result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
+    }
+
+    @TargetGradleVersion(">=1.0-milestone-5")
+    def "build tasks and selectors in order cross version"() {
+        when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
+        GradleProject model = withConnection { connection ->
+            connection.getModel(GradleProject)
+        }
+        GradleTask taskT1 = model.tasks.find { it.name == 't1' }
+        GradleTask taskBT2 = model.findByPath(':b').tasks.find { it.name == 't2' }
+        BuildInvocations rootSelectors = withConnection { connection ->
+            connection.getModel(BuildInvocations)
+        }
+        TaskSelector selectorT1 = rootSelectors.taskSelectors.find { it.name == 't1' }
+        TaskSelector selectorT2 = rootSelectors.taskSelectors.find { it.name == 't2' }
+        def result = withBuild { BuildLauncher it ->
+            it.forLaunchables(taskT1, selectorT1, taskBT2, selectorT2)
+        }
+        then:
+        result.result.assertTasksExecuted(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
+    }
+
+    @TargetGradleVersion(">=1.12")
+    def "build fails with selectors from different projects"() {
+        when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
+        BuildInvocations rootSelectors = withConnection { connection ->
+            connection.action(new FetchTaskSelectorsBuildAction('test')).run()
+        }
+        BuildInvocations bSelectors = withConnection { connection ->
+            connection.action(new FetchTaskSelectorsBuildAction('b')).run()
+        }
+        TaskSelector selectorT1 = rootSelectors.taskSelectors.find { it.name == 't1' }
+        TaskSelector selectorBT1 = bSelectors.taskSelectors.find { it.name == 't1' }
+        TaskSelector selectorBT3 = bSelectors.taskSelectors.find { it.name == 't3' }
+        withBuild { BuildLauncher it ->
+            it.forLaunchables(selectorBT1, selectorBT3, selectorT1)
+        }
+        then:
+        UnsupportedBuildArgumentException e = thrown()
+        e.message.contains 'Only selector from the same Gradle project can be built.'
+    }
+
+    @TargetGradleVersion(">=1.0-milestone-5")
+    def "can request tasks for root project"() {
+        // TODO make sure it is for root project if default project is different
+
         given:
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
         }
 
         expect:
-        model.tasks.count { it.name != 'setupBuild' } == 5
+        model.tasks.count { it.name != 'setupBuild' } == 1
 
         when:
-        def tasks = model.tasks.findAll { Task it ->
-            it.path.startsWith(':b:') && !it.path.startsWith(':b:c:')
-        }
+        def task = model.tasks.find { Task it -> it.name != 'setupBuild' }
+
         then:
-        tasks*.name as Set == ['t2', 't3'] as Set
+        task.name == 't1'
+        task.path == ':t1'
 
         when:
-        tasks = model.tasks.findAll { Task it ->
-            it.path.startsWith(':b:c:')
-        }
+        task.project
+
         then:
-        tasks*.name as Set == ['t1', 't2'] as Set
+        UnsupportedMethodException e = thrown()
     }
 }

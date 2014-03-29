@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
-import org.gradle.plugins.ide.internal.tooling.gradle.DefaultGradleProject;
+import org.gradle.tooling.internal.impl.DefaultGradleProject;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;

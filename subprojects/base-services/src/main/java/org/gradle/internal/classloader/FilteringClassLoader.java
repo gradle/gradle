@@ -28,7 +28,6 @@ import java.util.*;
  * packages and resources are visible.
  */
 public class FilteringClassLoader extends ClassLoader implements ClassLoaderHierarchy {
-    private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
     private static final ClassLoader EXT_CLASS_LOADER;
     private static final Set<String> SYSTEM_PACKAGES = new HashSet<String>();
     private final Set<String> packageNames = new HashSet<String>();
@@ -40,9 +39,6 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     static {
         EXT_CLASS_LOADER = ClassLoader.getSystemClassLoader().getParent();
-        for (ClassLoader cl = EXT_CLASS_LOADER; cl != null; cl = cl.getParent()) {
-            SYSTEM_CLASS_LOADERS.add(cl);
-        }
         JavaMethod<ClassLoader, Package[]> method = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
         Package[] systemPackages = method.invoke(EXT_CLASS_LOADER);
         for (Package p : systemPackages) {
@@ -216,49 +212,6 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     public static class Spec extends ClassLoaderSpec {
 
-        public static class Builder {
-            private final Set<String> packageNames = new HashSet<String>();
-            private final Set<String> packagePrefixes = new HashSet<String>();
-            private final Set<String> resourcePrefixes = new HashSet<String>();
-            private final Set<String> resourceNames = new HashSet<String>();
-            private final Set<String> classNames = new HashSet<String>();
-            private final Set<String> disallowedClassNames = new HashSet<String>();
-
-            public Builder packageNames(String... names) {
-                packageNames.addAll(Arrays.asList(names));
-                return this;
-            }
-
-            public Builder packagePrefixes(String... names) {
-                packagePrefixes.addAll(Arrays.asList(names));
-                return this;
-            }
-
-            public Builder resourcePrefixes(String... names) {
-                resourcePrefixes.addAll(Arrays.asList(names));
-                return this;
-            }
-
-            public Builder resourceNames(String... names) {
-                resourceNames.addAll(Arrays.asList(names));
-                return this;
-            }
-
-            public Builder classNames(String... names) {
-                classNames.addAll(Arrays.asList(names));
-                return this;
-            }
-
-            public Builder disallowedClassNames(String... names) {
-                disallowedClassNames.addAll(Arrays.asList(names));
-                return this;
-            }
-
-            public Spec build() {
-                return new Spec(classNames, packageNames, packagePrefixes, resourcePrefixes, resourceNames, disallowedClassNames);
-            }
-        }
-
         final Set<String> packageNames;
         final Set<String> packagePrefixes;
         final Set<String> resourcePrefixes;
@@ -266,7 +219,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         final Set<String> classNames;
         final Set<String> disallowedClassNames;
 
-        public Spec(Set<String> classNames, Set<String> packageNames, Set<String> packagePrefixes, Set<String> resourcePrefixes, Set<String> resourceNames, Set<String> disallowedClassNames) {
+        public Spec(Collection<String> classNames, Collection<String> packageNames, Collection<String> packagePrefixes, Collection<String> resourcePrefixes, Collection<String> resourceNames, Collection<String> disallowedClassNames) {
             this.classNames = new HashSet<String>(classNames);
             this.packageNames = new HashSet<String>(packageNames);
             this.packagePrefixes = new HashSet<String>(packagePrefixes);

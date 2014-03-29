@@ -119,25 +119,32 @@ task testReport(type: TestReport) {
         file("src/test/java/org/gradle/testing/UnitTest.java") << """
 $testFilePrelude
 public class UnitTest {
-    @Test public void foo() {}
+    @Test public void foo() {
+        System.out.println("org.gradle.testing.UnitTest#foo");
+    }
 }
 """
         file("src/test/java/org/gradle/testing/SuperTest.java") << """
 $testFilePrelude
 public class SuperTest {
     @Category(SuperClassTests.class) @Test public void failing() {
+        System.out.println("org.gradle.testing.SuperTest#failing");
         fail("failing test");
     }
-    @Category(SuperClassTests.class) @Test public void passing() {}
+    @Category(SuperClassTests.class) @Test public void passing() {
+        System.out.println("org.gradle.testing.SuperTest#passing");
+    }
 }
 """
         file("src/test/java/org/gradle/testing/SubTest.java") << """
 $testFilePrelude
 public class SubTest {
     @Category(SubClassTests.class) @Test public void onlySub() {
+        System.out.println("org.gradle.testing.SubTest#onlySub");
         assertEquals("sub", System.getProperty("category"));
     }
     @Category(SubClassTests.class) @Test public void passing() {
+        System.out.println("org.gradle.testing.SubTest#passing");
     }
 }
 """
@@ -157,10 +164,12 @@ public class SubClassTests extends SuperClassTests {
 
         then:
         def htmlReport = new HtmlTestExecutionResult(testDirectory, 'build/reports/allTests')
-        htmlReport.testClass("org.gradle.testing.UnitTest").assertTestCount(1, 0, 0).assertTestPassed("foo")
+        htmlReport.testClass("org.gradle.testing.UnitTest").assertTestCount(1, 0, 0).assertTestPassed("foo").assertStdout(equalTo('org.gradle.testing.UnitTest#foo\n'))
         htmlReport.testClass("org.gradle.testing.SuperTest").assertTestCount(2, 1, 0).assertTestPassed("passing")
                 .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing test'))
+                .assertStdout(allOf(containsString('org.gradle.testing.SuperTest#failing\n'), containsString('org.gradle.testing.SuperTest#passing\n')))
         htmlReport.testClass("org.gradle.testing.SubTest").assertTestCount(4, 1, 0).assertTestPassed("passing") // onlySub is passing once and failing once
+                .assertStdout(allOf(containsString('org.gradle.testing.SubTest#passing\n'), containsString('org.gradle.testing.SubTest#onlySub\n')))
     }
 
     @Issue("http://issues.gradle.org//browse/GRADLE-2821")

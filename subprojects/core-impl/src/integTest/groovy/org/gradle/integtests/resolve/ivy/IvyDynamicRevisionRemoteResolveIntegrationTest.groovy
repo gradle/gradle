@@ -718,6 +718,7 @@ dependencies {
 
         then:
         fails "checkDeps"
+        failure.assertHasCause("Could not find any version that matches group:projectA:2.+.")
 
         when:
         def projectA2 = ivyHttpRepo.module("group", "projectA", "2.2").publish()

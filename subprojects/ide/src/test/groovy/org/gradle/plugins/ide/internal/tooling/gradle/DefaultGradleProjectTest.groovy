@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.internal.tooling.gradle
 
+import org.gradle.tooling.internal.impl.DefaultGradleProject
 import spock.lang.Specification
 
 class DefaultGradleProjectTest extends Specification {

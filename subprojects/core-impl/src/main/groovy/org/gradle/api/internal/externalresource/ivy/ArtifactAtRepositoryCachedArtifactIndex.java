@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.externalresource.ivy;
 
-import org.gradle.api.internal.artifacts.ModuleVersionArtifactIdentifierSerializer;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;

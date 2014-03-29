@@ -27,6 +27,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
+import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -38,6 +40,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
+import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
@@ -56,7 +59,7 @@ import java.util.*;
 
 import static org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache.ExternalResourceDownloader;
 
-public abstract class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleVersionRepository {
+public abstract class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleVersionRepository, LocalArtifactsModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final MetaDataParser metaDataParser;
@@ -255,30 +258,59 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return getMetaDataArtifactFor(DefaultModuleVersionIdentifier.newId(dependency.getDescriptor().getDependencyRevisionId()));
     }
 
+    public void localResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        doResolveModuleArtifacts((ModuleVersionMetaData) component, context, result, true);
+    }
+
     public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        doResolveModuleArtifacts((ModuleVersionMetaData) component, context, result, false);
+    }
+
+    private void doResolveModuleArtifacts(ModuleVersionMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result, boolean localOnly) {
         try {
-            ModuleVersionMetaData moduleVersion = (ModuleVersionMetaData) component;
-            Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
             if (context instanceof ConfigurationResolveContext) {
                 String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
-                artifacts.addAll(component.getConfiguration(configurationName).getArtifacts());
-
-                // See if there are any optional artifacts for this module
-                artifacts.addAll(getOptionalMainArtifacts(moduleVersion));
+                ConfigurationMetaData configuration = component.getConfiguration(configurationName);
+                resolveConfigurationArtifacts(component, configuration, result, localOnly);
             } else {
                 Class<? extends SoftwareArtifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
-                artifacts.addAll(getTypedArtifacts(moduleVersion, artifactType));
+                if (artifactType == ComponentMetaDataArtifact.class) {
+                    resolveMetaDataArtifacts(component, result, localOnly);
+                } else if (artifactType == JvmLibraryJavadocArtifact.class) {
+                    resolveJavadocArtifacts(component, result, localOnly);
+                } else if (artifactType == JvmLibrarySourcesArtifact.class) {
+                    resolveSourceArtifacts(component, result, localOnly);
+                } else {
+                    throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
+                }
             }
-
-            result.resolved(artifacts);
         } catch (Exception e) {
             result.failed(new ArtifactResolveException(component.getComponentId(), e));
         }
     }
 
-    protected abstract Set<? extends ComponentArtifactMetaData> getTypedArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType);
+    protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result, boolean localOnly) {
+        result.resolved(configuration.getArtifacts());
+    }
 
-    protected abstract Set<? extends ComponentArtifactMetaData> getOptionalMainArtifacts(ModuleVersionMetaData module);
+    protected void resolveMetaDataArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result, boolean localOnly) {
+        ModuleVersionArtifactMetaData artifact = getMetaDataArtifactFor(module.getId());
+        if (artifact != null) {
+            result.resolved(ImmutableSet.of(artifact));
+        }
+    }
+
+    protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result, boolean localOnly) {
+        if (!localOnly) {
+            result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
+        }
+    }
+
+    protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result, boolean localOnly) {
+        if (!localOnly) {
+            result.resolved(findOptionalArtifacts(module, "source", "sources"));
+        }
+    }
 
     protected Set<ModuleVersionArtifactMetaData> findOptionalArtifacts(ModuleVersionMetaData module, String type, String classifier) {
         Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);

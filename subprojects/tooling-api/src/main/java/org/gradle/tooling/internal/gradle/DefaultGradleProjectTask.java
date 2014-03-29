@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+package org.gradle.tooling.internal.gradle;
 
-import java.util.Collection;
+public class DefaultGradleProjectTask extends DefaultGradleTask {
+    PartialGradleProject project;
 
-public interface BuildableArtifactSetResolveResult extends ArtifactSetResolveResult {
-    void resolved(Collection<? extends ComponentArtifactMetaData> artifacts);
+    public PartialGradleProject getProject() {
+        return project;
+    }
 
-    void failed(ArtifactResolveException failure);
-
-    boolean hasResult();
+    public DefaultGradleProjectTask setProject(PartialGradleProject project) {
+        this.project = project;
+        return this;
+    }
 }

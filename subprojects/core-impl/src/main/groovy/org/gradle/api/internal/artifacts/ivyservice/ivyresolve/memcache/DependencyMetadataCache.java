@@ -18,20 +18,16 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 class DependencyMetadataCache {
     private final Map<ModuleVersionSelector, CachedModuleVersionResult> localMetaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
     private final Map<ModuleVersionSelector, CachedModuleVersionResult> metaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
-    private final Map<CachedModuleArtifactsKey, Set<ComponentArtifactMetaData>> moduleArtifacts = new HashMap<CachedModuleArtifactsKey, Set<ComponentArtifactMetaData>>();
     private final Map<ComponentArtifactIdentifier, File> artifacts = new HashMap<ComponentArtifactIdentifier, File>();
     private DependencyMetadataCacheStats stats;
 
@@ -69,21 +65,6 @@ class DependencyMetadataCache {
         CachedModuleVersionResult cachedResult = new CachedModuleVersionResult(result);
         if (cachedResult.isCacheable()) {
             map.put(requested, cachedResult);
-        }
-    }
-
-    public boolean supplyModuleArtifacts(CachedModuleArtifactsKey key, BuildableArtifactSetResolveResult result) {
-        Set<ComponentArtifactMetaData> artifacts = moduleArtifacts.get(key);
-        if (artifacts != null) {
-            result.resolved(artifacts);
-            return true;
-        }
-        return false;
-    }
-
-    public void newModuleArtifacts(CachedModuleArtifactsKey key, BuildableArtifactSetResolveResult result) {
-        if (result.getFailure() == null) {
-            moduleArtifacts.put(key, result.getArtifacts());
         }
     }
 

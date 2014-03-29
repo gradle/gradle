@@ -57,7 +57,7 @@ public class IdeaDependenciesProvider {
      * Applied in order: if a dependency is found in all listed configurations it is provided as
      * a dependency in given scope(s).
      */
-    Map<GeneratedIdeaScope, List<IdeaScopeMappingRule>> scopeMappings = new EnumMap(GeneratedIdeaScope.class);
+    Map<GeneratedIdeaScope, List<IdeaScopeMappingRule>> scopeMappings = new EnumMap<GeneratedIdeaScope, List<IdeaScopeMappingRule>>(GeneratedIdeaScope.class);
 
     public IdeaDependenciesProvider() {
         this(new IdeDependenciesExtractor());
@@ -155,6 +155,9 @@ public class IdeaDependenciesProvider {
         Set<Dependency> dependencies = new LinkedHashSet<Dependency>();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             Map<String, Collection<Configuration>> plusMinusConfigurations = ideaModule.getScopes().get(scope.name());
+            if (plusMinusConfigurations == null) {
+                continue;
+            }
             Collection<Configuration> minusConfigurations = plusMinusConfigurations != null ? plusMinusConfigurations.get("minus") : null;
             Collection<String> minusConfigurationNames = minusConfigurations != null
                     ? Lists.newArrayList(Iterables.transform(
@@ -224,6 +227,7 @@ public class IdeaDependenciesProvider {
     List<IdeDependencyKey<?, Dependency>> extractDependencies(Multimap<IdeDependencyKey<?, Dependency>, String> dependenciesToConfigs,
                             Collection<String> configurations, Collection<String> minusConfigurations) {
         List<IdeDependencyKey<?, Dependency>> deps = new ArrayList<IdeDependencyKey<?, Dependency>>();
+        List<IdeDependencyKey<?, Dependency>> minusDeps = new ArrayList<IdeDependencyKey<?, Dependency>>();
         for (IdeDependencyKey<?, Dependency> dependencyKey : dependenciesToConfigs.keySet()) {
             if (dependenciesToConfigs.get(dependencyKey).containsAll(configurations)) {
                 boolean isInMinus = false;
@@ -235,10 +239,12 @@ public class IdeaDependenciesProvider {
                 }
                 if (!isInMinus) {
                     deps.add(dependencyKey);
+                } else {
+                    minusDeps.add(dependencyKey);
                 }
             }
         }
-        for (IdeDependencyKey<?, Dependency> key : deps) {
+        for (IdeDependencyKey<?, Dependency> key : Iterables.concat(deps, minusDeps)) {
             dependenciesToConfigs.removeAll(key);
         }
         return deps;

@@ -80,7 +80,6 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         checkArtifactsResolvedAndCached()
     }
 
-    // TODO:DAZ Test for regular cache expiry, once it can be configured
     def "fetches missing snapshot artifacts with --refresh-dependencies"() {
         def snapshotModule = repo.module("some.group", "some-artifact", "1.0-SNAPSHOT")
         def snapshotSources = snapshotModule.artifact(classifier: "sources")

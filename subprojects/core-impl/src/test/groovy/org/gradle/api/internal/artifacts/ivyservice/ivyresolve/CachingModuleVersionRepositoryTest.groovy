@@ -18,10 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
@@ -31,7 +35,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class CachingModuleVersionRepositoryTest extends Specification {
-    def realRepo = Stub(ModuleVersionRepository) {
+    def realRepo = Stub(LocalArtifactsModuleVersionRepository) {
         getId() >> "repo-id"
     }
     def moduleResolutionCache = Stub(ModuleVersionsCache)
@@ -74,5 +78,24 @@ class CachingModuleVersionRepositoryTest extends Specification {
 
         where:
         lastModified << [new Date(), null]
+    }
+
+    def "does not use cache when artifact set can be determined locally"() {
+        def component = Mock(ComponentMetaData)
+        def source = Mock(ModuleSource)
+        def cachingSource = new CachingModuleVersionRepository.CachingModuleSource(BigInteger.ONE, false, source)
+        def context = Mock(ArtifactResolveContext)
+        def result = new DefaultBuildableArtifactSetResolveResult()
+
+        when:
+        repo.resolveModuleArtifacts(component, context, result)
+
+        then:
+        1 * component.getSource() >> cachingSource
+        1 * component.withSource(source) >> component
+        realRepo.localResolveModuleArtifacts(component, context, result) >> {
+            result.resolved([Mock(ComponentArtifactMetaData)])
+        }
+        0 * _
     }
 }

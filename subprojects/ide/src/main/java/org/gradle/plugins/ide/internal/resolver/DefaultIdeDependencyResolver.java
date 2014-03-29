@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal.resolver;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -29,7 +30,10 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     /**
@@ -41,13 +45,12 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      */
     public List<IdeProjectDependency> getIdeProjectDependencies(Configuration configuration, Project project) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
-        List<ResolvedDependencyResult> resolvedDependencies = findAllResolvedDependencyResults(result.getRoot().getDependencies());
-        List<ResolvedComponentResult> projectComponents = findAllProjectComponents(resolvedDependencies);
+        List<ResolvedComponentResult> projectComponents = findAllResolvedDependencyResults(result.getRoot().getDependencies(), ProjectComponentIdentifier.class);
 
         List<IdeProjectDependency> ideProjectDependencies = new ArrayList<IdeProjectDependency>();
 
-        for(ResolvedComponentResult projectComponent : projectComponents) {
-            Project resolvedProject = project.project(((ProjectComponentIdentifier)projectComponent.getId()).getProjectPath());
+        for (ResolvedComponentResult projectComponent : projectComponents) {
+            Project resolvedProject = project.project(((ProjectComponentIdentifier) projectComponent.getId()).getProjectPath());
             ideProjectDependencies.add(new IdeProjectDependency(configuration, resolvedProject));
         }
 
@@ -55,60 +58,24 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     }
 
     /**
-     * Finds all resolved dependency results.
+     * Finds all resolved components of the given type from the given set of dependency edges.
      *
      * @param dependencies Dependencies
      * @return Resolved dependency results
      */
-    private List<ResolvedDependencyResult> findAllResolvedDependencyResults(Set<? extends DependencyResult> dependencies) {
-        List<ResolvedDependencyResult> resolvedDependencyResults = new ArrayList<ResolvedDependencyResult>();
+    private List<ResolvedComponentResult> findAllResolvedDependencyResults(Set<? extends DependencyResult> dependencies, Class<? extends ComponentIdentifier> type) {
+        List<ResolvedComponentResult> matches = new ArrayList<ResolvedComponentResult>();
 
-        for(DependencyResult dependencyResult : dependencies) {
-            if(dependencyResult instanceof ResolvedDependencyResult) {
-                resolvedDependencyResults.add((ResolvedDependencyResult)dependencyResult);
+        for (DependencyResult dependencyResult : dependencies) {
+            if (dependencyResult instanceof ResolvedDependencyResult) {
+                ResolvedDependencyResult resolvedResult = (ResolvedDependencyResult) dependencyResult;
+                if (type.isInstance(resolvedResult.getSelected().getId())) {
+                    matches.add(resolvedResult.getSelected());
+                }
             }
         }
 
-        return resolvedDependencyResults;
-    }
-
-    /**
-     * Finds all resolved module dependency results.
-     *
-     * @param dependencies Dependencies
-     * @return Resolved module dependency results
-     */
-    private List<ResolvedDependencyResult> findAllResolvedModuleDependencies(Set<? extends DependencyResult> dependencies) {
-        List<ResolvedDependencyResult> resolvedDependencyResults = findAllResolvedDependencyResults(dependencies);
-        List<ResolvedDependencyResult> resolvedModuleDependencyResults = new ArrayList<ResolvedDependencyResult>();
-
-        for(ResolvedDependencyResult resolvedDependencyResult : resolvedDependencyResults) {
-            if(resolvedDependencyResult.getSelected().getId() instanceof ModuleComponentIdentifier) {
-                resolvedModuleDependencyResults.add(resolvedDependencyResult);
-            }
-        }
-
-        return resolvedModuleDependencyResults;
-    }
-
-    /**
-     * Finds all project components.
-     *
-     * @param resolvedDependencies Resolved dependencies
-     * @return Project components
-     */
-    private List<ResolvedComponentResult> findAllProjectComponents(List<ResolvedDependencyResult> resolvedDependencies) {
-        List<ResolvedComponentResult> projectComponents = new ArrayList<ResolvedComponentResult>();
-
-        for(ResolvedDependencyResult resolvedDependencyResult : resolvedDependencies) {
-            ResolvedComponentResult selected = resolvedDependencyResult.getSelected();
-
-            if(selected.getId() instanceof ProjectComponentIdentifier) {
-                projectComponents.add(selected);
-            }
-        }
-
-        return projectComponents;
+        return matches;
     }
 
     /**
@@ -121,7 +88,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         List<ComponentSelector> componentSelectors = getUnresolvedComponentSelectors(configuration);
         List<UnresolvedIdeRepoFileDependency> unresolvedIdeRepoFileDependencies = new ArrayList<UnresolvedIdeRepoFileDependency>();
 
-        for(ComponentSelector componentSelector : componentSelectors) {
+        for (ComponentSelector componentSelector : componentSelectors) {
             UnresolvedIdeRepoFileDependency unresolvedIdeRepoFileDependency = new UnresolvedIdeRepoFileDependency(configuration, new File(unresolvedFileName(componentSelector)));
             unresolvedIdeRepoFileDependencies.add(unresolvedIdeRepoFileDependency);
         }
@@ -147,14 +114,14 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      */
     public List<IdeExtendedRepoFileDependency> getIdeRepoFileDependencies(Configuration configuration) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
-        List<ResolvedDependencyResult> resolvedDependencies = findAllResolvedModuleDependencies(result.getAllDependencies());
-        Map<ModuleVersionIdentifier, ResolvedDependencyResult> mappedResolvedDependencies = mapResolvedDependencies(resolvedDependencies);
+        List<ResolvedComponentResult> resolvedDependencies = findAllResolvedDependencyResults(result.getAllDependencies(), ModuleComponentIdentifier.class);
+        Set<ModuleVersionIdentifier> mappedResolvedDependencies = mapResolvedDependencies(resolvedDependencies);
         Set<ResolvedArtifact> artifacts = getExternalArtifacts(configuration);
 
         List<IdeExtendedRepoFileDependency> externalDependencies = new ArrayList<IdeExtendedRepoFileDependency>();
 
-        for(ResolvedArtifact artifact : artifacts) {
-            if(mappedResolvedDependencies.containsKey(artifact.getModuleVersion().getId())) {
+        for (ResolvedArtifact artifact : artifacts) {
+            if (mappedResolvedDependencies.contains(artifact.getModuleVersion().getId())) {
                 IdeExtendedRepoFileDependency ideRepoFileDependency = new IdeExtendedRepoFileDependency(configuration, artifact.getFile());
                 ideRepoFileDependency.setId(artifact.getModuleVersion().getId());
                 externalDependencies.add(ideRepoFileDependency);
@@ -167,16 +134,14 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     /**
      * Maps resolved dependencies by module version identifier.
      *
-     * @param resolvedDependencies Resolved dependencies
+     * @param components Resolved dependencies
      * @return Mapped, resolved dependencies
      */
-    private Map<ModuleVersionIdentifier, ResolvedDependencyResult> mapResolvedDependencies(List<ResolvedDependencyResult> resolvedDependencies) {
-        Map<ModuleVersionIdentifier, ResolvedDependencyResult> mappedResolvedDependencies = new LinkedHashMap<ModuleVersionIdentifier, ResolvedDependencyResult>();
-
-        for(ResolvedDependencyResult resolvedDependency : resolvedDependencies) {
-            mappedResolvedDependencies.put(resolvedDependency.getSelected().getModuleVersion(), resolvedDependency);
+    private Set<ModuleVersionIdentifier> mapResolvedDependencies(List<ResolvedComponentResult> components) {
+        Set<ModuleVersionIdentifier> mappedResolvedDependencies = new LinkedHashSet<ModuleVersionIdentifier>();
+        for (ResolvedComponentResult component : components) {
+            mappedResolvedDependencies.add(component.getModuleVersion());
         }
-
         return mappedResolvedDependencies;
     }
 
@@ -190,10 +155,10 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         List<SelfResolvingDependency> externalDependencies = findAllExternalDependencies(configuration);
         List<IdeLocalFileDependency> ideLocalFileDependencies = new ArrayList<IdeLocalFileDependency>();
 
-        for(SelfResolvingDependency externalDependency : externalDependencies) {
+        for (SelfResolvingDependency externalDependency : externalDependencies) {
             Set<File> resolvedFiles = externalDependency.resolve();
 
-            for(File resolvedFile : resolvedFiles) {
+            for (File resolvedFile : resolvedFiles) {
                 IdeLocalFileDependency ideLocalFileDependency = new IdeLocalFileDependency(configuration, resolvedFile);
                 ideLocalFileDependencies.add(ideLocalFileDependency);
             }
@@ -211,9 +176,9 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     private List<SelfResolvingDependency> findAllExternalDependencies(Configuration configuration) {
         List<SelfResolvingDependency> externalDependencies = new ArrayList<SelfResolvingDependency>();
 
-        for(Dependency dependency : configuration.getAllDependencies()) {
-            if(dependency instanceof SelfResolvingDependency && !(dependency instanceof ProjectDependency)) {
-                externalDependencies.add((SelfResolvingDependency)dependency);
+        for (Dependency dependency : configuration.getAllDependencies()) {
+            if (dependency instanceof SelfResolvingDependency && !(dependency instanceof ProjectDependency)) {
+                externalDependencies.add((SelfResolvingDependency) dependency);
             }
         }
 
@@ -241,7 +206,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         List<UnresolvedDependencyResult> unresolvedDependencies = findAllUnresolvedDependencyResults(result.getRoot().getDependencies());
         List<ComponentSelector> componentSelectors = new ArrayList<ComponentSelector>();
 
-        for(UnresolvedDependencyResult unresolvedDependencyResult : unresolvedDependencies) {
+        for (UnresolvedDependencyResult unresolvedDependencyResult : unresolvedDependencies) {
             componentSelectors.add(unresolvedDependencyResult.getAttempted());
         }
 
@@ -257,8 +222,8 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     private List<UnresolvedDependencyResult> findAllUnresolvedDependencyResults(Set<? extends DependencyResult> dependencies) {
         List<UnresolvedDependencyResult> unresolvedDependencyResults = new ArrayList<UnresolvedDependencyResult>();
 
-        for(DependencyResult dependencyResult : dependencies) {
-            if(dependencyResult instanceof UnresolvedDependencyResult) {
+        for (DependencyResult dependencyResult : dependencies) {
+            if (dependencyResult instanceof UnresolvedDependencyResult) {
                 unresolvedDependencyResults.add((UnresolvedDependencyResult) dependencyResult);
             }
         }

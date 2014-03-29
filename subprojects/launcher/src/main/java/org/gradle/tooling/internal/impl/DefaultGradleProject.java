@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.tooling.gradle;
+package org.gradle.tooling.internal.impl;
 
 import org.gradle.tooling.internal.gradle.DefaultGradleScript;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.gradle.PartialGradleProject;
-import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.internal.protocol.InternalGradleProject;
 
 import java.io.File;
