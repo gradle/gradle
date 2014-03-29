@@ -16,19 +16,15 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.*;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
     private boolean metaDataOnly;
@@ -81,6 +77,12 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
     }
 
     public ModuleVersionArtifactMetaData artifact(Artifact artifact) {
+        return new DefaultModuleVersionArtifactMetaData(this, artifact);
+    }
+
+    public ModuleVersionArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier) {
+        Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
+        Artifact artifact = new DefaultArtifact(getDescriptor().getModuleRevisionId(), null, getId().getName(), type, "jar", extraAttributes);
         return new DefaultModuleVersionArtifactMetaData(this, artifact);
     }
 
