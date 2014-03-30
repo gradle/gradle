@@ -60,6 +60,10 @@ abstract class HttpResource {
         expectPut(200, credentials)
     }
 
+    void expectPut(String username, String password) {
+        server.expectPut(getPath(), username, password, getFile())
+    }
+
     void expectPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
         server.expectPut(getPath(), getFile(), statusCode, credentials)
     }

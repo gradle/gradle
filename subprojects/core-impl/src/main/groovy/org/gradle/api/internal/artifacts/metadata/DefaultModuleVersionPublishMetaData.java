@@ -59,7 +59,7 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
         private final File file;
 
         private DefaultModuleVersionArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
-            this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact);
+            this.id = new DefaultModuleVersionArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), artifact);
             this.artifact = artifact;
             this.file = file;
         }

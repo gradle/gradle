@@ -41,6 +41,6 @@ class DependencyReportPerformanceTest extends AbstractPerformanceTest {
         testProject       | maxExecutionTimeRegression
         "small"           | millis(1000)
         "multi"           | millis(1000)
-        "lotDependencies" | millis(1000)
+        "lotDependencies" | millis(1100)
     }
 }

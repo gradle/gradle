@@ -17,10 +17,6 @@
 package org.gradle.api.internal.filestore.ivy;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
@@ -38,27 +34,11 @@ public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<
     }
 
     private static Transformer<String, ModuleVersionArtifactMetaData> toTransformer(final String pattern) {
-         return new Transformer<String, ModuleVersionArtifactMetaData>() {
+        final ResourcePattern resourcePattern = new IvyResourcePattern(pattern);
+        return new Transformer<String, ModuleVersionArtifactMetaData>() {
              public String transform(ModuleVersionArtifactMetaData artifact) {
-                 ResourcePattern resourcePattern = new IvyResourcePattern(pattern);
-
-                 // TODO:DAZ Not sure if this is required: left in as part of refactor.
-                 artifact = normalizeGroup(artifact);
-
                  return resourcePattern.toPath(artifact);
              }
          };
-    }
-
-    // TODO:DAZ Remove this: I'm pretty sure it's not required
-    private static ModuleVersionArtifactMetaData normalizeGroup(ModuleVersionArtifactMetaData id) {
-        ModuleComponentIdentifier componentId = id.getId().getComponentIdentifier();
-        String originalGroup = componentId.getGroup();
-        if (originalGroup.contains("/")) {
-            String newGroup = originalGroup.replace('/', '.');
-            ModuleComponentIdentifier newComponentId = DefaultModuleComponentIdentifier.newId(newGroup, componentId.getModule(), componentId.getVersion());
-            return new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(newComponentId, id.getName().getName(), id.getName().getType(), id.getName().getExtension(), id.getName().getAttributes()));
-        }
-        return id;
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.legacy;
 import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
@@ -41,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.text.ParseException;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -178,10 +176,9 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     }
 
     private Set<ModuleVersionArtifactMetaData> createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {
-        Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
-        Artifact artifact = new DefaultArtifact(module.getDescriptor().getModuleRevisionId(), null, module.getId().getName(), type, "jar", extraAttributes);
-        if (resolver.exists(artifact)) {
-            return ImmutableSet.of(module.artifact(artifact));
+        ModuleVersionArtifactMetaData artifact = module.artifact(type, "jar", classifier);
+        if (resolver.exists(artifact.toIvyArtifact())) {
+            return ImmutableSet.of(artifact);
         }
         return Collections.emptySet();
     }

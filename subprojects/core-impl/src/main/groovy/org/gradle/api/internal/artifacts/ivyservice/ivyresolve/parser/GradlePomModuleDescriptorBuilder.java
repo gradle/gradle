@@ -29,9 +29,7 @@ import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentif
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.util.DeprecationLogger;
@@ -222,8 +220,7 @@ public class GradlePomModuleDescriptorBuilder {
         if (!isKnownJarPackaging(packaging)) {
             ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(mrid.getOrganisation(), mrid.getName(), mrid.getRevision());
             DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, packaging);
-            ModuleVersionArtifactIdentifier artifactIdentifier = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifact);
-            ModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(artifactIdentifier);
+            ModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(componentIdentifier, artifact);
             if (parserSettings.artifactExists(artifactMetaData)) {
                 ivyModuleDescriptor.addArtifact("master", artifact);
 

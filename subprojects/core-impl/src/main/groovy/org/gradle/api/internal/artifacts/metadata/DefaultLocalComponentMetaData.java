@@ -53,7 +53,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
     public void addArtifact(String configuration, Artifact artifact, File file) {
         moduleDescriptor.addArtifact(configuration, artifact);
-        DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(componentIdentifier, id, artifact, file);
+        DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), artifact, file);
         artifactsById.put(artifactMetaData.id, artifactMetaData);
         artifactsByConfig.put(configuration, artifactMetaData);
         artifactsByIvy.put(artifact.getId(), artifactMetaData);
@@ -85,12 +85,12 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         private final Artifact artifact;
         private final File file;
 
-        private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
+        private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String displayName, Artifact artifact, File file) {
             this.componentIdentifier = componentIdentifier;
             Map<String, String> attrs = new HashMap<String, String>();
             attrs.putAll(artifact.getExtraAttributes());
             attrs.put("file", file == null ? "null" : file.getAbsolutePath());
-            this.id = new DefaultLocalArtifactIdentifier(componentIdentifier, moduleVersionIdentifier.toString(), artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
+            this.id = new DefaultLocalArtifactIdentifier(componentIdentifier, displayName, artifact.getName(), artifact.getType(), artifact.getExt(), attrs);
             this.artifact = artifact;
             this.file = file;
         }
@@ -133,7 +133,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
         public ComponentArtifactMetaData artifact(Artifact artifact) {
             DefaultLocalArtifactMetaData candidate = artifactsByIvy.get(artifact.getId());
-            return candidate != null ? candidate : new DefaultLocalArtifactMetaData(componentIdentifier, id, artifact, null);
+            return candidate != null ? candidate : new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), artifact, null);
         }
 
         public Set<ComponentArtifactMetaData> getArtifacts() {

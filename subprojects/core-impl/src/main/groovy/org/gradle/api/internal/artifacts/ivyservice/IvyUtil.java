@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.util.GUtil;
 
 import java.util.Map;
@@ -44,6 +45,10 @@ public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(ModuleVersionIdentifier id) {
         return createModuleRevisionId(id.getGroup(), id.getName(), id.getVersion());
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(ModuleComponentIdentifier id) {
+        return createModuleRevisionId(id.getGroup(), id.getModule(), id.getVersion());
     }
 
     public static ModuleRevisionId createModuleRevisionId(ModuleRevisionId revId, String version) {

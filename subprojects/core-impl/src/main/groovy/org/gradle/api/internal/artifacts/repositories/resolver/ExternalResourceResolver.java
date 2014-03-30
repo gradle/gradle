@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Nullable;
@@ -54,7 +52,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache.ExternalResourceDownloader;
 
@@ -306,12 +307,9 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected Set<ModuleVersionArtifactMetaData> findOptionalArtifacts(ModuleVersionMetaData module, String type, String classifier) {
-        Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
-        Artifact artifact = new DefaultArtifact(module.getDescriptor().getModuleRevisionId(), null, module.getId().getName(), type, "jar", extraAttributes);
-        ModuleVersionArtifactMetaData artifactMetaData = module.artifact(artifact);
-
-        if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData)) {
-            return ImmutableSet.of(artifactMetaData);
+        ModuleVersionArtifactMetaData artifact = module.artifact(type, "jar", classifier);
+        if (createArtifactResolver(module.getSource()).artifactExists(artifact)) {
+            return ImmutableSet.of(artifact);
         }
         return Collections.emptySet();
     }

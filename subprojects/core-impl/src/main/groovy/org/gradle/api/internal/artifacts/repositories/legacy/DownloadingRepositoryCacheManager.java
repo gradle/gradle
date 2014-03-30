@@ -36,9 +36,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.Factory;
@@ -93,8 +91,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
 
                 ModuleVersionIdentifier moduleVersionId = DefaultModuleVersionIdentifier.newId(artifact.getModuleRevisionId());
                 ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleVersionId);
-                ModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifact);
-                File artifactFile = downloadAndCacheArtifactFile(new DefaultModuleVersionArtifactMetaData(artifactId), artifact, resourceDownloader, artifactRef.getResource());
+                File artifactFile = downloadAndCacheArtifactFile(new DefaultModuleVersionArtifactMetaData(componentIdentifier, artifact), artifact, resourceDownloader, artifactRef.getResource());
 
                 adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
                 adr.setSize(artifactFile.length());

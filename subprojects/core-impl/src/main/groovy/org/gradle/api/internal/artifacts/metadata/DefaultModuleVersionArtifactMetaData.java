@@ -20,14 +20,15 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 
 public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifactMetaData {
     private final DefaultModuleVersionArtifactIdentifier id;
 
-    public DefaultModuleVersionArtifactMetaData(ModuleVersionMetaData moduleVersionMetaData, Artifact artifact) {
-        this(new DefaultModuleVersionArtifactIdentifier(moduleVersionMetaData.getComponentId(), artifact));
+    public DefaultModuleVersionArtifactMetaData(ModuleComponentIdentifier componentIdentifier, Artifact artifact) {
+        this(new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifact));
     }
 
     public DefaultModuleVersionArtifactMetaData(ModuleVersionArtifactIdentifier moduleVersionArtifactIdentifier) {
@@ -53,7 +54,7 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
 
     public Artifact toIvyArtifact() {
         IvyArtifactName ivyArtifactName = id.getName();
-        return new DefaultArtifact(IvyUtil.createModuleRevisionId(id.getModuleVersionIdentifier()), null, ivyArtifactName.getName(), ivyArtifactName.getType(), ivyArtifactName.getExtension(), ivyArtifactName.getAttributes());
+        return new DefaultArtifact(IvyUtil.createModuleRevisionId(id.getComponentIdentifier()), null, ivyArtifactName.getName(), ivyArtifactName.getType(), ivyArtifactName.getExtension(), ivyArtifactName.getAttributes());
     }
 
     public IvyArtifactName getName() {
