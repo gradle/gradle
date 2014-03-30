@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
@@ -26,6 +27,7 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
     final target = Mock(LocalAwareModuleVersionRepository)
     final metaData = Mock(MutableModuleVersionMetaData)
     final requestedDependency = Mock(DependencyMetaData)
+    final moduleComponentId = Mock(ModuleComponentIdentifier)
     final result = Mock(BuildableModuleVersionMetaDataResolveResult)
     final repository = new IvyDynamicResolveModuleVersionRepository(target)
 
@@ -38,10 +40,10 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
         result.metaData >> metaData
 
         when:
-        repository.getLocalDependency(requestedDependency, result)
+        repository.getLocalDependency(requestedDependency, moduleComponentId, result)
 
         then:
-        1 * target.getLocalDependency(requestedDependency, result)
+        1 * target.getLocalDependency(requestedDependency, moduleComponentId, result)
 
         and:
         1 * metaData.dependencies >> [original]
@@ -51,10 +53,10 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
 
     def "does nothing when dependency has not been resolved"() {
         when:
-        repository.getLocalDependency(requestedDependency, result)
+        repository.getLocalDependency(requestedDependency, moduleComponentId, result)
 
         then:
-        1 * target.getLocalDependency(requestedDependency, result)
+        1 * target.getLocalDependency(requestedDependency, moduleComponentId, result)
         _ * result.state >> BuildableModuleVersionMetaDataResolveResult.State.Missing
         0 * result._
     }

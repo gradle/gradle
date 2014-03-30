@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.AbstractMultiCauseException;
@@ -41,6 +42,10 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
 
     public ModuleVersionResolveException(ModuleVersionIdentifier id, String messageFormat) {
         this(DefaultModuleVersionSelector.newSelector(id.getGroup(), id.getName(), id.getVersion()), messageFormat);
+    }
+
+    public ModuleVersionResolveException(ModuleComponentIdentifier id, String messageFormat) {
+        this(DefaultModuleVersionSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), messageFormat);
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {

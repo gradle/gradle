@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -128,17 +129,16 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
     }
 
-    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+    public void getLocalDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         lookupModuleInCache(delegate, dependency, result);
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+    public void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         DependencyMetaData forced = dependency.withChanging();
-        delegate.getDependency(forced, result);
+        delegate.getDependency(forced, moduleComponentIdentifier, result);
         switch (result.getState()) {
             case Missing:
-                ModuleRevisionId dependencyRevisionId = dependency.getDescriptor().getDependencyRevisionId();
-                ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(dependencyRevisionId);
+                ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier);
                 moduleMetaDataCache.cacheMissing(delegate, moduleVersionIdentifier);
                 break;
             case Resolved:

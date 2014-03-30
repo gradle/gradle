@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
@@ -47,15 +48,15 @@ public class IvyDynamicResolveModuleVersionRepository implements LocalAwareModul
         repository.listModuleVersions(dependency, result);
     }
 
-    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        repository.getLocalDependency(dependency, result);
+    public void getLocalDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        repository.getLocalDependency(dependency, moduleComponentIdentifier, result);
         if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
             transformDependencies(result);
         }
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        repository.getDependency(dependency, result);
+    public void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        repository.getDependency(dependency, moduleComponentIdentifier, result);
         if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
             transformDependencies(result);
         }

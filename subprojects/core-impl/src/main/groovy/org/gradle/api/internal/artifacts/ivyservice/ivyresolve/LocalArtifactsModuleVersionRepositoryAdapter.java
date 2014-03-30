@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
@@ -44,8 +45,8 @@ public class LocalArtifactsModuleVersionRepositoryAdapter implements LocalArtifa
         repository.listModuleVersions(dependency, result);
     }
 
-    public void getDependency(final DependencyMetaData dependency, final BuildableModuleVersionMetaDataResolveResult result) {
-        repository.getDependency(dependency, result);
+    public void getDependency(final DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, final BuildableModuleVersionMetaDataResolveResult result) {
+        repository.getDependency(dependency, moduleComponentIdentifier, result);
     }
 
     public void localResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {

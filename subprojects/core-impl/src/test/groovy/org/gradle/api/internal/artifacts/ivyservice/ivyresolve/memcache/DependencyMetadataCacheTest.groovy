@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
@@ -23,12 +24,14 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifie
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-
 class DependencyMetadataCacheTest extends Specification {
 
     def stats = new DependencyMetadataCacheStats()
     def cache = new DependencyMetadataCache(stats)
+
+    static componentId(String group, String module, String version) {
+        return DefaultModuleComponentIdentifier.newId(group, module, version)
+    }
 
     def "caches and supplies remote metadata"() {
         def suppliedMetaData = Stub(MutableModuleVersionMetaData)
@@ -44,11 +47,11 @@ class DependencyMetadataCacheTest extends Specification {
 
         given:
         _ * originalMetaData.copy() >> cachedCopy
-        cache.newDependencyResult(newSelector("org", "foo", "1.0"), resolvedResult)
+        cache.newDependencyResult(componentId("org", "foo", "1.0"), resolvedResult)
 
         when:
-        def local = cache.supplyLocalMetaData(newSelector("org", "foo", "1.0"), result)
-        def differentSelector = cache.supplyMetaData(newSelector("org", "XXX", "1.0"), result)
+        def local = cache.supplyLocalMetaData(componentId("org", "foo", "1.0"), result)
+        def differentSelector = cache.supplyMetaData(componentId("org", "XXX", "1.0"), result)
 
         then:
         !local
@@ -57,7 +60,7 @@ class DependencyMetadataCacheTest extends Specification {
         0 * result._
 
         when:
-        def match = cache.supplyMetaData(newSelector("org", "foo", "1.0"), result)
+        def match = cache.supplyMetaData(componentId("org", "foo", "1.0"), result)
 
         then:
         match
@@ -84,13 +87,13 @@ class DependencyMetadataCacheTest extends Specification {
             getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved
         }
 
-        cache.newDependencyResult(newSelector("org", "remote", "1.0"), resolvedRemote)
-        cache.newLocalDependencyResult(newSelector("org", "local", "1.0"), resolvedLocal)
+        cache.newDependencyResult(componentId("org", "remote", "1.0"), resolvedRemote)
+        cache.newLocalDependencyResult(componentId("org", "local", "1.0"), resolvedLocal)
 
         def result = Mock(BuildableModuleVersionMetaDataResolveResult.class)
 
         when:
-        def local = cache.supplyLocalMetaData(newSelector("org", "local", "1.0"), result)
+        def local = cache.supplyLocalMetaData(componentId("org", "local", "1.0"), result)
 
         then:
         local
@@ -98,7 +101,7 @@ class DependencyMetadataCacheTest extends Specification {
         1 * result.resolved(localMetaData, localSource)
 
         when:
-        def remote = cache.supplyMetaData(newSelector("org", "remote", "1.0"), result)
+        def remote = cache.supplyMetaData(componentId("org", "remote", "1.0"), result)
 
         then:
         remote
@@ -108,12 +111,12 @@ class DependencyMetadataCacheTest extends Specification {
 
     def "does not cache failed resolves"() {
         def failedResult = Mock(BuildableModuleVersionMetaDataResolveResult.class) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.Failed }
-        cache.newDependencyResult(newSelector("org", "lib", "1.0"), failedResult)
+        cache.newDependencyResult(componentId("org", "lib", "1.0"), failedResult)
 
         def result = Mock(BuildableModuleVersionMetaDataResolveResult.class)
 
         when:
-        def fromCache = cache.supplyMetaData(newSelector("org", "lib", "1.0"), result)
+        def fromCache = cache.supplyMetaData(componentId("org", "lib", "1.0"), result)
 
         then:
         !fromCache

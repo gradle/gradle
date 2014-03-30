@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
@@ -48,8 +48,8 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     }
 
     @Nullable
-    protected ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
-        DefaultModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, "ivy", "ivy", "xml");
+    protected ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
+        DefaultModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(moduleComponentIdentifier, "ivy", "ivy", "xml");
         return new DefaultModuleVersionArtifactMetaData(artifactId);
     }
 

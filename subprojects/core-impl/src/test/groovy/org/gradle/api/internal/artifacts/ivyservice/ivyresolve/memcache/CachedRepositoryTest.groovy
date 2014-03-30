@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
-
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
@@ -27,17 +27,15 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-
 class CachedRepositoryTest extends Specification {
 
     def stats = new DependencyMetadataCacheStats()
     def cache = Mock(DependencyMetadataCache)
     def delegate = Mock(LocalAwareModuleVersionRepository)
     def repo = new CachedRepository(cache, delegate, stats)
+    def dep = Mock(DependencyMetaData)
+    def lib = Mock(ModuleComponentIdentifier)
 
-    def lib = newSelector("org", "lib", "1.0")
-    def dep = Stub(DependencyMetaData) { getRequested() >> lib }
     def result = Mock(BuildableModuleVersionMetaDataResolveResult)
 
     def "delegates"() {
@@ -54,18 +52,18 @@ class CachedRepositoryTest extends Specification {
 
     def "retrieves and caches local dependencies"() {
         when:
-        repo.getLocalDependency(dep, result)
+        repo.getLocalDependency(dep, lib, result)
 
         then:
         1 * cache.supplyLocalMetaData(lib, result) >> false
-        1 * delegate.getLocalDependency(dep, result)
+        1 * delegate.getLocalDependency(dep, lib, result)
         1 * cache.newLocalDependencyResult(lib, result)
         0 * _
     }
 
     def "uses local dependencies from cache"() {
         when:
-        repo.getLocalDependency(dep, result)
+        repo.getLocalDependency(dep, lib, result)
 
         then:
         1 * cache.supplyLocalMetaData(lib, result) >> true
@@ -74,18 +72,18 @@ class CachedRepositoryTest extends Specification {
 
     def "retrieves and caches dependencies"() {
         when:
-        repo.getDependency(dep, result)
+        repo.getDependency(dep, lib, result)
 
         then:
         1 * cache.supplyMetaData(lib, result) >> false
-        1 * delegate.getDependency(dep, result)
+        1 * delegate.getDependency(dep, lib, result)
         1 * cache.newDependencyResult(lib, result)
         0 * _
     }
 
     def "uses dependencies from cache"() {
         when:
-        repo.getDependency(dep, result)
+        repo.getDependency(dep, lib, result)
 
         then:
         1 * cache.supplyMetaData(lib, result) >> true

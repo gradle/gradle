@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
@@ -37,5 +38,5 @@ public interface ModuleVersionRepository extends ArtifactResolver {
     /**
      * Resolves the given dependency to the corresponding module version meta-data.
      */
-    void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
+    void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
 }

@@ -26,6 +26,7 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 import org.gradle.api.artifacts.resolution.SoftwareArtifact;
@@ -101,15 +102,15 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         }
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+    public void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponent, BuildableModuleVersionMetaDataResolveResult result) {
         IvyContext.getContext().setResolveData(resolveData);
         try {
             ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);
             if (revision == null) {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dependency.getRequested(), getName());
+                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", moduleComponent, getName());
                 result.missing();
             } else {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependency.getRequested(), getName());
+                LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", moduleComponent, getName());
                 ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(revision.getDescriptor());
                 metaData.setChanging(isChanging(revision));
                 result.resolved(metaData, null);

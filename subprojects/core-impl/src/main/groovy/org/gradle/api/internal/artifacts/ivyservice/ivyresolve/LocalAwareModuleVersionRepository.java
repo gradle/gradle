@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 public interface LocalAwareModuleVersionRepository extends ModuleVersionRepository {
@@ -33,10 +34,10 @@ public interface LocalAwareModuleVersionRepository extends ModuleVersionReposito
     /**
      * Locates the given dependency, using only local resources.
      */
-    void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
+    void getLocalDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
 
     /**
-     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(DependencyMetaData, BuildableModuleVersionMetaDataResolveResult)}.
+     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(org.gradle.api.internal.artifacts.metadata.DependencyMetaData, org.gradle.api.artifacts.component.ModuleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult)}.
      */
-    void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
+    void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
 }

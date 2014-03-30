@@ -22,6 +22,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
@@ -34,6 +35,7 @@ import spock.lang.Specification
 
 class RepositoryChainDependencyResolverTest extends Specification {
     final metaData = metaData("1.2")
+    final moduleComponentId = DefaultModuleComponentIdentifier.newId("group", "project", "1.0")
     final dependencyId = Stub(ModuleVersionSelector)
     final dependency = Stub(DependencyMetaData)
     final dependencyDescriptor = Stub(DependencyDescriptor)
@@ -55,9 +57,9 @@ class RepositoryChainDependencyResolverTest extends Specification {
     }
 
     def setup() {
-        _ * dependencyId.group >> "group"
-        _ * dependencyId.name >> "project"
-        _ * dependencyId.version >> "1.0"
+        _ * dependencyId.group >> moduleComponentId.group
+        _ * dependencyId.name >> moduleComponentId.module
+        _ * dependencyId.version >> moduleComponentId.version
         _ * dependency.requested >> dependencyId
         _ * dependency.descriptor >> dependencyDescriptor
     }
@@ -71,7 +73,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -99,8 +101,8 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo.getLocalDependency(dependency, _)
-        1 * repo.getDependency(dependency, _) >> { dep, result ->
+        1 * repo.getLocalDependency(dependency, moduleComponentId, _)
+        1 * repo.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -127,10 +129,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo.getDependency(dependency, _) >> { dep, result ->
+        1 * repo.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -158,7 +160,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
         1 * result.notFound(dependencyId)
@@ -178,10 +180,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo.getDependency(dependency, _) >> { dep, result ->
+        1 * repo.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
         1 * result.notFound(dependencyId)
@@ -212,10 +214,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(metaData("1.1"), null)
         }
-        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(version2, moduleSource)
         }
-        1 * repo3.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo3.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData("1.0"), null)
         }
         1 * result.resolved(_, _) >> { metaData, source ->
@@ -248,7 +250,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -282,10 +284,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
-        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -317,10 +319,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -351,11 +353,11 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo2.getLocalDependency(dependency, _)
-        1 * repo2.getDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _)
+        1 * repo2.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -387,16 +389,16 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo1.getDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
-        1 * repo2.getDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -427,13 +429,13 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
-        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo2.getDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -465,14 +467,14 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo2.getLocalDependency(dependency, _)
-        1 * repo2.getDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _)
+        1 * repo2.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
-        1 * repo1.getDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -503,10 +505,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             throw new RuntimeException("broken")
         }
-        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -538,12 +540,12 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _)
-        1 * repo1.getDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _)
+        1 * repo1.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             throw new RuntimeException("broken")
         }
-        1 * repo2.getLocalDependency(dependency, _)
-        1 * repo2.getDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _)
+        1 * repo2.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -576,11 +578,11 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             throw failure
         }
-        1 * repo2.getLocalDependency(dependency, _)
-        1 * repo2.getDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _)
+        1 * repo2.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
         1 * result.failed({ it.cause == failure })
@@ -605,12 +607,12 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependency, _)
-        1 * repo1.getDependency(dependency, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, moduleComponentId, _)
+        1 * repo1.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             throw failure
         }
-        1 * repo2.getLocalDependency(dependency, _)
-        1 * repo2.getDependency(dependency, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, moduleComponentId, _)
+        1 * repo2.getDependency(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
         1 * result.failed({ it.cause == failure })

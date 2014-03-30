@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
@@ -186,6 +188,10 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
             }
         }
 
+        private static ModuleComponentIdentifier requestedModule(DependencyMetaData dependency) {
+            return DefaultModuleComponentIdentifier.newId(dependency.getRequested().getGroup(), dependency.getRequested().getName(), dependency.getRequested().getVersion());
+        }
+
         protected abstract void process(DependencyMetaData dependency, ModuleAccess localModuleAccess);
 
         public boolean canMakeFurtherAttempts() {
@@ -203,7 +209,7 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
             }
 
             public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-                repository.getLocalDependency(dependency, result);
+                repository.getLocalDependency(dependency, requestedModule(dependency), result);
             }
         }
 
@@ -213,7 +219,7 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
             }
 
             public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-                repository.getDependency(dependency, result);
+                repository.getDependency(dependency, requestedModule(dependency), result);
             }
         }
     }

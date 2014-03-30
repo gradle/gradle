@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
@@ -37,8 +37,8 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     @Override
-    protected MutableModuleVersionMetaData findMetaDataArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
-        MutableModuleVersionMetaData metaData = super.findMetaDataArtifact(dependency, artifactResolver);
+    protected MutableModuleVersionMetaData findMetaDataArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactResolver artifactResolver) {
+        MutableModuleVersionMetaData metaData = super.findMetaDataArtifact(moduleComponentIdentifier, artifactResolver);
         if (isOrphanedPom(metaData, artifactResolver)) {
             return null;
         }

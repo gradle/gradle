@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
@@ -56,17 +57,17 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
         delegate.listModuleVersions(dependency, result);
     }
 
-    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        if(!cache.supplyLocalMetaData(dependency.getRequested(), result)) {
-            delegate.getLocalDependency(dependency, result);
-            cache.newLocalDependencyResult(dependency.getRequested(), result);
+    public void getLocalDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        if(!cache.supplyLocalMetaData(moduleComponentIdentifier, result)) {
+            delegate.getLocalDependency(dependency, moduleComponentIdentifier, result);
+            cache.newLocalDependencyResult(moduleComponentIdentifier, result);
         }
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        if(!cache.supplyMetaData(dependency.getRequested(), result)) {
-            delegate.getDependency(dependency, result);
-            cache.newDependencyResult(dependency.getRequested(), result);
+    public void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        if(!cache.supplyMetaData(moduleComponentIdentifier, result)) {
+            delegate.getDependency(dependency, moduleComponentIdentifier, result);
+            cache.newDependencyResult(moduleComponentIdentifier, result);
         }
     }
 
