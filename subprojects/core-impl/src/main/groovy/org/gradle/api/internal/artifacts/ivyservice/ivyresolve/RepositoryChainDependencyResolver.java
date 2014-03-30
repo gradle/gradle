@@ -278,12 +278,6 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
                 // Resolve the metadata
                 DependencyMetaData moduleVersionDependency = dependency.withRequestedVersion(candidate.getVersion());
                 moduleAccess.getDependency(moduleVersionDependency, resolveResult);
-                if (resolveResult.getState() != BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
-                    // Couldn't load listed module
-                    LOGGER.warn("Could not load metadata for '{}' of listed module '{}' - ignoring.", candidate, selector);
-                    resolveResult.reset();
-                    return true;
-                }
                 if (versionMatcher.accept(selector.getVersion(), resolveResult.getMetaData())) {
                     // We already resolved the correct module.
                     return true;
