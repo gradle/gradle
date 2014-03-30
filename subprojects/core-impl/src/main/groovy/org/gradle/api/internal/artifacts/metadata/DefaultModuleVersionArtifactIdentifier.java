@@ -27,39 +27,31 @@ import java.util.Map;
 
 public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArtifactIdentifier {
     private final ModuleComponentIdentifier componentIdentifier;
-    private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final IvyArtifactName name;
 
-    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
-        this(componentIdentifier, moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
+    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, Artifact artifact) {
+        this(componentIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
     }
 
     public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension) {
-        this(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), moduleVersionIdentifier, name, type, extension, Collections.<String, String>emptyMap());
+        this(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), name, type, extension, Collections.<String, String>emptyMap());
     }
 
-    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
+    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
         this.componentIdentifier = componentIdentifier;
-        this.moduleVersionIdentifier = moduleVersionIdentifier;
         this.name = new DefaultIvyArtifactName(name, type, extension, attributes);
     }
 
     public String getDisplayName() {
-        return String.format("%s:%s", moduleVersionIdentifier, name);
+        return String.format("%s:%s", componentIdentifier, name);
     }
 
     public IvyArtifactName getName() {
         return name;
     }
 
-    // TODO:DAZ This should participate in equals and hashcode (or should be created from moduleVersionIdentifier)
-    // Will happen when we consolidate type hierarchies for local and module component artifacts.
     public ModuleComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
-    }
-
-    public ModuleVersionIdentifier getModuleVersionIdentifier() {
-        return moduleVersionIdentifier;
     }
 
     @Override
@@ -69,7 +61,7 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
 
     @Override
     public int hashCode() {
-        return moduleVersionIdentifier.hashCode() ^ name.hashCode();
+        return componentIdentifier.hashCode() ^ name.hashCode();
     }
 
     @Override
@@ -81,7 +73,7 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
             return false;
         }
         DefaultModuleVersionArtifactIdentifier other = (DefaultModuleVersionArtifactIdentifier) obj;
-        return other.moduleVersionIdentifier.equals(moduleVersionIdentifier)
+        return other.componentIdentifier.equals(componentIdentifier)
                 && other.name.equals(name);
     }
 }

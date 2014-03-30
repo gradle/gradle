@@ -77,13 +77,13 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
     }
 
     public ModuleVersionArtifactMetaData artifact(Artifact artifact) {
-        return new DefaultModuleVersionArtifactMetaData(this, artifact);
+        return new DefaultModuleVersionArtifactMetaData(getComponentId(), artifact);
     }
 
     public ModuleVersionArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier) {
         Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
         Artifact artifact = new DefaultArtifact(getDescriptor().getModuleRevisionId(), null, getId().getName(), type, "jar", extraAttributes);
-        return new DefaultModuleVersionArtifactMetaData(this, artifact);
+        return new DefaultModuleVersionArtifactMetaData(getComponentId(), artifact);
     }
 
     public Set<ModuleVersionArtifactMetaData> getArtifacts() {
@@ -102,7 +102,7 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         for (String ancestor : configurationMetaData.getHierarchy()) {
             for (Artifact artifact : getDescriptor().getArtifacts(ancestor)) {
                 if (artifacts.add(artifact)) {
-                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(this, artifact));
+                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(getComponentId(), artifact));
                 }
             }
         }
