@@ -40,7 +40,7 @@ class CleanBuildPerformanceTest extends AbstractPerformanceTest {
         where:
         testProject       | maxExecutionTimeRegression
         "small"           | millis(1000)
-        "multi"           | millis(1000)
+        "multi"           | millis(1300)
         "lotDependencies" | millis(1000)
     }
 }
