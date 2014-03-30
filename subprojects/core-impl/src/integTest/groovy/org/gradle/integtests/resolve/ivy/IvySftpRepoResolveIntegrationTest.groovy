@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.ivy.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.gradle.util.Requires
@@ -24,7 +25,6 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 @Unroll
 class IvySftpRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -39,6 +39,7 @@ class IvySftpRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         new IvySftpRepository(server, '/repo', m2Compatible, dirPattern)
     }
 
+    @Requires(TestPrecondition.JDK6_OR_LATER)
     void "can resolve dependencies from a SFTP Ivy repository with #layout layout"() {
         given:
         def ivySftpRepo = getIvySftpRepo(m2Compatible)
@@ -76,6 +77,7 @@ class IvySftpRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         'maven'  | true
     }
 
+    @Requires(TestPrecondition.JDK6_OR_LATER)
     void "can resolve dependencies from a SFTP Ivy repository with pattern layout and m2compatible: #m2Compatible"() {
         given:
 
@@ -116,6 +118,7 @@ class IvySftpRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         m2Compatible << [false, true]
     }
 
+    @Requires(TestPrecondition.JDK6_OR_LATER)
     void "can resolve dependencies from a SFTP Ivy repository with multiple patterns configured"() {
         given:
         def thirdPartyIvySftpRepo = getIvySftpRepo(false, "third-party/[organisation]/[module]/[revision]")
@@ -154,6 +157,44 @@ class IvySftpRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file('libs').assertHasDescendants '3rdParty-1.2.jar', 'original-1.1.jar'
+    }
+
+    @Requires(TestPrecondition.JDK5)
+    void "cannot resolve dependencies from a SFTP Ivy repository with #layout layout for incompatible Java version"() {
+        given:
+        def ivySftpRepo = getIvySftpRepo(m2Compatible)
+        ivySftpRepo.module('org.group.name', 'projectA', '1.2').publish()
+
+        and:
+        buildFile << """
+            repositories {
+                ivy {
+                    url "${ivySftpRepo.uri}"
+                    credentials {
+                        username 'sftp'
+                        password 'sftp'
+                    }
+                    layout '$layout'
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'org.group.name:projectA:1.2' }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
+
+        when:
+        ExecutionFailure failure = fails 'retrieve'
+
+        then:
+        failure.error.contains("The use of SFTP repositories requires Java 6 or later.")
+
+        where:
+        layout   | m2Compatible
+        'gradle' | false
+        'maven'  | true
     }
 }
 
