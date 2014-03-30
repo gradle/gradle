@@ -93,7 +93,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
 
                 ModuleVersionIdentifier moduleVersionId = DefaultModuleVersionIdentifier.newId(artifact.getModuleRevisionId());
                 ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleVersionId);
-                ModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, moduleVersionId, artifact);
+                ModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifact);
                 File artifactFile = downloadAndCacheArtifactFile(new DefaultModuleVersionArtifactMetaData(artifactId), artifact, resourceDownloader, artifactRef.getResource());
 
                 adr.setDownloadTimeMillis(System.currentTimeMillis() - start);

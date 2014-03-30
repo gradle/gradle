@@ -25,7 +25,6 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
@@ -223,7 +222,7 @@ public class GradlePomModuleDescriptorBuilder {
         if (!isKnownJarPackaging(packaging)) {
             ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(mrid.getOrganisation(), mrid.getName(), mrid.getRevision());
             DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, packaging);
-            ModuleVersionArtifactIdentifier artifactIdentifier = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, DefaultModuleVersionIdentifier.newId(mrid), artifact);
+            ModuleVersionArtifactIdentifier artifactIdentifier = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifact);
             ModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(artifactIdentifier);
             if (parserSettings.artifactExists(artifactMetaData)) {
                 ivyModuleDescriptor.addArtifact("master", artifact);

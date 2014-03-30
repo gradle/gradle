@@ -27,7 +27,7 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
     private final DefaultModuleVersionArtifactIdentifier id;
 
     public DefaultModuleVersionArtifactMetaData(ModuleVersionMetaData moduleVersionMetaData, Artifact artifact) {
-        this(new DefaultModuleVersionArtifactIdentifier(moduleVersionMetaData.getComponentId(), moduleVersionMetaData.getId(), artifact));
+        this(new DefaultModuleVersionArtifactIdentifier(moduleVersionMetaData.getComponentId(), artifact));
     }
 
     public DefaultModuleVersionArtifactMetaData(ModuleVersionArtifactIdentifier moduleVersionArtifactIdentifier) {

@@ -40,7 +40,6 @@ import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -174,7 +173,6 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
     }
 
     public void publish(ModuleVersionPublishMetaData moduleVersion) {
-        ModuleVersionIdentifier id = moduleVersion.getId();
         for (ModuleVersionArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
             collectArtifact(artifact.toIvyArtifact(), artifact.getFile());
         }

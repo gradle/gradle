@@ -17,9 +17,7 @@
 package org.gradle.api.internal.filestore.ivy;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
@@ -54,13 +52,12 @@ public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<
 
     // TODO:DAZ Remove this: I'm pretty sure it's not required
     private static ModuleVersionArtifactMetaData normalizeGroup(ModuleVersionArtifactMetaData id) {
-        ModuleComponentIdentifier mvi = id.getId().getComponentIdentifier();
-        String originalGroup = mvi.getGroup();
+        ModuleComponentIdentifier componentId = id.getId().getComponentIdentifier();
+        String originalGroup = componentId.getGroup();
         if (originalGroup.contains("/")) {
             String newGroup = originalGroup.replace('/', '.');
-            ModuleVersionIdentifier newModuleId = DefaultModuleVersionIdentifier.newId(newGroup, mvi.getModule(), mvi.getVersion());
-            ModuleComponentIdentifier componentId = DefaultModuleComponentIdentifier.newId(newModuleId);
-            return new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(componentId, newModuleId, id.getName().getName(), id.getName().getType(), id.getName().getExtension(), id.getName().getAttributes()));
+            ModuleComponentIdentifier newComponentId = DefaultModuleComponentIdentifier.newId(newGroup, componentId.getModule(), componentId.getVersion());
+            return new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(newComponentId, id.getName().getName(), id.getName().getType(), id.getName().getExtension(), id.getName().getAttributes()));
         }
         return id;
     }

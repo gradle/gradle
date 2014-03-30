@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.io.File;
 import java.util.Collection;
@@ -60,7 +59,7 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
         private final File file;
 
         private DefaultModuleVersionArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
-            this.id = new DefaultModuleVersionArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), moduleVersionIdentifier, artifact);
+            this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact);
             this.artifact = artifact;
             this.file = file;
         }
