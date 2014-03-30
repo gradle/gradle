@@ -36,7 +36,7 @@ public class DefaultSoftwareArtifactSet<T extends SoftwareArtifact> implements S
         this.failure = failure;
     }
 
-    public Iterable<T> getArtifacts() throws GradleException {
+    public Set<T> getArtifacts() throws GradleException {
         assertNoFailure();
         return artifacts;
     }

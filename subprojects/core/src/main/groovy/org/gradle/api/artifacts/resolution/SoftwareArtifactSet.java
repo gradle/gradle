@@ -19,6 +19,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
+import java.util.Set;
+
 // TODO:DAZ Separate 'result' interfaces out of the core component interfaces.
 /**
  * A set of artifacts of a particular type for a software component.
@@ -33,7 +35,7 @@ public interface SoftwareArtifactSet<T extends SoftwareArtifact> {
      *
      * @return the set of artifacts
      */
-    Iterable<T> getArtifacts() throws GradleException;
+    Set<T> getArtifacts() throws GradleException;
 
     /**
      * Returns the failure that occurred when the artifact set was resolved, or {@code null} if no failure occurred.
