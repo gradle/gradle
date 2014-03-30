@@ -220,4 +220,41 @@ task retrieve(type: Sync) {
         then:
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.5.jar', 'projectC-alpha-12.jar')
     }
+
+    def "prefers module with metadata to module with no metadata"() {
+        given:
+        def repo1 = ivyHttpRepo("repo1")
+        def moduleWithNoMetaData = repo1.module("org.gradle", "test", "1.45").withNoMetaData().publish()
+        def repo2 = ivyHttpRepo("repo2")
+        def moduleWithMetaData = repo2.module("org.gradle", "test", "1.45").publishWithChangedContent()
+        server.start()
+
+        and:
+        buildFile << """
+repositories {
+    ivy { url "${repo1.uri}" }
+    ivy { url "${repo2.uri}" }
+}
+configurations { compile }
+dependencies {
+    compile "org.gradle:test:1.45"
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into "libs"
+}
+"""
+
+        when:
+        moduleWithNoMetaData.ivy.expectGetMissing()
+        moduleWithNoMetaData.jar.expectHead()
+        moduleWithMetaData.allowAll()
+        succeeds "retrieve"
+
+        then:
+        moduleWithNoMetaData.jarFile.text != moduleWithMetaData.jarFile.text
+        file("libs").assertHasDescendants("test-1.45.jar")
+        file("libs/test-1.45.jar").assertIsCopyOf(moduleWithMetaData.jarFile)
+    }
 }

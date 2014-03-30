@@ -81,6 +81,7 @@ dependencies {
 configurations { compile }
 dependencies {
   compile group: "group", name: "projectA", version: "1.+"
+  compile group: "group", name: "projectB", version: "latest.integration"
 }
 """
 
@@ -88,21 +89,29 @@ dependencies {
         ivyHttpRepo.module("group", "projectA", "1.1").withNoMetaData().publish()
         def projectA12 = ivyHttpRepo.module("group", "projectA", "1.2").withNoMetaData().publish()
         ivyHttpRepo.module("group", "projectA", "2.0").withNoMetaData().publish()
+        ivyHttpRepo.module("group", "projectB", "1.1").withNoMetaData().publish()
+        def projectB12 = ivyHttpRepo.module("group", "projectB", "1.2").withNoMetaData().publish()
 
         and:
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
         projectA12.ivy.expectGetMissing()
         projectA12.jar.expectHead()
         projectA12.jar.expectGet()
+        ivyHttpRepo.expectDirectoryListGet("group", "projectB")
+        projectB12.ivy.expectGetMissing()
+        projectB12.jar.expectHead()
+        projectB12.jar.expectGet()
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2",
+                     "group:projectB:latest.integration": "group:projectB:1.2"
 
         when: "result is cached"
         server.resetExpectations()
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2",
+                     "group:projectB:latest.integration": "group:projectB:1.2"
     }
 
     def "uses latest version with correct status for latest.release and latest.milestone"() {
