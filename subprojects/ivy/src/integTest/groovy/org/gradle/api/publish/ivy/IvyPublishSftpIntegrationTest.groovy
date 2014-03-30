@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 @Unroll
@@ -128,6 +129,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         m2Compatible << [true, false]
     }
 
+    @Ignore
     @Requires(TestPrecondition.JDK5)
     def "cannot publish to a SFTP repository with layout #layout for incompatible Java version"() {
         given:

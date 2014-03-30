@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 @Unroll
@@ -159,6 +160,7 @@ class IvySftpRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         file('libs').assertHasDescendants '3rdParty-1.2.jar', 'original-1.1.jar'
     }
 
+    @Ignore
     @Requires(TestPrecondition.JDK5)
     void "cannot resolve dependencies from a SFTP Ivy repository with #layout layout for incompatible Java version"() {
         given:
