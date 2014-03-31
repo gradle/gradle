@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.resolution.JvmLibraryArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.test.fixtures.file.TestFile
 /**
  * A test fixture that injects a task into a build that uses the Artifact Query API to download some artifacts, validating the results.
@@ -31,10 +33,10 @@ class JvmLibraryArtifactResolveTestFixture {
     private ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId("some.group", "some-artifact", "1.0")
     private artifactTypes = []
     private expectedSources = []
-    private expectedSourceFailures = []
+    Throwable expectedSourceFailure
     private expectedJavadoc = []
-    private expectedJavadocFailures = []
-    Throwable unresolvedComponentFailure
+    Throwable expectedJavadocFailure
+    private Throwable unresolvedComponentFailure
 
     JvmLibraryArtifactResolveTestFixture(TestFile buildFile, String config = "compile") {
         this.buildFile = buildFile
@@ -55,8 +57,8 @@ class JvmLibraryArtifactResolveTestFixture {
         this.unresolvedComponentFailure = null
         this.expectedSources = []
         this.expectedJavadoc = []
-        this.expectedSourceFailures = []
-        this.expectedJavadocFailures = []
+        this.expectedSourceFailure = null
+        this.expectedJavadocFailure = null
         this
     }
 
@@ -75,29 +77,28 @@ class JvmLibraryArtifactResolveTestFixture {
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectSourceArtifactNotFound(String classifier) {
-        expectedSourceFailures << "Artifact '${id.group}:${id.module}:${id.version}:${id.module}-${classifier}.jar' not found."
+    JvmLibraryArtifactResolveTestFixture expectSourceArtifactNotFound(String artifactClassifier) {
+        expectedSourceFailure = new ArtifactNotFoundException(new DefaultModuleVersionArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]))
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectSourceArtifactFailure(def failure) {
-        // TODO:DAZ Validate more than just the failure message
-        expectedSourceFailures << failure
+    JvmLibraryArtifactResolveTestFixture expectSourceArtifactFailure(Throwable failure) {
+        expectedSourceFailure = failure
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectJavadocArtifact(def classifier) {
+    JvmLibraryArtifactResolveTestFixture expectJavadocArtifact(String classifier) {
         expectedJavadoc << "${id.module}-${id.version}-${classifier}.jar"
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectJavadocArtifactNotFound(def classifier) {
-        expectedJavadocFailures << "Artifact '${id.group}:${id.module}:${id.version}:${id.module}-${classifier}.jar' not found."
+    JvmLibraryArtifactResolveTestFixture expectJavadocArtifactNotFound(String artifactClassifier) {
+        expectedJavadocFailure = new ArtifactNotFoundException(new DefaultModuleVersionArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]))
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectJavadocArtifactFailure(def failure) {
-        expectedJavadocFailures << failure
+    JvmLibraryArtifactResolveTestFixture expectJavadocArtifactFailure(Throwable failure) {
+        expectedJavadocFailure = failure
         this
     }
 
@@ -132,11 +133,10 @@ task $taskName << {
     assert jvmLibrary instanceof JvmLibrary
 
     def sourceArtifactFiles = []
-    def sourceArtifactFailures = []
     jvmLibrary.sourcesArtifacts.each { artifact ->
         assert artifact instanceof JvmLibrarySourcesArtifact
         if (artifact.failure != null) {
-            sourceArtifactFailures << artifact.failure.message
+            ${checkException("artifact.failure", expectedSourceFailure)}
         } else {
             copy {
                 from artifact.file
@@ -146,14 +146,12 @@ task $taskName << {
         }
     }
     assert sourceArtifactFiles as Set == ${toQuotedList(expectedSources)} as Set
-    assert sourceArtifactFailures as Set == ${toQuotedList(expectedSourceFailures)} as Set
 
     def javadocArtifactFiles = []
-    def javadocArtifactFailures = []
     jvmLibrary.javadocArtifacts.each { artifact ->
         assert artifact instanceof JvmLibraryJavadocArtifact
         if (artifact.failure != null) {
-            javadocArtifactFailures << artifact.failure.message
+            ${checkException("artifact.failure", expectedJavadocFailure)}
         } else {
             copy {
                 from artifact.file
@@ -163,10 +161,19 @@ task $taskName << {
         }
     }
     assert javadocArtifactFiles as Set == ${toQuotedList(expectedJavadoc)} as Set
-    assert javadocArtifactFailures as Set == ${toQuotedList(expectedJavadocFailures)} as Set
 
     assert result.unresolvedComponents.empty
 }
+"""
+    }
+
+    private static String checkException(String reference, Throwable expected) {
+        if (expected == null) {
+            return "throw $reference"
+        }
+        return """
+    assert ${reference} instanceof ${expected.class.name}
+    assert ${reference}.message == "${expected.message}"
 """
     }
 
@@ -190,8 +197,7 @@ task verify << {
         assert component.id.module == "${id.module}"
         assert component.id.version == "${id.version}"
         assert component.id.displayName == 'unknown'
-        assert component.failure instanceof ${unresolvedComponentFailure.class.name}
-        assert component.failure.message == "${unresolvedComponentFailure.message}"
+        ${checkException("component.failure", unresolvedComponentFailure)}
     }
 }
 """
