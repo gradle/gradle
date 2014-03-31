@@ -65,7 +65,7 @@ task listJars << {
         run 'listJars'
 
         then:
-        server.fileRequests == ["repos/libs/group/projectA/1.2/ivy-1.2.xml",
+        server.fileRequestLogger.fileRequests == ["repos/libs/group/projectA/1.2/ivy-1.2.xml",
                 "repos/libs/group/projectA/1.2/projectA-1.2.jar"
         ] as Set
 
@@ -73,12 +73,12 @@ task listJars << {
         progressLogging.downloadProgressLogged("repos/libs/group/projectA/1.2/projectA-1.2.jar")
 
         when:
-        server.clearRequests()
+        server.fileRequestLogger.fileRequests.clear()
         executer.withDeprecationChecksDisabled()
         run 'listJars'
 
         then:
-        server.fileRequests.empty
+        server.fileRequestLogger.fileRequests.empty
     }
 
     IvyRepository ivyRepo() {

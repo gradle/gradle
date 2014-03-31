@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.apache.sshd.common.util.Buffer
+import org.apache.sshd.server.sftp.SftpSubsystem
 import org.gradle.test.fixtures.ivy.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.gradle.util.Requires
@@ -30,7 +32,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
     @Rule
     final SFTPServer server = new SFTPServer(this)
 
-    IvySftpRepository getIvySftpRepo(boolean m2Compatible, String dirPattern = null) {
+    IvySftpRepository getIvySftpRepo(boolean m2Compatible = false, String dirPattern = null) {
         new IvySftpRepository(server, '/repo', m2Compatible, dirPattern)
     }
 
@@ -124,5 +126,64 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 
         where:
         m2Compatible << [true, false]
+    }
+
+    def "publishing to a SFTP repo when #action fails"(String action, int failingCommand) {
+        given:
+        server.sftpSubsystem = new SftpSubsystem() {
+            @Override
+            protected void process(Buffer buffer) throws IOException {
+                int originalBufferPosition = buffer.rpos();
+                buffer.getInt(); //length
+                int type = buffer.getByte();
+                int id = buffer.getInt();
+                if (type == failingCommand) {
+                    sendStatus(id, SSH_FX_FAILURE, "An error occurred");
+                } else {
+                    buffer.rpos(originalBufferPosition)
+                    super.process(buffer)
+                }
+            }
+        }
+
+        and:
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
+
+            version = '2'
+            group = 'org.group.name'
+
+            publishing {
+                repositories {
+                    ivy {
+                        url "${ivySftpRepo.uri}"
+                        credentials {
+                            username 'sftp'
+                            password 'sftp'
+                        }
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+                .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
+                .assertHasCause("org.apache.sshd.common.SshException: SFTP error (4): An error occurred")
+
+        where:
+        action                  | failingCommand
+        'directory creation'    | SftpSubsystem.SSH_FXP_MKDIR
+        'writing file contents' | SftpSubsystem.SSH_FXP_WRITE
     }
 }

@@ -48,8 +48,11 @@ class SFTPServer extends ExternalResource {
     private TestFile configDir
     private SshServer sshd
 
-    def fileRequests = [] as Set
+    FileRequestLogger fileRequestLogger = new FileRequestLogger()
 
+    List<FileRequestListener> fileRequestListeners = [fileRequestLogger]
+
+    SftpSubsystem sftpSubsystem = new SftpSubsystem()
 
     public SFTPServer(TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider;
@@ -81,12 +84,12 @@ class SFTPServer extends ExternalResource {
 
         SshServer sshServer = SshServer.setUpDefaultServer();
         sshServer.setPort(port);
-        sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory(baseDir.absolutePath, new FileRequestLogger() {
-            void logRequest(String message) {
-                fileRequests << message;
+        sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory());
+        sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystem.Factory() {
+            Command create() {
+                sftpSubsystem
             }
         }));
-        sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystem.Factory()));
         sshServer.setCommandFactory(new ScpCommandFactory());
         sshServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("${configDir}/test-dsa.key"));
         sshServer.setPasswordAuthenticator(new DummyPasswordAuthenticator());
@@ -106,14 +109,6 @@ class SFTPServer extends ExternalResource {
         new TestFile(new File(baseDir, expectedPath))
     }
 
-    public Set<String> getFileRequests() {
-        return fileRequests
-    }
-
-    public void clearRequests() {
-        fileRequests.clear();
-    }
-
     static class DummyPasswordAuthenticator implements PasswordAuthenticator {
         // every combination where username == password is accepted
         boolean authenticate(String username, String password, ServerSession session) {
@@ -121,39 +116,39 @@ class SFTPServer extends ExternalResource {
         }
     }
 
-    static abstract class FileRequestLogger {
-        abstract void logRequest(String message)
+    static interface FileRequestListener {
+        void fileRequested(String directory, String file)
     }
 
-    static class TestVirtualFileSystemFactory extends VirtualFileSystemFactory {
+    static class FileRequestLogger implements FileRequestListener {
+        def fileRequests = [] as Set
 
-        String rootPath
-
-        List<FileRequestLogger> logger
-
-        public TestVirtualFileSystemFactory(String rootPath, FileRequestLogger... logger) {
-            this.rootPath = rootPath
-            this.logger = Arrays.asList(logger)
+        void fileRequested(String directory, String file) {
+            if (file.endsWith("xml") || file.endsWith(".jar")) {
+                fileRequests << file - '/'
+            }
         }
+    }
 
+    class TestVirtualFileSystemFactory extends VirtualFileSystemFactory {
         /**
          * Create the appropriate user file system view.
          */
         public FileSystemView createFileSystemView(Session session) {
-            return new TestVirtualFileSystemView(rootPath, session.getUsername(), logger);
+            return new TestVirtualFileSystemView(baseDir.absolutePath, session.getUsername(), fileRequestListeners);
         }
     }
 
-    static class TestVirtualFileSystemView extends VirtualFileSystemView {
+    class TestVirtualFileSystemView extends VirtualFileSystemView {
 
-        List<FileRequestLogger> loggers
+        List<FileRequestListener> fileRequestListeners
 
         /**
          * Constructor - internal do not use directly, use {@link NativeFileSystemFactory} instead
          */
-        public TestVirtualFileSystemView(String rootpath, String userName, List<FileRequestLogger> requestLoggerList) {
-            super(userName, rootpath);
-            if (!rootpath) {
+        public TestVirtualFileSystemView(String rootPath, String userName, List<FileRequestListener> fileRequestListeners) {
+            super(userName, rootPath);
+            if (!rootPath) {
                 throw new IllegalArgumentException("rootPath must be set");
             }
 
@@ -161,21 +156,12 @@ class SFTPServer extends ExternalResource {
                 throw new IllegalArgumentException("user can not be null");
             }
 
-            this.loggers = requestLoggerList;
+            this.fileRequestListeners = fileRequestListeners;
         }
 
         protected SshFile getFile(String dir, String file) {
-            logFileRequest(file);
+            fileRequestListeners*.fileRequested(dir, file);
             return super.getFile(dir, file);
-        }
-
-        void logFileRequest(String file) {
-            //log xml and jar requests only
-            if (file.endsWith("xml") || file.endsWith(".jar")) {
-                loggers.each {
-                    it.logRequest(file - '/')
-                }
-            }
         }
     }
 

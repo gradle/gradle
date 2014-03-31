@@ -18,7 +18,6 @@ package org.gradle.api.internal.externalresource.transport.sftp;
 
 import org.apache.sshd.ClientSession;
 import org.apache.sshd.client.sftp.DefaultSftpClient;
-import org.apache.sshd.common.SshException;
 import org.apache.sshd.common.util.Buffer;
 
 import java.io.IOException;
@@ -35,22 +34,15 @@ public class NonExistingFileHandlingSftpClient extends DefaultSftpClient impleme
 
     @Override
     protected Attributes checkAttributes(Buffer buffer) throws IOException {
+        int originalBufferPosition = buffer.rpos();
         buffer.getInt(); //length
         int type = buffer.getByte();
         buffer.getInt(); //id
-        if (type == SSH_FXP_STATUS) {
-            int substatus = buffer.getInt();
-            String msg = buffer.getString();
-            buffer.getString(); //lang
-            if (substatus == DefaultSftpClient.SSH_FX_NO_SUCH_FILE) {
-                return null;
-            } else {
-                throw new SshException("SFTP error (" + substatus + "): " + msg);
-            }
-        } else if (type == SSH_FXP_ATTRS) {
-            return readAttributes(buffer);
+        if (type == SSH_FXP_STATUS && buffer.getInt() == DefaultSftpClient.SSH_FX_NO_SUCH_FILE) {
+            return null;
         } else {
-            throw new SshException("Unexpected SFTP packet received: " + type);
+            buffer.rpos(originalBufferPosition);
+            return super.checkAttributes(buffer);
         }
     }
 

@@ -148,4 +148,41 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractDependencyResolutionTest 
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
                 .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
     }
+
+    void 'resolve dependencies from a SFTP Ivy that throws an exception'() {
+        given:
+        server.fileRequestListeners = [new SFTPServer.FileRequestListener() {
+            void fileRequested(String directory, String file) {
+                throw new Exception()
+            }
+        }]
+
+        buildFile << """
+            repositories {
+                ivy {
+                    url "${ivySftpRepo.uri}"
+                    credentials {
+                        username 'sftp'
+                        password 'sftp'
+                    }
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'org.group.name:projectA:1.2' }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
+
+        when:
+        failure = executer.withStackTraceChecksDisabled().withTasks('retrieve').runWithFailure()
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+                .assertHasCause('Could not resolve org.group.name:projectA:1.2')
+                .assertHasCause("Could not get resource 'sftp://$ivySftpRepo.uri.host:$ivySftpRepo.uri.port/repo/org.group.name/projectA/1.2/ivy-1.2.xml'")
+    }
+
+
 }
