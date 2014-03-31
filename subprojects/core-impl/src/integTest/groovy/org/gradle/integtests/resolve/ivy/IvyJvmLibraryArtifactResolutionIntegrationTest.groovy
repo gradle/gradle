@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
-
 import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
-
 // TODO:DAZ Test can resolve multiple source/javadoc artifacts declared in 'sources'/'javadoc' configuration
 class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     def fileRepo = ivyRepo
@@ -29,15 +27,20 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
     def setup() {
         server.start()
+        buildFile << """
+repositories {
+    ivy { url '$httpRepo.uri' }
+}
+"""
+
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
-        fixture.withRepository("ivy { url '$httpRepo.uri' }")
 
         publishModule()
     }
 
     def "resolve sources artifacts"() {
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+                .expectSourceArtifact("my-sources")
                 .prepare()
 
         when:
@@ -50,7 +53,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
     def "resolve javadoc artifacts"() {
         fixture.requestingTypes(JvmLibraryJavadocArtifact)
-                .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
+                .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
         when:
@@ -63,8 +66,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
     def "resolve all artifacts"() {
         fixture.requestingTypes()
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
-                .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
+                .expectSourceArtifact("my-sources")
+                .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
         when:
@@ -78,7 +81,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
     def "fetches missing artifacts for module with --refresh-dependencies"() {
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifactNotFound("some-artifact-my-sources.jar")
+                .expectSourceArtifactNotFound("my-sources")
                 .prepare()
 
         when:
@@ -91,7 +94,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         when:
         executer.withArgument("--refresh-dependencies")
         fixture.clearExpectations()
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+                .expectSourceArtifact("my-sources")
                 .createVerifyTask("verifyRefresh")
 
         and:
@@ -105,7 +108,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     def "updates artifacts for module with --refresh-dependencies"() {
         final sourceArtifact = module.getArtifact(classifier: "my-sources")
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+                .expectSourceArtifact("my-sources")
                 .prepare()
 
         when:
@@ -145,8 +148,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "reports failure to resolve missing artifacts"() {
-        fixture.expectSourceArtifactNotFound("some-artifact-my-sources.jar")
-                .expectJavadocArtifactNotFound("some-artifact-my-javadoc.jar")
+        fixture.expectSourceArtifactNotFound("my-sources")
+                .expectJavadocArtifactNotFound("my-javadoc")
                 .prepare()
 
         when:
@@ -159,8 +162,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolves when some artifacts are missing"() {
-        fixture.expectSourceArtifact("some-artifact-1.0-my-sources.jar")
-                .expectJavadocArtifactNotFound("some-artifact-my-javadoc.jar")
+        fixture.expectSourceArtifact("my-sources")
+                .expectJavadocArtifactNotFound("my-javadoc")
                 .prepare()
 
         when:
@@ -173,7 +176,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolves when some artifacts are broken"() {
-        fixture.expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+        fixture.expectSourceArtifact("my-sources")
                 .expectJavadocArtifactFailure("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar'")
                 .prepare()
 
@@ -187,8 +190,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
         when:
         fixture.clearExpectations()
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
-                .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
+                .expectSourceArtifact("my-sources")
+                .expectJavadocArtifact("my-javadoc")
                 .createVerifyTask("verifyFixed")
 
         and:
@@ -201,10 +204,15 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolve and does not cache artifacts from local repository"() {
-        fixture.withRepository("ivy { url '$fileRepo.uri' }")
-                .requestingTypes()
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
-                .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
+        buildFile.text = """
+repositories {
+    ivy { url '$fileRepo.uri' }
+}
+"""
+
+        fixture.requestingTypes()
+                .expectSourceArtifact("my-sources")
+                .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
         when:
@@ -227,9 +235,9 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         moduleWithMavenScheme.artifact(classifier: "sources")
         moduleWithMavenScheme.publish()
 
-        fixture.withComponentVersion("1.1")
+        fixture.withComponentVersion("some.group", "some-artifact", "1.1")
                 .requestingTypes(JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact)
-                .expectSourceArtifact("some-artifact-1.1-sources.jar")
+                .expectSourceArtifact("sources")
                 .prepare()
 
         when:

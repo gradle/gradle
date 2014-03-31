@@ -29,15 +29,20 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
     def setup() {
         server.start()
+        buildFile << """
+repositories {
+    maven { url '$repo.uri' }
+}
+"""
+
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
-        fixture.withRepository("maven { url '$repo.uri' }")
 
         module.publish()
     }
 
     def "resolves and caches source artifacts"() {
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifact("some-artifact-1.0-sources.jar")
+                .expectSourceArtifact("sources")
                 .prepare()
 
         when:
@@ -51,7 +56,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
     def "resolve javadoc artifacts"() {
         fixture.requestingTypes(JvmLibraryJavadocArtifact)
-                .expectJavadocArtifact("some-artifact-1.0-javadoc.jar")
+                .expectJavadocArtifact("javadoc")
                 .prepare()
 
         when:
@@ -65,8 +70,8 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
     def "resolves and caches all artifacts"() {
         fixture.requestingTypes()
-                .expectSourceArtifact("some-artifact-1.0-sources.jar")
-                .expectJavadocArtifact("some-artifact-1.0-javadoc.jar")
+                .expectSourceArtifact("sources")
+                .expectJavadocArtifact("javadoc")
                 .prepare()
 
         when:
@@ -85,7 +90,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         def snapshotSources = snapshotModule.artifact(classifier: "sources")
         snapshotModule.publish()
 
-        fixture.withComponentVersion("1.0-SNAPSHOT")
+        fixture.withComponentVersion("some.group", "some-artifact", "1.0-SNAPSHOT")
                 .requestingTypes(JvmLibrarySourcesArtifact)
                 .prepare()
 
@@ -100,7 +105,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         when:
         executer.withArgument("--refresh-dependencies")
         fixture.clearExpectations()
-                .expectSourceArtifact("some-artifact-1.0-SNAPSHOT-sources.jar")
+                .expectSourceArtifact("sources")
                 .createVerifyTask("verifyRefresh")
 
         and:
@@ -118,9 +123,9 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         def snapshotSources = snapshotModule.artifact(classifier: "sources")
         snapshotModule.publish()
 
-        fixture.withComponentVersion("1.0-SNAPSHOT")
+        fixture.withComponentVersion("some.group", "some-artifact", "1.0-SNAPSHOT")
                 .requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifact("some-artifact-1.0-SNAPSHOT-sources.jar")
+                .expectSourceArtifact("sources")
                 .prepare()
 
         when:
@@ -178,7 +183,7 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
     def "resolves and caches artifacts where some are present"() {
         fixture.requestingTypes()
-                .expectSourceArtifact("some-artifact-1.0-sources.jar")
+                .expectSourceArtifact("sources")
                 .prepare()
 
         when:
@@ -208,8 +213,8 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
         when:
         fixture.clearExpectations()
-                .expectSourceArtifact("some-artifact-1.0-sources.jar")
-                .expectJavadocArtifact("some-artifact-1.0-javadoc.jar")
+                .expectSourceArtifact("sources")
+                .expectJavadocArtifact("javadoc")
                 .createVerifyTask("verifyFixed")
 
         and:
@@ -223,9 +228,14 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     }
 
     def "resolve and does not cache artifacts from local repository"() {
-        fixture.withRepository("maven { url '$fileRepo.uri' }")
-                .requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifact("some-artifact-1.0-sources.jar")
+        buildFile.text = """
+repositories {
+    maven { url '$fileRepo.uri' }
+}
+"""
+
+        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+                .expectSourceArtifact("sources")
                 .prepare()
 
         when:

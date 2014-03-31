@@ -20,15 +20,19 @@ class FlatDirJvmLibraryArtifactResolutionIntegrationTest extends AbstractDepende
     JvmLibraryArtifactResolveTestFixture fixture
 
     def setup() {
+        buildFile << """
+repositories {
+    flatDir { dir 'repo' }
+}
+"""
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
-        fixture.withRepository("flatDir { dir 'repo' }")
     }
 
     def "resolves and does not cache source and javadoc artifacts"() {
         publishModule()
         fixture.requestingTypes()
-                .expectSourceArtifact("some-artifact-1.0-sources.jar")
-                .expectJavadocArtifact("some-artifact-1.0-javadoc.jar")
+                .expectSourceArtifact("sources")
+                .expectJavadocArtifact("javadoc")
                 .prepare()
 
         when:
@@ -66,7 +70,7 @@ class FlatDirJvmLibraryArtifactResolutionIntegrationTest extends AbstractDepende
         file("repo/some-artifact-1.0-sources.jar").createFile()
 
         fixture.requestingTypes()
-                .expectSourceArtifact("some-artifact-1.0-sources.jar")
+                .expectSourceArtifact("sources")
                 .prepare()
 
         expect:
