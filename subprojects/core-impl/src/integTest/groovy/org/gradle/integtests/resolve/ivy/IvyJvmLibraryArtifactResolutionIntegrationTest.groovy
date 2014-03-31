@@ -222,13 +222,13 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "can resolve artifacts with maven scheme from ivy repository"() {
-        // Published with no configurations
+        // Published with no configurations, and a source artifact only
         def moduleWithMavenScheme = httpRepo.module("some.group", "some-artifact", "1.1")
         moduleWithMavenScheme.artifact(classifier: "sources")
         moduleWithMavenScheme.publish()
 
         fixture.withComponentVersion("1.1")
-                .requestingTypes(JvmLibrarySourcesArtifact)
+                .requestingTypes(JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact)
                 .expectSourceArtifact("some-artifact-1.1-sources.jar")
                 .prepare()
 
@@ -236,6 +236,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         moduleWithMavenScheme.ivy.expectGet()
         moduleWithMavenScheme.getArtifact(classifier: "sources").expectHead()
         moduleWithMavenScheme.getArtifact(classifier: "sources").expectGet()
+        moduleWithMavenScheme.getArtifact(classifier: "javadoc").expectHeadMissing()
 
         then:
         checkArtifactsResolvedAndCached()
