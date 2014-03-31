@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveEx
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.ivy.IvyRepository
+import spock.lang.Unroll
 
 // TODO:DAZ Test can resolve multiple source/javadoc artifacts declared in 'sources'/'javadoc' configuration
 class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
@@ -91,10 +92,24 @@ dependencies {
         checkArtifactsResolvedAndCached()
     }
 
-    def "fetches missing artifacts for module with --refresh-dependencies"() {
+    @Unroll
+    def "fetches missing artifacts for module #condition"() {
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
                 .expectSourceArtifactNotFound("my-sources")
                 .prepare()
+        buildFile << """
+dependencies {
+    components {
+        eachComponent { ComponentMetadataDetails details ->
+            details.changing = true
+        }
+    }
+}
+
+if (project.hasProperty('nocache')) {
+    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+"""
 
         when:
         module.ivy.expectGet()
@@ -104,20 +119,44 @@ dependencies {
         checkArtifactsResolvedAndCached()
 
         when:
-        executer.withArgument("--refresh-dependencies")
+        module.publishWithChangedContent()
         fixture.clearExpectations()
                 .expectSourceArtifact("my-sources")
                 .createVerifyTask("verifyRefresh")
 
         and:
+        server.resetExpectations()
         module.ivy.expectHead()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
         module.getArtifact(classifier: "my-sources").expectGet()
 
         then:
+        executer.withArgument(execArg)
         succeeds("verifyRefresh")
+
+        where:
+        condition                     | execArg
+        "with --refresh-dependencies" | "--refresh-dependencies"
+        "when ivy descriptor changes" | "-Pnocache"
     }
 
-    def "updates artifacts for module with --refresh-dependencies"() {
+    @Unroll
+    def "updates artifacts for module #condition"() {
+        buildFile << """
+dependencies {
+    components {
+        eachComponent { ComponentMetadataDetails details ->
+            details.changing = true
+        }
+    }
+}
+
+if (project.hasProperty('nocache')) {
+    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+"""
+
         final sourceArtifact = module.getArtifact(classifier: "my-sources")
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
                 .expectSourceArtifact("my-sources")
@@ -133,9 +172,9 @@ dependencies {
         when:
         def snapshot = file("sources/some-artifact-1.0-my-sources.jar").snapshot()
         module.publishWithChangedContent()
-        executer.withArgument("--refresh-dependencies")
 
         and:
+        server.resetExpectations()
         module.ivy.expectHead()
         module.ivy.sha1.expectGet()
         module.ivy.expectGet()
@@ -144,8 +183,14 @@ dependencies {
         sourceArtifact.expectGet()
 
         then:
+        executer.withArgument(execArg)
         succeeds("verify")
         file("sources/some-artifact-1.0-my-sources.jar").assertHasChangedSince(snapshot)
+
+        where:
+        condition                     | execArg
+        "with --refresh-dependencies" | "--refresh-dependencies"
+        "when ivy descriptor changes" | "-Pnocache"
     }
 
     def "reports failure to resolve artifacts of non-existing component"() {

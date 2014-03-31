@@ -133,6 +133,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         publish()
     }
 
+    String getPublicationDate() {
+        return String.format("2010010112%04d", publishCount)
+    }
+
     /**
      * Publishes ivy.xml (if enabled) plus all artifacts
      */
@@ -163,6 +167,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 		module="${module}"
 		revision="${revision}"
 		status="${status}"
+        publication="${getPublicationDate()}"
 	>"""
         if (extendsFrom) {
             ivyFileWriter << "<extends organisation='${extendsFrom.organisation}' module='${extendsFrom.module}' revision='${extendsFrom.revision}'"

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveEx
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository
+import spock.lang.Unroll
 
 class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     def repo = mavenHttpRepo
@@ -96,8 +97,14 @@ dependencies {
         checkArtifactsResolvedAndCached()
     }
 
-    def "fetches missing snapshot artifacts with --refresh-dependencies"() {
+    @Unroll
+    def "fetches missing snapshot artifacts #condition"() {
         initBuild(repo, "some.group:some-artifact:1.0-SNAPSHOT")
+        buildFile << """
+if (project.hasProperty('nocache')) {
+    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+"""
 
         def snapshotModule = repo.module("some.group", "some-artifact", "1.0-SNAPSHOT")
         def snapshotSources = snapshotModule.artifact(classifier: "sources")
@@ -116,23 +123,38 @@ dependencies {
         checkArtifactsResolvedAndCached()
 
         when:
-        executer.withArgument("--refresh-dependencies")
+        snapshotModule.publishWithChangedContent()
         fixture.clearExpectations()
                 .expectSourceArtifact("sources")
                 .createVerifyTask("verifyRefresh")
 
         and:
+        server.resetExpectations()
         snapshotModule.metaData.expectGet()
         snapshotModule.pom.expectHead()
+        snapshotModule.pom.sha1.expectGet()
+        snapshotModule.pom.expectGet()
         snapshotSources.expectHead()
         snapshotSources.expectGet()
 
         then:
+        executer.withArgument(execArg)
         succeeds("verifyRefresh")
+
+        where:
+        condition | execArg
+        "with --refresh-dependencies" | "--refresh-dependencies"
+        "when snapshot pom changes" | "-Pnocache"
     }
 
-    def "updates snapshot artifacts with --refresh-dependencies"() {
+    @Unroll
+    def "updates snapshot artifacts #condition"() {
         initBuild(repo, "some.group:some-artifact:1.0-SNAPSHOT")
+        buildFile << """
+if (project.hasProperty('nocache')) {
+    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+"""
 
         def snapshotModule = repo.module("some.group", "some-artifact", "1.0-SNAPSHOT")
         def snapshotSources = snapshotModule.artifact(classifier: "sources")
@@ -155,22 +177,28 @@ dependencies {
         when:
         def snapshot = file("sources/some-artifact-1.0-SNAPSHOT-sources.jar").snapshot()
         snapshotModule.publishWithChangedContent()
-        executer.withArgument("--refresh-dependencies")
 
         and:
+        server.resetExpectations()
         snapshotModule.metaData.expectGet()
         snapshotModule.pom.expectHead()
         snapshotModule.pom.sha1.expectGet()
         snapshotModule.pom.expectGet()
         snapshotSources.expectHead()
-        // TODO:DAZ This extra head request should not be required
+        // TODO:DAZ Extra head request should not be required
         snapshotSources.expectHead()
         snapshotSources.sha1.expectGet()
         snapshotSources.expectGet()
 
         then:
+        executer.withArgument(execArg)
         succeeds("verify")
         file("sources/some-artifact-1.0-SNAPSHOT-sources.jar").assertHasChangedSince(snapshot)
+
+        where:
+        condition | execArg
+        "with --refresh-dependencies" | "--refresh-dependencies"
+        "when snapshot pom changes" | "-Pnocache"
     }
 
     def "reports failure to resolve artifacts of non-existing component"() {
