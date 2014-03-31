@@ -34,7 +34,7 @@ class JvmLibraryArtifactResolveTestFixture {
     private expectedJavadocListFailure
     private expectedJavadoc = []
     private expectedJavadocFailures = []
-    private boolean missingComponent
+    private missingComponentFailure
 
     JvmLibraryArtifactResolveTestFixture(TestFile buildFile, String config = "compile") {
         this.buildFile = buildFile
@@ -52,7 +52,7 @@ class JvmLibraryArtifactResolveTestFixture {
     }
 
     JvmLibraryArtifactResolveTestFixture clearExpectations() {
-        this.missingComponent = false
+        this.missingComponentFailure = null
         this.expectedSources = []
         this.expectedJavadoc = []
         this.expectedSourceFailures = []
@@ -63,7 +63,7 @@ class JvmLibraryArtifactResolveTestFixture {
     }
 
     JvmLibraryArtifactResolveTestFixture expectComponentNotFound() {
-        this.missingComponent = true
+        this.missingComponentFailure = "Could not find any version that matches ${id.group}:${id.module}:${id.version}."
         this
     }
 
@@ -112,7 +112,7 @@ class JvmLibraryArtifactResolveTestFixture {
      * Injects the appropriate stuff into the build script.
      */
     void prepare() {
-        if (missingComponent) {
+        if (missingComponentFailure != null) {
             prepareComponentNotFound()
         } else {
             createVerifyTask("verify")
@@ -215,6 +215,7 @@ task verify << {
         assert component.id.version == "${id.version}"
         assert component.id.displayName == 'unknown'
         assert component.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
+        assert component.failure.message == "${missingComponentFailure}"
     }
 }
 """
