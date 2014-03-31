@@ -51,7 +51,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final CacheLockingManager lockingManager;
 
     private Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
-    private Class<? extends SoftwareComponent<?>> componentType;
+    private Class<? extends SoftwareComponent> componentType;
     private Set<Class<? extends SoftwareArtifact>> artifactTypes = Sets.newLinkedHashSet();
 
     public DefaultArtifactResolutionQuery(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
@@ -74,7 +74,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends SoftwareArtifact, U extends SoftwareComponent<T>> ArtifactResolutionQuery withArtifacts(Class<U> componentType, Class<T>... artifactTypes) {
+    public <T extends SoftwareComponent, U extends SoftwareArtifact> ArtifactResolutionQuery withArtifacts(Class<T> componentType, Class<U>... artifactTypes) {
         this.componentType = componentType;
         if (artifactTypes.length == 0) {
             this.artifactTypes = (Set) Sets.newHashSet(JvmLibrarySourcesArtifact.class, JvmLibraryJavadocArtifact.class);

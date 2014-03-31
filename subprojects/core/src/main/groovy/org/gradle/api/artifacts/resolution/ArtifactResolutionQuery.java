@@ -27,6 +27,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 public interface ArtifactResolutionQuery {
     ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds);
     ArtifactResolutionQuery forComponents(ComponentIdentifier... componentIds);
-    <T extends SoftwareArtifact, U extends SoftwareComponent<T>> ArtifactResolutionQuery withArtifacts(Class<U> componentType, Class<T>... artifactTypes);
+    <T extends SoftwareComponent, U extends SoftwareArtifact> ArtifactResolutionQuery withArtifacts(Class<T> componentType, Class<U>... artifactTypes);
     ArtifactResolutionQueryResult execute();
 }

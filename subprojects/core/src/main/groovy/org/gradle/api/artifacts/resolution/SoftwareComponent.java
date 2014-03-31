@@ -24,11 +24,9 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  * Implementations have the following equals contract:
  * {@code other != null && getClass() == other.getClass() && getId().equals(other.getId());}
  *
- * @param <T> the type of software artifact belonging to this component
- *
  * @since 1.12
  */
 @Incubating
-public interface SoftwareComponent<T extends SoftwareArtifact> {
+public interface SoftwareComponent {
     ComponentIdentifier getId();
 }

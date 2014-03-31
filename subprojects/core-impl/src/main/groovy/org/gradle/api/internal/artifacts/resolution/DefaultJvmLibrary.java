@@ -17,14 +17,13 @@ package org.gradle.api.internal.artifacts.resolution;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.resolution.JvmLibrary;
-import org.gradle.api.artifacts.resolution.JvmLibraryArtifact;
 import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultJvmLibrary extends AbstractSoftwareComponent<JvmLibraryArtifact> implements JvmLibrary {
+public class DefaultJvmLibrary extends AbstractSoftwareComponent implements JvmLibrary {
     private final Set<JvmLibrarySourcesArtifact> sourceArtifacts;
     private final Set<JvmLibraryJavadocArtifact> javadocArtifacts;
 
