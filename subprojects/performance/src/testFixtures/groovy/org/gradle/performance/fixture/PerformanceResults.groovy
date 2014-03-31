@@ -76,14 +76,17 @@ public class PerformanceResults {
         return baseline(version)
     }
 
-    void assertEveryBuildSucceeds() {
-        LOGGER.info("Asserting all builds have succeeded...");
+    List<MeasuredOperationList> getFailures() {
         def failures = []
         baselineVersions.values().each {
             failures.addAll it.results.findAll { it.exception }
         }
         failures.addAll current.findAll { it.exception }
+        return failures
+    }
 
+    void assertEveryBuildSucceeds() {
+        LOGGER.info("Asserting all builds have succeeded...");
         assert failures.collect { it.exception }.empty: "Some builds have failed."
     }
 
