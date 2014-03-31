@@ -15,10 +15,12 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
-
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionListing
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
@@ -29,6 +31,66 @@ class DependencyMetadataCacheTest extends Specification {
 
     def stats = new DependencyMetadataCacheStats()
     def cache = new DependencyMetadataCache(stats)
+
+    def "caches and supplies local and remote module versions"() {
+        def remoteListing = Mock(ModuleVersionListing)
+        def localListing = Mock(ModuleVersionListing)
+        def result = Mock(BuildableModuleVersionSelectionResolveResult)
+        def missingResult = Mock(BuildableModuleVersionSelectionResolveResult)
+
+        given:
+        cache.newModuleVersions(newSelector("org", "foo-remote", "1.0"), Stub(BuildableModuleVersionSelectionResolveResult) {
+            getState() >> BuildableModuleVersionSelectionResolveResult.State.Listed
+            getVersions() >> remoteListing
+        })
+        cache.newLocalModuleVersions(newSelector("org", "foo-local", "1.0"), Stub(BuildableModuleVersionSelectionResolveResult) {
+            getState() >> BuildableModuleVersionSelectionResolveResult.State.Listed
+            getVersions() >> localListing
+        })
+
+        when:
+        def local = cache.supplyLocalModuleVersions(newSelector("org", "foo-local", "1.0"), result)
+        def missingLocal = cache.supplyLocalModuleVersions(newSelector("org", "foo-remote", "1.0"), missingResult)
+
+        then:
+        local
+        1 * result.listed(localListing)
+
+        and:
+        !missingLocal
+        0 * missingResult._
+
+        when:
+        def remote = cache.supplyModuleVersions(newSelector("org", "foo-remote", "1.0"), result)
+        def missingRemote = cache.supplyModuleVersions(newSelector("org", "foo-local", "1.0"), missingResult)
+
+        then:
+        remote
+        1 * result.listed(remoteListing)
+
+        and:
+        !missingRemote
+        0 * missingResult._
+    }
+
+    def "does not cache failed module version listing"() {
+        def failedResult = Stub(BuildableModuleVersionSelectionResolveResult) {
+            getState() >> BuildableModuleVersionSelectionResolveResult.State.Failed
+        }
+        cache.newModuleVersions(newSelector("org", "lib", "1.0"), failedResult)
+        cache.newLocalModuleVersions(newSelector("org", "lib", "1.0"), failedResult)
+
+        def result = Mock(BuildableModuleVersionSelectionResolveResult)
+
+        when:
+        def remoteFromCache = cache.supplyModuleVersions(newSelector("org", "lib", "1.0"), result)
+        def localFromCache = cache.supplyLocalModuleVersions(newSelector("org", "lib", "1.0"), result)
+
+        then:
+        !remoteFromCache
+        !localFromCache
+        0 * result._
+    }
 
     def "caches and supplies remote metadata"() {
         def suppliedMetaData = Stub(MutableModuleVersionMetaData)
@@ -144,5 +206,20 @@ class DependencyMetadataCacheTest extends Specification {
         then:
         fooCached
         1 * anotherFooResult.resolved(fooFile)
+    }
+
+    def "does not cache failed artifact resolves"() {
+        def artifactId = Stub(ModuleVersionArtifactIdentifier)
+        def failedResult = Stub(BuildableArtifactResolveResult) { getFailure() >> new ArtifactResolveException("bad") }
+        cache.newArtifact(artifactId, failedResult)
+
+        def result = Mock(BuildableArtifactResolveResult)
+
+        when:
+        def fromCache = cache.supplyArtifact(artifactId, result)
+
+        then:
+        !fromCache
+        0 * result._
     }
 }

@@ -23,12 +23,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
-// TODO:DAZ Investigate whether we need in-memory caching for localListModuleVersions(), listModuleVersions(), resolveModuleArtifacts()
+// TODO:DAZ Add in-memory caching for resolveModuleArtifacts()
+// TODO:DAZ Change this so that it's a decoration over the file-system caching, rather than something completely separate.
 class CachedRepository implements LocalAwareModuleVersionRepository {
     final DependencyMetadataCache cache;
     final LocalAwareModuleVersionRepository delegate;
@@ -49,11 +49,17 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
     }
 
     public void localListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-        delegate.localListModuleVersions(dependency, result);
+        if(!cache.supplyLocalModuleVersions(dependency.getRequested(), result)) {
+            delegate.localListModuleVersions(dependency, result);
+            cache.newLocalModuleVersions(dependency.getRequested(), result);
+        }
     }
 
     public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-        delegate.listModuleVersions(dependency, result);
+        if(!cache.supplyModuleVersions(dependency.getRequested(), result)) {
+            delegate.listModuleVersions(dependency, result);
+            cache.newModuleVersions(dependency.getRequested(), result);
+        }
     }
 
     public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
@@ -75,12 +81,9 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        ComponentArtifactIdentifier artifactId = artifact.getId();
-        if (!cache.supplyArtifact(artifactId, result)) {
+        if (!cache.supplyArtifact(artifact.getId(), result)) {
             delegate.resolveArtifact(artifact, moduleSource, result);
-            if (result.getFailure() == null) {
-                cache.newArtifact(artifactId, result);
-            }
+            cache.newArtifact(artifact.getId(), result);
         }
     }
 
