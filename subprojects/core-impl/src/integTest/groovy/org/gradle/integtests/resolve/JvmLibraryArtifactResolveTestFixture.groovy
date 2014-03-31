@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.file.TestFile
  */
 class JvmLibraryArtifactResolveTestFixture {
     private final TestFile buildFile
+    private final String config
     private ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId("some.group", "some-artifact", "1.0")
     private artifactTypes = []
     private expectedSourcesListFailure
@@ -35,8 +36,9 @@ class JvmLibraryArtifactResolveTestFixture {
     private expectedJavadocFailures = []
     private boolean missingComponent
 
-    JvmLibraryArtifactResolveTestFixture(TestFile buildFile) {
+    JvmLibraryArtifactResolveTestFixture(TestFile buildFile, String config = "compile") {
         this.buildFile = buildFile
+        this.config = config
     }
 
     JvmLibraryArtifactResolveTestFixture withComponentVersion(String group, String module, String version) {
@@ -110,9 +112,6 @@ class JvmLibraryArtifactResolveTestFixture {
      * Injects the appropriate stuff into the build script.
      */
     void prepare() {
-        buildFile << """
-import org.gradle.api.internal.artifacts.component.*
-"""
         if (missingComponent) {
             prepareComponentNotFound()
         } else {
@@ -123,8 +122,12 @@ import org.gradle.api.internal.artifacts.component.*
     void createVerifyTask(def taskName) {
         buildFile << """
 task $taskName << {
+    def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
+    assert deps.size() == 1
+    def componentId = deps[0].selected.id
+
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponents([new DefaultModuleComponentIdentifier("${id.group}", "${id.module}", "${id.version}")] as Set)
+        .forComponents(deps[0].selected.id)
         .withArtifacts(JvmLibrary$artifactTypesString)
         .execute()
 
@@ -198,8 +201,9 @@ task $taskName << {
     private void prepareComponentNotFound() {
         buildFile << """
 task verify << {
+    def unknownComponentId = [getGroup: {'${id.group}'}, getModule: {'${id.module}'}, getVersion: {'${id.version}'}, getDisplayName: {'unknown'}] as ModuleComponentIdentifier
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponents([new DefaultModuleComponentIdentifier("${id.group}", "${id.module}", "${id.version}")] as Set)
+        .forComponents(unknownComponentId)
         .withArtifacts(JvmLibrary)
         .execute()
 
@@ -209,6 +213,7 @@ task verify << {
         assert component.id.group == "${id.group}"
         assert component.id.module == "${id.module}"
         assert component.id.version == "${id.version}"
+        assert component.id.displayName == 'unknown'
         assert component.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
     }
 }

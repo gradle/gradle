@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
+
 import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
+import org.gradle.test.fixtures.ivy.IvyRepository
+
 // TODO:DAZ Test can resolve multiple source/javadoc artifacts declared in 'sources'/'javadoc' configuration
 class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     def fileRepo = ivyRepo
@@ -27,15 +30,23 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
     def setup() {
         server.start()
-        buildFile << """
-repositories {
-    ivy { url '$httpRepo.uri' }
-}
-"""
+        initBuild(httpRepo)
 
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
 
         publishModule()
+    }
+
+    def initBuild(IvyRepository repo, String module = "some.group:some-artifact:1.0") {
+        buildFile.text = """
+repositories {
+    ivy { url '$repo.uri' }
+}
+configurations { compile }
+dependencies {
+    compile "${module}"
+}
+"""
     }
 
     def "resolve sources artifacts"() {
@@ -204,11 +215,7 @@ repositories {
     }
 
     def "resolve and does not cache artifacts from local repository"() {
-        buildFile.text = """
-repositories {
-    ivy { url '$fileRepo.uri' }
-}
-"""
+        initBuild(fileRepo)
 
         fixture.requestingTypes()
                 .expectSourceArtifact("my-sources")
@@ -230,10 +237,13 @@ repositories {
     }
 
     def "can resolve artifacts with maven scheme from ivy repository"() {
+        initBuild(httpRepo, "some.group:some-artifact:1.1")
+
         // Published with no configurations, and a source artifact only
         def moduleWithMavenScheme = httpRepo.module("some.group", "some-artifact", "1.1")
         moduleWithMavenScheme.artifact(classifier: "sources")
         moduleWithMavenScheme.publish()
+
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.1")
                 .requestingTypes(JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact)

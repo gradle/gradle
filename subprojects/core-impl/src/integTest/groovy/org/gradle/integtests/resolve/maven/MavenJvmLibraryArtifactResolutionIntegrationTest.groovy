@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.maven
+
 import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
+import org.gradle.test.fixtures.maven.MavenRepository
 
 class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     def repo = mavenHttpRepo
@@ -29,15 +31,23 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
 
     def setup() {
         server.start()
-        buildFile << """
-repositories {
-    maven { url '$repo.uri' }
-}
-"""
+        initBuild(repo)
 
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
 
         module.publish()
+    }
+
+    def initBuild(MavenRepository repo, String module = "some.group:some-artifact:1.0") {
+        buildFile.text = """
+repositories {
+    maven { url '$repo.uri' }
+}
+configurations { compile }
+dependencies {
+    compile "${module}"
+}
+"""
     }
 
     def "resolves and caches source artifacts"() {
@@ -86,6 +96,8 @@ repositories {
     }
 
     def "fetches missing snapshot artifacts with --refresh-dependencies"() {
+        initBuild(repo, "some.group:some-artifact:1.0-SNAPSHOT")
+
         def snapshotModule = repo.module("some.group", "some-artifact", "1.0-SNAPSHOT")
         def snapshotSources = snapshotModule.artifact(classifier: "sources")
         snapshotModule.publish()
@@ -119,6 +131,8 @@ repositories {
     }
 
     def "updates snapshot artifacts with --refresh-dependencies"() {
+        initBuild(repo, "some.group:some-artifact:1.0-SNAPSHOT")
+
         def snapshotModule = repo.module("some.group", "some-artifact", "1.0-SNAPSHOT")
         def snapshotSources = snapshotModule.artifact(classifier: "sources")
         snapshotModule.publish()
@@ -228,11 +242,7 @@ repositories {
     }
 
     def "resolve and does not cache artifacts from local repository"() {
-        buildFile.text = """
-repositories {
-    maven { url '$fileRepo.uri' }
-}
-"""
+        initBuild(fileRepo)
 
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
                 .expectSourceArtifact("sources")
