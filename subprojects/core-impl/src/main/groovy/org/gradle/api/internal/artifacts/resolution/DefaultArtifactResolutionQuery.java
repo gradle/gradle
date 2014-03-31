@@ -31,8 +31,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArti
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
@@ -109,7 +109,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                     if (moduleResolveResult.getFailure() != null) {
                         unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId, moduleResolveResult.getFailure()));
                     } else {
-                        DefaultJvmLibrary jvmLibrary = buildJvmLibrary((ModuleVersionMetaData) moduleResolveResult.getMetaData(), artifactResolver);
+                        DefaultJvmLibrary jvmLibrary = buildJvmLibrary(moduleResolveResult.getMetaData(), artifactResolver);
                         jvmLibraries.add(jvmLibrary);
                     }
                 }
@@ -119,7 +119,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         });
     }
 
-    private DefaultJvmLibrary buildJvmLibrary(ModuleVersionMetaData component, ArtifactResolver artifactResolver) {
+    private DefaultJvmLibrary buildJvmLibrary(ComponentMetaData component, ArtifactResolver artifactResolver) {
         // TODO:DAZ These should be 'uninitialised' (failing), not empty
         SoftwareArtifactSet<JvmLibraryJavadocArtifact> javadocs = new DefaultSoftwareArtifactSet<JvmLibraryJavadocArtifact>(Lists.<JvmLibraryJavadocArtifact>newArrayList());
         SoftwareArtifactSet<JvmLibrarySourcesArtifact> sources = new DefaultSoftwareArtifactSet<JvmLibrarySourcesArtifact>(Lists.<JvmLibrarySourcesArtifact>newArrayList());
@@ -135,7 +135,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         return new DefaultJvmLibrary(component.getComponentId(), sources, javadocs);
     }
 
-    private <T extends JvmLibraryArtifact> SoftwareArtifactSet<T> buildJvmLibrarySoftwareArtifactSet(Class<T> type, Class<? extends T> implType, ModuleVersionMetaData component, ArtifactResolver artifactResolver) {
+    private <T extends JvmLibraryArtifact> SoftwareArtifactSet<T> buildJvmLibrarySoftwareArtifactSet(Class<T> type, Class<? extends T> implType, ComponentMetaData component, ArtifactResolver artifactResolver) {
         ArtifactResolveContext context = new ArtifactTypeResolveContext(type);
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
         artifactResolver.resolveModuleArtifacts(component, context, artifactSetResolveResult);

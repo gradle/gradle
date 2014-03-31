@@ -18,10 +18,10 @@ package org.gradle.plugins.ide.internal
 
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.Multimap
-
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.resolution.JvmLibrary
@@ -30,9 +30,9 @@ import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyResolver
+import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
-import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency
 
 class IdeDependenciesExtractor {
@@ -61,8 +61,8 @@ class IdeDependenciesExtractor {
             Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,
             boolean downloadSources, boolean downloadJavadoc) {
 
-        // can have multiple ide dependencies with same component identifier (see GRADLE-1622)
-        Multimap<ModuleComponentIdentifier, IdeExtendedRepoFileDependency> resolvedDependencies = LinkedHashMultimap.create()
+        // can have multiple IDE dependencies with same component identifier (see GRADLE-1622)
+        Multimap<ComponentIdentifier, IdeExtendedRepoFileDependency> resolvedDependencies = LinkedHashMultimap.create()
         for (dep in resolvedExternalDependencies(plusConfigurations, minusConfigurations)) {
             resolvedDependencies.put(toComponentIdentifier(dep.id), dep)
         }
@@ -78,7 +78,7 @@ class IdeDependenciesExtractor {
     }
 
     private void downloadSourcesAndJavadoc(DependencyHandler dependencyHandler,
-                                           Multimap<ModuleComponentIdentifier, IdeExtendedRepoFileDependency> dependencies,
+                                           Multimap<ComponentIdentifier, IdeExtendedRepoFileDependency> dependencies,
                                            boolean downloadSources, boolean downloadJavadoc) {
 
         if (!downloadSources && !downloadJavadoc) {

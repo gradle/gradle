@@ -20,7 +20,6 @@ class FlatDirJvmLibraryArtifactResolutionIntegrationTest extends AbstractDepende
     JvmLibraryArtifactResolveTestFixture fixture
 
     def setup() {
-        server.start()
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
         fixture.withRepository("flatDir { dir 'repo' }")
     }
