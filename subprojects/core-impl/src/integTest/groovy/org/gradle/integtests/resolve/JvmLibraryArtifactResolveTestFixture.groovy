@@ -18,7 +18,9 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.resolution.JvmLibraryArtifact
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
 import org.gradle.test.fixtures.file.TestFile
 /**
  * A test fixture that injects a task into a build that uses the Artifact Query API to download some artifacts, validating the results.
@@ -28,13 +30,11 @@ class JvmLibraryArtifactResolveTestFixture {
     private final String config
     private ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId("some.group", "some-artifact", "1.0")
     private artifactTypes = []
-    private expectedSourcesListFailure
     private expectedSources = []
     private expectedSourceFailures = []
-    private expectedJavadocListFailure
     private expectedJavadoc = []
     private expectedJavadocFailures = []
-    private missingComponentFailure
+    Throwable unresolvedComponentFailure
 
     JvmLibraryArtifactResolveTestFixture(TestFile buildFile, String config = "compile") {
         this.buildFile = buildFile
@@ -52,18 +52,21 @@ class JvmLibraryArtifactResolveTestFixture {
     }
 
     JvmLibraryArtifactResolveTestFixture clearExpectations() {
-        this.missingComponentFailure = null
+        this.unresolvedComponentFailure = null
         this.expectedSources = []
         this.expectedJavadoc = []
         this.expectedSourceFailures = []
         this.expectedJavadocFailures = []
-        this.expectedSourcesListFailure = null
-        this.expectedJavadocListFailure = null
         this
     }
 
     JvmLibraryArtifactResolveTestFixture expectComponentNotFound() {
-        this.missingComponentFailure = "Could not find any version that matches ${id.group}:${id.module}:${id.version}."
+        this.unresolvedComponentFailure = new ModuleVersionNotFoundException(new DefaultModuleVersionSelector(id.group, id.module, id.version))
+        this
+    }
+
+    JvmLibraryArtifactResolveTestFixture expectComponentResolutionFailure(Throwable failure) {
+        unresolvedComponentFailure = failure
         this
     }
 
@@ -74,11 +77,6 @@ class JvmLibraryArtifactResolveTestFixture {
 
     JvmLibraryArtifactResolveTestFixture expectSourceArtifactNotFound(String classifier) {
         expectedSourceFailures << "Artifact '${id.group}:${id.module}:${id.version}:${id.module}-${classifier}.jar' not found."
-        this
-    }
-
-    JvmLibraryArtifactResolveTestFixture expectSourceArtifactListFailure(def failure) {
-        expectedSourcesListFailure = failure
         this
     }
 
@@ -98,11 +96,6 @@ class JvmLibraryArtifactResolveTestFixture {
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectJavadocArtifactListFailure(def failure) {
-        expectedJavadocListFailure = failure
-        this
-    }
-
     JvmLibraryArtifactResolveTestFixture expectJavadocArtifactFailure(def failure) {
         expectedJavadocFailures << failure
         this
@@ -112,7 +105,7 @@ class JvmLibraryArtifactResolveTestFixture {
      * Injects the appropriate stuff into the build script.
      */
     void prepare() {
-        if (missingComponentFailure != null) {
+        if (unresolvedComponentFailure != null) {
             prepareComponentNotFound()
         } else {
             createVerifyTask("verify")
@@ -137,16 +130,10 @@ task $taskName << {
     assert jvmLibrary.id.module == "${id.module}"
     assert jvmLibrary.id.version == "${id.version}"
     assert jvmLibrary instanceof JvmLibrary
-"""
-        if (expectedSourcesListFailure != null) {
-            buildFile << """
-    assert jvmLibrary.sourcesArtifacts.failure.message == "${expectedSourcesListFailure}"
-"""
-        } else {
-            buildFile << """
+
     def sourceArtifactFiles = []
     def sourceArtifactFailures = []
-    jvmLibrary.sourcesArtifacts.artifacts.each { artifact ->
+    jvmLibrary.sourcesArtifacts.each { artifact ->
         assert artifact instanceof JvmLibrarySourcesArtifact
         if (artifact.failure != null) {
             sourceArtifactFailures << artifact.failure.message
@@ -160,18 +147,10 @@ task $taskName << {
     }
     assert sourceArtifactFiles as Set == ${toQuotedList(expectedSources)} as Set
     assert sourceArtifactFailures as Set == ${toQuotedList(expectedSourceFailures)} as Set
-"""
-        }
 
-        if (expectedJavadocListFailure != null) {
-            buildFile << """
-    assert jvmLibrary.javadocArtifacts.failure.message == "${expectedJavadocListFailure}"
-"""
-        } else {
-            buildFile << """
     def javadocArtifactFiles = []
     def javadocArtifactFailures = []
-    jvmLibrary.javadocArtifacts.artifacts.each { artifact ->
+    jvmLibrary.javadocArtifacts.each { artifact ->
         assert artifact instanceof JvmLibraryJavadocArtifact
         if (artifact.failure != null) {
             javadocArtifactFailures << artifact.failure.message
@@ -185,10 +164,7 @@ task $taskName << {
     }
     assert javadocArtifactFiles as Set == ${toQuotedList(expectedJavadoc)} as Set
     assert javadocArtifactFailures as Set == ${toQuotedList(expectedJavadocFailures)} as Set
-"""
-        }
 
-        buildFile << """
     assert result.unresolvedComponents.empty
 }
 """
@@ -204,7 +180,7 @@ task verify << {
     def unknownComponentId = [getGroup: {'${id.group}'}, getModule: {'${id.module}'}, getVersion: {'${id.version}'}, getDisplayName: {'unknown'}] as ModuleComponentIdentifier
     def result = dependencies.createArtifactResolutionQuery()
         .forComponents(unknownComponentId)
-        .withArtifacts(JvmLibrary)
+        .withArtifacts(JvmLibrary$artifactTypesString)
         .execute()
 
     assert result.components.empty
@@ -214,8 +190,8 @@ task verify << {
         assert component.id.module == "${id.module}"
         assert component.id.version == "${id.version}"
         assert component.id.displayName == 'unknown'
-        assert component.failure instanceof org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
-        assert component.failure.message == "${missingComponentFailure}"
+        assert component.failure instanceof ${unresolvedComponentFailure.class.name}
+        assert component.failure.message == "${unresolvedComponentFailure.message}"
     }
 }
 """

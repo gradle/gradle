@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository
@@ -210,15 +211,39 @@ dependencies {
         checkArtifactsResolvedAndCached()
     }
 
-    def "resolves and recovers from broken artifacts"() {
-        fixture.requestingTypes()
-                .expectSourceArtifactListFailure("Could not determine artifacts for component 'some.group:some-artifact:1.0'")
-                .expectJavadocArtifactFailure("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-javadoc.jar'")
+    def "reports on failure to list artifacts and recovers on subsequent resolve"() {
+        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+                .expectComponentResolutionFailure(new ArtifactResolveException("Could not determine artifacts for component 'some.group:some-artifact:1.0'"))
                 .prepare()
 
         when:
         module.pom.expectGet()
         sourceArtifact.expectHeadBroken()
+
+        then:
+        succeeds("verify")
+
+        when:
+        fixture.clearExpectations()
+                .expectSourceArtifact("sources")
+                .createVerifyTask("verifyFixed")
+
+        and:
+        server.resetExpectations()
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGet()
+
+        then:
+        succeeds("verifyFixed")
+    }
+
+    def "resolves and recovers from broken artifacts"() {
+        fixture.requestingTypes(JvmLibraryJavadocArtifact)
+                .expectJavadocArtifactFailure("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-javadoc.jar'")
+                .prepare()
+
+        when:
+        module.pom.expectGet()
         javadocArtifact.expectHead()
         javadocArtifact.expectGetBroken()
 
@@ -227,14 +252,11 @@ dependencies {
 
         when:
         fixture.clearExpectations()
-                .expectSourceArtifact("sources")
                 .expectJavadocArtifact("javadoc")
                 .createVerifyTask("verifyFixed")
 
         and:
         server.resetExpectations()
-        sourceArtifact.expectHead()
-        sourceArtifact.expectGet()
         javadocArtifact.expectGet()
 
         then:

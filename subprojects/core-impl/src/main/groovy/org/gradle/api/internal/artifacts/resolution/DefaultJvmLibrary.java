@@ -16,25 +16,31 @@
 package org.gradle.api.internal.artifacts.resolution;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.resolution.*;
+import org.gradle.api.artifacts.resolution.JvmLibrary;
+import org.gradle.api.artifacts.resolution.JvmLibraryArtifact;
+import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
+import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DefaultJvmLibrary extends AbstractSoftwareComponent<JvmLibraryArtifact> implements JvmLibrary {
-    private final SoftwareArtifactSet<JvmLibrarySourcesArtifact> sourceArtifacts;
-    private final SoftwareArtifactSet<JvmLibraryJavadocArtifact> javadocArtifacts;
+    private final Set<JvmLibrarySourcesArtifact> sourceArtifacts;
+    private final Set<JvmLibraryJavadocArtifact> javadocArtifacts;
 
     public DefaultJvmLibrary(ComponentIdentifier componentId,
-                             SoftwareArtifactSet<JvmLibrarySourcesArtifact> sourceArtifacts,
-                             SoftwareArtifactSet<JvmLibraryJavadocArtifact> javadocArtifacts) {
+                             Set<? extends JvmLibrarySourcesArtifact> sourceArtifacts,
+                             Set<? extends JvmLibraryJavadocArtifact> javadocArtifacts) {
         super(componentId);
-        this.sourceArtifacts = sourceArtifacts;
-        this.javadocArtifacts = javadocArtifacts;
+        this.sourceArtifacts = new LinkedHashSet<JvmLibrarySourcesArtifact>(sourceArtifacts);
+        this.javadocArtifacts = new LinkedHashSet<JvmLibraryJavadocArtifact>(javadocArtifacts);
     }
 
-    public SoftwareArtifactSet<JvmLibrarySourcesArtifact> getSourcesArtifacts() {
+    public Set<JvmLibrarySourcesArtifact> getSourcesArtifacts() {
         return sourceArtifacts;
     }
 
-    public SoftwareArtifactSet<JvmLibraryJavadocArtifact> getJavadocArtifacts() {
+    public Set<JvmLibraryJavadocArtifact> getJavadocArtifacts() {
         return javadocArtifacts;
     }
 }
