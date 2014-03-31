@@ -97,18 +97,14 @@ class IdeDependenciesExtractor {
         def jvmLibraries = query.execute().getComponents(JvmLibrary)
         for (jvmLibrary in jvmLibraries) {
             for (dependency in dependencies.get(jvmLibrary.id)) {
-                if (jvmLibrary.sourcesArtifacts.failure == null) {
-                    for (sourcesArtifact in jvmLibrary.sourcesArtifacts.artifacts) {
-                        if (sourcesArtifact.failure == null) {
-                            dependency.sourceFile = sourcesArtifact.file
-                        }
+                for (sourcesArtifact in jvmLibrary.sourcesArtifacts) {
+                    if (sourcesArtifact.failure == null) {
+                        dependency.sourceFile = sourcesArtifact.file
                     }
                 }
-                if (jvmLibrary.javadocArtifacts.failure == null) {
-                    for (javadocArtifact in jvmLibrary.javadocArtifacts.artifacts) {
-                        if (javadocArtifact.failure == null) {
-                            dependency.javadocFile = javadocArtifact.file
-                        }
+                for (javadocArtifact in jvmLibrary.javadocArtifacts) {
+                    if (javadocArtifact.failure == null) {
+                        dependency.javadocFile = javadocArtifact.file
                     }
                 }
             }
