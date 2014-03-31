@@ -74,6 +74,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    IvyFileModule undeclaredArtifact(Map<String, ?> options) {
+        artifact(options + [undeclared: true])
+        return this
+    }
+
     Map<String, ?> toArtifact(Map<String, ?> options = [:]) {
         return [name: options.name ?: module, type: options.type ?: 'jar',
                 ext: options.ext ?: options.type ?: 'jar', classifier: options.classifier ?: null, conf: options.conf ?: '*']
@@ -193,8 +198,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 	<publications>
 """
             artifacts.each { artifact ->
-                ivyFileWriter << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.ext}" conf="${artifact.conf}" m:classifier="${artifact.classifier ?: ''}"/>
+                if (!artifact.undeclared) {
+                    ivyFileWriter << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.ext}" conf="${artifact.conf}" m:classifier="${artifact.classifier ?: ''}"/>
 """
+                }
             }
             ivyFileWriter << """
 	</publications>

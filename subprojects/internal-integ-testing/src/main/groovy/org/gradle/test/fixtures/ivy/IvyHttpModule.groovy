@@ -85,6 +85,11 @@ class IvyHttpModule implements IvyModule, HttpModule {
         return this
     }
 
+    IvyHttpModule undeclaredArtifact(Map<String, ?> options = [:]) {
+        backingModule.undeclaredArtifact(options)
+        return this
+    }
+
     IvyHttpModule extendsFrom(Map<String, ?> attributes) {
         backingModule.extendsFrom(attributes)
         return this

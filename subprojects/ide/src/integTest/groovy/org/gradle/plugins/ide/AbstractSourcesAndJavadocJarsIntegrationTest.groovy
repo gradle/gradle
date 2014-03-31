@@ -200,8 +200,8 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         def module = repo.module("some", "module", "1.0")
         module.configuration("default")
         module.artifact(conf: "default")
-        module.getArtifact(classifier: "sources", ext: "jar").file << "content"
-        module.getArtifact(classifier: "javadoc", ext: "jar").file << "content"
+        module.undeclaredArtifact(classifier: "sources", ext: "jar")
+        module.undeclaredArtifact(classifier: "javadoc", ext: "jar")
         module.publish()
         module.allowAll()
 
