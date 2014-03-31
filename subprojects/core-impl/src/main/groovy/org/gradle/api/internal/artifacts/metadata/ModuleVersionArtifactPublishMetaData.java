@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 
 import java.io.File;
 
@@ -31,9 +30,6 @@ public interface ModuleVersionArtifactPublishMetaData {
     Artifact toIvyArtifact();
 
     IvyArtifactName getArtifactName();
-
-    // TODO:ADAM Replace use with getArtifactName()
-    ArtifactIdentifier getArtifactIdentifier();
 
     File getFile();
 }
