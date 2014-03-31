@@ -17,15 +17,14 @@
 package org.gradle.api.internal.externalresource.transport.sftp;
 
 import org.apache.sshd.client.SftpClient;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.resource.ResourceException;
-import org.gradle.util.CollectionUtils;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SftpResourceLister implements ExternalResourceLister {
@@ -53,12 +52,18 @@ public class SftpResourceLister implements ExternalResourceLister {
         SftpClient client = sftpClientFactory.createSftpClient(uri, credentials);
 
         try {
-            if (client.lstat(path) != null) {
-                return CollectionUtils.collect(client.readDir(path), new Transformer<String, SftpClient.DirEntry>() {
-                    public String transform(SftpClient.DirEntry dirEntry) {
-                        return parent + dirEntry.filename;
+            SftpClient.Handle dirHandle = client.openDir(path);
+            if (dirHandle != null) {
+                List<String> list = new ArrayList<String>();
+                SftpClient.DirEntry[] entries = client.readDir(dirHandle);
+                while (entries != null) {
+                    for (SftpClient.DirEntry entry : entries) {
+                        list.add(parent + entry.filename);
                     }
-                });
+                    entries = client.readDir(dirHandle);
+                }
+                client.close(dirHandle);
+                return list;
             } else {
                 return null;
             }

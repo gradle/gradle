@@ -32,17 +32,32 @@ public class NonExistingFileHandlingSftpClient extends DefaultSftpClient impleme
         this.clientSession = clientSession;
     }
 
-    @Override
-    protected Attributes checkAttributes(Buffer buffer) throws IOException {
-        int originalBufferPosition = buffer.rpos();
+    private boolean noSuchFileResponse(Buffer buffer) {
         buffer.getInt(); //length
         int type = buffer.getByte();
         buffer.getInt(); //id
-        if (type == SSH_FXP_STATUS && buffer.getInt() == DefaultSftpClient.SSH_FX_NO_SUCH_FILE) {
+        return type == SSH_FXP_STATUS && buffer.getInt() == DefaultSftpClient.SSH_FX_NO_SUCH_FILE;
+    }
+
+    @Override
+    protected Attributes checkAttributes(Buffer buffer) throws IOException {
+        int originalBufferPosition = buffer.rpos();
+        if (noSuchFileResponse(buffer)) {
             return null;
         } else {
             buffer.rpos(originalBufferPosition);
             return super.checkAttributes(buffer);
+        }
+    }
+
+    @Override
+    protected Handle checkHandle(Buffer buffer) throws IOException {
+        int originalBufferPosition = buffer.rpos();
+        if (noSuchFileResponse(buffer)) {
+            return null;
+        } else {
+            buffer.rpos(originalBufferPosition);
+            return super.checkHandle(buffer);
         }
     }
 
