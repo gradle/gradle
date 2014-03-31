@@ -194,6 +194,20 @@ Later stories incrementally add more graceful cancellation handling.
 
 See [tooling-api-improvements.md](tooling-api-improvements.md#story-tooling-api-client-cancels-a-long-running-operation)
 
+## Feature - Expose dependency resolution problems
+
+- For the following kinds of failures:
+    - Missing or broken module version
+    - Missing or broken jar
+    - Missing or broken source and javadoc artifact
+- Change the IDE plugins to warn for each such problem it ignores, and fail on all others.
+- Change the tooling model include the failure details for each such problem.
+
+### Test coverage
+
+- Change the existing IDE plugin int tests to verify the warning is produced in each of the above cases.
+- Add test coverage for the tooling API to cover the above cases.
+
 ## Feature - Expose build script compilation details
 
 See [tooling-api-improvements.md](tooling-api-improvements.md#story-expose-the-compile-details-of-a-build-script):
