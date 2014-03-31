@@ -273,6 +273,26 @@ Source artifacts contained in a 'sources' configuration in ivy.xml will be now b
 * If the files defined by a ivy-specific scheme are not available, should we then use the maven convention to look for artifacts?
   Or, for backward-compatibility should we first use the maven scheme, trying the ivy-specific scheme if not found?
 
+## Story: Source and javadoc artifacts are updated when Maven snapshot changes
+
+- Use the timestamp as part of the component identifier for unique Maven snapshots.
+- A unique snapshot is no longer considered a changing module.
+
+### Test cases
+
+* New artifacts are used when snapshot has expired:
+    * Resolve the source and javadoc artifacts for a Maven snapshot.
+    * Publish a new snapshot with changed artifacts.
+    * With `cacheChangingModules` set to 0, verify that the new source and javadoc artifacts are used.
+
+* Old artifacts are used when snapshot has not expired:
+    * Resolve a Maven snapshot, but not the source and javadoc artifacts.
+    * Publish a new snapshot with changed artifacts
+    * With `cacheChangingModules` set to default, verify that the old source and javadoc artifacts are used.
+
+* No requests for Maven snapshot source and javadoc are made with build is executed with `--offline`, even when cache has expired.
+* Can recover from a broken HTTP request by switching to use `--offline`.
+
 ## Story: Source and javadoc artifacts are updated for changing module based on configured cache expiry
 
 Currently it is not possible to configure how often the Artifact Query API should check for changes to artifacts.
@@ -286,35 +306,17 @@ This story introduces a new cache control DSL that can apply to both dependency 
 - Cache control DSL allows a rule to be declared that specifies the frequency at which changing things from a given module should be checked.
 - DSL should be reusable in some form for plugin resolution and external build script caching (but not wired up to these things yet).
 - The existing DSL on `ResolutionStrategy` should win over the new cache control DSL.
+- User guide explains how to use the cache control DSL, and DSL is documented in the DSL guide.
 
 ### Test cases
-
-Some test cases that are not directly related, but require this feature to be implemented:
 
 * New DSL can be used to control caching for all types of cached dependency resolution state: version list, module version meta-data, downloaded artifacts,
 resolved artifact meta-data.
+
+Some test cases that are not directly related, but require this feature to be implemented:
+
 * Source and javadoc for a non-unique Maven snapshot is updated when check-for-changes is 'always'.
 * No requests for source and javadoc are made with build is executed with `--offline`, even when cache has expired.
-* Can recover from a broken HTTP request by switching to use `--offline`.
-
-## Story: Source and javadoc artifacts are updated when Maven snapshot changes
-
-- Use the timestamp as part of the component identifier for unique Maven snapshots.
-- A unique snapshot is no longer considered a changing module.
-
-### Test cases
-
-* New artifacts are used when snapshot has expired:
-    * Resolve the source and javadoc artifacts for a Maven snapshot.
-    * Publish a new snapshot with changed artifacts.
-    * With check-for-changes set to 'always', verify that the new source and javadoc artifacts are used.
-
-* Old artifacts are used when snapshot has not expired:
-    * Resolve a Maven snapshot, but not the source and javadoc artifacts.
-    * Publish a new snapshot with changed artifacts
-    * With check-for-changes set to default, verify that the old source and javadoc artifacts are used.
-
-* No requests for Maven snapshot source and javadoc are made with build is executed with `--offline`, even when cache has expired.
 * Can recover from a broken HTTP request by switching to use `--offline`.
 
 ## Story: Source and Javadoc artifacts are exposed for a local Java component
