@@ -267,6 +267,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         doResolveModuleArtifacts((ModuleVersionMetaData) component, context, result, false);
     }
 
+    // TODO:DAZ This "local-only" pattern is quite ugly: improve it.
     private void doResolveModuleArtifacts(ModuleVersionMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result, boolean localOnly) {
         try {
             if (context instanceof ConfigurationResolveContext) {

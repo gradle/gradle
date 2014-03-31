@@ -139,11 +139,23 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     }
 
     public void localResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        doResolveModuleArtifacts(component, context, result, true);
+    }
+
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        doResolveModuleArtifacts(component, context, result, false);
+    }
+
+    // TODO:DAZ This "local-only" pattern is quite ugly: improve it.
+    private void doResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result, boolean localOnly) {
         ModuleVersionMetaData moduleVersion = (ModuleVersionMetaData) component;
         if (context instanceof ConfigurationResolveContext) {
             String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
             result.resolved(component.getConfiguration(configurationName).getArtifacts());
-        } else {
+            return;
+        }
+
+        if (!localOnly && context instanceof ArtifactTypeResolveContext) {
             Class<? extends SoftwareArtifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
             try {
                 result.resolved(doGetCandidateArtifacts(moduleVersion, artifactType));
@@ -151,10 +163,6 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
                 result.failed(new ArtifactResolveException(component.getComponentId(), e));
             }
         }
-    }
-
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        localResolveModuleArtifacts(component, context, result);
     }
 
     private Set<ModuleVersionArtifactMetaData> doGetCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {

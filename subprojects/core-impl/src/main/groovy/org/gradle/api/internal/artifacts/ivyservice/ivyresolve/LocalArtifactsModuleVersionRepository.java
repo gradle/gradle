@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 public interface LocalArtifactsModuleVersionRepository extends ModuleVersionRepository {
     /**
      * Resolves a set of artifacts belonging to the gi  ven module, without making any network requests. Any failures are packaged up in the result.
+     * If no local resolution is possible, then the result should be set via {@link #resolveModuleArtifacts}.
      */
     void localResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result);
 }
