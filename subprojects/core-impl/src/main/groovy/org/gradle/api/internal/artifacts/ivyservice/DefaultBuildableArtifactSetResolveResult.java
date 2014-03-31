@@ -39,6 +39,7 @@ public class DefaultBuildableArtifactSetResolveResult implements BuildableArtifa
     }
 
     public ArtifactResolveException getFailure() {
+        assertHasResult();
         return failure;
     }
 

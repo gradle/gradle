@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,16 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice
-
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
 import spock.lang.Specification
 
-class DefaultBuildableArtifactResolveResultTest extends Specification {
-    final result = new DefaultBuildableArtifactResolveResult()
+class DefaultBuildableArtifactSetResolveResultTest extends Specification {
+    final result = new DefaultBuildableArtifactSetResolveResult()
 
-    def "cannot get file when no result specified"() {
+    def "cannot get artifacts when no result specified"() {
         when:
-        result.file
+        result.artifacts
 
         then:
         IllegalStateException e = thrown()
@@ -42,23 +40,36 @@ class DefaultBuildableArtifactResolveResultTest extends Specification {
         e.message == 'No result has been specified.'
     }
 
-    def "cannot get file when resolve failed"() {
+    def "cannot get artifacts when resolve failed"() {
         def failure = new ArtifactResolveException("broken")
 
         when:
         result.failed(failure)
-        result.file
+        result.artifacts
 
         then:
         ArtifactResolveException e = thrown()
         e == failure
     }
 
-    def "fails with not found exception when artifact not found"() {
+    def "has result when artifacts set"() {
         when:
-        result.notFound(Stub(ModuleVersionArtifactIdentifier))
+        def artifact = Mock(ComponentArtifactMetaData)
+        result.resolved([artifact])
 
         then:
-        result.failure instanceof ArtifactNotFoundException
+        result.hasResult()
+        result.failure == null
+        result.artifacts == [artifact] as Set
+    }
+
+    def "has result when failure set"() {
+        when:
+        final failure = new ArtifactResolveException("bad")
+        result.failed(failure)
+
+        then:
+        result.hasResult()
+        result.failure == failure
     }
 }
