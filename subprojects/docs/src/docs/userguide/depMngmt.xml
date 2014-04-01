@@ -829,7 +829,7 @@
             </para>
             <itemizedlist>
                 <listitem>
-                    <para>There are many options for the protocol to communicate with the repository (e.g. filesystem, http, ssh, ...)
+                    <para>There are many options for the protocol to communicate with the repository (e.g. filesystem, http, ssh, sftp ...)
                     </para>
                 </listitem>
                 <listitem>

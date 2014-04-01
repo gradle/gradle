@@ -39,7 +39,7 @@ public abstract class AbstractExternalResource implements ExternalResource {
     public void writeTo(OutputStream output) throws IOException {
         InputStream input = openStream();
         try {
-            IOUtils.copy(input, output);
+            IOUtils.copyLarge(input, output);
         } finally {
             input.close();
         }

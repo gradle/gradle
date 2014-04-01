@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 @Requires(TestPrecondition.JDK5)
-@Unroll
 class IvyPublishSftpIncompatibleJavaVersionIntegrationTest extends AbstractIntegrationSpec {
-    def "cannot publish to a SFTP repository with layout #layout for incompatible Java version"() {
+    def "cannot publish to a SFTP repository for incompatible Java version"() {
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -43,7 +41,6 @@ class IvyPublishSftpIncompatibleJavaVersionIntegrationTest extends AbstractInteg
                             username 'sftp'
                             password 'sftp'
                         }
-                        layout "$layout"
                     }
                 }
                 publications {
@@ -58,11 +55,6 @@ class IvyPublishSftpIncompatibleJavaVersionIntegrationTest extends AbstractInteg
         ExecutionFailure failure = fails 'publish'
 
         then:
-        failure.error.contains("The use of SFTP repositories requires Java 6 or later.")
-
-        where:
-        layout   | m2Compatible
-        'gradle' | false
-        'maven'  | true
+        failure.assertHasCause("The use of SFTP repositories requires Java 6 or later.")
     }
 }

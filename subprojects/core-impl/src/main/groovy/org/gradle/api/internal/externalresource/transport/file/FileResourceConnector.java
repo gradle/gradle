@@ -23,9 +23,9 @@ import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccesso
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.util.GFileUtils;
-import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -60,9 +60,7 @@ public class FileResourceConnector implements ExternalResourceLister, ExternalRe
         try {
             InputStream sourceInputStream = source.create();
             try {
-                if (IOUtils.copy(sourceInputStream, fileOutputStream) == -1) {
-                    throw new IOException(String.format("File copy failed from %s to %s", source, target));
-                }
+                IOUtils.copyLarge(sourceInputStream, fileOutputStream);
             } finally {
                 sourceInputStream.close();
             }

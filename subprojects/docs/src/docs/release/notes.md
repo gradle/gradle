@@ -67,6 +67,56 @@ Benefits of the new API for the users:
 * build scripts are more likely to be decoupled from the plugin types (e.g. it's easier for plugin author to refactor/change the type)
 * some build scripts are cleaner and more consistent because plugins are applied by 'id' and are also filtered by 'id'
 
+### Support for Ivy repositories with SFTP scheme
+
+In addition to `file`, `http` and `https`, Ivy repositories now also support the `sftp` transport scheme. Currently, authentication with the SFTP server only works based on
+providing username and password credentials.
+
+Here is an example usage of resolving dependencies from a SFTP server:
+
+    apply plugin: 'java'
+
+    repositories {
+        ivy {
+            url 'sftp://127.0.0.1:22/repo'
+            credentials {
+                username 'sftp'
+                password 'sftp'
+            }
+            layout 'maven'
+        }
+    }
+
+    dependencies {
+        compile 'org.apache.commons:commons-lang3:3.3.1'
+    }
+
+Here is an example usage of publishing an artifact to a repository hosted on a SFTP server:
+
+    apply plugin: 'java'
+    apply plugin: 'ivy-publish'
+
+    version = '2'
+    group = 'org.group.name'
+
+    publishing {
+        repositories {
+            ivy {
+                url 'sftp://127.0.0.1:22/repo'
+                credentials {
+                    username 'sftp'
+                    password 'sftp'
+                }
+                layout 'maven'
+            }
+        }
+        publications {
+            ivy(IvyPublication) {
+                from components.java
+            }
+        }
+    }
+
 <!--
 ### Example new and noteworthy
 -->

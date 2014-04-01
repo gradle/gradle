@@ -23,7 +23,9 @@ import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploade
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -56,9 +58,7 @@ public class SftpResourceUploader implements ExternalResourceUploader {
             outputStream = client.write(uri.getPath());
             InputStream sourceStream = sourceFactory.create();
             try {
-                if (IOUtils.copy(sourceStream, outputStream) == -1) {
-                    throw new IOException(String.format("File upload failed from %s to %s", sourceFactory, destination));
-                }
+                IOUtils.copyLarge(sourceStream, outputStream);
                 outputStream.flush();
             } finally {
                 sourceStream.close();
