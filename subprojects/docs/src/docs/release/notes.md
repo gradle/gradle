@@ -49,6 +49,24 @@ Artifacts for many components can be resolved together:
 
 So far, only one component type (`JvmLibrary`) is available, but others will follow, also for platforms other than the JVM.
 
+### Cleaner build scripts with `plugins.withId`
+
+New <a href="javadoc/org/gradle/api/plugins/PluginContainer.html#withId(java.lang.String, org.gradle.api.Action)">plugins.withId()</a>
+enables referring to plugins more conveniently.
+In previous releases, some times it was necessary for the client of a custom plugin to know the fully qualified type of the plugin:
+
+    import com.my.custom.InterestingPlugin
+    plugins.withType(InterestingPlugin) { ...
+
+    //now possible, given InterestingPlugin uses "interesting-plugin" id:
+    plugins.withId("interesting-plugin") { ...
+
+Benefits of the new API for the users:
+
+* less pressure to know the exact java class of the plugin
+* build scripts are more likely to be decoupled from the plugin types (e.g. it's easier for plugin author to refactor/change the type)
+* some build scripts are cleaner and more consistent because plugins are applied by 'id' and are also filtered by 'id'
+
 <!--
 ### Example new and noteworthy
 -->
