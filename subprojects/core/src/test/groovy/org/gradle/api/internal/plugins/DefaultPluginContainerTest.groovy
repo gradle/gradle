@@ -92,4 +92,26 @@ public class DefaultPluginContainerTest extends Specification {
         when: container.getPlugin(TestPlugin1)
         then: thrown(UnknownPluginException)
     }
+
+    def "executes action for plugin with given id"() {
+        def plugin = new TestPlugin1()
+        pluginRegistry.getTypeForId("plugin") >> TestPlugin1
+        def plugins = []
+        container.add(plugin)
+
+        when: container.withId("plugin") { plugins << it }
+        then: plugins == [plugin]
+    }
+
+    def "executes action when plugin with given id is added later"() {
+        def plugins = []
+        when: container.withId("plugin") { plugins << it }
+        then: plugins.empty
+
+        def plugin = new TestPlugin1()
+        pluginRegistry.getTypeForId("plugin") >> TestPlugin1
+
+        when: container.add(plugin)
+        then: plugins == [plugin]
+    }
 }
