@@ -130,7 +130,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     }
 
     public void getLocalDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-        lookupModuleInCache(delegate, dependency, result);
+        lookupModuleInCache(delegate, dependency, moduleComponentIdentifier, result);
     }
 
     public void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
@@ -138,8 +138,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         delegate.getDependency(forced, moduleComponentIdentifier, result);
         switch (result.getState()) {
             case Missing:
-                ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier);
-                moduleMetaDataCache.cacheMissing(delegate, moduleVersionIdentifier);
+                moduleMetaDataCache.cacheMissing(delegate, moduleComponentIdentifier);
                 break;
             case Resolved:
                 MutableModuleVersionMetaData metaData = result.getMetaData();
@@ -155,10 +154,10 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
     }
 
-    private void lookupModuleInCache(ModuleVersionRepository repository, DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
+    private void lookupModuleInCache(ModuleVersionRepository repository, DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        ModuleVersionIdentifier moduleVersionIdentifier = newId(moduleComponentIdentifier);
         ModuleRevisionId resolvedModuleVersionId = dependency.getDescriptor().getDependencyRevisionId();
-        ModuleVersionIdentifier moduleVersionIdentifier = newId(resolvedModuleVersionId);
-        ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.getCachedModuleDescriptor(repository, moduleVersionIdentifier);
+        ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.getCachedModuleDescriptor(repository, moduleComponentIdentifier);
         if (cachedMetaData == null) {
             return;
         }

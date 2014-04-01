@@ -16,14 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
@@ -66,15 +66,15 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return cacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
     }
 
-    public CachedMetaData getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
-        ModuleDescriptorCacheEntry moduleDescriptorCacheEntry = getCache().get(createKey(repository, moduleVersionIdentifier));
+    public CachedMetaData getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleComponentIdentifier componentId) {
+        ModuleDescriptorCacheEntry moduleDescriptorCacheEntry = getCache().get(createKey(repository, componentId));
         if (moduleDescriptorCacheEntry == null) {
             return null;
         }
         if (moduleDescriptorCacheEntry.isMissing) {
             return new DefaultCachedMetaData(moduleDescriptorCacheEntry, null, timeProvider);
         }
-        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleVersionIdentifier);
+        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, componentId);
         if (descriptor == null) {
             // Descriptor file has been manually deleted - ignore the entry
             return null;
@@ -82,7 +82,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new DefaultCachedMetaData(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }
 
-    public CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleVersionIdentifier id) {
+    public CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleComponentIdentifier id) {
         LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", id, false);
         ModuleDescriptorCacheEntry entry = createMissingEntry(false);
         getCache().put(createKey(repository, id), entry);
@@ -94,12 +94,12 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), metaData.isChanging());
         LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
         ModuleDescriptorCacheEntry entry = createEntry(metaData.isChanging(), metaData.isMetaDataOnly(), metaData.getPackaging(), resource.getSha1(), moduleSource);
-        getCache().put(createKey(repository, metaData.getId()), entry);
+        getCache().put(createKey(repository, metaData.getComponentId()), entry);
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
-    private RevisionKey createKey(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new RevisionKey(repository.getId(), moduleVersionIdentifier);
+    private RevisionKey createKey(ModuleVersionRepository repository, ModuleComponentIdentifier id) {
+        return new RevisionKey(repository.getId(), id);
     }
 
     private ModuleDescriptorCacheEntry createMissingEntry(boolean changing) {
@@ -112,11 +112,11 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
 
     private static class RevisionKey {
         private final String repositoryId;
-        private final ModuleVersionIdentifier moduleVersionIdentifier;
+        private final ModuleComponentIdentifier componentId;
 
-        private RevisionKey(String repositoryId, ModuleVersionIdentifier moduleVersionIdentifier) {
+        private RevisionKey(String repositoryId, ModuleComponentIdentifier componentId) {
             this.repositoryId = repositoryId;
-            this.moduleVersionIdentifier = moduleVersionIdentifier;
+            this.componentId = componentId;
         }
 
         @Override
@@ -125,26 +125,26 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
                 return false;
             }
             RevisionKey other = (RevisionKey) o;
-            return repositoryId.equals(other.repositoryId) && moduleVersionIdentifier.equals(other.moduleVersionIdentifier);
+            return repositoryId.equals(other.repositoryId) && componentId.equals(other.componentId);
         }
 
         @Override
         public int hashCode() {
-            return repositoryId.hashCode() ^ moduleVersionIdentifier.hashCode();
+            return repositoryId.hashCode() ^ componentId.hashCode();
         }
     }
 
     private static class RevisionKeySerializer implements Serializer<RevisionKey> {
-        private final ModuleVersionIdentifierSerializer identifierSerializer = new ModuleVersionIdentifierSerializer();
+        private final ComponentIdentifierSerializer componentIdSerializer = new ComponentIdentifierSerializer();
 
         public void write(Encoder encoder, RevisionKey value) throws Exception {
             encoder.writeString(value.repositoryId);
-            identifierSerializer.write(encoder, value.moduleVersionIdentifier);
+            componentIdSerializer.write(encoder, value.componentId);
         }
 
         public RevisionKey read(Decoder decoder) throws Exception {
             String resolverId = decoder.readString();
-            ModuleVersionIdentifier identifier = identifierSerializer.read(decoder);
+            ModuleComponentIdentifier identifier = (ModuleComponentIdentifier) componentIdSerializer.read(decoder);
             return new RevisionKey(resolverId, identifier);
         }
     }
