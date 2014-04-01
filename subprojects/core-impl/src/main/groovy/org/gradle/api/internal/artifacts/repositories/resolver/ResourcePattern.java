@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 public interface ResourcePattern {
@@ -29,7 +30,7 @@ public interface ResourcePattern {
      * Returns the pattern which can be used to search for versions of the given artifact.
      * The returned pattern should include at least one [revision] placeholder.
      */
-    String toVersionListPattern(ModuleVersionArtifactMetaData artifact);
+    String toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact);
 
     /**
      * Returns the path to the given module.

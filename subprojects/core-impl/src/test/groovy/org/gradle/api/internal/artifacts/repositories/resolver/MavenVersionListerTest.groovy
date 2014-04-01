@@ -21,8 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
 import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.resource.ResourceException
@@ -36,7 +35,7 @@ class MavenVersionListerTest extends Specification {
     def moduleRevisionId = IvyUtil.createModuleRevisionId("org.acme", "testproject", "1.0")
     def module = new DefaultModuleIdentifier("org.acme", "testproject")
     def moduleVersion = new DefaultModuleVersionIdentifier(module, "1.0")
-    def artifact = new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(moduleVersion, "testproject", "jar", "jar"))
+    def artifact = new DefaultIvyArtifactName("testproject", "jar", "jar")
 
     def repository = Mock(ExternalResourceRepository)
     def pattern = pattern("localhost:8081/testRepo/" + MavenPattern.M2_PATTERN)

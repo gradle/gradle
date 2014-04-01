@@ -142,10 +142,9 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     @Override
-    protected ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
+    protected IvyArtifactName getMetaDataArtifactName(String moduleName) {
         if (isUsepoms()) {
-            DefaultModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(moduleComponentIdentifier, moduleComponentIdentifier.getModule(), "pom", "pom");
-            return new DefaultModuleVersionArtifactMetaData(artifactId);
+            return new DefaultIvyArtifactName(moduleName, "pom", "pom");
         }
 
         return null;

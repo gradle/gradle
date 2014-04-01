@@ -46,9 +46,9 @@ public class IvyResourcePattern implements ResourcePattern {
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }
 
-    public String toVersionListPattern(ModuleVersionArtifactMetaData artifactId) {
-        Map<String, Object> attributes = toAttributes(artifactId);
-        attributes.remove(IvyPatternHelper.REVISION_KEY);
+    public String toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
+        Map<String, Object> attributes = toAttributes(module);
+        attributes.putAll(toAttributes(artifact));
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }
 
@@ -68,6 +68,12 @@ public class IvyResourcePattern implements ResourcePattern {
         attributes.put(IvyPatternHelper.ORGANISATION_KEY, moduleVersionIdentifier.getGroup());
         attributes.put(IvyPatternHelper.MODULE_KEY, moduleVersionIdentifier.getModule());
         attributes.put(IvyPatternHelper.REVISION_KEY, moduleVersionIdentifier.getVersion());
+        attributes.putAll(toAttributes(ivyArtifact));
+        return attributes;
+    }
+
+    protected Map<String, Object> toAttributes(IvyArtifactName ivyArtifact) {
+        HashMap<String, Object> attributes = new HashMap<String, Object>();
         attributes.put(IvyPatternHelper.ARTIFACT_KEY, ivyArtifact.getName());
         attributes.put(IvyPatternHelper.TYPE_KEY, ivyArtifact.getType());
         attributes.put(IvyPatternHelper.EXT_KEY, ivyArtifact.getExtension());

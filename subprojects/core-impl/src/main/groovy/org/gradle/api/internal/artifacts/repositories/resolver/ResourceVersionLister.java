@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceException;
 import org.slf4j.Logger;
@@ -45,18 +45,18 @@ public class ResourceVersionLister implements VersionLister {
         return new DefaultVersionList() {
             final Set<String> directories = new HashSet<String>();
 
-            public void visit(ResourcePattern resourcePattern, ModuleVersionArtifactMetaData artifact) throws ResourceException {
-                String partiallyResolvedPattern = resourcePattern.toVersionListPattern(artifact);
+            public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
+                String partiallyResolvedPattern = pattern.toVersionListPattern(module, artifact);
                 LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
                 try {
                     List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);
                     for (String versionString : versionStrings) {
-                        add(new ListedVersion(versionString, resourcePattern));
+                        add(new ListedVersion(versionString, pattern));
                     }
                 } catch (ResourceException e) {
                     throw e;
                 } catch (Exception e) {
-                    throw new ResourceException(String.format("Could not list versions using %s.", resourcePattern), e);
+                    throw new ResourceException(String.format("Could not list versions using %s.", pattern), e);
                 }
             }
 

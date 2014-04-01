@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
@@ -39,12 +40,13 @@ class M2ResourcePatternTest extends Specification {
 
     def "substitutes module attributes into pattern to determine module pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def artifact1 = artifact("group", "projectA", "1.2")
-        def artifact2 = artifact("org.group", "projectA", "1.2")
+        def ivyName = new DefaultIvyArtifactName("projectA", "pom", "pom")
+        def module1 = new DefaultModuleIdentifier("group", "projectA")
+        def module2 = new DefaultModuleIdentifier("org.group", "projectA")
 
         expect:
-        pattern.toVersionListPattern(artifact1) == 'prefix/group/projectA/[revision]/ivys/[revision]/ivy.xml'
-        pattern.toVersionListPattern(artifact2) == 'prefix/org/group/projectA/[revision]/ivys/[revision]/ivy.xml'
+        pattern.toVersionListPattern(module1, ivyName) == 'prefix/group/projectA/[revision]/poms/[revision]/projectA.pom'
+        pattern.toVersionListPattern(module2, ivyName) == 'prefix/org/group/projectA/[revision]/poms/[revision]/projectA.pom'
     }
 
     def "can build module path"() {

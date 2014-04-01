@@ -138,12 +138,12 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         VersionList versionList = versionLister.getVersionList(module);
 
         // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
-        ModuleVersionArtifactMetaData metaDataArtifact = getMetaDataArtifactFor(new DefaultModuleComponentIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName(), "0"));
+        IvyArtifactName metaDataArtifact = getMetaDataArtifactName(dependency.getRequested().getName());
         listVersionsForAllPatterns(getIvyPatterns(), metaDataArtifact, versionList);
 
         // List modules with missing metadata files
         if (isAllownomd()) {
-            for (ModuleVersionArtifactMetaData otherArtifact : getDependencyArtifacts(dependency)) {
+            for (IvyArtifactName otherArtifact : getDependencyArtifactNames(dependency)) {
                 listVersionsForAllPatterns(getArtifactPatterns(), otherArtifact, versionList);
             }
         }
@@ -154,10 +154,10 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         result.listed(moduleVersions);
     }
 
-    private void listVersionsForAllPatterns(List<String> patternList, ModuleVersionArtifactMetaData artifact, VersionList versionList) {
+    private void listVersionsForAllPatterns(List<String> patternList, IvyArtifactName ivyArtifactName, VersionList versionList) {
         for (String pattern : patternList) {
             ResourcePattern resourcePattern = toResourcePattern(pattern);
-            versionList.visit(resourcePattern, artifact);
+            versionList.visit(resourcePattern, ivyArtifactName);
         }
     }
 
@@ -174,7 +174,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         if (isAllownomd()) {
-            MutableModuleVersionMetaData metaDataFromDefaultArtifact = createMetaDataFromDefaultArtifact(dependency, artifactResolver);
+            MutableModuleVersionMetaData metaDataFromDefaultArtifact = createMetaDataFromDefaultArtifact(moduleVersionIdentifier, dependency, artifactResolver);
             if (metaDataFromDefaultArtifact != null) {
                 LOGGER.debug("Found artifact but no meta-data for module '{}' in repository '{}', using default meta-data.", moduleVersionIdentifier, getName());
                 result.resolved(metaDataFromDefaultArtifact, null);
@@ -216,27 +216,26 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return processMetaData(metaData);
     }
 
-    private MutableModuleVersionMetaData createMetaDataFromDefaultArtifact(DependencyMetaData dependency, ArtifactResolver artifactResolver) {
-        for (ModuleVersionArtifactMetaData artifactMetaData : getDependencyArtifacts(dependency)) {
-            if (artifactResolver.artifactExists(artifactMetaData)) {
+    private MutableModuleVersionMetaData createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleVersionIdentifier, DependencyMetaData dependency, ArtifactResolver artifactResolver) {
+        for (IvyArtifactName artifact : getDependencyArtifactNames(dependency)) {
+            if (artifactResolver.artifactExists(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier, artifact))) {
                 return processMetaData(ModuleDescriptorAdapter.defaultForDependency(dependency));
             }
         }
         return null;
     }
 
-    private Set<ModuleVersionArtifactMetaData> getDependencyArtifacts(DependencyMetaData dependency) {
+    private Set<IvyArtifactName> getDependencyArtifactNames(DependencyMetaData dependency) {
         ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(dependency.getRequested().getGroup(), dependency.getRequested().getName(), dependency.getRequested().getVersion());
-        Set<ModuleVersionArtifactMetaData> artifactSet = Sets.newLinkedHashSet();
+        Set<IvyArtifactName> artifactSet = Sets.newLinkedHashSet();
         DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
         for (DependencyArtifactDescriptor artifact : dependencyDescriptor.getAllDependencyArtifacts()) {
-            ModuleVersionArtifactIdentifier artifactIdentifier = new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
-            artifactSet.add(new DefaultModuleVersionArtifactMetaData(artifactIdentifier));
+            artifactSet.add(new DefaultIvyArtifactName(dependency.getRequested().getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes()));
         }
 
         // TODO:DAZ This logic should be within the DependencyMetaData
         if (artifactSet.isEmpty()) {
-            artifactSet.add(new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(componentIdentifier, componentIdentifier.getModule(), "jar", "jar")));
+            artifactSet.add(new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar", Collections.<String, String>emptyMap()));
         }
 
         return artifactSet;
@@ -327,8 +326,16 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return Collections.emptySet();
     }
 
+    private ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
+        IvyArtifactName ivyArtifactName = getMetaDataArtifactName(moduleComponentIdentifier.getModule());
+        if (ivyArtifactName == null) {
+            return null;
+        }
+        return new DefaultModuleVersionArtifactMetaData(moduleComponentIdentifier, ivyArtifactName);
+    }
+    
     @Nullable
-    protected abstract ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier);
+    protected abstract IvyArtifactName getMetaDataArtifactName(String moduleName);
 
     public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
         return createArtifactResolver().artifactExists(artifact);

@@ -15,14 +15,12 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
-
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.resource.ResourceException
 import spock.lang.Specification
@@ -34,7 +32,7 @@ class ResourceVersionListerTest extends Specification {
     def moduleRevisionId = IvyUtil.createModuleRevisionId("org.acme", "proj1", "1.0")
     def module = new DefaultModuleIdentifier("org.acme", "proj1")
     def moduleVersion = new DefaultModuleVersionIdentifier(module, "1.0")
-    def artifact = new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(moduleVersion, "proj1", "jar", "jar"))
+    def artifact = new DefaultIvyArtifactName("proj1", "jar", "jar")
 
     def ResourceVersionLister lister;
 
