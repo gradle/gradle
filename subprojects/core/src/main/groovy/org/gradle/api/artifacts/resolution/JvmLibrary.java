@@ -17,13 +17,15 @@ package org.gradle.api.artifacts.resolution;
 
 import org.gradle.api.Incubating;
 
+import java.util.Set;
+
 /**
  * Software component representing a JVM library.
  *
  * @since 1.12
  */
 @Incubating
-public interface JvmLibrary extends SoftwareComponent<JvmLibraryArtifact> {
-    SoftwareArtifactSet<JvmLibrarySourcesArtifact> getSourcesArtifacts();
-    SoftwareArtifactSet<JvmLibraryJavadocArtifact> getJavadocArtifacts();
+public interface JvmLibrary extends SoftwareComponent {
+    Set<JvmLibrarySourcesArtifact> getSourcesArtifacts();
+    Set<JvmLibraryJavadocArtifact> getJavadocArtifacts();
 }

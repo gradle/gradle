@@ -19,6 +19,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
@@ -27,16 +28,20 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+
 class CachedRepositoryTest extends Specification {
 
     def stats = new DependencyMetadataCacheStats()
     def cache = Mock(DependencyMetadataCache)
     def delegate = Mock(LocalAwareModuleVersionRepository)
     def repo = new CachedRepository(cache, delegate, stats)
-    def dep = Mock(DependencyMetaData)
     def lib = Mock(ModuleComponentIdentifier)
+    def dep = Stub(DependencyMetaData) { getRequested() >> lib }
+    def selector = newSelector("org", "lib", "1.0")
 
-    def result = Mock(BuildableModuleVersionMetaDataResolveResult)
+    def listingResult = Mock(BuildableModuleVersionSelectionResolveResult)
+    def metaDataResult = Mock(BuildableModuleVersionMetaDataResolveResult)
 
     def "delegates"() {
         when:
@@ -50,43 +55,79 @@ class CachedRepositoryTest extends Specification {
         1 * delegate.getName() >> "localRepo"
     }
 
-    def "retrieves and caches local dependencies"() {
+    def "retrieves and caches module version listings"() {
         when:
-        repo.getLocalDependency(dep, lib, result)
+        repo.localListModuleVersions(dep, listingResult)
 
         then:
-        1 * cache.supplyLocalMetaData(lib, result) >> false
-        1 * delegate.getLocalDependency(dep, lib, result)
-        1 * cache.newLocalDependencyResult(lib, result)
+        1 * cache.supplyLocalModuleVersions(selector, listingResult) >> false
+        1 * delegate.localListModuleVersions(dep, listingResult)
+        1 * cache.newLocalModuleVersions(selector, listingResult)
+        0 * _
+
+        when:
+        repo.listModuleVersions(dep, listingResult)
+
+        then:
+        1 * cache.supplyModuleVersions(selector, listingResult) >> false
+        1 * delegate.listModuleVersions(dep, listingResult)
+        1 * cache.newModuleVersions(selector, listingResult)
+        0 * _
+    }
+
+    def "uses module version listings from cache"() {
+        when:
+        repo.localListModuleVersions(dep, listingResult)
+
+        then:
+        1 * cache.supplyLocalModuleVersions(selector, listingResult) >> true
+        0 * _
+
+        when:
+        repo.listModuleVersions(dep, listingResult)
+
+        then:
+        1 * cache.supplyModuleVersions(selector, listingResult) >> true
+        0 * _
+    }
+
+    def "retrieves and caches local dependencies"() {
+        when:
+        repo.getLocalDependency(dep, lib, metaDataResult)
+
+        then:
+        1 * cache.supplyLocalMetaData(lib, metaDataResult) >> false
+        1 * delegate.getLocalDependency(dep, lib, metaDataResult)
+        1 * cache.newLocalDependencyResult(lib, metaDataResult)
         0 * _
     }
 
     def "uses local dependencies from cache"() {
         when:
-        repo.getLocalDependency(dep, lib, result)
+        repo.getLocalDependency(dep, lib, metaDataResult)
 
         then:
-        1 * cache.supplyLocalMetaData(lib, result) >> true
+        1 * cache.supplyLocalMetaData(lib, metaDataResult) >> true
         0 * _
     }
 
     def "retrieves and caches dependencies"() {
         when:
-        repo.getDependency(dep, lib, result)
+        repo.getDependency(dep, lib, metaDataResult)
 
         then:
-        1 * cache.supplyMetaData(lib, result) >> false
-        1 * delegate.getDependency(dep, lib, result)
-        1 * cache.newDependencyResult(lib, result)
+        1 * cache.supplyMetaData(lib, metaDataResult) >> false
+        1 * delegate.getDependency(dep, lib, metaDataResult)
+        1 * cache.newDependencyResult(lib, metaDataResult)
         0 * _
     }
 
     def "uses dependencies from cache"() {
         when:
-        repo.getDependency(dep, lib, result)
+        repo.getDependency(dep, lib, metaDataResult)
 
         then:
-        1 * cache.supplyMetaData(lib, result) >> true
+        1 * cache.supplyMetaData(lib, metaDataResult) >> true
         0 * _
     }
 
@@ -117,7 +158,6 @@ class CachedRepositoryTest extends Specification {
         then:
         1 * cache.supplyArtifact(artifactId, result) >> false
         1 * delegate.resolveArtifact(artifact, moduleSource, result)
-        1 * result.getFailure() >> null
         1 * cache.newArtifact(artifactId, result)
         0 * _
     }

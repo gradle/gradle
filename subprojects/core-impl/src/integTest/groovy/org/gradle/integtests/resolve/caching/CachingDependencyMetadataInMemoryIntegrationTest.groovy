@@ -24,7 +24,7 @@ import spock.lang.Ignore
 
 class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependencyResolutionTest {
 
-    def "descriptor and artifact is cached in memory"() {
+    def "version list, descriptor and artifact is cached in memory"() {
         given:
         mavenRepo.module("org", "lib").publish()
 
@@ -37,8 +37,8 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependenc
                 ivy { url "${mavenRepo.uri}" }
             }
             dependencies {
-                one 'org:lib:1.0'
-                two 'org:lib:1.0'
+                one 'org:lib:1.+'
+                two 'org:lib:1.+'
             }
             //runs first and resolves
             task resolveOne << {

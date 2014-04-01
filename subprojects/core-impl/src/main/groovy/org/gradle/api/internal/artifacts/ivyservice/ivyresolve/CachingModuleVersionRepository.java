@@ -199,7 +199,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
         final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
 
-        // First try to determine the artifacts locally (via module metadata): don't use the cache in this case
+        // First try to determine the artifacts locally (e.g using the metadata): don't use the cache in this case
         delegate.localResolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()), context, result);
         if (result.hasResult()) {
             return;

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.resolution;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -52,7 +51,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final CacheLockingManager lockingManager;
 
     private Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
-    private Class<? extends SoftwareComponent<?>> componentType;
+    private Class<? extends SoftwareComponent> componentType;
     private Set<Class<? extends SoftwareArtifact>> artifactTypes = Sets.newLinkedHashSet();
 
     public DefaultArtifactResolutionQuery(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
@@ -75,7 +74,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends SoftwareArtifact, U extends SoftwareComponent<T>> ArtifactResolutionQuery withArtifacts(Class<U> componentType, Class<T>... artifactTypes) {
+    public <T extends SoftwareComponent, U extends SoftwareArtifact> ArtifactResolutionQuery withArtifacts(Class<T> componentType, Class<U>... artifactTypes) {
         this.componentType = componentType;
         if (artifactTypes.length == 0) {
             this.artifactTypes = (Set) Sets.newHashSet(JvmLibrarySourcesArtifact.class, JvmLibraryJavadocArtifact.class);
@@ -106,11 +105,11 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                     BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
                     repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId), true)), moduleResolveResult);
 
-                    if (moduleResolveResult.getFailure() != null) {
-                        unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId, moduleResolveResult.getFailure()));
-                    } else {
+                    try {
                         DefaultJvmLibrary jvmLibrary = buildJvmLibrary(moduleResolveResult.getMetaData(), artifactResolver);
                         jvmLibraries.add(jvmLibrary);
+                    } catch (Throwable t) {
+                        unresolvedComponents.add(new DefaultUnresolvedSoftwareComponent(moduleComponentId, t));
                     }
                 }
 
@@ -120,14 +119,13 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     private DefaultJvmLibrary buildJvmLibrary(ComponentMetaData component, ArtifactResolver artifactResolver) {
-        // TODO:DAZ These should be 'uninitialised' (failing), not empty
-        SoftwareArtifactSet<JvmLibraryJavadocArtifact> javadocs = new DefaultSoftwareArtifactSet<JvmLibraryJavadocArtifact>(Lists.<JvmLibraryJavadocArtifact>newArrayList());
-        SoftwareArtifactSet<JvmLibrarySourcesArtifact> sources = new DefaultSoftwareArtifactSet<JvmLibrarySourcesArtifact>(Lists.<JvmLibrarySourcesArtifact>newArrayList());
+        Set<JvmLibraryJavadocArtifact> javadocs = Sets.newLinkedHashSet();
+        Set<JvmLibrarySourcesArtifact> sources = Sets.newLinkedHashSet();
         for (Class<? extends SoftwareArtifact> artifactType : artifactTypes) {
             if (artifactType == JvmLibraryJavadocArtifact.class) {
-                javadocs = buildJvmLibrarySoftwareArtifactSet(JvmLibraryJavadocArtifact.class, DefaultJvmLibraryJavadocArtifact.class, component, artifactResolver);
+                addJvmLibraryArtifacts(javadocs, JvmLibraryJavadocArtifact.class, DefaultJvmLibraryJavadocArtifact.class, component, artifactResolver);
             } else if (artifactType == JvmLibrarySourcesArtifact.class) {
-                sources = buildJvmLibrarySoftwareArtifactSet(JvmLibrarySourcesArtifact.class, DefaultJvmLibrarySourcesArtifact.class, component, artifactResolver);
+                addJvmLibraryArtifacts(sources, JvmLibrarySourcesArtifact.class, DefaultJvmLibrarySourcesArtifact.class, component, artifactResolver);
             } else {
                 throw new IllegalArgumentException(String.format("Cannot resolve artifacts with unsupported type %s.", artifactType.getName()));
             }
@@ -135,29 +133,21 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         return new DefaultJvmLibrary(component.getComponentId(), sources, javadocs);
     }
 
-    private <T extends JvmLibraryArtifact> SoftwareArtifactSet<T> buildJvmLibrarySoftwareArtifactSet(Class<T> type, Class<? extends T> implType, ComponentMetaData component, ArtifactResolver artifactResolver) {
+    private <T extends JvmLibraryArtifact> void addJvmLibraryArtifacts(Set<T> artifacts, Class<T> type, Class<? extends T> implType, ComponentMetaData component, ArtifactResolver artifactResolver) {
         ArtifactResolveContext context = new ArtifactTypeResolveContext(type);
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
         artifactResolver.resolveModuleArtifacts(component, context, artifactSetResolveResult);
 
         Instantiator instantiator = new DirectInstantiator();
-        SoftwareArtifactSet<T> javadocs;
-        if (artifactSetResolveResult.getFailure() != null) {
-            javadocs = new DefaultSoftwareArtifactSet<T>(artifactSetResolveResult.getFailure());
-        } else {
-            Set<T> javadocArtifacts = Sets.newHashSet();
-            for (ComponentArtifactMetaData artifactMetaData : artifactSetResolveResult.getArtifacts()) {
-                BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
-                artifactResolver.resolveArtifact(artifactMetaData, component.getSource(), resolveResult);
-                if (resolveResult.getFailure() != null) {
-                    javadocArtifacts.add(instantiator.newInstance(implType, resolveResult.getFailure()));
-                } else {
-                    javadocArtifacts.add(instantiator.newInstance(implType, resolveResult.getFile()));
-                }
+        for (ComponentArtifactMetaData artifactMetaData : artifactSetResolveResult.getArtifacts()) {
+            BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
+            artifactResolver.resolveArtifact(artifactMetaData, component.getSource(), resolveResult);
+            if (resolveResult.getFailure() != null) {
+                artifacts.add(instantiator.newInstance(implType, resolveResult.getFailure()));
+            } else {
+                artifacts.add(instantiator.newInstance(implType, resolveResult.getFile()));
             }
-            javadocs = new DefaultSoftwareArtifactSet<T>(javadocArtifacts);
         }
-        return javadocs;
     }
 
     private ModuleRevisionId toModuleRevisionId(ModuleComponentIdentifier componentId) {

@@ -24,19 +24,19 @@ import org.gradle.api.artifacts.resolution.UnresolvedSoftwareComponent;
 import java.util.Set;
 
 public class DefaultArtifactResolutionQueryResult implements ArtifactResolutionQueryResult {
-    private final Set<? extends SoftwareComponent<?>> components;
+    private final Set<? extends SoftwareComponent> components;
     private final Set<UnresolvedSoftwareComponent> unresolvedComponents;
 
-    public DefaultArtifactResolutionQueryResult(Set<? extends SoftwareComponent<?>> components, Set<UnresolvedSoftwareComponent> unresolvedComponents) {
+    public DefaultArtifactResolutionQueryResult(Set<? extends SoftwareComponent> components, Set<UnresolvedSoftwareComponent> unresolvedComponents) {
         this.components = components;
         this.unresolvedComponents = unresolvedComponents;
     }
 
-    public Set<? extends SoftwareComponent<?>> getComponents() {
+    public Set<? extends SoftwareComponent> getComponents() {
         return components;
     }
 
-    public <T extends SoftwareComponent<?>> Set<T> getComponents(final Class<T> type) {
+    public <T extends SoftwareComponent> Set<T> getComponents(final Class<T> type) {
         return Sets.newHashSet(Iterables.filter(components, type));
     }
 

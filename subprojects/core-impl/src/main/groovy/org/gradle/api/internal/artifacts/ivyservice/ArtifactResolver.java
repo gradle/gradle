@@ -21,13 +21,13 @@ import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
 public interface ArtifactResolver {
     /**
-     * Resolves a set of artifacts belonging to the given module, based on the supplied context. Any failures are packaged up in the result.
+     * Resolves a set of artifacts belonging to the given component, based on the supplied context. Any failures are packaged up in the result.
      */
     void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result);
 
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    // TODO:DAZ Make this less ModuleVersion centric: ModuleSource should be an attribute of the ModuleVersion subtype only
+    // TODO:DAZ Make this less ModuleVersion centric: ModuleSource should be an attribute of the component subtype only
     void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result);
 }

@@ -73,6 +73,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    IvyFileModule undeclaredArtifact(Map<String, ?> options) {
+        artifact(options + [undeclared: true])
+        return this
+    }
+
     Map<String, ?> toArtifact(Map<String, ?> options = [:]) {
         return [name: options.name ?: module, type: options.type ?: 'jar',
                 ext: options.ext ?: options.type ?: 'jar', classifier: options.classifier ?: null, conf: options.conf ?: '*']
@@ -132,6 +137,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         publish()
     }
 
+    String getPublicationDate() {
+        return String.format("2010010112%04d", publishCount)
+    }
+
     /**
      * Publishes ivy.xml (if enabled) plus all artifacts
      */
@@ -162,6 +171,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 		module="${module}"
 		revision="${revision}"
 		status="${status}"
+        publication="${getPublicationDate()}"
 	>"""
         if (extendsFrom) {
             ivyFileWriter << "<extends organisation='${extendsFrom.organisation}' module='${extendsFrom.module}' revision='${extendsFrom.revision}'"
@@ -187,8 +197,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 	<publications>
 """
             artifacts.each { artifact ->
-                ivyFileWriter << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.ext}" conf="${artifact.conf}" m:classifier="${artifact.classifier ?: ''}"/>
+                if (!artifact.undeclared) {
+                    ivyFileWriter << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.ext}" conf="${artifact.conf}" m:classifier="${artifact.classifier ?: ''}"/>
 """
+                }
             }
             ivyFileWriter << """
 	</publications>

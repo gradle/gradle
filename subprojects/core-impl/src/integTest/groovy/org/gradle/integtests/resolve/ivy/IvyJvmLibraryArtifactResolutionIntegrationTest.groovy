@@ -17,8 +17,11 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact
 import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
+import org.gradle.test.fixtures.ivy.IvyRepository
+import spock.lang.Unroll
 
 // TODO:DAZ Test can resolve multiple source/javadoc artifacts declared in 'sources'/'javadoc' configuration
 class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
@@ -29,15 +32,28 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
     def setup() {
         server.start()
+        initBuild(httpRepo)
+
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
-        fixture.withRepository("ivy { url '$httpRepo.uri' }")
 
         publishModule()
     }
 
+    def initBuild(IvyRepository repo, String module = "some.group:some-artifact:1.0") {
+        buildFile.text = """
+repositories {
+    ivy { url '$repo.uri' }
+}
+configurations { compile }
+dependencies {
+    compile "${module}"
+}
+"""
+    }
+
     def "resolve sources artifacts"() {
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+                .expectSourceArtifact("my-sources")
                 .prepare()
 
         when:
@@ -50,7 +66,7 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
     def "resolve javadoc artifacts"() {
         fixture.requestingTypes(JvmLibraryJavadocArtifact)
-                .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
+                .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
         when:
@@ -63,8 +79,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
     def "resolve all artifacts"() {
         fixture.requestingTypes()
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
-                .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
+                .expectSourceArtifact("my-sources")
+                .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
         when:
@@ -76,10 +92,24 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         checkArtifactsResolvedAndCached()
     }
 
-    def "fetches missing artifacts for module with --refresh-dependencies"() {
+    @Unroll
+    def "fetches missing artifacts for module #condition"() {
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifactNotFound("some-artifact-my-sources.jar")
+                .expectSourceArtifactNotFound("my-sources")
                 .prepare()
+        buildFile << """
+dependencies {
+    components {
+        eachComponent { ComponentMetadataDetails details ->
+            details.changing = true
+        }
+    }
+}
+
+if (project.hasProperty('nocache')) {
+    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+"""
 
         when:
         module.ivy.expectGet()
@@ -89,23 +119,47 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         checkArtifactsResolvedAndCached()
 
         when:
-        executer.withArgument("--refresh-dependencies")
+        module.publishWithChangedContent()
         fixture.clearExpectations()
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+                .expectSourceArtifact("my-sources")
                 .createVerifyTask("verifyRefresh")
 
         and:
+        server.resetExpectations()
         module.ivy.expectHead()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
         module.getArtifact(classifier: "my-sources").expectGet()
 
         then:
+        executer.withArgument(execArg)
         succeeds("verifyRefresh")
+
+        where:
+        condition                     | execArg
+        "with --refresh-dependencies" | "--refresh-dependencies"
+        "when ivy descriptor changes" | "-Pnocache"
     }
 
-    def "updates artifacts for module with --refresh-dependencies"() {
+    @Unroll
+    def "updates artifacts for module #condition"() {
+        buildFile << """
+dependencies {
+    components {
+        eachComponent { ComponentMetadataDetails details ->
+            details.changing = true
+        }
+    }
+}
+
+if (project.hasProperty('nocache')) {
+    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+"""
+
         final sourceArtifact = module.getArtifact(classifier: "my-sources")
         fixture.requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
+                .expectSourceArtifact("my-sources")
                 .prepare()
 
         when:
@@ -118,9 +172,9 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         when:
         def snapshot = file("sources/some-artifact-1.0-my-sources.jar").snapshot()
         module.publishWithChangedContent()
-        executer.withArgument("--refresh-dependencies")
 
         and:
+        server.resetExpectations()
         module.ivy.expectHead()
         module.ivy.sha1.expectGet()
         module.ivy.expectGet()
@@ -129,8 +183,14 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         sourceArtifact.expectGet()
 
         then:
+        executer.withArgument(execArg)
         succeeds("verify")
         file("sources/some-artifact-1.0-my-sources.jar").assertHasChangedSince(snapshot)
+
+        where:
+        condition                     | execArg
+        "with --refresh-dependencies" | "--refresh-dependencies"
+        "when ivy descriptor changes" | "-Pnocache"
     }
 
     def "reports failure to resolve artifacts of non-existing component"() {
@@ -145,8 +205,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "reports failure to resolve missing artifacts"() {
-        fixture.expectSourceArtifactNotFound("some-artifact-my-sources.jar")
-                .expectJavadocArtifactNotFound("some-artifact-my-javadoc.jar")
+        fixture.expectSourceArtifactNotFound("my-sources")
+                .expectJavadocArtifactNotFound("my-javadoc")
                 .prepare()
 
         when:
@@ -159,8 +219,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolves when some artifacts are missing"() {
-        fixture.expectSourceArtifact("some-artifact-1.0-my-sources.jar")
-                .expectJavadocArtifactNotFound("some-artifact-my-javadoc.jar")
+        fixture.expectSourceArtifact("my-sources")
+                .expectJavadocArtifactNotFound("my-javadoc")
                 .prepare()
 
         when:
@@ -173,8 +233,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolves when some artifacts are broken"() {
-        fixture.expectSourceArtifact("some-artifact-1.0-my-sources.jar")
-                .expectJavadocArtifactFailure("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar'")
+        fixture.expectSourceArtifact("my-sources")
+                .expectJavadocArtifactFailure(new ArtifactResolveException("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar'"))
                 .prepare()
 
         when:
@@ -187,8 +247,8 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
 
         when:
         fixture.clearExpectations()
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
-                .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
+                .expectSourceArtifact("my-sources")
+                .expectJavadocArtifact("my-javadoc")
                 .createVerifyTask("verifyFixed")
 
         and:
@@ -201,10 +261,11 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "resolve and does not cache artifacts from local repository"() {
-        fixture.withRepository("ivy { url '$fileRepo.uri' }")
-                .requestingTypes()
-                .expectSourceArtifact("some-artifact-1.0-my-sources.jar")
-                .expectJavadocArtifact("some-artifact-1.0-my-javadoc.jar")
+        initBuild(fileRepo)
+
+        fixture.requestingTypes()
+                .expectSourceArtifact("my-sources")
+                .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
         when:
@@ -222,20 +283,24 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
     }
 
     def "can resolve artifacts with maven scheme from ivy repository"() {
-        // Published with no configurations
+        initBuild(httpRepo, "some.group:some-artifact:1.1")
+
+        // Published with no configurations, and a source artifact only
         def moduleWithMavenScheme = httpRepo.module("some.group", "some-artifact", "1.1")
         moduleWithMavenScheme.artifact(classifier: "sources")
         moduleWithMavenScheme.publish()
 
-        fixture.withComponentVersion("1.1")
-                .requestingTypes(JvmLibrarySourcesArtifact)
-                .expectSourceArtifact("some-artifact-1.1-sources.jar")
+
+        fixture.withComponentVersion("some.group", "some-artifact", "1.1")
+                .requestingTypes(JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact)
+                .expectSourceArtifact("sources")
                 .prepare()
 
         when:
         moduleWithMavenScheme.ivy.expectGet()
         moduleWithMavenScheme.getArtifact(classifier: "sources").expectHead()
         moduleWithMavenScheme.getArtifact(classifier: "sources").expectGet()
+        moduleWithMavenScheme.getArtifact(classifier: "javadoc").expectHeadMissing()
 
         then:
         checkArtifactsResolvedAndCached()

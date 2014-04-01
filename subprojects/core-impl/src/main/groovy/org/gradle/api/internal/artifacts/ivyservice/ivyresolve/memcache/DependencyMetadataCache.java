@@ -16,16 +16,24 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionListing;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult.State.Listed;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult.State.ProbablyListed;
+
 class DependencyMetadataCache {
+    private final Map<ModuleVersionSelector, ModuleVersionListing> localModuleVersionListing = new HashMap<ModuleVersionSelector, ModuleVersionListing>();
+    private final Map<ModuleVersionSelector, ModuleVersionListing> moduleVersionListing = new HashMap<ModuleVersionSelector, ModuleVersionListing>();
     private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> localMetaData = new HashMap<ModuleComponentIdentifier, CachedModuleVersionResult>();
     private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = new HashMap<ModuleComponentIdentifier, CachedModuleVersionResult>();
     private final Map<ComponentArtifactIdentifier, File> artifacts = new HashMap<ComponentArtifactIdentifier, File>();
@@ -33,6 +41,37 @@ class DependencyMetadataCache {
 
     DependencyMetadataCache(DependencyMetadataCacheStats stats) {
         this.stats = stats;
+    }
+
+    public boolean supplyLocalModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionSelectionResolveResult result) {
+        return supply(requested, result, localModuleVersionListing);
+    }
+
+    public void newLocalModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionSelectionResolveResult result) {
+        newResult(requested, result, localModuleVersionListing);
+    }
+
+    public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionSelectionResolveResult result) {
+        return supply(requested, result, moduleVersionListing);
+    }
+
+    public void newModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionSelectionResolveResult result) {
+        newResult(requested, result, moduleVersionListing);
+    }
+
+    private boolean supply(ModuleVersionSelector requested, BuildableModuleVersionSelectionResolveResult result, Map<ModuleVersionSelector, ModuleVersionListing> map) {
+        ModuleVersionListing moduleVersionListing = map.get(requested);
+        if (moduleVersionListing == null) {
+            return false;
+        }
+        result.listed(moduleVersionListing);
+        return true;
+    }
+
+    private void newResult(ModuleVersionSelector requested, BuildableModuleVersionSelectionResolveResult result, Map<ModuleVersionSelector, ModuleVersionListing> map) {
+        if (result.getState() == Listed || result.getState() == ProbablyListed) {
+            map.put(requested, result.getVersions());
+        }
     }
 
     boolean supplyLocalMetaData(ModuleComponentIdentifier requested, BuildableModuleVersionMetaDataResolveResult result) {
@@ -79,6 +118,8 @@ class DependencyMetadataCache {
     }
 
     public void newArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {
-        artifacts.put(id, result.getFile());
+        if (result.getFailure() == null) {
+            artifacts.put(id, result.getFile());
+        }
     }
 }

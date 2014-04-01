@@ -16,10 +16,9 @@
 package org.gradle.api.internal.artifacts.resolution;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.artifacts.resolution.SoftwareComponent;
 
-public abstract class AbstractSoftwareComponent<T extends SoftwareArtifact> implements SoftwareComponent<T> {
+public abstract class AbstractSoftwareComponent implements SoftwareComponent {
     private final ComponentIdentifier componentId;
 
     protected AbstractSoftwareComponent(ComponentIdentifier componentId) {

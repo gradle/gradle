@@ -27,6 +27,6 @@ import java.util.Set;
 @Incubating
 public interface ArtifactResolutionQueryResult {
     Set<? extends SoftwareComponent> getComponents();
-    <T extends SoftwareComponent<?>> Set<T> getComponents(Class<T> type);
+    <T extends SoftwareComponent> Set<T> getComponents(Class<T> type);
     Set<UnresolvedSoftwareComponent> getUnresolvedComponents();
 }
