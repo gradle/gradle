@@ -37,8 +37,8 @@ class CachedRepositoryTest extends Specification {
     def delegate = Mock(LocalAwareModuleVersionRepository)
     def repo = new CachedRepository(cache, delegate, stats)
     def lib = Mock(ModuleComponentIdentifier)
-    def dep = Stub(DependencyMetaData) { getRequested() >> lib }
     def selector = newSelector("org", "lib", "1.0")
+    def dep = Stub(DependencyMetaData) { getRequested() >> selector }
 
     def listingResult = Mock(BuildableModuleVersionSelectionResolveResult)
     def metaDataResult = Mock(BuildableModuleVersionMetaDataResolveResult)

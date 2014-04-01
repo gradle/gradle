@@ -61,6 +61,10 @@ class IvySftpModule implements IvyModule {
         return backingModule.artifact(options)
     }
 
+    IvyModule undeclaredArtifact(Map<String, ?> options) {
+        return backingModule.undeclaredArtifact(options)
+    }
+
     IvyModule withXml(Closure action) {
         return backingModule.withXml(action)
     }
