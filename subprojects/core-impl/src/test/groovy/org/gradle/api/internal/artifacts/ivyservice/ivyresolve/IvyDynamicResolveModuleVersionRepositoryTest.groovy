@@ -40,10 +40,10 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
         result.metaData >> metaData
 
         when:
-        repository.getLocalDependency(requestedDependency, moduleComponentId, result)
+        repository.localGetComponentMetaData(requestedDependency, moduleComponentId, result)
 
         then:
-        1 * target.getLocalDependency(requestedDependency, moduleComponentId, result)
+        1 * target.localGetComponentMetaData(requestedDependency, moduleComponentId, result)
 
         and:
         1 * metaData.dependencies >> [original]
@@ -53,10 +53,10 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
 
     def "does nothing when dependency has not been resolved"() {
         when:
-        repository.getLocalDependency(requestedDependency, moduleComponentId, result)
+        repository.localGetComponentMetaData(requestedDependency, moduleComponentId, result)
 
         then:
-        1 * target.getLocalDependency(requestedDependency, moduleComponentId, result)
+        1 * target.localGetComponentMetaData(requestedDependency, moduleComponentId, result)
         _ * result.state >> BuildableModuleVersionMetaDataResolveResult.State.Missing
         0 * result._
     }

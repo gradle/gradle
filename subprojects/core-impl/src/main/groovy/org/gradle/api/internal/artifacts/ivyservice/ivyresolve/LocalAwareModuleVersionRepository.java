@@ -32,12 +32,13 @@ public interface LocalAwareModuleVersionRepository extends ModuleVersionReposito
     void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result);
 
     /**
-     * Locates the given dependency, using only local resources.
+     * Gets the metadata for a module component, using only local resources.
      */
-    void getLocalDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
+    void localGetComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
 
     /**
-     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(org.gradle.api.internal.artifacts.metadata.DependencyMetaData, org.gradle.api.artifacts.component.ModuleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult)}.
+     * Gets the metadata for a module component, using whichever resources are appropriate.
+     * Always called after {@link #localGetComponentMetaData(org.gradle.api.internal.artifacts.metadata.DependencyMetaData, org.gradle.api.artifacts.component.ModuleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult)}.
      */
-    void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
+    void getComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
 }

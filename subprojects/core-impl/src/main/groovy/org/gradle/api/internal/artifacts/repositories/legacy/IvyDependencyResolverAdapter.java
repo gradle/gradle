@@ -100,7 +100,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         }
     }
 
-    public void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponent, BuildableModuleVersionMetaDataResolveResult result) {
+    public void getComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponent, BuildableModuleVersionMetaDataResolveResult result) {
         IvyContext.getContext().setResolveData(resolveData);
         try {
             ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);

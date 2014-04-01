@@ -63,16 +63,16 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
         }
     }
 
-    public void getLocalDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+    public void localGetComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         if(!cache.supplyLocalMetaData(moduleComponentIdentifier, result)) {
-            delegate.getLocalDependency(dependency, moduleComponentIdentifier, result);
+            delegate.localGetComponentMetaData(dependency, moduleComponentIdentifier, result);
             cache.newLocalDependencyResult(moduleComponentIdentifier, result);
         }
     }
 
-    public void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+    public void getComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         if(!cache.supplyMetaData(moduleComponentIdentifier, result)) {
-            delegate.getDependency(dependency, moduleComponentIdentifier, result);
+            delegate.getComponentMetaData(dependency, moduleComponentIdentifier, result);
             cache.newDependencyResult(moduleComponentIdentifier, result);
         }
     }

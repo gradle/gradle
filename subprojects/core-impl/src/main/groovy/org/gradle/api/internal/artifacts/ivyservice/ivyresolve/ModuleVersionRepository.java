@@ -36,7 +36,7 @@ public interface ModuleVersionRepository extends ArtifactResolver {
     void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result);
 
     /**
-     * Resolves the given dependency to the corresponding module version meta-data.
+     * Gets the metadata for a module component.
      */
-    void getDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
+    void getComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
 }
