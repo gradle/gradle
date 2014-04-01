@@ -130,6 +130,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private TestExecuter testExecuter;
     private List<File> testSrcDirs = new ArrayList<File>();
     private File testClassesDir;
+    private FileCollection additionalTests;
     private File binResultsDir;
     private PatternFilterable patternSet = new PatternSet();
     private boolean ignoreFailures;
@@ -717,6 +718,25 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
+     * Returns the additional tests. Must be either jar files or class folders.
+     *
+     * @return All the additional tests to be used.
+     */
+    @InputFiles
+    public FileCollection getAdditionalTests() {
+        return additionalTests;
+    }
+
+    /**
+     * Sets the additional tests to use.
+     *
+     * @param additionalTests The additional tests
+     */
+    public void setAdditionalTests(FileCollection additionalTests) {
+        this.additionalTests = additionalTests;
+    }
+
+    /**
      * Returns the root folder for the test results in XML format.
      *
      * @return the test result directory, containing the test results in XML format.
@@ -1058,7 +1078,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @InputFiles
     @Input
     public FileTree getCandidateClassFiles() {
-        return getProject().fileTree(getTestClassesDir()).matching(patternSet);
+        FileTree result = getProject().fileTree(getTestClassesDir());
+        FileCollection fc = getAdditionalTests();
+        if (fc != null) {
+            for (File file : fc.getFiles()) {
+                if (file.isDirectory()) {
+                    result = result.plus(getProject().fileTree(file));
+                }
+                if (file.isFile() && file.getName().endsWith(".jar")) {    
+                    result = result.plus(getProject().zipTree(file));
+                }
+                // else ignore
+            }
+        }
+        return result.matching(patternSet);
     }
 
     /**
