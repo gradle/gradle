@@ -37,8 +37,8 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     @Override
-    protected MutableModuleVersionMetaData findMetaDataArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactResolver artifactResolver) {
-        MutableModuleVersionMetaData metaData = super.findMetaDataArtifact(moduleComponentIdentifier, artifactResolver);
+    protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactResolver artifactResolver) {
+        MutableModuleVersionMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver);
         if (isOrphanedPom(metaData, artifactResolver)) {
             return null;
         }
@@ -46,12 +46,16 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     private boolean isOrphanedPom(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
-        if (!metaData.isMetaDataOnly()) {
-            if (!hasArtifacts(metaData, artifactResolver)) {
-                LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", metaData.getId(), getName());
-                return true;
+        if (metaData.isMetaDataOnly()) {
+            return false;
+        }
+
+        for (ModuleVersionArtifactMetaData artifactMetaData : metaData.getArtifacts()) {
+            if (artifactResolver.artifactExists(artifactMetaData)) {
+                return false;
             }
         }
-        return false;
+        LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", metaData.getId(), getName());
+        return true;
     }
 }
