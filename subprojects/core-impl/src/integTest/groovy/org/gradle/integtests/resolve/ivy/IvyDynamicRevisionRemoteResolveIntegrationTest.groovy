@@ -196,48 +196,6 @@ dependencies {
         checkResolve "group:projectA:latest.milestone": "group:projectA:1.1"
     }
 
-    def "can get latest version from repository with multiple ivyPatterns"() {
-        given:
-        def repo1 = ivyHttpRepo("ivyRepo1")
-        def repo1version2 = repo1.module('org.test', 'projectA', '1.2').withStatus("milestone").publish()
-        def repo1version3 = repo1.module('org.test', 'projectA', '1.3')
-        def repo2 = ivyHttpRepo("ivyRepo2")
-        repo2.module('org.test', 'projectA', '1.1').withStatus("integration").publish()
-        def repo2version3 = repo2.module('org.test', 'projectA', '1.3').withStatus("integration").publish()
-
-        and:
-        buildFile << """
-repositories {
-    ivy {
-        url "${repo1.uri}"
-        ivyPattern "${repo2.ivyPattern}"
-        artifactPattern "${repo2.artifactPattern}"
-    }
-}
-configurations { compile }
-dependencies {
-  compile 'org.test:projectA:latest.milestone'
-}
-"""
-        when:
-        repo1.expectDirectoryListGet("org.test", "projectA")
-        repo2.expectDirectoryListGet("org.test", "projectA")
-        // TODO - don't need this request
-        repo1version3.ivy.expectGetMissing()
-        repo2version3.ivy.expectGet()
-        repo1version2.ivy.expectGet()
-        repo1version2.jar.expectGet()
-
-        then:
-        checkResolve "org.test:projectA:latest.milestone": "org.test:projectA:1.2"
-
-        when:
-        server.resetExpectations()
-
-        then:
-        checkResolve "org.test:projectA:latest.milestone": "org.test:projectA:1.2"
-    }
-
     def "checks new repositories before returning any cached value"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -585,7 +543,7 @@ dependencies {
         checkResolve "org.test:a:[1.0,2.0)": "org.test:a:1.1"
     }
 
-    def "can resolve dynamic versions with multiple ivy patterns"() {
+    def "can resolve dynamic versions from repository with multiple ivy patterns"() {
         given:
         def repo1versions = [:]
         def repo1 = ivyHttpRepo("ivyRepo1")
