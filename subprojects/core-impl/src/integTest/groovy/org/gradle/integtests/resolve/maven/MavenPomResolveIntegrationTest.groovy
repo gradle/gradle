@@ -53,6 +53,7 @@ task retrieve(type: Sync) {
 
         and:
         original.pom.expectGet()
+        original.artifact.expectHead()
         newModule.pom.expectGet()
         newModule.artifact.expectGet()
 

@@ -28,6 +28,7 @@ import java.util.*;
 
 public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
     private boolean metaDataOnly;
+    private String packaging;
     private Set<ModuleVersionArtifactMetaData> artifacts;
 
     public static ModuleDescriptorAdapter defaultForDependency(DependencyMetaData dependencyMetaData) {
@@ -54,6 +55,7 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(getId(), getDescriptor(), getComponentId());
         copyTo(copy);
         copy.metaDataOnly = metaDataOnly;
+        copy.packaging = packaging;
         return copy;
     }
 
@@ -76,13 +78,21 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         this.metaDataOnly = metaDataOnly;
     }
 
+    public String getPackaging() {
+        return packaging;
+    }
+
+    public void setPackaging(String packaging) {
+        this.packaging = packaging;
+    }
+
     public ModuleVersionArtifactMetaData artifact(Artifact artifact) {
         return new DefaultModuleVersionArtifactMetaData(getComponentId(), artifact);
     }
 
     public ModuleVersionArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier) {
         Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
-        Artifact artifact = new DefaultArtifact(getDescriptor().getModuleRevisionId(), null, getId().getName(), type, "jar", extraAttributes);
+        Artifact artifact = new DefaultArtifact(getDescriptor().getModuleRevisionId(), null, getId().getName(), type, extension, extraAttributes);
         return new DefaultModuleVersionArtifactMetaData(getComponentId(), artifact);
     }
 

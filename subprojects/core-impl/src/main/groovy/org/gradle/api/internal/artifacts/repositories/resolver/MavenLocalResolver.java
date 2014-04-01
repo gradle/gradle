@@ -46,15 +46,25 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     private boolean isOrphanedPom(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
-        if (metaData.isMetaDataOnly()) {
+        if ("pom".equals(metaData.getPackaging())) {
             return false;
         }
 
-        for (ModuleVersionArtifactMetaData artifactMetaData : metaData.getArtifacts()) {
-            if (artifactResolver.artifactExists(artifactMetaData)) {
+        // check custom packaging
+        if(!isKnownJarPackaging(metaData.getPackaging())) {
+            ModuleVersionArtifactMetaData customArtifactMetaData = metaData.artifact(metaData.getPackaging(), metaData.getPackaging(), null);
+
+            if(artifactResolver.artifactExists(customArtifactMetaData)) {
                 return false;
             }
         }
+
+        ModuleVersionArtifactMetaData artifact = metaData.artifact("jar", "jar", null);
+
+        if(artifactResolver.artifactExists(artifact)) {
+            return false;
+        }
+
         LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", metaData.getId(), getName());
         return true;
     }

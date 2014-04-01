@@ -26,10 +26,10 @@ import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepository {
-    private final ModuleVersionRepository delegate;
+    private final LocalArtifactsModuleVersionRepository delegate;
     private final ModuleMetadataProcessor processor;
 
-    public LocalModuleVersionRepository(ModuleVersionRepository delegate, ModuleMetadataProcessor processor) {
+    public LocalModuleVersionRepository(LocalArtifactsModuleVersionRepository delegate, ModuleMetadataProcessor processor) {
         this.delegate = delegate;
         this.processor = processor;
     }
@@ -53,6 +53,12 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
     }
 
     public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        delegate.localResolveModuleArtifacts(component, context, result);
+
+        if(result.hasResult()) {
+            return;
+        }
+
         delegate.resolveModuleArtifacts(component, context, result);
     }
 

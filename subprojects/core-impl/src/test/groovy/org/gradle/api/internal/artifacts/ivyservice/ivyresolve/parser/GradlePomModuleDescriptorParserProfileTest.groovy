@@ -52,7 +52,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 0
     }
 
@@ -94,7 +93,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(descriptor.dependencies.first())
@@ -538,7 +536,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(descriptor.dependencies.first())

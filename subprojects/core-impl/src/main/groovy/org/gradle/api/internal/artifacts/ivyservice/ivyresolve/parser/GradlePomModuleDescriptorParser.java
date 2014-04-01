@@ -61,17 +61,21 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
-        String artifactId = pomReader.getArtifactId();
-        if (pomReader.getRelocation() == null) {
-            mdBuilder.addMainArtifact(artifactId, pomReader.getPackaging());
-        }
-
         DefaultModuleDescriptor moduleDescriptor = mdBuilder.getModuleDescriptor();
         ModuleDescriptorAdapter adapter = new ModuleDescriptorAdapter(moduleDescriptor);
+        addPackagingToModuleDescriptor(pomReader, adapter);
         if ("pom".equals(pomReader.getPackaging())) {
             adapter.setMetaDataOnly(true);
         }
         return adapter;
+    }
+
+    private void addPackagingToModuleDescriptor(PomReader pomReader, ModuleDescriptorAdapter adapter) {
+        if(pomReader.getRelocation() != null) {
+            adapter.setPackaging("pom");
+        } else {
+            adapter.setPackaging(pomReader.getPackaging());
+        }
     }
 
     private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {

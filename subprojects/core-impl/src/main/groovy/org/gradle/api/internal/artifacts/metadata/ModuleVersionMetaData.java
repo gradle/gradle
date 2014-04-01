@@ -37,4 +37,6 @@ public interface ModuleVersionMetaData extends ComponentMetaData {
     ModuleVersionArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier);
 
     boolean isMetaDataOnly();
+
+    String getPackaging();
 }

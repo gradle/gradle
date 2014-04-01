@@ -48,7 +48,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(descriptor.dependencies.first())
@@ -1150,7 +1149,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         hasDependencyArtifact(descriptor.dependencies.first(), 'artifact-two', 'jar', 'jar', 'classifier-two')
@@ -1182,7 +1180,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(descriptor.dependencies.first())
@@ -1206,7 +1203,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'eclipse-plugin', 'jar')
         descriptor.dependencies.length == 0
     }
 
@@ -1291,7 +1287,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 0
     }
 
@@ -1324,7 +1319,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(descriptor.dependencies.first())
@@ -1799,7 +1793,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 1
         def dep = descriptor.dependencies[0]
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-four')
@@ -1859,7 +1852,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 5
         def defDep = descriptor.dependencies[0]
         defDep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
@@ -1930,7 +1922,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
-        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 2
         def defDep = descriptor.dependencies[0]
         defDep.dependencyRevisionId == moduleId('group-one', 'artifact-two', 'version-one')

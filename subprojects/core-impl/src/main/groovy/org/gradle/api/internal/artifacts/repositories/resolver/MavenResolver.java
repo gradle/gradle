@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -239,15 +240,35 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     @Override
     protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result, boolean localOnly) {
-        if (module.isMetaDataOnly()) {
-            if (!localOnly) {
-                Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>(configuration.getArtifacts());
-                artifacts.addAll(findOptionalArtifacts(module, "jar", null));
-                result.resolved(artifacts);
+        if(localOnly) {
+            if(isKnownJarPackaging(module.getPackaging())) {
+                ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
+                result.resolved(ImmutableSet.of(artifact));
             }
         } else {
-            result.resolved(configuration.getArtifacts());
+            if("pom".equals(module.getPackaging())) {
+                Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
+                artifacts.addAll(findOptionalArtifacts(module, "jar", null));
+                result.resolved(artifacts);
+            } else {
+                ModuleVersionArtifactMetaData artifactMetaData = module.artifact(module.getPackaging(), module.getPackaging(), null);
+
+                if(createArtifactResolver(module.getSource()).artifactExists(artifactMetaData)) {
+                    DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
+                    result.resolved(ImmutableSet.of(artifactMetaData));
+                } else {
+                    ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
+                    result.resolved(ImmutableSet.of(artifact));
+                }
+            }
         }
+    }
+
+    private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
+
+    protected boolean isKnownJarPackaging(String packaging) {
+        // TODO Ben: should never have null here
+        return packaging == null || "jar".equals(packaging) || JAR_PACKAGINGS.contains(packaging);
     }
 
     protected static class TimestampedModuleSource implements ModuleSource {

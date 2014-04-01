@@ -41,6 +41,7 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
             ModuleDescriptorAdapter moduleDescriptorAdapter = new ModuleDescriptorAdapter(moduleDescriptor);
             moduleDescriptorAdapter.setChanging(entry.isChanging);
             moduleDescriptorAdapter.setMetaDataOnly(entry.isMetaDataOnly);
+            moduleDescriptorAdapter.setPackaging(entry.packaging);
             metaData = moduleDescriptorAdapter;
         }
     }
