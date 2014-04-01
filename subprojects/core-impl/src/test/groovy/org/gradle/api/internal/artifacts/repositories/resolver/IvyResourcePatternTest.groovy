@@ -15,8 +15,9 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
+
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
@@ -47,7 +48,7 @@ class IvyResourcePatternTest extends Specification {
     }
 
     private static ModuleVersionArtifactMetaData artifact(String group, String name, String version) {
-        final moduleVersionId = DefaultModuleVersionIdentifier.newId(group, name, version)
-        return new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(moduleVersionId, "ivy", "ivy", "xml"))
+        final componentIdentifier = DefaultModuleComponentIdentifier.newId(group, name, version)
+        return new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(componentIdentifier, "ivy", "ivy", "xml"))
     }
 }

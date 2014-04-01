@@ -152,9 +152,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     private TimestampedModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module) {
-        ModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(module, module.getModule(), "pom", "pom");
-        DefaultModuleVersionArtifactMetaData pomArtifact = new DefaultModuleVersionArtifactMetaData(artifactId);
-        String metadataLocation = toResourcePattern(getWholePattern()).toModuleVersionPath(pomArtifact) + "/maven-metadata.xml";
+        String metadataLocation = toResourcePattern(getWholePattern()).toModuleVersionPath(module) + "/maven-metadata.xml";
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {

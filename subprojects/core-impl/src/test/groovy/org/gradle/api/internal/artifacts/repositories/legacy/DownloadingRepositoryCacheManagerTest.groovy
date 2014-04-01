@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.legacy
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.plugins.repository.Resource
 import org.apache.ivy.plugins.repository.ResourceDownloader
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
@@ -34,7 +34,7 @@ class DownloadingRepositoryCacheManagerTest extends Specification {
     FileStore<ModuleVersionArtifactMetaData> fileStore = Mock()
     CacheLockingManager lockingManager = Mock()
     TemporaryFileProvider tmpFileProvider = Mock()
-    ModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "name", "type", "ext"))
+    ModuleVersionArtifactMetaData artifactMetaData = new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(DefaultModuleComponentIdentifier.newId("group", "module", "version"), "name", "type", "ext"))
     Artifact artifact = Mock()
     ResourceDownloader resourceDownloader = Mock()
     Resource resource = Mock();

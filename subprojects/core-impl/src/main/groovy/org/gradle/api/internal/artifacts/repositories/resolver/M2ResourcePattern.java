@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 import java.util.Map;
@@ -50,13 +51,18 @@ public class M2ResourcePattern extends IvyResourcePattern {
     }
 
     @Override
-    public String toModuleVersionPath(ModuleVersionArtifactMetaData artifact) {
+    public String toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
         String pattern = getPattern();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
             throw new UnsupportedOperationException("Cannot locate module version for non-maven layout.");
         }
         String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_VERSION_PATTERN.length() - 1);
-        return IvyPatternHelper.substituteTokens(metaDataPattern, toAttributes(artifact));
+        return IvyPatternHelper.substituteTokens(metaDataPattern, toAttributes(componentIdentifier));
+    }
+
+    @Override
+    protected Map<String, Object> toAttributes(ModuleComponentIdentifier componentIdentifier) {
+        return mapOrganisation(super.toAttributes(componentIdentifier));
     }
 
     @Override

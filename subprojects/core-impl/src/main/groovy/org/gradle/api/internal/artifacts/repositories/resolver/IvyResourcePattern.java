@@ -56,22 +56,17 @@ public class IvyResourcePattern implements ResourcePattern {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    public String toModuleVersionPath(ModuleVersionArtifactMetaData artifact) {
+    public String toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    // TODO:DAZ Handle extra attributes
     protected Map<String, Object> toAttributes(ModuleVersionArtifactMetaData artifact) {
-        HashMap<String, Object> attributes = new HashMap<String, Object>();
-        ModuleComponentIdentifier moduleVersionIdentifier = artifact.getId().getComponentIdentifier();
-        IvyArtifactName ivyArtifact = artifact.getName();
-        attributes.put(IvyPatternHelper.ORGANISATION_KEY, moduleVersionIdentifier.getGroup());
-        attributes.put(IvyPatternHelper.MODULE_KEY, moduleVersionIdentifier.getModule());
-        attributes.put(IvyPatternHelper.REVISION_KEY, moduleVersionIdentifier.getVersion());
-        attributes.putAll(toAttributes(ivyArtifact));
+        Map<String, Object> attributes = toAttributes(artifact.getId().getComponentIdentifier());
+        attributes.putAll(toAttributes(artifact.getName()));
         return attributes;
     }
 
+    // TODO:DAZ Handle extra attributes
     protected Map<String, Object> toAttributes(IvyArtifactName ivyArtifact) {
         HashMap<String, Object> attributes = new HashMap<String, Object>();
         attributes.put(IvyPatternHelper.ARTIFACT_KEY, ivyArtifact.getName());
@@ -85,6 +80,14 @@ public class IvyResourcePattern implements ResourcePattern {
         HashMap<String, Object> attributes = new HashMap<String, Object>();
         attributes.put(IvyPatternHelper.ORGANISATION_KEY, module.getGroup());
         attributes.put(IvyPatternHelper.MODULE_KEY, module.getName());
+        return attributes;
+    }
+
+    protected Map<String, Object> toAttributes(ModuleComponentIdentifier componentIdentifier) {
+        HashMap<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(IvyPatternHelper.ORGANISATION_KEY, componentIdentifier.getGroup());
+        attributes.put(IvyPatternHelper.MODULE_KEY, componentIdentifier.getModule());
+        attributes.put(IvyPatternHelper.REVISION_KEY, componentIdentifier.getVersion());
         return attributes;
     }
 }
