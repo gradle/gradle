@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.converters
 
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.gradle.BasicGradleTaskSelector
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations
 import org.gradle.tooling.model.DomainObjectSet
@@ -31,7 +30,7 @@ class BuildInvocationsConverterTest extends Specification {
         _ * project.children >> ([] as DomainObjectSet)
         _ * project.tasks >> ([] as DomainObjectSet)
         when:
-        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(project, new ProtocolToModelAdapter())
+        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(project)
         then:
         builds.selectors.isEmpty()
     }
@@ -46,7 +45,7 @@ class BuildInvocationsConverterTest extends Specification {
         _ * rootProject.children >> ([sub1] as DomainObjectSet)
         _ * rootProject.tasks >> ([] as DomainObjectSet)
         when:
-        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(rootProject, new ProtocolToModelAdapter())
+        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(rootProject)
         then:
         builds.taskSelectors.size() == 1
         builds.taskSelectors*.name as Set == ['t1'] as Set
@@ -71,7 +70,7 @@ class BuildInvocationsConverterTest extends Specification {
         _ * project.children >> ([child1] as DomainObjectSet)
 
         when:
-        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(project, new ProtocolToModelAdapter())
+        DefaultBuildInvocations builds = new BuildInvocationsConverter().convert(project)
 
         then:
         builds.taskSelectors.size() == 2

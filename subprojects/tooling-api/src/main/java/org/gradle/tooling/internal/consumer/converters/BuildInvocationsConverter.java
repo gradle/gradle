@@ -22,28 +22,26 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.gradle.BasicGradleTaskSelector;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
 import org.gradle.tooling.internal.gradle.DefaultGradleTask;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
-import org.gradle.tooling.model.Task;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 
 public class BuildInvocationsConverter {
-    public DefaultBuildInvocations<Task> convert(GradleProject project, ProtocolToModelAdapter adapter) {
+    public DefaultBuildInvocations<DefaultGradleTask> convert(GradleProject project) {
         GradleProject rootProject = project;
         while (rootProject.getParent() != null) {
             rootProject = rootProject.getParent();
         }
         List<BasicGradleTaskSelector> selectors = buildRecursively(rootProject);
-        return new DefaultBuildInvocations<Task>()
+        return new DefaultBuildInvocations<DefaultGradleTask>()
                 .setSelectors(selectors)
-                .setTasks(convertTasks(rootProject.getTasks().iterator(), adapter));
+                .setTasks(convertTasks(rootProject.getTasks().iterator()));
     }
 
     private List<BasicGradleTaskSelector> buildRecursively(GradleProject project) {
@@ -72,15 +70,15 @@ public class BuildInvocationsConverter {
         return selectors;
     }
 
-    private List<Task> convertTasks(Iterator<? extends GradleTask> tasks, final ProtocolToModelAdapter adapter) {
+    private List<DefaultGradleTask> convertTasks(Iterator<? extends GradleTask> tasks) {
         return Lists.newArrayList(Iterators.transform(
                 tasks,
-                new Function<GradleTask, Task>() {
-                    public Task apply(GradleTask task) {
-                        return adapter.adapt(Task.class, new DefaultGradleTask()
+                new Function<GradleTask, DefaultGradleTask>() {
+                    public DefaultGradleTask apply(GradleTask task) {
+                        return new DefaultGradleTask()
                                 .setName(task.getName())
                                 .setPath(task.getPath())
-                                .setDescription(task.getDescription()));
+                                .setDescription(task.getDescription());
                     }
                 }
         ));
