@@ -181,6 +181,11 @@ be able to run builds that use Gradle 2.0 and later.
 If your project is building with Gradle 1.0-milestone-8 or earlier, you are __strongly__ encouraged to upgrade to a more recent Gradle version.
 All versions of integrating tools released since the release of Gradle 1.2 (September 2012) should be using a Tooling API client newer than version 1.2.
 
+### Deprecated method in Tooling API
+
+The [`org.gradle.tooling.model.Task.getProject()`](javadoc/org/gradle/tooling/model/Task.html#getProject()) method is now deprecated and
+can throw `UnsupportedMethodException`. There is no replacement as it is expected that the caller has a reference to project prior calling to this method.
+
 ## Potential breaking changes
 
 ### Incremental Scala compilation
