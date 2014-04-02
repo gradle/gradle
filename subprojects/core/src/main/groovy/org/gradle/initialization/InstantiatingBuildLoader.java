@@ -24,8 +24,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 
-import java.io.File;
-
 public class InstantiatingBuildLoader implements BuildLoader {
     private final IProjectFactory projectFactory;
 
@@ -43,14 +41,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
     }
 
     private void attachDefaultProject(GradleInternal gradle) {
-        String  explicitProjectPath = gradle.getStartParameter().getProjectPath();
-        File explicitProjectDir = gradle.getStartParameter().getProjectDir();
-        File explicitBuildFile = gradle.getStartParameter().getBuildFile();
-        ProjectSpec spec = explicitProjectPath != null
-                ? new ProjectPathProjectSpec(explicitProjectPath)
-                : explicitBuildFile != null
-                ? new BuildFileProjectSpec(explicitBuildFile)
-                : explicitProjectDir == null ? new DefaultProjectSpec(gradle.getStartParameter().getCurrentDir()) : new ProjectDirectoryProjectSpec(explicitProjectDir);
+        ProjectSpec spec = ProjectSpecs.forStartParameter(gradle.getStartParameter());
         try {
             gradle.setDefaultProject(spec.selectProject(gradle.getRootProject().getProjectRegistry()));
         } catch (InvalidUserDataException e) {
