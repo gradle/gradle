@@ -310,8 +310,12 @@ This story introduces a new cache control DSL that can apply to both dependency 
 
 ### Test cases
 
-* New DSL can be used to control caching for all types of cached dependency resolution state: version list, module version meta-data, downloaded artifacts,
-resolved artifact meta-data.
+* New DSL can be used to control caching for all types of cached dependency resolution state:
+    - version list
+    - module version meta-data
+    - downloaded artifacts
+    - resolved artifact meta-data
+    - Maven snapshot timestamp
 
 Some test cases that are not directly related, but require this feature to be implemented:
 
