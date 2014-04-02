@@ -23,7 +23,7 @@ import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion('>=1.1')
+@ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.1')
 class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
 

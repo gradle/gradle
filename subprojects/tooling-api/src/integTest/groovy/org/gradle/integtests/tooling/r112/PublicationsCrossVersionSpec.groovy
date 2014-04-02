@@ -198,7 +198,7 @@ publishing {
         pub2.id.version == "1.2"
     }
 
-    @TargetGradleVersion('<1.12')
+    @TargetGradleVersion('>=1.0-milestone-8 <1.12')
     def "decent error message for Gradle version that doesn't expose publications"() {
         when:
         ProjectPublications publications = withConnection { connection ->

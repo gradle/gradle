@@ -24,7 +24,7 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.Issue
 import spock.lang.Timeout
 
-@ToolingApiVersion('>=1.0-milestone-8')
+@ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.0-milestone-8')
 class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 

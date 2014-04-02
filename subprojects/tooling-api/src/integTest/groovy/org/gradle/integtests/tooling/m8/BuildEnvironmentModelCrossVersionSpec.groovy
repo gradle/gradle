@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 
-@ToolingApiVersion('>=1.0-milestone-8')
+@ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.0-milestone-8')
 class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
 

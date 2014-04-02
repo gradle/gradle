@@ -23,7 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 
-@ToolingApiVersion(">=1.0-milestone-5") //because we acquire GradleProject model
+@ToolingApiVersion(">=1.2")
 @TargetGradleVersion(">=1.5")
 class ToolingApiConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
 

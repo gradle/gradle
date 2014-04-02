@@ -23,7 +23,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import spock.lang.Timeout
 
-@ToolingApiVersion('>=1.0-milestone-8')
+@ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.0-milestone-8')
 class ConsumingStandardInputCrossVersionSpec extends ToolingApiSpecification {
 

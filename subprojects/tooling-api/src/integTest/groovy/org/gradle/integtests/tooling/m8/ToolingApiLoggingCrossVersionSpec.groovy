@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.junit.Assume
 
-@ToolingApiVersion('>=1.0-milestone-8')
+@ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.0-milestone-8')
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
 

@@ -28,7 +28,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
 
-@ToolingApiVersion('>=1.0-milestone-9')
+@ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.0-milestone-9')
 class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 

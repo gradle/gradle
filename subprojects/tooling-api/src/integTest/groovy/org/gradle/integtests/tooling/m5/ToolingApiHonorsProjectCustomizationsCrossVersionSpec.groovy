@@ -21,8 +21,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=1.0-milestone-5')
-@TargetGradleVersion('>=1.0-milestone-5')
+@ToolingApiVersion('>=1.2')
+@TargetGradleVersion('>=1.0-milestone-8')
 class ToolingApiHonorsProjectCustomizationsCrossVersionSpec extends ToolingApiSpecification {
 
     def "should honour reconfigured project names"() {

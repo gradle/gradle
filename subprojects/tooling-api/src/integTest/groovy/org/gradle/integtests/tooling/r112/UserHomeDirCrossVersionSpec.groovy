@@ -15,9 +15,13 @@
  */
 package org.gradle.integtests.tooling.r112
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 
+@ToolingApiVersion(">=1.2")
+@TargetGradleVersion(">=1.0-milestone-8")
 class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
     def "build is executed using specified user home directory"() {
         File userHomeDir = temporaryFolder.createDir('userhomedir')

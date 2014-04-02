@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import spock.lang.Issue
 
-@ToolingApiVersion(">=1.0")
+@ToolingApiVersion(">=1.2")
 @TargetGradleVersion(">=1.10")
 class TestFilteringCrossVersionSpec extends ToolingApiSpecification {
     @Issue("GRADLE-2972")

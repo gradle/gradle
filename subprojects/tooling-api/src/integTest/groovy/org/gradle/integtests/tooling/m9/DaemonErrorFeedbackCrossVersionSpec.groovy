@@ -23,7 +23,7 @@ import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 import spock.lang.Timeout
 
-@ToolingApiVersion('>=1.0-milestone-9')
+@ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.0-milestone-9')
 class DaemonErrorFeedbackCrossVersionSpec extends ToolingApiSpecification {
 

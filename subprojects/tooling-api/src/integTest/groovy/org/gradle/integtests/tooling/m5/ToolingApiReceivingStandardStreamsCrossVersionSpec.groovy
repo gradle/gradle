@@ -20,8 +20,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 
-@ToolingApiVersion('>=1.0-milestone-5')
-@TargetGradleVersion('>=1.0-milestone-5')
+@ToolingApiVersion('>=1.2')
+@TargetGradleVersion('>=1.0-milestone-8')
 class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

@@ -19,18 +19,15 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.*;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.OutputStream;
 
 public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
@@ -89,9 +86,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        sendDeprecationMessage(operationParameters);
-        logTargetVersion();
-        connection.run(ModelIdentifier.NULL_MODEL, new AdaptedOperationParameters(operationParameters, buildParameters.getTasks()));
+        throw unsupportedConnectionException();
     }
 
     /**
@@ -99,9 +94,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 parameters) {
-        sendDeprecationMessage(parameters);
-        logTargetVersion();
-        return run(type, parameters);
+        throw unsupportedConnectionException();
     }
 
     /**
@@ -109,9 +102,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
-        sendDeprecationMessage(parameters);
-        logTargetVersion();
-        return run(type, parameters);
+        throw unsupportedConnectionException();
     }
 
     private <T> T run(Class<T> type, BuildOperationParametersVersion1 parameters) {
@@ -155,15 +146,8 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
     }
 
-    private void sendDeprecationMessage(BuildOperationParametersVersion1 parameters) {
-        OutputStream out = parameters.getStandardOutput();
-        if (out != null) {
-            try {
-                out.write(String.format("Connection from tooling API older than version 1.2 %s%n", DeprecationLogger.getDeprecationMessage()).getBytes());
-            } catch (IOException e) {
-                throw new RuntimeException("Cannot write to stream", e);
-            }
-        }
+    private UnsupportedVersionException unsupportedConnectionException() {
+        return new UnsupportedVersionException("Consumers using version older than 1.2 are not supported.");
     }
 
     private ProviderOperationParameters toProviderParameters(BuildParameters buildParameters) {

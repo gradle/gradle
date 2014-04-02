@@ -20,17 +20,12 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
-import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.GradleTask
-import org.gradle.tooling.model.Launchable
-import org.gradle.tooling.model.Task
-import org.gradle.tooling.model.TaskSelector
-import org.gradle.tooling.model.UnsupportedMethodException
+import org.gradle.tooling.model.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 @ToolingApiVersion(">=1.12")
+@TargetGradleVersion(">=1.0-milestone-8")
 class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
     def implicitTaskNames = ['dependencies', 'dependencyInsight', 'help', 'init', 'projects', 'properties', 'tasks', 'wrapper']
     def nonRootImplicitTaskNames = ['dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks']
@@ -119,7 +114,7 @@ project(':b:c') {
         e.message.contains('Problem with provided launchable arguments')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-5")
+    @TargetGradleVersion(">=1.0-milestone-9")
     def "build task selectors from connection"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -137,7 +132,7 @@ project(':b:c') {
         result.result.assertTasksExecuted(':t1', ':b:c:t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-5")
+    @TargetGradleVersion(">=1.0-milestone-8")
     def "build task selectors from connection in specified order"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -160,7 +155,7 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-5")
+    @TargetGradleVersion(">=1.0-milestone-8")
     def "can request task selectors for project"() {
         given:
         BuildInvocations model = withConnection { connection ->
@@ -173,18 +168,6 @@ project(':b:c') {
         }
         then:
         selectors*.name as Set == ['t1', 't2', 't3'] as Set
-    }
-
-    @TargetGradleVersion("<1.0-milestone-5")
-    def "cannot request BuildInvocations for old project"() {
-        when:
-        withConnection { connection ->
-            connection.getModel(BuildInvocations)
-        }
-
-        then:
-        UnknownModelException e = thrown()
-        e.message.contains('does not support building a model of type \'' + BuildInvocations.simpleName + '\'')
     }
 
     @TargetGradleVersion("=1.12")
@@ -255,7 +238,7 @@ project(':b:c') {
         result.result.assertTaskNotExecuted(':b:c:t2')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-5")
+    @TargetGradleVersion(">=1.0-milestone-8")
     def "build task from connection as Launchable"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -273,7 +256,7 @@ project(':b:c') {
         result.result.assertTasksExecuted(':t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-5")
+    @TargetGradleVersion(">=1.0-milestone-8")
     def "build tasks Launchables in order"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -317,7 +300,7 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-5")
+    @TargetGradleVersion(">=1.0-milestone-8")
     def "build tasks and selectors in order cross version"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -359,7 +342,7 @@ project(':b:c') {
         e.message.contains 'Only selector from the same Gradle project can be built.'
     }
 
-    @TargetGradleVersion(">=1.0-milestone-5")
+    @TargetGradleVersion(">=1.0-milestone-8")
     def "can request tasks for root project"() {
         // TODO make sure it is for root project if default project is different
 
