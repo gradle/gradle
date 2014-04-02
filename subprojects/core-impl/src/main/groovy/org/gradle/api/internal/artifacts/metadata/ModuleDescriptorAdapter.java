@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import java.util.*;
 
 public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
-    private boolean metaDataOnly;
     private String packaging;
     private Set<ModuleVersionArtifactMetaData> artifacts;
 
@@ -54,7 +53,6 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
         ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(getId(), getDescriptor(), getComponentId());
         copyTo(copy);
-        copy.metaDataOnly = metaDataOnly;
         copy.packaging = packaging;
         return copy;
     }
@@ -68,14 +66,6 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
     @Override
     public ModuleComponentIdentifier getComponentId() {
         return (ModuleComponentIdentifier) super.getComponentId();
-    }
-
-    public boolean isMetaDataOnly() {
-        return metaDataOnly;
-    }
-
-    public void setMetaDataOnly(boolean metaDataOnly) {
-        this.metaDataOnly = metaDataOnly;
     }
 
     public String getPackaging() {

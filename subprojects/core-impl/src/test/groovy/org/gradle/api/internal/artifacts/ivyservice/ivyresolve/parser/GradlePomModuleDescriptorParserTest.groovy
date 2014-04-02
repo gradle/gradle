@@ -1263,7 +1263,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.allArtifacts.length == 0
-        metaData.metaDataOnly //flag to indicate that there may not actually be any artifacts
+        metaData.packaging == 'pom'
     }
 
     def "pom with project coordinates defined by custom properties"() {

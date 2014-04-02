@@ -257,7 +257,7 @@ class ModuleDescriptorAdapterTest extends Specification {
 
         given:
         metaData.changing = true
-        metaData.metaDataOnly = true
+        metaData.packaging = 'pom'
         metaData.dependencies = [dependency1, dependency2]
         metaData.status = 'a'
         metaData.statusScheme = ['a', 'b', 'c']
@@ -269,7 +269,7 @@ class ModuleDescriptorAdapterTest extends Specification {
         copy != metaData
         copy.descriptor == moduleDescriptor
         copy.changing
-        copy.metaDataOnly
+        copy.packaging == 'pom'
         copy.dependencies == [dependency1, dependency2]
         copy.status == 'a'
         copy.statusScheme == ['a', 'b', 'c']

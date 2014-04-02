@@ -64,9 +64,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         DefaultModuleDescriptor moduleDescriptor = mdBuilder.getModuleDescriptor();
         ModuleDescriptorAdapter adapter = new ModuleDescriptorAdapter(moduleDescriptor);
         addPackagingToModuleDescriptor(pomReader, adapter);
-        if ("pom".equals(pomReader.getPackaging())) {
-            adapter.setMetaDataOnly(true);
-        }
         return adapter;
     }
 
