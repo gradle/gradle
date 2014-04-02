@@ -159,6 +159,21 @@ This makes it easy, for example, to launch the application in debug mode when us
 This starts the JVM process in debug mode, and halts the process until a debugger attaches on port 5005.
 The same can be done for any [`Test`](dsl/org.gradle.api.tasks.testing.Test.html) task.
 
+### Source and Javadoc artifacts declared in ivy.xml are recognised by IDE plugins
+
+The Gradle `eclipse` and `idea` plugins are able to find and download the source artifacts for external dependencies, and link
+these artifacts into the generated IDE files.
+
+In addition to the conventional classifier-based scheme for locating source and javadoc artifacts, Gradle will now recognise
+artifacts declared in a specific configuration of an `ivy.xml` file.
+
+For an IDE project that references an external module located in an `ivy` repository, Gradle will now include:
+
+* Source artifacts declared in a `sources` configuration in `ivy.xml`
+* Javadoc artifacts declared in a `javadoc` configuration in `ivy.xml`
+* Source artifacts conventionally named with a `sources` classifier: eg. 'module-1.0-sources.jar'
+* Javadoc artifacts conventionally named with a `javadoc` classifier: eg. 'module-1.0-javadoc.jar'
+
 ## Fixed issues
 
 ## Deprecations
