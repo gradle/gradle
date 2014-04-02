@@ -19,39 +19,45 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 
 public class ClassDependents implements Serializable, DependentsSet {
 
-    private final Set<String> dependentClasses;
+    private final Set<String> dependentClasses = new HashSet<String>();
+    private boolean dependencyToAll;
 
-    private ClassDependents(Collection<String> dependentClasses) {
-        if (dependentClasses == null) {
-            this.dependentClasses = null;
-        } else {
-            this.dependentClasses = new LinkedHashSet<String>(dependentClasses);
-        }
+    public ClassDependents(boolean dependencyToAll) {
+        this(dependencyToAll, Collections.<String>emptyList());
     }
+
+    public ClassDependents(Collection<String> dependentClasses) {
+        this(false, dependentClasses);
+    }
+
+    public ClassDependents(boolean dependencyToAll, Collection<String> dependentClasses) {
+        this.dependencyToAll = dependencyToAll;
+        this.dependentClasses.addAll(dependentClasses);
+    }
+
+    public ClassDependents() {}
 
     public Set<String> getDependentClasses() {
         return dependentClasses;
     }
 
     public boolean isDependencyToAll() {
-        return dependentClasses == null;
+        return dependencyToAll;
     }
 
-    public ClassDependents addClass(String className) {
-        if (dependentClasses == null) {
-            throw new UnsupportedOperationException("This dependents set is a dependency to all.");
-        }
+    public ClassDependents addDependent(String className) {
         dependentClasses.add(className);
         return this;
     }
 
+    //TODO SF review the necessity of those guys.
     public static ClassDependents dependencyToAll() {
-        return dependentsSet(null);
+        return new ClassDependents(true);
     }
 
     public static ClassDependents emptyDependents() {
@@ -60,5 +66,9 @@ public class ClassDependents implements Serializable, DependentsSet {
 
     public static ClassDependents dependentsSet(Collection<String> dependentClasses) {
         return new ClassDependents(dependentClasses);
+    }
+
+    public void setDependencyToAll(boolean dependencyToAll) {
+        this.dependencyToAll = dependencyToAll;
     }
 }

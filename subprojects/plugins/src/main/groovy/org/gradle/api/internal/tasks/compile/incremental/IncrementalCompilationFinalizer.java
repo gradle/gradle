@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
@@ -37,21 +39,25 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
     private final ClassDependencyInfoWriter dependencyInfoWriter;
     private final JarSnapshotFeeder jarSnapshotFeeder;
     private final ClasspathJarFinder classpathJarFinder;
+    private final FileOperations fileOperations;
 
     public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, ClassDependencyInfoExtractor extractor, ClassDependencyInfoWriter dependencyInfoWriter,
-                                           JarSnapshotFeeder jarSnapshotFeeder, ClasspathJarFinder classpathJarFinder) {
+                                           JarSnapshotFeeder jarSnapshotFeeder, ClasspathJarFinder classpathJarFinder, FileOperations fileOperations) {
         this.delegate = delegate;
         this.extractor = extractor;
         this.dependencyInfoWriter = dependencyInfoWriter;
         this.jarSnapshotFeeder = jarSnapshotFeeder;
         this.classpathJarFinder = classpathJarFinder;
+        this.fileOperations = fileOperations;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
         WorkResult out = delegate.execute(spec);
 
         Clock clock = new Clock();
-        ClassDependencyInfo info = extractor.extractInfo(spec.getDestinationDir(), "");
+        FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
+        tree.visit(extractor);
+        ClassDependencyInfo info = extractor.getDependencyInfo();
         dependencyInfoWriter.writeInfo(info);
         LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), dependencyInfoWriter);
 

@@ -18,19 +18,25 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps
 
+import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.*
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ClassDependencyInfoExtractorTest extends Specification {
 
-    @Subject ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(new ClassDependenciesAnalyzer())
+    @Subject extractor = new ClassDependencyInfoExtractor(new ClassDependenciesAnalyzer(), "org.gradle.api.internal.tasks.compile.incremental")
 
     def "knows relevant dependents"() {
         def classesDir = new File(ClassDependencyInfoExtractorTest.classLoader.getResource("").toURI())
-        def info = extractor.extractInfo(classesDir, "org.gradle.api.internal.tasks.compile.incremental")
+        def tree = new FileTreeAdapter(new DirectoryFileTree(classesDir))
 
-        expect:
+        when:
+        tree.visit(extractor)
+        def info = extractor.dependencyInfo
+
+        then:
         info.getRelevantDependents(SomeClass.name).dependentClasses == [SomeOtherClass.name] as Set
         info.getRelevantDependents(SomeOtherClass.name).dependentClasses == [] as Set
         info.getRelevantDependents(YetAnotherClass.name).dependentClasses == [SomeOtherClass.name] as Set
@@ -39,8 +45,8 @@ class ClassDependencyInfoExtractorTest extends Specification {
         info.getRelevantDependents(UsedByNonPrivateConstantsClass.name).dependentClasses == [HasNonPrivateConstants.name] as Set
 
         info.getRelevantDependents(HasNonPrivateConstants.name).dependencyToAll
-        info.getRelevantDependents(HasNonPrivateConstants.name).dependentClasses == null
+        info.getRelevantDependents(HasNonPrivateConstants.name).dependentClasses == [HasPrivateConstants.name] as Set
     }
 
-    //TODO SF tighten and refactor the coverage
+    //TODO SF tighten and refactor the coverage, use mocks
 }

@@ -34,18 +34,18 @@ public class ClassSnapshotter {
     }
 
     public ClassSnapshot createSnapshot(String className, File classFile, ClassDependencyInfo parentDependencyInfo) {
-        boolean dependentToAll;
+        boolean dependencyToAll;
         try {
-            dependentToAll = analyzer.getClassAnalysis(className, classFile).isDependencyToAll();
+            dependencyToAll = analyzer.getClassAnalysis(className, classFile).isDependencyToAll();
         } catch (IOException e) {
             throw new RuntimeException("Problems creating jar snapshot.", e);
         }
         byte[] hash = hasher.hash(classFile);
-        if (dependentToAll) {
+        if (dependencyToAll) {
             return new ClassSnapshot(hash);
         } else {
             DependentsSet dependents = parentDependencyInfo.getRelevantDependents(className);
-            return new ClassSnapshot(hash, dependents);
+            return new ClassSnapshot(hash, dependents.getDependentClasses());
         }
     }
 }

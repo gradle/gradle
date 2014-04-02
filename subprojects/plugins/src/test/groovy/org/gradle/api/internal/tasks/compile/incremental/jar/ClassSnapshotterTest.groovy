@@ -42,7 +42,7 @@ class ClassSnapshotterTest extends Specification {
         1 * hasher.hash(new File("f")) >> "f".bytes
         0 * _
 
-        s.dependents.dependentClasses == null
+        s.dependents.dependentClasses.isEmpty()
         s.dependents.dependencyToAll
         s.hash == "f".bytes
     }

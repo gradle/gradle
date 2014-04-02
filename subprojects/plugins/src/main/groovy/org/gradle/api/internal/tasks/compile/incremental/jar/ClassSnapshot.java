@@ -28,11 +28,7 @@ class ClassSnapshot implements Serializable {
     private final Collection<String> dependentClasses;
 
     public ClassSnapshot(byte[] hash) {
-        this(hash, (Collection<String>) null);
-    }
-
-    public ClassSnapshot(byte[] hash, DependentsSet dependents) {
-        this(hash, dependents.getDependentClasses());
+        this(hash, null);
     }
 
     public ClassSnapshot(byte[] hash, Collection<String> dependentClasses) {
@@ -41,7 +37,10 @@ class ClassSnapshot implements Serializable {
     }
 
     public DependentsSet getDependents() {
-        return ClassDependents.dependentsSet(dependentClasses);
+        if (dependentClasses == null) {
+            return new ClassDependents(true);
+        }
+        return new ClassDependents(dependentClasses);
     }
 
     public byte[] getHash() {

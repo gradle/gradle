@@ -16,61 +16,51 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-import org.apache.commons.io.FileUtils;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
-public class ClassDependencyInfoExtractor {
+public class ClassDependencyInfoExtractor implements FileVisitor {
 
     private final ClassDependenciesAnalyzer analyzer;
+    private final String packagePrefix;
+    private final ClassDependentsAccumulator accumulator;
 
     public ClassDependencyInfoExtractor(ClassDependenciesAnalyzer analyzer) {
+        this(analyzer, "");
+    }
+
+    ClassDependencyInfoExtractor(ClassDependenciesAnalyzer analyzer, String packagePrefix) {
         this.analyzer = analyzer;
+        this.packagePrefix = packagePrefix;
+        accumulator = new ClassDependentsAccumulator(packagePrefix);
     }
 
-    public ClassDependencyInfo extractInfo(File compiledClassesDir, String packagePrefix) {
-        Map<String, ClassDependents> dependents = new HashMap<String, ClassDependents>();
-        Iterator output = FileUtils.iterateFiles(compiledClassesDir, new String[]{"class"}, true);
-        OutputToNameConverter nameProvider = new OutputToNameConverter(compiledClassesDir);
-        while (output.hasNext()) {
-            File classFile = (File) output.next();
-            String className = nameProvider.getClassName(classFile);
-            if (!className.startsWith(packagePrefix)) {
-                continue;
-            }
-            try {
-                ClassAnalysis analysis = analyzer.getClassAnalysis(className, classFile);
-                for (String dependency : analysis.getClassDependencies()) {
-                    if (!dependency.equals(className) && dependency.startsWith(packagePrefix)) {
-                        populate(dependents, dependency, className);
-                    }
-                }
-                if (analysis.isDependencyToAll()) {
-                    dependents.put(className, ClassDependents.dependencyToAll());
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Problems extracting class dependency from " + classFile, e);
-            }
+    public void visitDir(FileVisitDetails dirDetails) {}
+
+    public void visitFile(FileVisitDetails fileDetails) {
+        File file = fileDetails.getFile();
+        if (!file.getName().endsWith(".class")) {
+            return;
         }
-        return new ClassDependencyInfo(dependents);
+        String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");
+        if (!className.startsWith(packagePrefix)) {
+            return;
+        }
+
+        try {
+            ClassAnalysis analysis = analyzer.getClassAnalysis(className, file);
+            accumulator.addClass(className, analysis.isDependencyToAll(), analysis.getClassDependencies());
+        } catch (IOException e) {
+            throw new RuntimeException("Problems extracting class dependency from " + file, e);
+        }
     }
 
-    private ClassDependents populate(Map<String, ClassDependents> dependents, String dependency, String className) {
-        ClassDependents d = dependents.get(dependency);
-        if (d == null) {
-            //init dependents
-            d = ClassDependents.emptyDependents();
-            dependents.put(dependency, d);
-        } else if (d.isDependencyToAll()) {
-            //don't add class if it is a dependency to all
-            return d;
-        }
-        return d.addClass(className);
+    public ClassDependencyInfo getDependencyInfo() {
+        return new ClassDependencyInfo(accumulator.getDependentsMap());
     }
 }
