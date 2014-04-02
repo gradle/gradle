@@ -13,15 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.resolution;
-
-import org.gradle.api.Incubating;
 
 /**
- * Base interface for the artifacts of a JVM library software component.
- *
- * @since 1.12
+ * Classes comprising the JVM library model for the artifact resolution API.
  */
-@Incubating
-public interface JvmLibraryArtifact extends SoftwareArtifact {
-}
+// TODO:DAZ These should live with the rest of the Java language/platform stuff
+package org.gradle.api.artifacts.result.jvm;

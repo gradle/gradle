@@ -15,9 +15,10 @@
  */
 
 package org.gradle.integtests.resolve
-
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.resolution.JvmLibraryArtifact
+import org.gradle.api.artifacts.result.jvm.JvmLibraryArtifact
+import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact
+import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
@@ -122,15 +123,16 @@ task $taskName << {
 
     def result = dependencies.createArtifactResolutionQuery()
         .forComponents(deps[0].selected.id)
-        .withArtifacts(JvmLibrary$artifactTypesString)
+        .withArtifacts(JvmLibrary, $artifactTypesString)
         .execute()
 
     assert result.components.size() == 1
-    def jvmLibrary = result.components.iterator().next()
-    assert jvmLibrary.id.group == "${id.group}"
-    assert jvmLibrary.id.module == "${id.module}"
-    assert jvmLibrary.id.version == "${id.version}"
-    assert jvmLibrary instanceof JvmLibrary
+    def componentResult = result.components.iterator().next()
+    assert componentResult instanceof ResolvedComponentArtifactsResult
+    assert componentResult.id.displayName == "${id.displayName}"
+
+    def jvmLibrary = result.getResolvedComponents(JvmLibrary).iterator().next()
+    assert jvmLibrary.id == componentResult.id
 
     def sourceArtifactFiles = []
     jvmLibrary.sourcesArtifacts.each { artifact ->
@@ -161,8 +163,6 @@ task $taskName << {
         }
     }
     assert javadocArtifactFiles as Set == ${toQuotedList(expectedJavadoc)} as Set
-
-    assert result.unresolvedComponents.empty
 }
 """
     }
@@ -187,28 +187,26 @@ task verify << {
     def unknownComponentId = [getGroup: {'${id.group}'}, getModule: {'${id.module}'}, getVersion: {'${id.version}'}, getDisplayName: {'unknown'}] as ModuleComponentIdentifier
     def result = dependencies.createArtifactResolutionQuery()
         .forComponents(unknownComponentId)
-        .withArtifacts(JvmLibrary$artifactTypesString)
+        .withArtifacts(JvmLibrary, $artifactTypesString)
         .execute()
 
-    assert result.components.empty
-    assert result.unresolvedComponents.size() == 1
-    for (component in result.unresolvedComponents) {
-        assert component.id.group == "${id.group}"
-        assert component.id.module == "${id.module}"
-        assert component.id.version == "${id.version}"
-        assert component.id.displayName == 'unknown'
-        ${checkException("component.failure", unresolvedComponentFailure)}
-    }
+    assert result.components.size() == 1
+    def component = result.components.iterator().next()
+    assert component instanceof UnresolvedComponentResult
+    assert component.id.group == "${id.group}"
+    assert component.id.module == "${id.module}"
+    assert component.id.version == "${id.version}"
+    assert component.id.displayName == 'unknown'
+    ${checkException("component.failure", unresolvedComponentFailure)}
 }
 """
     }
 
     private String getArtifactTypesString() {
-        def artifactTypesString = ""
-        for (Class<? extends JvmLibraryArtifact> type : artifactTypes) {
-            artifactTypesString += ", ${type.simpleName}"
+        if (artifactTypes.empty) {
+            return [JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact].collect({it.simpleName}).join(',')
         }
-        return artifactTypesString
+        return artifactTypes.collect({ it.simpleName }).join(',')
     }
 }
 

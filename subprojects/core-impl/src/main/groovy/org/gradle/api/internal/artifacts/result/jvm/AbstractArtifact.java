@@ -13,39 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.resolution;
+package org.gradle.api.internal.artifacts.result.jvm;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.artifacts.result.Artifact;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 
-public abstract class AbstractSoftwareArtifact implements SoftwareArtifact {
+public abstract class AbstractArtifact implements Artifact {
     private final File file;
-    private final GradleException failure;
+    private final Throwable failure;
 
-    protected AbstractSoftwareArtifact(File file) {
+    protected AbstractArtifact(File file) {
         this.file = file;
         failure = null;
     }
 
-    protected AbstractSoftwareArtifact(GradleException failure) {
+    protected AbstractArtifact(Throwable failure) {
         file = null;
         this.failure = failure;
     }
 
-    public File getFile() throws GradleException {
+    public File getFile() {
         assertNoFailure();
         return file;
     }
 
-    public GradleException getFailure() {
+    public Throwable getFailure() {
         return failure;
     }
 
     private void assertNoFailure() {
         if (failure != null) {
-            throw failure;
+            throw UncheckedException.throwAsUncheckedException(failure);
         }
     }
 }

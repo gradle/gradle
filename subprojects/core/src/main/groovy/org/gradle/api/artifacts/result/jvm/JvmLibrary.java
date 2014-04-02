@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.artifacts.result.jvm;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.result.Component;
+
+import java.util.Set;
 
 /**
- * Classes comprising the artifact resolution API.
+ * Software component representing a JVM library.
+ *
+ * @since 1.12
  */
-package org.gradle.api.artifacts.resolution;
+@Incubating
+public interface JvmLibrary extends Component {
+    Set<JvmLibrarySourcesArtifact> getSourcesArtifacts();
+    Set<JvmLibraryJavadocArtifact> getJavadocArtifacts();
+}

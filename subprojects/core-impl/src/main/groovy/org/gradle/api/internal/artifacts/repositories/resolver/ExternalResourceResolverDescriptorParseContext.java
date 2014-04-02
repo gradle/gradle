@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
-import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
+import org.gradle.api.internal.artifacts.result.jvm.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;

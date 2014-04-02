@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.artifacts.result.jvm;
 
-import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.result.Artifact;
 
-public interface ArtifactResolutionQueryFactory {
-    ArtifactResolutionQuery createArtifactResolutionQuery();
+/**
+ * Base interface for the artifacts of a JVM library software component.
+ *
+ * @since 1.12
+ */
+@Incubating
+public interface JvmLibraryArtifact extends Artifact {
 }

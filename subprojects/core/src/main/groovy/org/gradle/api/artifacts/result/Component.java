@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.artifacts.result;
 
-import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public interface ArtifactResolutionQueryFactory {
-    ArtifactResolutionQuery createArtifactResolutionQuery();
+/**
+ * A software component with resolved artifacts.
+ *
+ * @since 2.0
+ */
+@Incubating
+public interface Component {
+    ComponentIdentifier getId();
 }

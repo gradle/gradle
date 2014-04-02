@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories.legacy;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.IvyContext;
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
@@ -26,13 +25,13 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
+import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
+import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
-import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
+import org.gradle.api.internal.artifacts.result.jvm.ComponentMetaDataArtifact;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,8 +118,8 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        Artifact ivyArtifact = ((ModuleVersionArtifactMetaData) artifact).toIvyArtifact();
-        ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
+        org.apache.ivy.core.module.descriptor.Artifact ivyArtifact = ((ModuleVersionArtifactMetaData) artifact).toIvyArtifact();
+        ArtifactDownloadReport artifactDownloadReport = resolver.download(new org.apache.ivy.core.module.descriptor.Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
                 EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;
@@ -157,7 +156,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         }
 
         if (!localOnly && context instanceof ArtifactTypeResolveContext) {
-            Class<? extends SoftwareArtifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
+            Class<? extends Artifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
             try {
                 result.resolved(getCandidateArtifacts(moduleVersion, artifactType));
             } catch (Exception e) {
@@ -166,9 +165,9 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         }
     }
 
-    private Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
+    private Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends Artifact> artifactType) {
         if (artifactType == ComponentMetaDataArtifact.class) {
-            Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
+            org.apache.ivy.core.module.descriptor.Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
             return ImmutableSet.of(module.artifact(metadataArtifact));
         }
 

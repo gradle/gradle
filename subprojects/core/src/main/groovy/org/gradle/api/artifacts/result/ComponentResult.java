@@ -13,25 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.resolution;
+package org.gradle.api.artifacts.result;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.resolution.UnresolvedSoftwareComponent;
 
-public class DefaultUnresolvedSoftwareComponent implements UnresolvedSoftwareComponent {
-    private final ComponentIdentifier id;
-    private final Throwable failure;
-
-    public DefaultUnresolvedSoftwareComponent(ComponentIdentifier id, Throwable failure) {
-        this.id = id;
-        this.failure = failure;
-    }
-
-    public ComponentIdentifier getId() {
-        return id;
-    }
-
-    public Throwable getFailure() {
-        return failure;
-    }
+/**
+ * The result of resolving a component.
+ *
+ * @since 2.0
+ */
+@Incubating
+public interface ComponentResult {
+    /**
+     * Returns the ID of the requested component.
+     */
+    ComponentIdentifier getId();
 }

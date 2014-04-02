@@ -13,33 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.resolution;
+package org.gradle.api.artifacts.result;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 import java.io.File;
 
 /**
- * An artifact of a software component.
+ * The result of successfully downloading an artifact.
  *
- * @since 1.12
+ * @since 2.0
  */
 @Incubating
-public interface SoftwareArtifact {
+public interface ResolvedArtifactResult extends ArtifactResult {
     /**
-     * The file for the artifact. If resolving the artifact caused a failure, that failure will be rethrown.
-     *
-     * @return the file for the artifact
+     * The file for the artifact.
      */
     File getFile() throws GradleException;
-
-    /**
-     * Returns the failure that occurred when the artifact was resolved, or {@code null} if no failure occurred.
-     *
-     * @return the failure that occurred when the artifact was resolved, or {@code null} if no failure occurred
-     */
-    @Nullable
-    GradleException getFailure();
 }

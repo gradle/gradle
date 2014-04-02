@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.resolution;
+package org.gradle.api.artifacts.result.jvm;
 
 import org.gradle.api.Incubating;
 

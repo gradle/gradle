@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.resolution;
+package org.gradle.api.internal.artifacts.result.jvm;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
+import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
 
 import java.io.File;
 
-public class DefaultJvmLibraryJavadocArtifact extends AbstractSoftwareArtifact implements JvmLibraryJavadocArtifact {
-    public DefaultJvmLibraryJavadocArtifact(File file) {
+public class DefaultJvmLibrarySourcesArtifact extends AbstractArtifact implements JvmLibrarySourcesArtifact {
+    public DefaultJvmLibrarySourcesArtifact(File file) {
         super(file);
     }
 
-    public DefaultJvmLibraryJavadocArtifact(GradleException failure) {
+    public DefaultJvmLibrarySourcesArtifact(Throwable failure) {
         super(failure);
     }
 }

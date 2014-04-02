@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
+import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact
+import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
@@ -81,8 +81,7 @@ dependencies {
     }
 
     def "resolves and caches all artifacts"() {
-        fixture.requestingTypes()
-                .expectSourceArtifact("sources")
+        fixture.expectSourceArtifact("sources")
                 .expectJavadocArtifact("javadoc")
                 .prepare()
 
@@ -213,7 +212,7 @@ if (project.hasProperty('nocache')) {
     }
 
     def "resolve and caches missing artifacts of existing component"() {
-        fixture.requestingTypes().prepare()
+        fixture.prepare()
 
         when:
         module.pom.expectGet()
@@ -225,8 +224,7 @@ if (project.hasProperty('nocache')) {
     }
 
     def "resolves and caches artifacts where some are present"() {
-        fixture.requestingTypes()
-                .expectSourceArtifact("sources")
+        fixture.expectSourceArtifact("sources")
                 .prepare()
 
         when:

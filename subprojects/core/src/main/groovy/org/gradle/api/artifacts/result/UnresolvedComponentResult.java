@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.artifacts.result;
 
-import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
+import org.gradle.api.Incubating;
 
-public interface ArtifactResolutionQueryFactory {
-    ArtifactResolutionQuery createArtifactResolutionQuery();
+/**
+ * A component that could not be resolved.
+ *
+ * @since 2.0
+ */
+@Incubating
+public interface UnresolvedComponentResult extends ComponentResult {
+    /**
+     * Returns the failure that occurred when trying to resolve the component.
+     */
+    Throwable getFailure();
 }

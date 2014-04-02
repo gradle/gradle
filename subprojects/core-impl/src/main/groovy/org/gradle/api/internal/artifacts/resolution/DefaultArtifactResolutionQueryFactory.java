@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.resolution;
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.resolution.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ArtifactResolutionQueryFactory;

@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.resolution;
+package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 
-/**
- * An artifact containing sources for a JVM library software component.
- *
- * @since 1.12
- */
-@Incubating
-public interface JvmLibrarySourcesArtifact extends JvmLibraryArtifact {
+import java.io.File;
+
+public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
+    private final File file;
+
+    public DefaultResolvedArtifactResult(File file) {
+        this.file = file;
+    }
+
+    public File getFile() throws GradleException {
+        return file;
+    }
 }

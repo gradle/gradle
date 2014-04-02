@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.resolution;
+package org.gradle.api.artifacts.result.jvm;
 
 import org.gradle.api.Incubating;
 
-import java.util.Set;
-
 /**
- * The result of executing an artifact resolution query.
+ * An artifact containing sources for a JVM library software component.
  *
  * @since 1.12
  */
 @Incubating
-public interface ArtifactResolutionQueryResult {
-    Set<? extends SoftwareComponent> getComponents();
-    <T extends SoftwareComponent> Set<T> getComponents(Class<T> type);
-    Set<UnresolvedSoftwareComponent> getUnresolvedComponents();
+public interface JvmLibrarySourcesArtifact extends JvmLibraryArtifact {
 }

@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.resolution;
+package org.gradle.api.internal.artifacts.result.jvm;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.resolution.SoftwareComponent;
+import org.gradle.api.artifacts.result.Component;
 
-public abstract class AbstractSoftwareComponent implements SoftwareComponent {
+public abstract class AbstractComponent implements Component {
     private final ComponentIdentifier componentId;
 
-    protected AbstractSoftwareComponent(ComponentIdentifier componentId) {
+    protected AbstractComponent(ComponentIdentifier componentId) {
         this.componentId = componentId;
     }
 
@@ -39,7 +39,7 @@ public abstract class AbstractSoftwareComponent implements SoftwareComponent {
             return false;
         }
 
-        return componentId.equals(((AbstractSoftwareComponent) other).componentId);
+        return componentId.equals(((AbstractComponent) other).componentId);
     }
 
     @Override

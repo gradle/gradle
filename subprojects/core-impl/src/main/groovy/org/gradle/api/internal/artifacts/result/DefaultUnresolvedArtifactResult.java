@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.result.UnresolvedArtifactResult;
 
-public interface ArtifactResolutionQueryFactory {
-    ArtifactResolutionQuery createArtifactResolutionQuery();
+public class DefaultUnresolvedArtifactResult implements UnresolvedArtifactResult {
+    private final Throwable failure;
+
+    public DefaultUnresolvedArtifactResult(Throwable failure) {
+        this.failure = failure;
+    }
+
+    public Throwable getFailure() {
+        return failure;
+    }
 }

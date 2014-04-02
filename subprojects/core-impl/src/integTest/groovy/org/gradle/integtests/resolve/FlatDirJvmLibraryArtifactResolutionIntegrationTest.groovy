@@ -34,8 +34,7 @@ dependencies {
 
     def "resolves and does not cache source and javadoc artifacts"() {
         publishModule()
-        fixture.requestingTypes()
-                .expectSourceArtifact("sources")
+        fixture.expectSourceArtifact("sources")
                 .expectJavadocArtifact("javadoc")
                 .prepare()
 
@@ -63,7 +62,7 @@ dependencies {
     def "resolve missing source and javadoc artifacts"() {
         file("repo/some-artifact-1.0.jar").createFile()
 
-        fixture.requestingTypes().prepare()
+        fixture.prepare()
 
         expect:
         succeeds("verify")
@@ -73,8 +72,7 @@ dependencies {
         file("repo/some-artifact-1.0.jar").createFile()
         file("repo/some-artifact-1.0-sources.jar").createFile()
 
-        fixture.requestingTypes()
-                .expectSourceArtifact("sources")
+        fixture.expectSourceArtifact("sources")
                 .prepare()
 
         expect:

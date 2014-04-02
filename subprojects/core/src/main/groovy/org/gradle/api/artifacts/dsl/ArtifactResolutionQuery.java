@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.resolution;
+package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.Artifact;
+import org.gradle.api.artifacts.result.ArtifactResolutionResult;
+import org.gradle.api.artifacts.result.Component;
 
 /**
  * Resolves selected software artifacts of the given components.
  *
- * @since 1.12
+ * @since 2.0
  */
 @Incubating
 public interface ArtifactResolutionQuery {
     ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds);
     ArtifactResolutionQuery forComponents(ComponentIdentifier... componentIds);
-    <T extends SoftwareComponent, U extends SoftwareArtifact> ArtifactResolutionQuery withArtifacts(Class<T> componentType, Class<U>... artifactTypes);
-    ArtifactResolutionQueryResult execute();
+    ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes);
+    ArtifactResolutionResult execute();
 }

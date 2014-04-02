@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.resolution;
+package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * A software component with resolved artifacts.
+ * An artifact the could not be resolved.
  *
- * Implementations have the following equals contract:
- * {@code other != null && getClass() == other.getClass() && getId().equals(other.getId());}
- *
- * @since 1.12
+ * @since 2.0
  */
 @Incubating
-public interface SoftwareComponent {
-    ComponentIdentifier getId();
+public interface UnresolvedArtifactResult extends ArtifactResult {
+    /**
+     * The failure that occurred when the artifact was resolved.
+     */
+    Throwable getFailure();
 }

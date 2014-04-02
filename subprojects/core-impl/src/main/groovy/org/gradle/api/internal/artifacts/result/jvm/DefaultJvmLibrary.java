@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.resolution;
+package org.gradle.api.internal.artifacts.result.jvm;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.resolution.JvmLibrary;
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
+import org.gradle.api.artifacts.result.jvm.JvmLibrary;
+import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
+import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultJvmLibrary extends AbstractSoftwareComponent implements JvmLibrary {
+public class DefaultJvmLibrary extends AbstractComponent implements JvmLibrary {
     private final Set<JvmLibrarySourcesArtifact> sourceArtifacts;
     private final Set<JvmLibraryJavadocArtifact> javadocArtifacts;
 

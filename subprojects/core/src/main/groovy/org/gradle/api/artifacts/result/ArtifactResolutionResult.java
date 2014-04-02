@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.resolution;
+package org.gradle.api.artifacts.result;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
+import org.gradle.api.Incubating;
 
-import java.io.File;
+import java.util.Set;
 
-public class DefaultJvmLibrarySourcesArtifact extends AbstractSoftwareArtifact implements JvmLibrarySourcesArtifact {
-    public DefaultJvmLibrarySourcesArtifact(File file) {
-        super(file);
-    }
-
-    public DefaultJvmLibrarySourcesArtifact(GradleException failure) {
-        super(failure);
-    }
+/**
+ * The result of executing an artifact resolution query.
+ *
+ * @since 2.0
+ */
+@Incubating
+public interface ArtifactResolutionResult {
+    Set<ComponentResult> getComponents();
+    <T extends Component> Set<T> getResolvedComponents(Class<T> type);
 }

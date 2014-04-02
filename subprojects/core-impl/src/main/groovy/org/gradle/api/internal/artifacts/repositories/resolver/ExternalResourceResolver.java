@@ -27,9 +27,9 @@ import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
+import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
+import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
@@ -40,7 +40,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
-import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
+import org.gradle.api.internal.artifacts.result.jvm.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
@@ -279,7 +279,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
                 ConfigurationMetaData configuration = component.getConfiguration(configurationName);
                 resolveConfigurationArtifacts(component, configuration, result, localOnly);
             } else {
-                Class<? extends SoftwareArtifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
+                Class<? extends Artifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
                 if (artifactType == ComponentMetaDataArtifact.class) {
                     resolveMetaDataArtifacts(component, result, localOnly);
                 } else if (artifactType == JvmLibraryJavadocArtifact.class) {

@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.resolution;
+package org.gradle.api.artifacts.result;
 
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.Incubating;
 
-public interface ComponentMetaDataArtifact extends SoftwareArtifact {
+/**
+ * The result of resolving an artifact.
+ *
+ * @since 2.0
+ */
+@Incubating
+public interface ArtifactResult {
 }
