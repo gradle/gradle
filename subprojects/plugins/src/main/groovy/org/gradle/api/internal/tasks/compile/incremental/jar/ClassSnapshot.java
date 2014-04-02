@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependents;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import java.io.Serializable;
@@ -38,9 +38,9 @@ class ClassSnapshot implements Serializable {
 
     public DependentsSet getDependents() {
         if (dependentClasses == null) {
-            return new ClassDependents(true);
+            return new DefaultDependentsSet(true);
         }
-        return new ClassDependents(dependentClasses);
+        return new DefaultDependentsSet(dependentClasses);
     }
 
     public byte[] getHash() {

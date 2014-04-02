@@ -30,7 +30,7 @@ class ClassDependencyInfoSerializerTest extends Specification {
         def s = new ClassDependencyInfoSerializer(temp.file("foo.bin"))
 
         when:
-        s.writeInfo(new ClassDependencyInfo(["foo.Foo": new ClassDependents(["bar.Bar"])]))
+        s.writeInfo(new ClassDependencyInfo(["foo.Foo": new DefaultDependentsSet(["bar.Bar"])]))
         def info = s.provideInfo()
 
         then:

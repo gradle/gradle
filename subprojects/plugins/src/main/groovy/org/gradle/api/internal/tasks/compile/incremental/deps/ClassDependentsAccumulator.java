@@ -22,7 +22,7 @@ import java.util.Map;
 
 public class ClassDependentsAccumulator {
 
-    private final Map<String, ClassDependents> dependents = new HashMap<String, ClassDependents>();
+    private final Map<String, DefaultDependentsSet> dependents = new HashMap<String, DefaultDependentsSet>();
     private final String packagePrefix;
 
     public ClassDependentsAccumulator(String packagePrefix) {
@@ -35,7 +35,7 @@ public class ClassDependentsAccumulator {
         }
         for (String dependency : classDependencies) {
             if (!dependency.equals(className) && dependency.startsWith(packagePrefix)) {
-                ClassDependents d = rememberClass(dependency);
+                DefaultDependentsSet d = rememberClass(dependency);
                 if (className.startsWith(packagePrefix)) {
                     d.addDependent(className);
                 }
@@ -43,10 +43,10 @@ public class ClassDependentsAccumulator {
         }
     }
 
-    private ClassDependents rememberClass(String className) {
-        ClassDependents d = dependents.get(className);
+    private DefaultDependentsSet rememberClass(String className) {
+        DefaultDependentsSet d = dependents.get(className);
         if (d == null) {
-            d = new ClassDependents();
+            d = new DefaultDependentsSet();
             dependents.put(className, d);
         }
         return d;

@@ -32,7 +32,7 @@ public class ClassDependencyInfo implements Serializable {
     public DependentsSet getRelevantDependents(String className) {
         DependentsSet deps = dependents.get(className);
         if (deps == null) {
-            return new ClassDependents();
+            return new DefaultDependentsSet();
         }
         if (deps.isDependencyToAll()) {
             return deps;
@@ -44,6 +44,6 @@ public class ClassDependencyInfo implements Serializable {
                 out.add(c);
             }
         }
-        return new ClassDependents(out);
+        return new DefaultDependentsSet(out);
     }
 }

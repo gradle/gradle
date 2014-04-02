@@ -20,7 +20,7 @@ import org.gradle.api.internal.hash.Hasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysis
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependents
+import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -55,7 +55,7 @@ class ClassSnapshotterTest extends Specification {
         1 * analyzer.getClassAnalysis("Foo", new File("f")) >> Mock(ClassAnalysis) {
             isDependencyToAll() >> false
         }
-        1 * info.getRelevantDependents("Foo") >> new ClassDependents(["X", "Y"])
+        1 * info.getRelevantDependents("Foo") >> new DefaultDependentsSet(["X", "Y"])
         1 * hasher.hash(new File("f")) >> "f".bytes
         0 * _
 

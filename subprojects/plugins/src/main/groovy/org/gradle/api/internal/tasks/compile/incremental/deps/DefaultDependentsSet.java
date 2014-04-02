@@ -22,25 +22,25 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ClassDependents implements Serializable, DependentsSet {
+public class DefaultDependentsSet implements Serializable, DependentsSet {
 
     private final Set<String> dependentClasses = new HashSet<String>();
     private boolean dependencyToAll;
 
-    public ClassDependents(boolean dependencyToAll) {
+    public DefaultDependentsSet(boolean dependencyToAll) {
         this(dependencyToAll, Collections.<String>emptyList());
     }
 
-    public ClassDependents(Collection<String> dependentClasses) {
+    public DefaultDependentsSet(Collection<String> dependentClasses) {
         this(false, dependentClasses);
     }
 
-    public ClassDependents(boolean dependencyToAll, Collection<String> dependentClasses) {
+    public DefaultDependentsSet(boolean dependencyToAll, Collection<String> dependentClasses) {
         this.dependencyToAll = dependencyToAll;
         this.dependentClasses.addAll(dependentClasses);
     }
 
-    public ClassDependents() {}
+    public DefaultDependentsSet() {}
 
     public Set<String> getDependentClasses() {
         return dependentClasses;
@@ -50,13 +50,13 @@ public class ClassDependents implements Serializable, DependentsSet {
         return dependencyToAll;
     }
 
-    public ClassDependents addDependent(String className) {
+    public DefaultDependentsSet addDependent(String className) {
         dependentClasses.add(className);
         return this;
     }
 
-    public static ClassDependents dependentsSet(Collection<String> dependentClasses) {
-        return new ClassDependents(dependentClasses);
+    public static DefaultDependentsSet dependentsSet(Collection<String> dependentClasses) {
+        return new DefaultDependentsSet(dependentClasses);
     }
 
     public void setDependencyToAll(boolean dependencyToAll) {
