@@ -94,15 +94,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         MultiParentClassLoader parentObfuscatingClassLoader = new MultiParentClassLoader(classLoader);
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(parentObfuscatingClassLoader);
         filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");
-        return new MutableURLClassLoader(filteringClassLoader, implementationClasspath.getAsURLArray()) {
-            @Override
-            public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-                //TODO:ADAM - remove this.
-                if (name.startsWith("com.sun.jdi.")) {
-                    System.out.println(String.format("=> Loading JDI class %s in provider ClassLoader. Should not be.", name));
-                }
-                return super.loadClass(name, resolve);
-            }
-        };
+        return new MutableURLClassLoader(filteringClassLoader, implementationClasspath.getAsURLArray());
     }
 }
