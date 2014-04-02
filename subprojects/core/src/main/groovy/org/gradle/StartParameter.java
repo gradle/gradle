@@ -517,6 +517,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * @param projectPath The project path. May be null.
      */
+    @Incubating
     public void setProjectPath(String projectPath) {
         this.projectPath = projectPath;
     }
@@ -526,6 +527,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * @return The project path. May be null when the project path is not used to select the default project.
      */
+    @Incubating
     public String getProjectPath() {
         return projectPath;
     }
