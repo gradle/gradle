@@ -30,6 +30,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.WrapUtil;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class RepositoryTransportFactory {
@@ -62,8 +63,15 @@ public class RepositoryTransportFactory {
         return new FileTransport(name, localCacheManager, temporaryFileProvider);
     }
 
-    public RepositoryTransport createSftpTransport(String name, PasswordCredentials credentials) {
+    private RepositoryTransport createSftpTransport(String name, PasswordCredentials credentials) {
+        checkSftpJavaVersionCompatibility();
         return new SftpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
+    }
+
+    public RepositoryTransport createTransport(String scheme, String name, PasswordCredentials credentials) {
+        Set<String> schemes = new HashSet<String>();
+        schemes.add(scheme);
+        return createTransport(schemes, name, credentials);
     }
 
     public RepositoryTransport createTransport(Set<String> schemes, String name, PasswordCredentials credentials) {
@@ -77,7 +85,6 @@ public class RepositoryTransportFactory {
             return createFileTransport(name);
         }
         if (WrapUtil.toSet("sftp").containsAll(schemes)) {
-            checkSftpJavaVersionCompatibility();
             return createSftpTransport(name, credentials);
         }
         throw new InvalidUserDataException("You cannot mix different url schemes for a single repository. Please declare separate repositories.");

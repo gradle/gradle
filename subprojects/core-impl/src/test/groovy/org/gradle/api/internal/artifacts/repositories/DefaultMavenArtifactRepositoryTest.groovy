@@ -42,7 +42,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createFileTransport('repo') >> transport()
+        transportFactory.createTransport('file', 'repo', credentials) >> transport()
 
         and:
         repository.name = 'repo'
@@ -62,7 +62,47 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * credentials.getUsername() >> 'username'
         _ * credentials.getPassword() >> 'password'
-        transportFactory.createHttpTransport('repo', credentials) >> transport()
+        transportFactory.createTransport('http', 'repo', credentials) >> transport()
+
+        and:
+        repository.name = 'repo'
+        repository.url = 'repo-dir'
+
+        when:
+        def repo = repository.createRealResolver()
+
+        then:
+        repo instanceof MavenResolver
+        repo.root == "${uri}/"
+    }
+
+    def "creates https repository"() {
+        given:
+        def uri = new URI("https://localhost:9090/repo")
+        _ * resolver.resolveUri('repo-dir') >> uri
+        _ * credentials.getUsername() >> 'username'
+        _ * credentials.getPassword() >> 'password'
+        transportFactory.createTransport('https', 'repo', credentials) >> transport()
+
+        and:
+        repository.name = 'repo'
+        repository.url = 'repo-dir'
+
+        when:
+        def repo = repository.createRealResolver()
+
+        then:
+        repo instanceof MavenResolver
+        repo.root == "${uri}/"
+    }
+
+    def "creates sftp repository"() {
+        given:
+        def uri = new URI("sftp://localhost:22/repo")
+        _ * resolver.resolveUri('repo-dir') >> uri
+        _ * credentials.getUsername() >> 'username'
+        _ * credentials.getPassword() >> 'password'
+        transportFactory.createTransport('sftp', 'repo', credentials) >> transport()
 
         and:
         repository.name = 'repo'
@@ -81,7 +121,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def file = new File('repo')
         def uri = file.toURI()
         _ * this.resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createFileTransport('repo') >> transport()
+        transportFactory.createTransport('file', 'repo', credentials) >> transport()
 
         and:
         repository.name = 'repo'
@@ -109,7 +149,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createHttpTransport('repo', credentials) >> transport()
+        transportFactory.createTransport('http', 'repo', credentials) >> transport()
 
         and:
         repository.name = 'repo'

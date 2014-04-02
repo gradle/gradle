@@ -97,20 +97,21 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver = new MavenResolver(getName(), rootUri, getTransport(rootUri.getScheme()),
-                locallyAvailableResourceFinder, resolverStrategy);
+        MavenResolver resolver = createResolver(rootUri);
+
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl, null);
         }
         return resolver;
     }
 
+    private MavenResolver createResolver(URI rootUri) {
+        RepositoryTransport transport = getTransport(rootUri.getScheme());
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, resolverStrategy);
+    }
+
     protected RepositoryTransport getTransport(String scheme) {
-        if (scheme.equalsIgnoreCase("file")) {
-            return transportFactory.createFileTransport(getName());
-        } else {
-            return transportFactory.createHttpTransport(getName(), getCredentials());
-        }
+        return transportFactory.createTransport(scheme, getName(), getCredentials());
     }
 
     protected LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> getLocallyAvailableResourceFinder() {
