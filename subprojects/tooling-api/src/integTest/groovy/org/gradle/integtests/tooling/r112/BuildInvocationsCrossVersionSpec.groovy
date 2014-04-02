@@ -107,7 +107,7 @@ project(':b:c') {
         BuildInvocations rootProjectSelectors = withConnection { connection ->
             connection.action(new FetchTaskSelectorsBuildAction('test')).run() }
         TaskSelector rootSelector = rootProjectSelectors.taskSelectors.find { it -> it.name == 't1'}
-        result = withBuild { BuildLauncher it ->
+        withBuild { BuildLauncher it ->
             it.forLaunchables(selector, rootSelector)
         }
 
