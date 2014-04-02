@@ -46,9 +46,9 @@ class CacheLayoutTest extends Specification {
         CacheLayout cacheLayout = CacheLayout.META_DATA
 
         then:
-        cacheLayout.key == 'metadata-2.7'
-        cacheLayout.version == VersionNumber.parse("2.7.0")
-        cacheLayout.formattedVersion == '2.7'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.7')
+        cacheLayout.key == 'metadata-2.8'
+        cacheLayout.version == VersionNumber.parse("2.8.0")
+        cacheLayout.formattedVersion == '2.8'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.8')
     }
 }
