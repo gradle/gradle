@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.internal.tooling.gradle
+package org.gradle.tooling.internal.impl
 
-import org.gradle.tooling.internal.impl.DefaultGradleProject
 import spock.lang.Specification
 
 class DefaultGradleProjectTest extends Specification {
