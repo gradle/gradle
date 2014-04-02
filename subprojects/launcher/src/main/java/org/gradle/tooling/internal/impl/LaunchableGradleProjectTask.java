@@ -21,7 +21,6 @@ import org.gradle.tooling.internal.gradle.PartialGradleProject;
 public class LaunchableGradleProjectTask extends LaunchableGradleTask {
     private PartialGradleProject project;
 
-
     public PartialGradleProject getProject() {
         return project;
     }

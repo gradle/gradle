@@ -16,16 +16,15 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultGradleTask implements Serializable, TaskListingLaunchable {
+public class DefaultGradleTask implements TaskListingLaunchable {
 
-    String path;
-    String name;
-    String description;
-    String displayName;
+    private String path;
+    private String name;
+    private String description;
+    private String displayName;
 
     public String getPath() {
         return path;

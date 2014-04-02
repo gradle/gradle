@@ -19,13 +19,12 @@ package org.gradle.tooling.internal.gradle;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.model.TaskSelector;
 
-import java.io.Serializable;
 import java.util.Set;
 
 /**
  * Data used for {@link org.gradle.tooling.model.TaskSelector} when created in consumer.
  */
-public class BasicGradleTaskSelector implements TaskSelector, TaskListingLaunchable, Serializable {
+public class BasicGradleTaskSelector implements TaskSelector, TaskListingLaunchable {
     private String name;
     private String displayName;
     private String description;
