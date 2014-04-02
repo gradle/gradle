@@ -16,8 +16,10 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import java.util.Collections;
-import java.util.Set;
+import com.google.common.collect.Sets;
+import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
+
+import java.util.SortedSet;
 
 public class DefaultGradleTask implements TaskListingLaunchable {
 
@@ -62,8 +64,11 @@ public class DefaultGradleTask implements TaskListingLaunchable {
         return this;
     }
 
-    public Set<String> getTaskNames() {
-        return Collections.singleton(getPath());
+    public SortedSet<String> getTaskNames() {
+        // TODO use comparator
+        SortedSet result = Sets.newTreeSet(new TaskNameComparator());
+        result.add(getPath());
+        return result;
     }
 
     @Override

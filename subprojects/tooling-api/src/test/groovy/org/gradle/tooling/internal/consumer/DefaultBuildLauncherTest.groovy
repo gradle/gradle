@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import com.google.common.collect.Sets
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.GradleConnectionException
@@ -104,7 +105,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     def "can configure task selector build operation for consumer generated selectors"() {
         TaskSelector ts = Mock(BasicGradleTaskSelector)
         _ * ts.name >> 'myTask'
-        _ * ts.taskNames >> [':a:myTask', ':b:myTask']
+        _ * ts.taskNames >> Sets.newTreeSet([':a:myTask', ':b:myTask'])
         ResultHandlerVersion1<Void> adaptedHandler
         ResultHandler<Void> handler = Mock()
         OutputStream stdout = Stub()
@@ -125,7 +126,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
         }
         1 * connection.run(Void, _) >> {args ->
             ConsumerOperationParameters params = args[1]
-            assert params.tasks as Set == [':a:myTask', ':b:myTask'] as Set
+            assert params.tasks == [':a:myTask', ':b:myTask']
             assert params.standardOutput == stdout
             assert params.standardError == stderr
             return null
@@ -174,13 +175,13 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
     def "preserves task selectors order in build operation"() {
         TaskSelector ts1 = Mock(BasicGradleTaskSelector)
         _ * ts1.name >> 'firstTask'
-        _ * ts1.taskNames >> [':firstTask']
+        _ * ts1.taskNames >> Sets.newTreeSet([':firstTask'])
         TaskSelector ts2 = Mock(BasicGradleTaskSelector)
         _ * ts2.name >> 'secondTask'
-        _ * ts2.taskNames >> [':secondTask']
+        _ * ts2.taskNames >> Sets.newTreeSet([':secondTask'])
         TaskSelector ts3 = Mock(BasicGradleTaskSelector)
         _ * ts3.name >> 'thirdTask'
-        _ * ts3.taskNames >> [':thirdTask']
+        _ * ts3.taskNames >> Sets.newTreeSet([':thirdTask'])
         ResultHandlerVersion1<Void> adaptedHandler
         ResultHandler<Void> handler = Mock()
         OutputStream stdout = Stub()

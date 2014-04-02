@@ -32,6 +32,7 @@ import org.gradle.tooling.model.Task;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
 
 public class BuildInvocationsConverter {
     public DefaultBuildInvocations<Task> convert(GradleProject project, ProtocolToModelAdapter adapter) {
@@ -60,9 +61,11 @@ public class BuildInvocationsConverter {
         }
         List<BasicGradleTaskSelector> selectors = Lists.newArrayList();
         for (String selectorName : aggregatedTasks.keySet()) {
+            SortedSet<String> selectorTasks = Sets.newTreeSet(new TaskNameComparator());
+            selectorTasks.addAll(aggregatedTasks.get(selectorName));
             selectors.add(new BasicGradleTaskSelector().
                     setName(selectorName).
-                    setTaskNames(Sets.newHashSet(aggregatedTasks.get(selectorName))).
+                    setTaskNames(selectorTasks).
                     setDescription(project.getParent() != null
                             ? String.format("%s:%s task selector", project.getPath(), selectorName)
                             : String.format("%s task selector", selectorName)).

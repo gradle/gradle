@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.gradle;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.model.TaskSelector;
 
-import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * Data used for {@link org.gradle.tooling.model.TaskSelector} when created in consumer.
@@ -28,7 +28,7 @@ public class BasicGradleTaskSelector implements TaskSelector, TaskListingLauncha
     private String name;
     private String displayName;
     private String description;
-    private Set<String> tasks;
+    private SortedSet<String> tasks;
 
     public String getName() {
         return name;
@@ -58,11 +58,11 @@ public class BasicGradleTaskSelector implements TaskSelector, TaskListingLauncha
         return this;
     }
 
-    public Set<String> getTaskNames() {
+    public SortedSet<String> getTaskNames() {
         return tasks;
     }
 
-    public BasicGradleTaskSelector setTaskNames(Set<String> tasks) {
+    public BasicGradleTaskSelector setTaskNames(SortedSet<String> tasks) {
         this.tasks = tasks;
         return this;
     }

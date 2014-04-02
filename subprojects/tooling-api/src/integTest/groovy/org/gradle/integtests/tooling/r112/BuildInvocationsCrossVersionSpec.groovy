@@ -131,7 +131,7 @@ project(':b:c') {
         }
 
         then:
-        result.result.executedTasks as Set == [':t1', ':b:c:t1'] as Set
+        result.result.assertTasksExecuted(':t1', ':b:c:t1')
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")
@@ -146,31 +146,15 @@ project(':b:c') {
         def result = withBuild { BuildLauncher it ->
             it.forLaunchables(selectorT1, selectorT2)
         }
-        def lines = result.result.output.readLines()
-        def t1 = lines.indexOf(':t1')
-        def bt2 = lines.indexOf(':b:t2')
-        def bct1 = lines.indexOf(':b:c:t1')
-        def bct2 = lines.indexOf(':b:c:t2')
         then:
-        t1 < bt2
-        bct1 < bt2
-        t1 < bct2
-        bct1 < bct2
+        result.result.assertTasksExecuted(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
 
         when:
         result = withBuild { BuildLauncher it ->
             it.forLaunchables(selectorT2, selectorT1)
         }
-        lines = result.result.output.readLines()
-        t1 = lines.indexOf(':t1')
-        bt2 = lines.indexOf(':b:t2')
-        bct1 = lines.indexOf(':b:c:t1')
-        bct2 = lines.indexOf(':b:c:t2')
         then:
-        t1 > bt2
-        bct1 > bt2
-        t1 > bct2
-        bct1 > bct2
+        result.result.assertTasksExecuted(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
     }
 
     @TargetGradleVersion(">=1.0-milestone-5")
@@ -266,27 +250,15 @@ project(':b:c') {
         def result = withBuild { BuildLauncher it ->
             it.forLaunchables(taskT1, taskBT2, taskBCT1)
         }
-        def lines = result.result.output.readLines()
-        def t1 = lines.indexOf(':t1')
-        def bt2 = lines.indexOf(':b:t2')
-        def bct1 = lines.indexOf(':b:c:t1')
         then:
         result.result.assertTasksExecuted(':t1', ':b:t2', ':b:c:t1')
-        t1 < bt2
-        bt2 < bct1
 
         when:
         result = withBuild { BuildLauncher it ->
             it.forLaunchables(taskBCT1, taskBT2, taskT1)
         }
-        lines = result.result.output.readLines()
-        t1 = lines.indexOf(':t1')
-        bt2 = lines.indexOf(':b:t2')
-        bct1 = lines.indexOf(':b:c:t1')
         then:
         result.result.assertTasksExecuted(':b:c:t1', ':b:t2', ':t1')
-        bct1 < bt2
-        bt2 < t1
     }
 
     @TargetGradleVersion(">=1.12")
