@@ -36,28 +36,26 @@ import java.util.SortedSet;
 
 public class BuildInvocationsConverter {
     public DefaultBuildInvocations<Task> convert(GradleProject project, ProtocolToModelAdapter adapter) {
-        List<GradleTask> tasks = Lists.newArrayList();
         GradleProject rootProject = project;
         while (rootProject.getParent() != null) {
             rootProject = rootProject.getParent();
         }
-        List<BasicGradleTaskSelector> selectors = buildRecursively(rootProject, tasks);
+        List<BasicGradleTaskSelector> selectors = buildRecursively(rootProject);
         return new DefaultBuildInvocations<Task>()
                 .setSelectors(selectors)
                 .setTasks(convertTasks(rootProject.getTasks().iterator(), adapter));
     }
 
-    private List<BasicGradleTaskSelector> buildRecursively(GradleProject project, List<GradleTask> tasks) {
+    private List<BasicGradleTaskSelector> buildRecursively(GradleProject project) {
         Multimap<String, String> aggregatedTasks = ArrayListMultimap.create();
         for (GradleProject childProject : project.getChildren()) {
-            List<BasicGradleTaskSelector> childSelectors = buildRecursively(childProject, tasks);
+            List<BasicGradleTaskSelector> childSelectors = buildRecursively(childProject);
             for (BasicGradleTaskSelector childSelector : childSelectors) {
                 aggregatedTasks.putAll(childSelector.getName(), childSelector.getTaskNames());
             }
         }
         for (GradleTask task : project.getTasks()) {
             aggregatedTasks.put(task.getName(), task.getPath());
-            tasks.add(task);
         }
         List<BasicGradleTaskSelector> selectors = Lists.newArrayList();
         for (String selectorName : aggregatedTasks.keySet()) {
