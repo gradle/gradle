@@ -47,6 +47,6 @@ class JarSnapshot implements Serializable {
                 allDependents.addAll(dependents.getDependentClasses());
             }
         }
-        return ClassDependents.dependentsSet(allDependents);
+        return new ClassDependents(allDependents);
     }
 }

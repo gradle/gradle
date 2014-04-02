@@ -55,15 +55,6 @@ public class ClassDependents implements Serializable, DependentsSet {
         return this;
     }
 
-    //TODO SF review the necessity of those guys.
-    public static ClassDependents dependencyToAll() {
-        return new ClassDependents(true);
-    }
-
-    public static ClassDependents emptyDependents() {
-        return dependentsSet(Collections.<String>emptyList());
-    }
-
     public static ClassDependents dependentsSet(Collection<String> dependentClasses) {
         return new ClassDependents(dependentClasses);
     }
