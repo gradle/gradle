@@ -87,10 +87,8 @@ class IdeaPluginTest extends Specification {
 
         // def configurations = project.configurations
         project.idea.module.scopes == [
-                PROVIDED_TEST: [plus: [], minus: []],
                 PROVIDED: [plus: [], minus: []],
                 COMPILE: [plus: [], minus: []],
-                RUNTIME_TEST: [plus: [], minus: []],
                 RUNTIME: [plus: [], minus: []],
                 TEST: [plus: [], minus: []],
         ]

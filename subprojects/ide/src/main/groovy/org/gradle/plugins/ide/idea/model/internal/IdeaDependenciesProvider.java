@@ -156,9 +156,13 @@ public class IdeaDependenciesProvider {
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             Map<String, Collection<Configuration>> plusMinusConfigurations = ideaModule.getScopes().get(scope.name());
             if (plusMinusConfigurations == null) {
-                continue;
+                if (shouldProcessScope(scope, ideaModule.getScopes())) {
+                    plusMinusConfigurations = Collections.emptyMap();
+                } else {
+                    continue;
+                }
             }
-            Collection<Configuration> minusConfigurations = plusMinusConfigurations != null ? plusMinusConfigurations.get("minus") : null;
+            Collection<Configuration> minusConfigurations = plusMinusConfigurations.get("minus");
             Collection<String> minusConfigurationNames = minusConfigurations != null
                     ? Lists.newArrayList(Iterables.transform(
                             minusConfigurations,
@@ -179,7 +183,7 @@ public class IdeaDependenciesProvider {
                             scopeToDependency(dependencyKey))));
                 }
             }
-            if (plusMinusConfigurations != null && plusMinusConfigurations.containsKey("plus")) {
+            if (plusMinusConfigurations.containsKey("plus")) {
                 for (Configuration plusConfiguration : plusMinusConfigurations.get("plus")) {
                     Collection<IdeDependencyKey<?, Dependency>> matchingDependencies =
                             extractDependencies(dependencyToConfigurations, Collections.singletonList(plusConfiguration.getName()), minusConfigurationNames);
@@ -192,6 +196,16 @@ public class IdeaDependenciesProvider {
             }
         }
         return dependencies;
+    }
+
+    private boolean shouldProcessScope(GeneratedIdeaScope scope, Map<String, Map<String, Collection<Configuration>>> scopes) {
+        // composite scopes are not present in IdeaModule.scopes - check their mapped scope names
+        for (String scopeName : scope.scopes) {
+            if (!scopes.containsKey(scopeName)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static Function<String, Dependency> scopeToDependency(final IdeDependencyKey<?, Dependency> dependencyKey) {
