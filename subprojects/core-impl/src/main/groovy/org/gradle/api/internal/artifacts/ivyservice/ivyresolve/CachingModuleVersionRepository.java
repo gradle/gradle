@@ -133,9 +133,9 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         lookupModuleInCache(delegate, dependency, moduleComponentIdentifier, result);
     }
 
-    public void getComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         DependencyMetaData forced = dependency.withChanging();
-        delegate.getComponentMetaData(forced, moduleComponentIdentifier, result);
+        delegate.resolveComponentMetaData(forced, moduleComponentIdentifier, result);
         switch (result.getState()) {
             case Missing:
                 moduleMetaDataCache.cacheMissing(delegate, moduleComponentIdentifier);

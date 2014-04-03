@@ -49,10 +49,10 @@ public class CacheLockingModuleVersionRepository implements LocalArtifactsModule
         });
     }
 
-    public void getComponentMetaData(final DependencyMetaData dependency, final ModuleComponentIdentifier moduleComponentIdentifier, final BuildableModuleVersionMetaDataResolveResult result) {
+    public void resolveComponentMetaData(final DependencyMetaData dependency, final ModuleComponentIdentifier moduleComponentIdentifier, final BuildableModuleVersionMetaDataResolveResult result) {
         cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, getId()), new Runnable() {
             public void run() {
-                repository.getComponentMetaData(dependency, moduleComponentIdentifier, result);
+                repository.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
             }
         });
     }

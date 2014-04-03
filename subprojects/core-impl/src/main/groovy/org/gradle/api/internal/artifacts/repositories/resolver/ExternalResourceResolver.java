@@ -160,7 +160,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
     }
 
-    public void getComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         resolveStaticDependency(dependency, moduleComponentIdentifier, result, createArtifactResolver());
     }
 

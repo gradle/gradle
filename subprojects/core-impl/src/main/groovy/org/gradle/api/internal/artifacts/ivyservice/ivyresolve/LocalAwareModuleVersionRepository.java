@@ -40,5 +40,5 @@ public interface LocalAwareModuleVersionRepository extends ModuleVersionReposito
      * Gets the metadata for a module component, using whichever resources are appropriate.
      * Always called after {@link #localGetComponentMetaData(org.gradle.api.internal.artifacts.metadata.DependencyMetaData, org.gradle.api.artifacts.component.ModuleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult)}.
      */
-    void getComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
+    void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
 }

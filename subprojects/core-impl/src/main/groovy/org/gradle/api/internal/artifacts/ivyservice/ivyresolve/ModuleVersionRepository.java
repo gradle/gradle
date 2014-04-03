@@ -38,5 +38,5 @@ public interface ModuleVersionRepository extends ArtifactResolver {
     /**
      * Gets the metadata for a module component.
      */
-    void getComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
+    void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
 }

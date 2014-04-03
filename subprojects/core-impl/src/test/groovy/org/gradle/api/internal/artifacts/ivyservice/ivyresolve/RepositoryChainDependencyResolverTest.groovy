@@ -102,7 +102,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * repo.localGetComponentMetaData(dependency, moduleComponentId, _)
-        1 * repo.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -132,7 +132,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         1 * repo.localGetComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -183,7 +183,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         1 * repo.localGetComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
         1 * result.notFound(dependencyId)
@@ -357,7 +357,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             result.probablyMissing()
         }
         1 * repo2.localGetComponentMetaData(dependency, moduleComponentId, _)
-        1 * repo2.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -395,10 +395,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         1 * repo2.localGetComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo1.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo1.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
-        1 * repo2.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -435,7 +435,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         1 * repo2.localGetComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.probablyMissing()
         }
-        1 * repo2.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -471,10 +471,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
             result.probablyMissing()
         }
         1 * repo2.localGetComponentMetaData(dependency, moduleComponentId, _)
-        1 * repo2.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
-        1 * repo1.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo1.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -541,11 +541,11 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * repo1.localGetComponentMetaData(dependency, moduleComponentId, _)
-        1 * repo1.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo1.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             throw new RuntimeException("broken")
         }
         1 * repo2.localGetComponentMetaData(dependency, moduleComponentId, _)
-        1 * repo2.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.resolved(metaData, moduleSource)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -582,7 +582,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
             throw failure
         }
         1 * repo2.localGetComponentMetaData(dependency, moduleComponentId, _)
-        1 * repo2.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
         1 * result.failed({ it.cause == failure })
@@ -608,11 +608,11 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * repo1.localGetComponentMetaData(dependency, moduleComponentId, _)
-        1 * repo1.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo1.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             throw failure
         }
         1 * repo2.localGetComponentMetaData(dependency, moduleComponentId, _)
-        1 * repo2.getComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * repo2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
         1 * result.failed({ it.cause == failure })

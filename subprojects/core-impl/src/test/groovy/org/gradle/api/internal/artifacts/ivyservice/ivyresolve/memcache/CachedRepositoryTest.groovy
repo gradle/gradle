@@ -113,18 +113,18 @@ class CachedRepositoryTest extends Specification {
 
     def "retrieves and caches dependencies"() {
         when:
-        repo.getComponentMetaData(dep, lib, metaDataResult)
+        repo.resolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
         1 * cache.supplyMetaData(lib, metaDataResult) >> false
-        1 * delegate.getComponentMetaData(dep, lib, metaDataResult)
+        1 * delegate.resolveComponentMetaData(dep, lib, metaDataResult)
         1 * cache.newDependencyResult(lib, metaDataResult)
         0 * _
     }
 
     def "uses dependencies from cache"() {
         when:
-        repo.getComponentMetaData(dep, lib, metaDataResult)
+        repo.resolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
         1 * cache.supplyMetaData(lib, metaDataResult) >> true

@@ -42,13 +42,13 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
     }
 
     public void localGetComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-        delegate.getComponentMetaData(dependency, moduleComponentIdentifier, result);
+        delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
         if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
             processor.process(result.getMetaData());
         }
     }
 
-    public void getComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         result.missing();
     }
 

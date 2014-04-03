@@ -55,8 +55,8 @@ public class IvyDynamicResolveModuleVersionRepository implements LocalAwareModul
         }
     }
 
-    public void getComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-        repository.getComponentMetaData(dependency, moduleComponentIdentifier, result);
+    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        repository.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
         if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
             transformDependencies(result);
         }
