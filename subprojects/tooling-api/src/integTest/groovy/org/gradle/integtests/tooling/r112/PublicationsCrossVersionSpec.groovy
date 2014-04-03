@@ -25,6 +25,16 @@ import org.gradle.tooling.model.gradle.ProjectPublications
 @ToolingApiVersion('>=1.12')
 @TargetGradleVersion('>=1.12')
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
+    def "empty project"() {
+        when:
+        ProjectPublications publications = withConnection { connection ->
+            connection.getModel(ProjectPublications)
+        }
+
+        then:
+        publications.publications.empty
+    }
+
     def "project without any configured publications"() {
         buildFile << "apply plugin: 'java'"
 
@@ -48,7 +58,7 @@ group = "test.group"
 
 uploadArchives {
     repositories {
-        ivy { url uri("\$buildDir/ivy-repo") }
+        ivy { url uri("ivy-repo") }
     }
 }
 """
@@ -79,7 +89,7 @@ group = "test.group"
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: uri("\$buildDir/maven-repo"))
+            repository(url: uri("maven-repo"))
         }
     }
 }
@@ -111,7 +121,7 @@ group = "test.group"
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: uri("\$buildDir/maven-repo"))
+            repository(url: uri("maven-repo"))
             pom.groupId = "test.groupId"
             pom.artifactId = "test.artifactId"
             pom.version = "1.1"
@@ -147,8 +157,8 @@ group = "test.group"
 
 publishing {
     repositories {
-        ivy { url uri("\$buildDir/ivy-repo") }
-        maven { url uri("\$buildDir/maven-repo") }
+        ivy { url uri("ivy-repo") }
+        maven { url uri("maven-repo") }
     }
     publications {
         mainIvy(IvyPublication) {
