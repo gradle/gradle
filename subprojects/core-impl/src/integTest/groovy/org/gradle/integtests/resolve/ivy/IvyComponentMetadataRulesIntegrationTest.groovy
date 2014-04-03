@@ -39,4 +39,27 @@ repositories {
     String getDefaultStatus() {
         "integration"
     }
+
+    def "can have IvyModuleDescriptor injected into rule"() {
+        repo.module('org.test', 'projectA', '1.0').withExtraAttributes(foo: "fooValue", bar: "barValue").publish().allowAll()
+
+        buildFile <<
+"""
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details, IvyModuleDescriptor descriptor ->
+            ruleInvoked = true
+            assert descriptor.extraAttributes == [foo: "fooValue", bar: "barValue"]
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        expect:
+        succeeds 'resolve'
+    }
 }

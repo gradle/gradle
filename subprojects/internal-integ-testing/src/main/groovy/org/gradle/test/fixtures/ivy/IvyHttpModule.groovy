@@ -105,6 +105,11 @@ class IvyHttpModule implements IvyModule, HttpModule {
         return this
     }
 
+    IvyHttpModule withExtraAttributes(Map extraAttributes) {
+        backingModule.withExtraAttributes(extraAttributes)
+        return this
+    }
+
     TestFile getIvyFile() {
         return backingModule.ivyFile
     }

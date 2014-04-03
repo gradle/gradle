@@ -15,19 +15,28 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
+import com.google.common.collect.Lists;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.api.artifacts.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ActionBroadcast;
 
+import java.util.List;
+import java.util.Map;
+
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ModuleMetadataProcessor {
     private final Instantiator instantiator;
     private final ActionBroadcast<ComponentMetadataDetails> moduleRules = new ActionBroadcast<ComponentMetadataDetails>();
+    private final List<Closure<?>> moduleClosures = Lists.newArrayList();
 
     public DefaultComponentMetadataHandler(Instantiator instantiator) {
         this.instantiator = instantiator;
@@ -37,11 +46,35 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         moduleRules.add(rule);
     }
 
+    public void eachComponent(Closure<?> closure) {
+        moduleClosures.add(closure);
+    }
+
     public void process(ModuleVersionMetaData metadata) {
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
         moduleRules.execute(details);
+        executeModuleClosures(metadata, details);
         if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
             throw new ModuleVersionResolveException(metadata.getId(), "Unexpected status '" + metadata.getStatus() + "' specified for %s. Expected one of: " +  metadata.getStatusScheme());
+        }
+    }
+
+    // TODO: only invoke callbacks with IvyModuleDescriptor parameter for Ivy dependencies
+    private void executeModuleClosures(ModuleVersionMetaData metadata, ComponentMetadataDetails details) {
+        for (Closure<?> closure : moduleClosures) {
+            List<Object> args = Lists.newArrayList();
+            for (Class<?> argType : closure.getParameterTypes()) {
+                if (argType == ComponentMetadataDetails.class || argType == Object.class) {
+                    args.add(details);
+                } else if (argType == IvyModuleDescriptor.class) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, String> extraAttributes = metadata.getDescriptor().getExtraAttributes(); // extra attributes or extra info?
+                    args.add(new DefaultIvyModuleDescriptor(extraAttributes));
+                } else {
+                    throw new GradleException(String.format("Unsupported parameter type for component metadata rule: %s", argType.getName()));
+                }
+            }
+            closure.call(args.toArray());
         }
     }
 }

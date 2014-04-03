@@ -32,6 +32,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final Map<String, Map> configurations = [:]
     final List artifacts = []
     final Map extendsFrom = [:]
+    final Map extraAttributes = [:]
     String status = "integration"
     boolean noMetaData
     int publishCount = 1
@@ -110,12 +111,17 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     IvyFileModule withStatus(String status) {
-        this.status = status;
+        this.status = status
         return this
     }
 
     IvyFileModule withNoMetaData() {
-        noMetaData = true;
+        noMetaData = true
+        return this
+    }
+
+    IvyFileModule withExtraAttributes(Map extraAttributes) {
+        this.extraAttributes.putAll(extraAttributes)
         return this
     }
 
@@ -165,14 +171,20 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             transformer.transform(writer, new Action<Writer>() {
                 void execute(Writer ivyFileWriter) {
                     ivyFileWriter << """<?xml version="1.0" encoding="UTF-8"?>
-<ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven">
+<ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven" ${ extraAttributes ? 'xmlns:e="http://ant.apache.org/ivy/extra"' : ''}>
     <!-- ${getArtifactContent()} -->
 	<info organisation="${organisation}"
 		module="${module}"
 		revision="${revision}"
 		status="${status}"
         publication="${getPublicationDate()}"
-	>"""
+"""
+        extraAttributes.each { key, val ->
+            ivyFileWriter << """\
+        e:$key="$val"
+"""
+        }
+        ivyFileWriter << ">"
         if (extendsFrom) {
             ivyFileWriter << "<extends organisation='${extendsFrom.organisation}' module='${extendsFrom.module}' revision='${extendsFrom.revision}'"
             if (extendsFrom.location) {
