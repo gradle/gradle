@@ -76,7 +76,7 @@ public class RepositoryTransportFactory {
 
     public RepositoryTransport createTransport(Set<String> schemes, String name, PasswordCredentials credentials) {
         if (!WrapUtil.toSet("http", "https", "file", "sftp").containsAll(schemes)) {
-            throw new InvalidUserDataException("You may only specify 'file', 'http', 'https' and 'sftp' urls for a repository.");
+            throw new InvalidUserDataException("You may only specify 'file', 'http', 'https' and 'sftp' URLs for a repository.");
         }
         if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
             return createHttpTransport(name, credentials);
@@ -87,7 +87,7 @@ public class RepositoryTransportFactory {
         if (WrapUtil.toSet("sftp").containsAll(schemes)) {
             return createSftpTransport(name, credentials);
         }
-        throw new InvalidUserDataException("You cannot mix different url schemes for a single repository. Please declare separate repositories.");
+        throw new InvalidUserDataException("You cannot mix different URL schemes for a single repository. Please declare separate repositories.");
     }
 
     private void checkSftpJavaVersionCompatibility() {

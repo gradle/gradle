@@ -32,7 +32,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "You may only specify 'file', 'http', 'https' and 'sftp' urls for a repository."
+        e.message == "You may only specify 'file', 'http', 'https' and 'sftp' URLs for a repository."
     }
 
     def "cannot creates a transport for mixed url scheme"() {
@@ -41,7 +41,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "You cannot mix different url schemes for a single repository. Please declare separate repositories."
+        e.message == "You cannot mix different URL schemes for a single repository. Please declare separate repositories."
     }
 
     @Requires(TestPrecondition.JDK5)
