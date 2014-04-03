@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.artifacts.resolution.MavenPomArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
@@ -78,6 +80,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         }
 
         resolveStaticDependency(dependency, moduleComponentIdentifier, result, createArtifactResolver());
+    }
+
+    @Override
+    protected boolean isMetaDataArtifact(Class<? extends Artifact> artifactType) {
+        return artifactType == MavenPomArtifact.class;
     }
 
     private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, ModuleComponentIdentifier module, BuildableModuleVersionMetaDataResolveResult result, TimestampedModuleSource snapshotSource) {

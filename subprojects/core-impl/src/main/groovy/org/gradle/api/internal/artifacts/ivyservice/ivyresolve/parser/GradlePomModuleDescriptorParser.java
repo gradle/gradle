@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.Maven
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.resolution.MavenPomArtifact;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -207,7 +208,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      * @throws SAXException
      */
     private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleVersionIdentifier parentId) throws IOException, SAXException {
-        LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(parentId);
+        LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(parentId, MavenPomArtifact.class);
         PomReader pomReader = new PomReader(localResource);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(localResource, parseContext, pomReader);
         doParsePom(parseContext, mdBuilder, pomReader);

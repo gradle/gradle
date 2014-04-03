@@ -40,7 +40,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
-import org.gradle.api.internal.artifacts.result.jvm.ComponentMetaDataArtifact;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
@@ -280,14 +279,18 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
                 resolveConfigurationArtifacts(component, configuration, result, localOnly);
             } else {
                 Class<? extends Artifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
-                if (artifactType == ComponentMetaDataArtifact.class) {
-                    resolveMetaDataArtifacts(component, result, localOnly);
-                } else if (artifactType == JvmLibraryJavadocArtifact.class) {
+
+                if (artifactType == JvmLibraryJavadocArtifact.class) {
                     resolveJavadocArtifacts(component, result, localOnly);
                 } else if (artifactType == JvmLibrarySourcesArtifact.class) {
                     resolveSourceArtifacts(component, result, localOnly);
-                } else {
-                    throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
+                } else if (isMetaDataArtifact(artifactType)) {
+                    resolveMetaDataArtifacts(component, result);
+                }
+
+                if (!localOnly && !result.hasResult()) {
+                    result.failed(new ArtifactResolveException(component.getComponentId(),
+                            String.format("Cannot locate artifacts of type %s for '%s' in repository '%s'", artifactType.getSimpleName(), component, name)));
                 }
             }
         } catch (Exception e) {
@@ -299,7 +302,9 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         result.resolved(configuration.getArtifacts());
     }
 
-    protected void resolveMetaDataArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result, boolean localOnly) {
+    protected abstract boolean isMetaDataArtifact(Class<? extends Artifact> artifactType);
+
+    protected void resolveMetaDataArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
         ModuleVersionArtifactMetaData artifact = getMetaDataArtifactFor(module.getComponentId());
         if (artifact != null) {
             result.resolved(ImmutableSet.of(artifact));

@@ -161,6 +161,43 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('child-1.0.jar')
     }
 
+    def "fails with reasonable message if parent module is an ivy module"() {
+        given:
+        server.start()
+        def child = mavenHttpRepo.module("org", "child")
+        child.parent("org", "parent", "1.0")
+        child.publish()
+
+        def missingChild = ivyHttpRepo.module("org", "child")
+        def parent = ivyHttpRepo.module("org", "parent").publish()
+
+        buildFile << """
+repositories {
+    ivy { url '${ivyHttpRepo.uri}' }
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations { compile }
+dependencies { compile 'org:child:1.0' }
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        missingChild.ivy.expectGetMissing()
+        missingChild.jar.expectHeadMissing()
+        child.pom.expectGet()
+        parent.ivy.expectGet()
+
+        and:
+        fails 'retrieve'
+
+        then:
+        failure.assertHasCause "Could not resolve org:child:1.0."
+        failure.assertHasCause "Could not determine artifacts for component 'org:parent:1.0': Cannot locate artifacts of type MavenPomArtifact for 'org:parent:1.0' in repository 'ivy'"
+    }
+
     def "uses cached parent pom located in a different repository"() {
         given:
         server.start()
