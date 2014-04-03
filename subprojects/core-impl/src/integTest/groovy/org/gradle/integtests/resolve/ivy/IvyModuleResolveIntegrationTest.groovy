@@ -227,6 +227,7 @@ task retrieve(type: Sync) {
         def moduleWithNoMetaData = repo1.module("org.gradle", "test", "1.45").withNoMetaData().publish()
         def repo2 = ivyHttpRepo("repo2")
         def moduleWithMetaData = repo2.module("org.gradle", "test", "1.45").publishWithChangedContent()
+        assert moduleWithNoMetaData.jarFile.text != moduleWithMetaData.jarFile.text
         server.start()
 
         and:
@@ -249,11 +250,11 @@ task retrieve(type: Sync) {
         when:
         moduleWithNoMetaData.ivy.expectGetMissing()
         moduleWithNoMetaData.jar.expectHead()
-        moduleWithMetaData.allowAll()
+        moduleWithMetaData.ivy.expectGet()
+        moduleWithMetaData.jar.expectGet()
         succeeds "retrieve"
 
         then:
-        moduleWithNoMetaData.jarFile.text != moduleWithMetaData.jarFile.text
         file("libs").assertHasDescendants("test-1.45.jar")
         file("libs/test-1.45.jar").assertIsCopyOf(moduleWithMetaData.jarFile)
     }
