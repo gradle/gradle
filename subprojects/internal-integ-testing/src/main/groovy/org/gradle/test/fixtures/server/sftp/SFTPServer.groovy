@@ -40,8 +40,8 @@ import org.junit.rules.ExternalResource
 import java.security.PublicKey
 
 class SFTPServer extends ExternalResource {
-    final String hostAddress
-    int port
+    private final String hostAddress
+    private int port
 
     private final TestDirectoryProvider testDirectoryProvider
     private TestFile baseDir
@@ -53,8 +53,6 @@ class SFTPServer extends ExternalResource {
 
     public SFTPServer(TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider;
-        def portFinder = AvailablePortFinder.createPrivate()
-        port = portFinder.nextAvailable
         this.hostAddress = "127.0.0.1"
     }
 
@@ -62,6 +60,8 @@ class SFTPServer extends ExternalResource {
         baseDir = testDirectoryProvider.getTestDirectory().createDir("sshd/files")
         configDir = testDirectoryProvider.getTestDirectory().createDir("sshd/config")
 
+        def portFinder = AvailablePortFinder.createPrivate()
+        port = portFinder.nextAvailable
         sshd = setupConfiguredTestSshd();
         sshd.start();
     }
