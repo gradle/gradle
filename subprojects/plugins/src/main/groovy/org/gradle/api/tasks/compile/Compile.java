@@ -53,7 +53,7 @@ import java.io.File;
 @Deprecated
 public class Compile extends AbstractCompile {
 
-    private Compiler<JavaCompileSpec> cleaningCompiler;
+    private CleaningJavaCompiler cleaningCompiler;
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
 
@@ -89,7 +89,7 @@ public class Compile extends AbstractCompile {
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //can be replaced with converter that parses input source class
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, dependencyInfoSerializer, (FileOperations) getProject(), jarSnapshotFeeder);
         IncrementalCompilationSupport incrementalSupport = new IncrementalCompilationSupport(jarSnapshotFeeder, dependencyInfoSerializer, (FileOperations) getProject(),
-                extractor, (CleaningJavaCompiler) cleaningCompiler, getPath(), recompilationSpecProvider);
+                extractor, cleaningCompiler, getPath(), recompilationSpecProvider);
         Compiler<JavaCompileSpec> compiler = incrementalSupport.prepareCompiler(inputs, sourceDirs);
         performCompilation(compiler);
     }
