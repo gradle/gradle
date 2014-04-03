@@ -39,9 +39,9 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject       | maxExecutionTimeRegression
-        "small"           | millis(700)
-        "multi"           | millis(1500)
-        "lotDependencies" | millis(3000)
+        "small"           | millis(800)
+        "multi"           | millis(500)
+        "lotDependencies" | millis(500)
     }
 
     @Unroll("Project '#testProject' idea")
@@ -61,8 +61,8 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject       | maxExecutionTimeRegression
-        "small"           | millis(750)
-        "multi"           | millis(1500)
-        "lotDependencies" | millis(3000)
+        "small"           | millis(800)
+        "multi"           | millis(500)
+        "lotDependencies" | millis(500)
     }
 }
