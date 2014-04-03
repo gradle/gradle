@@ -31,7 +31,7 @@ import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
-import org.gradle.api.internal.artifacts.resolution.ComponentMetaDataArtifact;
+import org.gradle.api.internal.artifacts.resolution.IvyDescriptorArtifact;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,7 +166,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
     }
 
     private Set<ModuleVersionArtifactMetaData> doGetCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
-        if (artifactType == ComponentMetaDataArtifact.class) {
+        if (artifactType == IvyDescriptorArtifact.class) {
             Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
             return ImmutableSet.of(module.artifact(metadataArtifact));
         }
@@ -179,7 +179,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
             return createArtifactMetaData(module, "source", "sources");
         }
 
-        throw new IllegalArgumentException(String.format("Don't know how to get candidate artifacts of type %s", artifactType.getName()));
+        throw new IllegalArgumentException(String.format("Cannot find artifacts of type %s in %s", artifactType.getName(), module));
     }
 
     private Set<ModuleVersionArtifactMetaData> createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {

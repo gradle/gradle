@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.resolution.IvyDescriptorArtifact;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.UrlExternalResource;
@@ -745,7 +746,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation, String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
             ModuleVersionIdentifier importedId = new DefaultModuleVersionIdentifier(parentOrganisation, parentModule, parentRevision);
-            LocallyAvailableExternalResource externalResource = parseContext.getMetaDataArtifact(importedId);
+            LocallyAvailableExternalResource externalResource = parseContext.getMetaDataArtifact(importedId, IvyDescriptorArtifact.class);
 
             return parseModuleDescriptor(externalResource, externalResource.getLocalResource().getFile().toURI().toURL());
         }

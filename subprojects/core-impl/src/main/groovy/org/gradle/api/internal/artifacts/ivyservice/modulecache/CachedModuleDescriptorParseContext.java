@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.resolution.SoftwareArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -31,7 +32,7 @@ class CachedModuleDescriptorParseContext implements DescriptorParseContext {
         throw new UnsupportedOperationException();
     }
 
-    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier) {
+    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, Class<? extends SoftwareArtifact> artifactType) {
         throw new UnsupportedOperationException();
     }
 }
