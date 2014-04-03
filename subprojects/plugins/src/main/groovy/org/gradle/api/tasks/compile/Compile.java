@@ -129,12 +129,4 @@ public class Compile extends AbstractCompile {
     public CompileOptions getOptions() {
         return compileOptions;
     }
-
-    public Compiler<JavaCompileSpec> getJavaCompiler() {
-        return cleaningCompiler;
-    }
-
-    public void setJavaCompiler(Compiler<JavaCompileSpec> javaCompiler) {
-        this.cleaningCompiler = javaCompiler;
-    }
 }
