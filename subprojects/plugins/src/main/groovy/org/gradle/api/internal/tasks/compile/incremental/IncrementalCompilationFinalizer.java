@@ -20,6 +20,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter;
@@ -35,16 +36,16 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
     private static final Logger LOG = Logging.getLogger(IncrementalCompilationFinalizer.class);
 
     private final Compiler<JavaCompileSpec> delegate;
-    private final ClassDependencyInfoExtractor extractor;
+    private final ClassDependenciesAnalyzer analyzer;
     private final ClassDependencyInfoWriter dependencyInfoWriter;
     private final JarSnapshotFeeder jarSnapshotFeeder;
     private final ClasspathJarFinder classpathJarFinder;
     private final FileOperations fileOperations;
 
-    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, ClassDependencyInfoExtractor extractor, ClassDependencyInfoWriter dependencyInfoWriter,
+    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, ClassDependenciesAnalyzer analyzer, ClassDependencyInfoWriter dependencyInfoWriter,
                                            JarSnapshotFeeder jarSnapshotFeeder, ClasspathJarFinder classpathJarFinder, FileOperations fileOperations) {
         this.delegate = delegate;
-        this.extractor = extractor;
+        this.analyzer = analyzer;
         this.dependencyInfoWriter = dependencyInfoWriter;
         this.jarSnapshotFeeder = jarSnapshotFeeder;
         this.classpathJarFinder = classpathJarFinder;
@@ -56,6 +57,7 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
 
         Clock clock = new Clock();
         FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
+        ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
         tree.visit(extractor);
         ClassDependencyInfo info = extractor.getDependencyInfo();
         dependencyInfoWriter.writeInfo(info);

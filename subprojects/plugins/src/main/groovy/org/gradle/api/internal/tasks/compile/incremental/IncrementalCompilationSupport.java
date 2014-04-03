@@ -20,7 +20,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
@@ -35,18 +35,18 @@ public class IncrementalCompilationSupport {
     private final JarSnapshotFeeder jarSnapshotFeeder;
     private final ClassDependencyInfoSerializer dependencyInfoSerializer;
     private final FileOperations fileOperations;
-    private final ClassDependencyInfoExtractor extractor;
+    private final ClassDependenciesAnalyzer analyzer;
     private final CleaningJavaCompiler cleaningCompiler;
     private final String displayName;
     private final RecompilationSpecProvider staleClassDetecter;
 
     public IncrementalCompilationSupport(JarSnapshotFeeder jarSnapshotFeeder, ClassDependencyInfoSerializer dependencyInfoSerializer,
-                                         FileOperations fileOperations, ClassDependencyInfoExtractor extractor,
+                                         FileOperations fileOperations, ClassDependenciesAnalyzer analyzer,
                                          CleaningJavaCompiler cleaningCompiler, String displayName, RecompilationSpecProvider staleClassDetecter) {
         this.jarSnapshotFeeder = jarSnapshotFeeder;
         this.dependencyInfoSerializer = dependencyInfoSerializer;
         this.fileOperations = fileOperations;
-        this.extractor = extractor;
+        this.analyzer = analyzer;
         this.cleaningCompiler = cleaningCompiler;
         this.displayName = displayName;
         this.staleClassDetecter = staleClassDetecter;
@@ -54,7 +54,7 @@ public class IncrementalCompilationSupport {
 
     public Compiler<JavaCompileSpec> prepareCompiler(final IncrementalTaskInputs inputs, final CompilationSourceDirs sourceDirs) {
         final Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
-        return new IncrementalCompilationFinalizer(compiler, extractor, dependencyInfoSerializer,
+        return new IncrementalCompilationFinalizer(compiler, analyzer, dependencyInfoSerializer,
                 jarSnapshotFeeder, new ClasspathJarFinder(fileOperations), fileOperations);
     }
 
