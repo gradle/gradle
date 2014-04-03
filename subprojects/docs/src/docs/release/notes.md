@@ -1,7 +1,24 @@
+Gradle 1.12 brings some nice universal performance improvements, useful new features and a slew of bug and compatibility fixes.
 
+In the native space, improvements have been made to the Clang support as well as improved integration with Visual Studio.
+Gradle also now provides support for unit testing your native code via CUnit.
 
+A considerable amount of work in this release went in to the dependency management engine, preparing for new APIs that allow more control over the dependency resolution process.
+The visible result of this work in Gradle 1.12 is the ability to specify rules that identify _changing_ components (e.g. snapshots).
 
-Gradle 1.12 will be the last release before Gradle 2.0
+Another significant area of investment in 1.12 is in the area of IDE integration, via the [Tooling API](userguide/embedding.html).
+Integration with IntelliJ IDEA in particular has been improved, along with general improvements that will offer tooling providers more integration capabilities.
+Optimizations have also been made to the parts of the codebase that deal with IDE import, making importing Gradle 1.12 projects into IDEs faster than any previous Gradle version.
+
+Gradle 1.12 set a new high watermark for contributions.
+It includes contributions from 15 different people.
+Contributions range from documentation improvements, to Ant import improvements, to support for building large zips,
+to Sonar improvements, to test reporting improvements and more.
+Thank you to all of the contributors.
+
+Gradle 1.12 will be the last release in the Gradle 1.x line.
+The next release will be Gradle 2.0.
+For information on what this means for you and for the future of Gradle, please see our announcement on the topic (TBD - turn into link when announcement is posted).
 
 ## New and noteworthy
 
