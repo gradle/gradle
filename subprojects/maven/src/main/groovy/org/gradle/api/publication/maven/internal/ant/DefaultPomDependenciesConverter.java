@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.publication.maven.internal.ExcludeRuleConverter;
 import org.gradle.api.publication.maven.internal.PomDependenciesConverter;
+import org.gradle.api.specs.Spec;
 
 import java.util.*;
 
@@ -48,8 +49,8 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         }
         return mavenDependencies;
     }
-    
-    private Map<ModuleDependency, String> createDependencyToScopeMap(Conf2ScopeMappingContainer conf2ScopeMappingContainer, 
+
+    private Map<ModuleDependency, String> createDependencyToScopeMap(Conf2ScopeMappingContainer conf2ScopeMappingContainer,
             Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations) {
         Map<ModuleDependency, String> dependencyToScope = new HashMap<ModuleDependency, String>();
         for (ModuleDependency dependency : dependencyToConfigurations.keySet()) {
@@ -89,14 +90,14 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         return dependencySetMap;
     }
 
-    private void addFromArtifactDescriptor(List<Dependency> mavenDependencies, ModuleDependency dependency, String scope, 
+    private void addFromArtifactDescriptor(List<Dependency> mavenDependencies, ModuleDependency dependency, String scope,
             Set<Configuration> configurations) {
         for (DependencyArtifact artifact : dependency.getArtifacts()) {
             mavenDependencies.add(createMavenDependencyFromArtifactDescriptor(dependency, artifact, scope, configurations));
         }
     }
 
-    private void addFromDependencyDescriptor(List<Dependency> mavenDependencies, ModuleDependency dependency, String scope, 
+    private void addFromDependencyDescriptor(List<Dependency> mavenDependencies, ModuleDependency dependency, String scope,
             Set<Configuration> configurations) {
         mavenDependencies.add(createMavenDependencyFromDependencyDescriptor(dependency, scope, configurations));
     }
@@ -112,10 +113,28 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
 
     private Dependency createMavenDependency(ModuleDependency dependency, String name, String type, String scope, String classifier,
             Set<Configuration> configurations) {
-        Dependency mavenDependency =  new Dependency();
+        ProjectDependency projectDependency;
+        PublishArtifact artifactToPublish;
+        Dependency mavenDependency = new Dependency();
         mavenDependency.setGroupId(dependency.getGroup());
         if (dependency instanceof ProjectDependency) {
-            mavenDependency.setArtifactId(determineProjectDependencyArtifactId((ProjectDependency) dependency));
+            projectDependency = (ProjectDependency) dependency;
+            final String artifactId = determineProjectDependencyArtifactId(projectDependency);
+            mavenDependency.setArtifactId(artifactId);
+            PublishArtifactSet configurationArtifacts = projectDependency.getProjectConfiguration().getArtifacts();
+            if (configurationArtifacts.size() > 0) {
+                Object[] matchingArtifacts = configurationArtifacts.matching(new Spec<PublishArtifact>() {
+                    public boolean isSatisfiedBy(PublishArtifact element) {
+                        return element.getName().equals(artifactId);
+                    }
+                }).toArray();
+                if (matchingArtifacts.length > 0) {
+                    artifactToPublish = (PublishArtifact) matchingArtifacts[0];
+                    if (artifactToPublish.getClassifier() != null) {
+                        classifier = artifactToPublish.getClassifier();
+                    }
+                }
+            }
         } else {
             mavenDependency.setArtifactId(name);
         }
