@@ -118,7 +118,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         then: changedFiles == ['PersonImpl', 'Person'] as Set
     }
 
-    def "compiles set of classes that depend on changed ones"() {
+    def "detects class transitive dependents"() {
         when: run "compileJava"
 
         then:
@@ -128,11 +128,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         when:
         file("src/main/java/org/Person.java").text = """package org;
         public interface Person {
-            String name();
-        }"""
-        file("src/main/java/org/PersonImpl.java").text = """package org;
-        public class PersonImpl implements Person {
-            public String name() { return "Szczepan"; }
+            String toString();
         }"""
 
         run "compileJava"

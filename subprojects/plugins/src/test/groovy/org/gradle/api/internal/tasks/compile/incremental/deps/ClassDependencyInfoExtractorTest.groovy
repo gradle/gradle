@@ -40,12 +40,10 @@ class ClassDependencyInfoExtractorTest extends Specification {
         info.getRelevantDependents(SomeClass.name).dependentClasses == [SomeOtherClass.name] as Set
         info.getRelevantDependents(SomeOtherClass.name).dependentClasses == [] as Set
         info.getRelevantDependents(YetAnotherClass.name).dependentClasses == [SomeOtherClass.name] as Set
-        info.getRelevantDependents(AccessedFromPrivateClass.name).dependentClasses == [] as Set
+        info.getRelevantDependents(AccessedFromPrivateClass.name).dependentClasses == [SomeClass.name, SomeOtherClass.name] as Set
         info.getRelevantDependents(HasPrivateConstants.name).dependentClasses == [] as Set
-        info.getRelevantDependents(UsedByNonPrivateConstantsClass.name).dependentClasses == [HasNonPrivateConstants.name] as Set
-
+        info.getRelevantDependents(UsedByNonPrivateConstantsClass.name).dependentClasses == [HasNonPrivateConstants.name, HasPrivateConstants.name] as Set
         info.getRelevantDependents(HasNonPrivateConstants.name).dependencyToAll
-        info.getRelevantDependents(HasNonPrivateConstants.name).dependentClasses == [HasPrivateConstants.name] as Set
     }
 
     //TODO SF tighten and refactor the coverage, use mocks
