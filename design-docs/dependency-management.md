@@ -213,6 +213,33 @@ Get JvmLibrary components with source and javadoc artifacts for a configuration:
 - Can query those artifacts that could not be resolved or downloaded.
 - more TBD
 
+## Story: Access the ivy and maven metadata artifacts via the Artifact Query API
+
+### User visible changes
+
+Access the ivy.xml file for a single ivy module using generic API:
+
+    def ivyModules = dependencies.createArtifactResolutionQuery()
+        .forComponents(ivyModuleComponentId)
+        .withArtifacts(IvyModule, IvyDescriptorArtifact)
+        .execute().getResolvedComponents(IvyModule)
+
+    ivyModules.each { IvyModule ivyModule ->
+        IvyDescriptorArtifact descriptorArtifact = ivyModule.descriptorArtifact
+    }
+
+Get the pom files for all maven modules in a configuration:
+
+    def artifactResult = dependencies.createArtifactResolutionQuery()
+        .forComponents(configurations.compile)
+        .withArtifacts(MavenModule, MavenPomArtifact)
+        .execute()
+    Set<File> pomFiles = artifactResult.getArtifactFiles()
+
+### Open issues
+
+- Typed domain model for IvyModule and MavenModule
+
 ## Story: IDE plugins use the resolution result to determine library artifacts
 
 This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
