@@ -23,9 +23,9 @@ import java.util.Set;
 
 public class ClassDependencyInfo implements Serializable {
 
-    private final Map<String, DependentsSet> dependents;
+    private final Map<String, ? extends DependentsSet> dependents;
 
-    public ClassDependencyInfo(Map<String, DependentsSet> dependents) {
+    public ClassDependencyInfo(Map<String, ? extends DependentsSet> dependents) {
         this.dependents = dependents;
     }
 

@@ -58,7 +58,7 @@ public class ClassDependencyInfoExtractor {
                 throw new RuntimeException("Problems extracting class dependency from " + classFile, e);
             }
         }
-        return new ClassDependencyInfo((Map) dependents);
+        return new ClassDependencyInfo(dependents);
     }
 
     private ClassDependents populate(Map<String, ClassDependents> dependents, String dependency, String className) {
