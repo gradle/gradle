@@ -420,14 +420,6 @@ Some test cases that are not directly related, but require this feature to be im
 * No requests for source and javadoc are made with build is executed with `--offline`, even when cache has expired.
 * Can recover from a broken HTTP request by switching to use `--offline`.
 
-## Story: Source and Javadoc artifacts are exposed for a local Java component
-
-TBD
-
-## Story: Source and Javadoc artifacts are published for a Java component
-
-This story changes the `ivy-publish` and `maven-publish` plugins to publish the source and Javadocs for a Java component.
-
 ## Story: Dependency resolution result exposes local component instances that are not module versions
 
 This story changes the resolution result to expose local component instances that are not module versions. That is, component instances that do not
@@ -514,39 +506,6 @@ meet the requirements.
     - A registry of requirement -> buildable file collection converters.
 - Add some way to query the resolved include roots, link files and runtime files for a native binary.
 
-## Story: Implement native binary dependency resolution using self resolving dependencies
-
-This story starts to push the resolution mechanism introduced in the above story down into the dependency management engine. For this story,
-native binary dependencies will be converted to self-resolving dependencies which are then fed into the dependency management engine.
-
-This story is simply a refactoring. No new user-visible behaviour will be added.
-
-## Story: Native component dependencies are visible in the dependency reports
-
-### Open issues
-
-- Dependencies need to shown per-variant.
-
-## Story: Plugin contributes a component type implementation
-
-Allow a plugin to contribute a component type implementation, which is responsible for defining some component type. For this story, the definition is
-responsible for extracting the component meta-data from some local component instance. Later stories will generalise this to make the definition
-reusable for other purposes, such as publishing.
-
-- Use this in the native binary plugins to convert native library and binary instances to meta-data.
-
-### Open issues
-
-- Add some way to influence the target of a project dependency
-- Generalise so that the meta-data model can be reused for publishing and resolving external components
-    - Version the model
-- Detangle the usage context from the dependency implementation and pass through to the resolvers
-    - Needs to be considered when caching stuff
-- Add some sugar to infer the meta-data model from some static types
-- Expose the component instance graph from the new requirements API
-- Remove `NativeDependencySet` and `LibraryResolver` interfaces
-- Replace the existing headers and files configurations
-
 ## Story: Conflict resolution prefers local components over other components
 
 When two components have conflicting external identifiers, select a local component.
@@ -616,4 +575,3 @@ TBD
 # Open issues
 
 - When resolving a pre-built component, fail if the specified file does not exist/has not been built (if buildable).
-
