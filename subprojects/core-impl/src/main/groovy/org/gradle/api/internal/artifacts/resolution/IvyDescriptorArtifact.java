@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.resolution;
 
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.artifacts.result.Artifact;
 
-public interface IvyDescriptorArtifact extends SoftwareArtifact {
+public interface IvyDescriptorArtifact extends Artifact {
 }

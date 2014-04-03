@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.resolution;
 
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.artifacts.result.Artifact;
 
-public interface MavenPomArtifact extends SoftwareArtifact {
+public interface MavenPomArtifact extends Artifact {
 }
