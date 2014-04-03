@@ -20,13 +20,10 @@ import java.io.Serializable;
 
 public class LaunchableGradleTask implements Serializable, LaunchableImplementation {
 
-    String path;
-    String name;
-    String description;
-    String displayName;
-
-    public LaunchableGradleTask() {
-    }
+    private String path;
+    private String name;
+    private String description;
+    private String displayName;
 
     public String getPath() {
         return path;
@@ -74,8 +71,6 @@ public class LaunchableGradleTask implements Serializable, LaunchableImplementat
 
     @Override
     public String toString() {
-        return "LaunchableGradleTask{"
-                + "path='" + path + '\''
-                + '}';
+        return getClass().getSimpleName() + "{path='" + path + "'}";
     }
 }

@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import java.util.Set;
+import java.util.SortedSet;
 
 public interface TaskListingLaunchable {
-    Set<String> getTaskNames();
+    SortedSet<String> getTaskNames();
 }

@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.internal.tooling.gradle
+package org.gradle.tooling.internal.impl
 
-import org.gradle.tooling.internal.impl.DefaultGradleProject
 import spock.lang.Specification
 
 class DefaultGradleProjectTest extends Specification {
 
     def "allows finding descendant by path"() {
-        def root = new DefaultGradleProject(":")
+        def root = new DefaultGradleProject().setPath(":")
 
-        def child1 = new DefaultGradleProject(":child1")
-        def child11 = new DefaultGradleProject(":child1:child11")
-        def child12 = new DefaultGradleProject(":child1:child12")
+        def child1 = new DefaultGradleProject().setPath(":child1")
+        def child11 = new DefaultGradleProject().setPath(":child1:child11")
+        def child12 = new DefaultGradleProject().setPath(":child1:child12")
 
-        def child2 = new DefaultGradleProject(":child2")
-        def child21 = new DefaultGradleProject(":child2:child21")
+        def child2 = new DefaultGradleProject().setPath(":child2")
+        def child21 = new DefaultGradleProject().setPath(":child2:child21")
 
         root.children = [child1, child2]
         child1.children = [child11, child12]

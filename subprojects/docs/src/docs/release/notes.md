@@ -132,6 +132,21 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Source and Javadoc artifacts declared in ivy.xml are recognised by IDE plugins
+
+The Gradle `eclipse` and `idea` plugins are able to find and download the source artifacts for external dependencies, and link
+these artifacts into the generated IDE files.
+
+In addition to the conventional classifier-based scheme for locating source and javadoc artifacts, Gradle will now recognise
+artifacts declared in a specific configuration of an `ivy.xml` file.
+
+For an IDE project that references an external module located in an `ivy` repository, Gradle will now include:
+
+* Source artifacts declared in a `sources` configuration in `ivy.xml`
+* Javadoc artifacts declared in a `javadoc` configuration in `ivy.xml`
+* Source artifacts conventionally named with a `sources` classifier: eg. 'module-1.0-sources.jar'
+* Javadoc artifacts conventionally named with a `javadoc` classifier: eg. 'module-1.0-javadoc.jar'
+
 ## Fixed issues
 
 ## Deprecations
@@ -144,6 +159,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 <!--
 ### Example deprecation
 -->
+
+### Deprecated method in Tooling API
+
+The [`org.gradle.tooling.model.Task.getProject()`](javadoc/org/gradle/tooling/model/Task.html#getProject()) method is now deprecated and
+can throw `UnsupportedMethodException`. There is no replacement as it is expected that the caller has a reference to project prior calling to this method.
 
 ## Potential breaking changes
 

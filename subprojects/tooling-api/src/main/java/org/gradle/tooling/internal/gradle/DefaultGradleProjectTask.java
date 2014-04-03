@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.gradle;
 
 public class DefaultGradleProjectTask extends DefaultGradleTask {
-    PartialGradleProject project;
+    private PartialGradleProject project;
 
     public PartialGradleProject getProject() {
         return project;

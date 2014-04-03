@@ -31,12 +31,6 @@ public class DefaultGradleProject extends PartialGradleProject implements Intern
     private DefaultGradleScript buildScript = new DefaultGradleScript();
     private List<LaunchableGradleTask> tasks = new LinkedList<LaunchableGradleTask>();
 
-    public DefaultGradleProject() {}
-
-    public DefaultGradleProject(String path) {
-        super(path);
-    }
-
     @Override
     public DefaultGradleProject setName(String name) {
         super.setName(name);
@@ -65,7 +59,7 @@ public class DefaultGradleProject extends PartialGradleProject implements Intern
         return tasks;
     }
 
-    public PartialGradleProject setTasks(List<LaunchableGradleTask> tasks) {
+    public DefaultGradleProject setTasks(List<LaunchableGradleTask> tasks) {
         this.tasks = tasks;
         return this;
     }

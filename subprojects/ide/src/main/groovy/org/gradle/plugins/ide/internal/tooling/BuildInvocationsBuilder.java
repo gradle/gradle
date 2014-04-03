@@ -21,12 +21,12 @@ import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
+import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -41,12 +41,13 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         return modelName.equals("org.gradle.tooling.model.gradle.BuildInvocations");
     }
 
-    public DefaultBuildInvocations buildAll(String modelName, Project project) {
+    public DefaultBuildInvocations<LaunchableGradleTask> buildAll(String modelName, Project project) {
         if (!canBuild(modelName)) {
             throw new GradleException("Unknown model name " + modelName);
         }
         List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
-        Set<String> aggregatedTasks = findTasks(project);
+        Set<String> aggregatedTasks = Sets.newHashSet();
+        findTasks(project, aggregatedTasks);
         for (String selectorName : aggregatedTasks) {
             selectors.add(new LaunchableGradleTaskSelector().
                     setName(selectorName).
@@ -57,9 +58,9 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                             : String.format("%s task selector", selectorName)).
                     setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())));
         }
-        return new DefaultBuildInvocations()
+        return new DefaultBuildInvocations<LaunchableGradleTask>()
                 .setSelectors(selectors)
-                .setTasks(convertTasks(new ArrayList(gradleProjectBuilder.buildAll(project).findByPath(project.getPath()).getTasks())));
+                .setTasks(convertTasks(gradleProjectBuilder.buildAll(project).findByPath(project.getPath()).getTasks()));
     }
 
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
@@ -67,7 +68,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
     }
 
     // build tasks without project reference
-    private List<LaunchableGradleTask> convertTasks(List<LaunchableGradleTask> tasks) {
+    private List<LaunchableGradleTask> convertTasks(Iterable<LaunchableGradleTask> tasks) {
         List<LaunchableGradleTask> convertedTasks = Lists.newArrayList();
         for (LaunchableGradleTask task : tasks) {
             convertedTasks.add(new LaunchableGradleTask()
@@ -79,16 +80,13 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         return convertedTasks;
     }
 
-    private Set<String> findTasks(Project project) {
-        Set<String> aggregatedTasks = Sets.newHashSet();
+    private void findTasks(Project project, Collection<String> tasks) {
         for (Project child : project.getSubprojects()) {
-            Set<String> childTasks = findTasks(child);
-            aggregatedTasks.addAll(childTasks);
+            findTasks(child, tasks);
         }
         for (Task task : project.getTasks()) {
-            aggregatedTasks.add(task.getName());
+            tasks.add(task.getName());
         }
-        return aggregatedTasks;
     }
 
 }

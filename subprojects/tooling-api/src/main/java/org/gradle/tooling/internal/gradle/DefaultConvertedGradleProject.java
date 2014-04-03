@@ -16,19 +16,12 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultConvertedGradleProject extends PartialGradleProject implements Serializable, GradleProjectIdentity {
+public class DefaultConvertedGradleProject extends PartialGradleProject {
     private List<DefaultGradleTask> tasks = new LinkedList<DefaultGradleTask>();
-
-    public DefaultConvertedGradleProject() {}
-
-    public DefaultConvertedGradleProject(String path) {
-        super(path);
-    }
 
     @Override
     public DefaultConvertedGradleProject setName(String name) {
@@ -58,7 +51,7 @@ public class DefaultConvertedGradleProject extends PartialGradleProject implemen
         return tasks;
     }
 
-    public PartialGradleProject setTasks(List<DefaultGradleTask> tasks) {
+    public DefaultConvertedGradleProject setTasks(List<DefaultGradleTask> tasks) {
         this.tasks = tasks;
         return this;
     }
