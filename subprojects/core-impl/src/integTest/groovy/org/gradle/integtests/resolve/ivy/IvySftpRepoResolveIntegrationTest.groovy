@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.ivy.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.gradle.util.Requires
@@ -26,14 +26,10 @@ import spock.lang.Unroll
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
 @Unroll
-class IvySftpRepoResolveIntegrationTest extends AbstractIntegrationSpec {
+class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Rule
     final SFTPServer server = new SFTPServer(this)
-
-    def setup() {
-        requireOwnGradleUserHomeDir()
-    }
 
     IvySftpRepository getIvySftpRepo(boolean m2Compatible, String dirPattern = null) {
         new IvySftpRepository(server, '/repo', m2Compatible, dirPattern)

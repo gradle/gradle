@@ -42,6 +42,10 @@ class IvySftpRepository implements IvyRepository {
         return new URI("sftp://${server.hostAddress}:${server.port}${contextPath}")
     }
 
+    URI getServerUri() {
+        return new URI("sftp://${server.hostAddress}:${server.port}")
+    }
+
     String getIvyPattern() {
         return "$uri/${backingRepository.baseIvyPattern}"
     }

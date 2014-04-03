@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.ivy.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.gradle.util.Requires
@@ -24,13 +24,9 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class IvySftpRepoErrorsIntegrationTest extends AbstractIntegrationSpec {
+class IvySftpRepoErrorsIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Rule final SFTPServer server = new SFTPServer(this)
-
-    def setup() {
-        requireOwnGradleUserHomeDir()
-    }
 
     IvySftpRepository getIvySftpRepo() {
         new IvySftpRepository(server, '/repo')
@@ -118,7 +114,7 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
-                .assertHasCause("Invalid credentials for SFTP server at sftp://$ivySftpRepo.uri.host:$ivySftpRepo.uri.port")
+                .assertHasCause("Invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
     void "resolve dependencies from an unreachable SFTP Ivy repository"() {
@@ -150,6 +146,6 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
-                .assertHasCause("Could not connect to SFTP server at sftp://$ivySftpRepo.uri.host:$ivySftpRepo.uri.port")
+                .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
     }
 }
