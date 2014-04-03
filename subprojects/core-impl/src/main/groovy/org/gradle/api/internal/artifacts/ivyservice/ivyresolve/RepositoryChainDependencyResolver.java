@@ -209,7 +209,7 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
             }
 
             public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-                repository.localGetComponentMetaData(dependency, requestedModule(dependency), result);
+                repository.localResolveComponentMetaData(dependency, requestedModule(dependency), result);
             }
         }
 

@@ -93,18 +93,18 @@ class CachedRepositoryTest extends Specification {
 
     def "retrieves and caches local dependencies"() {
         when:
-        repo.localGetComponentMetaData(dep, lib, metaDataResult)
+        repo.localResolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
         1 * cache.supplyLocalMetaData(lib, metaDataResult) >> false
-        1 * delegate.localGetComponentMetaData(dep, lib, metaDataResult)
+        1 * delegate.localResolveComponentMetaData(dep, lib, metaDataResult)
         1 * cache.newLocalDependencyResult(lib, metaDataResult)
         0 * _
     }
 
     def "uses local dependencies from cache"() {
         when:
-        repo.localGetComponentMetaData(dep, lib, metaDataResult)
+        repo.localResolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
         1 * cache.supplyLocalMetaData(lib, metaDataResult) >> true

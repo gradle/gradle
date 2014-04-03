@@ -129,7 +129,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
     }
 
-    public void localGetComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+    public void localResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         lookupModuleInCache(delegate, dependency, moduleComponentIdentifier, result);
     }
 
