@@ -106,7 +106,7 @@ public class ResolveIvyFactory {
                 localAwareRepository = new IvyDynamicResolveModuleVersionRepository(localAwareRepository);
             }
             localAwareRepository = inMemoryCache.cached(localAwareRepository);
-            userResolverChain.add(localAwareRepository);
+            userResolverChain.add(new LocalAwareModuleComponentRepository(localAwareRepository));
         }
 
         return userResolverChain;

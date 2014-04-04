@@ -28,9 +28,9 @@ import java.util.Map;
 
 // TODO:DAZ Unit test
 class RepositoryChainArtifactResolver implements ArtifactResolver {
-    private final Map<String, ModuleVersionRepository> repositories = new LinkedHashMap<String, ModuleVersionRepository>();
+    private final Map<String, ModuleComponentRepository> repositories = new LinkedHashMap<String, ModuleComponentRepository>();
 
-    void add(ModuleVersionRepository repository) {
+    void add(ModuleComponentRepository repository) {
         repositories.put(repository.getId(), repository);
     }
 
@@ -42,8 +42,8 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         findSourceRepository(source).resolveArtifact(artifact, unpackSource(source), result);
     }
 
-    private ModuleVersionRepository findSourceRepository(ModuleSource originalSource) {
-        ModuleVersionRepository moduleVersionRepository = repositories.get(repositorySource(originalSource).getRepositoryId());
+    private ModuleComponentRepository findSourceRepository(ModuleSource originalSource) {
+        ModuleComponentRepository moduleVersionRepository = repositories.get(repositorySource(originalSource).getRepositoryId());
         if (moduleVersionRepository == null) {
             throw new IllegalStateException("Attempting to resolve artifacts from invalid repository");
         }
