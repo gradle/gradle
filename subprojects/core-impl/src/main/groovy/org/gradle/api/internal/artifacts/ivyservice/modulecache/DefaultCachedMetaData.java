@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.metadata.MavenModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.util.BuildCommencedTimeProvider;
@@ -38,10 +39,17 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
         if (moduleDescriptor == null) {
             metaData = null;
         } else {
-            ModuleDescriptorAdapter moduleDescriptorAdapter = new ModuleDescriptorAdapter(moduleDescriptor);
-            moduleDescriptorAdapter.setChanging(entry.isChanging);
-            moduleDescriptorAdapter.setPackaging(entry.packaging);
-            metaData = moduleDescriptorAdapter;
+            // TODO: Ben should probably be based on cache entry type?
+            if(entry.packaging != null) {
+                MavenModuleDescriptorAdapter moduleDescriptorAdapter = new MavenModuleDescriptorAdapter(moduleDescriptor);
+                moduleDescriptorAdapter.setChanging(entry.isChanging);
+                moduleDescriptorAdapter.setPackaging(entry.packaging);
+                metaData = moduleDescriptorAdapter;
+            } else {
+                ModuleDescriptorAdapter moduleDescriptorAdapter = new ModuleDescriptorAdapter(moduleDescriptor);
+                moduleDescriptorAdapter.setChanging(entry.isChanging);
+                metaData = moduleDescriptorAdapter;
+            }
         }
     }
 

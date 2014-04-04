@@ -35,6 +35,4 @@ public interface ModuleVersionMetaData extends ComponentMetaData {
     ModuleVersionArtifactMetaData artifact(Artifact artifact);
 
     ModuleVersionArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier);
-
-    String getPackaging();
 }

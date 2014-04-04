@@ -244,19 +244,26 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     @Override
+    protected MutableModuleVersionMetaData getDefaultForDependency(DependencyMetaData dependencyMetaData) {
+        return MavenModuleDescriptorAdapter.defaultForDependency(dependencyMetaData);
+    }
+
+    @Override
     protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result, boolean localOnly) {
+        MavenModuleVersionMetaData mavenModule = (MavenModuleVersionMetaData)module;
+
         if(localOnly) {
-            if(isKnownJarPackaging(module.getPackaging())) {
+            if(mavenModule.isKnownJarPackaging()) {
                 ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
                 result.resolved(ImmutableSet.of(artifact));
             }
         } else {
-            if("pom".equals(module.getPackaging())) {
+            if(mavenModule.isPomPackaging()) {
                 Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
                 artifacts.addAll(findOptionalArtifacts(module, "jar", null));
                 result.resolved(artifacts);
             } else {
-                ModuleVersionArtifactMetaData artifactMetaData = module.artifact(module.getPackaging(), module.getPackaging(), null);
+                ModuleVersionArtifactMetaData artifactMetaData = module.artifact(mavenModule.getPackaging(), mavenModule.getPackaging(), null);
 
                 if(createArtifactResolver(module.getSource()).artifactExists(artifactMetaData)) {
                     DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
@@ -267,13 +274,6 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
                 }
             }
         }
-    }
-
-    private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
-
-    protected boolean isKnownJarPackaging(String packaging) {
-        // TODO Ben: should never have null here
-        return packaging == null || "jar".equals(packaging) || JAR_PACKAGINGS.contains(packaging);
     }
 
     protected static class TimestampedModuleSource implements ModuleSource {

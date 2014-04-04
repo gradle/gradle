@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.metadata.MavenModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -39,19 +39,19 @@ public class MavenLocalResolver extends MavenResolver {
     @Override
     protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactResolver artifactResolver) {
         MutableModuleVersionMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver);
-        if (isOrphanedPom(metaData, artifactResolver)) {
+        if (isOrphanedPom((MavenModuleVersionMetaData)metaData, artifactResolver)) {
             return null;
         }
         return metaData;
     }
 
-    private boolean isOrphanedPom(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
-        if ("pom".equals(metaData.getPackaging())) {
+    private boolean isOrphanedPom(MavenModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
+        if (metaData.isPomPackaging()) {
             return false;
         }
 
         // check custom packaging
-        if(!isKnownJarPackaging(metaData.getPackaging())) {
+        if(!metaData.isKnownJarPackaging()) {
             ModuleVersionArtifactMetaData customArtifactMetaData = metaData.artifact(metaData.getPackaging(), metaData.getPackaging(), null);
 
             if(artifactResolver.artifactExists(customArtifactMetaData)) {

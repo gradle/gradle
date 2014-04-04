@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepo
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
+import org.gradle.api.internal.artifacts.metadata.MavenModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
@@ -93,9 +94,13 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         ModuleDescriptor moduleDescriptor = metaData.getDescriptor();
         LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), metaData.isChanging());
         LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
-        ModuleDescriptorCacheEntry entry = createEntry(metaData.isChanging(), metaData.getPackaging(), resource.getSha1(), moduleSource);
+        ModuleDescriptorCacheEntry entry = createEntry(metaData.isChanging(), getPackaging(metaData), resource.getSha1(), moduleSource);
         getCache().put(createKey(repository, metaData.getComponentId()), entry);
         return new DefaultCachedMetaData(entry, null, timeProvider);
+    }
+
+    private String getPackaging(ModuleVersionMetaData metaData) {
+        return metaData instanceof MavenModuleVersionMetaData ? ((MavenModuleVersionMetaData) metaData).getPackaging() : null;
     }
 
     private RevisionKey createKey(ModuleVersionRepository repository, ModuleComponentIdentifier id) {

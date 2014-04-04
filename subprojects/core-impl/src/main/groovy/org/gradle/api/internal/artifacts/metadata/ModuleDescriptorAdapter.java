@@ -27,14 +27,18 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import java.util.*;
 
 public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
-    private String packaging;
     private Set<ModuleVersionArtifactMetaData> artifacts;
 
     public static ModuleDescriptorAdapter defaultForDependency(DependencyMetaData dependencyMetaData) {
+        DefaultModuleDescriptor moduleDescriptor = createModuleDescriptor(dependencyMetaData);
+        return new ModuleDescriptorAdapter(moduleDescriptor);
+    }
+
+    protected static DefaultModuleDescriptor createModuleDescriptor(DependencyMetaData dependencyMetaData) {
         DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
         DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(dependencyDescriptor.getDependencyRevisionId(), dependencyDescriptor.getAllDependencyArtifacts());
         moduleDescriptor.setStatus("integration");
-        return new ModuleDescriptorAdapter(moduleDescriptor);
+        return moduleDescriptor;
     }
 
     public ModuleDescriptorAdapter(ModuleDescriptor moduleDescriptor) {
@@ -53,7 +57,6 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
         ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(getId(), getDescriptor(), getComponentId());
         copyTo(copy);
-        copy.packaging = packaging;
         return copy;
     }
 
@@ -66,14 +69,6 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
     @Override
     public ModuleComponentIdentifier getComponentId() {
         return (ModuleComponentIdentifier) super.getComponentId();
-    }
-
-    public String getPackaging() {
-        return packaging;
-    }
-
-    public void setPackaging(String packaging) {
-        this.packaging = packaging;
     }
 
     public ModuleVersionArtifactMetaData artifact(Artifact artifact) {

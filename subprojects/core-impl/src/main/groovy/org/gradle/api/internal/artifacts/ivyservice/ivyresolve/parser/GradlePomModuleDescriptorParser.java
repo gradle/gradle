@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
+import org.gradle.api.internal.artifacts.metadata.MavenModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.resolution.MavenPomArtifact;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -63,14 +63,15 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         doParsePom(parserSettings, mdBuilder, pomReader);
 
         DefaultModuleDescriptor moduleDescriptor = mdBuilder.getModuleDescriptor();
-        ModuleDescriptorAdapter adapter = new ModuleDescriptorAdapter(moduleDescriptor);
-        addPackagingToModuleDescriptor(pomReader, adapter);
+        MavenModuleDescriptorAdapter adapter = new MavenModuleDescriptorAdapter(moduleDescriptor);
+        addMetaData(pomReader, adapter);
         return adapter;
     }
 
-    private void addPackagingToModuleDescriptor(PomReader pomReader, ModuleDescriptorAdapter adapter) {
+    private void addMetaData(PomReader pomReader, MavenModuleDescriptorAdapter adapter) {
         if(pomReader.getRelocation() != null) {
             adapter.setPackaging("pom");
+            adapter.setRelocated(true);
         } else {
             adapter.setPackaging(pomReader.getPackaging());
         }

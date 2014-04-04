@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.internal.artifacts.metadata
 
 import org.apache.ivy.core.module.descriptor.*
@@ -25,10 +23,10 @@ import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentif
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import spock.lang.Specification
 
-class ModuleDescriptorAdapterTest extends Specification {
+class MavenModuleDescriptorAdapterTest extends Specification {
     def id = Stub(ModuleVersionIdentifier)
     def moduleDescriptor = Mock(ModuleDescriptor)
-    def metaData = new ModuleDescriptorAdapter(id, moduleDescriptor)
+    def metaData = new MavenModuleDescriptorAdapter(id, moduleDescriptor)
 
     def "has useful string representation"() {
         given:
@@ -257,6 +255,7 @@ class ModuleDescriptorAdapterTest extends Specification {
 
         given:
         metaData.changing = true
+        metaData.packaging = 'pom'
         metaData.dependencies = [dependency1, dependency2]
         metaData.status = 'a'
         metaData.statusScheme = ['a', 'b', 'c']
@@ -268,6 +267,7 @@ class ModuleDescriptorAdapterTest extends Specification {
         copy != metaData
         copy.descriptor == moduleDescriptor
         copy.changing
+        copy.packaging == 'pom'
         copy.dependencies == [dependency1, dependency2]
         copy.status == 'a'
         copy.statusScheme == ['a', 'b', 'c']
