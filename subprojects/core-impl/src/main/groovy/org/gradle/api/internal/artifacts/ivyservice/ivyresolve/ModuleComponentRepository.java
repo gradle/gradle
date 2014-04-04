@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 
 /**
  * A repository of module components.
@@ -24,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
  * The plan is to sync this with {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver} and rename it
  * to have 'resolver' instead of 'repository' in its name.
  */
-public interface ModuleComponentRepository extends ArtifactResolver {
+public interface ModuleComponentRepository {
     String getId();
 
     String getName();
@@ -33,5 +34,9 @@ public interface ModuleComponentRepository extends ArtifactResolver {
 
     ModuleComponentRepositoryAccess getRemoteAccess();
 
-    // TODO:DAZ Move extends ArtifactResolver onto ModuleComponentResolver
+    // TODO:DAZ Move this onto ModuleComponentResolver
+    /**
+     * Resolves the given artifact. Any failures are packaged up in the result.
+     */
+    void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result);
 }

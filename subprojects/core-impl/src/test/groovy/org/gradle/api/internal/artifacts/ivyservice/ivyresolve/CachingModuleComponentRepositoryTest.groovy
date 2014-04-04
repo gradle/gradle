@@ -88,7 +88,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def result = new DefaultBuildableArtifactSetResolveResult()
 
         when:
-        repo.resolveModuleArtifacts(component, context, result)
+        repo.localAccess.resolveModuleArtifacts(component, context, result)
 
         then:
         1 * component.getSource() >> cachingSource

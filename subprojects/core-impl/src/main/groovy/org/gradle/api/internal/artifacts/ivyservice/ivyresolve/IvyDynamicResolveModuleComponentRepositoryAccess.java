@@ -22,8 +22,7 @@ import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import java.util.ArrayList;
 import java.util.List;
 
-class IvyDynamicResolveModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
-    private final ModuleComponentRepositoryAccess delegate;
+class IvyDynamicResolveModuleComponentRepositoryAccess extends BaseModuleComponentRepositoryAccess {
 
     public static ModuleComponentRepository wrap(ModuleComponentRepository delegate) {
         return new BaseModuleComponentRepository(
@@ -33,15 +32,11 @@ class IvyDynamicResolveModuleComponentRepositoryAccess implements ModuleComponen
     }
 
     IvyDynamicResolveModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate) {
-        this.delegate = delegate;
-    }
-
-    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-        delegate.listModuleVersions(dependency, result);
+        super(delegate);
     }
 
     public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-        delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+        super.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
         if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
             transformDependencies(result);
         }

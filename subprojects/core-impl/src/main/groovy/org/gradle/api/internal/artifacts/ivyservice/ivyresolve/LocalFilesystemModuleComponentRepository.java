@@ -52,16 +52,6 @@ public class LocalFilesystemModuleComponentRepository implements ModuleComponent
         return remoteAccess;
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        delegate.localResolveModuleArtifacts(component, context, result);
-
-        if(result.hasResult()) {
-            return;
-        }
-
-        delegate.resolveModuleArtifacts(component, context, result);
-    }
-
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         delegate.resolveArtifact(artifact, moduleSource, result);
     }
@@ -77,6 +67,13 @@ public class LocalFilesystemModuleComponentRepository implements ModuleComponent
                 processor.process(result.getMetaData());
             }
         }
+
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+            delegate.localResolveModuleArtifacts(component, context, result);
+            if(!result.hasResult()) {
+                delegate.resolveModuleArtifacts(component, context, result);
+            }
+        }
     }
 
     private static class RemoteAccess implements ModuleComponentRepositoryAccess {
@@ -85,6 +82,9 @@ public class LocalFilesystemModuleComponentRepository implements ModuleComponent
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
             result.missing();
+        }
+
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
         }
     }
 }

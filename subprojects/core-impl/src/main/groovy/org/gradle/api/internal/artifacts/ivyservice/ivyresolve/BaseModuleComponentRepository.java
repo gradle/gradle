@@ -15,11 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
 public class BaseModuleComponentRepository implements ModuleComponentRepository {
     protected final ModuleComponentRepository delegate;
@@ -46,10 +43,6 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
-    }
-
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        delegate.resolveModuleArtifacts(component, context, result);
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {

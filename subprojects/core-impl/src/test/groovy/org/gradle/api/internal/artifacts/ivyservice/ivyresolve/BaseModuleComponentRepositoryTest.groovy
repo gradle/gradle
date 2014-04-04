@@ -15,11 +15,9 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext
+
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData
 import spock.lang.Specification
 
 class BaseModuleComponentRepositoryTest extends Specification {
@@ -39,15 +37,6 @@ class BaseModuleComponentRepositoryTest extends Specification {
     }
 
     def "delegates artifact methods"() {
-
-        when:
-        final componentMetaData = Mock(ComponentMetaData)
-        final context = Mock(ArtifactResolveContext)
-        final artifactsResult = Mock(BuildableArtifactSetResolveResult)
-        repository.resolveModuleArtifacts(componentMetaData, context, artifactsResult)
-
-        then:
-        delegate.resolveModuleArtifacts(componentMetaData, context, artifactsResult)
 
         when:
         final artifactMetaData = Mock(ComponentArtifactMetaData)

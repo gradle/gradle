@@ -35,7 +35,13 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     }
 
     public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        findSourceRepository(component.getSource()).resolveModuleArtifacts(unpackSource(component), context, result);
+        ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
+        ComponentMetaData unpackedComponent = unpackSource(component);
+        // First try to determine the artifacts locally before going remote
+        sourceRepository.getLocalAccess().resolveModuleArtifacts(unpackedComponent, context, result);
+        if (!result.hasResult()) {
+            sourceRepository.getRemoteAccess().resolveModuleArtifacts(unpackedComponent, context, result);
+        }
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource source, BuildableArtifactResolveResult result) {

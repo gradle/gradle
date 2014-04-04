@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -22,22 +21,22 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveR
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
-/**
- * Provides access to a repository of components that are identified by a ModuleComponentIdentifier.
- */
-public interface ModuleComponentRepositoryAccess {
-    /**
-     * Resolves the given dependency to a list of module versions.
-     */
-    void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result);
+public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
+    private final ModuleComponentRepositoryAccess delegate;
 
-    /**
-     * Gets the metadata for a module component.
-     */
-    void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
+    public BaseModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate) {
+        this.delegate = delegate;
+    }
 
-    /**
-     * Resolves a set of artifacts belonging to the given component, based on the supplied context. Any failures are packaged up in the result.
-     */
-    void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result);
+    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        delegate.listModuleVersions(dependency, result);
+    }
+
+    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+        delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+    }
+
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        delegate.resolveModuleArtifacts(component, context, result);
+    }
 }

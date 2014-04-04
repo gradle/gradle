@@ -143,10 +143,17 @@ class CachedRepositoryTest extends Specification {
         def result = Mock(BuildableArtifactSetResolveResult)
 
         when:
-        repo.resolveModuleArtifacts(moduleMetaData, context, result)
+        repo.localAccess.resolveModuleArtifacts(moduleMetaData, context, result)
 
         then:
-        1 * delegate.resolveModuleArtifacts(moduleMetaData, context, result)
+        1 * localDelegate.resolveModuleArtifacts(moduleMetaData, context, result)
+        0 * _
+
+        when:
+        repo.remoteAccess.resolveModuleArtifacts(moduleMetaData, context, result)
+
+        then:
+        1 * remoteDelegate.resolveModuleArtifacts(moduleMetaData, context, result)
         0 * _
     }
 

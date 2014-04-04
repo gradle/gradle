@@ -43,49 +43,48 @@ class CachedRepository extends BaseModuleComponentRepository {
         }
     }
 
-    private static class LocalAccess implements ModuleComponentRepositoryAccess {
-        private final ModuleComponentRepositoryAccess access;
+    // TODO:DAZ Merge the local and remote implementations
+    private static class LocalAccess extends BaseModuleComponentRepositoryAccess {
         private final DependencyMetadataCache cache;
 
         public LocalAccess(ModuleComponentRepositoryAccess access, DependencyMetadataCache cache) {
-            this.access = access;
+            super(access);
             this.cache = cache;
         }
 
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
             if(!cache.supplyLocalModuleVersions(dependency.getRequested(), result)) {
-                access.listModuleVersions(dependency, result);
+                super.listModuleVersions(dependency, result);
                 cache.newLocalModuleVersions(dependency.getRequested(), result);
             }
         }
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
             if(!cache.supplyLocalMetaData(moduleComponentIdentifier, result)) {
-                access.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+                super.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
                 cache.newLocalDependencyResult(moduleComponentIdentifier, result);
             }
         }
     }
 
-    private static class RemoteAccess implements ModuleComponentRepositoryAccess {
-        private final ModuleComponentRepositoryAccess access;
+    private static class RemoteAccess extends BaseModuleComponentRepositoryAccess {
         private final DependencyMetadataCache cache;
 
         public RemoteAccess(ModuleComponentRepositoryAccess access, DependencyMetadataCache cache) {
-            this.access = access;
+            super(access);
             this.cache = cache;
         }
 
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
             if(!cache.supplyModuleVersions(dependency.getRequested(), result)) {
-                access.listModuleVersions(dependency, result);
+                super.listModuleVersions(dependency, result);
                 cache.newModuleVersions(dependency.getRequested(), result);
             }
         }
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
             if(!cache.supplyMetaData(moduleComponentIdentifier, result)) {
-                access.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+                super.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
                 cache.newDependencyResult(moduleComponentIdentifier, result);
             }
         }
