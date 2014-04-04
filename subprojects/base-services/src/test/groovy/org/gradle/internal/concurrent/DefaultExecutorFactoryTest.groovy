@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,117 +15,130 @@
  */
 package org.gradle.internal.concurrent
 
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.MultithreadedTestCase
-import org.jmock.integration.junit4.JMock
-import org.junit.After
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
-@RunWith(JMock)
-class DefaultExecutorFactoryTest extends MultithreadedTestCase {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final DefaultExecutorFactory factory = new DefaultExecutorFactory() {
-        def ExecutorService createExecutor(String displayName) {
-            return getExecutor()
-        }
-    }
+class DefaultExecutorFactoryTest extends ConcurrentSpec {
 
-    @After
-    public void tearDown() {
+    def factory = new DefaultExecutorFactory()
+
+    def cleanup() {
         factory.stop()
     }
 
-    @Test
-    public void stopBlocksUntilAllJobsAreComplete() {
-        Runnable runnable = context.mock(Runnable.class)
-
-        context.checking {
-            one(runnable).run()
-            will {
-                syncAt(1)
-            }
+    def stopBlocksUntilAllJobsAreComplete() {
+        given:
+        def action1 = {
+            thread.block()
+            instant.completed1
+        }
+        def action2 = {
+            thread.block()
+            instant.completed2
         }
 
-        def executor = factory.create('<display-name>')
-        executor.execute(runnable)
-
-        run {
-            expectBlocksUntil(1) {
-                executor.stop()
-            }
-        }
-    }
-    
-    @Test
-    public void factoryStopBlocksUntilAllJobsAreComplete() {
-        Runnable runnable = context.mock(Runnable.class)
-
-        context.checking {
-            one(runnable).run()
-            will {
-                syncAt(1)
-            }
-        }
-
-        def executor = factory.create('<display-name>')
-        executor.execute(runnable)
-
-        run {
-            expectBlocksUntil(1) {
-                factory.stop()
-            }
-        }
-    }
-
-    @Test
-    public void stopThrowsExceptionOnTimeout() {
-        Runnable runnable = context.mock(Runnable.class)
-
-        context.checking {
-            one(runnable).run()
-            will {
-                Thread.sleep(1000)
-            }
-        }
-
-        def executor = factory.create('<display-name>')
-        executor.execute(runnable)
-
-        expectTimesOut(500, TimeUnit.MILLISECONDS) {
-            try {
-                executor.stop(500, TimeUnit.MILLISECONDS)
-                org.junit.Assert.fail()
-            } catch (IllegalStateException e) {
-                org.junit.Assert.assertThat(e.message, org.hamcrest.Matchers.equalTo('Timeout waiting for concurrent jobs to complete.'))
-            }
-        }
-    }
-
-    @Test
-    public void cannotStopExecutorFromAnExecutorThread() {
-        Runnable runnable = context.mock(Runnable.class)
-
-        def executor = factory.create('<display-name>')
-
-        context.checking {
-            one(runnable).run()
-            will {
-                executor.stop()
-            }
-        }
-
-        executor.execute(runnable)
-
-        try {
+        when:
+        async {
+            def executor = factory.create('test')
+            executor.execute(action1)
+            executor.execute(action2)
             executor.stop()
-            org.junit.Assert.fail()
-        } catch (IllegalStateException e) {
-            org.junit.Assert.assertThat(e.message, org.hamcrest.Matchers.equalTo('Cannot stop this executor from an executor thread.'))
+            instant.stopped
         }
 
+        then:
+        instant.stopped > instant.completed1
+        instant.stopped > instant.completed2
+    }
+
+    def factoryStopBlocksUntilAllJobsAreComplete() {
+        given:
+        def action1 = {
+            thread.block()
+            instant.completed1
+        }
+        def action2 = {
+            thread.block()
+            instant.completed2
+        }
+
+        when:
+        async {
+            factory.create("1").execute(action1)
+            factory.create("2").execute(action2)
+            factory.stop()
+            instant.stopped
+        }
+
+        then:
+        instant.stopped > instant.completed1
+        instant.stopped > instant.completed2
+    }
+
+    public void cannotStopExecutorFromAnExecutorThread() {
+        when:
+        def executor = factory.create('<display-name>')
+        def action = {
+            executor.stop()
+        }
+        executor.execute(action)
+        executor.stop()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot stop this executor from an executor thread.'
+    }
+
+    def stopThrowsExceptionOnTimeout() {
+        def action = {
+            thread.block()
+        }
+
+        when:
+        def executor = factory.create('<display-name>')
+        executor.execute(action)
+        operation.stop {
+            executor.stop(200, TimeUnit.MILLISECONDS)
+        }
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Timeout waiting for concurrent jobs to complete.'
+
+        and:
+        operation.stop.duration in approx(200)
+    }
+
+    def stopRethrowsFirstExecutionException() {
+        given:
+        def failure1 = new RuntimeException()
+        def runnable1 = {
+            instant.broken1
+            throw failure1
+        }
+
+        def failure2 = new RuntimeException()
+        def runnable2 = {
+            thread.blockUntil.broken1
+            instant.broken2
+            throw failure2
+        }
+
+        when:
+        def executor = factory.create('test')
+        executor.execute(runnable1)
+        executor.execute(runnable2)
+        thread.blockUntil.broken2
+
+        then:
+        noExceptionThrown()
+
+        when:
+        executor.stop()
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.is(failure1)
     }
 }
