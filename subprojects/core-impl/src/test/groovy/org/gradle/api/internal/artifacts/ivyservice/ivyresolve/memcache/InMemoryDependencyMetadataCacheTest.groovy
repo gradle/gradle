@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-
-
-
-
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -32,7 +28,7 @@ class InMemoryDependencyMetadataCacheTest extends Specification {
 
     def "can be turned off via system property"() {
         System.properties.setProperty(InMemoryDependencyMetadataCache.TOGGLE_PROPERTY, "false")
-        def repo = Mock(LocalAwareModuleVersionRepository) { getId() >> "mavenCentral" }
+        def repo = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
 
         when:
         def out = cache.cached(repo)
@@ -42,14 +38,14 @@ class InMemoryDependencyMetadataCacheTest extends Specification {
     }
 
     def "wraps repositories"() {
-        def repo1 = Mock(LocalAwareModuleVersionRepository) { getId() >> "mavenCentral" }
-        def repo2 = Mock(LocalAwareModuleVersionRepository) { getId() >> "localRepo" }
-        def repo3 = Mock(LocalAwareModuleVersionRepository) { getId() >> "mavenCentral" }
+        def repo1 = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
+        def repo2 = Mock(ModuleComponentRepository) { getId() >> "localRepo" }
+        def repo3 = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
 
         when:
-        CachedRepository c1 = cache.cached(repo1)
-        CachedRepository c2 = cache.cached(repo2)
-        CachedRepository c3 = cache.cached(repo3)
+        ModuleComponentRepository c1 = cache.cached(repo1)
+        ModuleComponentRepository c2 = cache.cached(repo2)
+        ModuleComponentRepository c3 = cache.cached(repo3)
 
         then:
         c1.delegate == repo1
@@ -67,7 +63,7 @@ class InMemoryDependencyMetadataCacheTest extends Specification {
 
     def "cleans cache on close"() {
         when:
-        cache.cached(Mock(LocalAwareModuleVersionRepository) { getId() >> "x"} )
+        cache.cached(Mock(ModuleComponentRepository) { getId() >> "x"} )
         cache.stop()
 
         then:

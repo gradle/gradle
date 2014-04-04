@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import com.google.common.collect.MapMaker;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.Stoppable;
@@ -37,7 +37,7 @@ public class InMemoryDependencyMetadataCache implements Stoppable {
 
     final DependencyMetadataCacheStats stats = new DependencyMetadataCacheStats();
 
-    public LocalAwareModuleVersionRepository cached(LocalAwareModuleVersionRepository input) {
+    public ModuleComponentRepository cached(ModuleComponentRepository input) {
         if ("false".equalsIgnoreCase(System.getProperty(TOGGLE_PROPERTY))) {
             return input;
         }

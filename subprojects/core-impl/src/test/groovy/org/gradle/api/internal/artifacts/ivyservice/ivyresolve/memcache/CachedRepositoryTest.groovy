@@ -20,7 +20,8 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
@@ -34,7 +35,12 @@ class CachedRepositoryTest extends Specification {
 
     def stats = new DependencyMetadataCacheStats()
     def cache = Mock(DependencyMetadataCache)
-    def delegate = Mock(LocalAwareModuleVersionRepository)
+    def localDelegate = Mock(ModuleComponentRepositoryAccess)
+    def remoteDelegate = Mock(ModuleComponentRepositoryAccess)
+    def delegate = Mock(ModuleComponentRepository) {
+        getLocalAccess() >> localDelegate
+        getRemoteAccess() >> remoteDelegate
+    }
     def repo = new CachedRepository(cache, delegate, stats)
     def lib = Mock(ModuleComponentIdentifier)
     def selector = newSelector("org", "lib", "1.0")
@@ -57,34 +63,34 @@ class CachedRepositoryTest extends Specification {
 
     def "retrieves and caches module version listings"() {
         when:
-        repo.localListModuleVersions(dep, listingResult)
+        repo.localAccess.listModuleVersions(dep, listingResult)
 
         then:
         1 * cache.supplyLocalModuleVersions(selector, listingResult) >> false
-        1 * delegate.localListModuleVersions(dep, listingResult)
+        1 * localDelegate.listModuleVersions(dep, listingResult)
         1 * cache.newLocalModuleVersions(selector, listingResult)
         0 * _
 
         when:
-        repo.listModuleVersions(dep, listingResult)
+        repo.remoteAccess.listModuleVersions(dep, listingResult)
 
         then:
         1 * cache.supplyModuleVersions(selector, listingResult) >> false
-        1 * delegate.listModuleVersions(dep, listingResult)
+        1 * remoteDelegate.listModuleVersions(dep, listingResult)
         1 * cache.newModuleVersions(selector, listingResult)
         0 * _
     }
 
     def "uses module version listings from cache"() {
         when:
-        repo.localListModuleVersions(dep, listingResult)
+        repo.localAccess.listModuleVersions(dep, listingResult)
 
         then:
         1 * cache.supplyLocalModuleVersions(selector, listingResult) >> true
         0 * _
 
         when:
-        repo.listModuleVersions(dep, listingResult)
+        repo.remoteAccess.listModuleVersions(dep, listingResult)
 
         then:
         1 * cache.supplyModuleVersions(selector, listingResult) >> true
@@ -93,18 +99,18 @@ class CachedRepositoryTest extends Specification {
 
     def "retrieves and caches local dependencies"() {
         when:
-        repo.localResolveComponentMetaData(dep, lib, metaDataResult)
+        repo.localAccess.resolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
         1 * cache.supplyLocalMetaData(lib, metaDataResult) >> false
-        1 * delegate.localResolveComponentMetaData(dep, lib, metaDataResult)
+        1 * localDelegate.resolveComponentMetaData(dep, lib, metaDataResult)
         1 * cache.newLocalDependencyResult(lib, metaDataResult)
         0 * _
     }
 
     def "uses local dependencies from cache"() {
         when:
-        repo.localResolveComponentMetaData(dep, lib, metaDataResult)
+        repo.localAccess.resolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
         1 * cache.supplyLocalMetaData(lib, metaDataResult) >> true
@@ -113,18 +119,18 @@ class CachedRepositoryTest extends Specification {
 
     def "retrieves and caches dependencies"() {
         when:
-        repo.resolveComponentMetaData(dep, lib, metaDataResult)
+        repo.remoteAccess.resolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
         1 * cache.supplyMetaData(lib, metaDataResult) >> false
-        1 * delegate.resolveComponentMetaData(dep, lib, metaDataResult)
+        1 * remoteDelegate.resolveComponentMetaData(dep, lib, metaDataResult)
         1 * cache.newDependencyResult(lib, metaDataResult)
         0 * _
     }
 
     def "uses dependencies from cache"() {
         when:
-        repo.resolveComponentMetaData(dep, lib, metaDataResult)
+        repo.remoteAccess.resolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
         1 * cache.supplyMetaData(lib, metaDataResult) >> true

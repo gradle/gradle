@@ -34,7 +34,7 @@ import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class CachingModuleVersionRepositoryTest extends Specification {
+class CachingModuleComponentRepositoryTest extends Specification {
     def realRepo = Stub(LocalArtifactsModuleVersionRepository) {
         getId() >> "repo-id"
     }
@@ -45,7 +45,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
     def cachePolicy = Stub(CachePolicy)
     def metadataProcessor = Stub(ModuleMetadataProcessor)
     def moduleExtractor = Mock(Transformer)
-    def repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache,
+    def repo = new CachingModuleComponentRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache,
             cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor, moduleExtractor)
 
     @Unroll
@@ -63,7 +63,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
         }
 
         def descriptorHash = 1234G
-        def moduleSource = Stub(CachingModuleVersionRepository.CachingModuleSource) {
+        def moduleSource = Stub(CachingModuleComponentRepository.CachingModuleSource) {
             getDescriptorHash() >> descriptorHash
         }
 
@@ -83,7 +83,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
     def "does not use cache when artifact set can be determined locally"() {
         def component = Mock(ComponentMetaData)
         def source = Mock(ModuleSource)
-        def cachingSource = new CachingModuleVersionRepository.CachingModuleSource(BigInteger.ONE, false, source)
+        def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def context = Mock(ArtifactResolveContext)
         def result = new DefaultBuildableArtifactSetResolveResult()
 

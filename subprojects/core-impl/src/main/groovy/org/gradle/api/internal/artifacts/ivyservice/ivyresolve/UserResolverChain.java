@@ -39,7 +39,7 @@ public class UserResolverChain implements RepositoryChain {
         return artifactResolver;
     }
 
-    public void add(LocalAwareModuleComponentRepository repository) {
+    public void add(ModuleComponentRepository repository) {
         dependencyResolver.add(repository);
         artifactResolver.add(repository);
     }

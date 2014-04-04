@@ -17,75 +17,77 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 // TODO:DAZ Add in-memory caching for resolveModuleArtifacts()
 // TODO:DAZ Change this so that it's a decoration over the file-system caching, rather than something completely separate.
-class CachedRepository implements LocalAwareModuleVersionRepository {
+class CachedRepository extends BaseModuleComponentRepository {
     final DependencyMetadataCache cache;
-    final LocalAwareModuleVersionRepository delegate;
     final DependencyMetadataCacheStats stats;
 
-    public CachedRepository(DependencyMetadataCache cache, LocalAwareModuleVersionRepository delegate, DependencyMetadataCacheStats stats) {
+    public CachedRepository(DependencyMetadataCache cache, ModuleComponentRepository delegate, DependencyMetadataCacheStats stats) {
+        super(delegate,
+                new LocalAccess(delegate.getLocalAccess(), cache),
+                new RemoteAccess(delegate.getRemoteAccess(), cache));
         this.cache = cache;
-        this.delegate = delegate;
         this.stats = stats;
-    }
-
-    public String getId() {
-        return delegate.getId();
-    }
-
-    public String getName() {
-        return delegate.getName();
-    }
-
-    public void localListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-        if(!cache.supplyLocalModuleVersions(dependency.getRequested(), result)) {
-            delegate.localListModuleVersions(dependency, result);
-            cache.newLocalModuleVersions(dependency.getRequested(), result);
-        }
-    }
-
-    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-        if(!cache.supplyModuleVersions(dependency.getRequested(), result)) {
-            delegate.listModuleVersions(dependency, result);
-            cache.newModuleVersions(dependency.getRequested(), result);
-        }
-    }
-
-    public void localResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-        if(!cache.supplyLocalMetaData(moduleComponentIdentifier, result)) {
-            delegate.localResolveComponentMetaData(dependency, moduleComponentIdentifier, result);
-            cache.newLocalDependencyResult(moduleComponentIdentifier, result);
-        }
-    }
-
-    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-        if(!cache.supplyMetaData(moduleComponentIdentifier, result)) {
-            delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
-            cache.newDependencyResult(moduleComponentIdentifier, result);
-        }
-    }
-
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        delegate.resolveModuleArtifacts(component, context, result);
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         if (!cache.supplyArtifact(artifact.getId(), result)) {
-            delegate.resolveArtifact(artifact, moduleSource, result);
+            super.resolveArtifact(artifact, moduleSource, result);
             cache.newArtifact(artifact.getId(), result);
         }
     }
 
+    private static class LocalAccess implements ModuleComponentRepositoryAccess {
+        private final ModuleComponentRepositoryAccess access;
+        private final DependencyMetadataCache cache;
+
+        public LocalAccess(ModuleComponentRepositoryAccess access, DependencyMetadataCache cache) {
+            this.access = access;
+            this.cache = cache;
+        }
+
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+            if(!cache.supplyLocalModuleVersions(dependency.getRequested(), result)) {
+                access.listModuleVersions(dependency, result);
+                cache.newLocalModuleVersions(dependency.getRequested(), result);
+            }
+        }
+
+        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+            if(!cache.supplyLocalMetaData(moduleComponentIdentifier, result)) {
+                access.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+                cache.newLocalDependencyResult(moduleComponentIdentifier, result);
+            }
+        }
+    }
+
+    private static class RemoteAccess implements ModuleComponentRepositoryAccess {
+        private final ModuleComponentRepositoryAccess access;
+        private final DependencyMetadataCache cache;
+
+        public RemoteAccess(ModuleComponentRepositoryAccess access, DependencyMetadataCache cache) {
+            this.access = access;
+            this.cache = cache;
+        }
+
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+            if(!cache.supplyModuleVersions(dependency.getRequested(), result)) {
+                access.listModuleVersions(dependency, result);
+                cache.newModuleVersions(dependency.getRequested(), result);
+            }
+        }
+
+        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+            if(!cache.supplyMetaData(moduleComponentIdentifier, result)) {
+                access.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+                cache.newDependencyResult(moduleComponentIdentifier, result);
+            }
+        }
+    }
 }

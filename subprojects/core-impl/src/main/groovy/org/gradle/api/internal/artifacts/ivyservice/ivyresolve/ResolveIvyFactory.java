@@ -93,20 +93,20 @@ public class ResolveIvyFactory {
                 ((ExternalResourceResolver) moduleVersionRepository).setRepositoryChain(parentLookupResolver);
             }
 
-            LocalAwareModuleVersionRepository localAwareRepository;
+            ModuleComponentRepository moduleComponentRepository;
             if (moduleVersionRepository.isLocal()) {
-                localAwareRepository = new LocalModuleVersionRepository(moduleVersionRepository, metadataProcessor);
+                moduleComponentRepository = new LocalFilesystemModuleComponentRepository(moduleVersionRepository, metadataProcessor);
             } else {
                 LocalArtifactsModuleVersionRepository wrapperRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
                 wrapperRepository = startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
-                localAwareRepository = new CachingModuleVersionRepository(wrapperRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
+                moduleComponentRepository = new CachingModuleComponentRepository(wrapperRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
                         cachePolicy, timeProvider, metadataProcessor, getModuleExtractor(moduleVersionRepository));
             }
             if (moduleVersionRepository.isDynamicResolveMode()) {
-                localAwareRepository = new IvyDynamicResolveModuleVersionRepository(localAwareRepository);
+                moduleComponentRepository = IvyDynamicResolveModuleComponentRepositoryAccess.wrap(moduleComponentRepository);
             }
-            localAwareRepository = inMemoryCache.cached(localAwareRepository);
-            userResolverChain.add(new LocalAwareModuleComponentRepository(localAwareRepository));
+            moduleComponentRepository = inMemoryCache.cached(moduleComponentRepository);
+            userResolverChain.add(moduleComponentRepository);
         }
 
         return userResolverChain;

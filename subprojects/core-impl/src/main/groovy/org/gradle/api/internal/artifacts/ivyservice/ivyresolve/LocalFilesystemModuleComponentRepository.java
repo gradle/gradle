@@ -25,31 +25,31 @@ import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
-public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepository {
+public class LocalFilesystemModuleComponentRepository implements ModuleComponentRepository {
     private final LocalArtifactsModuleVersionRepository delegate;
     private final ModuleMetadataProcessor processor;
+    private final LocalAccess localAccess = new LocalAccess();
+    private final RemoteAccess remoteAccess = new RemoteAccess();
 
-    public LocalModuleVersionRepository(LocalArtifactsModuleVersionRepository delegate, ModuleMetadataProcessor processor) {
+    public LocalFilesystemModuleComponentRepository(LocalArtifactsModuleVersionRepository delegate, ModuleMetadataProcessor processor) {
         this.delegate = delegate;
         this.processor = processor;
     }
 
-    public void localListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-        delegate.listModuleVersions(dependency, result);
+    public String getId() {
+        return delegate.getId();
     }
 
-    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+    public String getName() {
+        return delegate.getName();
     }
 
-    public void localResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-        delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
-        if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
-            processor.process(result.getMetaData());
-        }
+    public ModuleComponentRepositoryAccess getLocalAccess() {
+        return localAccess;
     }
 
-    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-        result.missing();
+    public ModuleComponentRepositoryAccess getRemoteAccess() {
+        return remoteAccess;
     }
 
     public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
@@ -66,11 +66,25 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
         delegate.resolveArtifact(artifact, moduleSource, result);
     }
 
-    public String getId() {
-        return delegate.getId();
+    private class LocalAccess implements ModuleComponentRepositoryAccess {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+            delegate.listModuleVersions(dependency, result);
+        }
+
+        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+            delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+            if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
+                processor.process(result.getMetaData());
+            }
+        }
     }
 
-    public String getName() {
-        return delegate.getName();
+    private static class RemoteAccess implements ModuleComponentRepositoryAccess {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+        }
+
+        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+            result.missing();
+        }
     }
 }

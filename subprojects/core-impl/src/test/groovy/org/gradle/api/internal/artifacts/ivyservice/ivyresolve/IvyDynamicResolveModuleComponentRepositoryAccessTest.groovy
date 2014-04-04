@@ -23,13 +23,13 @@ import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
 
-class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
-    final target = Mock(LocalAwareModuleVersionRepository)
+class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification {
+    final target = Mock(ModuleComponentRepositoryAccess)
     final metaData = Mock(MutableModuleVersionMetaData)
     final requestedDependency = Mock(DependencyMetaData)
     final moduleComponentId = Mock(ModuleComponentIdentifier)
     final result = Mock(BuildableModuleVersionMetaDataResolveResult)
-    final repository = new IvyDynamicResolveModuleVersionRepository(target)
+    final ModuleComponentRepositoryAccess access = new IvyDynamicResolveModuleComponentRepositoryAccess(target)
 
     def "replaces each dependency version with revConstraint"() {
         def original = dependency('1.2+')
@@ -40,10 +40,10 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
         result.metaData >> metaData
 
         when:
-        repository.localResolveComponentMetaData(requestedDependency, moduleComponentId, result)
+        access.resolveComponentMetaData(requestedDependency, moduleComponentId, result)
 
         then:
-        1 * target.localResolveComponentMetaData(requestedDependency, moduleComponentId, result)
+        1 * target.resolveComponentMetaData(requestedDependency, moduleComponentId, result)
 
         and:
         1 * metaData.dependencies >> [original]
@@ -53,10 +53,10 @@ class IvyDynamicResolveModuleVersionRepositoryTest extends Specification {
 
     def "does nothing when dependency has not been resolved"() {
         when:
-        repository.localResolveComponentMetaData(requestedDependency, moduleComponentId, result)
+        access.resolveComponentMetaData(requestedDependency, moduleComponentId, result)
 
         then:
-        1 * target.localResolveComponentMetaData(requestedDependency, moduleComponentId, result)
+        1 * target.resolveComponentMetaData(requestedDependency, moduleComponentId, result)
         _ * result.state >> BuildableModuleVersionMetaDataResolveResult.State.Missing
         0 * result._
     }
