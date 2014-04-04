@@ -17,14 +17,14 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.OutputsTrackingFixture
+import org.gradle.integtests.fixtures.CompilationOutputsFixture
 
 class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
-    OutputsTrackingFixture outputs
+    CompilationOutputsFixture outputs
 
     def setup() {
-        outputs = new OutputsTrackingFixture(file("build/classes/main"))
+        outputs = new CompilationOutputsFixture(file("build/classes/main"))
 
         buildFile << """
             allprojects {
@@ -51,113 +51,6 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         }"""
     }
 
-    def "compiles only a single class that was changed"() {
-        outputs.snapshot { run "compileJava" }
-
-        file("src/main/java/org/AnotherPersonImpl.java").text = """package org;
-        public class AnotherPersonImpl implements Person {
-            public String getName() { return "Hans"; }
-        }"""
-
-        when: run "compileJava"
-
-        then: outputs.changedClasses 'AnotherPersonImpl'
-    }
-
-    def "refreshes the class dependencies with each run"() {
-        outputs.snapshot { run "compileJava" }
-
-        file("src/main/java/org/AnotherPersonImpl.java").text = """package org;
-        public class AnotherPersonImpl {}""" //remove the dependency to the interface
-
-        when: run "compileJava"
-
-        then: outputs.changedClasses 'AnotherPersonImpl'
-
-        when:
-        file("src/main/java/org/Person.java").text = """package org;
-        public interface Person {
-            String getName();
-            String toString();
-        }"""
-        outputs.snapshot()
-        run "compileJava"
-
-        then: outputs.changedClasses 'PersonImpl', 'Person'
-    }
-
-    def "detects class transitive dependents"() {
-        outputs.snapshot { run "compileJava" }
-
-        when:
-        file("src/main/java/org/Person.java").text = """package org;
-        public interface Person {
-            String toString();
-        }"""
-
-        run "compileJava"
-
-        then:
-        outputs.changedClasses 'AnotherPersonImpl', 'PersonImpl', 'Person'
-    }
-
-    def "is sensitive to deletion and change"() {
-        outputs.snapshot { run "compileJava" }
-
-        assert file("src/main/java/org/PersonImpl.java").delete()
-
-        file("src/main/java/org/AnotherPersonImpl.java").text = """package org;
-        public class AnotherPersonImpl implements Person {
-            public String getName() { return "Hans"; }
-        }"""
-
-        when: run "compileJava"
-
-        then:
-        !file("build/classes/main/org/PersonImpl.class").exists()
-        outputs.changedClasses 'AnotherPersonImpl'
-    }
-
-    def "is sensitive to inlined constants"() {
-        outputs.snapshot { run "compileJava" }
-
-        file("src/main/java/org/WithConst.java").text = """package org;
-        public class WithConst {
-            static final int X = 20;
-        }"""
-
-        when: run "compileJava"
-
-        then:
-        outputs.changedClasses 'WithConst', 'AnotherPersonImpl', 'PersonImpl', 'Person'
-    }
-
-    def "is sensitive to source annotations"() {
-        file("src/main/java/org/ClassAnnotation.java").text = """package org; import java.lang.annotation.*;
-            @Retention(RetentionPolicy.RUNTIME) public @interface ClassAnnotation {}
-        """
-        file("src/main/java/org/SourceAnnotation.java").text = """package org; import java.lang.annotation.*;
-            @Retention(RetentionPolicy.SOURCE) public @interface SourceAnnotation {}
-        """
-        file("src/main/java/org/UsesClassAnnotation.java").text = """package org;
-            @ClassAnnotation public class UsesClassAnnotation {}
-        """
-        file("src/main/java/org/UsesSourceAnnotation.java").text = """package org;
-            @SourceAnnotation public class UsesSourceAnnotation {}
-        """
-        outputs.snapshot { run "compileJava" }
-
-        file("src/main/java/org/ClassAnnotation.java").text = """package org; import java.lang.annotation.*;
-            @Retention(RetentionPolicy.RUNTIME) public @interface ClassAnnotation {
-                String foo() default "foo";
-            }"""
-
-        when: run "compileJava"
-
-        then:
-        outputs.changedClasses 'WithConst', 'UsesSourceAnnotation', 'ClassAnnotation', 'UsesClassAnnotation', 'SourceAnnotation', 'AnotherPersonImpl', 'PersonImpl', 'Person'
-    }
-
     def "understands inter-project dependencies"() {
         settingsFile << "include 'api'"
         buildFile << "dependencies { compile project(':api') }"
@@ -182,7 +75,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         when: run "compileJava"
 
         then:
-        outputs.changedClasses 'ConsumesB'
+        outputs.recompiledClasses 'ConsumesB'
     }
 
     def "understands inter-project dependency that forces full rebuild"() {
@@ -203,27 +96,6 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         when: run "compileJava"
 
         then:
-        outputs.changedClasses 'WithConst', 'AnotherPersonImpl', 'B', 'C', 'PersonImpl', 'Person'
-    }
-
-    def "removal of class causes deletion of inner classes"() {
-        file("src/main/java/org/B.java") << """package org;
-            public class B {
-                public static class InnerB {}
-            }
-        """
-
-        when: run "compileJava"
-
-        then:
-        def classes = [file('build/classes/main/org/B.class'), file('build/classes/main/org/B$InnerB.class')]
-        classes.each { assert it.exists() }
-
-        when:
-        assert file("src/main/java/org/B.java").delete()
-        run "compileJava"
-
-        then:
-        classes.each { assert !it.exists() }
+        outputs.recompiledClasses 'WithConst', 'AnotherPersonImpl', 'B', 'C', 'PersonImpl', 'Person'
     }
 }

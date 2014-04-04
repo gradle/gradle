@@ -48,7 +48,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFile sourceFile
+        outputs.recompiledFile sourceFile
     }
 
     def "source is always recompiled if it imported header via macro"() {
@@ -72,7 +72,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFile sourceFile
+        outputs.recompiledFile sourceFile
 
         when: "Header that is NOT included is changed"
         file("src/main/headers/notIncluded.h") << """
@@ -85,7 +85,7 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFile sourceFile
+        outputs.recompiledFile sourceFile
     }
 
     def "recompiles source file when transitively imported header file is changed"() {
@@ -114,6 +114,6 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractLangua
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFile sourceFile
+        outputs.recompiledFile sourceFile
     }
 }

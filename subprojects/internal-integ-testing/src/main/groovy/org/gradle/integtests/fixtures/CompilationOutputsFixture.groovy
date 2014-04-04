@@ -17,46 +17,58 @@
 package org.gradle.integtests.fixtures
 
 import groovy.io.FileType
-import org.apache.commons.io.FilenameUtils
 
+import static org.apache.commons.io.FilenameUtils.removeExtension
 import static org.spockframework.util.CollectionUtil.asSet
 
-class OutputsTrackingFixture {
+class CompilationOutputsFixture {
 
     private final File targetDir
 
     //Tracks outputs in given target dir
-    OutputsTrackingFixture(File targetDir) {
+    CompilationOutputsFixture(File targetDir) {
         assert targetDir != null
         this.targetDir = targetDir
     }
 
+    private List<File> snapshot = []
+
     // Executes optional operation and makes a snapshot of outputs (sets the last modified timestamp to zero for all files)
     public <T> T snapshot(Closure<T> operation = null) {
         T result = operation?.call()
-        targetDir.eachFileRecurse(FileType.FILES) { it.lastModified = 0 }
+        snapshot.clear()
+        targetDir.eachFileRecurse(FileType.FILES) {
+            it.lastModified = 0
+            snapshot << it
+        }
         result
     }
 
-    //asserts none of the files changed since last snapshot
-    void noneChanged() {
-        changedFiles([])
+    //asserts none of the files changed/added since last snapshot
+    void noneRecompiled() {
+        recompiledFiles([])
     }
 
-    //asserts file changed since last snapshot
-    void changedFile(File file) {
-        changedFiles([file])
+    //asserts file changed/added since last snapshot
+    void recompiledFile(File file) {
+        recompiledFiles([file])
     }
 
-    //asserts files changed since last snapshot
-    void changedFiles(Collection<File> files) {
-        def expectedNames = files.collect({ FilenameUtils.removeExtension(it.name) }) as Set
+    //asserts files changed/added since last snapshot
+    void recompiledFiles(Collection<File> files) {
+        def expectedNames = files.collect({ removeExtension(it.name) }) as Set
         assert changedFileNames == expectedNames
     }
 
-    //asserts classes changed since last snapshot. Class means file name without extension.
-    void changedClasses(String ... classNames) {
+    //asserts classes changed/added since last snapshot. Class means file name without extension.
+    void recompiledClasses(String ... classNames) {
         assert changedFileNames == asSet(classNames)
+    }
+
+    //asserts classes deleted since last snapshot. Class means file name without extension.
+    void deletedClasses(String ... classNames) {
+        def deleted = snapshot.findAll { !it.exists() }.collect { removeExtension(it.name) } as Set
+        assert deleted == asSet(classNames)
     }
 
     private Set<String> getChangedFileNames() {
@@ -64,7 +76,7 @@ class OutputsTrackingFixture {
         def changed = new HashSet()
         targetDir.eachFileRecurse(FileType.FILES) {
             if (it.lastModified() > 0) {
-                changed << FilenameUtils.removeExtension(it.name)
+                changed << removeExtension(it.name)
             }
         }
         changed

@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.language.cpp
 
 import groovy.io.FileType
 import org.apache.commons.io.FilenameUtils
-import org.gradle.integtests.fixtures.OutputsTrackingFixture
+import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.internal.hash.HashUtil
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
@@ -34,7 +34,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
     TestFile otherHeaderFile
     List<TestFile> otherSourceFiles = []
     TestFile objectFileDir
-    OutputsTrackingFixture outputs
+    CompilationOutputsFixture outputs
 
     abstract IncrementalHelloWorldApp getHelloWorldApp();
 
@@ -64,7 +64,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
             // Dummy header file
 """
         objectFileDir = file("build/objectFiles/mainExecutable")
-        outputs = new OutputsTrackingFixture(objectFileDir)
+        outputs = new CompilationOutputsFixture(objectFileDir)
     }
 
     def "recompiles changed source file only"() {
@@ -82,7 +82,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFile sourceFile
+        outputs.recompiledFile sourceFile
     }
 
     def "recompiles all source files that include changed header file"() {
@@ -100,7 +100,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFiles allSources
+        outputs.recompiledFiles allSources
     }
 
     def "recompiles only source file that includes changed header file"() {
@@ -122,7 +122,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFile sourceFile
+        outputs.recompiledFile sourceFile
     }
 
     def "source is always recompiled if it includes header via macro"() {
@@ -146,7 +146,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFile sourceFile
+        outputs.recompiledFile sourceFile
 
         when: "Header that is NOT included is changed"
         file("src/main/headers/notIncluded.h") << """
@@ -159,7 +159,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFile sourceFile
+        outputs.recompiledFile sourceFile
     }
 
     def "recompiles source file when transitively included header file is changed"() {
@@ -188,7 +188,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFile sourceFile
+        outputs.recompiledFile sourceFile
     }
 
     def "recompiles source file when an included header file is renamed"() {
@@ -221,7 +221,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         then:
         skipped compileTask
-        outputs.noneChanged()
+        outputs.noneRecompiled()
     }
 
     @Unroll
@@ -249,7 +249,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         then:
         skipped compileTask
-        outputs.noneChanged()
+        outputs.noneRecompiled()
 
         where:
         testCase                       | headerDirs
@@ -279,7 +279,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFiles allSources
+        outputs.recompiledFiles allSources
     }
 
     def "recompiles when replacement header file is added before previous header to existing include path"() {
@@ -303,7 +303,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFiles allSources
+        outputs.recompiledFiles allSources
     }
 
     def "recompiles when replacement header file is added to source directory"() {
@@ -320,7 +320,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFiles allSources
+        outputs.recompiledFiles allSources
     }
 
     def "recompiles all source files and removes stale outputs when compiler arg changes"() {
@@ -354,7 +354,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFiles allSources
+        outputs.recompiledFiles allSources
         outputFile(extraSource).assertDoesNotExist()
     }
 
@@ -371,7 +371,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFiles allSources
+        outputs.recompiledFiles allSources
     }
 
     def "removes output file when source file is renamed"() {
@@ -387,7 +387,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         run "mainExecutable"
 
         then:
-        outputs.changedFile newFile
+        outputs.recompiledFile newFile
         outputFile(sourceFile).assertDoesNotExist()
     }
 
@@ -409,7 +409,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         then:
         outputFile(extraSource).assertDoesNotExist()
-        outputs.noneChanged()
+        outputs.noneRecompiled()
     }
 
     def "removes output files when all source files are removed"() {
@@ -483,7 +483,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.changedFile sourceFile
+        outputs.recompiledFile sourceFile
     }
 
     List getAllSources() {
