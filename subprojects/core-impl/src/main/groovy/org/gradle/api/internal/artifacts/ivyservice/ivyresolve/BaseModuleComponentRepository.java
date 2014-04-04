@@ -31,8 +31,8 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
 
     public BaseModuleComponentRepository(ModuleComponentRepository delegate) {
         this.delegate = delegate;
-        this.localAccess = null;
-        this.remoteAccess = null;
+        this.localAccess = delegate.getLocalAccess();
+        this.remoteAccess = delegate.getRemoteAccess();
     }
 
     public String getId() {

@@ -25,10 +25,19 @@ import java.util.List;
 class IvyDynamicResolveModuleComponentRepositoryAccess extends BaseModuleComponentRepositoryAccess {
 
     public static ModuleComponentRepository wrap(ModuleComponentRepository delegate) {
-        return new BaseModuleComponentRepository(
-                delegate,
-                new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getLocalAccess()),
-                new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getRemoteAccess()));
+        final ModuleComponentRepositoryAccess localAccess = new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getLocalAccess());
+        final ModuleComponentRepositoryAccess remoteAccess = new IvyDynamicResolveModuleComponentRepositoryAccess(delegate.getRemoteAccess());
+        return new BaseModuleComponentRepository(delegate) {
+            @Override
+            public ModuleComponentRepositoryAccess getLocalAccess() {
+                return localAccess;
+            }
+
+            @Override
+            public ModuleComponentRepositoryAccess getRemoteAccess() {
+                return remoteAccess;
+            }
+        };
     }
 
     IvyDynamicResolveModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate) {

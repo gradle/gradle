@@ -27,13 +27,25 @@ import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 class CachedRepository extends BaseModuleComponentRepository {
     final DependencyMetadataCache cache;
     final DependencyMetadataCacheStats stats;
+    private final ModuleComponentRepositoryAccess localAccess;
+    private final ModuleComponentRepositoryAccess remoteAccess;
 
     public CachedRepository(DependencyMetadataCache cache, ModuleComponentRepository delegate, DependencyMetadataCacheStats stats) {
-        super(delegate,
-                new LocalAccess(delegate.getLocalAccess(), cache),
-                new RemoteAccess(delegate.getRemoteAccess(), cache));
+        super(delegate);
         this.cache = cache;
         this.stats = stats;
+        this.localAccess = new LocalAccess(delegate.getLocalAccess(), cache);
+        this.remoteAccess = new RemoteAccess(delegate.getRemoteAccess(), cache);
+    }
+
+    @Override
+    public ModuleComponentRepositoryAccess getLocalAccess() {
+        return localAccess;
+    }
+
+    @Override
+    public ModuleComponentRepositoryAccess getRemoteAccess() {
+        return remoteAccess;
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
@@ -43,7 +55,7 @@ class CachedRepository extends BaseModuleComponentRepository {
         }
     }
 
-    // TODO:DAZ Merge the local and remote implementations
+    // TODO:DAZ Merge the local and remote implementations, by using 2 simpler cache instances
     private static class LocalAccess extends BaseModuleComponentRepositoryAccess {
         private final DependencyMetadataCache cache;
 

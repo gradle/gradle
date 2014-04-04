@@ -24,10 +24,10 @@ class BaseModuleComponentRepositoryTest extends Specification {
     final delegate = Mock(ModuleComponentRepository)
     final localAccess = Mock(ModuleComponentRepositoryAccess)
     final remoteAccess = Mock(ModuleComponentRepositoryAccess)
-    final repository = new BaseModuleComponentRepository(delegate, localAccess, remoteAccess)
 
     def "delegates id and name methods"() {
         when:
+        final repository = new BaseModuleComponentRepository(delegate, localAccess, remoteAccess)
         1 * delegate.id >> "id"
         1 * delegate.name >> "name"
 
@@ -37,20 +37,39 @@ class BaseModuleComponentRepositoryTest extends Specification {
     }
 
     def "delegates artifact methods"() {
-
         when:
         final artifactMetaData = Mock(ComponentArtifactMetaData)
         final moduleSource = Mock(ModuleSource)
         final result = Mock(BuildableArtifactResolveResult)
+        final repository = new BaseModuleComponentRepository(delegate)
         repository.resolveArtifact(artifactMetaData, moduleSource, result)
 
         then:
         delegate.resolveArtifact(artifactMetaData, moduleSource, result)
     }
 
-    def "returns supplied local and remote access"() {
-        expect:
+    def "delegates access methods"() {
+        when:
+        final repository = new BaseModuleComponentRepository(delegate)
+
+        then:
         repository.localAccess == localAccess
         repository.remoteAccess == remoteAccess
+
+        and:
+        1 * delegate.localAccess >> localAccess
+        1 * delegate.remoteAccess >> remoteAccess
+    }
+
+    def "returns supplied local and remote access"() {
+        when:
+        final repository = new BaseModuleComponentRepository(delegate, localAccess, remoteAccess)
+
+        then:
+        repository.localAccess == localAccess
+        repository.remoteAccess == remoteAccess
+
+        and:
+        0 * delegate._
     }
 }

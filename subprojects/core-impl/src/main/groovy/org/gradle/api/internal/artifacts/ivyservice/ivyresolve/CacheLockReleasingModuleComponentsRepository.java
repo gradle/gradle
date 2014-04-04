@@ -27,11 +27,18 @@ import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComponentRepository {
     private final ModuleComponentRepository repository;
     private final CacheLockingManager cacheLockingManager;
+    private final ModuleComponentRepositoryAccess remoteAccess;
 
     public CacheLockReleasingModuleComponentsRepository(ModuleComponentRepository repository, CacheLockingManager cacheLockingManager) {
-        super(repository, repository.getLocalAccess(), new LockReleasingRepositoryAccess(repository.getId(), repository.getRemoteAccess(), cacheLockingManager));
+        super(repository);
+        this.remoteAccess = new LockReleasingRepositoryAccess(repository.getId(), repository.getRemoteAccess(), cacheLockingManager);
         this.repository = repository;
         this.cacheLockingManager = cacheLockingManager;
+    }
+
+    @Override
+    public ModuleComponentRepositoryAccess getRemoteAccess() {
+        return remoteAccess;
     }
 
     public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {

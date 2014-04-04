@@ -84,8 +84,15 @@ public class StartParameterResolutionOverride {
 
     private static class OfflineModuleVersionRepository extends BaseModuleComponentRepository {
 
+        private final FailedRemoteAccess failedRemoteAccess = new FailedRemoteAccess();
+
         public OfflineModuleVersionRepository(ModuleComponentRepository original) {
-            super(original, original.getLocalAccess(), new FailedRemoteAccess());
+            super(original);
+        }
+
+        @Override
+        public ModuleComponentRepositoryAccess getRemoteAccess() {
+            return failedRemoteAccess;
         }
 
         public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
