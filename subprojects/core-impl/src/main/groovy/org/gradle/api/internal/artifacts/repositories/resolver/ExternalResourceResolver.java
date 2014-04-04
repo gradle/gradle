@@ -479,24 +479,25 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected abstract class AbstractRepositoryAccess implements ModuleComponentRepositoryAccess {
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
             ModuleVersionMetaData moduleMetaData = (ModuleVersionMetaData) component;
-            if (context instanceof ConfigurationResolveContext) {
-                String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
-                ConfigurationMetaData configuration = component.getConfiguration(configurationName);
-                resolveConfigurationArtifacts(moduleMetaData, configuration, result);
-            } else {
-                Class<? extends Artifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
+            Class<? extends Artifact> artifactType = context.getArtifactType();
 
-                if (artifactType == JvmLibraryJavadocArtifact.class) {
-                    resolveJavadocArtifacts(moduleMetaData, result);
-                } else if (artifactType == JvmLibrarySourcesArtifact.class) {
-                    resolveSourceArtifacts(moduleMetaData, result);
-                } else if (isMetaDataArtifact(artifactType)) {
-                    resolveMetaDataArtifacts(moduleMetaData, result);
-                }
+            if (artifactType == JvmLibraryJavadocArtifact.class) {
+                resolveJavadocArtifacts(moduleMetaData, result);
+            } else if (artifactType == JvmLibrarySourcesArtifact.class) {
+                resolveSourceArtifacts(moduleMetaData, result);
+            } else if (isMetaDataArtifact(artifactType)) {
+                resolveMetaDataArtifacts(moduleMetaData, result);
             }
         }
+
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+            String configurationName = context.getConfigurationName();
+             ConfigurationMetaData configuration = component.getConfiguration(configurationName);
+             resolveConfigurationArtifacts((ModuleVersionMetaData) component, configuration, result);
+        }
+
         protected abstract void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result);
 
         protected abstract void resolveMetaDataArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result);
@@ -534,12 +535,21 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         @Override
-        public final void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
             super.resolveModuleArtifacts(component, context, result);
+            checkArtifactsResolved(component, context, result);
+        }
 
+        @Override
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+            super.resolveModuleArtifacts(component, context, result);
+            checkArtifactsResolved(component, context, result);
+        }
+
+        private void checkArtifactsResolved(ComponentMetaData component, Object context, BuildableArtifactSetResolveResult result) {
             if (!result.hasResult()) {
                 result.failed(new ArtifactResolveException(component.getComponentId(),
-                        String.format("Cannot locate %s for '%s' in repository '%s'", context.getDescription(), component, name)));
+                        String.format("Cannot locate %s for '%s' in repository '%s'", context, component, name)));
             }
         }
 

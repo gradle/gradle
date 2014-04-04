@@ -93,8 +93,12 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
             public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
             }
 
-            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-                doResolveModuleArtifacts(component, context, result, false);
+            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+            }
+
+            public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+                String configurationName = context.getConfigurationName();
+                result.resolved(component.getConfiguration(configurationName).getArtifacts());
             }
         };
     }
@@ -134,8 +138,18 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
                 }
             }
 
-            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-                doResolveModuleArtifacts(component, context, result, true);
+            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+                Class<? extends Artifact> artifactType = context.getArtifactType();
+                try {
+                    result.resolved(getCandidateArtifacts((ModuleVersionMetaData) component, artifactType));
+                } catch (Exception e) {
+                    result.failed(new ArtifactResolveException(component.getComponentId(), e));
+                }
+            }
+
+            public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+                String configurationName = context.getConfigurationName();
+                result.resolved(component.getConfiguration(configurationName).getArtifacts());
             }
         };
     }
@@ -159,25 +173,6 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
             result.resolved(localFile);
         } else {
             result.notFound(artifact.getId());
-        }
-    }
-
-    // TODO:DAZ This "local-only" pattern is quite ugly: improve it.
-    private void doResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result, boolean localOnly) {
-        ModuleVersionMetaData moduleVersion = (ModuleVersionMetaData) component;
-        if (context instanceof ConfigurationResolveContext) {
-            String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
-            result.resolved(component.getConfiguration(configurationName).getArtifacts());
-            return;
-        }
-
-        if (!localOnly && context instanceof ArtifactTypeResolveContext) {
-            Class<? extends Artifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
-            try {
-                result.resolved(getCandidateArtifacts(moduleVersion, artifactType));
-            } catch (Exception e) {
-                result.failed(new ArtifactResolveException(component.getComponentId(), e));
-            }
         }
     }
 

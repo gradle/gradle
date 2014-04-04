@@ -18,8 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactType;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
@@ -60,7 +61,14 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
             }
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+            delegate.getLocalAccess().resolveModuleArtifacts(component, context, result);
+            if(!result.hasResult()) {
+                delegate.getRemoteAccess().resolveModuleArtifacts(component, context, result);
+            }
+        }
+
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
             delegate.getLocalAccess().resolveModuleArtifacts(component, context, result);
             if(!result.hasResult()) {
                 delegate.getRemoteAccess().resolveModuleArtifacts(component, context, result);
@@ -77,7 +85,10 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
             result.missing();
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+        }
+
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
         }
     }
 }

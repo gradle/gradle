@@ -24,9 +24,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
@@ -200,7 +198,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             result.resolved(metaData, new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), cachedMetaData.getModuleSource()));
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
 
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
@@ -209,7 +207,23 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return;
             }
 
-            ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), context.getId());
+            findInCache(cacheKey(context), component, result, cachedModuleSource);
+        }
+
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+            final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
+
+            // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
+            delegate.getLocalAccess().resolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()), context, result);
+            if (result.hasResult()) {
+                return;
+            }
+
+            findInCache(cacheKey(context), component, result, cachedModuleSource);
+        }
+
+        private void findInCache(String contextId, ComponentMetaData component, BuildableArtifactSetResolveResult result, CachingModuleSource cachedModuleSource) {
+            ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), contextId);
             BigInteger moduleDescriptorHash = cachedModuleSource.getDescriptorHash();
 
             if (cachedModuleArtifacts != null) {
@@ -220,7 +234,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     return;
                 }
 
-                LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'", context.getDescription(), component.getId(), delegate.getName());
+                LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'", contextId, component.getId(), delegate.getName());
             }
         }
     }
@@ -262,16 +276,34 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
         }
 
-        // TODO:DAZ Move some of this to local, once that is wired in
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource moduleSource = (CachingModuleSource) component.getSource();
             delegate.getRemoteAccess().resolveModuleArtifacts(component.withSource(moduleSource.getDelegate()), context, result);
 
+            maybeCache(component, result, moduleSource, cacheKey(context));
+        }
+
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+            final CachingModuleSource moduleSource = (CachingModuleSource) component.getSource();
+            delegate.getRemoteAccess().resolveModuleArtifacts(component.withSource(moduleSource.getDelegate()), context, result);
+
+            maybeCache(component, result, moduleSource, cacheKey(context));
+        }
+
+        private void maybeCache(ComponentMetaData component, BuildableArtifactSetResolveResult result, CachingModuleSource moduleSource, String contextId) {
             if (result.getFailure() == null) {
                 Set<ModuleVersionArtifactIdentifier> artifactIdentifierSet = CollectionUtils.collect(result.getArtifacts(), new ArtifactMetaDataToId());
-                moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), context.getId(), moduleSource.getDescriptorHash(), artifactIdentifierSet);
+                moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), contextId, moduleSource.getDescriptorHash(), artifactIdentifierSet);
             }
         }
+    }
+
+    private String cacheKey(ArtifactType context) {
+        return "artifacts:" + context.getArtifactType().getName();
+    }
+
+    private String cacheKey(ComponentUsage context) {
+        return "configuration:" + context.getConfigurationName();
     }
 
     static class CachingModuleSource implements ModuleSource {

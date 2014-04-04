@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-public class ConfigurationResolveContext implements ArtifactResolveContext {
+public class DefaultComponentUsage implements ComponentUsage {
     private final String configurationName;
 
-    public ConfigurationResolveContext(String configurationName) {
+    public DefaultComponentUsage(String configurationName) {
         this.configurationName = configurationName;
     }
 
@@ -28,14 +28,6 @@ public class ConfigurationResolveContext implements ArtifactResolveContext {
 
     @Override
     public String toString() {
-        return String.format("configuration '%s'", configurationName);
-    }
-
-    public String getId() {
-        return "configuration:" + configurationName;
-    }
-
-    public String getDescription() {
         return String.format("artifacts for configuration '%s'", configurationName);
     }
 }

@@ -15,14 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactType
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionSelectionResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
@@ -139,7 +135,7 @@ class CachedRepositoryTest extends Specification {
 
     def "delegates request for module artifacts"() {
         def moduleMetaData = Stub(ModuleVersionMetaData)
-        def context = Stub(ArtifactResolveContext)
+        def context = Stub(ArtifactType)
         def result = Mock(BuildableArtifactSetResolveResult)
 
         when:

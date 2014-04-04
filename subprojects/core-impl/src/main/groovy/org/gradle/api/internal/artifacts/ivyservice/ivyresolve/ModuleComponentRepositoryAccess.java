@@ -17,8 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactType;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
@@ -37,7 +38,12 @@ public interface ModuleComponentRepositoryAccess {
     void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result);
 
     /**
-     * Resolves a set of artifacts belonging to the given component, based on the supplied context. Any failures are packaged up in the result.
+     * Resolves a set of artifacts belonging to the given component, based on the supplied usage. Any failures are packaged up in the result.
      */
-    void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result);
+    void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result);
+
+    /**
+     * Resolves a set of artifacts belonging to the given component, with the type specified. Any failures are packaged up in the result.
+     */
+    void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result);
 }

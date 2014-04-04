@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.internal.Transformers;
@@ -34,7 +31,17 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         repositories.put(repository.getId(), repository);
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+        ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
+        ComponentMetaData unpackedComponent = unpackSource(component);
+        // First try to determine the artifacts locally before going remote
+        sourceRepository.getLocalAccess().resolveModuleArtifacts(unpackedComponent, context, result);
+        if (!result.hasResult()) {
+            sourceRepository.getRemoteAccess().resolveModuleArtifacts(unpackedComponent, context, result);
+        }
+    }
+
+    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
         ComponentMetaData unpackedComponent = unpackSource(component);
         // First try to determine the artifacts locally before going remote

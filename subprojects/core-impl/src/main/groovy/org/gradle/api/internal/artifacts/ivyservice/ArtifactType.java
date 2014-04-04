@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-public interface ArtifactResolveContext {
-    String getId();
-    String getDescription();
+import org.gradle.api.artifacts.result.Artifact;
+
+public interface ArtifactType {
+    Class<? extends Artifact> getArtifactType();
 }

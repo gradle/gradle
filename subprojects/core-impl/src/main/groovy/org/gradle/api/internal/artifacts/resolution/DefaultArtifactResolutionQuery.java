@@ -119,7 +119,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     private <T extends Artifact> void addArtifacts(DefaultResolvedComponentArtifactsResult artifacts, Class<T> type, ComponentMetaData component, ArtifactResolver artifactResolver) {
-        ArtifactResolveContext context = new ArtifactTypeResolveContext(type);
+        ArtifactType context = new DefaultArtifactType(type);
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
         artifactResolver.resolveModuleArtifacts(component, context, artifactSetResolveResult);
 

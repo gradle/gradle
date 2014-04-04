@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactType
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier
@@ -61,7 +61,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def component = Stub(ComponentMetaData) {
             getComponentId() >> componentId
         }
-        def context = Stub(ArtifactResolveContext) {
+        def context = Stub(ArtifactType) {
             getId() >> "artifact-context"
         }
         def result = Mock(BuildableArtifactSetResolveResult)
