@@ -69,7 +69,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
     def "recompiles changed source file only"() {
         given:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         sourceFile << """
@@ -82,12 +82,12 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged sourceFile
+        outputs.changedFile sourceFile
     }
 
     def "recompiles all source files that include changed header file"() {
         given:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         sharedHeaderFile << """
@@ -100,7 +100,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged allSources
+        outputs.changedFiles allSources
     }
 
     def "recompiles only source file that includes changed header file"() {
@@ -109,7 +109,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
             #include "${otherHeaderFile.name}"
 """
         and:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         otherHeaderFile << """
@@ -122,7 +122,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged sourceFile
+        outputs.changedFile sourceFile
     }
 
     def "source is always recompiled if it includes header via macro"() {
@@ -133,7 +133,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 """
 
         and:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         otherHeaderFile << """
@@ -146,7 +146,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged sourceFile
+        outputs.changedFile sourceFile
 
         when: "Header that is NOT included is changed"
         file("src/main/headers/notIncluded.h") << """
@@ -159,7 +159,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged sourceFile
+        outputs.changedFile sourceFile
     }
 
     def "recompiles source file when transitively included header file is changed"() {
@@ -175,7 +175,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 """
 
         and:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         transitiveHeaderFile << """
@@ -188,12 +188,12 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged sourceFile
+        outputs.changedFile sourceFile
     }
 
     def "recompiles source file when an included header file is renamed"() {
         given:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         and:
         final newFile = file("src/main/headers/changed.h")
@@ -210,7 +210,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
     def "does not recompile any sources when unused header file is changed"() {
         given:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         otherHeaderFile << """
@@ -221,13 +221,13 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         then:
         skipped compileTask
-        outputs.assertNoneChanged()
+        outputs.noneChanged()
     }
 
     @Unroll
     def "does not recompile when include path has #testCase"() {
         given:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         file("src/additional-headers/other.h") << """
     // extra header file that is not included in source
@@ -249,7 +249,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         then:
         skipped compileTask
-        outputs.assertNoneChanged()
+        outputs.noneChanged()
 
         where:
         testCase                       | headerDirs
@@ -260,7 +260,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
     def "recompiles when include path is changed so that replacement header file occurs before previous header"() {
         given:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text
 
@@ -279,7 +279,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged allSources
+        outputs.changedFiles allSources
     }
 
     def "recompiles when replacement header file is added before previous header to existing include path"() {
@@ -291,7 +291,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
                 }
             }
 """
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text
@@ -303,12 +303,12 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged allSources
+        outputs.changedFiles allSources
     }
 
     def "recompiles when replacement header file is added to source directory"() {
         given:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         sourceFile.parentFile.file(sharedHeaderFile.name) << sharedHeaderFile.text
@@ -320,7 +320,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged allSources
+        outputs.changedFiles allSources
     }
 
     def "recompiles all source files and removes stale outputs when compiler arg changes"() {
@@ -328,7 +328,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
         extraSource << sourceFile.text.replaceAll("main", "main2")
 
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         outputFile(extraSource).assertExists()
 
@@ -354,13 +354,13 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged allSources
+        outputs.changedFiles allSources
         outputFile(extraSource).assertDoesNotExist()
     }
 
     def "recompiles all source files when generated object files are removed"() {
         given:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         objectFileDir.deleteDir()
@@ -371,12 +371,12 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged allSources
+        outputs.changedFiles allSources
     }
 
     def "removes output file when source file is renamed"() {
         given:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         when:
         final newFile = file("src/main/${app.sourceType}/changed.${app.sourceExtension}")
@@ -387,7 +387,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         run "mainExecutable"
 
         then:
-        outputs.assertChanged newFile
+        outputs.changedFile newFile
         outputFile(sourceFile).assertDoesNotExist()
     }
 
@@ -396,7 +396,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
         extraSource << sourceFile.text.replaceAll("main", "main2")
 
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         and:
         outputFile(extraSource).assertExists()
@@ -409,7 +409,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         then:
         outputFile(extraSource).assertDoesNotExist()
-        outputs.assertNoneChanged()
+        outputs.noneChanged()
     }
 
     def "removes output files when all source files are removed"() {
@@ -466,7 +466,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         app.writeSources(file("src/other"))
 
         and:
-        outputs.track { run "mainExecutable" }
+        outputs.snapshot { run "mainExecutable" }
 
         and:
         // Completely independent compile task (state should be independent)
@@ -483,7 +483,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         executedAndNotSkipped compileTask
 
         and:
-        outputs.assertChanged sourceFile
+        outputs.changedFile sourceFile
     }
 
     List getAllSources() {

@@ -19,6 +19,8 @@ package org.gradle.integtests.fixtures
 import groovy.io.FileType
 import org.apache.commons.io.FilenameUtils
 
+import static org.spockframework.util.CollectionUtil.asSet
+
 class OutputsTrackingFixture {
 
     private final File targetDir
@@ -28,25 +30,28 @@ class OutputsTrackingFixture {
         this.targetDir = targetDir
     }
 
-    public <T> T track(Closure<T> operation) {
-        T result = operation.call()
-        // Set the last modified timestamp to zero for all files
+    // Executes optional operation and sets the last modified timestamp to zero for all files
+    public <T> T snapshot(Closure<T> operation = null) {
+        T result = operation?.call()
         targetDir.eachFileRecurse(FileType.FILES) { it.lastModified = 0 }
         result
     }
 
-    void assertNoneChanged() {
-        assertChanged([])
+    void noneChanged() {
+        changedFiles([])
     }
 
-    void assertChanged(File file) {
-        assertChanged([file])
+    void changedFile(File file) {
+        changedFiles([file])
     }
 
-    def assertChanged(Collection<File> files) {
+    void changedFiles(Collection<File> files) {
         def expectedNames = files.collect({ FilenameUtils.removeExtension(it.name) }) as Set
-        assert getChangedFileNames() == expectedNames
-        return true
+        assert changedFileNames == expectedNames
+    }
+
+    void changedClasses(String ... classNames) {
+        assert changedFileNames == asSet(classNames)
     }
 
     private Set<String> getChangedFileNames() {

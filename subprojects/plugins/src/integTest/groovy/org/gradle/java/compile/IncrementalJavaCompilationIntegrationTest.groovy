@@ -17,44 +17,19 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.OutputsTrackingFixture
 
 class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
+    OutputsTrackingFixture outputs
+
     def setup() {
+        outputs = new OutputsTrackingFixture(file("build/classes/main"))
+
         buildFile << """
             allprojects {
                 apply plugin: 'java'
                 compileJava.options.incremental = true
-            }
-
-            task cleanFiles(type: Delete) {
-                delete("changedFiles.txt", "unchangedFiles.txt")
-            }
-
-            compileJava {
-                dependsOn cleanFiles
-                def times = [:]
-                doFirst {
-                    fileTree("build/classes/main").each {
-                        if (it.file) {
-                            times[it] = it.lastModified()
-                        }
-                    }
-                }
-                doLast {
-                    sleep(1100) //lastModified granularity
-                    def changedFiles = ""
-                    def unchangedFiles = ""
-                    times.each { k,v ->
-                        if (k.lastModified() != v) {
-                            changedFiles += k.name + ","
-                        } else {
-                            unchangedFiles += k.name + ","
-                        }
-                    }
-                    file("changedFiles.txt").text = changedFiles
-                    file("unchangedFiles.txt").text = unchangedFiles
-                }
             }
         """
 
@@ -76,16 +51,8 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         }"""
     }
 
-    Set getChangedFiles() {
-        file("changedFiles.txt").text.split(",").findAll { it.length() > 0 }.collect { it.replaceAll("\\.class", "")}
-    }
-
-    Set getUnchangedFiles() {
-        file("unchangedFiles.txt").text.split(",").findAll { it.length() > 0 }.collect { it.replaceAll("\\.class", "")}
-    }
-
     def "compiles only a single class that was changed"() {
-        run "compileJava"
+        outputs.snapshot { run "compileJava" }
 
         file("src/main/java/org/AnotherPersonImpl.java").text = """package org;
         public class AnotherPersonImpl implements Person {
@@ -94,18 +61,18 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
 
         when: run "compileJava"
 
-        then: changedFiles == ['AnotherPersonImpl'] as Set
+        then: outputs.changedClasses 'AnotherPersonImpl'
     }
 
     def "refreshes the class dependencies with each run"() {
-        run "compileJava"
+        outputs.snapshot { run "compileJava" }
 
         file("src/main/java/org/AnotherPersonImpl.java").text = """package org;
         public class AnotherPersonImpl {}""" //remove the dependency to the interface
 
         when: run "compileJava"
 
-        then: changedFiles == ['AnotherPersonImpl'] as Set
+        then: outputs.changedClasses 'AnotherPersonImpl'
 
         when:
         file("src/main/java/org/Person.java").text = """package org;
@@ -113,17 +80,14 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
             String getName();
             String toString();
         }"""
+        outputs.snapshot()
         run "compileJava"
 
-        then: changedFiles == ['PersonImpl', 'Person'] as Set
+        then: outputs.changedClasses 'PersonImpl', 'Person'
     }
 
     def "detects class transitive dependents"() {
-        when: run "compileJava"
-
-        then:
-        changedFiles.empty
-        unchangedFiles.empty
+        outputs.snapshot { run "compileJava" }
 
         when:
         file("src/main/java/org/Person.java").text = """package org;
@@ -134,11 +98,11 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         run "compileJava"
 
         then:
-        changedFiles == ['AnotherPersonImpl', 'PersonImpl', 'Person'] as Set
+        outputs.changedClasses 'AnotherPersonImpl', 'PersonImpl', 'Person'
     }
 
     def "is sensitive to deletion and change"() {
-        run "compileJava"
+        outputs.snapshot { run "compileJava" }
 
         assert file("src/main/java/org/PersonImpl.java").delete()
 
@@ -151,11 +115,11 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         !file("build/classes/main/org/PersonImpl.class").exists()
-        changedFiles == ['AnotherPersonImpl', 'PersonImpl'] as Set
+        outputs.changedClasses 'AnotherPersonImpl'
     }
 
     def "is sensitive to inlined constants"() {
-        run "compileJava"
+        outputs.snapshot { run "compileJava" }
 
         file("src/main/java/org/WithConst.java").text = """package org;
         public class WithConst {
@@ -165,8 +129,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         when: run "compileJava"
 
         then:
-        unchangedFiles.empty
-        changedFiles.containsAll(['WithConst', 'AnotherPersonImpl', 'PersonImpl', 'Person'])
+        outputs.changedClasses 'WithConst', 'AnotherPersonImpl', 'PersonImpl', 'Person'
     }
 
     def "is sensitive to source annotations"() {
@@ -182,7 +145,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         file("src/main/java/org/UsesSourceAnnotation.java").text = """package org;
             @SourceAnnotation public class UsesSourceAnnotation {}
         """
-        run "compileJava"
+        outputs.snapshot { run "compileJava" }
 
         file("src/main/java/org/ClassAnnotation.java").text = """package org; import java.lang.annotation.*;
             @Retention(RetentionPolicy.RUNTIME) public @interface ClassAnnotation {
@@ -192,8 +155,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         when: run "compileJava"
 
         then:
-        unchangedFiles.empty
-        changedFiles.containsAll(['WithConst', 'AnotherPersonImpl', 'PersonImpl', 'Person'])
+        outputs.changedClasses 'WithConst', 'UsesSourceAnnotation', 'ClassAnnotation', 'UsesClassAnnotation', 'SourceAnnotation', 'AnotherPersonImpl', 'PersonImpl', 'Person'
     }
 
     def "understands inter-project dependencies"() {
@@ -210,7 +172,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
             public class ConsumesB { B b = new B(); }
         """
 
-        run "compileJava"
+        outputs.snapshot { run "compileJava" }
 
         file("api/src/main/java/org/B.java").text = """package org; public class B {
             public B() { System.out.println("foo"); }
@@ -220,8 +182,7 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         when: run "compileJava"
 
         then:
-        changedFiles == ['ConsumesB'] as Set
-        unchangedFiles.contains('ConsumesA')
+        outputs.changedClasses 'ConsumesB'
     }
 
     def "understands inter-project dependency that forces full rebuild"() {
@@ -235,15 +196,14 @@ class IncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec 
         file("src/main/java/org/B.java") << """package org; public class B {  }"""
         file("src/main/java/org/C.java") << """package org; public class C {  }"""
 
-        run "compileJava"
+        outputs.snapshot { run "compileJava" }
 
         file("api/src/main/java/org/A.java").text = "package org; public class A {}"
 
         when: run "compileJava"
 
         then:
-        changedFiles.containsAll(['B', 'C'])
-        unchangedFiles.isEmpty()
+        outputs.changedClasses 'WithConst', 'AnotherPersonImpl', 'B', 'C', 'PersonImpl', 'Person'
     }
 
     def "removal of class causes deletion of inner classes"() {
