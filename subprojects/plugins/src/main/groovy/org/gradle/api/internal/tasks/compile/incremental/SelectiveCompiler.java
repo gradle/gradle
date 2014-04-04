@@ -61,7 +61,7 @@ class SelectiveCompiler implements org.gradle.api.internal.tasks.compile.Compile
             //use the original compiler to avoid cleaning up all the files
             return cleaningCompiler.getCompiler().execute(spec);
         } finally {
-            LOG.lifecycle("Detection of classes for compilation ({}) plus the compilation took {}.", clock.getTime(), recompilationSpec.getClassNames().size());
+            LOG.lifecycle("Detection of classes for compilation ({}) plus the compilation took {}.", recompilationSpec.getClassNames().size(), clock.getTime());
         }
     }
 }
