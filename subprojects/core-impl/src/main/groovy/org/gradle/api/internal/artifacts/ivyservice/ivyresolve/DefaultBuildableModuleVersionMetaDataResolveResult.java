@@ -58,6 +58,10 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         return state;
     }
 
+    public boolean hasResult() {
+        return state != State.Unknown;
+    }
+
     public ModuleVersionResolveException getFailure() {
         assertHasResult();
         return failure;

@@ -19,29 +19,18 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
-public class LocalFilesystemModuleComponentRepository implements ModuleComponentRepository {
-    private final LocalArtifactsModuleVersionRepository delegate;
+public class LocalFilesystemModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleMetadataProcessor processor;
     private final LocalAccess localAccess = new LocalAccess();
     private final RemoteAccess remoteAccess = new RemoteAccess();
 
-    public LocalFilesystemModuleComponentRepository(LocalArtifactsModuleVersionRepository delegate, ModuleMetadataProcessor processor) {
-        this.delegate = delegate;
+    public LocalFilesystemModuleComponentRepository(ModuleComponentRepository delegate, ModuleMetadataProcessor processor) {
+        super(delegate);
         this.processor = processor;
-    }
-
-    public String getId() {
-        return delegate.getId();
-    }
-
-    public String getName() {
-        return delegate.getName();
     }
 
     public ModuleComponentRepositoryAccess getLocalAccess() {
@@ -52,26 +41,29 @@ public class LocalFilesystemModuleComponentRepository implements ModuleComponent
         return remoteAccess;
     }
 
-    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        delegate.resolveArtifact(artifact, moduleSource, result);
-    }
-
     private class LocalAccess implements ModuleComponentRepositoryAccess {
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-            delegate.listModuleVersions(dependency, result);
+            delegate.getLocalAccess().listModuleVersions(dependency, result);
+            if (!result.hasResult()) {
+                delegate.getRemoteAccess().listModuleVersions(dependency, result);
+            }
         }
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-            delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+            delegate.getLocalAccess().resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+            if (!result.hasResult()) {
+                delegate.getRemoteAccess().resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+            }
+
             if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
                 processor.process(result.getMetaData());
             }
         }
 
         public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-            delegate.localResolveModuleArtifacts(component, context, result);
+            delegate.getLocalAccess().resolveModuleArtifacts(component, context, result);
             if(!result.hasResult()) {
-                delegate.resolveModuleArtifacts(component, context, result);
+                delegate.getRemoteAccess().resolveModuleArtifacts(component, context, result);
             }
         }
     }
@@ -81,6 +73,7 @@ public class LocalFilesystemModuleComponentRepository implements ModuleComponent
         }
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+            // TODO:DAZ I think this is not required
             result.missing();
         }
 

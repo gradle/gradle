@@ -84,25 +84,25 @@ public class ResolveIvyFactory {
         RepositoryChain parentLookupResolver = new ParentModuleLookupResolver(userResolverChain, cacheLockingManager);
 
         for (ResolutionAwareRepository repository : repositories) {
-            ConfiguredModuleVersionRepository moduleVersionRepository = repository.createResolver();
+            ConfiguredModuleVersionRepository baseRepository = repository.createResolver();
 
-            if (moduleVersionRepository instanceof IvyAwareModuleVersionRepository) {
-                ivyContextualize((IvyAwareModuleVersionRepository) moduleVersionRepository, userResolverChain, configuration.getName());
+            if (baseRepository instanceof IvyAwareModuleVersionRepository) {
+                ivyContextualize((IvyAwareModuleVersionRepository) baseRepository, userResolverChain, configuration.getName());
             }
-            if (moduleVersionRepository instanceof ExternalResourceResolver) {
-                ((ExternalResourceResolver) moduleVersionRepository).setRepositoryChain(parentLookupResolver);
+            if (baseRepository instanceof ExternalResourceResolver) {
+                ((ExternalResourceResolver) baseRepository).setRepositoryChain(parentLookupResolver);
             }
 
             ModuleComponentRepository moduleComponentRepository;
-            if (moduleVersionRepository.isLocal()) {
-                moduleComponentRepository = new LocalFilesystemModuleComponentRepository(moduleVersionRepository, metadataProcessor);
+            if (baseRepository.isLocal()) {
+                moduleComponentRepository = new LocalFilesystemModuleComponentRepository(baseRepository, metadataProcessor);
             } else {
-                ModuleComponentRepository wrapperRepository = new CacheLockReleasingModuleComponentsRepository(moduleVersionRepository, cacheLockingManager);
+                ModuleComponentRepository wrapperRepository = new CacheLockReleasingModuleComponentsRepository(baseRepository, cacheLockingManager);
                 wrapperRepository = startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
                 moduleComponentRepository = new CachingModuleComponentRepository(wrapperRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
-                        cachePolicy, timeProvider, metadataProcessor, getModuleExtractor(moduleVersionRepository));
+                        cachePolicy, timeProvider, metadataProcessor, getModuleExtractor(baseRepository));
             }
-            if (moduleVersionRepository.isDynamicResolveMode()) {
+            if (baseRepository.isDynamicResolveMode()) {
                 moduleComponentRepository = IvyDynamicResolveModuleComponentRepositoryAccess.wrap(moduleComponentRepository);
             }
             moduleComponentRepository = inMemoryCache.cached(moduleComponentRepository);

@@ -33,6 +33,8 @@ public interface BuildableModuleVersionSelectionResolveResult {
      */
     State getState();
 
+    boolean hasResult();
+
     /**
      * Returns the versions that match the selector.
      *

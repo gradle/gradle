@@ -22,23 +22,16 @@ import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 /**
- * A wrapper around a {@link ModuleVersionRepository} that handles locking/unlocking the cache.
+ * A wrapper around a {@link ModuleComponentRepository} that handles releasing the cache lock before making remote calls.
  */
-public class CacheLockReleasingModuleComponentsRepository implements ModuleComponentRepository {
-    private final LocalArtifactsModuleVersionRepository repository;
+public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComponentRepository {
+    private final ModuleComponentRepository repository;
     private final CacheLockingManager cacheLockingManager;
 
-    public CacheLockReleasingModuleComponentsRepository(LocalArtifactsModuleVersionRepository repository, CacheLockingManager cacheLockingManager) {
+    public CacheLockReleasingModuleComponentsRepository(ModuleComponentRepository repository, CacheLockingManager cacheLockingManager) {
+        super(repository, repository.getLocalAccess(), new LockReleasingRepositoryAccess(repository.getId(), repository.getRemoteAccess(), cacheLockingManager));
         this.repository = repository;
         this.cacheLockingManager = cacheLockingManager;
-    }
-
-    public String getId() {
-        return repository.getId();
-    }
-
-    public String getName() {
-        return repository.getName();
     }
 
     public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
@@ -49,45 +42,39 @@ public class CacheLockReleasingModuleComponentsRepository implements ModuleCompo
         });
     }
 
-    public ModuleComponentRepositoryAccess getLocalAccess() {
-        return new ModuleComponentRepositoryAccess() {
-            public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-            }
+    private static class LockReleasingRepositoryAccess implements ModuleComponentRepositoryAccess {
+        private final String name;
+        private final ModuleComponentRepositoryAccess delegate;
+        private final CacheLockingManager cacheLockingManager;
 
-            public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-            }
+        private LockReleasingRepositoryAccess(String name, ModuleComponentRepositoryAccess delegate, CacheLockingManager cacheLockingManager) {
+            this.name = name;
+            this.delegate = delegate;
+            this.cacheLockingManager = cacheLockingManager;
+        }
 
-            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-                repository.localResolveModuleArtifacts(component, context, result);
-            }
-        };
-    }
+        public void listModuleVersions(final DependencyMetaData dependency, final BuildableModuleVersionSelectionResolveResult result) {
+            cacheLockingManager.longRunningOperation(String.format("List %s using repository %s", dependency, name), new Runnable() {
+                public void run() {
+                    delegate.listModuleVersions(dependency, result);
+                }
+            });
+        }
 
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
-        return new ModuleComponentRepositoryAccess() {
-            public void listModuleVersions(final DependencyMetaData dependency, final BuildableModuleVersionSelectionResolveResult result) {
-                cacheLockingManager.longRunningOperation(String.format("List %s using repository %s", dependency, getId()), new Runnable() {
-                    public void run() {
-                        repository.listModuleVersions(dependency, result);
-                    }
-                });
-            }
+        public void resolveComponentMetaData(final DependencyMetaData dependency, final ModuleComponentIdentifier moduleComponentIdentifier, final BuildableModuleVersionMetaDataResolveResult result) {
+            cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, name), new Runnable() {
+                public void run() {
+                    delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+                }
+            });
+        }
 
-            public void resolveComponentMetaData(final DependencyMetaData dependency, final ModuleComponentIdentifier moduleComponentIdentifier, final BuildableModuleVersionMetaDataResolveResult result) {
-                cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, getId()), new Runnable() {
-                    public void run() {
-                        repository.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
-                    }
-                });
-            }
-
-            public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
-                cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", context, component, getId()), new Runnable() {
-                    public void run() {
-                        repository.resolveModuleArtifacts(component, context, result);
-                    }
-                });
-            }
-        };
+        public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactResolveContext context, final BuildableArtifactSetResolveResult result) {
+            cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", context, component, name), new Runnable() {
+                public void run() {
+                    delegate.resolveModuleArtifacts(component, context, result);
+                }
+            });
+        }
     }
 }

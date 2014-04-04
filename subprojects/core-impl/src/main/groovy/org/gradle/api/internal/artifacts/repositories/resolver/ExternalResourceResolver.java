@@ -61,7 +61,7 @@ import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache.ExternalResourceDownloader;
 
-public abstract class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleVersionRepository, LocalArtifactsModuleVersionRepository {
+public abstract class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final MetaDataParser metaDataParser;
@@ -132,7 +132,37 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return repositoryCacheManager.isLocal();
     }
 
-    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+    public ModuleComponentRepositoryAccess getLocalAccess() {
+        return new ModuleComponentRepositoryAccess() {
+            public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+            }
+
+            public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+            }
+
+            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+                doResolveModuleArtifacts((ModuleVersionMetaData) component, context, result, true);
+            }
+        };
+    }
+
+    public ModuleComponentRepositoryAccess getRemoteAccess() {
+        return new ModuleComponentRepositoryAccess() {
+            public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+                doListModuleVersions(dependency, result);
+            }
+
+            public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+                doResolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+            }
+
+            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+                doResolveModuleArtifacts((ModuleVersionMetaData) component, context, result, false);
+            }
+        };
+    }
+
+    private void doListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
         ModuleIdentifier module  = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
         VersionList versionList = versionLister.getVersionList(module);
 
@@ -160,7 +190,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
     }
 
-    public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+    protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         resolveStaticDependency(dependency, moduleComponentIdentifier, result, createArtifactResolver());
     }
 
@@ -264,14 +294,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             throw new MetaDataParseException(String.format("inconsistent module metadata found. Descriptor: %s Errors: %s",
                     metadata.getId(), Joiner.on(SystemProperties.getLineSeparator()).join(errors)));
         }
-    }
-
-    public void localResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        doResolveModuleArtifacts((ModuleVersionMetaData) component, context, result, true);
-    }
-
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        doResolveModuleArtifacts((ModuleVersionMetaData) component, context, result, false);
     }
 
     // TODO:DAZ This "local-only" pattern is quite ugly: improve it.

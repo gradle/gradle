@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.settings.IvySettings;
 
-public interface IvyAwareModuleVersionRepository extends ModuleVersionRepository {
+public interface IvyAwareModuleVersionRepository extends ModuleComponentRepository {
     void setSettings(IvySettings settings);
 
     void setResolveData(ResolveData resolveData);

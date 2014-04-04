@@ -32,6 +32,10 @@ public class DefaultBuildableModuleVersionSelectionResolveResult implements Buil
         return state;
     }
 
+    public boolean hasResult() {
+        return state != State.Unknown;
+    }
+
     public ModuleVersionListing getVersions() throws ModuleVersionResolveException {
         return versions;
     }
