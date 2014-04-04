@@ -84,7 +84,7 @@ public class ResolveIvyFactory {
         RepositoryChain parentLookupResolver = new ParentModuleLookupResolver(userResolverChain, cacheLockingManager);
 
         for (ResolutionAwareRepository repository : repositories) {
-            ConfiguredModuleVersionRepository baseRepository = repository.createResolver();
+            ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
             if (baseRepository instanceof IvyAwareModuleVersionRepository) {
                 ivyContextualize((IvyAwareModuleVersionRepository) baseRepository, userResolverChain, configuration.getName());
@@ -93,15 +93,19 @@ public class ResolveIvyFactory {
                 ((ExternalResourceResolver) baseRepository).setRepositoryChain(parentLookupResolver);
             }
 
-            ModuleComponentRepository moduleComponentRepository;
+            // TODO:DAZ In theory we could update this so that _all_ repositories are wrapped in a cache:
+            //     - the caching repository would check for local result on every call before using cache.
+            //     - This might help later when we integrate in-memory caching with file-backed caching.
+            ModuleComponentRepository moduleComponentRepository = baseRepository;
             if (baseRepository.isLocal()) {
-                moduleComponentRepository = new LocalFilesystemModuleComponentRepository(baseRepository, metadataProcessor);
+                moduleComponentRepository = new LocalModuleComponentRepository(baseRepository, metadataProcessor);
             } else {
-                ModuleComponentRepository wrapperRepository = new CacheLockReleasingModuleComponentsRepository(baseRepository, cacheLockingManager);
-                wrapperRepository = startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
-                moduleComponentRepository = new CachingModuleComponentRepository(wrapperRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
+                moduleComponentRepository = new CacheLockReleasingModuleComponentsRepository(moduleComponentRepository, cacheLockingManager);
+                moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
+                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
                         cachePolicy, timeProvider, metadataProcessor, getModuleExtractor(baseRepository));
             }
+
             if (baseRepository.isDynamicResolveMode()) {
                 moduleComponentRepository = IvyDynamicResolveModuleComponentRepositoryAccess.wrap(moduleComponentRepository);
             }
@@ -131,7 +135,7 @@ public class ResolveIvyFactory {
         return new ResolveData(ivy.getResolveEngine(), options);
     }
 
-    private Transformer<ModuleIdentifier, ModuleVersionSelector> getModuleExtractor(ConfiguredModuleVersionRepository rootRepository) {
+    private Transformer<ModuleIdentifier, ModuleVersionSelector> getModuleExtractor(ConfiguredModuleComponentRepository rootRepository) {
         // If the backing repository is a custom ivy resolver, then we don't get a full listing
         if (rootRepository instanceof IvyAwareModuleVersionRepository) {
             return new LegacyIvyResolverModuleIdExtractor();

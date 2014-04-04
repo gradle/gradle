@@ -77,16 +77,16 @@ public class StartParameterResolutionOverride {
 
     public ModuleComponentRepository overrideModuleVersionRepository(ModuleComponentRepository original) {
         if (startParameter.isOffline()) {
-            return new OfflineModuleVersionRepository(original);
+            return new OfflineModuleComponentRepository(original);
         }
         return original;
     }
 
-    private static class OfflineModuleVersionRepository extends BaseModuleComponentRepository {
+    private static class OfflineModuleComponentRepository extends BaseModuleComponentRepository {
 
         private final FailedRemoteAccess failedRemoteAccess = new FailedRemoteAccess();
 
-        public OfflineModuleVersionRepository(ModuleComponentRepository original) {
+        public OfflineModuleComponentRepository(ModuleComponentRepository original) {
             super(original);
         }
 

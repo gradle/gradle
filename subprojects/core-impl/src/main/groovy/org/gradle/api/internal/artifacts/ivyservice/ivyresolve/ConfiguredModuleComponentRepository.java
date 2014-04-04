@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-public interface ConfiguredModuleVersionRepository extends ModuleComponentRepository {
+public interface ConfiguredModuleComponentRepository extends ModuleComponentRepository {
     boolean isDynamicResolveMode();
 
     boolean isLocal();

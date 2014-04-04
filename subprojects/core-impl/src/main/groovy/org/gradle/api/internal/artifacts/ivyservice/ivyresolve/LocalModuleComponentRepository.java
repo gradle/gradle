@@ -23,12 +23,12 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveR
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
-public class LocalFilesystemModuleComponentRepository extends BaseModuleComponentRepository {
+public class LocalModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleMetadataProcessor processor;
     private final LocalAccess localAccess = new LocalAccess();
     private final RemoteAccess remoteAccess = new RemoteAccess();
 
-    public LocalFilesystemModuleComponentRepository(ModuleComponentRepository delegate, ModuleMetadataProcessor processor) {
+    public LocalModuleComponentRepository(ModuleComponentRepository delegate, ModuleMetadataProcessor processor) {
         super(delegate);
         this.processor = processor;
     }
