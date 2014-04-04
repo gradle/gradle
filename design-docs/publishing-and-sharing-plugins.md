@@ -525,6 +525,14 @@ Future iterations may provide the address of a “status URL” that users can u
 
 ## Story: User is notified of use of 'deprecated' plugin 
 
+## Story: Gradle is routinely tested against real plugins.gradle.org codebase
+
+This story covers setting up continuous testing of Gradle against the real plugin portal code, but not the real instance.
+
+This provides some verification that the test double that is used in the Gradle build to simulate the plugin portal is representative, and that the inverse (i.e. plugin portal's assumptions about Gradle behaviour) holds.
+
+This does not replace the double based tests in the Gradle codebase.
+
 ## Story: Plugins are able to declare exported classes
 
 This is the first story where we require changes to how plugins are published and/or implemented (i.e. exported class information is needed). 
