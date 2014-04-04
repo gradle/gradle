@@ -20,10 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.*;
 
 /**
@@ -44,6 +41,16 @@ public class InetAddressFactory {
         } catch (UnknownHostException e) {
             return findRemoteAddresses().get(0).toString();
         }
+    }
+
+    /**
+     * Gets the address which should be used to listen for incoming connections.
+     */
+    public InetAddress getBindAddress() {
+        final InetAddress configuredBindAddress = getConfiguredBindAddress();
+        return configuredBindAddress == null
+                ? null
+                : configuredBindAddress;
     }
 
     /**
@@ -113,6 +120,12 @@ public class InetAddressFactory {
         localAddresses = new ArrayList<InetAddress>();
         remoteAddresses = new ArrayList<InetAddress>();
 
+        final InetAddress configuredBindAddress = getConfiguredBindAddress();
+        if (configuredBindAddress != null) {
+            allAddresses.add(configuredBindAddress);
+            localAddresses.add(configuredBindAddress);
+        }
+
         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
         while (interfaces.hasMoreElements()) {
             NetworkInterface networkInterface = interfaces.nextElement();
@@ -161,6 +174,20 @@ public class InetAddressFactory {
             } catch (Throwable e) {
                 throw new RuntimeException(String.format("Could not determine the IP addresses for network interface %s", networkInterface.getName()), e);
             }
+        }
+    }
+
+    public static final String BIND_ADDRESS_PROPERTY_KEY="org.gradle.bindaddress";
+
+    private InetAddress getConfiguredBindAddress() {
+        final String configuredBindAddress = System.getProperty(BIND_ADDRESS_PROPERTY_KEY);
+        try {
+            return configuredBindAddress == null
+                    ? null
+                    : InetAddress.getByName(configuredBindAddress);
+        } catch (UnknownHostException e) {
+            LOGGER.warn("Could not resolve bind address" + configuredBindAddress);
+            return null;
         }
     }
 }

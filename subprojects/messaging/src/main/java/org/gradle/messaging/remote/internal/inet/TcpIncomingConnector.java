@@ -52,7 +52,8 @@ public class TcpIncomingConnector implements IncomingConnector {
         int localPort;
         try {
             serverSocket = ServerSocketChannel.open();
-            serverSocket.socket().bind(new InetSocketAddress(0));
+            final InetSocketAddress addr = new InetSocketAddress(addressFactory.getBindAddress(), 0);
+            serverSocket.socket().bind(addr);
             localPort = serverSocket.socket().getLocalPort();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
