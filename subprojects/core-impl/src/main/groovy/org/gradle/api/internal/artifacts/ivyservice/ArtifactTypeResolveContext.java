@@ -33,6 +33,6 @@ public class ArtifactTypeResolveContext implements ArtifactResolveContext {
     }
 
     public String getDescription() {
-        return String.format("artifacts of type %s", artifactType);
+        return String.format("artifacts of type %s", artifactType.getSimpleName());
     }
 }
