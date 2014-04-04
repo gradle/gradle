@@ -39,6 +39,11 @@ class Project extends XmlPersistableConfigurationObject {
     Jdk jdk
 
     /**
+     * The vcs used by the project.
+     */
+    String vcs
+
+    /**
      * The project-level libraries of the IDEA project.
      */
     @Incubating
@@ -52,7 +57,7 @@ class Project extends XmlPersistableConfigurationObject {
     }
 
     void configure(Collection<Path> modulePaths, String jdkName, IdeaLanguageLevel languageLevel,
-                   Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries) {
+                   Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries, String vcs) {
         if (jdkName) {
             jdk = new Jdk(jdkName, languageLevel)
         }
@@ -60,6 +65,7 @@ class Project extends XmlPersistableConfigurationObject {
         this.wildcards.addAll(wildcards)
         // overwrite rather than append libraries
         this.projectLibraries = projectLibraries
+        this.vcs = vcs
     }
 
     @Override protected void load(Node xml) {
@@ -102,15 +108,21 @@ class Project extends XmlPersistableConfigurationObject {
         findProjectRootManager().@languageLevel = jdk.languageLevel
         findProjectRootManager().@'project-jdk-name' = jdk.projectJdkName
 
+        findVcsDirectoryMappings().@vcs = vcs
+
         storeProjectLibraries()
     }
 
     private findProjectRootManager() {
-        return xml.component.find { it.@name == 'ProjectRootManager'}
+        xml.component.find { it.@name == 'ProjectRootManager'}
     }
 
     private findWildcardResourcePatterns() {
         xml.component.find { it.@name == 'CompilerConfiguration'}.wildcardResourcePatterns
+    }
+
+    private findVcsDirectoryMappings() {
+        xml.component.find { it.@name == 'VcsDirectoryMappings'}.mapping
     }
 
     private findModules() {
