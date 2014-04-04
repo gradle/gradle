@@ -25,31 +25,36 @@ class OutputsTrackingFixture {
 
     private final File targetDir
 
+    //Tracks outputs in given target dir
     OutputsTrackingFixture(File targetDir) {
         assert targetDir != null
         this.targetDir = targetDir
     }
 
-    // Executes optional operation and sets the last modified timestamp to zero for all files
+    // Executes optional operation and makes a snapshot of outputs (sets the last modified timestamp to zero for all files)
     public <T> T snapshot(Closure<T> operation = null) {
         T result = operation?.call()
         targetDir.eachFileRecurse(FileType.FILES) { it.lastModified = 0 }
         result
     }
 
+    //asserts none of the files changed since last snapshot
     void noneChanged() {
         changedFiles([])
     }
 
+    //asserts file changed since last snapshot
     void changedFile(File file) {
         changedFiles([file])
     }
 
+    //asserts files changed since last snapshot
     void changedFiles(Collection<File> files) {
         def expectedNames = files.collect({ FilenameUtils.removeExtension(it.name) }) as Set
         assert changedFileNames == expectedNames
     }
 
+    //asserts classes changed since last snapshot. Class means file name without extension.
     void changedClasses(String ... classNames) {
         assert changedFileNames == asSet(classNames)
     }
