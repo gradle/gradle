@@ -631,15 +631,6 @@ Allow the plugin repositories to use to be declared.
 
 Multiple plugin and module repositories can be declared.
 
-## Story: Resolve local script plugins
-
-Add a resolver that uses some convention to map plugin id to a build script.
-
-    plugins {
-        // Looks for a script in $rootDir/gradle/plugins/groovy-project.gradle
-        apply plugin: 'groovy-project'
-    }
-
 ## Story: Daemon reuses plugin implementation across builds
 
 Cache the implementation ClassLoader across builds. More details in the [performance spec](performance.md).
