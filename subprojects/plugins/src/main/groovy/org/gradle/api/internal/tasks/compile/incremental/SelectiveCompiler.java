@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.logging.Logger;
@@ -53,11 +54,7 @@ class SelectiveCompiler implements org.gradle.api.internal.tasks.compile.Compile
         incrementalCompilationInitilizer.initializeCompilation(spec, recompilationSpec.getClassNames());
         if (spec.getSource().isEmpty()) {
             LOG.lifecycle("Detection of classes for compilation took {}. No recompilation is needed!", clock.getTime());
-            return new WorkResult() {
-                public boolean getDidWork() {
-                    return true;
-                }
-            };
+            return new RecompilationNotNecessary(recompilationSpec);
         }
 
         try {

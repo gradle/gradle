@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+
 import java.io.File;
 import java.util.Collection;
 
@@ -23,4 +25,7 @@ public interface RecompilationSpec {
     Collection<String> getClassNames();
     boolean isFullRebuildNeeded();
     File getFullRebuildCause();
+
+    //dependency info that was used to determine this recompilation spec
+    ClassDependencyInfo getInitialDependencyInfo();
 }

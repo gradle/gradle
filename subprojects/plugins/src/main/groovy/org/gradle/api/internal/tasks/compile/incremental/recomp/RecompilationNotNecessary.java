@@ -17,34 +17,21 @@
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.tasks.WorkResult;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.LinkedHashSet;
+public class RecompilationNotNecessary implements WorkResult {
 
-class DefaultRecompilationSpec implements RecompilationSpec {
+    private final RecompilationSpec recompilationSpec;
 
-    final Collection<String> classesToCompile = new LinkedHashSet<String>();
-    private final ClassDependencyInfo initialDependencyInfo;
-    File fullRebuildCause;
-
-    public DefaultRecompilationSpec(ClassDependencyInfo initialDependencyInfo) {
-        this.initialDependencyInfo = initialDependencyInfo;
+    public RecompilationNotNecessary(RecompilationSpec recompilationSpec) {
+        this.recompilationSpec = recompilationSpec;
     }
 
-    public Collection<String> getClassNames() {
-        return classesToCompile;
-    }
-
-    public boolean isFullRebuildNeeded() {
-        return fullRebuildCause != null;
-    }
-
-    public File getFullRebuildCause() {
-        return fullRebuildCause;
+    public boolean getDidWork() {
+        return true;
     }
 
     public ClassDependencyInfo getInitialDependencyInfo() {
-        return initialDependencyInfo;
+        return recompilationSpec.getInitialDependencyInfo();
     }
 }

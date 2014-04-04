@@ -16,14 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter;
 import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
 import org.gradle.api.logging.Logger;
@@ -36,34 +31,24 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
     private static final Logger LOG = Logging.getLogger(IncrementalCompilationFinalizer.class);
 
     private final Compiler<JavaCompileSpec> delegate;
-    private final ClassDependenciesAnalyzer analyzer;
-    private final ClassDependencyInfoWriter dependencyInfoWriter;
     private final JarSnapshotFeeder jarSnapshotFeeder;
     private final ClasspathJarFinder classpathJarFinder;
-    private final FileOperations fileOperations;
+    private final ClassDependencyInfoUpdater updater;
 
-    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, ClassDependenciesAnalyzer analyzer, ClassDependencyInfoWriter dependencyInfoWriter,
-                                           JarSnapshotFeeder jarSnapshotFeeder, ClasspathJarFinder classpathJarFinder, FileOperations fileOperations) {
+    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, JarSnapshotFeeder jarSnapshotFeeder,
+                                           ClasspathJarFinder classpathJarFinder, ClassDependencyInfoUpdater updater) {
         this.delegate = delegate;
-        this.analyzer = analyzer;
-        this.dependencyInfoWriter = dependencyInfoWriter;
         this.jarSnapshotFeeder = jarSnapshotFeeder;
         this.classpathJarFinder = classpathJarFinder;
-        this.fileOperations = fileOperations;
+        this.updater = updater;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
         WorkResult out = delegate.execute(spec);
 
-        Clock clock = new Clock();
-        FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
-        ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
-        tree.visit(extractor);
-        ClassDependencyInfo info = extractor.getDependencyInfo();
-        dependencyInfoWriter.writeInfo(info);
-        LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), dependencyInfoWriter);
+        ClassDependencyInfo info = updater.updateInfo(spec, out);
 
-        clock = new Clock();
+        Clock clock = new Clock();
         jarSnapshotFeeder.storeJarSnapshots(classpathJarFinder.findJarArchives(spec.getClasspath()), info);
         LOG.lifecycle("Created and wrote jar snapshots in {}.", clock.getTime());
 
