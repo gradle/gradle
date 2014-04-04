@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -76,6 +77,13 @@ public class MavenModuleDescriptorAdapter extends ModuleDescriptorAdapter implem
         MavenModuleDescriptorAdapter copy = new MavenModuleDescriptorAdapter(getId(), getDescriptor(), getComponentId());
         copyTo(copy);
         copy.packaging = packaging;
+        return copy;
+    }
+
+    @Override
+    public ModuleVersionMetaData withSource(ModuleSource source) {
+        MavenModuleDescriptorAdapter copy = copy();
+        copy.setModuleSource(source);
         return copy;
     }
 }

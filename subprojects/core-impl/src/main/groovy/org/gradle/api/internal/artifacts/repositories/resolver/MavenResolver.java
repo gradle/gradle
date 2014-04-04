@@ -250,7 +250,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     @Override
     protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result, boolean localOnly) {
-        MavenModuleVersionMetaData mavenModule = (MavenModuleVersionMetaData)module;
+        MavenModuleVersionMetaData mavenModule = translateModule(module);
 
         if(localOnly) {
             if(mavenModule.isKnownJarPackaging()) {
@@ -274,6 +274,22 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
                 }
             }
         }
+    }
+
+    /**
+     * Check if we already have the correct type of ModuleVersionMetaData. If not turn in into a MavenModuleVersionMetaData.
+     * This is the case for client module dependencies. They create an instance of ModuleDescriptorAdapter in DefaultClientModuleMetaDataFactory.
+     * We might want to handle this earlier.
+     *
+     * @param module Module
+     * @return Maven module version meta data
+     */
+    protected MavenModuleVersionMetaData translateModule(ModuleVersionMetaData module) {
+        if(module instanceof MavenModuleVersionMetaData) {
+            return (MavenModuleVersionMetaData)module;
+        }
+
+        return new MavenModuleDescriptorAdapter(module.getDescriptor());
     }
 
     protected static class TimestampedModuleSource implements ModuleSource {
