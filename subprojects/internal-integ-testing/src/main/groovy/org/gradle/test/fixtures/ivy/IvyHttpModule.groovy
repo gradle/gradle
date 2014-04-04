@@ -110,6 +110,11 @@ class IvyHttpModule implements IvyModule, HttpModule {
         return this
     }
 
+    IvyHttpModule withExtraInfo(Map extraInfo) {
+        backingModule.withExtraInfo(extraInfo)
+        return this
+    }
+
     TestFile getIvyFile() {
         return backingModule.ivyFile
     }

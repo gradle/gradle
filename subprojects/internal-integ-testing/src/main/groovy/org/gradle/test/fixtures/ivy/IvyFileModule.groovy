@@ -33,6 +33,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final List artifacts = []
     final Map extendsFrom = [:]
     final Map extraAttributes = [:]
+    final Map extraInfo = [:]
     String status = "integration"
     boolean noMetaData
     int publishCount = 1
@@ -125,6 +126,14 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    /**
+     * Keys in extra info will be prefixed with namespace prefix "my" in this fixture.
+     */
+    IvyFileModule withExtraInfo(Map extraInfo) {
+        this.extraInfo.putAll(extraInfo)
+        return this
+    }
+
     TestFile getIvyFile() {
         def path = M2CompatibleIvyPatternHelper.substitute(ivyPattern, organisation, module, revision, m2Compatible)
         return moduleDir.file(path)
@@ -171,7 +180,9 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             transformer.transform(writer, new Action<Writer>() {
                 void execute(Writer ivyFileWriter) {
                     ivyFileWriter << """<?xml version="1.0" encoding="UTF-8"?>
-<ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven" ${ extraAttributes ? 'xmlns:e="http://ant.apache.org/ivy/extra"' : ''}>
+<ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven"
+${ extraAttributes ? 'xmlns:e="http://ant.apache.org/ivy/extra"' : ''}
+${ extraInfo ? 'xmlns:my="http://my.extra.info"' : ''}>
     <!-- ${getArtifactContent()} -->
 	<info organisation="${organisation}"
 		module="${module}"
@@ -191,6 +202,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                 ivyFileWriter << " location='${extendsFrom.location}'"
             }
             ivyFileWriter << "/>"
+        }
+        extraInfo.each { key , val ->
+            ivyFileWriter << """\
+        <my:$key>$val</my:$key>
+"""
         }
                     ivyFileWriter << """</info>
 	<configurations>"""
