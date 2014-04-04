@@ -585,6 +585,10 @@ Includes:
 
 ## Story: User specifies centrally that a plugin should be applied to multiple projects
 
+## Story: New plugin mechanism can be used to apply `Gradle` plugin
+
+## Story: New plugin mechanism can be used to apply `Settings` plugin
+
 ## Story: Plugin declares minimum Gradle version requirement
 
 ## Story: Local script is used to provide implementation of plugin
