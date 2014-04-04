@@ -25,9 +25,9 @@ import java.util.Map;
 @Incubating
 public interface IvyModuleDescriptor {
     /**
-     * Returns a read-only map of extra attributes declared in this descriptor.
+     * Returns a read-only map of the extra info declared in this descriptor.
      *
-     * @return a read-only map of extra attributes declared in this descriptor
+     * @return a read-only map of the extra info declared in this descriptor
      */
-    Map<String, String> getExtraAttributes();
+    Map<String, String> getExtraInfo();
 }

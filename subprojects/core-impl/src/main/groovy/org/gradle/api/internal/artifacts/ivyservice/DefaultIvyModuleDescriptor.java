@@ -21,13 +21,13 @@ import java.util.Collections;
 import java.util.Map;
 
 public class DefaultIvyModuleDescriptor implements IvyModuleDescriptor {
-    private final Map<String, String> extraAttributes;
+    private final Map<String, String> extraInfo;
 
-    public DefaultIvyModuleDescriptor(Map<String, String> extraAttributes) {
-        this.extraAttributes = Collections.unmodifiableMap(extraAttributes);
+    public DefaultIvyModuleDescriptor(Map<String, String> extraInfo) {
+        this.extraInfo = Collections.unmodifiableMap(extraInfo);
     }
 
-    public Map<String, String> getExtraAttributes() {
-        return extraAttributes;
+    public Map<String, String> getExtraInfo() {
+        return extraInfo;
     }
 }

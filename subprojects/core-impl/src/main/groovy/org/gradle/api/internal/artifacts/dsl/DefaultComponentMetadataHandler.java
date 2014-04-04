@@ -31,7 +31,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ActionBroadcast;
 
 import java.util.List;
-import java.util.Map;
 
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ModuleMetadataProcessor {
     private final Instantiator instantiator;
@@ -59,17 +58,19 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
     }
 
-    // TODO: only invoke callbacks with IvyModuleDescriptor parameter for Ivy dependencies
     private void executeModuleClosures(ModuleVersionMetaData metadata, ComponentMetadataDetails details) {
+        nextClosure:
         for (Closure<?> closure : moduleClosures) {
             List<Object> args = Lists.newArrayList();
+            // TODO: make sure that same argType doesn't occur multiple times?
             for (Class<?> argType : closure.getParameterTypes()) {
                 if (argType == ComponentMetadataDetails.class || argType == Object.class) {
                     args.add(details);
                 } else if (argType == IvyModuleDescriptor.class) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, String> extraAttributes = metadata.getDescriptor().getExtraAttributes(); // extra attributes or extra info?
-                    args.add(new DefaultIvyModuleDescriptor(extraAttributes));
+                    if (metadata.getIvyMetaData() == null) {
+                        continue nextClosure;
+                    }
+                    args.add(new DefaultIvyModuleDescriptor(metadata.getIvyMetaData().getExtraInfo()));
                 } else {
                     throw new GradleException(String.format("Unsupported parameter type for component metadata rule: %s", argType.getName()));
                 }

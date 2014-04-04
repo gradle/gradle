@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
-import java.util.List;
+import java.util.Map;
 
-public interface MutableModuleVersionMetaData extends ModuleVersionMetaData {
+/**
+ * Additional meta-data for a module version resolved from an Ivy repository.
+ */
+public interface IvyModuleVersionMetaData {
     /**
-     * Creates a deep copy of this meta-data.
+     * Returns the extra info for the module.
+     *
+     * @return the extra info for the module
      */
-    MutableModuleVersionMetaData copy();
-
-    void setChanging(boolean changing);
-    void setStatus(String status);
-    void setStatusScheme(List<String> statusScheme);
-    void setIvyMetaData(IvyModuleVersionMetaData ivyMetaData);
-
-    /**
-     * Replaces the dependencies of this module version.
-     */
-    void setDependencies(Iterable<? extends DependencyMetaData> dependencies);
+    Map<String, String> getExtraInfo();
 }

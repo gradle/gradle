@@ -36,9 +36,15 @@ dependencies {
     compile 'org.test:projectA:1.0'
 }
 
-task resolve(type: Sync) {
-    from configurations.compile
-    into 'libs'
+// implement Sync manually to make sure that task is never up-to-date
+task resolve {
+    doLast {
+        delete 'libs'
+        copy {
+            from configurations.compile
+            into 'libs'
+        }
+    }
 }
 """
     }

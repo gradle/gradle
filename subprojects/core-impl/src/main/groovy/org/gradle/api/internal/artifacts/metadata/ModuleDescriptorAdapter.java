@@ -28,6 +28,8 @@ import java.util.*;
 
 public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
     private Set<ModuleVersionArtifactMetaData> artifacts;
+    @Nullable
+    private IvyModuleVersionMetaData ivyMetaData;
 
     public static ModuleDescriptorAdapter defaultForDependency(DependencyMetaData dependencyMetaData) {
         DefaultModuleDescriptor moduleDescriptor = createModuleDescriptor(dependencyMetaData);
@@ -57,6 +59,7 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
         ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(getId(), getDescriptor(), getComponentId());
         copyTo(copy);
+        copy.ivyMetaData = ivyMetaData;
         return copy;
     }
 
@@ -69,6 +72,14 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
     @Override
     public ModuleComponentIdentifier getComponentId() {
         return (ModuleComponentIdentifier) super.getComponentId();
+    }
+
+    public IvyModuleVersionMetaData getIvyMetaData() {
+        return ivyMetaData;
+    }
+
+    public void setIvyMetaData(IvyModuleVersionMetaData ivyMetaData) {
+        this.ivyMetaData = ivyMetaData;
     }
 
     public ModuleVersionArtifactMetaData artifact(Artifact artifact) {

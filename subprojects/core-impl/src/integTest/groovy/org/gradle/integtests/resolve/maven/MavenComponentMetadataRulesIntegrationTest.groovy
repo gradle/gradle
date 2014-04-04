@@ -39,4 +39,34 @@ repositories {
     String getDefaultStatus() {
         "release"
     }
+
+    def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
+        repo.module('org.test', 'projectA', '1.0').publish().allowAll()
+
+        buildFile <<
+"""
+def plainRuleInvoked = false
+def ivyRuleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details ->
+            plainRuleInvoked = true
+        }
+        eachComponent { details, IvyModuleDescriptor descriptor ->
+            ivyRuleInvoked = true
+        }
+    }
+}
+
+resolve.doLast {
+    assert plainRuleInvoked
+    assert !ivyRuleInvoked
+}
+"""
+
+        expect:
+        succeeds 'resolve'
+        succeeds 'resolve'
+    }
 }

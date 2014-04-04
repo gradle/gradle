@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.MavenModuleDescriptorAdapter;
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.util.BuildCommencedTimeProvider;
@@ -40,7 +42,7 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
             metaData = null;
         } else {
             // TODO: Ben should probably be based on cache entry type?
-            if(entry.packaging != null) {
+            if (entry.packaging != null) {
                 MavenModuleDescriptorAdapter moduleDescriptorAdapter = new MavenModuleDescriptorAdapter(moduleDescriptor);
                 moduleDescriptorAdapter.setChanging(entry.isChanging);
                 moduleDescriptorAdapter.setPackaging(entry.packaging);
@@ -48,6 +50,9 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
             } else {
                 ModuleDescriptorAdapter moduleDescriptorAdapter = new ModuleDescriptorAdapter(moduleDescriptor);
                 moduleDescriptorAdapter.setChanging(entry.isChanging);
+                @SuppressWarnings("unchecked")
+                IvyModuleVersionMetaData ivyMetaData = new DefaultIvyModuleVersionMetaData(moduleDescriptor.getExtraInfo());
+                moduleDescriptorAdapter.setIvyMetaData(ivyMetaData);
                 metaData = moduleDescriptorAdapter;
             }
         }

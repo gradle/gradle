@@ -35,4 +35,10 @@ public interface ModuleVersionMetaData extends ComponentMetaData {
     ModuleVersionArtifactMetaData artifact(Artifact artifact);
 
     ModuleVersionArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier);
+
+    /**
+     * Returns the ivy-specific meta-data for this module, or {@code null} if this module isn't an Ivy module.
+     */
+    @Nullable
+    IvyModuleVersionMetaData getIvyMetaData();
 }
