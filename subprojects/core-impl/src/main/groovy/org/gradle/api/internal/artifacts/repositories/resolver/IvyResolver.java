@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
@@ -66,23 +67,53 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         addIvyPattern(descriptorPattern);
     }
 
-    @Override
-    protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result, boolean localOnly) {
-        ConfigurationMetaData configuration = module.getConfiguration("javadoc");
-        if (configuration != null) {
+    public ModuleComponentRepositoryAccess getLocalAccess() {
+        return new IvyLocalRepositoryAccess();
+    }
+
+    public ModuleComponentRepositoryAccess getRemoteAccess() {
+        return new IvyRemoteRepositoryAccess();
+    }
+
+    private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
+
+        protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
             result.resolved(configuration.getArtifacts());
-        } else {
-            super.resolveJavadocArtifacts(module, result, localOnly);
+        }
+
+        @Override
+        protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            ConfigurationMetaData configuration = module.getConfiguration("javadoc");
+            if (configuration != null) {
+                result.resolved(configuration.getArtifacts());
+            }
+        }
+
+        @Override
+        protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            ConfigurationMetaData configuration = module.getConfiguration("sources");
+            if (configuration != null) {
+                result.resolved(configuration.getArtifacts());
+            }
         }
     }
 
-    @Override
-    protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result, boolean localOnly) {
-        ConfigurationMetaData configuration = module.getConfiguration("sources");
-        if (configuration != null) {
-            result.resolved(configuration.getArtifacts());
-        } else {
-            super.resolveSourceArtifacts(module, result, localOnly);
+    private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
+        @Override
+        protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+            // Configuration artifacts are determined locally
+        }
+
+        @Override
+        protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            // Probe for artifact with classifier
+            result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
+        }
+
+        @Override
+        protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            // Probe for artifact with classifier
+            result.resolved(findOptionalArtifacts(module, "source", "sources"));
         }
     }
 }

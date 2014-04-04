@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
@@ -79,7 +80,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             }
         }
 
-        resolveStaticDependency(dependency, moduleComponentIdentifier, result, createArtifactResolver());
+        resolveStaticDependency(dependency, moduleComponentIdentifier, result, super.createArtifactResolver());
     }
 
     @Override
@@ -99,17 +100,16 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     @Override
-    protected ArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
+    protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
 
         if (moduleSource instanceof TimestampedModuleSource) {
-
             final String timestampedVersion = ((TimestampedModuleSource) moduleSource).getTimestampedVersion();
             Transformer<String, String> patternTransformer = new Transformer<String, String>() {
                 public String transform(String original) {
                     return original.replaceFirst("\\-\\[revision\\]", "-" + timestampedVersion);
                 }
             };
-            return new ArtifactResolver(
+            return createArtifactResolver(
                     CollectionUtils.collect(getIvyPatterns(), patternTransformer),
                     CollectionUtils.collect(getArtifactPatterns(), patternTransformer));
         }
@@ -248,45 +248,24 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return MavenModuleDescriptorAdapter.defaultForDependency(dependencyMetaData);
     }
 
-    @Override
-    protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result, boolean localOnly) {
-        MavenModuleVersionMetaData mavenModule = translateModule(module);
+    public ModuleComponentRepositoryAccess getLocalAccess() {
+        return new MavenLocalRepositoryAccess();
+    }
 
-        if(localOnly) {
-            if(mavenModule.isKnownJarPackaging()) {
-                ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
-                result.resolved(ImmutableSet.of(artifact));
-            }
-        } else {
-            if(mavenModule.isPomPackaging()) {
-                Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
-                artifacts.addAll(findOptionalArtifacts(module, "jar", null));
-                result.resolved(artifacts);
-            } else {
-                ModuleVersionArtifactMetaData artifactMetaData = module.artifact(mavenModule.getPackaging(), mavenModule.getPackaging(), null);
-
-                if(createArtifactResolver(module.getSource()).artifactExists(artifactMetaData)) {
-                    DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
-                    result.resolved(ImmutableSet.of(artifactMetaData));
-                } else {
-                    ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
-                    result.resolved(ImmutableSet.of(artifact));
-                }
-            }
-        }
+    public ModuleComponentRepositoryAccess getRemoteAccess() {
+        return new MavenRemoteRepositoryAccess();
     }
 
     /**
-     * Check if we already have the correct type of ModuleVersionMetaData. If not turn in into a MavenModuleVersionMetaData.
-     * This is the case for client module dependencies. They create an instance of ModuleDescriptorAdapter in DefaultClientModuleMetaDataFactory.
-     * We might want to handle this earlier.
+     * Check if we already have the correct type of ModuleVersionMetaData. If not turn in into a MavenModuleVersionMetaData. This is the case for client module dependencies. They create an instance of
+     * ModuleDescriptorAdapter in DefaultClientModuleMetaDataFactory. We might want to handle this earlier.
      *
      * @param module Module
      * @return Maven module version meta data
      */
     protected MavenModuleVersionMetaData translateModule(ModuleVersionMetaData module) {
-        if(module instanceof MavenModuleVersionMetaData) {
-            return (MavenModuleVersionMetaData)module;
+        if (module instanceof MavenModuleVersionMetaData) {
+            return (MavenModuleVersionMetaData) module;
         }
 
         return new MavenModuleDescriptorAdapter(module.getDescriptor());
@@ -301,6 +280,59 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
         public TimestampedModuleSource(String uniqueSnapshotVersion) {
             this.timestampedVersion = uniqueSnapshotVersion;
+        }
+    }
+
+    private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
+        @Override
+        protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+            MavenModuleVersionMetaData mavenModule = translateModule(module);
+            if (mavenModule.isKnownJarPackaging()) {
+                ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
+                result.resolved(ImmutableSet.of(artifact));
+            }
+        }
+
+        @Override
+        protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            // Javadoc artifacts are optional, so we need to probe for them remotely
+        }
+
+        @Override
+        protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            // Javadoc artifacts are optional, so we need to probe for them remotely
+        }
+    }
+
+    private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
+        @Override
+        protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+            MavenModuleVersionMetaData mavenModule = translateModule(module);
+            if (mavenModule.isPomPackaging()) {
+                Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
+                artifacts.addAll(findOptionalArtifacts(module, "jar", null));
+                result.resolved(artifacts);
+            } else {
+                ModuleVersionArtifactMetaData artifactMetaData = module.artifact(mavenModule.getPackaging(), mavenModule.getPackaging(), null);
+
+                if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData)) {
+                    DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
+                    result.resolved(ImmutableSet.of(artifactMetaData));
+                } else {
+                    ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
+                    result.resolved(ImmutableSet.of(artifact));
+                }
+            }
+        }
+
+        @Override
+        protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
+        }
+
+        @Override
+        protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            result.resolved(findOptionalArtifacts(module, "source", "sources"));
         }
     }
 }

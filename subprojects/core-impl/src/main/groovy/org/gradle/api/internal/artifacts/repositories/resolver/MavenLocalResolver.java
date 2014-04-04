@@ -37,7 +37,7 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     @Override
-    protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactResolver artifactResolver) {
+    protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver) {
         MutableModuleVersionMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver);
         MavenModuleVersionMetaData mavenModule = translateModule(metaData);
 
@@ -47,7 +47,7 @@ public class MavenLocalResolver extends MavenResolver {
         return metaData;
     }
 
-    private boolean isOrphanedPom(MavenModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
+    private boolean isOrphanedPom(MavenModuleVersionMetaData metaData, ExternalResourceArtifactResolver artifactResolver) {
         if (metaData.isPomPackaging()) {
             return false;
         }
