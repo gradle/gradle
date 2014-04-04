@@ -20,7 +20,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
@@ -42,7 +42,7 @@ public class ModuleDescriptorStore {
         this.descriptorParser = ivyXmlModuleDescriptorParser;
     }
 
-    public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
+    public ModuleDescriptor getModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
         String filePath = getFilePath(repository, moduleComponentIdentifier);
         final LocallyAvailableResource resource = metaDataStore.get(filePath);
         if (resource != null) {
@@ -51,7 +51,7 @@ public class ModuleDescriptorStore {
         return null;
     }
 
-    public LocallyAvailableResource putModuleDescriptor(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
+    public LocallyAvailableResource putModuleDescriptor(ModuleComponentRepository repository, final ModuleDescriptor moduleDescriptor) {
         String filePath = getFilePath(repository, moduleDescriptor.getModuleRevisionId());
         return metaDataStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
@@ -69,11 +69,11 @@ public class ModuleDescriptorStore {
         return descriptorParser.parseMetaData(parserSettings, moduleDescriptorFile, false).getDescriptor();
     }
 
-    private String getFilePath(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
+    private String getFilePath(ModuleComponentRepository repository, ModuleRevisionId moduleRevisionId) {
         return String.format(FILE_PATH_PATTERN, moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision(), repository.getId());
     }
 
-    private String getFilePath(ModuleVersionRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
+    private String getFilePath(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
         return String.format(FILE_PATH_PATTERN, moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion(), repository.getId());
     }
 }

@@ -17,19 +17,19 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 import java.math.BigInteger;
 
 public interface ModuleMetaDataCache {
-    CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleComponentIdentifier id);
+    CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
 
-    CachedMetaData cacheMetaData(ModuleVersionRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource);
+    CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource);
 
-    CachedMetaData getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleComponentIdentifier id);
+    CachedMetaData getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier id);
 
     interface CachedMetaData {
         ResolvedModuleVersion getModuleVersion();

@@ -16,11 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifierSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
@@ -52,14 +52,14 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
         return cacheLockingManager.createCache("module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
     }
 
-    public CachedArtifacts cacheArtifacts(ModuleVersionRepository repository, ModuleVersionIdentifier moduleMetaDataId, String context, BigInteger descriptorHash, Set<ModuleVersionArtifactIdentifier> artifacts) {
+    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ModuleVersionIdentifier moduleMetaDataId, String context, BigInteger descriptorHash, Set<ModuleVersionArtifactIdentifier> artifacts) {
         ModuleArtifactsKey key = new ModuleArtifactsKey(repository.getId(), moduleMetaDataId, context);
         ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(artifacts, timeProvider.getCurrentTime(), descriptorHash);
         getCache().put(key, entry);
         return createCacheArtifacts(entry);
     }
 
-    public CachedArtifacts getCachedArtifacts(ModuleVersionRepository repository, ModuleVersionIdentifier moduleMetaDataId, String context) {
+    public CachedArtifacts getCachedArtifacts(ModuleComponentRepository repository, ModuleVersionIdentifier moduleMetaDataId, String context) {
         ModuleArtifactsKey key = new ModuleArtifactsKey(repository.getId(), moduleMetaDataId, context);
         ModuleArtifactsCacheEntry entry = getCache().get(key);
         if (entry == null) {

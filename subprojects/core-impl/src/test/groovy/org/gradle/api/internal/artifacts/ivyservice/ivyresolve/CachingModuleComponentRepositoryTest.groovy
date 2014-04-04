@@ -35,8 +35,12 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class CachingModuleComponentRepositoryTest extends Specification {
-    def realRepo = Stub(LocalArtifactsModuleVersionRepository) {
+    def realLocalAccess = Mock(ModuleComponentRepositoryAccess)
+    def realRemoteAccess = Mock(ModuleComponentRepositoryAccess)
+    def realRepo = Stub(ModuleComponentRepository) {
         getId() >> "repo-id"
+        getLocalAccess() >> realLocalAccess
+        getRemoteAccess() >> realRemoteAccess
     }
     def moduleResolutionCache = Stub(ModuleVersionsCache)
     def moduleDescriptorCache = Mock(ModuleMetaDataCache)
@@ -93,7 +97,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         then:
         1 * component.getSource() >> cachingSource
         1 * component.withSource(source) >> component
-        realRepo.localResolveModuleArtifacts(component, context, result) >> {
+        realLocalAccess.resolveModuleArtifacts(component, context, result) >> {
             result.resolved([Mock(ComponentArtifactMetaData)])
         }
         0 * _

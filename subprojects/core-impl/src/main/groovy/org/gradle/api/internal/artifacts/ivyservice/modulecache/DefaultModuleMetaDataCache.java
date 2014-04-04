@@ -19,8 +19,8 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
@@ -67,7 +67,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return cacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
     }
 
-    public CachedMetaData getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleComponentIdentifier componentId) {
+    public CachedMetaData getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier componentId) {
         ModuleDescriptorCacheEntry moduleDescriptorCacheEntry = getCache().get(createKey(repository, componentId));
         if (moduleDescriptorCacheEntry == null) {
             return null;
@@ -83,14 +83,14 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new DefaultCachedMetaData(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }
 
-    public CachedMetaData cacheMissing(ModuleVersionRepository repository, ModuleComponentIdentifier id) {
+    public CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
         LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", id, false);
         ModuleDescriptorCacheEntry entry = createMissingEntry(false);
         getCache().put(createKey(repository, id), entry);
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
-    public CachedMetaData cacheMetaData(ModuleVersionRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource) {
+    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleVersionMetaData metaData, ModuleSource moduleSource) {
         ModuleDescriptor moduleDescriptor = metaData.getDescriptor();
         LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), metaData.isChanging());
         LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
@@ -103,7 +103,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return metaData instanceof MavenModuleVersionMetaData ? ((MavenModuleVersionMetaData) metaData).getPackaging() : null;
     }
 
-    private RevisionKey createKey(ModuleVersionRepository repository, ModuleComponentIdentifier id) {
+    private RevisionKey createKey(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
         return new RevisionKey(repository.getId(), id);
     }
 

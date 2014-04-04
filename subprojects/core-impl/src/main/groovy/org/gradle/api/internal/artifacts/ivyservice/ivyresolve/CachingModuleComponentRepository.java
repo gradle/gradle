@@ -56,14 +56,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     private final CachePolicy cachePolicy;
 
-    private final LocalArtifactsModuleVersionRepository delegate;
+    private final ModuleComponentRepository delegate;
     private final BuildCommencedTimeProvider timeProvider;
     private final ModuleMetadataProcessor metadataProcessor;
     private final Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor;
     private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
-    public CachingModuleComponentRepository(LocalArtifactsModuleVersionRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
+    public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                             ModuleArtifactsCache moduleArtifactsCache, CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                             CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
                                             ModuleMetadataProcessor metadataProcessor, Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor) {
@@ -209,7 +209,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
 
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
-            delegate.localResolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()), context, result);
+            delegate.getLocalAccess().resolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()), context, result);
             if (result.hasResult()) {
                 return;
             }
@@ -232,7 +232,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-            delegate.listModuleVersions(dependency, result);
+            delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:
                     ModuleIdentifier moduleId = moduleExtractor.transform(dependency.getRequested());
@@ -248,7 +248,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
             DependencyMetaData forced = dependency.withChanging();
-            delegate.resolveComponentMetaData(forced, moduleComponentIdentifier, result);
+            delegate.getRemoteAccess().resolveComponentMetaData(forced, moduleComponentIdentifier, result);
             switch (result.getState()) {
                 case Missing:
                     moduleMetaDataCache.cacheMissing(delegate, moduleComponentIdentifier);
@@ -270,7 +270,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         // TODO:DAZ Move some of this to local, once that is wired in
         public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource moduleSource = (CachingModuleSource) component.getSource();
-            delegate.resolveModuleArtifacts(component.withSource(moduleSource.getDelegate()), context, result);
+            delegate.getRemoteAccess().resolveModuleArtifacts(component.withSource(moduleSource.getDelegate()), context, result);
 
             if (result.getFailure() == null) {
                 Set<ModuleVersionArtifactIdentifier> artifactIdentifierSet = CollectionUtils.collect(result.getArtifacts(), new ArtifactMetaDataToId());

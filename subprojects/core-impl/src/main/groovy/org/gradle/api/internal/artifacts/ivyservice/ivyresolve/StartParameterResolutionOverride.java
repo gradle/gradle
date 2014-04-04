@@ -75,32 +75,25 @@ public class StartParameterResolutionOverride {
         }
     }
 
-    public LocalArtifactsModuleVersionRepository overrideModuleVersionRepository(LocalArtifactsModuleVersionRepository original) {
+    public ModuleComponentRepository overrideModuleVersionRepository(ModuleComponentRepository original) {
         if (startParameter.isOffline()) {
             return new OfflineModuleVersionRepository(original);
         }
         return original;
     }
 
-    private static class OfflineModuleVersionRepository implements ModuleVersionRepository, LocalArtifactsModuleVersionRepository {
-        private final LocalArtifactsModuleVersionRepository original;
+    private static class OfflineModuleVersionRepository extends BaseModuleComponentRepository {
 
-        public OfflineModuleVersionRepository(LocalArtifactsModuleVersionRepository original) {
-            this.original = original;
+        public OfflineModuleVersionRepository(ModuleComponentRepository original) {
+            super(original, original.getLocalAccess(), new FailedRemoteAccess());
         }
 
-        public String getId() {
-            return original.getId();
+        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            result.failed(new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
         }
+    }
 
-        public String getName() {
-            return original.getName();
-        }
-
-        public boolean isLocal() {
-            return false;
-        }
-
+    private static class FailedRemoteAccess implements ModuleComponentRepositoryAccess {
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
             result.failed(new ModuleVersionResolveException(dependency.getRequested(), "No cached version listing for %s available for offline mode."));
         }
@@ -109,16 +102,8 @@ public class StartParameterResolutionOverride {
             result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, "No cached version of %s available for offline mode."));
         }
 
-        public void localResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-            original.localResolveModuleArtifacts(component, context, result);
-        }
-
         public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
             result.failed(new ArtifactResolveException(component.getComponentId(), "No cached version available for offline mode"));
-        }
-
-        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-            result.failed(new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
         }
     }
 }
