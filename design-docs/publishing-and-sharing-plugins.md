@@ -78,6 +78,17 @@ Plugins also declare which classes from their implementation and dependencies ar
 
 _The exact mechanism and semantics of this sharing are TBD._
 
+## Plugin dependencies
+
+Plugin dependencies of plugins are now forward declared, which is available as part of the plugin metadata.
+When a user declares a dependency on a plugin, Gradle manages transitive resolution of all plugin dependencies and guarantees that all plugin dependencies have been _applied_ before the plugin is applied.
+
+Therefore, ideally, plugins will no longer use project.apply() to apply plugins but will rely on Gradle applying the plugin because the dependency was declared.
+Because use of plugins, and the dependencies of those plugins, is forward declared we can understand which plugins are used by a build without executing any “configuration” code.
+
+This means that plugin application is never conditional.
+More fine grained mechanisms will be available to plugin implementations for implementing conditional logic (i.e. model configuration rules).
+
 ## Plugin ids
 
 Plugin ids will now be namespaced.
@@ -91,6 +102,7 @@ Plugin ids…
 1. consist of a namespace (everything before the last '.') and a name (everything after the last '.')
 1. conventionally use a lowercase reverse domain name convention for the namespace component
 1. conventionally use only lowercase characters for the name component
+1. 'org.gradle' and 'com.gradleware' namespaces are reserved (users are actively prevented from using these namespaces)
 
 Plugin specs can be made of qualified («namespace.name») or unqualified («name») plugin ids.
 
@@ -153,6 +165,9 @@ The only allowed constructs are:
 Attempts to do _anything_ else will result in a _compile_ error.
 This guarantees that we can execute the `plugins {}` block at any time to understand what plugins are going to be used.
 
+The order of plugin declarations is insignificant.
+The natural ordering of plugin application is alphabetical based on plugin _name_ (not id), respecting plugin dependencies (i.e. depended on plugins are guaranteed to be applied before application).
+
 **Note:** `allprojects {}` and friends are not compatible with this new DSL.
 Targets cannot impose plugins on other targets.
 A separate mechanism will be available to perform this kind of generalised configuration in a more managed way (discussed later).
@@ -163,7 +178,6 @@ Script plugins will be mapped to ids/versions elsewhere in the build, allowing t
 ### Open issues
 
 - How practical is it to lock down the `plugins {}` DSL so tightly 
-- What is the significance of plugin ordering?
 
 ## Plugin spec to implementation mappings
 
@@ -174,25 +188,34 @@ The settings.gradle file, and init scripts provide the mappings from plugin spec
         repositories {
             // DSL for declaring external sources of information about plugins
         }
-        scripts {
-            // DSL for declaring that a local script is the implementation of a particular plugin
-        }
     }
 
-If no repositories are declared, this will default to `plugins.gradle.org`. 
-Some mechanism (TBD) will be available to configure this default in some way.
+The default list of repositories will be:
+
+    repositories {
+        defaultScriptDir() // script plugins in `$rootDir/gradle/plugins`
+        gradlePlugins() // plugins.gradle.org
+    }
+
+The 'core plugin repository' is always implicitly the first repository and cannot be disabled.
+If any plugin repositories are declared, the `defaultScriptDir()` and `gradlePlugins()` defaults are removed.
+Some mechanism (TBD) will be available to configure the defaults (i.e. repositories used when none specified) in some way.
+
+### Potential repository types
+
+- Directory containing script plugins (other than the default convention)
+- HTTP “directory” containing script plugins
+- Other instance of plugin portal
 
 ### Open issues
 
 - What does the repositories DSL look like?
-- What does the scripts DSL look like?
 - Does the `pluginMappings` block apply to the settings/init plugins? If not, how does one specify the mappings there?
 - Does the `pluginMappings` block get extracted and executed in isolation like the `plugins` block? With similar strictness?
 - Can plugins contribute to the `pluginMappings` block in some way?
 - How do buildSrc plugins work with mapping?
 - How do `pluginMappings` blocks in multiple init scripts and then the settings script compose?
 - Should an individual build script have its own mapping overrides?
-- Order of precedence between repository and script plugins
 - Could an `inline {}` DSL be used here to give the location of arbitrary detached Gradle plugin projects that need to be built? (i.e. buildSrc replacement)
 
 ## Script plugins
@@ -212,9 +235,9 @@ Explicit mappings will also be possible via the `pluginMappings {}` DSL (details
 This requires that script plugins can express all things that binary plugins can in terms of usage requirements:
 
 1. Dependencies on other plugins - specified by the plugin script's `plugins {}` block
-1. Dependencies on JVM libraries - _TBD (`buildscript.dependencies`?)_
+1. Dependencies on JVM libraries
 1. Entry point/implementation - script body
-1. Exported classes - _TBD_
+1. Exported classes
 
 As new capabilities are added to plugins (particularly WRT new configuration model), consideration should be given to how script plugins express the same thing.
 
@@ -222,6 +245,8 @@ As new capabilities are added to plugins (particularly WRT new configuration mod
 
 - How are unqualified ids of plugin dependencies to be interpreted? (i.e. script plugins can be used across builds, with potentially different qualifying rules)
 - Do these 'new' script plugins need to declare that they are compatible with the new mechanism? Are there any differences WRT their implementation?
+- How do script plugins declare their non plugin dependencies?
+- How do script plugins declare the classes that they export?
 
 ## Plugin resolution
 
@@ -246,10 +271,8 @@ Compatibility constraints consist of:
 ### Resolver types
 
 A spec is resolved into an implementation by iterating through the following resolvers, stopping at the first match.
-
-#### Open Questions
-
-- When resolving a plugin for the first time and running with --offline, should the build fail as soon as a non core/script resolver is attempted?
+Each resolver must respect `--offline`, in that if it needs to reach out over the network to perform the resolution and `--offline` has been specified then the resolution will fail.
+This doesn't apply to loading implementations (e.g. local scripts) from disk.
 
 #### Core plugin resolver
 
@@ -286,7 +309,6 @@ This resolver uses the explicit rules defined by the build environment (i.e. ini
 Version constraints may be dynamic.
 In this case, each plugin resolver is asked for all of the versions of the plugin that it knows about that are otherwise compatible.
 The best version available, considering all resolvers, will be used.
-Note that this is different to “normal” Gradle dependency resolution that only considers the first repository that has any version of the thing.
 
 Resolvers are responsible for providing the potential versions.
 Selecting the actual version to use based on the version constraint is performed by Gradle.
@@ -297,7 +319,6 @@ Dynamic versions are specified using the same syntax that is currently used…
 
 
 # Stories
-
 
 ## Story: Introduce plugins DSL block
 
@@ -351,6 +372,8 @@ Note: plugins from buildSrc are not core plugins.
 - `plugins { id "java"; id "java" }` produces error stating that the same plugin was specified twice
 - `plugins { id "org.gradle.java" }` is equivalent to `plugins { id "java"}`
 - `plugins { id "«non core plugin»" }` produces suitable 'not found' type error message
+- Using project.apply() to apply a plugin that was already applied using the plugins {} mechanism works (i.e. has no effect)
+- Plugins are applied alphabetically based on name
 
 ### Open questions 
 
@@ -400,6 +423,8 @@ Implementation (rough):
   
 The client only need to be capable of GET requests at this stage.
 
+Implementation should be based on the same HTTP infrastructure that dependency resolution uses.
+
 ### Test coverage
 
 - Request URLs are correctly escaped, WRT tokens
@@ -416,8 +441,7 @@ The client only need to be capable of GET requests at this stage.
 
 ### Open questions
 
-- What to use to make the HTTP requests? Is there any good reason not to just use java.net.URL?
-- What to use to unmarshall JSON responses? Jackson? Should the API couple to a marshaller at this level? 
+- What to use to unmarshall JSON responses? Jackson? Should the API couple to a marshaller at this level?
 
 ## Story: User uses plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes 
 
@@ -491,6 +515,7 @@ Future iterations may provide the address of a “status URL” that users can u
 - Plugin implementation classes are not visible to build script (or to anything else)
 - Plugin cannot access classes from core Gradle plugins
 - Plugin can access classes from Gradle API
+- Plugin resolution fails when --offline is specified
 
 ### Open questions
 
@@ -502,9 +527,18 @@ Future iterations may provide the address of a “status URL” that users can u
 
 ## Story: Plugins are able to declare exported classes
 
-## Story: Plugins are able to depend on other plugins
+This is the first story where we require changes to how plugins are published and/or implemented (i.e. exported class information is needed). 
+
+Plugin authors should be able to write their plugin in such a way that it works with the new mechanism and the old project.apply() mechanism (as long as it has no dependency on any other, even core, plugin).
+
+## Story: Plugins are able to declare dependency on core plugin
+
+Plugin authors should be able to write their plugin in such a way that it works with the new mechanism and the old project.apply() mechanism (as long as it has no dependency a non core plugin).
+
+## Story: Plugins are able to depend on other non core plugins
 
 Plugin dependencies can not be dynamic.
+Plugin dependencies can not be cyclic.
 
 ## Story: Plugin resolution is cached across the entire build
 
@@ -547,6 +581,7 @@ Includes:
 
 - Tooling support for publishing in manner suitable for inclusion in plugins.gradle.org
 - Admin processes for including plugin, including acceptance policies etc.
+- Prevention of use of 'org.gradle' and 'com.gradleware' namespaces
 
 ## Story: User specifies centrally that a plugin should be applied to multiple projects
 
