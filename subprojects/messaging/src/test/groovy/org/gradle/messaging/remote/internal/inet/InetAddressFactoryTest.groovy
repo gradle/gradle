@@ -31,6 +31,11 @@ class InetAddressFactoryTest extends Specification {
         !factory.findRemoteAddresses().empty
     }
 
+    def "always contains at least multicast interface"() {
+        expect:
+        !factory.findMulticastInterfaces().empty
+    }
+
     def "all local address is considered local"() {
         expect:
         factory.findLocalAddresses().every {

@@ -15,6 +15,9 @@
  */
 package org.gradle.messaging.remote.internal.inet;
 
+import org.gradle.api.Transformer;
+import org.gradle.internal.UncheckedException;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +27,10 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * Provides some information about the network addresses of the local machine.
@@ -34,6 +40,7 @@ public class InetAddressFactory {
     private final Object lock = new Object();
     private List<InetAddress> localAddresses;
     private List<InetAddress> remoteAddresses;
+    private List<NetworkInterface> multicastInterfaces;
 
     /**
      * Determines the name of the local machine.
@@ -98,37 +105,46 @@ public class InetAddressFactory {
         }
     }
 
+    /**
+     * Locates the network interfaces that should be used for multicast, in order of preference.
+     */
+    public List<NetworkInterface> findMulticastInterfaces() {
+        try {
+            synchronized (lock) {
+                init();
+                if (multicastInterfaces.isEmpty()) {
+                    LOGGER.debug("No multicast interfaces, using fallback");
+                    return CollectionUtils.toList(NetworkInterface.getNetworkInterfaces());
+                }
+                return multicastInterfaces;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not determine the multicast network interfaces for this machine.", e);
+        }
+    }
+
     private void init() throws Exception {
         if (localAddresses != null) {
             return;
         }
 
-        Method loopbackMethod;
-        try {
-            loopbackMethod = NetworkInterface.class.getMethod("isLoopback");
-        } catch (NoSuchMethodException e) {
-            loopbackMethod = null;
-        }
+        Transformer<Boolean, NetworkInterface> loopback = loopback();
+        Transformer<Boolean, NetworkInterface> multicast = multicast();
 
         localAddresses = new ArrayList<InetAddress>();
         remoteAddresses = new ArrayList<InetAddress>();
+        multicastInterfaces = new ArrayList<NetworkInterface>();
 
         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
         while (interfaces.hasMoreElements()) {
             NetworkInterface networkInterface = interfaces.nextElement();
-            LOGGER.debug("Adding IP addresses for network interface {}", networkInterface.getName());
+            LOGGER.debug("Adding IP addresses for network interface {}", networkInterface.getDisplayName());
             try {
-                Boolean isLoopbackInterface;
-                try {
-                    isLoopbackInterface = loopbackMethod == null ? null : (Boolean) loopbackMethod.invoke(networkInterface);
-                } catch (InvocationTargetException e) {
-                    if (!(e.getCause() instanceof SocketException)) {
-                        throw e.getCause();
-                    }
-                    // Ignore - treat as if we don't know
-                    isLoopbackInterface = null;
-                }
+                Boolean isLoopbackInterface = loopback.transform(networkInterface);
                 LOGGER.debug("Is this a loopback interface? {}", isLoopbackInterface);
+                Boolean isMulticast = multicast.transform(networkInterface);
+                LOGGER.debug("Is this a multicast interface? {}", isMulticast);
+                boolean isRemote = false;
 
                 Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
                 while (candidates.hasMoreElements()) {
@@ -139,27 +155,89 @@ public class InetAddressFactory {
                             LOGGER.debug("Adding loopback address {}", candidate);
                             localAddresses.add(candidate);
                         } else {
-                            LOGGER.debug("Adding non-loopback address {}", candidate);
+                            LOGGER.debug("Adding remote address {}", candidate);
                             remoteAddresses.add(candidate);
+                            isRemote = true;
                         }
                     } else if (isLoopbackInterface) {
                         if (candidate.isLoopbackAddress()) {
                             LOGGER.debug("Adding loopback address {}", candidate);
                             localAddresses.add(candidate);
                         } else {
-                            LOGGER.debug("Ignoring non-loopback address on loopback interface {}", candidate);
+                            LOGGER.debug("Ignoring remote address on loopback interface {}", candidate);
                         }
                     } else {
                         if (candidate.isLoopbackAddress()) {
-                            LOGGER.debug("Ignoring loopback address on non-loopback interface {}", candidate);
+                            LOGGER.debug("Ignoring loopback address on remote interface {}", candidate);
                         } else {
-                            LOGGER.debug("Adding non-loopback address {}", candidate);
+                            LOGGER.debug("Adding remote address {}", candidate);
                             remoteAddresses.add(candidate);
+                            isRemote = true;
                         }
+                    }
+                }
+
+                if (!Boolean.FALSE.equals(isMulticast)) {
+                    // Prefer remotely reachable interfaces over loopback interfaces for multicast
+                    if (isRemote) {
+                        LOGGER.debug("Adding remote multicast interface {}", networkInterface.getDisplayName());
+                        multicastInterfaces.add(0, networkInterface);
+                    } else {
+                        LOGGER.debug("Adding loopback multicast interface {}", networkInterface.getDisplayName());
+                        multicastInterfaces.add(networkInterface);
                     }
                 }
             } catch (Throwable e) {
                 throw new RuntimeException(String.format("Could not determine the IP addresses for network interface %s", networkInterface.getName()), e);
+            }
+        }
+    }
+
+    private Transformer<Boolean, NetworkInterface> loopback() {
+        try {
+            Method method = NetworkInterface.class.getMethod("isLoopback");
+            return new MethodBackedTransformer(method);
+        } catch (NoSuchMethodException e) {
+            return new Unknown();
+        }
+    }
+
+    private Transformer<Boolean, NetworkInterface> multicast() {
+        try {
+            Method method = NetworkInterface.class.getMethod("supportsMulticast");
+            return new MethodBackedTransformer(method);
+        } catch (NoSuchMethodException e) {
+            return new Unknown();
+        }
+
+    }
+
+    private static class Unknown implements Transformer<Boolean, NetworkInterface> {
+        public Boolean transform(NetworkInterface original) {
+            return null;
+        }
+    }
+
+    private static class MethodBackedTransformer implements Transformer<Boolean, NetworkInterface> {
+        private final Method method;
+
+        public MethodBackedTransformer(Method method) {
+            this.method = method;
+        }
+
+        public Boolean transform(NetworkInterface original) {
+            try {
+                try {
+                    return (Boolean) method.invoke(original);
+                } catch (InvocationTargetException e) {
+                    if (!(e.getCause() instanceof SocketException)) {
+                        throw e.getCause();
+                    }
+                    // Ignore - treat as if we don't know
+                    return null;
+                }
+            } catch (Throwable throwable) {
+                throw UncheckedException.throwAsUncheckedException(throwable);
             }
         }
     }

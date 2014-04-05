@@ -211,19 +211,17 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> toList(Iterable<? extends T> things) {
-        if (things == null) {
-            return new ArrayList<T>(0);
-        }
         if (things instanceof List) {
             @SuppressWarnings("unchecked") List<T> castThings = (List<T>) things;
             return castThings;
         }
-        if (things instanceof Collection) {
-            return new ArrayList<T>((Collection) things);
-        }
-        List<T> list = new ArrayList<T>();
-        for (T thing : things) {
-            list.add(thing);
+        return toMutableList(things);
+    }
+
+    public static <T> List<T> toList(Enumeration<? extends T> things) {
+        AbstractList<T> list = new ArrayList<T>();
+        while (things.hasMoreElements()) {
+            list.add(things.nextElement());
         }
         return list;
     }

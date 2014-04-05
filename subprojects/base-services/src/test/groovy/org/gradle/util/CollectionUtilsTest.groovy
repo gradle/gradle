@@ -289,6 +289,13 @@ class CollectionUtilsTest extends Specification {
         toSet([]).empty
     }
 
+    def "to list"() {
+        expect:
+        toList([1, 2, 3] as Set) == [1, 2, 3]
+        toList([]).empty
+        toList(([1, 2, 3] as Vector).elements()) == [1, 2, 3]
+    }
+
     def "sorting with comparator"() {
         given:
         def naturalComparator = { a, b -> a<=>b } as Comparator
