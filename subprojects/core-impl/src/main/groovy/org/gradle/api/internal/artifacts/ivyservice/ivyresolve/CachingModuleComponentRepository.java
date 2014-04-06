@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -43,8 +42,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.math.BigInteger;
 import java.util.Set;
-
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
 
 public class CachingModuleComponentRepository implements ModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleComponentRepository.class);
@@ -165,18 +162,16 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-            ModuleVersionIdentifier moduleVersionIdentifier = newId(moduleComponentIdentifier);
-            ModuleRevisionId resolvedModuleVersionId = dependency.getDescriptor().getDependencyRevisionId();
             ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.getCachedModuleDescriptor(delegate, moduleComponentIdentifier);
             if (cachedMetaData == null) {
                 return;
             }
             if (cachedMetaData.isMissing()) {
-                if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, null, resolvedModuleVersionId, cachedMetaData.getAgeMillis())) {
-                    LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, delegate.getName());
+                if (cachePolicy.mustRefreshMissingModule(moduleComponentIdentifier, cachedMetaData.getAgeMillis())) {
+                    LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
                 }
-                LOGGER.debug("Detected non-existence of module '{}' in resolver cache '{}'", resolvedModuleVersionId, delegate.getName());
+                LOGGER.debug("Detected non-existence of module '{}' in resolver cache '{}'", moduleComponentIdentifier, delegate.getName());
                 if (cachedMetaData.getAgeMillis() == 0) {
                     // Verified since the start of this build, assume still missing
                     result.missing();
@@ -189,19 +184,19 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             MutableModuleVersionMetaData metaData = cachedMetaData.getMetaData();
             metadataProcessor.process(metaData);
             if (dependency.isChanging() || metaData.isChanging()) {
-                if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
-                    LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, delegate.getName());
+                if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
+                    LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
                 }
-                LOGGER.debug("Found cached version of changing module '{}' in '{}'", resolvedModuleVersionId, delegate.getName());
+                LOGGER.debug("Found cached version of changing module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
             } else {
-                if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, cachedMetaData.getModuleVersion(), null, cachedMetaData.getAgeMillis())) {
-                    LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, delegate.getName());
+                if (cachePolicy.mustRefreshModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
+                    LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
                 }
             }
 
-            LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, delegate.getName());
+            LOGGER.debug("Using cached module metadata for module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
             result.resolved(metaData, new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), cachedMetaData.getModuleSource()));
         }
 
