@@ -32,8 +32,13 @@ abstract class HttpResource {
         server.allowGetOrHead(getPath(), file)
 
     }
+
     void expectGet() {
         server.expectGet(getPath(), file)
+    }
+
+    void expectGet(String userName, String password) {
+        server.expectGet(getPath(), userName, password, file)
     }
 
     void expectGetBroken() {
