@@ -16,8 +16,6 @@
 package org.gradle.api.internal.artifacts.resolution;
 
 import com.google.common.collect.Sets;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
@@ -74,7 +72,6 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         return this;
     }
 
-    @SuppressWarnings("unchecked")
     public ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes) {
         this.componentType = componentType;
         this.artifactTypes.addAll(Arrays.asList(artifactTypes));
@@ -98,11 +95,8 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                         throw new IllegalArgumentException(String.format("Cannot resolve the artifacts for component %s with unsupported type %s.", componentId.getDisplayName(), componentId.getClass().getName()));
                     }
                     ModuleComponentIdentifier moduleComponentId = (ModuleComponentIdentifier) componentId;
-                    BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
-                    repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(toModuleRevisionId(moduleComponentId), true)), moduleResolveResult);
-
                     try {
-                        componentResults.add(buildComponentResult(moduleResolveResult.getMetaData(), artifactResolver));
+                        componentResults.add(buildComponentResult(moduleComponentId, repositoryChain, artifactResolver));
                     } catch (Throwable t) {
                         componentResults.add(new DefaultUnresolvedComponentResult(moduleComponentId, t));
                     }
@@ -113,7 +107,10 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         });
     }
 
-    private ResolvedComponentArtifactsResult buildComponentResult(ComponentMetaData component, ArtifactResolver artifactResolver) {
+    private ResolvedComponentArtifactsResult buildComponentResult(ModuleComponentIdentifier moduleComponentId, RepositoryChain repositoryChain, ArtifactResolver artifactResolver) {
+        BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
+        repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(moduleComponentId, true), moduleResolveResult);
+        ComponentMetaData component = moduleResolveResult.getMetaData();
         DefaultResolvedComponentArtifactsResult componentResult = new DefaultResolvedComponentArtifactsResult(component.getComponentId());
         for (Class<? extends Artifact> artifactType : artifactTypes) {
             addArtifacts(componentResult, artifactType, component, artifactResolver);
@@ -135,9 +132,5 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                 artifacts.addArtifact(type, new DefaultResolvedArtifactResult(resolveResult.getFile()));
             }
         }
-    }
-
-    private ModuleRevisionId toModuleRevisionId(ModuleComponentIdentifier componentId) {
-        return ModuleRevisionId.newInstance(componentId.getGroup(), componentId.getModule(), componentId.getVersion());
     }
 }

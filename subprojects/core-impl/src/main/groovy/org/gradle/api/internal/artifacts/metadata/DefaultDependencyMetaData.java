@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector;
@@ -41,6 +43,16 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         this.dependencyDescriptor = dependencyDescriptor;
         ModuleRevisionId dependencyRevisionId = dependencyDescriptor.getDependencyRevisionId();
         requested = new DefaultModuleVersionSelector(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
+    }
+
+    public DefaultDependencyMetaData(ModuleVersionIdentifier moduleVersionIdentifier, boolean force) {
+        dependencyDescriptor = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(moduleVersionIdentifier), force);
+        requested = new DefaultModuleVersionSelector(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
+    }
+
+    public DefaultDependencyMetaData(ModuleComponentIdentifier componentIdentifier, boolean force) {
+        dependencyDescriptor = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(componentIdentifier), force);
+        requested = new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
     }
 
     @Override

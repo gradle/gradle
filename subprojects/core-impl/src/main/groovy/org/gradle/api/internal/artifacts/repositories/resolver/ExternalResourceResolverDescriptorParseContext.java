@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.*;
@@ -37,11 +36,9 @@ import java.io.File;
  */
 public class ExternalResourceResolverDescriptorParseContext implements DescriptorParseContext {
     private final RepositoryChain mainResolvers;
-    private final ExternalResourceResolver moduleResolver;
 
-    public ExternalResourceResolverDescriptorParseContext(RepositoryChain mainResolvers, ExternalResourceResolver moduleResolver) {
+    public ExternalResourceResolverDescriptorParseContext(RepositoryChain mainResolvers) {
         this.mainResolvers = mainResolvers;
-        this.moduleResolver = moduleResolver;
     }
 
     public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, Class<? extends Artifact> artifactType) {
@@ -53,7 +50,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     private File resolveMetaDataArtifactFile(ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver dependencyResolver,
                                              ArtifactResolver artifactResolver, Class<? extends Artifact> artifactType) {
         BuildableComponentResolveResult moduleVersionResolveResult = new DefaultBuildableComponentResolveResult();
-        dependencyResolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(moduleVersionIdentifier), true)), moduleVersionResolveResult);
+        dependencyResolver.resolve(new DefaultDependencyMetaData(moduleVersionIdentifier, true), moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
         ArtifactTypeResolveContext context = new ArtifactTypeResolveContext(artifactType);

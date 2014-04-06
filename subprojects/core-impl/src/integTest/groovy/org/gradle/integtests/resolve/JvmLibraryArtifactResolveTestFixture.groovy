@@ -114,7 +114,7 @@ class JvmLibraryArtifactResolveTestFixture {
         }
     }
 
-    void createVerifyTask(def taskName) {
+    void createVerifyTask(String taskName) {
         buildFile << """
 task $taskName << {
     def deps = configurations.compile.incoming.resolutionResult.allDependencies as List

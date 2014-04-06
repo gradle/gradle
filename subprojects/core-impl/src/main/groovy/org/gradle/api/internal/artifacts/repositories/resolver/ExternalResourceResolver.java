@@ -199,7 +199,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     private MutableModuleVersionMetaData downloadAndParseMetaDataArtifact(ModuleVersionArtifactMetaData artifact, ExternalResource resource) {
-        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(repositoryChain, this);
+        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(repositoryChain);
         LocallyAvailableExternalResource cachedResource;
         try {
             cachedResource = downloadAndCacheResource(artifact, resource);
