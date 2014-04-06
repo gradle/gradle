@@ -74,9 +74,12 @@ IDE to provide some basic content assistance for a build script.
 1. Introduce a new hierarchy to represent a classpath element. Retrofit the IDEA and Eclipse models to use this.
     - Should expose a set of files, a set of source archives and a set of API docs.
 2. Add `compileClasspath` property to `GradleScript` to expose the build script classpath.
-3. Include the Gradle API and core plugins in the script classpath.
+3. Script classpath includes the Gradle API and core plugins
     - Should include the source and Javadoc
-4. Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used.
+4. Script classpath includes the libraries declared in the `buildscript { }` block.
+5. Script classpath includes the plugins declared in the `plugins { }` block.
+6. Script classpath includes the libraries inherited from parent project.
+7. Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used.
 
 ### Open issues
 
