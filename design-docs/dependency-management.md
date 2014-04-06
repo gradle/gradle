@@ -203,8 +203,21 @@ Get the pom files for all maven modules in a configuration:
         .execute()
     Set<File> pomFiles = artifactResult.getArtifactFiles()
 
+### Test cases
+
+- Unsupported artifact types:
+    - Request an ivy descriptor for a maven module fails with 'not supported'.
+    - Request a pom for an ivy module fails with 'not supported'.
+- Optional artifacts:
+    - Request an ivy descriptor for an ivy module with no descriptor.
+    - Request a pom for a maven module with no pom.
+- No http requests are made (the descriptor should already be downloaded to get hold of the component id)
+    - Changing module and snapshot
+    - `--refresh-dependencies`
+
 ### Open issues
 
+- What happens when I ask for the ivy descriptor for a jvm library? Or the source artifacts for a maven module?
 - Typed domain model for IvyModule and MavenModule
 
 ## Story: IDE plugins use the resolution result to determine library artifacts
