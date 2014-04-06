@@ -39,7 +39,7 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject       | maxExecutionTimeRegression
-        "small"           | millis(700)
+        "small"           | millis(750)
         "multi"           | millis(1500)
         "lotDependencies" | millis(3000)
     }
