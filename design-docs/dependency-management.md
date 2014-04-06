@@ -47,39 +47,6 @@ A component instance with an associated (group, module, version) identifier.
 
 See also the completed stories in [dependency-management.md](done/dependency-management.md).
 
-## Story: Dependency reports indicate the source of a component
-
-The dependency reporting will change to give some indication of the source of the component:
-
-For an external component instance, this will be unchanged:
-
-    +- group:name:1.2
-    +- group:other:1.3 -> group:other:1.3.1
-
-For a local component that is not a module version, this will look something like:
-
-    +- project :some:path
-    +- project :some:path -> group:other:1.2
-
-For a local component that is a module version, this will look something like
-
-    +- project :some:path (group:name:1.2)
-    +- project :some:path (group:name:1.2) -> group:other:1.2
-
-1. Change the `RenderableDependency` hierarchy to use the component id and module version id, if not null.
-2. Update the the dependency report tests as appropriate.
-
-The HTML dependency report should change in a similar way.
-
-### Test coverage
-
-- Update the existing test coverage for the new display values.
-- Ensure there is coverage for the dependency report and the dependency HTML report where
-    - There are a mix of external and project dependencies in the graph
-- Ensure there is coverage for the dependency insight report where:
-    - There are a mix of external and project dependencies in the graph
-    - There are a mix of external and project dependencies in the graph and the `--dependency` option is used.
-
 ## Story: IDE plugins use dependency resolution result to determine IDE class paths
 
 This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE project classpath.
