@@ -909,7 +909,8 @@ org:leaf2:1.0
         output.contains(toPlatformLineSeparators("""
 project :
 \\--- project :impl
-     \\--- project : (*)"""))
+     \\--- project : (*)
+"""))
     }
 
     def "selects a module component dependency with a given name"() {
@@ -1083,6 +1084,54 @@ org:leaf4:1.0
 project :api
 \\--- project :impl
      \\--- compile
+"""))
+    }
+
+    def "renders tree with a mix of project and external dependencies"() {
+        given:
+        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf3").publish()
+
+        file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
+
+        file("build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+                group = 'org.foo'
+                version = '1.0-SNAPSHOT'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+            dependencies {
+                compile project(':impl')
+            }
+            project(':api') {
+                dependencies {
+                    compile 'org:leaf2:1.0'
+                }
+            }
+            project(':impl') {
+                dependencies {
+                    compile project(':api')
+                    compile 'org:leaf1:1.0'
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf3"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf3:1.0
+\\--- org:leaf2:1.0
+     +--- project :api
+     |    \\--- project :impl
+     |         \\--- compile
+     \\--- org:leaf1:1.0
+          \\--- project :impl (*)
 """))
     }
 }
