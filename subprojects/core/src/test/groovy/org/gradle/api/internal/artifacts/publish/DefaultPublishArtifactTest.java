@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.publish;
 
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.jmock.integration.junit4.JMock;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,9 +29,6 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class DefaultPublishArtifactTest extends AbstractPublishArtifactTest {
-    protected PublishArtifact createPublishArtifact(String classifier) {
-        return new DefaultPublishArtifact(getTestName(), getTestExt(), getTestType(), classifier, getDate(), getTestFile());
-    }
 
     @Test
     public void init() {
