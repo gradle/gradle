@@ -343,5 +343,6 @@ public interface DependencyHandler {
     @Incubating
     void components(Action<? super ComponentMetadataHandler> configureAction);
 
+    @Incubating
     ArtifactResolutionQuery createArtifactResolutionQuery();
 }
