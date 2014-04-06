@@ -27,12 +27,11 @@ import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
 import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
-import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
@@ -225,16 +224,16 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     private Set<IvyArtifactName> getDependencyArtifactNames(DependencyMetaData dependency) {
-        ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(dependency.getRequested().getGroup(), dependency.getRequested().getName(), dependency.getRequested().getVersion());
+        String moduleName = dependency.getRequested().getName();
         Set<IvyArtifactName> artifactSet = Sets.newLinkedHashSet();
         DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
         for (DependencyArtifactDescriptor artifact : dependencyDescriptor.getAllDependencyArtifacts()) {
-            artifactSet.add(new DefaultIvyArtifactName(dependency.getRequested().getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes()));
+            artifactSet.add(new DefaultIvyArtifactName(moduleName, artifact.getType(), artifact.getExt(), artifact.getExtraAttributes()));
         }
 
         // TODO:DAZ This logic should be within the DependencyMetaData
         if (artifactSet.isEmpty()) {
-            artifactSet.add(new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar", Collections.<String, String>emptyMap()));
+            artifactSet.add(new DefaultIvyArtifactName(moduleName, "jar", "jar", Collections.<String, String>emptyMap()));
         }
 
         return artifactSet;
