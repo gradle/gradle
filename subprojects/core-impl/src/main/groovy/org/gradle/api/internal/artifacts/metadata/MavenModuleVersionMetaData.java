@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-public interface MavenModuleVersionMetaData extends ModuleVersionMetaData {
+public interface MavenModuleVersionMetaData {
     String getPackaging();
     boolean isRelocated();
     boolean isPomPackaging();

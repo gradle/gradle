@@ -41,4 +41,10 @@ public interface ModuleVersionMetaData extends ComponentMetaData {
      */
     @Nullable
     IvyModuleVersionMetaData getIvyMetaData();
+
+    /**
+     * Returns the ivy-specific meta-data for this module, or {@code null} if this module isn't an Ivy module.
+     */
+    @Nullable
+    MavenModuleVersionMetaData getMavenMetaData();
 }

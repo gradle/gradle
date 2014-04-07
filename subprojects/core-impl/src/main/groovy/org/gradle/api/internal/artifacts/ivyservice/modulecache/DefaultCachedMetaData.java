@@ -19,11 +19,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.metadata.MavenModuleDescriptorAdapter;
-import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.math.BigInteger;
@@ -41,20 +37,18 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
         if (moduleDescriptor == null) {
             metaData = null;
         } else {
-            // TODO: Ben should probably be based on cache entry type?
-            if (entry.packaging != null) {
-                MavenModuleDescriptorAdapter moduleDescriptorAdapter = new MavenModuleDescriptorAdapter(moduleDescriptor);
-                moduleDescriptorAdapter.setChanging(entry.isChanging);
-                moduleDescriptorAdapter.setPackaging(entry.packaging);
-                metaData = moduleDescriptorAdapter;
-            } else {
-                ModuleDescriptorAdapter moduleDescriptorAdapter = new ModuleDescriptorAdapter(moduleDescriptor);
-                moduleDescriptorAdapter.setChanging(entry.isChanging);
+            ModuleDescriptorAdapter moduleDescriptorAdapter = new ModuleDescriptorAdapter(moduleDescriptor);
+            moduleDescriptorAdapter.setChanging(entry.isChanging);
+
+            if (entry.packaging == null) {
                 @SuppressWarnings("unchecked")
                 IvyModuleVersionMetaData ivyMetaData = new DefaultIvyModuleVersionMetaData(moduleDescriptor.getExtraInfo());
                 moduleDescriptorAdapter.setIvyMetaData(ivyMetaData);
-                metaData = moduleDescriptorAdapter;
             }
+
+            MavenModuleVersionMetaData mavenMetaData = new DefaultMavenModuleVersionMetaData(entry.packaging, false);
+            moduleDescriptorAdapter.setMavenMetaData(mavenMetaData);
+            metaData = moduleDescriptorAdapter;
         }
     }
 

@@ -31,6 +31,8 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
     @Nullable
     private IvyModuleVersionMetaData ivyMetaData;
 
+    private MavenModuleVersionMetaData mavenMetaData = new DefaultMavenModuleVersionMetaData();
+
     public static ModuleDescriptorAdapter defaultForDependency(DependencyMetaData dependencyMetaData) {
         DefaultModuleDescriptor moduleDescriptor = createModuleDescriptor(dependencyMetaData);
         return new ModuleDescriptorAdapter(moduleDescriptor);
@@ -60,6 +62,7 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
         ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(getId(), getDescriptor(), getComponentId());
         copyTo(copy);
         copy.ivyMetaData = ivyMetaData;
+        copy.mavenMetaData = mavenMetaData;
         return copy;
     }
 
@@ -80,6 +83,14 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
 
     public void setIvyMetaData(IvyModuleVersionMetaData ivyMetaData) {
         this.ivyMetaData = ivyMetaData;
+    }
+
+    public MavenModuleVersionMetaData getMavenMetaData() {
+        return mavenMetaData;
+    }
+
+    public void setMavenMetaData(MavenModuleVersionMetaData mavenMetaData) {
+        this.mavenMetaData = mavenMetaData;
     }
 
     public ModuleVersionArtifactMetaData artifact(Artifact artifact) {

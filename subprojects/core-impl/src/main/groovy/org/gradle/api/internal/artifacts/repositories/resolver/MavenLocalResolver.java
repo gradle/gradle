@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.MavenModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -39,22 +40,23 @@ public class MavenLocalResolver extends MavenResolver {
     @Override
     protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver) {
         MutableModuleVersionMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver);
-        MavenModuleVersionMetaData mavenModule = translateModule(metaData);
 
-        if (isOrphanedPom(mavenModule, artifactResolver)) {
+        if (isOrphanedPom(metaData, artifactResolver)) {
             return null;
         }
         return metaData;
     }
 
-    private boolean isOrphanedPom(MavenModuleVersionMetaData metaData, ExternalResourceArtifactResolver artifactResolver) {
-        if (metaData.isPomPackaging()) {
+    private boolean isOrphanedPom(ModuleVersionMetaData metaData, ExternalResourceArtifactResolver artifactResolver) {
+        MavenModuleVersionMetaData mavenMetaData = metaData.getMavenMetaData();
+
+        if (mavenMetaData.isPomPackaging()) {
             return false;
         }
 
         // check custom packaging
-        if(!metaData.isKnownJarPackaging()) {
-            ModuleVersionArtifactMetaData customArtifactMetaData = metaData.artifact(metaData.getPackaging(), metaData.getPackaging(), null);
+        if(!mavenMetaData.isKnownJarPackaging()) {
+            ModuleVersionArtifactMetaData customArtifactMetaData = metaData.artifact(mavenMetaData.getPackaging(), mavenMetaData.getPackaging(), null);
 
             if(artifactResolver.artifactExists(customArtifactMetaData)) {
                 return false;

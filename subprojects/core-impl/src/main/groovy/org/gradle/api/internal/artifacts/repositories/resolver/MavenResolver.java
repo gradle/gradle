@@ -243,32 +243,12 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         }
     }
 
-    @Override
-    protected MutableModuleVersionMetaData getDefaultForDependency(DependencyMetaData dependencyMetaData) {
-        return MavenModuleDescriptorAdapter.defaultForDependency(dependencyMetaData);
-    }
-
     public ModuleComponentRepositoryAccess getLocalAccess() {
         return new MavenLocalRepositoryAccess();
     }
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return new MavenRemoteRepositoryAccess();
-    }
-
-    /**
-     * Check if we already have the correct type of ModuleVersionMetaData. If not turn in into a MavenModuleVersionMetaData. This is the case for client module dependencies. They create an instance of
-     * ModuleDescriptorAdapter in DefaultClientModuleMetaDataFactory. We might want to handle this earlier.
-     *
-     * @param module Module
-     * @return Maven module version meta data
-     */
-    protected MavenModuleVersionMetaData translateModule(ModuleVersionMetaData module) {
-        if (module instanceof MavenModuleVersionMetaData) {
-            return (MavenModuleVersionMetaData) module;
-        }
-
-        return new MavenModuleDescriptorAdapter(module.getDescriptor());
     }
 
     protected static class TimestampedModuleSource implements ModuleSource {
@@ -286,8 +266,9 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
         protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
-            MavenModuleVersionMetaData mavenModule = translateModule(module);
-            if (mavenModule.isKnownJarPackaging()) {
+            MavenModuleVersionMetaData mavenMetaData = module.getMavenMetaData();
+
+            if (mavenMetaData.isKnownJarPackaging()) {
                 ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
                 result.resolved(ImmutableSet.of(artifact));
             }
@@ -307,13 +288,14 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
         protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
-            MavenModuleVersionMetaData mavenModule = translateModule(module);
-            if (mavenModule.isPomPackaging()) {
+            MavenModuleVersionMetaData mavenMetaData = module.getMavenMetaData();
+
+            if (mavenMetaData.isPomPackaging()) {
                 Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
                 artifacts.addAll(findOptionalArtifacts(module, "jar", null));
                 result.resolved(artifacts);
             } else {
-                ModuleVersionArtifactMetaData artifactMetaData = module.artifact(mavenModule.getPackaging(), mavenModule.getPackaging(), null);
+                ModuleVersionArtifactMetaData artifactMetaData = module.artifact(mavenMetaData.getPackaging(), mavenMetaData.getPackaging(), null);
 
                 if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData)) {
                     DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");

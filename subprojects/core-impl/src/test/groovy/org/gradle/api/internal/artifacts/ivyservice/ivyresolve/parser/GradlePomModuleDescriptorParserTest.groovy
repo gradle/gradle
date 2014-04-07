@@ -1264,7 +1264,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.allArtifacts.length == 0
-        metaData.packaging == 'pom'
+        metaData.mavenMetaData.packaging == 'pom'
     }
 
     def "pom with project coordinates defined by custom properties"() {

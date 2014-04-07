@@ -27,6 +27,7 @@ public interface MutableModuleVersionMetaData extends ModuleVersionMetaData {
     void setStatus(String status);
     void setStatusScheme(List<String> statusScheme);
     void setIvyMetaData(IvyModuleVersionMetaData ivyMetaData);
+    void setMavenMetaData(MavenModuleVersionMetaData mavenMetaData);
 
     /**
      * Replaces the dependencies of this module version.
