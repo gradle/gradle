@@ -38,6 +38,16 @@ class M2ResourcePatternTest extends Specification {
         pattern.toPath(artifact2) == 'prefix/org/group/projectA/1.2/ivys/1.2/ivy.xml'
     }
 
+    def "substitutes snapshot artifact attributes into pattern"() {
+        def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
+        def snapshotId = new MavenUniqueSnapshotComponentIdentifier("group", "projectA", "1.2-SNAPSHOT", "2014-timestamp-3333")
+
+        def artifact1 = new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(snapshotId, "projectA", "pom", "pom"))
+
+        expect:
+        pattern.toPath(artifact1) == 'prefix/group/projectA/1.2-SNAPSHOT/projectA-1.2-2014-timestamp-3333.pom'
+    }
+
     def "substitutes module attributes into pattern to determine module pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
         def ivyName = new DefaultIvyArtifactName("projectA", "pom", "pom")
@@ -61,12 +71,12 @@ class M2ResourcePatternTest extends Specification {
 
     def "can build module version path"() {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def artifact1 = newId("group", "projectA", "1.2")
-        def artifact2 = newId("org.group", "projectA", "1.2")
+        def component1 = newId("group", "projectA", "1.2")
+        def component2 = newId("org.group", "projectA", "1.2")
 
         expect:
-        pattern.toModuleVersionPath(artifact1) == 'prefix/group/projectA/1.2'
-        pattern.toModuleVersionPath(artifact2) == 'prefix/org/group/projectA/1.2'
+        pattern.toModuleVersionPath(component1) == 'prefix/group/projectA/1.2'
+        pattern.toModuleVersionPath(component2) == 'prefix/org/group/projectA/1.2'
     }
 
     def "throws UnsupportedOperationException for non M2 compatible pattern"() {

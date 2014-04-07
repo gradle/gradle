@@ -41,7 +41,7 @@ class ExternalResourceResolverTest extends Specification {
     ModuleVersionArtifactMetaData artifact = Stub() {
         getId() >> artifactIdentifier
     }
-    MavenResolver.TimestampedModuleSource moduleSource = Mock()
+    MavenUniqueSnapshotModuleSource moduleSource = Mock()
     File downloadedFile = Mock(File)
     ExternalResourceResolver resolver
 
@@ -103,7 +103,7 @@ class ExternalResourceResolverTest extends Specification {
     }
 
     def artifactIsTimestampedSnapshotVersion() {
-        _ * moduleSource.timestampedVersion >> "1.0-20100101.120001-1"
+        _ * moduleSource.timestamp >> "1.0-20100101.120001-1"
     }
 
     def artifactIsMissing() {

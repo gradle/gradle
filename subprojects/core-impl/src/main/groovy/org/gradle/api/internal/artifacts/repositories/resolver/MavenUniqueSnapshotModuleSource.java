@@ -15,13 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
-public interface ExternalResourceArtifactResolver {
-    ExternalResource resolveMetaDataArtifact(ModuleVersionArtifactMetaData artifact);
+class MavenUniqueSnapshotModuleSource implements ModuleSource {
+    private final String timestamp;
 
-    ExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact);
+    MavenUniqueSnapshotModuleSource(String timestamp) {
+        this.timestamp = timestamp;
+    }
 
-    boolean artifactExists(ModuleVersionArtifactMetaData artifact);
+    public String getTimestamp() {
+        return timestamp;
+    }
 }

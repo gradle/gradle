@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
@@ -32,7 +31,6 @@ import org.gradle.api.internal.artifacts.resolution.MavenPomArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +71,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
         if (isSnapshotVersion(moduleComponentIdentifier)) {
-            final TimestampedModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier);
+            final MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier);
             if (uniqueSnapshotVersion != null) {
                 resolveUniqueSnapshotDependency(dependency, moduleComponentIdentifier, result, uniqueSnapshotVersion);
                 return;
@@ -88,7 +86,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return artifactType == MavenPomArtifact.class;
     }
 
-    private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, ModuleComponentIdentifier module, BuildableModuleVersionMetaDataResolveResult result, TimestampedModuleSource snapshotSource) {
+    private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, ModuleComponentIdentifier module, BuildableModuleVersionMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
         resolveStaticDependency(dependency, module, result, createArtifactResolver(snapshotSource));
         if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
             result.setModuleSource(snapshotSource);
@@ -102,16 +100,9 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     @Override
     protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
 
-        if (moduleSource instanceof TimestampedModuleSource) {
-            final String timestampedVersion = ((TimestampedModuleSource) moduleSource).getTimestampedVersion();
-            Transformer<String, String> patternTransformer = new Transformer<String, String>() {
-                public String transform(String original) {
-                    return original.replaceFirst("\\-\\[revision\\]", "-" + timestampedVersion);
-                }
-            };
-            return createArtifactResolver(
-                    CollectionUtils.collect(getIvyPatterns(), patternTransformer),
-                    CollectionUtils.collect(getArtifactPatterns(), patternTransformer));
+        if (moduleSource instanceof MavenUniqueSnapshotModuleSource) {
+            final String timestamp = ((MavenUniqueSnapshotModuleSource) moduleSource).getTimestamp();
+            return new MavenUniqueSnapshotExternalResourceArtifactResolver(super.createArtifactResolver(moduleSource), timestamp);
         }
 
         return super.createArtifactResolver(moduleSource);
@@ -158,16 +149,14 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return null;
     }
 
-    private TimestampedModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module) {
+    private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module) {
         String metadataLocation = toResourcePattern(getWholePattern()).toModuleVersionPath(module) + "/maven-metadata.xml";
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version
-            String rev = module.getVersion();
-            rev = rev.substring(0, rev.length() - "SNAPSHOT".length());
-            rev = rev + mavenMetadata.timestamp + "-" + mavenMetadata.buildNumber;
-            return new TimestampedModuleSource(rev);
+            String timestamp = String.format("%s-%s", mavenMetadata.timestamp, mavenMetadata.buildNumber);
+            return new MavenUniqueSnapshotModuleSource(timestamp);
         }
         return null;
     }
@@ -249,18 +238,6 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return new MavenRemoteRepositoryAccess();
-    }
-
-    protected static class TimestampedModuleSource implements ModuleSource {
-        public String getTimestampedVersion() {
-            return timestampedVersion;
-        }
-
-        private final String timestampedVersion;
-
-        public TimestampedModuleSource(String uniqueSnapshotVersion) {
-            this.timestampedVersion = uniqueSnapshotVersion;
-        }
     }
 
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
