@@ -18,6 +18,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactType
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
@@ -133,23 +134,43 @@ class CachedRepositoryTest extends Specification {
         0 * _
     }
 
-    def "delegates request for module artifacts"() {
+    def "delegates request for module artifacts by type"() {
         def moduleMetaData = Stub(ModuleVersionMetaData)
-        def context = Stub(ArtifactType)
+        def artifactType = Stub(ArtifactType)
         def result = Mock(BuildableArtifactSetResolveResult)
 
         when:
-        repo.localAccess.resolveModuleArtifacts(moduleMetaData, context, result)
+        repo.localAccess.resolveModuleArtifacts(moduleMetaData, artifactType, result)
 
         then:
-        1 * localDelegate.resolveModuleArtifacts(moduleMetaData, context, result)
+        1 * localDelegate.resolveModuleArtifacts(moduleMetaData, artifactType, result)
         0 * _
 
         when:
-        repo.remoteAccess.resolveModuleArtifacts(moduleMetaData, context, result)
+        repo.remoteAccess.resolveModuleArtifacts(moduleMetaData, artifactType, result)
 
         then:
-        1 * remoteDelegate.resolveModuleArtifacts(moduleMetaData, context, result)
+        1 * remoteDelegate.resolveModuleArtifacts(moduleMetaData, artifactType, result)
+        0 * _
+    }
+
+    def "delegates request for module artifacts for usage"() {
+        def moduleMetaData = Stub(ModuleVersionMetaData)
+        def componentUsage = Stub(ComponentUsage)
+        def result = Mock(BuildableArtifactSetResolveResult)
+
+        when:
+        repo.localAccess.resolveModuleArtifacts(moduleMetaData, componentUsage, result)
+
+        then:
+        1 * localDelegate.resolveModuleArtifacts(moduleMetaData, componentUsage, result)
+        0 * _
+
+        when:
+        repo.remoteAccess.resolveModuleArtifacts(moduleMetaData, componentUsage, result)
+
+        then:
+        1 * remoteDelegate.resolveModuleArtifacts(moduleMetaData, componentUsage, result)
         0 * _
     }
 
