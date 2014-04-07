@@ -21,13 +21,13 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
-class InMemoryDependencyMetadataCacheTest extends Specification {
+class InMemoryCachedRepositoryFactoryTest extends Specification {
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
-    def cache = new InMemoryDependencyMetadataCache()
+    def cache = new InMemoryCachedRepositoryFactory()
 
     def "can be turned off via system property"() {
-        System.properties.setProperty(InMemoryDependencyMetadataCache.TOGGLE_PROPERTY, "false")
+        System.properties.setProperty(InMemoryCachedRepositoryFactory.TOGGLE_PROPERTY, "false")
         def repo = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
 
         when:
@@ -52,8 +52,8 @@ class InMemoryDependencyMetadataCacheTest extends Specification {
         c2.delegate == repo2
         c3.delegate == repo3
 
-        c1.cache == c3.cache //same repo id, same cache
-        c2.cache != c1.cache
+        c1.artifactsCache == c3.artifactsCache //same repo id, same cache
+        c2.artifactsCache != c1.artifactsCache
 
         cache.stats.reposWrapped == 3
         cache.stats.cacheInstances == 2

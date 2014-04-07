@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
@@ -52,14 +52,14 @@ public class ResolveIvyFactory {
     private final CacheLockingManager cacheLockingManager;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final BuildCommencedTimeProvider timeProvider;
-    private final InMemoryDependencyMetadataCache inMemoryCache;
+    private final InMemoryCachedRepositoryFactory inMemoryCache;
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
 
     public ResolveIvyFactory(ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
                              CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                              CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride,
-                             BuildCommencedTimeProvider timeProvider, InMemoryDependencyMetadataCache inMemoryCache, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
+                             BuildCommencedTimeProvider timeProvider, InMemoryCachedRepositoryFactory inMemoryCache, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.moduleVersionsCache = moduleVersionsCache;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleArtifactsCache = moduleArtifactsCache;

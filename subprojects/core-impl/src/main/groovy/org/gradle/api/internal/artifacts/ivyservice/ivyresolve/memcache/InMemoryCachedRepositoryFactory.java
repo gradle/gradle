@@ -27,32 +27,32 @@ import java.util.Map;
 /**
  * Caches the dependency metadata (descriptors, artifact files) in memory. Uses soft maps to reduce heap pressure.
  */
-public class InMemoryDependencyMetadataCache implements Stoppable {
+public class InMemoryCachedRepositoryFactory implements Stoppable {
 
     public final static String TOGGLE_PROPERTY = "org.gradle.resolution.memorycache";
 
-    private final static Logger LOG = Logging.getLogger(InMemoryDependencyMetadataCache.class);
+    private final static Logger LOG = Logging.getLogger(InMemoryCachedRepositoryFactory.class);
 
-    Map<String, DependencyMetadataCache> cachePerRepo = new MapMaker().makeMap();
+    Map<String, InMemoryModuleComponentRepositoryCaches> cachePerRepo = new MapMaker().makeMap();
 
-    final DependencyMetadataCacheStats stats = new DependencyMetadataCacheStats();
+    final InMemoryCacheStats stats = new InMemoryCacheStats();
 
     public ModuleComponentRepository cached(ModuleComponentRepository input) {
         if ("false".equalsIgnoreCase(System.getProperty(TOGGLE_PROPERTY))) {
             return input;
         }
 
-        DependencyMetadataCache dataCache = cachePerRepo.get(input.getId());
+        InMemoryModuleComponentRepositoryCaches caches = cachePerRepo.get(input.getId());
         stats.reposWrapped++;
-        if (dataCache == null) {
+        if (caches == null) {
             LOG.debug("Creating new in-memory cache for repo '{}' [{}].", input.getName(), input.getId());
-            dataCache = new DependencyMetadataCache(stats);
+            caches = new InMemoryModuleComponentRepositoryCaches(stats);
             stats.cacheInstances++;
-            cachePerRepo.put(input.getId(), dataCache);
+            cachePerRepo.put(input.getId(), caches);
         } else {
             LOG.debug("Reusing in-memory cache for repo '{}' [{}].", input.getName(), input.getId());
         }
-        return new CachedRepository(dataCache, input, stats);
+        return new InMemoryCachedModuleComponentRepository(caches, input);
     }
 
     public void stop() {

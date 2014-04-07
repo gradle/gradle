@@ -23,19 +23,18 @@ import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 // TODO:DAZ Add in-memory caching for resolveModuleArtifacts()
-// TODO:DAZ Change this so that it's a decoration over the file-system caching, rather than something completely separate.
-class CachedRepository extends BaseModuleComponentRepository {
-    final DependencyMetadataCache cache;
-    final DependencyMetadataCacheStats stats;
+class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
+    final InMemoryArtifactsCache artifactsCache;
+    final InMemoryCacheStats stats;
     private final ModuleComponentRepositoryAccess localAccess;
     private final ModuleComponentRepositoryAccess remoteAccess;
 
-    public CachedRepository(DependencyMetadataCache cache, ModuleComponentRepository delegate, DependencyMetadataCacheStats stats) {
+    public InMemoryCachedModuleComponentRepository(InMemoryModuleComponentRepositoryCaches cache, ModuleComponentRepository delegate) {
         super(delegate);
-        this.cache = cache;
-        this.stats = stats;
-        this.localAccess = new LocalAccess(delegate.getLocalAccess(), cache);
-        this.remoteAccess = new RemoteAccess(delegate.getRemoteAccess(), cache);
+        this.stats = cache.stats;
+        this.artifactsCache = cache.artifactsCache;
+        this.localAccess = new CachedAccess(delegate.getLocalAccess(), cache.localAccessCache);
+        this.remoteAccess = new CachedAccess(delegate.getRemoteAccess(), cache.remoteAccessCache);
     }
 
     @Override
@@ -49,40 +48,16 @@ class CachedRepository extends BaseModuleComponentRepository {
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        if (!cache.supplyArtifact(artifact.getId(), result)) {
+        if (!artifactsCache.supplyArtifact(artifact.getId(), result)) {
             super.resolveArtifact(artifact, moduleSource, result);
-            cache.newArtifact(artifact.getId(), result);
+            artifactsCache.newArtifact(artifact.getId(), result);
         }
     }
 
-    // TODO:DAZ Merge the local and remote implementations, by using 2 simpler cache instances
-    private static class LocalAccess extends BaseModuleComponentRepositoryAccess {
-        private final DependencyMetadataCache cache;
+    private static class CachedAccess extends BaseModuleComponentRepositoryAccess {
+        private final InMemoryMetaDataCache cache;
 
-        public LocalAccess(ModuleComponentRepositoryAccess access, DependencyMetadataCache cache) {
-            super(access);
-            this.cache = cache;
-        }
-
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-            if(!cache.supplyLocalModuleVersions(dependency.getRequested(), result)) {
-                super.listModuleVersions(dependency, result);
-                cache.newLocalModuleVersions(dependency.getRequested(), result);
-            }
-        }
-
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-            if(!cache.supplyLocalMetaData(moduleComponentIdentifier, result)) {
-                super.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
-                cache.newLocalDependencyResult(moduleComponentIdentifier, result);
-            }
-        }
-    }
-
-    private static class RemoteAccess extends BaseModuleComponentRepositoryAccess {
-        private final DependencyMetadataCache cache;
-
-        public RemoteAccess(ModuleComponentRepositoryAccess access, DependencyMetadataCache cache) {
+        public CachedAccess(ModuleComponentRepositoryAccess access, InMemoryMetaDataCache cache) {
             super(access);
             this.cache = cache;
         }

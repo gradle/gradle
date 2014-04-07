@@ -99,7 +99,6 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         TaskInternal task = taskFactory.createTask(args);
         TaskClassInfo taskClassInfo = getTaskClassInfo(task.getClass());
 
-        // TODO:DAZ Make this more general purpose, and support IncrementalTaskActions added via another mechanism.
         if (taskClassInfo.incremental) {
             // Add a dummy upToDateWhen spec: this will for TaskOutputs.hasOutputs() to be true.
             task.getOutputs().upToDateWhen(new Spec<Task>() {
