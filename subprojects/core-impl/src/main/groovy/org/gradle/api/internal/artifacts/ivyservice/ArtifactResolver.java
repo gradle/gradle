@@ -33,6 +33,5 @@ public interface ArtifactResolver {
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    // TODO:DAZ Make this less ModuleVersion centric: ModuleSource should be an attribute of the component subtype only
     void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result);
 }

@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-// TODO:DAZ This needs to be broken up
 public class RepositoryChainDependencyResolver implements DependencyToModuleVersionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainDependencyResolver.class);
 
@@ -164,6 +163,10 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
         return comparison < 0 ? two : one;
     }
 
+    private static ModuleComponentIdentifier requestedModule(DependencyMetaData dependency) {
+        return DefaultModuleComponentIdentifier.newId(dependency.getRequested().getGroup(), dependency.getRequested().getName(), dependency.getRequested().getVersion());
+    }
+
     public static abstract class RepositoryResolveState {
         final ModuleComponentRepository repository;
 
@@ -194,10 +197,6 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
         public boolean canMakeFurtherAttempts() {
             return !searchedRemotely;
         }
-    }
-
-    private static ModuleComponentIdentifier requestedModule(DependencyMetaData dependency) {
-        return DefaultModuleComponentIdentifier.newId(dependency.getRequested().getGroup(), dependency.getRequested().getName(), dependency.getRequested().getVersion());
     }
 
     private class StaticVersionRepositoryResolveState extends RepositoryResolveState {

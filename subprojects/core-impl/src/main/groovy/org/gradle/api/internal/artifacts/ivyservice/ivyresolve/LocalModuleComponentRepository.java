@@ -81,8 +81,6 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
         }
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-            // TODO:DAZ I think this is not required
-            result.missing();
         }
 
         public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {

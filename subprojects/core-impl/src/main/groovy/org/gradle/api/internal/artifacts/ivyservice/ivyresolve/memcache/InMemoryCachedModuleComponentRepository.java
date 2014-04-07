@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
-// TODO:DAZ Add in-memory caching for resolveModuleArtifacts()
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
     final InMemoryArtifactsCache artifactsCache;
     final InMemoryCacheStats stats;

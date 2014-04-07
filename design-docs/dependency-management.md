@@ -555,3 +555,4 @@ TBD
 # Open issues
 
 - When resolving a pre-built component, fail if the specified file does not exist/has not been built (if buildable).
+- In-memory caching for the list of artifacts for a component

@@ -326,7 +326,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return new DefaultExternalResourceArtifactResolver(getRepository(), locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, isM2compatible());
     }
 
-    // TODO:DAZ This is currently required to handle maven snapshots: if the timestamp was part of the identifier this wouldn't be required
     protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
         return createArtifactResolver();
     }

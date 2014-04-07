@@ -66,7 +66,6 @@ public class IvyResourcePattern implements ResourcePattern {
         return attributes;
     }
 
-    // TODO:DAZ Handle extra attributes
     protected Map<String, Object> toAttributes(IvyArtifactName ivyArtifact) {
         HashMap<String, Object> attributes = new HashMap<String, Object>();
         attributes.put(IvyPatternHelper.ARTIFACT_KEY, ivyArtifact.getName());
