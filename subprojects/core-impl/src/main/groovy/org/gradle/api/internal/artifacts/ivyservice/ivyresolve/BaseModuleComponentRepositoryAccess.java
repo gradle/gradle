@@ -37,11 +37,11 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
         delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
-        delegate.resolveModuleArtifacts(component, context, result);
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        delegate.resolveModuleArtifacts(component, artifactType, result);
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
-        delegate.resolveModuleArtifacts(component, context, result);
+    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+        delegate.resolveModuleArtifacts(component, componentUsage, result);
     }
 }

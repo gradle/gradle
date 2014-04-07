@@ -26,17 +26,17 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
         this.resolver = resolver;
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         try {
-            resolver.resolveModuleArtifacts(component, context, result);
+            resolver.resolveModuleArtifacts(component, artifactType, result);
         } catch (Throwable t) {
             result.failed(new ArtifactResolveException(component.getComponentId(), t));
         }
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
         try {
-            resolver.resolveModuleArtifacts(component, context, result);
+            resolver.resolveModuleArtifacts(component, usage, result);
         } catch (Throwable t) {
             result.failed(new ArtifactResolveException(component.getComponentId(), t));
         }

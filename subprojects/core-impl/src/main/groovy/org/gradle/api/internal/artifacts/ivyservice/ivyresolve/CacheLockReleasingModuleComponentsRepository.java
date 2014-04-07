@@ -76,18 +76,18 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
             });
         }
 
-        public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactType context, final BuildableArtifactSetResolveResult result) {
-            cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", context, component, name), new Runnable() {
+        public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
+            cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", artifactType, component, name), new Runnable() {
                 public void run() {
-                    delegate.resolveModuleArtifacts(component, context, result);
+                    delegate.resolveModuleArtifacts(component, artifactType, result);
                 }
             });
         }
 
-        public void resolveModuleArtifacts(final ComponentMetaData component, final ComponentUsage context, final BuildableArtifactSetResolveResult result) {
-            cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", context, component, name), new Runnable() {
+        public void resolveModuleArtifacts(final ComponentMetaData component, final ComponentUsage componentUsage, final BuildableArtifactSetResolveResult result) {
+            cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", componentUsage, component, name), new Runnable() {
                 public void run() {
-                    delegate.resolveModuleArtifacts(component, context, result);
+                    delegate.resolveModuleArtifacts(component, componentUsage, result);
                 }
             });
         }

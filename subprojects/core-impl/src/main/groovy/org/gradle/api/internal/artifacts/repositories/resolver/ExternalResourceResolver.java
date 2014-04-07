@@ -479,21 +479,20 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected abstract class AbstractRepositoryAccess implements ModuleComponentRepositoryAccess {
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             ModuleVersionMetaData moduleMetaData = (ModuleVersionMetaData) component;
-            Class<? extends Artifact> artifactType = context.getArtifactType();
 
-            if (artifactType == JvmLibraryJavadocArtifact.class) {
+            if (artifactType.getType() == JvmLibraryJavadocArtifact.class) {
                 resolveJavadocArtifacts(moduleMetaData, result);
-            } else if (artifactType == JvmLibrarySourcesArtifact.class) {
+            } else if (artifactType.getType() == JvmLibrarySourcesArtifact.class) {
                 resolveSourceArtifacts(moduleMetaData, result);
-            } else if (isMetaDataArtifact(artifactType)) {
+            } else if (isMetaDataArtifact(artifactType.getType())) {
                 resolveMetaDataArtifacts(moduleMetaData, result);
             }
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
-            String configurationName = context.getConfigurationName();
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+            String configurationName = componentUsage.getConfigurationName();
              ConfigurationMetaData configuration = component.getConfiguration(configurationName);
              resolveConfigurationArtifacts((ModuleVersionMetaData) component, configuration, result);
         }
@@ -535,15 +534,15 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         @Override
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
-            super.resolveModuleArtifacts(component, context, result);
-            checkArtifactsResolved(component, context, result);
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+            super.resolveModuleArtifacts(component, artifactType, result);
+            checkArtifactsResolved(component, artifactType, result);
         }
 
         @Override
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
-            super.resolveModuleArtifacts(component, context, result);
-            checkArtifactsResolved(component, context, result);
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+            super.resolveModuleArtifacts(component, componentUsage, result);
+            checkArtifactsResolved(component, componentUsage, result);
         }
 
         private void checkArtifactsResolved(ComponentMetaData component, Object context, BuildableArtifactSetResolveResult result) {

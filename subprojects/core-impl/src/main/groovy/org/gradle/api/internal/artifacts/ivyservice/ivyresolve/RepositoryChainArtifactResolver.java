@@ -31,23 +31,23 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         repositories.put(repository.getId(), repository);
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
         ComponentMetaData unpackedComponent = unpackSource(component);
         // First try to determine the artifacts locally before going remote
-        sourceRepository.getLocalAccess().resolveModuleArtifacts(unpackedComponent, context, result);
+        sourceRepository.getLocalAccess().resolveModuleArtifacts(unpackedComponent, artifactType, result);
         if (!result.hasResult()) {
-            sourceRepository.getRemoteAccess().resolveModuleArtifacts(unpackedComponent, context, result);
+            sourceRepository.getRemoteAccess().resolveModuleArtifacts(unpackedComponent, artifactType, result);
         }
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
         ComponentMetaData unpackedComponent = unpackSource(component);
         // First try to determine the artifacts locally before going remote
-        sourceRepository.getLocalAccess().resolveModuleArtifacts(unpackedComponent, context, result);
+        sourceRepository.getLocalAccess().resolveModuleArtifacts(unpackedComponent, usage, result);
         if (!result.hasResult()) {
-            sourceRepository.getRemoteAccess().resolveModuleArtifacts(unpackedComponent, context, result);
+            sourceRepository.getRemoteAccess().resolveModuleArtifacts(unpackedComponent, usage, result);
         }
     }
 

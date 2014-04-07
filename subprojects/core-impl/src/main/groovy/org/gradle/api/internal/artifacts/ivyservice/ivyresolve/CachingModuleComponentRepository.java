@@ -198,28 +198,28 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             result.resolved(metaData, new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), cachedMetaData.getModuleSource()));
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
 
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
-            delegate.getLocalAccess().resolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()), context, result);
+            delegate.getLocalAccess().resolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()), artifactType, result);
             if (result.hasResult()) {
                 return;
             }
 
-            findInCache(cacheKey(context), component, result, cachedModuleSource);
+            findInCache(cacheKey(artifactType), component, result, cachedModuleSource);
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource cachedModuleSource = (CachingModuleSource) component.getSource();
 
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
-            delegate.getLocalAccess().resolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()), context, result);
+            delegate.getLocalAccess().resolveModuleArtifacts(component.withSource(cachedModuleSource.getDelegate()), componentUsage, result);
             if (result.hasResult()) {
                 return;
             }
 
-            findInCache(cacheKey(context), component, result, cachedModuleSource);
+            findInCache(cacheKey(componentUsage), component, result, cachedModuleSource);
         }
 
         private void findInCache(String contextId, ComponentMetaData component, BuildableArtifactSetResolveResult result, CachingModuleSource cachedModuleSource) {
@@ -276,18 +276,18 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource moduleSource = (CachingModuleSource) component.getSource();
-            delegate.getRemoteAccess().resolveModuleArtifacts(component.withSource(moduleSource.getDelegate()), context, result);
+            delegate.getRemoteAccess().resolveModuleArtifacts(component.withSource(moduleSource.getDelegate()), artifactType, result);
 
-            maybeCache(component, result, moduleSource, cacheKey(context));
+            maybeCache(component, result, moduleSource, cacheKey(artifactType));
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
             final CachingModuleSource moduleSource = (CachingModuleSource) component.getSource();
-            delegate.getRemoteAccess().resolveModuleArtifacts(component.withSource(moduleSource.getDelegate()), context, result);
+            delegate.getRemoteAccess().resolveModuleArtifacts(component.withSource(moduleSource.getDelegate()), componentUsage, result);
 
-            maybeCache(component, result, moduleSource, cacheKey(context));
+            maybeCache(component, result, moduleSource, cacheKey(componentUsage));
         }
 
         private void maybeCache(ComponentMetaData component, BuildableArtifactSetResolveResult result, CachingModuleSource moduleSource, String contextId) {
@@ -298,8 +298,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
     }
 
-    private String cacheKey(ArtifactType context) {
-        return "artifacts:" + context.getArtifactType().getName();
+    private String cacheKey(ArtifactType artifactType) {
+        return "artifacts:" + artifactType.getType().getName();
     }
 
     private String cacheKey(ComponentUsage context) {

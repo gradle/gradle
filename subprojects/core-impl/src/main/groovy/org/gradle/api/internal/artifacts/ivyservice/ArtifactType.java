@@ -18,5 +18,5 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.result.Artifact;
 
 public interface ArtifactType {
-    Class<? extends Artifact> getArtifactType();
+    Class<? extends Artifact> getType();
 }

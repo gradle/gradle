@@ -61,17 +61,17 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
             }
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
-            delegate.getLocalAccess().resolveModuleArtifacts(component, context, result);
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+            delegate.getLocalAccess().resolveModuleArtifacts(component, artifactType, result);
             if(!result.hasResult()) {
-                delegate.getRemoteAccess().resolveModuleArtifacts(component, context, result);
+                delegate.getRemoteAccess().resolveModuleArtifacts(component, artifactType, result);
             }
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
-            delegate.getLocalAccess().resolveModuleArtifacts(component, context, result);
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+            delegate.getLocalAccess().resolveModuleArtifacts(component, componentUsage, result);
             if(!result.hasResult()) {
-                delegate.getRemoteAccess().resolveModuleArtifacts(component, context, result);
+                delegate.getRemoteAccess().resolveModuleArtifacts(component, componentUsage, result);
             }
         }
     }
@@ -85,10 +85,10 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
             result.missing();
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
         }
     }
 }

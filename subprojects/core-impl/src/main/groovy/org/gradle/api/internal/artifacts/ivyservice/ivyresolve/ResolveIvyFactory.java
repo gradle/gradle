@@ -173,18 +173,18 @@ public class ResolveIvyFactory {
             });
         }
 
-        public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactType context, final BuildableArtifactSetResolveResult result) {
-            cacheLockingManager.useCache(String.format("Resolve %s for %s", context, component), new Runnable() {
+        public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
+            cacheLockingManager.useCache(String.format("Resolve %s for %s", artifactType, component), new Runnable() {
                 public void run() {
-                    artifactResolver.resolveModuleArtifacts(component, context, result);
+                    artifactResolver.resolveModuleArtifacts(component, artifactType, result);
                 }
             });
         }
 
-        public void resolveModuleArtifacts(final ComponentMetaData component, final ComponentUsage context, final BuildableArtifactSetResolveResult result) {
-            cacheLockingManager.useCache(String.format("Resolve %s for %s", context, component), new Runnable() {
+        public void resolveModuleArtifacts(final ComponentMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
+            cacheLockingManager.useCache(String.format("Resolve %s for %s", usage, component), new Runnable() {
                 public void run() {
-                    artifactResolver.resolveModuleArtifacts(component, context, result);
+                    artifactResolver.resolveModuleArtifacts(component, usage, result);
                 }
             });
         }

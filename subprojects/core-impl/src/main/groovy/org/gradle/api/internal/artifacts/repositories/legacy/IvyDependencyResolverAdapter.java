@@ -93,11 +93,11 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
             public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
             }
 
-            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             }
 
-            public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
-                String configurationName = context.getConfigurationName();
+            public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+                String configurationName = componentUsage.getConfigurationName();
                 result.resolved(component.getConfiguration(configurationName).getArtifacts());
             }
         };
@@ -138,17 +138,16 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
                 }
             }
 
-            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
-                Class<? extends Artifact> artifactType = context.getArtifactType();
+            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
                 try {
-                    result.resolved(getCandidateArtifacts((ModuleVersionMetaData) component, artifactType));
+                    result.resolved(getCandidateArtifacts((ModuleVersionMetaData) component, artifactType.getType()));
                 } catch (Exception e) {
                     result.failed(new ArtifactResolveException(component.getComponentId(), e));
                 }
             }
 
-            public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
-                String configurationName = context.getConfigurationName();
+            public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+                String configurationName = componentUsage.getConfigurationName();
                 result.resolved(component.getConfiguration(configurationName).getArtifacts());
             }
         };

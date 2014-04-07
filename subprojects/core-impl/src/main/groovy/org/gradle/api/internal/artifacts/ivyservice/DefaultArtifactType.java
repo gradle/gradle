@@ -24,7 +24,7 @@ public class DefaultArtifactType implements ArtifactType {
         this.artifactType = artifactType;
     }
 
-    public Class<? extends Artifact> getArtifactType() {
+    public Class<? extends Artifact> getType() {
         return artifactType;
     }
 

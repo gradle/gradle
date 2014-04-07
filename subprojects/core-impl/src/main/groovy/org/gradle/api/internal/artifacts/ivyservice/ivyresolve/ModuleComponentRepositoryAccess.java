@@ -40,10 +40,10 @@ public interface ModuleComponentRepositoryAccess {
     /**
      * Resolves a set of artifacts belonging to the given component, based on the supplied usage. Any failures are packaged up in the result.
      */
-    void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result);
+    void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result);
 
     /**
      * Resolves a set of artifacts belonging to the given component, with the type specified. Any failures are packaged up in the result.
      */
-    void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result);
+    void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
 }

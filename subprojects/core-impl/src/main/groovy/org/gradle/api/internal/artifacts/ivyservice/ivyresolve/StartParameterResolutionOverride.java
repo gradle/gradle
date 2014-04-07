@@ -106,11 +106,11 @@ public class StartParameterResolutionOverride {
             result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, "No cached version of %s available for offline mode."));
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             result.failed(new ArtifactResolveException(component.getComponentId(), "No cached version available for offline mode"));
         }
 
-        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
             result.failed(new ArtifactResolveException(component.getComponentId(), "No cached version available for offline mode"));
         }
     }

@@ -32,24 +32,24 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         if (isProjectModule(component.getComponentId())) {
-            throw new UnsupportedOperationException(String.format("Resolving %s for project modules is not yet supported", context));
+            throw new UnsupportedOperationException(String.format("Resolving %s for project modules is not yet supported", artifactType));
         }
-        delegate.resolveModuleArtifacts(component, context, result);
+        delegate.resolveModuleArtifacts(component, artifactType, result);
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
         if (isProjectModule(component.getComponentId())) {
-            if (context instanceof DefaultComponentUsage) {
-                String configurationName = context.getConfigurationName();
+            if (usage instanceof DefaultComponentUsage) {
+                String configurationName = usage.getConfigurationName();
                 Set<ComponentArtifactMetaData> artifacts = component.getConfiguration(configurationName).getArtifacts();
                 result.resolved(artifacts);
                 return;
             }
-            throw new UnsupportedOperationException(String.format("Resolving %s for project modules is not yet supported", context));
+            throw new UnsupportedOperationException(String.format("Resolving %s for project modules is not yet supported", usage));
         }
-        delegate.resolveModuleArtifacts(component, context, result);
+        delegate.resolveModuleArtifacts(component, usage, result);
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
