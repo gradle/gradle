@@ -33,37 +33,33 @@ public class ContextualArtifactResolver implements ArtifactResolver {
     }
 
     public void resolveModuleArtifacts(final ComponentMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
-        lockingManager.useCache(String.format("Resolve %s for %s", artifactType, component), new Runnable() {
-            public void run() {
-                ivyContextManager.withIvy(new Action<Ivy>() {
-                    public void execute(Ivy ivy) {
-                        delegate.resolveModuleArtifacts(component, artifactType, result);
-                    }
-                });
+        executeInContext(String.format("Resolve %s for %s", artifactType, component), new Action<Ivy>() {
+            public void execute(Ivy ivy) {
+                delegate.resolveModuleArtifacts(component, artifactType, result);
             }
         });
     }
 
     public void resolveModuleArtifacts(final ComponentMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
-        lockingManager.useCache(String.format("Resolve %s for %s", usage, component), new Runnable() {
-            public void run() {
-                ivyContextManager.withIvy(new Action<Ivy>() {
-                    public void execute(Ivy ivy) {
-                        delegate.resolveModuleArtifacts(component, usage, result);
-                    }
-                });
+        executeInContext(String.format("Resolve %s for %s", usage, component), new Action<Ivy>() {
+            public void execute(Ivy ivy) {
+                delegate.resolveModuleArtifacts(component, usage, result);
             }
         });
     }
 
     public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-        lockingManager.useCache(String.format("Resolve %s", artifact), new Runnable() {
+        executeInContext(String.format("Resolve %s", artifact), new Action<Ivy>() {
+            public void execute(Ivy ivy) {
+                delegate.resolveArtifact(artifact, moduleSource, result);
+            }
+        });
+    }
+
+    private void executeInContext(String description, final Action<Ivy> action) {
+        lockingManager.useCache(description, new Runnable() {
             public void run() {
-                ivyContextManager.withIvy(new Action<Ivy>() {
-                    public void execute(Ivy ivy) {
-                        delegate.resolveArtifact(artifact, moduleSource, result);
-                    }
-                });
+                ivyContextManager.withIvy(action);
             }
         });
     }
