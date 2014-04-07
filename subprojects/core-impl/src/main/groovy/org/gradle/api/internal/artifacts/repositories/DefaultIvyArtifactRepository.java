@@ -59,7 +59,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.resolverStrategy = resolverStrategy;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
-        this.layout = new GradleRepositoryLayout();
+        this.layout = new IvyRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiator;
     }
