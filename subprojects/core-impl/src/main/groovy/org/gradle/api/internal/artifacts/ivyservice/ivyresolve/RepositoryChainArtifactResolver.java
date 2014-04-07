@@ -23,7 +23,6 @@ import org.gradle.internal.Transformers;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// TODO:DAZ Unit test
 class RepositoryChainArtifactResolver implements ArtifactResolver {
     private final Map<String, ModuleComponentRepository> repositories = new LinkedHashMap<String, ModuleComponentRepository>();
 
