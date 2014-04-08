@@ -39,9 +39,9 @@ public class Zip extends AbstractArchiveTask {
     protected ZipCompressor getCompressor() {
         switch (entryCompression) {
             case DEFLATED:
-                return new AbstractZipCompressor(allowZip64, ZipOutputStream.DEFLATED);
+                return new DefaultZipCompressor(allowZip64, ZipOutputStream.DEFLATED);
             case STORED:
-                return new AbstractZipCompressor(allowZip64, ZipOutputStream.STORED);
+                return new DefaultZipCompressor(allowZip64, ZipOutputStream.STORED);
             default:
                 throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
         }
