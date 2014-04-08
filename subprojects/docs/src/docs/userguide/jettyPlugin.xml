@@ -109,7 +109,7 @@
                     <classname>String</classname>
                 </td>
                 <td>
-                    <literal>WAR file base name</literal>
+                    WAR file base name
                 </td>
                 <td>
                     The application deployment location within the Jetty container.

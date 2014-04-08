@@ -20,15 +20,23 @@ package org.gradle.test.fixtures.concurrent
  * A dynamic collection of {@link NamedInstant} objects. When a property of this object is accessed from a test thread, a new instant is defined. When
  * accessed from the main thread, queries an existing instant, asserting that it exists.
  */
-class Instants implements InstantFactory, TestThreadListener, OperationListener {
+class Instants implements InstantFactory, OperationListener {
     private final Object lock = new Object()
     private final Map<String, NamedInstant> timePoints = [:]
-    private final Set<Thread> testThreads = new HashSet<Thread>()
+    private Thread mainThread
     private final TestLogger logger
     private int operations
+    private int instantTimeout
 
     Instants(TestLogger logger) {
         this.logger = logger
+        instantTimeout = 12000
+    }
+
+    void setTimeout(int instantTimeout) {
+        synchronized (lock) {
+            this.instantTimeout = instantTimeout
+        }
     }
 
     @Override
@@ -49,43 +57,29 @@ class Instants implements InstantFactory, TestThreadListener, OperationListener 
         }
     }
 
-    void threadStarted(Thread thread) {
+    void mainThread(Thread thread) {
         synchronized (lock) {
-            testThreads.add(thread)
-        }
-    }
-
-    void threadFinished(Thread thread) {
-        synchronized (lock) {
-            testThreads.remove(thread)
-            lock.notifyAll()
+            mainThread = thread;
         }
     }
 
     void waitFor(String name) {
-        long expiry = System.currentTimeMillis() + 12000;
         synchronized (lock) {
+            long expiry = System.currentTimeMillis() + instantTimeout;
             while (!timePoints.containsKey(name) && System.currentTimeMillis() < expiry) {
                 logger.log "waiting for instant '$name' ..."
-                if (testThreads.empty && operations == 0) {
-                    throw new IllegalStateException("Cannot wait for instant '$name', as it has not been defined and no test threads are currently running.")
-                }
-                if (testThreads.size() == 1 && testThreads.contains(Thread.currentThread()) && operations == 0) {
-                    throw new IllegalStateException("Cannot wait for instant '$name', as it has not been defined and no other test threads are currently running.")
-                }
                 lock.wait(expiry - System.currentTimeMillis())
             }
             if (timePoints.containsKey(name)) {
                 return
             }
-            throw new IllegalStateException("Timeout waiting for instant '$name' to be defined by another test thread.")
+            throw new IllegalStateException("Timeout waiting for instant '$name' to be defined by another thread.")
         }
     }
 
     def getProperty(String name) {
         synchronized (lock) {
-            def testThread = testThreads.contains(Thread.currentThread())
-            if (testThread) {
+            if (Thread.currentThread() != mainThread) {
                 return now(name)
             } else {
                 return get(name)

@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileCollection;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -37,14 +36,7 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class IdeaDependenciesProvider {
 
@@ -89,7 +81,7 @@ public class IdeaDependenciesProvider {
 
         Set<Dependency> result = new LinkedHashSet<Dependency>();
         if (ideaModule.getSingleEntryLibraries() != null) {
-            for (Map.Entry<String, FileCollection> singleEntryLibrary : ideaModule.getSingleEntryLibraries().entrySet()) {
+            for (Map.Entry<String, Iterable<File>> singleEntryLibrary : ideaModule.getSingleEntryLibraries().entrySet()) {
                 String scope = singleEntryLibrary.getKey();
                 for (File file : singleEntryLibrary.getValue()) {
                     if (file != null && file.isDirectory()) {

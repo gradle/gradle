@@ -34,6 +34,7 @@ class TaskNameComparatorTest extends Specification {
         first | second
         ':t1' | ':t2'
         ':a:t1' | ':a:t2'
+        ':a:t1' | ':a1:t1'
         ':t1' | ':a:t2'
         ':b:t2' | ':b:c:t2'
     }

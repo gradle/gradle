@@ -27,7 +27,19 @@ public class TaskNameComparator implements Comparator<String> {
         if (depthDiff != 0) {
             return depthDiff;
         }
-        return taskName1.compareTo(taskName2);
+        return compareSegments(taskName1, taskName2);
+    }
+
+    private int compareSegments(String taskName1, String taskName2) {
+        int colon1 = taskName1.indexOf(':');
+        int colon2 = taskName2.indexOf(':');
+        if (colon1 > 0 && colon2 > 0) {
+            int diff = taskName1.substring(0, colon1).compareTo(taskName2.substring(0, colon2));
+            if (diff != 0) {
+                return diff;
+            }
+        }
+        return colon1 == -1 ? taskName1.compareTo(taskName2) : compareSegments(taskName1.substring(colon1 + 1), taskName2.substring(colon2 + 1));
     }
 
     private int getDepth(String taskName) {
