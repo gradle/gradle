@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.result.jvm;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.result.Artifact;
 
 /**
  * An artifact containing sources for a JVM library software component.
@@ -23,5 +24,5 @@ import org.gradle.api.Incubating;
  * @since 1.12
  */
 @Incubating
-public interface JvmLibraryJavadocArtifact extends JvmLibraryArtifact {
+public interface JvmLibraryJavadocArtifact extends Artifact {
 }

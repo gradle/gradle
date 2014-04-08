@@ -17,11 +17,10 @@ package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.result.*;
 import org.gradle.api.artifacts.result.jvm.JvmLibrary;
-import org.gradle.api.artifacts.result.jvm.JvmLibraryArtifact;
 import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
 import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
-import org.gradle.api.artifacts.result.*;
 import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibrary;
 import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibraryJavadocArtifact;
 import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibrarySourcesArtifact;
@@ -64,7 +63,7 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
         return libraries;
     }
 
-    private <T extends JvmLibraryArtifact, U extends T> Set<T> transform(ResolvedComponentArtifactsResult componentResult, Class<T> type, final Class<U> impl) {
+    private <T extends Artifact, U extends T> Set<T> transform(ResolvedComponentArtifactsResult componentResult, Class<T> type, final Class<U> impl) {
         Set<ArtifactResult> sourceArtifactResults = componentResult.getArtifacts(type);
         if (sourceArtifactResults == null) {
             return Collections.emptySet();

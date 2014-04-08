@@ -15,8 +15,9 @@
  */
 
 package org.gradle.integtests.resolve
+
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.result.jvm.JvmLibraryArtifact
+import org.gradle.api.artifacts.result.Artifact
 import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact
 import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
@@ -25,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundExcepti
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.test.fixtures.file.TestFile
+
 /**
  * A test fixture that injects a task into a build that uses the Artifact Query API to download some artifacts, validating the results.
  */
@@ -54,7 +56,7 @@ class JvmLibraryArtifactResolveTestFixture {
         this.noCache = noCache
     }
 
-    JvmLibraryArtifactResolveTestFixture requestingTypes(Class<? extends JvmLibraryArtifact>... artifactTypes) {
+    JvmLibraryArtifactResolveTestFixture requestingTypes(Class<? extends Artifact>... artifactTypes) {
         this.artifactTypes = artifactTypes as List
         this
     }
