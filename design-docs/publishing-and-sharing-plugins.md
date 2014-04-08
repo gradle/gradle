@@ -175,6 +175,9 @@ A separate mechanism will be available to perform this kind of generalised confi
 **Note:** Eventually, the `plugin {}` mechanism as described will also support script plugins.
 Script plugins will be mapped to ids/versions elsewhere in the build, allowing them to be consumed via the same mechanism (discussed later).
 
+**Note:** Plugins applied through the new mechanism _cannot_ apply plugins using `project.apply()`.
+However, for backwards compatibility, they can apply plugins that have already been applied for backwards compatibility reasons (discussed later).
+
 ### Open issues
 
 - How practical is it to lock down the `plugins {}` DSL so tightly 
@@ -283,9 +286,10 @@ The implementation components may be obtainable from jcenter, allowing the distr
 
 Core plugins are always in the `org.gradle` namespace.
 
-##### Open Questions
-
-* What precautions need to be taken when adding a new plugin to the core list? as these will take precedence over the previously used implementation of an unqualified and unversioned plugin spec?
+*Note:* If a Gradle release includes a new plugin in the core namespace, this needs to be advertised.
+Technically, it's a breaking change.
+If the to-be-upgraded build was using an unqualified id to depend on a plugin where there is now a core plugin with the same unqualified id, the build will fail because core plugin dependencies cannot contain version numbers.
+The resolution is to fully qualify the plugin id.
 
 #### Script plugin resolver
 
@@ -316,6 +320,9 @@ Dynamic versions are specified using the same syntax that is currently used…
 
     id("foo").version("0.5.+")
 
+## Plugin implementation backwards compatibility
+
+TBD.
 
 # Stories
 
