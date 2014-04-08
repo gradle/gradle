@@ -165,7 +165,7 @@ resolve.doLast { assert ruleInvoked }
 
         then:
         succeeds 'resolve'
-        // TODO: rule is invoked twice, and extra info is only correct the second time
+        // TODO: rule is invoked twice, and changes to extra info are only visible the second time
         def text = file("extraInfo").text
         assert containsLine(text, "my:foo->fooValueChanged")
         assert containsLine(text, "my:bar->barValueChanged")
