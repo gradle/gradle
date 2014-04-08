@@ -43,7 +43,7 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         resolve(group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}') {
 """
         additionalArtifacts.each {
-            // TODO:DAZ Docs say type defaults to 'jar', but seems it must be set explicitly
+            // Docs say type defaults to 'jar', but seems it must be set explicitly
             def type = it.type == null ? 'jar' : it.type
             dependencies += """
             artifact {
@@ -62,7 +62,6 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
     protected def doResolveArtifacts(def dependencies) {
         // Replace the existing buildfile with one for resolving the published module
-        // TODO:DAZ Use a separate directory for resolving
         settingsFile.text = "rootProject.name = 'resolve'"
         buildFile.text = """
             configurations {
@@ -80,7 +79,6 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
 """
 
-        // TODO:DAZ Remove this requirement (by always publishing a jar/war/ear in tests?: Maven doesn't really support other file types as main artifact)
         executer.withDeprecationChecksDisabled()
         run "resolveArtifacts"
         def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []

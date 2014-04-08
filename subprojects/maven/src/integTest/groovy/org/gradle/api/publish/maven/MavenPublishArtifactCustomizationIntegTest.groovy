@@ -194,7 +194,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         module.assertPublished()
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.jar", "projectText-1.0-classified")
 
-        // TODO:DAZ Find a way to resolve Maven artifact with no extension
+        // TODO Find a way to resolve Maven artifact with no extension
 //        and:
 //        resolveArtifact(module, '', 'classified') == ["projectText-1.0-classifier"]
     }

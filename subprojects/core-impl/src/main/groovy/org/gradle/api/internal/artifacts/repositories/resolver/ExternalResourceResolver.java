@@ -231,7 +231,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             artifactSet.add(new DefaultIvyArtifactName(moduleName, artifact.getType(), artifact.getExt(), artifact.getExtraAttributes()));
         }
 
-        // TODO:DAZ This logic should be within the DependencyMetaData
         if (artifactSet.isEmpty()) {
             artifactSet.add(new DefaultIvyArtifactName(moduleName, "jar", "jar", Collections.<String, String>emptyMap()));
         }

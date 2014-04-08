@@ -184,7 +184,7 @@ if (project.hasProperty('nocache')) {
         snapshotModule.pom.sha1.expectGet()
         snapshotModule.pom.expectGet()
         snapshotSources.expectHead()
-        // TODO:DAZ Extra head request should not be required
+        // TODO Extra head request should not be required
         snapshotSources.expectHead()
         snapshotSources.sha1.expectGet()
         snapshotSources.expectGet()

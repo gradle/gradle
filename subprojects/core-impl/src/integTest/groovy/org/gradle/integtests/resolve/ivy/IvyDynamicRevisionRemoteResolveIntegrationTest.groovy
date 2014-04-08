@@ -581,13 +581,13 @@ dependencies {
 
         when:
         repo1.expectDirectoryListGet("org.test", "projectA")
-        // TODO:DAZ Should not be looking in repo1, since A3 was not included in the version listing
+        // TODO Should not be looking in repo1, since A3 was not included in the version listing
         repo1versions.A3.ivy.expectGetMissing()
         repo1versions.A3.jar.expectGetMissing()
         expectGetDynamicRevision(repo2versions.A3)
 
         and:
-        // TODO:DAZ Should not be looking in repo1, since B3 was not included in the version listing
+        // TODO Should not be looking in repo1, since B3 was not included in the version listing
         repo1versions.B3.ivy.expectGetMissing()
         repo2.expectDirectoryListGet("org.test", "projectB")
         repo2versions.B3.ivy.expectGet()

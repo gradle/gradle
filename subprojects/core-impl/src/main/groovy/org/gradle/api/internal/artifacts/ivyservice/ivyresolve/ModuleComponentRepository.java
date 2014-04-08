@@ -34,7 +34,6 @@ public interface ModuleComponentRepository {
 
     ModuleComponentRepositoryAccess getRemoteAccess();
 
-    // TODO:DAZ Move this onto ModuleComponentResolver
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
