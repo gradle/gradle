@@ -296,7 +296,7 @@ project(':b:c') {
         TaskSelector selectorT1 = rootSelectors.taskSelectors.find { it.name == 't1' }
         TaskSelector selectorT2 = rootSelectors.taskSelectors.find { it.name == 't2' }
         def result = withBuild { BuildLauncher it ->
-            it.forLaunchables(taskT1, selectorT1, taskBT2, selectorT2)
+            it.forLaunchables(taskT1, selectorT1, selectorT2, taskBT2)
         }
         then:
         result.result.assertTasksExecuted(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
