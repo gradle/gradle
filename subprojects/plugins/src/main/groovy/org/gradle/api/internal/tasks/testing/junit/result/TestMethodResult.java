@@ -28,7 +28,6 @@ public class TestMethodResult {
     private long duration;
     private long endTime;
     private List<TestFailure> failures = new ArrayList<TestFailure>();
-    private boolean ignored;
 
     public TestMethodResult(long id, String name) {
         this.id = id;
@@ -58,11 +57,6 @@ public class TestMethodResult {
         return this;
     }
 
-    public TestMethodResult setIgnored() {
-        this.ignored = true;
-        return this;
-    }
-
     public long getId() {
         return id;
     }
@@ -73,10 +67,6 @@ public class TestMethodResult {
 
     public List<TestFailure> getFailures() {
         return failures;
-    }
-
-    public boolean isIgnored() {
-        return ignored;
     }
 
     public TestResult.ResultType getResultType() {

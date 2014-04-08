@@ -29,6 +29,8 @@ import org.gradle.util.Clock;
 import java.io.File;
 import java.util.List;
 
+import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
+
 public class DefaultTestReport implements TestReporter {
     private final HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
     private final static Logger LOG = Logging.getLogger(DefaultTestReport.class);
@@ -57,7 +59,7 @@ public class DefaultTestReport implements TestReporter {
                 List<TestMethodResult> collectedResults = classResult.getResults();
                 for (TestMethodResult collectedResult : collectedResults) {
                     final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
-                    if (collectedResult.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
+                    if (collectedResult.getResultType() == SKIPPED) {
                         testResult.setIgnored();
                     } else {
                         List<TestFailure> failures = collectedResult.getFailures();

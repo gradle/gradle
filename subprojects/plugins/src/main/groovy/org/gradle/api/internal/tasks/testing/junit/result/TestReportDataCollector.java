@@ -65,12 +65,8 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         String className = testDescriptor.getClassName();
         TestMethodResult methodResult = currentTestMethods.remove(testDescriptor).completed(result);
-        if (result.getResultType() == TestResult.ResultType.SKIPPED) {
-            methodResult.setIgnored();
-        } else {
-            for (Throwable throwable : result.getExceptions()) {
-                methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
-            }
+        for (Throwable throwable : result.getExceptions()) {
+            methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
         }
         TestClassResult classResult = results.get(className);
         if (classResult == null) {
