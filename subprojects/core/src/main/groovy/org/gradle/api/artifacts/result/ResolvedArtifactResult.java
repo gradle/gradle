@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 
 import java.io.File;
@@ -30,5 +29,5 @@ public interface ResolvedArtifactResult extends ArtifactResult {
     /**
      * The file for the artifact.
      */
-    File getFile() throws GradleException;
+    File getFile();
 }

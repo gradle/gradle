@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.result.Artifact;
 /**
  * An artifact containing sources for a JVM library software component.
  *
- * @since 1.12
+ * @since 2.0
  */
 @Incubating
 public interface JvmLibraryJavadocArtifact extends Artifact {

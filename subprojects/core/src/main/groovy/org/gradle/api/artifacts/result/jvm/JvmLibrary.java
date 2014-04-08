@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * Software component representing a JVM library.
  *
- * @since 1.12
+ * @since 2.0
  */
 @Incubating
 public interface JvmLibrary extends Component {

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 
 import java.io.File;
@@ -27,7 +26,7 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
         this.file = file;
     }
 
-    public File getFile() throws GradleException {
+    public File getFile() {
         return file;
     }
 }
