@@ -218,7 +218,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Option(option = "debug-jvm", description = "Enable or disable debugging for the process. When enabled, the process is started suspended and listening on port 5005. [INCUBATING]")
+    @Option(option = "debug-jvm", description = "Enable debugging for the process. The process is started suspended and listening on port 5005. [INCUBATING]")
     public void setDebug(boolean enabled) {
         javaExecHandleBuilder.setDebug(enabled);
     }
