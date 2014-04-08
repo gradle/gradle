@@ -324,7 +324,7 @@ Dynamic versions are specified using the same syntax that is currently used…
 
 TBD.
 
-# Stories
+# Milestone 1 - “usable”
 
 ## Story: Introduce plugins DSL block
 
@@ -500,6 +500,8 @@ Plugin authors should be able to write their plugin in such a way that it works 
 
 Plugin authors should be able to write their plugin in such a way that it works with the new mechanism and the old project.apply() mechanism (as long as it has no dependency a non core plugin).
 
+# Milestone 2 - “announceable”
+
 ## Story: Plugins are able to depend on other non core plugins
 
 Plugin dependencies can not be dynamic.
@@ -515,17 +517,6 @@ i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
 ## Story: Build author searches for plugins using central Web UI
 
-## Story: Pathological comms errors while resolving plugins produce reasonable error messages
-
-1. Non responsive server (accepts request but never responds)
-1. Server responds extremely slowly (data is transferred frequently enough to avoid idle/response timeout, but is really too slow to let continue)
-1. Server responds with inaccurate content length (lots of HTTP clients get badly confused by this)
-1. Server responds with extremely large document (protect against blowing out memory trying to read the response)
-
-## Story: Build author searches for plugins using Gradle command-line
-
-Introduce a plugin and implicit task that allows a build author to search for plugins from the central plugin repository, using the Gradle command-line.
-
 ## Story: Make new plugin resolution mechanism public
 
 Story is predicated on plugins.gradle.org providing a searchable interface for plugins.
@@ -539,7 +530,7 @@ Story is predicated on plugins.gradle.org providing a searchable interface for p
 
 Note: Plugin authors cannot really contribution to plugins.gradle.org at this point. The content will be “hand curated”.
 
-## Story: Plugin author tests realistic use of plugin with dependencies
+## Story: Plugin author reasonably tests realistic use of plugin with dependencies
 
 Plugin authors need to be able to verify that their plugin works with the classloader structure it would have in a real build
 
@@ -547,9 +538,19 @@ Plugin authors need to be able to verify that their plugin works with the classl
 
 Includes:
 
+- Includes generating all necessary metadata (e.g. exported classes, plugin dependencies)
 - Tooling support for publishing in manner suitable for inclusion in plugins.gradle.org
 - Admin processes for including plugin, including acceptance policies etc.
 - Prevention of use of 'org.gradle' and 'com.gradleware' namespaces
+
+# Milestone 3 - “parkable”
+
+## Story: Pathological comms errors while resolving plugins produce reasonable error messages
+
+1. Non responsive server (accepts request but never responds)
+1. Server responds extremely slowly (data is transferred frequently enough to avoid idle/response timeout, but is really too slow to let continue)
+1. Server responds with inaccurate content length (lots of HTTP clients get badly confused by this)
+1. Server responds with extremely large document (protect against blowing out memory trying to read the response)
 
 ## Story: User specifies centrally that a plugin should be applied to multiple projects
 
@@ -564,6 +565,12 @@ Includes:
 ### Open questions
 
 - Is it worth considering a testing mechanism for script plugins at this point?
+
+# Future work
+
+## Story: Build author searches for plugins using Gradle command-line
+
+Introduce a plugin and implicit task that allows a build author to search for plugins from the central plugin repository, using the Gradle command-line.
 
 ## Story: User specifies non static plugin version constraint (i.e. dynamic plugin dependencies)
 
