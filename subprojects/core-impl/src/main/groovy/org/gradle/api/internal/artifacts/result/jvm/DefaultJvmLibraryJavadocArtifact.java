@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
 
 import java.io.File;
 
-public class DefaultJvmLibraryJavadocArtifact extends AbstractArtifact implements JvmLibraryJavadocArtifact {
+public class DefaultJvmLibraryJavadocArtifact extends AbstractJvmLibraryArtifact implements JvmLibraryJavadocArtifact {
     public DefaultJvmLibraryJavadocArtifact(File file) {
         super(file);
     }

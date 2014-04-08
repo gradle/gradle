@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
 
 import java.io.File;
 
-public class DefaultJvmLibrarySourcesArtifact extends AbstractArtifact implements JvmLibrarySourcesArtifact {
+public class DefaultJvmLibrarySourcesArtifact extends AbstractJvmLibraryArtifact implements JvmLibrarySourcesArtifact {
     public DefaultJvmLibrarySourcesArtifact(File file) {
         super(file);
     }
