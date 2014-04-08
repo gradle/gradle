@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.maven.HttpArtifact
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule HttpServer server
@@ -214,8 +213,6 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         ideFileContainsSourcesAndJavadocEntry("sources", "javadoc")
     }
 
-    // TODO:DAZ This feature needs to be implemented and this test un-ignored
-    @Ignore
     def "sources and javadoc jars from flatdir repositories are resolved and attached"() {
         file("repo/module-1.0.jar").createFile()
         file("repo/module-1.0-sources.jar").createFile()
