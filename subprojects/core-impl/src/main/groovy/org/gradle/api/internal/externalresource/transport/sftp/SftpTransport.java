@@ -35,10 +35,10 @@ public class SftpTransport extends AbstractRepositoryTransport {
 
     public SftpTransport(String name, PasswordCredentials credentials, RepositoryArtifactCache repositoryCacheManager,
                   ProgressLoggerFactory progressLoggerFactory, TemporaryFileProvider temporaryFileProvider,
-                  CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider) {
+                  CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, SftpClientFactory sftpClientFactory) {
 
         super(name, repositoryCacheManager);
-        repository = createRepository(credentials, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
+        repository = createRepository(credentials, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, sftpClientFactory);
     }
 
     public ExternalResourceRepository getRepository() {
@@ -47,17 +47,16 @@ public class SftpTransport extends AbstractRepositoryTransport {
 
     private ExternalResourceRepository createRepository(PasswordCredentials credentials, ProgressLoggerFactory progressLoggerFactory,
                                                         TemporaryFileProvider temporaryFileProvider, CachedExternalResourceIndex<String> cachedExternalResourceIndex,
-                                                        BuildCommencedTimeProvider timeProvider) {
+                                                        BuildCommencedTimeProvider timeProvider, SftpClientFactory sftpClientFactory) {
 
-        SftpClientFactory sftpClientFactory = new SftpClientFactory(credentials);
-        SftpResourceAccessor accessor = new SftpResourceAccessor(sftpClientFactory);
-        SftpResourceUploader uploader = new SftpResourceUploader(sftpClientFactory);
+        SftpResourceAccessor accessor = new SftpResourceAccessor(sftpClientFactory, credentials);
+        SftpResourceUploader uploader = new SftpResourceUploader(sftpClientFactory, credentials);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory);
         return new DefaultExternalResourceRepository(
                 name,
                 accessor,
                 new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
-                new SftpResourceLister(sftpClientFactory),
+                new SftpResourceLister(sftpClientFactory, credentials),
                 temporaryFileProvider,
                 new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider)
         );

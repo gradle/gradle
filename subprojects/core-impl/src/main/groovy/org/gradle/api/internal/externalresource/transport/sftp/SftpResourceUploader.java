@@ -19,6 +19,7 @@ package org.gradle.api.internal.externalresource.transport.sftp;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.sshd.client.SftpClient;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
@@ -32,9 +33,11 @@ import java.net.URISyntaxException;
 public class SftpResourceUploader implements ExternalResourceUploader {
 
     private final SftpClientFactory sftpClientFactory;
+    private final PasswordCredentials credentials;
 
-    public SftpResourceUploader(SftpClientFactory sftpClientFactory) {
+    public SftpResourceUploader(SftpClientFactory sftpClientFactory, PasswordCredentials credentials) {
         this.sftpClientFactory = sftpClientFactory;
+        this.credentials = credentials;
     }
 
     private URI toUri(String location) {
@@ -49,7 +52,7 @@ public class SftpResourceUploader implements ExternalResourceUploader {
 
     public void upload(Factory<InputStream> sourceFactory, Long contentLength, String destination) throws IOException {
         URI uri = toUri(destination);
-        SftpClient client = sftpClientFactory.createSftpClient(uri);
+        SftpClient client = sftpClientFactory.createSftpClient(uri, credentials);
         String path = uri.getPath();
 
         OutputStream outputStream = null;

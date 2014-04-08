@@ -55,6 +55,7 @@ import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResour
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedArtifactIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
+import org.gradle.api.internal.externalresource.transport.sftp.SftpClientFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -197,6 +198,10 @@ class DependencyManagementBuildScopeServices {
         return new LocalFileRepositoryArtifactCache();
     }
 
+    SftpClientFactory createSftpClientFactory() {
+        return new SftpClientFactory();
+    }
+
     DownloadingRepositoryArtifactCache createDownloadingRepositoryArtifactCache(ArtifactIdentifierFileStore artifactIdentifierFileStore, ByUrlCachedExternalResourceIndex externalResourceIndex,
                                                                                 TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         return new DownloadingRepositoryArtifactCache(artifactIdentifierFileStore,
@@ -207,14 +212,16 @@ class DependencyManagementBuildScopeServices {
 
     RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory, LocalFileRepositoryArtifactCache localFileRepositoryArtifactCache,
                                                                 DownloadingRepositoryArtifactCache downloadingRepositoryArtifactCache, TemporaryFileProvider temporaryFileProvider,
-                                                                ByUrlCachedExternalResourceIndex externalResourceIndex, BuildCommencedTimeProvider buildCommencedTimeProvider) {
+                                                                ByUrlCachedExternalResourceIndex externalResourceIndex, BuildCommencedTimeProvider buildCommencedTimeProvider,
+                                                                SftpClientFactory sftpClientFactory) {
         return new RepositoryTransportFactory(
                 progressLoggerFactory,
                 localFileRepositoryArtifactCache,
                 downloadingRepositoryArtifactCache,
                 temporaryFileProvider,
                 externalResourceIndex,
-                buildCommencedTimeProvider
+                buildCommencedTimeProvider,
+                sftpClientFactory
         );
     }
 

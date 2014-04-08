@@ -17,7 +17,6 @@
 package org.gradle.api.internal.externalresource.transport.sftp;
 
 import org.apache.sshd.ClientSession;
-import org.apache.sshd.SshClient;
 import org.apache.sshd.client.sftp.DefaultSftpClient;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.common.util.Buffer;
@@ -27,11 +26,9 @@ import java.io.IOException;
 public class NonExistingFileHandlingSftpClient extends DefaultSftpClient {
 
     private final ClientSession clientSession;
-    private final SshClient sshClient;
 
-    public NonExistingFileHandlingSftpClient(SshClient sshClient, ClientSession clientSession) throws IOException {
+    public NonExistingFileHandlingSftpClient(ClientSession clientSession) throws IOException {
         super(clientSession);
-        this.sshClient = sshClient;
         this.clientSession = clientSession;
     }
 
@@ -60,6 +57,5 @@ public class NonExistingFileHandlingSftpClient extends DefaultSftpClient {
     public void close() throws IOException {
         super.close();
         clientSession.close(false).awaitUninterruptibly();
-        sshClient.close(false);
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.externalresource.transport.sftp;
 
 import org.apache.sshd.client.SftpClient;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.util.CollectionUtils;
@@ -29,9 +30,11 @@ import java.util.List;
 
 public class SftpResourceLister implements ExternalResourceLister {
     private final SftpClientFactory sftpClientFactory;
+    private final PasswordCredentials credentials;
 
-    public SftpResourceLister(SftpClientFactory sftpClientFactory) {
+    public SftpResourceLister(SftpClientFactory sftpClientFactory, PasswordCredentials credentials) {
         this.sftpClientFactory = sftpClientFactory;
+        this.credentials = credentials;
     }
 
     private URI toUri(String location) {
@@ -47,7 +50,7 @@ public class SftpResourceLister implements ExternalResourceLister {
     public List<String> list(final String parent) throws IOException {
         URI uri = toUri(parent);
         String path = uri.getPath();
-        SftpClient client = sftpClientFactory.createSftpClient(uri);
+        SftpClient client = sftpClientFactory.createSftpClient(uri, credentials);
 
         try {
             if (client.lstat(path) != null) {

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.externalresource.transport.sftp;
 
 import org.apache.sshd.client.SftpClient;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -35,9 +36,11 @@ import static org.apache.sshd.client.SftpClient.Attributes;
 public class SftpResourceAccessor implements ExternalResourceAccessor {
 
     private final SftpClientFactory sftpClientFactory;
+    private final PasswordCredentials credentials;
 
-    public SftpResourceAccessor(SftpClientFactory sftpClientFactory) {
+    public SftpResourceAccessor(SftpClientFactory sftpClientFactory, PasswordCredentials credentials) {
         this.sftpClientFactory = sftpClientFactory;
+        this.credentials = credentials;
     }
 
     private URI toUri(String location) {
@@ -53,7 +56,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
     private ExternalResourceMetaData getMetaData(URI uri) throws IOException {
         SftpClient sftpClient = null;
         try {
-            sftpClient = sftpClientFactory.createSftpClient(uri);
+            sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
             Attributes attributes = sftpClient.lstat(uri.getPath());
             return attributes != null ? toMetaData(uri.toString(), attributes) : null;
         } finally {
@@ -81,7 +84,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         URI uri = toUri(location);
         ExternalResourceMetaData metaData = getMetaData(uri);
 
-        return metaData != null ? new SftpResource(sftpClientFactory, metaData, uri) : null;
+        return metaData != null ? new SftpResource(sftpClientFactory, metaData, uri, credentials) : null;
     }
 
     public HashValue getResourceSha1(String location) {

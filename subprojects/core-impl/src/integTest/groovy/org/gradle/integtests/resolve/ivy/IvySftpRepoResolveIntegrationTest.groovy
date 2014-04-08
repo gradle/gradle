@@ -35,6 +35,10 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         new IvySftpRepository(server, '/repo', m2Compatible, dirPattern)
     }
 
+    IvySftpRepository getIvySftpRepo(String contextPath) {
+        new IvySftpRepository(server, contextPath, false, null)
+    }
+
     void "can resolve dependencies from a SFTP Ivy repository with #layout layout"() {
         given:
         def ivySftpRepo = getIvySftpRepo(m2Compatible)
@@ -150,6 +154,47 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
 
         then:
         file('libs').assertHasDescendants '3rdParty-1.2.jar', 'original-1.1.jar'
+    }
+
+    void "can resolve dependencies from multiple SFTP Ivy repositories"() {
+        given:
+        def ivySftpRepo1 = getIvySftpRepo('/repo1')
+        def ivySftpRepo2 = getIvySftpRepo('/repo2')
+        ivySftpRepo1.module('org.group.name', 'projectA', '1.2').publish()
+        ivySftpRepo2.module('org.group.name', 'projectB', '1.3').publish()
+
+        and:
+        buildFile << """
+            repositories {
+                ivy {
+                    url "${ivySftpRepo1.uri}"
+                    credentials {
+                        username 'sftp'
+                        password 'sftp'
+                    }
+                }
+
+                ivy {
+                    url "${ivySftpRepo2.uri}"
+                    credentials {
+                        username 'sftp'
+                        password 'sftp'
+                    }
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'org.group.name:projectA:1.2', 'org.group.name:projectB:1.3' }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
+
+        when:
+        succeeds 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants 'projectA-1.2.jar', 'projectB-1.3.jar'
     }
 }
 

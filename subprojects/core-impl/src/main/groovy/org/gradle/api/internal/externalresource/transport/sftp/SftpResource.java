@@ -17,6 +17,7 @@
 package org.gradle.api.internal.externalresource.transport.sftp;
 
 import org.apache.sshd.client.SftpClient;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.AbstractExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
@@ -29,18 +30,20 @@ public class SftpResource extends AbstractExternalResource {
     private final SftpClientFactory clientFactory;
     private final ExternalResourceMetaData metaData;
     private final URI uri;
+    private final PasswordCredentials credentials;
 
     private SftpClient client;
 
-    public SftpResource(SftpClientFactory clientFactory, ExternalResourceMetaData metaData, URI uri) {
+    public SftpResource(SftpClientFactory clientFactory, ExternalResourceMetaData metaData, URI uri, PasswordCredentials credentials) {
         this.clientFactory = clientFactory;
         this.metaData = metaData;
         this.uri = uri;
+        this.credentials = credentials;
     }
 
     @Override
     protected InputStream openStream() throws IOException {
-        client = clientFactory.createSftpClient(uri);
+        client = clientFactory.createSftpClient(uri, credentials);
         return client.read(uri.getPath());
     }
 

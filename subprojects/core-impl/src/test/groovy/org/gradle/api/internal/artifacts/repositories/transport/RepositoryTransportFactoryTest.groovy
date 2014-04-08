@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class RepositoryTransportFactoryTest extends Specification {
 
-    def repositoryTransportFactory = new RepositoryTransportFactory(null, null, null, null, null, null)
+    def repositoryTransportFactory = new RepositoryTransportFactory(null, null, null, null, null, null, null)
 
     def "cannot create a transport for url with unsupported scheme"() {
         when:

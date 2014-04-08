@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArt
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.transport.file.FileTransport;
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
+import org.gradle.api.internal.externalresource.transport.sftp.SftpClientFactory;
 import org.gradle.api.internal.externalresource.transport.sftp.SftpTransport;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.jvm.Jvm;
@@ -40,19 +41,23 @@ public class RepositoryTransportFactory {
     private final RepositoryArtifactCache localCacheManager;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildCommencedTimeProvider timeProvider;
+    private final SftpClientFactory sftpClientFactory;
+
 
     public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
                                       RepositoryArtifactCache localCacheManager,
                                       RepositoryArtifactCache downloadingCacheManager,
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
-                                      BuildCommencedTimeProvider timeProvider) {
+                                      BuildCommencedTimeProvider timeProvider,
+                                      SftpClientFactory sftpClientFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.localCacheManager = localCacheManager;
         this.downloadingCacheManager = downloadingCacheManager;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
+        this.sftpClientFactory = sftpClientFactory;
     }
 
     public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
@@ -65,7 +70,7 @@ public class RepositoryTransportFactory {
 
     private RepositoryTransport createSftpTransport(String name, PasswordCredentials credentials) {
         checkSftpJavaVersionCompatibility();
-        return new SftpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
+        return new SftpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, sftpClientFactory);
     }
 
     public RepositoryTransport createTransport(String scheme, String name, PasswordCredentials credentials) {
