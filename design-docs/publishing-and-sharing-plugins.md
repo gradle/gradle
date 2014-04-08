@@ -385,70 +385,6 @@ Note: plugins from buildSrc are not core plugins.
 
 - Should a qualified plugin id of a namespace other than 'org.gradle', with no version constraint, yield a special error message? i.e. only 'org.gradle' plugins can omit version
 
-## Story: Implement client api for plugins.gradle.org plugin use metadata service
-
-This story builds support for a client library for the plugins.gradle.org service, and associated testing infrastructure.
-This story is not predicated on the availability of the plugins.gradle.org service in production status.
-
-The 'plugin use' API endpoint will be used to drive this story.
-This endpoint provides metadata about how to use a plugin (i.e. where its implementation can be found) for a given id and non dynamic version
-
-A plugin spec of id & version, can be serialized to a URL that provides metadata about the plugin as a JSON document.
-
-`plugins.gradle.org/api/gradle:«gradle version»/plugin/use/«plugin id»/«version»`
-
-Responses (including error) are JSON documents.
-Only extremely exceptional responses will not be JSON documents (e.g. intermediate proxy returns HTML, catastrophic server failure)
-
-See the design docs (specifically api-endpoints-general.md) of the plugin portal project for more information about the schema of JSON error responses.
-
-The potential responses are:
-
-1. 200 - JSON metadata document (opaque at this stage)
-1. 3xx redirection - client should follow redirect with standard HTTP semantics
-1. 4xx - generic client error
-1. 5xx - generic client error
-1. _any_ - unexpected non JSON response
-1. 400 - 599 - json response in an unexpected format (i.e. incorrect schema)
-1. 200 - JSON response in an unexpected format (i.e. incorrect schema)
-1. _any_ - Presence of `X-Client-Deprecation-Message` and `X-Client-Deprecation-Deadline` headers (see plugin portal spec)
-
-Network failures must also be considered.
-
-Implementation (rough):
-
-- `PluginPortalClient`
-    - Takes the absolute URL of the API base as a parameter (e.g. http://plugins.gradle.org/api)
-    - has `PluginPortalResponse request(PluginPortalRequestSpec requestSpec)` method
-- `PluginPortalResponse`
-    - methods for indicating success (200 JSON response) or failure
-    - provide error response in structured form (i.e. for “expected” errors from portal)
-    - mechanism for accessing success response in structured way
-- `PlugingPortalRequestSpec`
-    - methods for constructing a tokenised URL, handling escaping (e.g. substituting values in a template) 
-  
-The client only need to be capable of GET requests at this stage.
-
-Implementation should be based on the same HTTP infrastructure that dependency resolution uses.
-
-### Test coverage
-
-- Request URLs are correctly escaped, WRT tokens
-  - URI meta characters are encoded
-  - Non ascii characters are encoded
-- Network failure information is available from response object
-- 300, 301, 302, 303, 307 redirect responses are followed (semantics are always “replay” as only GET is supported at this stage)
-- All `application/json` responses are errors (regardless of status code)
-- 400..599 - json response in an unexpected format is distinguishable from error with expected format
-- data is available from 200 json response 
-- JSON responses are parsed as UTF8 - i.e. non ascii characters in response json are correctly interpreted
-- Malformed JSON is handled (i.e. content type is application/json but document is not valid JSON)
-- Responses containing deprecation headers make deprecation information available via response object
-
-### Open questions
-
-- What to use to unmarshall JSON responses? Jackson? Should the API couple to a marshaller at this level?
-
 ## Story: User uses plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes 
 
 This story covers adding a plugin “resolver” that uses the plugins.gradle.org service to resolve a plugin spec into an implementation.
@@ -457,33 +393,33 @@ Dynamic versions are not supported.
 Plugins obtained via this method must have no dependencies on any other plugin, including core plugins, and do not make any of their implementation classes available to the client project/scripts (i.e. no classes from the plugin can be used outside the plugin implementation).
 No resolution caching is performed; if multiple projects attempt to use the same plugin it will be resolved each time and a separate classloader built from the implementation (address in later stories).
 
-A new plugin resolver will be implemented that is backed by the plugin portal client.
+A new plugin resolver will be implemented that queries the plugin portal, talking JSON over HTTP.
+See the plugin portal spec for details of the protocol.
 This resolver will be appended to the list of resolvers used (i.e. currently only containing the core plugin resolver).
 
-Plugin specs can be translated into metadata documents using the template: `plugins.gradle.org/api/gradle:«gradle version»/plugin/use/«plugin id»/«version»`
-All error responses (see previous story), besides the specific 404 variants that indicates that the plugin or plugin version does not exist, are fatal to the resolution of the plugin.
+Plugin specs can be translated into metadata documents using urls such as: `plugins.gradle.org/api/gradle/«gradle version»/plugin/use/«plugin id»/«version»`.
 
-Success responses are of the form:
+There are 4 kinds of responses that need to be considered for this story:
 
-    {
-      "id": "«qualified id»" // qualified even if id in spec was unqualified
-      "version": "«version»" // identical to requested version
-      "implementation": {
-        "m2": {
-          "repo": "«absolute url»"
-          "gav": “«group:artifact:version»”
-        }  
-      }
-    }
+1. 3xx redirect
+1. 200 response with expected JSON payload (see plugin portal spec)
+1. 404 response with JSON payload indicating no plugin for that id/version found (see plugin portal spec)
+1. Anything else
 
-The `implementation` object must contain an `m2` entry with `repo` and `gav` attributes.
-The `repo` attribute is the absolute URL of an M2 repository that contains a jar type module of the given gav coordinates.
-The repo is known to contain this module.
-The runtime usage resolution (i.e. module artifact + dependencies) is expected to form a classpath that contains a plugin implementation mapped to the qualified id (i.e. a `/META-INF/gradle-plugins/«qualified id».properties` file with `implementation-class` property).
+Subsequent stories refine the error handling. This story encompasses the bare minimum.
+
+The “plugin found” JSON response contains two vital datum, among other data.
+
+1. A “«group»:«artifact»:«version»” dependency notation string
+1. A URL to an m2 repo that is accessible without authentication
+
+The m2 repository is known to contain the dependency denoted in the dependency notation string.
+The runtime usage resolution (i.e. module artifact + dependencies) of the dependency from the given repository is expected to form a classpath that contains a plugin implementation mapped to the qualified id (i.e. a `/META-INF/gradle-plugins/«qualified id».properties` file with `implementation-class` property).
 
 The dependencies of the plugin implementation must also be available from the specified maven repository.
+That is, this is the only repository available for the resolve.
 
-Given the repo & gav, the plugin resolver will resolve the maven module as per typical Gradle maven dependency resolution.
+The plugin resolver will resolve the maven module as per typical Gradle maven dependency resolution.
 No configuration (e.g. username/password, exclude rules) of the resolve is possible.
 Anything other than successful resolution of the implementation module is fatal to the plugin resolution.
 
@@ -492,23 +428,13 @@ A new classloader is created from this classpath, with the gradle api classloade
 The `Plugin` implementation mapped to the plugin id from this classpath is applied to the project.
 No classes from the plugin implementation classpath are made available to scripts, other plugins etc. 
 
-### Dealing with infrastructure failures and error messages
-
-Fatal errors from the portal that are unexpected/exceptional should not occur under normal operation.
-Such errors will be from malformed requests from the client (i.e. uncaught bugs), or more likely from transient network or portal application failures.
-In both cases, it's likely that the plugin portal maintainers will need to take action to resolve the issue.
-
-When propagating these kinds of errors to the user in some sense, there should always be instructions for some way of letting us know about the failure.
-Initially, this will be a message to please raise a problem report via http://forums.gradle.org.
-
-Future iterations may provide the address of a “status URL” that users can use to determine whether the service has problems, or whether the problem might be local to them.
+As much of the HTTP infrastructure used in dependency resolution as possible should be used in communicating with the plugin portal.
 
 ### Test Coverage
 
-- Error responses from plugin portal halt the resolution process, providing helpful error messages (see potential error types from previous story)
 - 404 responses that indicate that the plugin or plugin version do not exist are not fatal - try next resolver
 - generic 404 responses are considered fatal
-- If plugin portal response indicates that the plugin is known, but not by that version, failure message to user should include this information (later stories might include information about what versions are known about)
+- If plugin portal response indicates that the plugin is known, but not by that version (also a 404), failure message to user should include this information (later stories might include information about what versions are known about)
 - Attempt to use -SNAPSHOT or a dynamic version selector produces helpful 'not supported' error message
     - As there is only the core resolver and the portal resolver at this point, this logic could be hardcoded at the start of the resolver list potentially
 - Success response document of incompatible schema produces error
@@ -522,10 +448,35 @@ Future iterations may provide the address of a “status URL” that users can u
 - Plugin cannot access classes from core Gradle plugins
 - Plugin can access classes from Gradle API
 - Plugin resolution fails when --offline is specified
+- Client follows redirect from server
+- Unicode characters in the response are interpreted correctly and don't cause strange behaviour
+- Plugin id and version numbers can contain URL meta chars and unicode chars (regardless of valid plugin ids not being allowed to contain non ascii alphanum or -) - request URLs should be well formed
+- Reasonable error message on network failure talking to plugin portal or repository containing plugin implementation
 
 ### Open questions
 
 - Is it worth validating the id/version returned by the service against what we asked for?
+
+## Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”
+
+The plugin portal has a standardised JSON payload for errors.
+This story adds understanding of this to Gradle's interactions with the portal, by way of extracting the error information and presenting it to the user instead of a generic failure message.
+
+Any request to the plugin portal may return a “structured error response”.
+In some cases this may be part of the standard protocol for that endpoint.
+For example, a request for plugin metadata that targets the plugin metadata endpoint but resolves to a non existent plugin will yield a structured error response.
+The detail of the error response differentiates the response from a generic 404.
+
+### Test coverage
+
+- 4xx..500 response that isn't a structured error response (e.g. HTML) is handled
+- Response advertised as structured error response is of incompatible schema
+- Response advertised as structured error response is malformed JSON
+- Response advertised as structured error response is of compatible schema, but has extra unexpected elements
+
+### Open questions
+
+- What to use to unmarshall JSON responses? Jackson? Should the API couple to a marshaller at this level?
 
 ## Story: User is notified that Gradle version is no longer supported by plugin portal
 
@@ -563,6 +514,13 @@ Don't make the same request to plugins.gradle.org in a single build, reuse imple
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
 ## Story: Build author searches for plugins using central Web UI
+
+## Story: Pathological comms errors while resolving plugins produce reasonable error messages
+
+1. Non responsive server (accepts request but never responds)
+1. Server responds extremely slowly (data is transferred frequently enough to avoid idle/response timeout, but is really too slow to let continue)
+1. Server responds with inaccurate content length (lots of HTTP clients get badly confused by this)
+1. Server responds with extremely large document (protect against blowing out memory trying to read the response)
 
 ## Story: Build author searches for plugins using Gradle command-line
 
