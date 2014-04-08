@@ -37,6 +37,7 @@ class DefaultOsgiManifestTest extends Specification {
 
     Factory<ContainedVersionAnalyzer> analyzerFactoryMock = Mock(Factory)
     ContainedVersionAnalyzer analyzerMock = Mock(ContainedVersionAnalyzer)
+    Properties analyzerMockProperties = new Properties();
 
     FileResolver fileResolver = Mock(FileResolver)
 
@@ -122,7 +123,7 @@ class DefaultOsgiManifestTest extends Specification {
 
         and:
         prepareMock()
-        
+
         then:
         def effectiveManifest = osgiManifest.getEffectiveManifest()
         effectiveManifest.attributes[name] == testValue
@@ -257,13 +258,28 @@ class DefaultOsgiManifestTest extends Specification {
         addPlainAttributesAndSections(osgiManifest)
     }
 
-    private prepareMock() {
+    private prepareMock() {        
+        analyzerMockProperties.setProperty(Analyzer.BUNDLE_VERSION, osgiManifest.version)
         prepareMockForNullTest()
     }
 
     private prepareMockForNullTest() {
         interaction {
-            1 * analyzerMock.setProperties(_)
+            analyzerMockProperties.setProperty(Analyzer.BUNDLE_SYMBOLICNAME, osgiManifest.symbolicName)
+            analyzerMockProperties.setProperty(Analyzer.BUNDLE_NAME, osgiManifest.name)
+            analyzerMockProperties.setProperty(Analyzer.BUNDLE_DESCRIPTION, osgiManifest.description)
+            analyzerMockProperties.setProperty(Analyzer.BUNDLE_LICENSE, osgiManifest.license)
+            analyzerMockProperties.setProperty(Analyzer.BUNDLE_VENDOR, osgiManifest.vendor)
+            analyzerMockProperties.setProperty(Analyzer.BUNDLE_DOCURL, osgiManifest.docURL)
+            analyzerMockProperties.setProperty(Analyzer.EXPORT_PACKAGE, osgiManifest.instructionValue(Analyzer.EXPORT_PACKAGE).join(","))
+            analyzerMockProperties.setProperty(Analyzer.IMPORT_PACKAGE, osgiManifest.instructionValue(Analyzer.IMPORT_PACKAGE).join(","))
+
+            1 * analyzerMock.setProperties(_) >> {
+                arguments ->
+                   final Properties actualProperties = arguments[0]
+                   assert actualProperties.equals(analyzerMockProperties)
+
+            }
 
             1 * analyzerMock.setJar(osgiManifest.classesDir)
             1 * analyzerMock.setClasspath(osgiManifest.classpath.files.toArray())

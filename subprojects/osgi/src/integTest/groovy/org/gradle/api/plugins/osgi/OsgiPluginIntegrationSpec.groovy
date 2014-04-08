@@ -29,7 +29,7 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
             group = "foo"
             apply plugin: "java"
             apply plugin: "osgi"
-                            
+
             jar {
                 manifest {
                     version = "3.0"
@@ -40,10 +40,10 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
 
             assert jar.manifest.symbolicName.startsWith("bar") // GRADLE-2446
         """
-        
+
         and:
         file("src/main/java/Thing.java") << "public class Thing {}"
-        
+
         when:
         run "jar"
 
@@ -80,10 +80,10 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         run "jar"
-        
+
         then:
         ":jar" in nonSkippedTasks
-        
+
         when:
         sleep sleepTime
         run "jar"
@@ -97,5 +97,46 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         ":jar" in nonSkippedTasks
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2075")
+    def "Gradle OSGi plugin does not support the Bnd -include instruction"() {
+        given:
+        buildFile << """
+        version = "1.0"
+        group = "foo"
+        apply plugin: "java"
+        apply plugin: "osgi"
+
+        jar {
+            manifest {
+                version = "3.0"
+                instructionReplace("Bundle-Version", "2.0")
+                instructionReplace("Bundle-SymbolicName", "bar")
+
+                instruction "-include", "META-INF/MANIFEST.MF"
+            }
+        }
+
+        assert jar.manifest.symbolicName.startsWith("bar") // GRADLE-2075
+        """
+
+        and:
+        file("src/main/java/Thing.java") << "public class Thing {}"
+        file("META-INF/MANIFEST.MF") << "CustomHeader: customValue\n"
+
+        when:
+        run "jar"
+
+    def manifestText = file("build/tmp/jar/MANIFEST.MF").text
+        then:
+        manifestText.contains("Bundle-Version: 2.0")
+        manifestText.contains("Bundle-SymbolicName: bar")
+        manifestText.contains("CustomHeader: customValue")
+    }
+
+    private waitForMinimumBndLastModifiedInterval() {
+
+        sleep 1000
     }
 }
