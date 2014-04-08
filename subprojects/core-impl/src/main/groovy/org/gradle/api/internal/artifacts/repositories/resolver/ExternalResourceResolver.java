@@ -133,7 +133,9 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
         // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
         IvyArtifactName metaDataArtifact = getMetaDataArtifactName(dependency.getRequested().getName());
-        listVersionsForAllPatterns(getIvyPatterns(), metaDataArtifact, versionList);
+        if (metaDataArtifact != null) {
+            listVersionsForAllPatterns(getIvyPatterns(), metaDataArtifact, versionList);
+        }
 
         // List modules with missing metadata files
         if (isAllownomd()) {
@@ -277,7 +279,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
         return new DefaultModuleVersionArtifactMetaData(moduleComponentIdentifier, ivyArtifactName);
     }
-    
+
+    // TODO This will no longer be @Nullable in Gradle 2.0 (when we remove the ability to call setUsePoms(false) on MavenResolver)
     @Nullable
     protected abstract IvyArtifactName getMetaDataArtifactName(String moduleName);
 
