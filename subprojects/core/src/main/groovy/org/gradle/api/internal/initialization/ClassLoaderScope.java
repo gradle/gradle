@@ -47,35 +47,38 @@ public interface ClassLoaderScope {
     ClassLoaderScope getBase();
 
     /**
-     * Adds a class path to this scope, but not to children.
+     * Adds a class path visible to this scope, but not to children. The class path is loaded such that the exported classes of the base scope are visible to it.
+     * In this way, local classes are effectively the private classes of the scope.
      *
-     * Can not be called after being locked.
+     * <p>Can not be called after being locked.
      */
     ClassLoader addLocal(ClassPath classpath);
 
     /**
-     * Adds a class path to this scope, but not to children.
+     * Adds a class path visible to this scope and all children. The class path is loaded such that the exported classes of the parent scope are visible to it.
+     * In this way, exported classes are effectively the public classes of the scope.
      *
-     * Can not be called after being locked.
+     * <p>Can not be called after being locked.
      */
     ClassLoader export(ClassPath classpath);
 
     /**
-     * Creates a scope with the same parent as this scope.
+     * Creates a scope with the same parent and base as this scope.
      */
     ClassLoaderScope createSibling();
 
     /**
-     * Creates a scope with the same parent as this scope.
+     * Creates a scope with this scope as parent. Uses the same base as this scope.
      *
-     * Local class paths added to the return child will NOT inherit from the exported classpath of this and parents (though exported class paths will)
+     * Local classes added to the return child will NOT inherit from the exported classes of this and parents. Exported classes WILL inherit from
+     * the exported classes of this scope and its parent.
      */
     ClassLoaderScope createChild();
 
     /**
-     * Creates a scope with the same parent as this scope.
+     * Creates a scope with this scope as parent and base.
      *
-     * Local class paths added to the return child WILL inherit from the exported classpath of this and parents (exported class paths also will)
+     * Both local classes and exported classes added to the return child WILL inherit from the exported classpath of this and parents.
      */
     ClassLoaderScope createRebasedChild();
 
