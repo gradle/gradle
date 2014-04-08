@@ -555,10 +555,6 @@ Don't make the same request to plugins.gradle.org in a single build, reuse imple
 
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
-## Story: Plugin resolution is cached between builds
-
-i.e. responses from plugins.gradle.org are cached to disk.
-
 ## Story: Build author searches for plugins using central Web UI
 
 ## Story: Build author searches for plugins using Gradle command-line
