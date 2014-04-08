@@ -40,14 +40,10 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         module.publish()
     }
 
-    def initBuild(MavenRepository repo, String module = "some.group:some-artifact:1.0") {
+    def initBuild(MavenRepository repo) {
         buildFile.text = """
 repositories {
     maven { url '$repo.uri' }
-}
-configurations { compile }
-dependencies {
-    compile "${module}"
 }
 """
     }
@@ -98,10 +94,11 @@ dependencies {
 
     @Unroll
     def "fetches missing snapshot artifacts #condition"() {
-        initBuild(repo, "some.group:some-artifact:1.0-SNAPSHOT")
         buildFile << """
 if (project.hasProperty('nocache')) {
-    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
 }
 """
 
@@ -148,10 +145,11 @@ if (project.hasProperty('nocache')) {
 
     @Unroll
     def "updates snapshot artifacts #condition"() {
-        initBuild(repo, "some.group:some-artifact:1.0-SNAPSHOT")
         buildFile << """
 if (project.hasProperty('nocache')) {
-    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
 }
 """
 

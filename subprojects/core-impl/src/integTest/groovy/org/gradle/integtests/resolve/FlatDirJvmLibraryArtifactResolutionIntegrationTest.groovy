@@ -24,10 +24,6 @@ class FlatDirJvmLibraryArtifactResolutionIntegrationTest extends AbstractDepende
 repositories {
     flatDir { dir 'repo' }
 }
-configurations { compile }
-dependencies {
-    compile "some.group:some-artifact:1.0"
-}
 """
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
     }

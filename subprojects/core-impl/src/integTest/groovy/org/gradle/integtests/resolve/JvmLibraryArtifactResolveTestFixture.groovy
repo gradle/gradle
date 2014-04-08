@@ -32,6 +32,7 @@ class JvmLibraryArtifactResolveTestFixture {
     private final TestFile buildFile
     private final String config
     private ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId("some.group", "some-artifact", "1.0")
+    private boolean noCache
     private artifactTypes = []
     private expectedSources = []
     Throwable expectedSourceFailure
@@ -47,6 +48,10 @@ class JvmLibraryArtifactResolveTestFixture {
     JvmLibraryArtifactResolveTestFixture withComponentVersion(String group, String module, String version) {
         this.id = DefaultModuleComponentIdentifier.newId(group, module, version)
         this
+    }
+
+    JvmLibraryArtifactResolveTestFixture withNoCache(boolean noCache = true) {
+        this.noCache = noCache
     }
 
     JvmLibraryArtifactResolveTestFixture requestingTypes(Class<? extends JvmLibraryArtifact>... artifactTypes) {
@@ -107,6 +112,14 @@ class JvmLibraryArtifactResolveTestFixture {
      * Injects the appropriate stuff into the build script.
      */
     void prepare() {
+        buildFile << """
+configurations {
+    ${config}
+}
+dependencies {
+    ${config} "${id.group}:${id.module}:${id.version}"
+}
+"""
         if (unresolvedComponentFailure != null) {
             prepareComponentNotFound()
         } else {
@@ -117,7 +130,7 @@ class JvmLibraryArtifactResolveTestFixture {
     void createVerifyTask(String taskName) {
         buildFile << """
 task $taskName << {
-    def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
+    def deps = configurations.${config}.incoming.resolutionResult.allDependencies as List
     assert deps.size() == 1
     def componentId = deps[0].selected.id
 

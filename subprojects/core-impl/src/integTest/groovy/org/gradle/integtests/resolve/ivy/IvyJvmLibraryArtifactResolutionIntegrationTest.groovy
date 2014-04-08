@@ -39,14 +39,10 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         publishModule()
     }
 
-    def initBuild(IvyRepository repo, String module = "some.group:some-artifact:1.0") {
+    def initBuild(IvyRepository repo) {
         buildFile.text = """
 repositories {
     ivy { url '$repo.uri' }
-}
-configurations { compile }
-dependencies {
-    compile "${module}"
 }
 """
     }
@@ -106,7 +102,9 @@ dependencies {
 }
 
 if (project.hasProperty('nocache')) {
-    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
 }
 """
 
@@ -152,7 +150,9 @@ dependencies {
 }
 
 if (project.hasProperty('nocache')) {
-    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
 }
 """
 
@@ -281,13 +281,10 @@ if (project.hasProperty('nocache')) {
     }
 
     def "can resolve artifacts with maven scheme from ivy repository"() {
-        initBuild(httpRepo, "some.group:some-artifact:1.1")
-
         // Published with no configurations, and a source artifact only
         def moduleWithMavenScheme = httpRepo.module("some.group", "some-artifact", "1.1")
         moduleWithMavenScheme.artifact(classifier: "sources")
         moduleWithMavenScheme.publish()
-
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.1")
                 .requestingTypes(JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact)
