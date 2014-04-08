@@ -35,9 +35,9 @@ import java.util.Map;
 /**
  * Executes a Java application in a child process.
  * <p>
- * The process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debugJvm` switch when invoking the build.
+ * The process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debug-jvm` switch when invoking the build.
  * <pre>
- * gradle someJavaExecTask --debugJvm
+ * gradle someJavaExecTask --debug-jvm
  * </pre>
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
@@ -218,7 +218,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Option(option = "debugJvm", description = "Enable or disable debugging for the process. When enabled, the process is started suspended and listening on port 5005. [INCUBATING]")
+    @Option(option = "debug-jvm", description = "Enable or disable debugging for the process. When enabled, the process is started suspended and listening on port 5005. [INCUBATING]")
     public void setDebug(boolean enabled) {
         javaExecHandleBuilder.setDebug(enabled);
     }

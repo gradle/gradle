@@ -110,9 +110,9 @@ import java.util.*;
  * }
  * </pre>
  * <p>
- * The test process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debugJvm` switch when invoking the build.
+ * The test process can be started in debug mode (see {@link #getDebug()}) in an ad-hoc manner by supplying the `--debug-jvm` switch when invoking the build.
  * <pre>
- * gradle someTestTask --debugJvm
+ * gradle someTestTask --debug-jvm
  * </pre>
 
  */
@@ -374,7 +374,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
-    @Option(option = "debugJvm", description = "Enable or disable debugging for the test process. When enabled, the process is started suspended and listening on port 5005. [INCUBATING]")
+    @Option(option = "debug-jvm", description = "Enable or disable debugging for the test process. When enabled, the process is started suspended and listening on port 5005. [INCUBATING]")
     public void setDebug(boolean enabled) {
         forkOptions.setDebug(enabled);
     }

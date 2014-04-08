@@ -166,12 +166,12 @@ There were changes in IDEA project mapping related to bug reports [GRADLE-2017] 
 
 ### Easier debugging of JVM `Test` and `JavaExec` processes (i)
 
-The [`Test`](dsl/org.gradle.api.tasks.testing.Test.html) and [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) tasks both now support a `--debugJvm` invocation time switch, which is equivalent
+The [`Test`](dsl/org.gradle.api.tasks.testing.Test.html) and [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) tasks both now support a `--debug-jvm` invocation time switch, which is equivalent
 to setting the `debug` property of these tasks to `true`.
 
 This makes it easy, for example, to launch the application in debug mode when using the [Application plugin](userguide/application_plugin.html)…
 
-<pre><tt>gradle run --debugJvm</tt></pre>
+<pre><tt>gradle run --debug-jvm</tt></pre>
 
 This starts the JVM process in debug mode, and halts the process until a debugger attaches on port 5005.
 The same can be done for any [`Test`](dsl/org.gradle.api.tasks.testing.Test.html) task.
