@@ -193,11 +193,10 @@ sourceSets.test.output.dir "$buildDir/ws/test"
         def iml = parseFile(print: true, 'root.iml')
 
         //then
-        assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
-
-        def classesDirs = iml.component.orderEntry.library.CLASSES.root.@url.collect { it.text() }
-        assert classesDirs.any { it.contains ('generated/main') }
-        assert classesDirs.any { it.contains ('ws/test') }
+        def dependencies = new IdeaModuleFixture(iml).dependencies
+        assert dependencies.libraries.size() == 2
+        dependencies.assertHasLibrary('RUNTIME', 'generated/main')
+        dependencies.assertHasLibrary('TEST', 'ws/test')
     }
 
     @Test
@@ -394,16 +393,11 @@ dependencies {
         def iml = parseFile(print: true, 'root.iml')
 
         //then
-        assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
-
-        def orderEntries = iml.component.orderEntry
-        assert orderEntries.findAll { it.@type == 'module-library' }.size() == 3
-        assert orderEntries.any { it.@type == 'module-library' && // no scope means COMPILE
-                it.library.CLASSES.root.@url.text().contains ('api-artifact-1.0.jar') }
-        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'RUNTIME' &&
-                it.library.CLASSES.root.@url.text().contains ('impl-artifact-1.0.jar') }
-        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'TEST' &&
-                it.library.CLASSES.root.@url.text().contains ('impl-artifact-1.0.jar') }
+        def dependencies = new IdeaModuleFixture(iml).dependencies
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
+        dependencies.assertHasLibrary('RUNTIME', 'impl-artifact-1.0.jar')
+        dependencies.assertHasLibrary('TEST', 'impl-artifact-1.0.jar')
     }
 
     @Test
@@ -434,12 +428,9 @@ idea {
         def iml = parseFile(print: true, 'root.iml')
 
         //then
-        assert iml.component.orderEntry.@scope.collect { it.text() == ['PROVIDED'] }
-
-        def orderEntries = iml.component.orderEntry
-        assert orderEntries.findAll { it.@type == 'module-library' }.size() == 1
-        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'PROVIDED' &&
-                it.library.CLASSES.root.@url.text().contains ('api-artifact-1.0.jar') }
+        def dependencies = new IdeaModuleFixture(iml).dependencies
+        assert dependencies.libraries.size() == 1
+        dependencies.assertHasLibrary('PROVIDED', 'api-artifact-1.0.jar')
     }
 
     @Test
@@ -477,14 +468,10 @@ idea {
         def iml = parseFile(print: true, 'root.iml')
 
         //then
-        assert iml.component.orderEntry.@scope.collect { it.text() == ['PROVIDED'] }
-
-        def orderEntries = iml.component.orderEntry
-        assert orderEntries.findAll { it.@type == 'module-library' }.size() == 2
-        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'PROVIDED' &&
-                it.library.CLASSES.root.@url.text().contains ('bar-1.0.jar') }
-        assert orderEntries.any { it.@type == 'module-library' &&
-                it.library.CLASSES.root.@url.text().contains ('api-artifact-1.0.jar') }
+        def dependencies = new IdeaModuleFixture(iml).dependencies
+        assert dependencies.libraries.size() == 2
+        dependencies.assertHasLibrary('PROVIDED', 'bar-1.0.jar')
+        dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
     }
 
     @Test
@@ -524,16 +511,11 @@ idea {
         def iml = parseFile(print: true, 'root.iml')
 
         //then
-        assert iml.component.orderEntry.@scope.collect { it.text() == ['TEST', 'RUNTIME'] }
-
-        def orderEntries = iml.component.orderEntry
-        assert orderEntries.findAll { it.@type == 'module-library' }.size() == 3
-        assert orderEntries.any { it.@type == 'module-library' &&
-                it.library.CLASSES.root.@url.text().contains ('api-artifact-1.0.jar') }
-        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'TEST' &&
-                it.library.CLASSES.root.@url.text().contains ('bar-1.0.jar') }
-        assert orderEntries.any { it.@type == 'module-library' && it.@scope == 'RUNTIME' &&
-                it.library.CLASSES.root.@url.text().contains ('bar-1.0.jar') }
+        def dependencies = new IdeaModuleFixture(iml).dependencies
+        assert dependencies.libraries.size() == 3
+        dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
+        dependencies.assertHasLibrary('TEST', 'bar-1.0.jar')
+        dependencies.assertHasLibrary('RUNTIME', 'bar-1.0.jar')
     }
 
     @Test
@@ -562,7 +544,7 @@ dependencies {
         def iml = parseFile(print: true, 'root.iml')
 
         //then
-        def orderEntries = iml.component.orderEntry
-        assert orderEntries.findAll { it.@type == 'module-library' }.size() == 0
+        def dependencies = new IdeaModuleFixture(iml).dependencies
+        assert dependencies.libraries.isEmpty()
     }
 }

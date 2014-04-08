@@ -149,10 +149,9 @@ project(':services:utilities') {
         assert moduleDeps.contains("contrib-services-util")
     }
 
-    List parseImlDependencies(options, file) {
+    List<String> parseImlDependencies(options, file) {
         def iml = parseFile(options, file)
-        def moduleDeps = iml.component.orderEntry.'@module-name'.collect { it.text() }
-        return moduleDeps
+        new IdeaModuleFixture(iml).dependencies.modules.collect { it.moduleName }
     }
 
     def assertApiModuleContainsCorrectDependencies() {
@@ -336,17 +335,12 @@ project(':app') {
         def iml = parseFile(project: 'master/app', print: true, 'app.iml')
 
         //then
-        assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
-
-        def orderEntries = iml.component.orderEntry
-        assert orderEntries.size() == 5
-        assert orderEntries.any { it.@type == 'inheritedJdk' }
-        assert orderEntries.any { it.@type == 'sourceFolder' }
-        assert orderEntries.any { it.@type == 'module' &&
-                it.'@module-name'.text().contains ('api') }
-        assert orderEntries.any { it.@type == 'module' && it.@scope == 'RUNTIME' &&
-                it.'@module-name'.text().contains ('impl') }
-        assert orderEntries.any { it.@type == 'module' && it.@scope == 'TEST' &&
-                it.'@module-name'.text().contains ('impl') }
+        def dependencies = new IdeaModuleFixture(iml).dependencies
+        assert dependencies.modules.size() == 3
+        dependencies.assertHasInheritedJdk()
+        dependencies.assertHasSource('false')
+        dependencies.assertHasModule('COMPILE', 'api')
+        dependencies.assertHasModule('TEST', 'impl')
+        dependencies.assertHasModule('RUNTIME', 'impl')
     }
 }
