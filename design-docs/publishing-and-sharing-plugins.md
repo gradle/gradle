@@ -205,6 +205,7 @@ Some mechanism (TBD) will be available to configure the defaults (i.e. repositor
 
 - Directory containing script plugins (other than the default convention)
 - HTTP “directory” containing script plugins
+- Remote directory available over SFTP
 - Other instance of plugin portal
 
 ### Open issues
@@ -235,9 +236,9 @@ Explicit mappings will also be possible via the `pluginMappings {}` DSL (details
 This requires that script plugins can express all things that binary plugins can in terms of usage requirements:
 
 1. Dependencies on other plugins - specified by the plugin script's `plugins {}` block
-1. Dependencies on JVM libraries
+1. Dependencies on JVM libraries - specified by the plugin script's `buildscript {}` block
 1. Entry point/implementation - script body
-1. Exported classes
+1. Exported classes - the public classed declared in the script
 
 As new capabilities are added to plugins (particularly WRT new configuration model), consideration should be given to how script plugins express the same thing.
 
@@ -245,8 +246,6 @@ As new capabilities are added to plugins (particularly WRT new configuration mod
 
 - How are unqualified ids of plugin dependencies to be interpreted? (i.e. script plugins can be used across builds, with potentially different qualifying rules)
 - Do these 'new' script plugins need to declare that they are compatible with the new mechanism? Are there any differences WRT their implementation?
-- How do script plugins declare their non plugin dependencies?
-- How do script plugins declare the classes that they export?
 
 ## Plugin resolution
 
