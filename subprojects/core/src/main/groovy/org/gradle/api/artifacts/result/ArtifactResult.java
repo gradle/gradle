@@ -24,4 +24,5 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ArtifactResult {
+    Class<? extends Artifact> getType();
 }

@@ -15,13 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
+import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.artifacts.result.UnresolvedArtifactResult;
 
 public class DefaultUnresolvedArtifactResult implements UnresolvedArtifactResult {
+    private final Class<? extends Artifact> type;
     private final Throwable failure;
 
-    public DefaultUnresolvedArtifactResult(Throwable failure) {
+    public DefaultUnresolvedArtifactResult(Class<? extends Artifact> type, Throwable failure) {
+        this.type = type;
         this.failure = failure;
+    }
+
+    public Class<? extends Artifact> getType() {
+        return type;
     }
 
     public Throwable getFailure() {

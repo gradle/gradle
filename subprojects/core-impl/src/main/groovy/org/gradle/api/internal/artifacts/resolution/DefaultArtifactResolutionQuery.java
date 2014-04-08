@@ -126,9 +126,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(artifactMetaData, component.getSource(), resolveResult);
             if (resolveResult.getFailure() != null) {
-                artifacts.addArtifact(type, new DefaultUnresolvedArtifactResult(resolveResult.getFailure()));
+                artifacts.addArtifact(new DefaultUnresolvedArtifactResult(type, resolveResult.getFailure()));
             } else {
-                artifacts.addArtifact(type, new DefaultResolvedArtifactResult(resolveResult.getFile()));
+                artifacts.addArtifact(new DefaultResolvedArtifactResult(type, resolveResult.getFile()));
             }
         }
     }

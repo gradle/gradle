@@ -142,12 +142,8 @@ task $taskName << {
         .execute()
 
     assert result.components.size() == 1
-    def componentResult = result.components.iterator().next()
-    assert componentResult instanceof ResolvedComponentArtifactsResult
-    assert componentResult.id.displayName == "${id.displayName}"
 
     def jvmLibrary = result.getResolvedComponents(JvmLibrary).iterator().next()
-    assert jvmLibrary.id == componentResult.id
 
     def sourceArtifactFiles = []
     jvmLibrary.sourcesArtifacts.each { artifact ->
@@ -178,6 +174,14 @@ task $taskName << {
         }
     }
     assert javadocArtifactFiles as Set == ${toQuotedList(expectedJavadoc)} as Set
+
+    def componentResult = result.components.iterator().next()
+    assert componentResult.id == jvmLibrary.id
+    assert componentResult instanceof ResolvedComponentArtifactsResult
+    assert componentResult.id.displayName == "${id.displayName}"
+    assert componentResult.getArtifacts(JvmLibrarySourcesArtifact).size() == jvmLibrary.sourcesArtifacts.size()
+    assert componentResult.getArtifacts(JvmLibraryJavadocArtifact).size() == jvmLibrary.javadocArtifacts.size()
+    assert componentResult.getArtifacts(Artifact).size() == jvmLibrary.sourcesArtifacts.size() + jvmLibrary.javadocArtifacts.size()
 }
 """
     }

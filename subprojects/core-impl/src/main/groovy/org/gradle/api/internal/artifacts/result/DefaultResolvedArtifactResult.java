@@ -15,15 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
+import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 
 import java.io.File;
 
 public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
+    private final Class<? extends Artifact> type;
     private final File file;
 
-    public DefaultResolvedArtifactResult(File file) {
+    public DefaultResolvedArtifactResult(Class<? extends Artifact> type, File file) {
+        this.type = type;
         this.file = file;
+    }
+
+    public Class<? extends Artifact> getType() {
+        return type;
     }
 
     public File getFile() {

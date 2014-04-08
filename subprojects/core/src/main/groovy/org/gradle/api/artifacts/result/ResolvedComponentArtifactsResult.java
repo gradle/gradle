@@ -38,7 +38,7 @@ public interface ResolvedComponentArtifactsResult extends ComponentResult {
      *     <li>{@link UnresolvedArtifactResult} for artifacts which could not be resolved for some reason.</li>
      * </ul>
      *
-     * @return the artifacts of this component with the specified type
+     * @return the artifacts of this component with the specified type, or an empty set if no artifacts of the type exist.
      */
     // TODO:DAZ Integ test coverage
     Set<ArtifactResult> getArtifacts(Class<? extends Artifact> type);

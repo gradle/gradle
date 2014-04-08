@@ -28,7 +28,6 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Collections;
 import java.util.Set;
 
 // TODO:DAZ Unit tests
@@ -44,7 +43,7 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
     }
 
     public <T extends Component> Set<T> getResolvedComponents(Class<T> type) {
-        if (JvmLibrary.class.equals(type)) {
+        if (type.isAssignableFrom(JvmLibrary.class)) {
             return (Set<T>) getJvmLibraries();
         }
         throw new IllegalArgumentException("Not a known component type: " + type);
@@ -65,10 +64,6 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
 
     private <T extends Artifact, U extends T> Set<T> transform(ResolvedComponentArtifactsResult componentResult, Class<T> type, final Class<U> impl) {
         Set<ArtifactResult> sourceArtifactResults = componentResult.getArtifacts(type);
-        if (sourceArtifactResults == null) {
-            return Collections.emptySet();
-        }
-
         final Instantiator instantiator = new DirectInstantiator();
         return CollectionUtils.collect(sourceArtifactResults, new Transformer<T, ArtifactResult>() {
             public T transform(ArtifactResult original) {

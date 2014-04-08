@@ -15,19 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult;
 
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultResolvedComponentArtifactsResult implements ResolvedComponentArtifactsResult {
     private final ComponentIdentifier componentIdentifier;
-    private final Map<Class<? extends Artifact>, Set<ArtifactResult>> artifactResults = Maps.newHashMap();
+    private final Set<ArtifactResult> artifactResults = Sets.newHashSet();
 
     public DefaultResolvedComponentArtifactsResult(ComponentIdentifier componentIdentifier) {
         this.componentIdentifier = componentIdentifier;
@@ -38,15 +36,16 @@ public class DefaultResolvedComponentArtifactsResult implements ResolvedComponen
     }
 
     public Set<ArtifactResult> getArtifacts(Class<? extends Artifact> type) {
-        return artifactResults.get(type);
+        Set<ArtifactResult> matching = Sets.newLinkedHashSet();
+        for (ArtifactResult artifactResult : artifactResults) {
+            if (type.isAssignableFrom(artifactResult.getType())) {
+                matching.add(artifactResult);
+            }
+        }
+        return matching;
     }
 
-    public void addArtifact(Class<? extends Artifact> type, ArtifactResult artifact) {
-        Set<ArtifactResult> results = artifactResults.get(type);
-        if (results == null) {
-            results = Sets.newHashSet();
-            artifactResults.put(type, results);
-        }
-        results.add(artifact);
+    public void addArtifact(ArtifactResult artifact) {
+        artifactResults.add(artifact);
     }
 }
