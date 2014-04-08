@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
-import org.gradle.api.file.FileCollection
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.util.ConfigureUtil
 
@@ -317,7 +316,7 @@ class IdeaModule {
      */
     boolean offline
 
-    Map<String, FileCollection> singleEntryLibraries
+    Map<String, Iterable<File>> singleEntryLibraries
 
     IdeaModule(org.gradle.api.Project project, IdeaModuleIml iml) {
         this.project = project
