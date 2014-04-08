@@ -67,6 +67,7 @@ resolve.doLast {
 
         expect:
         succeeds 'resolve'
+        // also works when already cached
         succeeds 'resolve'
     }
 }

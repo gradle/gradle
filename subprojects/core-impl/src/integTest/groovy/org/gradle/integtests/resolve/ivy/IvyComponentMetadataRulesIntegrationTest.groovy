@@ -40,7 +40,7 @@ repositories {
         "integration"
     }
 
-    def "can have IvyModuleDescriptor injected into rule"() {
+    def "can access Ivy extra info by accepting parameter of type IvyModuleDescriptor"() {
         repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish().allowAll()
 
         buildFile <<
@@ -61,6 +61,51 @@ resolve.doLast { assert ruleInvoked }
 
         expect:
         succeeds 'resolve'
+        // also works when already cached
+        succeeds 'resolve'
+    }
+
+    def "rule that doesn't initially access Ivy extra info can be changed to get access at any time"() {
+        repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish().allowAll()
+        def baseScript = buildFile.text
+
+        when:
+        buildFile.text = baseScript +
+"""
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details ->
+            ruleInvoked = true
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        then:
+        succeeds 'resolve'
+
+        when:
+        buildFile.text = baseScript +
+"""
+def ruleInvoked = false
+
+dependencies {
+    components {
+        eachComponent { details, IvyModuleDescriptor descriptor ->
+            ruleInvoked = true
+            assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
+        }
+    }
+}
+
+resolve.doLast { assert ruleInvoked }
+"""
+
+        then:
         succeeds 'resolve'
     }
 }
