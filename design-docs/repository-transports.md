@@ -89,7 +89,7 @@ The plan will be to include this coverage for HTTP transport in a later story.
 
 ### Open issues
 
-- Add an `AbstractMultiTestRunner` implementation to permit a test to be run with different repository tranports.
+- Add an `AbstractMultiTestRunner` implementation to permit a test to be run with different repository transports.
 
 ## Support a maven repository declared with 'sftp' as the URL scheme, using password credentials
 

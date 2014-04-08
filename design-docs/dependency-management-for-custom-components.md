@@ -43,6 +43,7 @@ known as a `component instance` or `variant`.
 - To resolve a project dependency:
     - When the dependency include a 'configuration' override, use that project configuration.
     - Otherwise, resolve using the dependencies and artifacts from the legacy binary's default usage.
+    - Cannot use 'artifacts' or 'exclude' overrides on dependency.
 
 #### Open issues
 
@@ -138,6 +139,7 @@ This feature refers to jvm library components, as an aggregate of jvm library bi
 - Plugins declares that component type represents a library.
 - Change project dependencies to allow a 'library' attribute to be specified.
     - Cannot use with 'configuration' or 'artifact' overrides with 'library'.
+    - Cannot use 'transitive' flag or 'exclude' rules overrides with 'library'.
 - When resolving such a dependency, consider only the binaries of the requested library component.
     - Fail if not exactly one such binary.
 

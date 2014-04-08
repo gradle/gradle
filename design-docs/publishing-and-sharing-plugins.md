@@ -628,6 +628,7 @@ Deprecate the bin Gradle distribution some time after this.
 
 These are yet to be mixed into the above plan:
 
+- Credentials and caching for script plugin repositories.
 - Build-init plugin custom build types by resolving build type name to plugin implementation using plugin repository
 - Resolve tooling model to provider plugin implementation using plugin repository
 - Plugin (script) declares public API
