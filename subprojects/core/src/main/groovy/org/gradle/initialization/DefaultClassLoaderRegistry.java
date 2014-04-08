@@ -26,7 +26,7 @@ import java.io.File;
 import java.net.URLClassLoader;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkToolsInitializer {
-    private final FilteringClassLoader rootClassLoader;
+    private final ClassLoader rootClassLoader;
     private final ClassLoader coreImplClassLoader;
     private final ClassLoader pluginsClassLoader;
 
@@ -42,7 +42,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkTools
         ClassLoader pluginsImports = new CachingClassLoader(new MultiParentClassLoader(runtimeClassLoader, coreImplClassLoader));
         pluginsClassLoader = new MutableURLClassLoader(pluginsImports, pluginsClassPath);
 
-        rootClassLoader = classLoaderFactory.createFilteringClassLoader(pluginsClassLoader);
+        FilteringClassLoader rootClassLoader = classLoaderFactory.createFilteringClassLoader(pluginsClassLoader);
         rootClassLoader.allowPackage("org.gradle");
         rootClassLoader.allowResources("META-INF/gradle-plugins");
         rootClassLoader.allowPackage("org.apache.tools.ant");
@@ -54,6 +54,8 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkTools
         rootClassLoader.allowPackage("org.apache.commons.logging");
         rootClassLoader.allowPackage("org.apache.log4j");
         rootClassLoader.allowPackage("javax.inject");
+
+        this.rootClassLoader = new CachingClassLoader(rootClassLoader);
     }
 
     public void initializeJdkTools() {
