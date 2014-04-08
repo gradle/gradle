@@ -16,24 +16,17 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
-import java.util.HashMap;
 import java.util.Map;
 
-public class IvyResourcePattern implements ResourcePattern {
-    private final String pattern;
+public class IvyResourcePattern extends AbstractResourcePattern implements ResourcePattern {
 
     public IvyResourcePattern(String pattern) {
-        this.pattern = pattern;
-    }
-
-    public String getPattern() {
-        return pattern;
+        super(pattern);
     }
 
     @Override
@@ -42,14 +35,13 @@ public class IvyResourcePattern implements ResourcePattern {
     }
 
     public String toPath(ModuleVersionArtifactMetaData artifact) {
-        Map<String, Object> attributes = toAttributes(artifact);
-        return IvyPatternHelper.substituteTokens(pattern, attributes);
+        Map<String, String> attributes = toAttributes(artifact);
+        return substituteTokens(pattern, attributes);
     }
 
     public String toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
-        Map<String, Object> attributes = toAttributes(module);
-        attributes.putAll(toAttributes(artifact));
-        return IvyPatternHelper.substituteTokens(pattern, attributes);
+        Map<String, String> attributes = toAttributes(module, artifact);
+        return substituteTokens(pattern, attributes);
     }
 
     public String toModulePath(ModuleIdentifier module) {
@@ -58,35 +50,5 @@ public class IvyResourcePattern implements ResourcePattern {
 
     public String toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
         throw new UnsupportedOperationException("not implemented yet.");
-    }
-
-    protected Map<String, Object> toAttributes(ModuleVersionArtifactMetaData artifact) {
-        Map<String, Object> attributes = toAttributes(artifact.getId().getComponentIdentifier());
-        attributes.putAll(toAttributes(artifact.getName()));
-        return attributes;
-    }
-
-    protected Map<String, Object> toAttributes(IvyArtifactName ivyArtifact) {
-        HashMap<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(IvyPatternHelper.ARTIFACT_KEY, ivyArtifact.getName());
-        attributes.put(IvyPatternHelper.TYPE_KEY, ivyArtifact.getType());
-        attributes.put(IvyPatternHelper.EXT_KEY, ivyArtifact.getExtension());
-        attributes.put("classifier", ivyArtifact.getClassifier());
-        return attributes;
-    }
-
-    protected Map<String, Object> toAttributes(ModuleIdentifier module) {
-        HashMap<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(IvyPatternHelper.ORGANISATION_KEY, module.getGroup());
-        attributes.put(IvyPatternHelper.MODULE_KEY, module.getName());
-        return attributes;
-    }
-
-    protected Map<String, Object> toAttributes(ModuleComponentIdentifier componentIdentifier) {
-        HashMap<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(IvyPatternHelper.ORGANISATION_KEY, componentIdentifier.getGroup());
-        attributes.put(IvyPatternHelper.MODULE_KEY, componentIdentifier.getModule());
-        attributes.put(IvyPatternHelper.REVISION_KEY, componentIdentifier.getVersion());
-        return attributes;
     }
 }
