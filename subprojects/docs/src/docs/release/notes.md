@@ -4,7 +4,7 @@ Here are the new features introduced in this Gradle release.
 
 ### New API for artifact resolution (i)
 
-Gradle 1.12 introduces a new, incubating API for resolving component artifacts. With this addition, Gradle now offers separate dedicated APIs for resolving
+Gradle 1.13 introduces a new, incubating API for resolving component artifacts. With this addition, Gradle now offers separate dedicated APIs for resolving
 components and artifacts. (Component resolution is mainly concerned with computing the dependency graph, whereas artifact resolution is
 mainly concerned with locating and downloading artifacts.) The entry points to the component and artifact resolution APIs are `configuration.incoming` and
 `dependencies.createArtifactResolutionQuery()`, respectively.
@@ -48,6 +48,20 @@ Artifacts for many components can be resolved together:
         .forArtifacts(JvmLibrary)
 
 So far, only one component type (`JvmLibrary`) is available, but others will follow, also for platforms other than the JVM.
+
+### Accessing Ivy extra info from component metadata rules
+
+It's now possible to access Ivy extra info from component metadata rules. Roughly speaking, Ivy extra info is a set of user-defined
+key-value pairs published in the Ivy module descriptor. Rules wishing to access the extra info need to specify a parameter of type
+`IvyModuleDescriptor`. Here is an example:
+
+    dependencies {
+        components {
+            eachComponent { component, IvyModuleDescriptor descriptor ->
+                println descriptor.extraInfo["expired"] // TODO: what's a real-world use case?
+            }
+        }
+    }
 
 ### Cleaner build scripts with `plugins.withId`
 
