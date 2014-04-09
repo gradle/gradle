@@ -147,6 +147,49 @@ Report on failed component resolution and artifact downloads for a configuration
 
 - Re-implement `ConfigurationFileCollection` on top of `ArtifactResolutionResult`.
 
+## Story: Access the ivy and maven metadata artifacts via the Artifact Query API
+
+### User visible changes
+
+Access the ivy.xml files for a ivy components with the specified id:
+
+    def result = dependencies.createArtifactResolutionQuery()
+        .forComponents(ivyModuleComponentId1, ivyModuleComponentId2)
+        .withArtifacts(IvyModule, IvyDescriptorArtifact)
+        .execute()
+
+    Set<File> ivyFiles = result.artifactFiles()
+
+Get the pom files for all maven modules in a configuration:
+
+    def artifactResult = dependencies.createArtifactResolutionQuery()
+        .forComponents(configurations.compile)
+        .withArtifacts(MavenModule, MavenPomArtifact)
+        .execute()
+    Set<File> pomFiles = artifactResult.getArtifactFiles()
+
+### Test cases
+
+- Invalid component type and artifact type
+    - Cannot call `withArtifacts` multiple times for query
+    - Cannot mix `JvmLibrary` with metadata artifact types
+    - Cannot mix `IvyModule` and `MavenModule` component types with jvm library artifact types
+- Unsupported artifact types:
+    - When requesting `IvyModule` artifacts, the result for a maven component is `UnresolvedComponentResult` with a useful failure.
+    - When requesting `MavenModule` artifacts, the result for an ivy component is `UnresolvedComponentResult` with a useful failure.
+    - When requesting `IvyModule` or `MavenModule` artifacts, the result for a project component is `UnresolvedComponentResult` with a useful failure.
+- Optional artifacts:
+    - Request an ivy descriptor for an ivy module with no descriptor, and get empty set of artifacts.
+    - Request a pom for a maven module with no pom, and get empty set of artifacts.
+- Metadata artifacts are cached
+    - Updates `IvyDescriptorArtifact` for changing module
+    - Updates `MavenPomArtifact` for maven snapshot
+    - Updates both with `--refresh-dependencies`
+
+### Open issues
+
+- Typed domain model for IvyModule and MavenModule
+
 ## Story: Reliable mechanism for checking for success with new resolution result APIs
 
 - Perhaps add rethrowFailure() to `ArtifactResolutionResult` and `ResolutionResult`
@@ -162,46 +205,6 @@ Get JvmLibrary components with source and javadoc artifacts for a configuration:
         .withArtifacts(JvmLibrary, JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact)
         .execute()
     def libraries = artifactResult.getComponents(JvmLibrary)
-
-## Story: Access the ivy and maven metadata artifacts via the Artifact Query API
-
-### User visible changes
-
-Access the ivy.xml file for a single ivy module using generic API:
-
-    def ivyModules = dependencies.createArtifactResolutionQuery()
-        .forComponents(ivyModuleComponentId)
-        .withArtifacts(IvyModule, IvyDescriptorArtifact)
-        .execute().getResolvedComponents(IvyModule)
-
-    ivyModules.each { IvyModule ivyModule ->
-        IvyDescriptorArtifact descriptorArtifact = ivyModule.descriptorArtifact
-    }
-
-Get the pom files for all maven modules in a configuration:
-
-    def artifactResult = dependencies.createArtifactResolutionQuery()
-        .forComponents(configurations.compile)
-        .withArtifacts(MavenModule, MavenPomArtifact)
-        .execute()
-    Set<File> pomFiles = artifactResult.getArtifactFiles()
-
-### Test cases
-
-- Unsupported artifact types:
-    - Request an ivy descriptor for a maven module fails with 'not supported'.
-    - Request a pom for an ivy module fails with 'not supported'.
-- Optional artifacts:
-    - Request an ivy descriptor for an ivy module with no descriptor.
-    - Request a pom for a maven module with no pom.
-- No http requests are made (the descriptor should already be downloaded to get hold of the component id)
-    - Changing module and snapshot
-    - `--refresh-dependencies`
-
-### Open issues
-
-- What happens when I ask for the ivy descriptor for a jvm library? Or the source artifacts for a maven module?
-- Typed domain model for IvyModule and MavenModule
 
 ## Story: IDE plugins use the resolution result to determine library artifacts
 
