@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
+import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
@@ -32,7 +33,7 @@ abstract class AbstractNativeBinariesPluginTest extends Specification {
 
     abstract Class<? extends Plugin> getPluginClass();
     abstract Class<? extends LanguageSourceSet> getSourceSetClass();
-    abstract Class<? extends Plugin> getCompileTaskClass();
+    abstract Class<? extends Task> getCompileTaskClass();
     abstract String getPluginName();
 
     def "creates source set with conventional locations for components"() {

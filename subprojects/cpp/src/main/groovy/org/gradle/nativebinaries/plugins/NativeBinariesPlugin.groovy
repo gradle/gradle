@@ -27,6 +27,8 @@ import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
 import org.gradle.nativebinaries.tasks.LinkSharedLibrary
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
+import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
+
 /**
  * A plugin that creates tasks used for constructing native binaries.
  */
@@ -34,7 +36,8 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(NativeBinariesModelPlugin.class);
+        project.plugins.apply(NativeBinariesModelPlugin.class);
+        project.plugins.apply(StandardToolChainsPlugin)
 
         // Create a functionalSourceSet for each native component, with the same name
         ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);

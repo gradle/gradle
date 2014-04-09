@@ -27,13 +27,13 @@ import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class AssemblerNativeBinariesPluginTest extends Specification {
+class AssemblerPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
     def "creates asm source set with conventional locations for components"() {
         when:
         dsl {
-            apply plugin: AssemblerNativeBinariesPlugin
+            apply plugin: AssemblerPlugin
             executables {
                 exe {}
             }
@@ -62,7 +62,7 @@ class AssemblerNativeBinariesPluginTest extends Specification {
     def "can configure source set locations"() {
         given:
         dsl {
-            apply plugin: AssemblerNativeBinariesPlugin
+            apply plugin: AssemblerPlugin
             sources {
                 exe {
                     asm {
@@ -91,7 +91,7 @@ class AssemblerNativeBinariesPluginTest extends Specification {
         touch("src/test/asm/dummy.s")
         touch("src/test/anotherOne/dummy.s")
         dsl {
-            apply plugin: AssemblerNativeBinariesPlugin
+            apply plugin: AssemblerPlugin
             sources {
                 test {
                     anotherOne(AssemblerSourceSet) {}
@@ -128,7 +128,7 @@ class AssemblerNativeBinariesPluginTest extends Specification {
         touch("src/test/asm/dummy.s")
         touch("src/test/anotherOne/dummy.s")
         dsl {
-            apply plugin: AssemblerNativeBinariesPlugin
+            apply plugin: AssemblerPlugin
             sources {
                 test {
                     anotherOne(AssemblerSourceSet) {}

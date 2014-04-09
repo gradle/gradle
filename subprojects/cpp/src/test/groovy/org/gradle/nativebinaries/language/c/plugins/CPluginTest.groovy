@@ -17,18 +17,19 @@
 package org.gradle.nativebinaries.language.c.plugins
 
 import org.gradle.api.Plugin
+import org.gradle.api.Task
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.c.CSourceSet
 import org.gradle.nativebinaries.language.AbstractNativeBinariesPluginTest
 import org.gradle.nativebinaries.language.c.tasks.CCompile
 import org.gradle.util.TestUtil
 
-class CNativeBinariesPluginTest extends AbstractNativeBinariesPluginTest{
+class CPluginTest extends AbstractNativeBinariesPluginTest{
     final def project = TestUtil.createRootProject()
 
     @Override
     Class<? extends Plugin> getPluginClass() {
-        return CNativeBinariesPlugin
+        return CPlugin
     }
 
     @Override
@@ -37,7 +38,7 @@ class CNativeBinariesPluginTest extends AbstractNativeBinariesPluginTest{
     }
 
     @Override
-    Class<? extends Plugin> getCompileTaskClass() {
+    Class<? extends Task> getCompileTaskClass() {
         return CCompile
     }
 

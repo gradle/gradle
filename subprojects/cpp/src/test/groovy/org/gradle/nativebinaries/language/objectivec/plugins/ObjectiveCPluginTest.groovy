@@ -17,15 +17,16 @@
 package org.gradle.nativebinaries.language.objectivec.plugins
 
 import org.gradle.api.Plugin
+import org.gradle.api.Task
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.objectivec.ObjectiveCSourceSet
 import org.gradle.nativebinaries.language.AbstractNativeBinariesPluginTest
 import org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile
 
-class ObjectiveCNativeBinariesPluginTest extends AbstractNativeBinariesPluginTest{
+class ObjectiveCPluginTest extends AbstractNativeBinariesPluginTest {
     @Override
     Class<? extends Plugin> getPluginClass() {
-        return ObjectiveCNativeBinariesPlugin
+        return ObjectiveCPlugin
     }
 
     @Override
@@ -34,7 +35,7 @@ class ObjectiveCNativeBinariesPluginTest extends AbstractNativeBinariesPluginTes
     }
 
     @Override
-    Class<? extends Plugin> getCompileTaskClass() {
+    Class<? extends Task> getCompileTaskClass() {
         return ObjectiveCCompile
     }
 

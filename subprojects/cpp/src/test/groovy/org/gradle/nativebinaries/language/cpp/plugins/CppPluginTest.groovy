@@ -14,32 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.objectivecpp.plugins
-
+package org.gradle.nativebinaries.language.cpp.plugins
 import org.gradle.api.Plugin
+import org.gradle.api.Task
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.objectivecpp.ObjectiveCppSourceSet
+import org.gradle.language.cpp.CppSourceSet
 import org.gradle.nativebinaries.language.AbstractNativeBinariesPluginTest
-import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile
+import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
+import org.gradle.util.TestUtil
 
-class ObjectiveCppNativeBinariesPluginTest extends AbstractNativeBinariesPluginTest{
+class CppPluginTest extends AbstractNativeBinariesPluginTest {
+    final def project = TestUtil.createRootProject()
+
     @Override
     Class<? extends Plugin> getPluginClass() {
-        return ObjectiveCppNativeBinariesPlugin
+        return CppPlugin
+    }
+
+    @Override
+    Class<? extends Task> getCompileTaskClass() {
+        return CppCompile
     }
 
     @Override
     Class<? extends LanguageSourceSet> getSourceSetClass() {
-        return ObjectiveCppSourceSet
-    }
-
-    @Override
-    Class<? extends Plugin> getCompileTaskClass() {
-        return ObjectiveCppCompile
+        return CppSourceSet
     }
 
     @Override
     String getPluginName() {
-        return "objcpp"
+        return "cpp"
     }
 }
