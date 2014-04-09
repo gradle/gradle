@@ -210,6 +210,7 @@ and even if they do healthy listeners will work correctly regardless of the list
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Marcin Erdmann](https://github.com/erdi) - Support an ivy repository declared with 'sftp' as the URL scheme
+* [Lukasz Kryger](https://github.com/kryger) - Documentation improvements
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
