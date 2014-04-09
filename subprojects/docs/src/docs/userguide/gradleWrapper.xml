@@ -16,7 +16,7 @@
 <chapter id='gradle_wrapper'>
     <title>The Gradle Wrapper</title>
     <para>
-        The Gradle Wrapper (henceforth referred to as the “wrapper) is the preferred way of starting a Gradle build. The wrapper
+        The Gradle Wrapper (henceforth referred to as the “wrapper”) is the preferred way of starting a Gradle build. The wrapper
         is a batch script on Windows, and a shell script for other operating systems. When you start a Gradle build via the wrapper,
         Gradle will be automatically downloaded and used to run the build. 
     </para>
