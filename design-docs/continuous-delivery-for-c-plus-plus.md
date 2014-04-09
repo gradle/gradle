@@ -1919,6 +1919,7 @@ TBD
     - A component packaging that satisfies multiple points in the variant space.
     - Use `lipo` to merge two binaries into a single universal binary.
     - Transforms the meta-data for the component - same set of variants but different set of binaries.
+- Use separate directories for output binaries, rather than encoding all dimensions in the name: eg `flavor/platform/buildType/myLib.so`
 
 ## Toolchains
 
@@ -1963,6 +1964,11 @@ TBD
 - Need to make standard 'build', 'check' lifecycle tasks available too. The `assemble` task should build all buildable variants.
     - Reasonable behaviour when nothing is buildable on the current machine.
 - Come up with consistent naming scheme for language plugins: 'cpp', 'c', 'assembler', 'java-lang', 'scala-lang', etc
+- Windows resources
+    - Automatically add `/noentry` and `/machine` linker args when building resource-only DLL
+    - Actually inspect the binary to determine if there are any exported symbols
+    - Use a model rule to determine if library sources contain windows resources
+
 
 ### Performance
 
