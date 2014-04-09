@@ -59,23 +59,26 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private void executeRuleClosures(ModuleVersionMetaData metadata, ComponentMetadataDetails details) {
-        nextClosure:
         for (Closure<?> closure : ruleClosures) {
-            List<Object> args = Lists.newArrayList();
-            // TODO: make sure that same argType doesn't occur multiple times?
-            for (Class<?> argType : closure.getParameterTypes()) {
-                if (argType == ComponentMetadataDetails.class || argType == Object.class) {
-                    args.add(details);
-                } else if (argType == IvyModuleDescriptor.class) {
-                    if (metadata.getIvyMetaData() == null) {
-                        continue nextClosure;
-                    }
-                    args.add(new DefaultIvyModuleDescriptor(metadata.getIvyMetaData().getExtraInfo()));
-                } else {
-                    throw new GradleException(String.format("Unsupported parameter type for component metadata rule: %s", argType.getName()));
-                }
-            }
-            closure.call(args.toArray());
+            executeRuleClosure(metadata, details, closure);
         }
+    }
+
+    private void executeRuleClosure(ModuleVersionMetaData metadata, ComponentMetadataDetails details, Closure<?> closure) {
+        List<Object> args = Lists.newArrayList();
+        // TODO: make sure that same argType doesn't occur multiple times?
+        for (Class<?> argType : closure.getParameterTypes()) {
+            if (argType == ComponentMetadataDetails.class || argType == Object.class) {
+                args.add(details);
+            } else if (argType == IvyModuleDescriptor.class) {
+                if (metadata.getIvyMetaData() == null) {
+                    return;
+                }
+                args.add(new DefaultIvyModuleDescriptor(metadata.getIvyMetaData().getExtraInfo()));
+            } else {
+                throw new GradleException(String.format("Unsupported parameter type for component metadata rule: %s", argType.getName()));
+            }
+        }
+        closure.call(args.toArray());
     }
 }
