@@ -258,24 +258,12 @@ class DefaultOsgiManifestTest extends Specification {
     }
 
     private prepareMock() {
-        interaction {
-            1 * analyzerMock.setProperty(Analyzer.BUNDLE_VERSION, osgiManifest.version)
-        }
         prepareMockForNullTest()
     }
 
     private prepareMockForNullTest() {
         interaction {
-            1 * analyzerMock.setProperty(Analyzer.BUNDLE_SYMBOLICNAME, osgiManifest.symbolicName)
-            1 * analyzerMock.setProperty(Analyzer.BUNDLE_NAME, osgiManifest.name)
-            1 * analyzerMock.setProperty(Analyzer.BUNDLE_DESCRIPTION, osgiManifest.description)
-            1 * analyzerMock.setProperty(Analyzer.BUNDLE_LICENSE, osgiManifest.license)
-            1 * analyzerMock.setProperty(Analyzer.BUNDLE_VENDOR, osgiManifest.vendor)
-            1 * analyzerMock.setProperty(Analyzer.BUNDLE_DOCURL, osgiManifest.docURL)
-            1 * analyzerMock.setProperty(Analyzer.EXPORT_PACKAGE, osgiManifest.instructionValue(Analyzer.EXPORT_PACKAGE).join(","))
-            1 * analyzerMock.setProperty(Analyzer.IMPORT_PACKAGE, osgiManifest.instructionValue(Analyzer.IMPORT_PACKAGE).join(","))
-
-            1 * analyzerMock.setProperty(ARBITRARY_ATTRIBUTE, "I like green eggs and ham.")
+            1 * analyzerMock.setProperties(_)
 
             1 * analyzerMock.setJar(osgiManifest.classesDir)
             1 * analyzerMock.setClasspath(osgiManifest.classpath.files.toArray())
