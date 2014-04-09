@@ -34,33 +34,33 @@ import java.util.List;
 
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ModuleMetadataProcessor {
     private final Instantiator instantiator;
-    private final ActionBroadcast<ComponentMetadataDetails> moduleRules = new ActionBroadcast<ComponentMetadataDetails>();
-    private final List<Closure<?>> moduleClosures = Lists.newArrayList();
+    private final ActionBroadcast<ComponentMetadataDetails> ruleActions = new ActionBroadcast<ComponentMetadataDetails>();
+    private final List<Closure<?>> ruleClosures = Lists.newArrayList();
 
     public DefaultComponentMetadataHandler(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 
     public void eachComponent(Action<? super ComponentMetadataDetails> rule) {
-        moduleRules.add(rule);
+        ruleActions.add(rule);
     }
 
     public void eachComponent(Closure<?> closure) {
-        moduleClosures.add(closure);
+        ruleClosures.add(closure);
     }
 
     public void process(ModuleVersionMetaData metadata) {
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
-        moduleRules.execute(details);
-        executeModuleClosures(metadata, details);
+        ruleActions.execute(details);
+        executeRuleClosures(metadata, details);
         if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
             throw new ModuleVersionResolveException(metadata.getId(), "Unexpected status '" + metadata.getStatus() + "' specified for %s. Expected one of: " +  metadata.getStatusScheme());
         }
     }
 
-    private void executeModuleClosures(ModuleVersionMetaData metadata, ComponentMetadataDetails details) {
+    private void executeRuleClosures(ModuleVersionMetaData metadata, ComponentMetadataDetails details) {
         nextClosure:
-        for (Closure<?> closure : moduleClosures) {
+        for (Closure<?> closure : ruleClosures) {
             List<Object> args = Lists.newArrayList();
             // TODO: make sure that same argType doesn't occur multiple times?
             for (Class<?> argType : closure.getParameterTypes()) {
