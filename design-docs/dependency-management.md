@@ -89,56 +89,21 @@ This story exposes different kinds of consumers for a dependency graph. The cons
 - Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
 - Extract a `ModuleComponentMetadataDetails` out of `ComponentMetadataDetails` and use `ComponentIdentifier` instead of `ModuleVersionIdentifier` as id.
 
-## Story: Allow the main artifacts for a component instance to be queried
+## Story: Query the artifacts for all components defined by a configuration
 
 Currently, there is no way to determine which artifacts in a resolution result are associated with a given component. The artifacts are currently exposed
-as `ResolvedArtifact` instances. These artifacts have a module version identifier associated with them, which is used to match against the component's
-module version identifier. This only work when the component has a module version associated with it, which is not always the case.
+as `ResolvedArtifact` instances, which reference a module version identifier but not a component identifier. As such, there is no way
+to match a `ResolvedArtifact` to a component that is not uniquely identified by a module version.
 
-This begins to remedy this, by adding the ability to use the artifact query API to get the 'compile' artifacts for a single component
-based on it's component id. It also makes it possible to resolve the artifacts of project components via the artifact query API.
+This story makes it possible to obtain an `ArtifactResolutionResult` directly from a `Configuration`, providing the same set of
+artifacts as returned by `Configuration.getResolvedArtifacts()`. In doing so, the artifacts for a configuration are provided per component.
 
-This story introduces the concept of a `Usage`, which defines which set of dependencies and artifacts to resolve for a component.
-For this story, the `Usage` parameter is empty a placeholder to indicate that the main artifacts for a component should be resolved.
-In later stories it may be possible to result different usages of a component, such as `Runtime` and `Compile`.
-
-### User visible changes
-
-Get the main artifacts for a component by id:
-
-    def artifactResult = dependencies.createArtifactResolutionQuery()
-        .forComponents(componentId)
-        .withUsage(new JvmLibraryUsage("compile"))
-        .execute()
-
-### Implementation
-
-- Add a new type `Usage extends Named`, with a default implementation for the JVM library model `JvmLibraryUsage`.
-- Add `ArtifactResolutionQuery.withUsage(Usage)` which specifies that the default usage should be used to a resolve.
-    - It is an error to combine this method with `ArtifactResolutionQuery.withArtifacts()` in a single query
-- When a 'compile' usage is provided in the query, the main artifacts (in the default configuration) for the components will be resolved.
-    - No other usage is permitted
-- Add the ability to handle project component identifiers in the artifact query api
-
-### Test cases
-
-- Can query the main artifacts of an external component.
-- Can query the main artifacts of a project component.
-- Caching is applied as appropriate.
-- more TBD
-
-### Open issues
-
-- Better model for Usage
-
-## Story: Query the main artifacts for all components defined by a configuration
-
-This story makes it possible to create an `ArtifactResolutionResult` from a `ResolutionResult` input, and wires this into
-`Configuration` together with the usage implied by the configuration.
+This story also adds convenience mechanisms for obtaining all artifacts for an `ArtifactResolutionResult`, in addition to the existing
+way to get artifacts per component and query for artifact download failures.
 
 ### User visible changes
 
-Get all artifact files for a configuration, ignoring any failures:
+Get all artifact files for a configuration:
 
     Set<File> allCompileJarFiles = configurations.compile.incoming.artifactResolutionResult.artifactFiles
 
@@ -156,6 +121,40 @@ Report on failed component resolution and artifact downloads for a configuration
         }
     }
 
+### Implementation
+
+- Add `ArtifactResolutionQuery.forComponents(Configuration)`, performs graph resolution and artifact resolution in a single step.
+    - A later story will allow this to be combined with `ArtifactResolutionQuery.withArtifacts()` in a single query. For now this is not allowed.
+- Add `Configuration.incoming.getArtifactResolutionResult()` produces an `ArtifactResolutionResult` for the configuration.
+    - This result should contain the same set of artifacts currently returned by `ResolvedConfiguration.getResolvedArtifacts()`
+- Move `ComponentArtifactIdentifier` onto the public API, and return that from new method `ArtifactResult.getId()`
+- Add `ResolvedComponentArtifactsResult.getArtifacts()` that returns the set of all `ArtifactResult` instances for a component.
+- Add convenience methods to `ArtifactResolutionResult`:
+    - `getArtifacts()` returns the set of all `ArtifactResult` instances for all resolved components.
+    - `getArtifactFiles()` returns the set of files associated with `ArtifactResult` instances for all resolved components,
+      throwing an exception for any `UnresolvedArtifactResult`
+
+### Test cases
+
+- Can query a configuration consisting of project and external components.
+- Can query those artifacts that could not be resolved or downloaded.
+- Resolve configuration with classifier set on dependency
+- Resolve configuration with artifact defined on dependency
+- Caching is applied as appropriate.
+- more TBD
+
+### Open issues
+
+- Re-implement `ConfigurationFileCollection` on top of `ArtifactResolutionResult`.
+
+## Story: Reliable mechanism for checking for success with new resolution result APIs
+
+- Perhaps add rethrowFailure() to `ArtifactResolutionResult` and `ResolutionResult`
+
+## Story: Directly access the source and javadoc artifacts for a configuration using the Artifact Query API
+
+### User visible changes
+
 Get JvmLibrary components with source and javadoc artifacts for a configuration:
 
     def artifactResult = dependencies.createArtifactResolutionQuery()
@@ -163,22 +162,6 @@ Get JvmLibrary components with source and javadoc artifacts for a configuration:
         .withArtifacts(JvmLibrary, JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact)
         .execute()
     def libraries = artifactResult.getComponents(JvmLibrary)
-
-### Implementation
-
-- Add `ArtifactResolutionQuery.forComponents(Configuration)`, performs graph resolution and artifact resolution in a single step.
-- Add `Configuration.incoming.getArtifactResolutionResult()` produces an `ArtifactResolutionResult` for the configuration, with 'compile' usage.
-- Move `ComponentArtifactIdentifier` onto the public API, and return that from new method `ArtifactResult.getId()`
-- Add `ResolvedComponentArtifactsResult.getArtifacts()` that returns the set of all `ArtifactResult` instances for a component.
-- Add convenience methods to `ArtifactResolutionResult`:
-    - `getArtifacts()` returns the set of all `ArtifactResult` instances for all resolved components.
-    - `getArtifactFiles()` returns the set of files associated with `ResolvedArtifactResult` instances for all resolved components.
-
-### Test cases
-
-- Can query a configuration consisting of project and external components.
-- Can query those artifacts that could not be resolved or downloaded.
-- more TBD
 
 ## Story: Access the ivy and maven metadata artifacts via the Artifact Query API
 
