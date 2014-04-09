@@ -74,23 +74,6 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
         return "Visual Studio";
     }
 
-    private void checkAvailable(ToolChainAvailability availability) {
-        if (!operatingSystem.isWindows()) {
-            availability.unavailable("Visual Studio is not available on this operating system.");
-            return;
-        }
-        VisualStudioLocator.SearchResult visualStudioSearchResult = visualStudioLocator.locateVisualStudioInstalls(installDir);
-        availability.mustBeAvailable(visualStudioSearchResult);
-        if (visualStudioSearchResult.isAvailable()) {
-            visualCpp = visualStudioSearchResult.getVisualStudio().getVisualCpp();
-        }
-        WindowsSdkLocator.SearchResult windowsSdkSearchResult = windowsSdkLocator.locateWindowsSdks(windowsSdkDir);
-        availability.mustBeAvailable(windowsSdkSearchResult);
-        if (windowsSdkSearchResult.isAvailable()) {
-            windowsSdk = windowsSdkSearchResult.getSdk();
-        }
-    }
-
     public File getInstallDir() {
         return installDir;
     }
@@ -107,14 +90,6 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
         this.windowsSdkDir = resolve(windowsSdkDirPath);
     }
 
-    private ToolChainAvailability getAvailability() {
-        if (availability == null) {
-            availability = new ToolChainAvailability();
-            checkAvailable(availability);
-        }
-        return availability;
-    }
-
     public PlatformToolChain select(Platform targetPlatform) {
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
@@ -125,6 +100,31 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
             return new UnavailablePlatformToolChain(result);
         }
         return new VisualCppPlatformToolChain(visualCpp, windowsSdk, targetPlatform);
+    }
+
+    private ToolChainAvailability getAvailability() {
+        if (availability == null) {
+            availability = new ToolChainAvailability();
+            checkAvailable(availability);
+        }
+        return availability;
+    }
+
+    private void checkAvailable(ToolChainAvailability availability) {
+        if (!operatingSystem.isWindows()) {
+            availability.unavailable("Visual Studio is not available on this operating system.");
+            return;
+        }
+        VisualStudioLocator.SearchResult visualStudioSearchResult = visualStudioLocator.locateVisualStudioInstalls(installDir);
+        availability.mustBeAvailable(visualStudioSearchResult);
+        if (visualStudioSearchResult.isAvailable()) {
+            visualCpp = visualStudioSearchResult.getVisualStudio().getVisualCpp();
+        }
+        WindowsSdkLocator.SearchResult windowsSdkSearchResult = windowsSdkLocator.locateWindowsSdks(windowsSdkDir);
+        availability.mustBeAvailable(windowsSdkSearchResult);
+        if (windowsSdkSearchResult.isAvailable()) {
+            windowsSdk = windowsSdkSearchResult.getSdk();
+        }
     }
 
     public String getName() {

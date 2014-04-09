@@ -1924,6 +1924,8 @@ TBD
 
 - DSL to declare that a toolchain supports certain target platform, and how to invoke the tools to do so.
 - Introduce `XCode`, `Cygwin`, `MinGW` toolchains, to allow selection of specific gcc or clang implementations.
+    - Use the `XCode` tool chain to determine mac-specific gcc args
+    - Use the `Cygwin` and `MinGW` toolchains to provide additional path requirements for `InstallExecutable` task
 
     toolchains {
         gcc {
@@ -1941,6 +1943,8 @@ TBD
             installDir = 'someWhere'
         }
     }
+
+- Prevent configuration of tool chains after availability has been determined.
 
 ## Structure
 
@@ -1972,6 +1976,13 @@ TBD
 
 - Better way to see how the compiler is being invoked
 - Make names less important
+
+## Test coverage
+
+- Update the UnknownOS CI build to run on java 7, and remove the "CAN_INSTALL_EXECUTABLE" test requirement
+- Integration test coverage for 64-bit assembler with Visual C++
+- Verify that the correct windows system libraries are available at link time
+    - Use a test app that uses something like WriteFile() to write its hello world message to stdout. If it can link and run, then the paths are probably ok.
 
 # Open issues
 
@@ -2009,3 +2020,5 @@ TBD
 * JNI plugin generates native header, and sets up the JNI stuff in $java.home as a platform library.
 * Model minimum OS version.
     * For OS X can use -mmacosx-version-min option.
+* Clean task for a binary
+
