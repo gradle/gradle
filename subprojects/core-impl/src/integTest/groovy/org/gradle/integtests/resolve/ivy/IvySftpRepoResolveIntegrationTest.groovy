@@ -169,16 +169,16 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
                 ivy {
                     url "${ivySftpRepo1.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username 'sftp1'
+                        password 'sftp1'
                     }
                 }
 
                 ivy {
                     url "${ivySftpRepo2.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username 'sftp2'
+                        password 'sftp2'
                     }
                 }
             }

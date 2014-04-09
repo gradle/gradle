@@ -70,7 +70,7 @@ public class SftpResourceUploader implements ExternalResourceUploader {
             if (outputStream != null) {
                 outputStream.close();
             }
-            client.close();
+            sftpClientFactory.releaseSftpClient(client);
         }
     }
 

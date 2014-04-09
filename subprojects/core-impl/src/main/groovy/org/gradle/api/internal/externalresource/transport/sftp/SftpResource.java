@@ -72,6 +72,6 @@ public class SftpResource extends AbstractExternalResource {
     }
 
     public void close() throws IOException {
-        client.close();
+        clientFactory.releaseSftpClient(client);
     }
 }

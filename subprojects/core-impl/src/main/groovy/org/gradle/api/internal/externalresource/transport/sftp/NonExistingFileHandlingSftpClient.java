@@ -23,9 +23,10 @@ import org.apache.sshd.common.util.Buffer;
 
 import java.io.IOException;
 
-public class NonExistingFileHandlingSftpClient extends DefaultSftpClient {
+public class NonExistingFileHandlingSftpClient extends DefaultSftpClient implements LockableSftpClient {
 
     private final ClientSession clientSession;
+    private boolean locked;
 
     public NonExistingFileHandlingSftpClient(ClientSession clientSession) throws IOException {
         super(clientSession);
@@ -57,5 +58,17 @@ public class NonExistingFileHandlingSftpClient extends DefaultSftpClient {
     public void close() throws IOException {
         super.close();
         clientSession.close(false).awaitUninterruptibly();
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void lock() {
+        locked = true;
+    }
+
+    public void unlock() {
+        locked = false;
     }
 }

@@ -63,7 +63,7 @@ public class SftpResourceLister implements ExternalResourceLister {
                 return null;
             }
         } finally {
-            client.close();
+            sftpClientFactory.releaseSftpClient(client);
         }
     }
 }

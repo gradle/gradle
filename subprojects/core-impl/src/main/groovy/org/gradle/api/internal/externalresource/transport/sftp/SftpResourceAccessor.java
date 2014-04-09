@@ -60,9 +60,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
             Attributes attributes = sftpClient.lstat(uri.getPath());
             return attributes != null ? toMetaData(uri.toString(), attributes) : null;
         } finally {
-            if (sftpClient != null) {
-                sftpClient.close();
-            }
+            sftpClientFactory.releaseSftpClient(sftpClient);
         }
     }
 
