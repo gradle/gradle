@@ -23,8 +23,11 @@ import org.gradle.api.internal.externalresource.transport.sftp.SftpClientFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ivy.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
+@Requires(TestPrecondition.JDK6_OR_LATER)
 class IvySftpClientFactoryIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     final SFTPServer server = new SFTPServer(this)
