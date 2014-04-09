@@ -273,6 +273,41 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
+    public void "produces correct layout when using ivy layout"() {
+        server.start()
+
+        given:
+        def module = ivyRepo().module('org.name.here', 'projectA', '1.2').publish()
+
+        buildFile << """
+repositories {
+    ivy {
+        url "http://localhost:${server.port}"
+        layout "ivy"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'org.name.here:projectA:1.2'
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        when:
+        server.expectGet('/org.name.here/projectA/1.2/ivys/ivy.xml', module.ivyFile)
+        server.expectGet('/org.name.here/projectA/1.2/jars/projectA.jar', module.jarFile)
+
+        and:
+        succeeds('retrieve')
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+    }
+
     def "reuses cached details when switching ivy resolve mode"() {
         given:
         server.start()
