@@ -39,7 +39,7 @@ import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaDat
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.resolution.IvyDescriptorArtifact;
+import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.UrlExternalResource;

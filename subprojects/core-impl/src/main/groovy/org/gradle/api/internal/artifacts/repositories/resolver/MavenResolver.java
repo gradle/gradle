@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.resolution.MavenPomArtifact;
+import org.gradle.api.internal.artifacts.result.metadata.MavenPomArtifact;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;

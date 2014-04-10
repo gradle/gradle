@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.resolution;
+
+package org.gradle.api.internal.artifacts.result.metadata;
 
 import org.gradle.api.artifacts.result.Artifact;
 
-public interface IvyDescriptorArtifact extends Artifact {
+public interface MavenPomArtifact extends Artifact {
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.resolution;
+package org.gradle.api.internal.artifacts.query;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-// TODO:DAZ Not sure where this should live
 public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ConfigurationContainerInternal configurationContainer;
     private final RepositoryHandler repositoryHandler;

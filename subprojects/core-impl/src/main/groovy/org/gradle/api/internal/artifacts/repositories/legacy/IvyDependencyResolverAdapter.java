@@ -31,7 +31,7 @@ import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
-import org.gradle.api.internal.artifacts.resolution.IvyDescriptorArtifact;
+import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
