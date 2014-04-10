@@ -25,7 +25,6 @@ import java.util.Set;
  * @since 2.0
  */
 @Incubating
-// TODO:DAZ Merge with ResolvedComponentResult?
 public interface ResolvedComponentArtifactsResult extends ComponentResult {
     /**
      * <p>Returns the component artifacts of the specified type. Includes resolved and unresolved artifacts (if any).
@@ -40,6 +39,5 @@ public interface ResolvedComponentArtifactsResult extends ComponentResult {
      *
      * @return the artifacts of this component with the specified type, or an empty set if no artifacts of the type exist.
      */
-    // TODO:DAZ Integ test coverage
     Set<ArtifactResult> getArtifacts(Class<? extends Artifact> type);
 }

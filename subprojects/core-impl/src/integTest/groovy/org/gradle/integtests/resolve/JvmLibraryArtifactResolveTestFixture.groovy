@@ -34,7 +34,6 @@ class JvmLibraryArtifactResolveTestFixture {
     private final TestFile buildFile
     private final String config
     private ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId("some.group", "some-artifact", "1.0")
-    private boolean noCache
     private artifactTypes = []
     private expectedSources = []
     Throwable expectedSourceFailure
@@ -50,10 +49,6 @@ class JvmLibraryArtifactResolveTestFixture {
     JvmLibraryArtifactResolveTestFixture withComponentVersion(String group, String module, String version) {
         this.id = DefaultModuleComponentIdentifier.newId(group, module, version)
         this
-    }
-
-    JvmLibraryArtifactResolveTestFixture withNoCache(boolean noCache = true) {
-        this.noCache = noCache
     }
 
     JvmLibraryArtifactResolveTestFixture requestingTypes(Class<? extends Artifact>... artifactTypes) {
@@ -143,46 +138,56 @@ task $taskName << {
 
     assert result.components.size() == 1
 
-    def jvmLibrary = result.getResolvedComponents(JvmLibrary).iterator().next()
-
-    def sourceArtifactFiles = []
-    jvmLibrary.sourcesArtifacts.each { artifact ->
-        assert artifact instanceof JvmLibrarySourcesArtifact
-        if (artifact.failure != null) {
-            ${checkException("artifact.failure", expectedSourceFailure)}
-        } else {
-            copy {
-                from artifact.file
-                into "sources"
-            }
-            sourceArtifactFiles << artifact.file.name
-        }
-    }
-    assert sourceArtifactFiles as Set == ${toQuotedList(expectedSources)} as Set
-
-    def javadocArtifactFiles = []
-    jvmLibrary.javadocArtifacts.each { artifact ->
-        assert artifact instanceof JvmLibraryJavadocArtifact
-        if (artifact.failure != null) {
-            ${checkException("artifact.failure", expectedJavadocFailure)}
-        } else {
-            copy {
-                from artifact.file
-                into "javadoc"
-            }
-            javadocArtifactFiles << artifact.file.name
-        }
-    }
-    assert javadocArtifactFiles as Set == ${toQuotedList(expectedJavadoc)} as Set
-
+    // Check generic component result
     def componentResult = result.components.iterator().next()
-    assert componentResult.id == jvmLibrary.id
-    assert componentResult instanceof ResolvedComponentArtifactsResult
     assert componentResult.id.displayName == "${id.displayName}"
-    assert componentResult.getArtifacts(JvmLibrarySourcesArtifact).size() == jvmLibrary.sourcesArtifacts.size()
-    assert componentResult.getArtifacts(JvmLibraryJavadocArtifact).size() == jvmLibrary.javadocArtifacts.size()
-    assert componentResult.getArtifacts(Artifact).size() == jvmLibrary.sourcesArtifacts.size() + jvmLibrary.javadocArtifacts.size()
+    assert componentResult instanceof ResolvedComponentArtifactsResult
+
+    ${checkComponentResultArtifacts("componentResult", "sources", expectedSources, expectedSourceFailure)}
+    ${checkComponentResultArtifacts("componentResult", "javadoc", expectedJavadoc, expectedJavadocFailure)}
+
+    // Check JvmLibrary component type
+    def jvmLibraries = result.getResolvedComponents(JvmLibrary)
+    assert jvmLibraries.size() == 1
+    def jvmLibrary = jvmLibraries.iterator().next()
+    assert componentResult.id == jvmLibrary.id
+
+    ${checkJvmLibraryArtifacts("jvmLibrary", "sources", expectedSources, expectedSourceFailure)}
+    ${checkJvmLibraryArtifacts("jvmLibrary", "javadoc", expectedJavadoc, expectedJavadocFailure)}
 }
+"""
+    }
+
+    private static String checkComponentResultArtifacts(String componentResult, String type, def expectedFiles, def expectedFailure) {
+        """
+    def ${type}ArtifactResultFiles = []
+    ${componentResult}.getArtifacts(JvmLibrary${type.capitalize()}Artifact).each { artifactResult ->
+        if (artifactResult instanceof ResolvedArtifactResult) {
+            ${type}ArtifactResultFiles << artifactResult.file.name
+        } else {
+            ${checkException("artifactResult.failure", expectedFailure)}
+        }
+    }
+    assert ${type}ArtifactResultFiles as Set == ${toQuotedList(expectedFiles)} as Set
+"""
+    }
+
+    private static String checkJvmLibraryArtifacts(String jvmLibrary, String type, def expectedFiles, def expectedFailure) {
+        """
+    def ${type}ArtifactFiles = []
+    ${jvmLibrary}.${type}Artifacts.each { artifact ->
+        assert artifact instanceof JvmLibrary${type.capitalize()}Artifact
+        if (artifact.failure != null) {
+            ${checkException("artifact.failure", expectedFailure)}
+        } else {
+            copy {
+                from artifact.file
+                into "${type}"
+            }
+            ${type}ArtifactFiles << artifact.file.name
+        }
+    }
+    assert ${type}ArtifactFiles as Set == ${toQuotedList(expectedFiles)} as Set
 """
     }
 
