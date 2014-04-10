@@ -32,6 +32,5 @@ public interface LanguageSourceSetInternal extends LanguageSourceSet {
      */
     boolean getMayHaveSources();
 
-    // TODO:DAZ Maybe use an extension property
     Task getGeneratorTask();
 }

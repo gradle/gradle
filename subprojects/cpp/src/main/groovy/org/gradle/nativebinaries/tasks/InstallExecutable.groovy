@@ -86,7 +86,6 @@ public class InstallExecutable extends DefaultTask {
         new File(getDestinationDir(), os.getScriptName(getExecutable().name))
     }
 
-    // TODO:DAZ Allow this to be configured
     private OperatingSystem os = OperatingSystem.current()
 
     @TaskAction

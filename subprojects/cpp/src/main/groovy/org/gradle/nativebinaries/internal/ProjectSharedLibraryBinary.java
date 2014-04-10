@@ -94,7 +94,6 @@ public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary imp
         }
 
         private boolean hasExportedSymbols() {
-            // TODO:DAZ This is a very rough approximation: actually inspect the binary to determine if there are exported symbols
             for (LanguageSourceSet languageSourceSet : getSource()) {
                 if (!(languageSourceSet instanceof WindowsResourceSet)) {
                     if (!languageSourceSet.getSource().isEmpty()) {

@@ -40,7 +40,6 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(WindowsResourceScriptPlugin)
 
-        // TODO:DAZ Clean this up (see CppNativeBinariesPlugin)
         project.executables.all { Executable executable ->
             addLanguageExtensionsToComponent(executable)
         }

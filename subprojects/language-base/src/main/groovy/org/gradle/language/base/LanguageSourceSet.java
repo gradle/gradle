@@ -42,6 +42,5 @@ public interface LanguageSourceSet extends Named, BuildableModelElement {
      */
     void source(Action<? super SourceDirectorySet> config);
 
-    // TODO:DAZ Maybe add this as an extension property, and only in domains where it is handled (currently in native-binaries)
     void generatedBy(Task generatorTask);
 }

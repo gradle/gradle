@@ -45,7 +45,6 @@ public class CreateNativeBinaries extends ModelRule {
 
     public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains,
                        PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors) {
-        // TODO:DAZ Work out the right way to make these containers available to binaries.all
         project.getExtensions().add("platforms", platforms);
         project.getExtensions().add("buildTypes", buildTypes);
         project.getExtensions().add("flavors", flavors);

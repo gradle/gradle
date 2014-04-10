@@ -74,8 +74,6 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-
-        // TODO:DAZ Clean this up (see CppPlugin)
         project.executables.all { Executable executable ->
             addLanguageExtensionsToComponent(executable)
         }

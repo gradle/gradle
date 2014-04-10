@@ -37,7 +37,6 @@ class CPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(CLangPlugin)
 
-        // TODO:DAZ Clean this up (see CppNativeBinariesPlugin)
         project.executables.all { Executable executable ->
             addLanguageExtensionsToComponent(executable)
         }

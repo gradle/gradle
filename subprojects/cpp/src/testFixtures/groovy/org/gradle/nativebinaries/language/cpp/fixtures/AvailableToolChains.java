@@ -89,8 +89,6 @@ public class AvailableToolChains {
             // Clang must be on the path
             // TODO:ADAM Also check on windows
             compilers.add(findClang());
-
-            // TODO:DAZ Make a GCC3 install available for testing
         }
         return compilers;
     }

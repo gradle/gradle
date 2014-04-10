@@ -61,7 +61,6 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
             def binary = testBinary as ProjectNativeBinaryInternal
             def namingScheme = binary.namingScheme
 
-            // TODO:DAZ Need a better model for accessing tasks related to binary
             def installTask = binary.tasks.withType(InstallExecutable).find()
 
             def runTask = project.tasks.create(namingScheme.getTaskName("run"), RunTestExecutable)

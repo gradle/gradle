@@ -1121,6 +1121,8 @@ This story introduces a set of headers that are visible to all the source files 
 
 - Default location for the implementation headers
 - Rename `lib()` to `dependsOn()` or similar?
+- Model 'implicit' headers: in the same directory as the source files or included via relative path.
+    - Need to make these available in the IDE and include in compile task inputs
 
 ### Story: Introduce public headers for native libraries
 
@@ -1886,6 +1888,7 @@ TBD
 - Clean the environment prior to invoking the visual studio tools (eg clear `%INCLUDE%`, `%LIB%` etc)
 - Don't create compile tasks for empty source sets
 - Compile windows resource files with gcc/clang using [`windres`](http://sourceware.org/binutils/docs/binutils/windres.html)
+- Perform incremental compile when header is included via simple macro definition
 
 
 ## Target platforms
@@ -1989,7 +1992,7 @@ TBD
 ## Test coverage
 
 - Update the UnknownOS CI build to run on java 7, and remove the "CAN_INSTALL_EXECUTABLE" test requirement
-- Integration test coverage for 64-bit assembler with Visual C++
+- Integration test coverage for 64-bit assembler on all platforms/tool chains.
 - Verify that the correct windows system libraries are available at link time
     - Use a test app that uses something like WriteFile() to write its hello world message to stdout. If it can link and run, then the paths are probably ok.
 
@@ -2030,4 +2033,5 @@ TBD
 * Model minimum OS version.
     * For OS X can use -mmacosx-version-min option.
 * Clean task for a binary
-
+* Update CDT support to match Visual Studio support
+* Rename 'install' task to indicate that it's installing a developer image

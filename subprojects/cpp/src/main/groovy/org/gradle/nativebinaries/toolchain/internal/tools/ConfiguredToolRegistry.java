@@ -25,8 +25,6 @@ public class ConfiguredToolRegistry implements ToolRegistry {
     private final Map<ToolType, GccToolInternal> gccTools = new HashMap<ToolType, GccToolInternal>();
 
     public ConfiguredToolRegistry(ConfigurableToolChain configurableToolChain) {
-        // TODO:DAZ Replace TargetPlatformConfiguration with an action that applies to the entire registry.
-        // TODO: René
         Map registeredTools = configurableToolChain.getAsMap();
         for (Object registeredTool : registeredTools.keySet()) {
             register((GccToolInternal)registeredTools.get(registeredTool));

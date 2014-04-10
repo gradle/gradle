@@ -99,7 +99,6 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
                 project
         );
 
-        // TODO:DAZ Lazy configuration actions: need a better way to accomplish these.
         configurationActions.add(Actions.composite(
                 new ConfigureGeneratedSourceSets(),
                 new ApplySourceSetConventions()

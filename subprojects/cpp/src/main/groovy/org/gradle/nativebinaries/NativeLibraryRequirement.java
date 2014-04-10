@@ -35,6 +35,5 @@ public interface NativeLibraryRequirement {
     /**
      * The required linkage.
      */
-    // TODO:DAZ Type this
     String getLinkage();
 }

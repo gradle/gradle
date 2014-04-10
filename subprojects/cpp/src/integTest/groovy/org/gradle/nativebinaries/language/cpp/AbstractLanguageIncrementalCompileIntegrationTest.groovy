@@ -145,7 +145,6 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         and:
         recompiled sourceFile
 
-        // TODO:DAZ Remove this behaviour
         when: "Header that is NOT included is changed"
         file("src/main/headers/notIncluded.h") << """
             // Dummy header file
