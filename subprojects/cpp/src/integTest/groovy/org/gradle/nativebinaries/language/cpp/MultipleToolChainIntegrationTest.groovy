@@ -76,9 +76,9 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         def i386Exe = x86ToolChain.executable(file("build/binaries/mainExecutable/i386/main"))
-        assert i386Exe.exec().out == "C++ " + x86ToolChain.displayName
+        assert i386Exe.exec().out == helloWorld.expectedOutput(x86ToolChain)
         def sparcExe = sparcToolChain.executable(file("build/binaries/mainExecutable/sparc/main"))
-        assert sparcExe.exec().out == "C++ " + sparcToolChain.displayName
+        assert sparcExe.exec().out == helloWorld.expectedOutput(sparcToolChain)
     }
 
     def "exception when building with unavailable tool chain"() {
