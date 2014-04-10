@@ -113,7 +113,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private void addModuleDependency(ModuleDependency dependency) {
-        runtimeDependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts()));
+        runtimeDependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), dependency.getExcludeRules()));
      }
 
     public MavenArtifact artifact(Object source) {

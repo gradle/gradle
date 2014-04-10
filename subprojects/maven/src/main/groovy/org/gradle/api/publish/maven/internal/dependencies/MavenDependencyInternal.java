@@ -16,10 +16,12 @@
 package org.gradle.api.publish.maven.internal.dependencies;
 
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.publish.maven.MavenDependency;
 
 import java.util.Collection;
 
 public interface MavenDependencyInternal extends MavenDependency {
     Collection<DependencyArtifact> getArtifacts();
+    Collection<ExcludeRule> getExcludeRules();
 }

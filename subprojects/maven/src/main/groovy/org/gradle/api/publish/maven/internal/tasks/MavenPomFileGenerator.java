@@ -16,13 +16,16 @@
 
 package org.gradle.api.publish.maven.internal.tasks;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
@@ -78,6 +81,14 @@ public class MavenPomFileGenerator {
         mavenDependency.setType(type);
         mavenDependency.setScope(scope);
         mavenDependency.setClassifier(classifier);
+        if ( !CollectionUtils.isEmpty(dependency.getExcludeRules())){
+        	for( ExcludeRule excludeRule: dependency.getExcludeRules()){
+        		Exclusion exclusion = new Exclusion();
+        		exclusion.setGroupId(excludeRule.getGroup());
+        		exclusion.setArtifactId(excludeRule.getModule());
+        		mavenDependency.addExclusion(exclusion);
+        	}
+        }
 
         getModel().addDependency(mavenDependency);
     }
