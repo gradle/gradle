@@ -24,7 +24,7 @@ import java.util.List;
 
 public class ObjectiveCppCompiler extends NativeCompiler<ObjectiveCppCompileSpec> {
 
-    public ObjectiveCppCompiler(CommandLineTool<ObjectiveCppCompileSpec> commandLineTool, Action<List<String>> toolChainArgsAction, boolean useCommandFile) {
+    public ObjectiveCppCompiler(CommandLineTool commandLineTool, Action<List<String>> toolChainArgsAction, boolean useCommandFile) {
         super(commandLineTool, toolChainArgsAction, new ObjectiveCppCompileArgsTransformer(), useCommandFile);
     }
 

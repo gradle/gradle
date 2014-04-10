@@ -21,7 +21,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
@@ -30,13 +29,12 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.util.*;
 
-public class CommandLineTool<T extends BinaryToolSpec> {
+public class CommandLineTool {
     private final String action;
     private final File executable;
     private final ExecActionFactory execActionFactory;
     private final Map<String, String> environment = new HashMap<String, String>();
     private final List<File> path = new ArrayList<File>();
-    private ArgsTransformer<T> specToArgs;
     private File workDir;
 
     public CommandLineTool(String action, File executable, ExecActionFactory execActionFactory) {
@@ -45,41 +43,35 @@ public class CommandLineTool<T extends BinaryToolSpec> {
         this.execActionFactory = execActionFactory;
     }
 
-    public CommandLineTool<T> inWorkDirectory(File workDir) {
+    public CommandLineTool inWorkDirectory(File workDir) {
         GFileUtils.mkdirs(workDir);
         this.workDir = workDir;
         return this;
     }
 
-    public CommandLineTool<T> withPath(List<File> pathEntries) {
+    public CommandLineTool withPath(List<File> pathEntries) {
         path.addAll(pathEntries);
         return this;
     }
 
-    public CommandLineTool<T> withPath(File... pathEntries) {
+    public CommandLineTool withPath(File... pathEntries) {
         Collections.addAll(path, pathEntries);
         return this;
     }
 
-    public CommandLineTool<T> withEnvironmentVar(String name, String value) {
+    public CommandLineTool withEnvironmentVar(String name, String value) {
         environment.put(name, value);
         return this;
     }
-    
-    public CommandLineTool<T> withArguments(ArgsTransformer<T> arguments) {
-        this.specToArgs = arguments;
-        return this;
-    }
 
-    public WorkResult execute(T spec) {
+    public WorkResult execute(CommandLineToolInvocation invocation) {
         ExecAction compiler = execActionFactory.newExecAction();
         compiler.executable(executable);
         if (workDir != null) {
             compiler.workingDir(workDir);
         }
 
-        List<String> args = specToArgs.transform(spec);
-        compiler.args(args);
+        compiler.args(invocation.args);
 
         if (!path.isEmpty()) {
             String pathVar = OperatingSystem.current().getPathVar();

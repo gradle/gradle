@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
@@ -31,16 +32,18 @@ import java.util.List;
 import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
 class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
-    private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
+    private final OptionsFileArgsTransformer<StaticLibraryArchiverSpec> args;
 
-    public LibExeStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool) {
-        this.commandLineTool = commandLineTool
-                .withArguments(new OptionsFileArgsTransformer<StaticLibraryArchiverSpec>(ArgWriter.windowsStyleFactory(), new LibExeSpecToArguments()
-        ));
+    public LibExeStaticLibraryArchiver(CommandLineTool commandLineTool) {
+        args = new OptionsFileArgsTransformer<StaticLibraryArchiverSpec>(ArgWriter.windowsStyleFactory(), new LibExeSpecToArguments());
+        this.commandLineTool = commandLineTool;
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
-        return commandLineTool.execute(spec);
+        CommandLineToolInvocation invocation = new CommandLineToolInvocation();
+        invocation.args = args.transform(spec);
+        return commandLineTool.execute(invocation);
     }
 
     private static class LibExeSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {

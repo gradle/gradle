@@ -36,7 +36,7 @@ class CCompilerTest extends Specification {
     def executable = new File("executable")
     def execActionFactory = Mock(ExecActionFactory)
     Action<List<String>> argAction = Mock(Action)
-    CommandLineTool<CCompileSpec> commandLineTool = new CommandLineTool<CCompileSpec>("cCompiler", executable, execActionFactory)
+    CommandLineTool commandLineTool = new CommandLineTool("cCompiler", executable, execActionFactory)
     CCompiler compiler = new CCompiler(commandLineTool, argAction, false);
     String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
 

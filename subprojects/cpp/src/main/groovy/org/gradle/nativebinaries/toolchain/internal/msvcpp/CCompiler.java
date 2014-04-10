@@ -22,7 +22,7 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 class CCompiler extends NativeCompiler<CCompileSpec> {
 
-    CCompiler(CommandLineTool<CCompileSpec> commandLineTool, Transformer<CCompileSpec, CCompileSpec> specTransformer) {
+    CCompiler(CommandLineTool commandLineTool, Transformer<CCompileSpec, CCompileSpec> specTransformer) {
         super(commandLineTool, new CCompilerArgsTransformer(), specTransformer);
     }
 

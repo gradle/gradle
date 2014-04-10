@@ -24,6 +24,7 @@ import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,19 +32,23 @@ import java.util.List;
 
 class GccLinker implements Compiler<LinkerSpec> {
 
-    private final CommandLineTool<LinkerSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
+    private final ArgsTransformer<LinkerSpec> argsTransformer;
 
-    public GccLinker(CommandLineTool<LinkerSpec> commandLineTool, Action<List<String>> argsAction, boolean useCommandFile) {
+    public GccLinker(CommandLineTool commandLineTool, Action<List<String>> argsAction, boolean useCommandFile) {
         ArgsTransformer<LinkerSpec> argsTransformer = new GccLinkerArgsTransformer();
         argsTransformer = new PostTransformActionArgsTransformer<LinkerSpec>(argsTransformer, argsAction);
         if (useCommandFile) {
             argsTransformer = new GccOptionsFileArgTransformer<LinkerSpec>(argsTransformer);
         }
-        this.commandLineTool = commandLineTool.withArguments(argsTransformer);
+        this.argsTransformer = argsTransformer;
+        this.commandLineTool = commandLineTool;
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        return commandLineTool.execute(spec);
+        CommandLineToolInvocation invocation = new CommandLineToolInvocation();
+        invocation.args = argsTransformer.transform(spec);
+        return commandLineTool.execute(invocation);
     }
 
     private static class GccLinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {

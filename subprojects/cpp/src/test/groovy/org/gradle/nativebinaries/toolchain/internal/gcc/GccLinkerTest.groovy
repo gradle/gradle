@@ -33,7 +33,7 @@ class GccLinkerTest extends Specification {
     def executable = new File("executable")
     def execActionFactory = Mock(ExecActionFactory)
     Action<List<String>> argAction = Mock(Action)
-    CommandLineTool<LinkerSpec> commandLineTool = new CommandLineTool<LinkerSpec>("linker", executable, execActionFactory)
+    CommandLineTool commandLineTool = new CommandLineTool("linker", executable, execActionFactory)
     GccLinker linker = new GccLinker(commandLineTool, argAction, false);
 
     def "compiles all source files in a single execution"() {

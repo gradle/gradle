@@ -23,6 +23,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
@@ -34,19 +35,22 @@ import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs
 
 class LinkExeLinker implements Compiler<LinkerSpec> {
 
-    private final CommandLineTool<LinkerSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
+    private final OptionsFileArgsTransformer<LinkerSpec> argsTransformer;
 
-    public LinkExeLinker(CommandLineTool<LinkerSpec> commandLineTool, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
-        this.commandLineTool = commandLineTool
-                .withArguments(new OptionsFileArgsTransformer<LinkerSpec>(
+    public LinkExeLinker(CommandLineTool commandLineTool, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
+        argsTransformer = new OptionsFileArgsTransformer<LinkerSpec>(
                 ArgWriter.windowsStyleFactory(), new LinkerArgsTransformer()
-        ));
+        );
+        this.commandLineTool = commandLineTool;
         this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        return commandLineTool.execute(specTransformer.transform(spec));
+        CommandLineToolInvocation invocation = new CommandLineToolInvocation();
+        invocation.args = argsTransformer.transform(specTransformer.transform(spec));
+        return commandLineTool.execute(invocation);
     }
 
     private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {

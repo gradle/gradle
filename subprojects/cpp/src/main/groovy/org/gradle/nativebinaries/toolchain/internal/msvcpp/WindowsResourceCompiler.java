@@ -26,6 +26,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter;
 
 import java.io.File;
@@ -34,10 +35,10 @@ import java.util.List;
 
 public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileSpec> {
 
-    private final CommandLineTool<WindowsResourceCompileSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
     private final Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer;
 
-    WindowsResourceCompiler(CommandLineTool<WindowsResourceCompileSpec> commandLineTool, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer) {
+    WindowsResourceCompiler(CommandLineTool commandLineTool, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer) {
         this.commandLineTool = commandLineTool;
         this.specTransformer = specTransformer;
     }
@@ -46,9 +47,12 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
         boolean didWork = false;
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
         spec = specTransformer.transform(spec);
-        CommandLineTool<WindowsResourceCompileSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
+        CommandLineTool commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
-            WorkResult result = commandLineAssembler.withArguments(new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation)).execute(spec);
+            RcCompilerArgsTransformer argsTransformer = new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation);
+            CommandLineToolInvocation invocation = new CommandLineToolInvocation();
+            invocation.args = argsTransformer.transform(spec);
+            WorkResult result = commandLineAssembler.execute(invocation);
             didWork |= result.getDidWork();
         }
         return new SimpleWorkResult(didWork);

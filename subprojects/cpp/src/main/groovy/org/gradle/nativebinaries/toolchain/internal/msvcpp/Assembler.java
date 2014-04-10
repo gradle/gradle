@@ -24,6 +24,7 @@ import org.gradle.internal.hash.HashUtil;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,17 +34,19 @@ import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs
 
 class Assembler implements Compiler<AssembleSpec> {
 
-    private final CommandLineTool<AssembleSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
 
-    public Assembler(CommandLineTool<AssembleSpec> commandLineTool) {
+    public Assembler(CommandLineTool commandLineTool) {
         this.commandLineTool = commandLineTool;
     }
 
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
-        CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
+        CommandLineTool commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
-            WorkResult result = commandLineAssembler.withArguments(new AssemblerArgsTransformer(sourceFile)).execute(spec);
+            CommandLineToolInvocation invocation = new CommandLineToolInvocation();
+            invocation.args = new AssemblerArgsTransformer(sourceFile).transform(spec);
+            WorkResult result = commandLineAssembler.execute(invocation);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);

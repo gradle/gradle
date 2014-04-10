@@ -28,11 +28,11 @@ import java.io.File;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements org.gradle.api.internal.tasks.compile.Compiler<T> {
 
-    private final CommandLineTool<T> commandLineTool;
+    private final CommandLineTool commandLineTool;
     private final OptionsFileArgsTransformer<T> argsTransFormer;
     private final Transformer<T, T> specTransformer;
 
-    NativeCompiler(CommandLineTool<T> commandLineTool, ArgsTransformer<T> argsTransFormer, Transformer<T, T> specTransformer) {
+    NativeCompiler(CommandLineTool commandLineTool, ArgsTransformer<T> argsTransFormer, Transformer<T, T> specTransformer) {
         this.argsTransFormer = new OptionsFileArgsTransformer<T>(
                         ArgWriter.windowsStyleFactory(),
                         argsTransFormer);
@@ -44,13 +44,14 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements org
         boolean didWork = false;
         for (File sourceFile : spec.getSourceFiles()) {
             String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + ".obj";
-            WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir())
-                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,
-                            objectFileName,
-                            new ShortCircuitArgsTransformer<T>(argsTransFormer),
-                            true,
-                            true))
-                    .execute(specTransformer.transform(spec));
+            SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
+                    objectFileName,
+                    new ShortCircuitArgsTransformer<T>(argsTransFormer),
+                    true,
+                    true);
+            CommandLineToolInvocation invocation = new CommandLineToolInvocation();
+            invocation.args = argTransformer.transform(specTransformer.transform(spec));
+            WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(invocation);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);

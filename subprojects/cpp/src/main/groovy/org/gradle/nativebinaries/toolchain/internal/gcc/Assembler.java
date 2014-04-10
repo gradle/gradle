@@ -25,6 +25,7 @@ import org.gradle.internal.hash.HashUtil;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,11 +34,11 @@ import java.util.List;
 
 class Assembler implements Compiler<AssembleSpec> {
 
-    private final CommandLineTool<AssembleSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
     private final Action<List<String>> argsAction;
     private String outputFileSuffix;
 
-    public Assembler(CommandLineTool<AssembleSpec> commandLineTool, Action<List<String>> argsAction, String outputFileSuffix) {
+    public Assembler(CommandLineTool commandLineTool, Action<List<String>> argsAction, String outputFileSuffix) {
         this.commandLineTool = commandLineTool;
         this.argsAction = argsAction;
         this.outputFileSuffix = outputFileSuffix;
@@ -45,11 +46,13 @@ class Assembler implements Compiler<AssembleSpec> {
 
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
-        CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
+        CommandLineTool commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
             ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile, spec.getObjectFileDir(), outputFileSuffix);
             arguments = new PostTransformActionArgsTransformer<AssembleSpec>(arguments, argsAction);
-            WorkResult result = commandLineAssembler.withArguments(arguments).execute(spec);
+            CommandLineToolInvocation invocation = new CommandLineToolInvocation();
+            invocation.args = arguments.transform(spec);
+            WorkResult result = commandLineAssembler.execute(invocation);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);

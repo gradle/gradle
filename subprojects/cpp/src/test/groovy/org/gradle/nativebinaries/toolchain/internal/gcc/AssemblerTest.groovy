@@ -32,7 +32,7 @@ class AssemblerTest extends Specification {
     def executable = new File("executable")
     def execActionFactory = Mock(ExecActionFactory)
     Action<List<String>> argAction = Mock(Action)
-    CommandLineTool<AssembleSpec> commandLineTool = new CommandLineTool<AssembleSpec>("assembler", executable, execActionFactory)
+    CommandLineTool commandLineTool = new CommandLineTool("assembler", executable, execActionFactory)
     Assembler assembler = new Assembler(commandLineTool, argAction, ".o");
 
     def "assembles each source file independently"() {

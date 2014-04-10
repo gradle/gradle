@@ -22,20 +22,17 @@ import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.SingleSourceCompileArgTransformer;
+import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;
 import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
-    private final CommandLineTool<T> commandLineTool;
+    private final CommandLineTool commandLineTool;
     private final ArgsTransformer<T> argsTransfomer;
 
-    public NativeCompiler(CommandLineTool<T> commandLineTool, Action<List<String>> toolChainArgsAction, ArgsTransformer<T> argsTransformer, boolean useCommandFile) {
+    public NativeCompiler(CommandLineTool commandLineTool, Action<List<String>> toolChainArgsAction, ArgsTransformer<T> argsTransformer, boolean useCommandFile) {
         argsTransformer = new PostTransformActionArgsTransformer<T>(argsTransformer, toolChainArgsAction);
         if (useCommandFile) {
             argsTransformer = new GccOptionsFileArgTransformer<T>(argsTransformer);
@@ -51,13 +48,15 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
         for (File sourceFile : spec.getSourceFiles()) {
             String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
+            CommandLineToolInvocation invocation = new CommandLineToolInvocation();
+            SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
+                    objectFileName,
+                    new ShortCircuitArgsTransformer(argsTransfomer),
+                    windowsPathLimitation,
+                    false);
+            invocation.args = argTransformer.transform(spec);
             WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir())
-                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,
-                                            objectFileName,
-                                            new ShortCircuitArgsTransformer(argsTransfomer),
-                                            windowsPathLimitation,
-                                            false))
-                    .execute(spec);
+                    .execute(invocation);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);

@@ -23,6 +23,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,17 +33,21 @@ import java.util.List;
  * A static library archiver based on the GNU 'ar' utility
  */
 class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
-    private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
+    private final ArgsTransformer<StaticLibraryArchiverSpec> arguments;
 
-    public ArStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool, Action<List<String>> argsAction) {
+    public ArStaticLibraryArchiver(CommandLineTool commandLineTool, Action<List<String>> argsAction) {
+        this.commandLineTool = commandLineTool;
         ArgsTransformer<StaticLibraryArchiverSpec> arguments = new ArchiverSpecToArguments();
-        arguments = new PostTransformActionArgsTransformer<StaticLibraryArchiverSpec>(arguments, argsAction);
-        this.commandLineTool = commandLineTool.withArguments(arguments);
+        this.arguments = new PostTransformActionArgsTransformer<StaticLibraryArchiverSpec>(arguments, argsAction);
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         deletePreviousOutput(spec);
-        return commandLineTool.execute(spec);
+
+        CommandLineToolInvocation invocation = new CommandLineToolInvocation();
+        invocation.args = arguments.transform(spec);
+        return commandLineTool.execute(invocation);
     }
 
     private void deletePreviousOutput(StaticLibraryArchiverSpec spec) {
