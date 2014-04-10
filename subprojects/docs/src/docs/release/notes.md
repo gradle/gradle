@@ -11,7 +11,7 @@ Integration with IntelliJ IDEA in particular has been improved, along with gener
 Optimizations have also been made to the parts of the codebase that deal with IDE import, making importing Gradle 1.12 projects into IDEs faster than any previous Gradle version.
 
 Gradle 1.12 set a new high watermark for contributions.
-It includes contributions from 15 different people.
+It includes contributions from 16 different people.
 Contributions range from documentation improvements, to Ant import improvements, to support for building large zips,
 to Sonar improvements, to test reporting improvements and more.
 Thank you to all of the contributors.
@@ -297,6 +297,7 @@ We would like to thank the following community members for making contributions 
 * [Paul Merlin](https://github.com/eskatos) - ignored tests tab for HTML test report
 * [Jason Gauci](https://github.com/MisterTea) - Support for large zips
 * [Zsolt Kúti](https://github.com/tinca) - Fixes for Gradle on FreeBSD
+* [Rich Jones](https://github.com/Miserlou) - HTTPS URLs for wrapper downloads
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
