@@ -102,15 +102,11 @@ class WindowsResourceCompile extends DefaultTask {
          spec.source getSource()
          spec.macros = getMacros()
          spec.args getCompilerArgs()
+         spec.incrementalCompile = inputs.incremental
 
          PlatformToolChain platformToolChain = toolChain.select(targetPlatform)
          final compiler = platformToolChain.createWindowsResourceCompiler()
-         if (!inputs.incremental) {
-             incrementalCompilerBuilder.withCleanCompile()
-         }
-         incrementalCompilerBuilder.withIncludes(includes)
-         final incrementalCompiler = incrementalCompilerBuilder.createIncrementalCompiler(compiler)
-         def result = incrementalCompiler.execute(spec)
+         def result = incrementalCompilerBuilder.createIncrementalCompiler(compiler).execute(spec)
          didWork = result.didWork
      }
 

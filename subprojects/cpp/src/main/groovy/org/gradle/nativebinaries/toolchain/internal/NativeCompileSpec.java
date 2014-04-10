@@ -60,4 +60,8 @@ public interface NativeCompileSpec extends BinaryToolSpec {
     boolean isPositionIndependentCode();
 
     void setPositionIndependentCode(boolean flag);
+
+    boolean isIncrementalCompile();
+
+    void setIncrementalCompile(boolean flag);
 }

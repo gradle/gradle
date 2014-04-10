@@ -111,16 +111,11 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.macros = getMacros()
         spec.args getCompilerArgs()
         spec.positionIndependentCode = isPositionIndependentCode()
+        spec.incrementalCompile = inputs.incremental
 
         PlatformToolChain platformToolChain = toolChain.select(targetPlatform)
-        if (!inputs.incremental) {
-            incrementalCompilerBuilder.withCleanCompile()
-        }
-        incrementalCompilerBuilder.withIncludes(includes)
         final compiler = createCompiler(platformToolChain)
-        final incrementalCompiler = incrementalCompilerBuilder.createIncrementalCompiler(compiler)
-
-        def result = incrementalCompiler.execute(spec)
+        def result = incrementalCompilerBuilder.createIncrementalCompiler(compiler).execute(spec)
         didWork = result.didWork
     }
 
