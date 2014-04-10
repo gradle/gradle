@@ -57,7 +57,7 @@ public class NonExistingFileHandlingSftpClient extends DefaultSftpClient impleme
     @Override
     public void close() throws IOException {
         super.close();
-        clientSession.close(true);
+        clientSession.close(false).awaitUninterruptibly();
     }
 
     public boolean isLocked() {
