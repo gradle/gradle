@@ -195,10 +195,16 @@ task $taskName << {
         if (expected == null) {
             return "throw $reference"
         }
-        return """
+        String check = """
     assert ${reference} instanceof ${expected.class.name}
     assert ${reference}.message == "${expected.message}"
 """
+        if (expected.cause != null) {
+            check += """
+    assert ${reference}.cause.message =~ "${expected.cause.message}"
+"""
+        }
+        return check
     }
 
     private static String toQuotedList(def values) {

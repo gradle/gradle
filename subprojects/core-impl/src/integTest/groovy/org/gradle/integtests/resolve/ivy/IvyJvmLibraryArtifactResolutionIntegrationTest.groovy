@@ -278,8 +278,12 @@ if (project.hasProperty('nocache')) {
         module.publish()
 
         fixture.expectSourceArtifact("my-sources")
-                .expectSourceArtifactFailure(new ArtifactResolveException("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-broken-sources.jar'"))
-                .expectJavadocArtifactFailure(new ArtifactResolveException("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar'"))
+                .expectSourceArtifactFailure(new ArtifactResolveException(
+                                                "Could not download artifact 'some.group:some-artifact:1.0:some-artifact-broken-sources.jar'",
+                                                new Throwable("Received status code 500 from server: broken")))
+                .expectJavadocArtifactFailure(new ArtifactResolveException(
+                                                "Could not download artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar'",
+                                                new Throwable("Received status code 500 from server: broken")))
                 .prepare()
 
         when:
