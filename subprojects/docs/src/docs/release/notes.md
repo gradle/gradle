@@ -189,6 +189,14 @@ For an IDE project that references an external module located in an `ivy` reposi
 * Source artifacts conventionally named with a `sources` classifier: eg. `module-1.0-sources.jar`
 * Javadoc artifacts conventionally named with a `javadoc` classifier: eg. `module-1.0-javadoc.jar`
 
+### HTTPS wrapper downloads
+
+The [Gradle Wrapper](userguide/gradle_wrapper.html) is now downloaded over HTTPS.
+The `gradle-wrapper.properties` file created by the `wrapper` task will now specify a HTTPS URL as the location of the Gradle distribution to download.
+
+Existing projects should consider updating the `gradle/wrapper/gradle-wrapper.properties` file to use `https` instead of `http` for the `distributionUrl` property value.
+No other change to the URL is necessary.
+
 ## Fixed issues
 
 ## Deprecations
