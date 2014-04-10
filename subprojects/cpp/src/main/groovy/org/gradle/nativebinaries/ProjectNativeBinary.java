@@ -88,7 +88,6 @@ public interface ProjectNativeBinary extends NativeBinary {
      */
     ToolChain getToolChain();
 
-    // TODO:DAZ Add these tools as extensions: linker for ExecutableBinary and SharedLibraryBinary, staticLibArchiver for StaticLibraryBinary
     /**
      * The settings used for linking this binary.
      */

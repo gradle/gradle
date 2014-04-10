@@ -342,7 +342,6 @@ project.afterEvaluate {
         sharedLibrary("build/binaries/greetingsSharedLibrary/greetings").assertExists()
         staticLibrary("build/binaries/greetingsStaticLibrary/greetings").assertExists()
 
-        // TODO:DAZ Investigate this output and parse to ensure that greetings is dynamically linked into mainExe but not helloShared
         and:
         println executable("build/binaries/mainExecutable/main").binaryInfo.listLinkedLibraries()
         println sharedLibrary("build/binaries/helloSharedLibrary/hello").binaryInfo.listLinkedLibraries()

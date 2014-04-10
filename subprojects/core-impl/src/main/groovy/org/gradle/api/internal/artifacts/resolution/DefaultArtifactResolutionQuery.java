@@ -79,7 +79,6 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     // TODO:DAZ This is ugly and needs a major cleanup and unit tests
-    // TODO:DAZ Also need to add a 'result' layer to the api
     public ArtifactResolutionResult execute() {
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
         ConfigurationInternal configuration = configurationContainer.detachedConfiguration();

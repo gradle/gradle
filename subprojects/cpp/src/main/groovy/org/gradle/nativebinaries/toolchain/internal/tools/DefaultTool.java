@@ -48,7 +48,6 @@ public class DefaultTool implements GccToolInternal {
         executable = file;
     }
 
-    // TODO:DAZ Decorate class and use an action parameter
     public void withArguments(Closure arguments) {
         Action<List<String>> action = new ClosureBackedAction<List<String>>(arguments);
         argActions.add(action);

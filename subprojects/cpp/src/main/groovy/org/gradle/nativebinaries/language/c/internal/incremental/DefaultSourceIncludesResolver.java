@@ -57,7 +57,6 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private void searchForDependency(Set<ResolvedInclude> dependencies, List<File> searchPath, String include) {
         for (File searchDir : searchPath) {
             File candidate = new File(searchDir, include);
-            // TODO:DAZ This means that we'll never detect changed files if they are not on the defined include path
             if (candidate.isFile()) {
                 dependencies.add(new ResolvedInclude(include, GFileUtils.canonicalise(candidate)));
                 return;

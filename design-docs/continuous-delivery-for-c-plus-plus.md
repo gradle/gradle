@@ -1888,8 +1888,12 @@ TBD
 - Clean the environment prior to invoking the visual studio tools (eg clear `%INCLUDE%`, `%LIB%` etc)
 - Don't create compile tasks for empty source sets
 - Compile windows resource files with gcc/clang using [`windres`](http://sourceware.org/binutils/docs/binutils/windres.html)
-- Perform incremental compile when header is included via simple macro definition
 
+### Incremental compile
+
+- Perform incremental compile when header is included via simple macro definition
+- Keep a separate, build-scoped cache of file -> parsed includes. This would prevent need for reparsing per-variant and per-component.
+- Detect changes to headers that are implicit on the include path via the tool chain
 
 ## Target platforms
 
