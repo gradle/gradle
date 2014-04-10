@@ -34,6 +34,9 @@ import java.net.URI;
  */
 public interface IvyArtifactRepository extends ArtifactRepository, AuthenticationSupported {
 
+    String IVY_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[ext]s/[artifact](.[ext])";
+    String IVY_IVY_PATTERN = "[organisation]/[module]/[revision]/[artifact]s/[artifact](.[ext])";
+
     String GRADLE_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
     String GRADLE_IVY_PATTERN = "[organisation]/[module]/[revision]/ivy-[revision].xml";
 

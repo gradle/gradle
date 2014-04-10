@@ -124,9 +124,31 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repo.is(wrapper.resolver)
     }
 
+    def "uses ivy patterns with specified url and default layout"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+
+        given:
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
+
+        when:
+        def resolver = repository.createResolver()
+
+        then:
+        with(resolver) {
+            it instanceof IvyResolver
+            repository instanceof ExternalResourceRepository
+            name == 'name'
+            artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[ext]s/[artifact](.[ext])']
+            ivyPatterns == ["http://host/[organisation]/[module]/[revision]/[artifact]s/[artifact](.[ext])"]
+        }
+    }
+
     def "uses gradle patterns with specified url and default layout"() {
         repository.name = 'name'
         repository.url = 'http://host'
+        repository.layout 'gradle'
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
@@ -239,8 +261,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             it instanceof IvyResolver
             repository instanceof ExternalResourceRepository
             name == 'name'
-            artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'http://host/[other]/artifact']
-            ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml", 'http://host/[other]/ivy']
+            artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[ext]s/[artifact](.[ext])', 'http://host/[other]/artifact']
+            ivyPatterns == ["http://host/[organisation]/[module]/[revision]/[artifact]s/[artifact](.[ext])", 'http://host/[other]/ivy']
         }
     }
 
