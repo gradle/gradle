@@ -16,16 +16,18 @@
 package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
+import org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.NOT_WINDOWS)
 class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     HelloWorldApp helloWorldApp = new CppHelloWorldApp()
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "resource files are ignored on unsupported platforms"() {
         given:
         buildFile << """
@@ -50,6 +52,35 @@ class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolCh
 
         then:
         !executedTasks.contains(":compileMainExecutableMainRc")
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    @RequiresInstalledToolChain(ToolChainRequirement.Gcc)
+    def "reasonable error message when attempting to compile resource files with unsupported tool chain"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp'
+            apply plugin: 'windows-resources'
+
+            executables {
+                main {}
+            }
+         """
+
+        and:
+        helloWorldApp.writeSources(file("src/main"))
+        file("src/main/rc/broken.rc") << """
+        #include <stdio.h>
+
+        NOT A VALID RESOURCE
+"""
+
+        when:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.")
+        failure.assertHasCause("Windows resource compiler is not available")
     }
 }
 

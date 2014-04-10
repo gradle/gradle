@@ -84,7 +84,7 @@ class GccPlatformToolChain implements PlatformToolChain {
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Windows resource compiler is not available");
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {
