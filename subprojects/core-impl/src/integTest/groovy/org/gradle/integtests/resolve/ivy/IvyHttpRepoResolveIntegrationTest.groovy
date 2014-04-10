@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.junit.Rule
+import spock.lang.Unroll
 
 class IvyHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -238,7 +239,8 @@ task show << { println configurations.compile.files }
         succeeds('show')
     }
 
-    public void "replaces org.name with org/name when using maven layout"() {
+    @Unroll
+    public void "produces correct layout when using #layoutName layout"() {
         server.start()
 
         given:
@@ -248,7 +250,7 @@ task show << { println configurations.compile.files }
 repositories {
     ivy {
         url "http://localhost:${server.port}"
-        layout "maven"
+        layout "${layoutName}"
     }
 }
 configurations { compile }
@@ -263,49 +265,20 @@ task retrieve(type: Sync) {
 """
 
         when:
-        server.expectGet('/org/name/here/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/org/name/here/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        server.expectGet(ivyFilePath, module.ivyFile)
+        server.expectGet(jarFilePath, module.jarFile)
 
         and:
         succeeds('retrieve')
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.jar')
-    }
 
-    public void "produces correct layout when using ivy layout"() {
-        server.start()
-
-        given:
-        def module = ivyRepo().module('org.name.here', 'projectA', '1.2').publish()
-
-        buildFile << """
-repositories {
-    ivy {
-        url "http://localhost:${server.port}"
-        layout "ivy"
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'org.name.here:projectA:1.2'
-}
-
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'libs'
-}
-"""
-
-        when:
-        server.expectGet('/org.name.here/projectA/1.2/ivys/ivy.xml', module.ivyFile)
-        server.expectGet('/org.name.here/projectA/1.2/jars/projectA.jar', module.jarFile)
-
-        and:
-        succeeds('retrieve')
-
-        then:
-        file('libs').assertHasDescendants('projectA-1.2.jar')
+        where:
+        layoutName | ivyFilePath                                | jarFilePath
+        'ivy'      | '/org.name.here/projectA/1.2/ivys/ivy.xml' | '/org.name.here/projectA/1.2/jars/projectA.jar'
+        'maven'    | '/org/name/here/projectA/1.2/ivy-1.2.xml'  | '/org/name/here/projectA/1.2/projectA-1.2.jar'
+        'gradle'   | '/org.name.here/projectA/1.2/ivy-1.2.xml'  | '/org.name.here/projectA/1.2/projectA-1.2.jar'
     }
 
     def "reuses cached details when switching ivy resolve mode"() {
