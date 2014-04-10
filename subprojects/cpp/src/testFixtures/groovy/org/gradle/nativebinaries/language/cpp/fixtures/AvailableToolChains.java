@@ -440,7 +440,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.GccCompatible || requirement == ToolChainRequirement.Available;
+            return requirement == ToolChainRequirement.Clang || requirement == ToolChainRequirement.GccCompatible || requirement == ToolChainRequirement.Available;
         }
 
         @Override
