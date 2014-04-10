@@ -123,7 +123,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     public void layout(String layoutName) {
-        if ("maven".equals(layoutName)) {
+        if ("ivy".equals(layoutName)) {
+            layout = instantiator.newInstance(IvyRepositoryLayout.class);
+        } else if ("maven".equals(layoutName)) {
             layout = instantiator.newInstance(MavenRepositoryLayout.class);
         } else if ("pattern".equals(layoutName)) {
             layout = instantiator.newInstance(PatternRepositoryLayout.class);
