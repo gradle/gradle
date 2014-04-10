@@ -1427,6 +1427,9 @@ This story also aggregates a bunch of review items that relate to Architecture a
 - When no Platform architecture/os is defined, assume the current platform architecture/os, not the tool chain default.
     - This will require detecting the current platform, and supplying the correct tool chain arguments when building.
     - We can then remove the concept of the "tool chain default" platform, and always explicitly tell the tool chain which platform to build for.
+- For GCC, need to probe the output of the compiler to determine exactly what is being created
+- For Clang, need to provide the full `-target <triple>` to define the exact output, or provide a subset and probe the output.
+    - see http://clang.llvm.org/docs/CrossCompilation.html
 
 ## Story: Include all macro definitions in Visual Studio project configuration
 
