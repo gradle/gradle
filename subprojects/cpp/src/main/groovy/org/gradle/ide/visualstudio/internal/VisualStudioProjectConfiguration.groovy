@@ -50,14 +50,13 @@ class VisualStudioProjectConfiguration {
     }
 
     String getBuildTask() {
-        return taskPath(binary.name)
+        return binary.tasks.lifecycle.path
     }
 
     String getCleanTask() {
         return taskPath("clean")
     }
 
-    // TODO:DAZ Make it easier to find the lifecycle task and clean task for a binary and use task.path.
     private String taskPath(String taskName) {
         String projectPath = binary.component.projectPath
         if (projectPath == ":") {

@@ -42,7 +42,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final DefaultTool linker = new DefaultTool();
     private final DefaultTool staticLibArchiver = new DefaultTool();
-    private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks();
+    private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks(this);
     private final BinaryNamingScheme namingScheme;
     private final Flavor flavor;
     private final ToolChainInternal toolChain;

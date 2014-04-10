@@ -18,6 +18,7 @@ package org.gradle.language.base;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 
 /**
@@ -26,6 +27,12 @@ import org.gradle.api.Task;
  */
 @Incubating
 public interface BuildableModelElement extends Buildable {
+    /**
+     * Returns the 'lifecycle' task associated with the construction of this element.
+     */
+    @Nullable
+    Task getLifecycleTask();
+
     /**
      * Associates a 'lifecycle' task with the construction of this element.
      */

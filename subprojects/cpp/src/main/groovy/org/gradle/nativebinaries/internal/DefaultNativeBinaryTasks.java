@@ -26,8 +26,15 @@ import org.gradle.nativebinaries.tasks.BuildBinaryTask;
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary;
 
 public class DefaultNativeBinaryTasks extends DefaultDomainObjectSet<Task> implements NativeBinaryTasks {
-    public DefaultNativeBinaryTasks() {
+    private final ProjectNativeBinaryInternal binary;
+
+    public DefaultNativeBinaryTasks(ProjectNativeBinaryInternal binary) {
         super(Task.class);
+        this.binary = binary;
+    }
+
+    public Task getLifecycle() {
+        return binary.getLifecycleTask();
     }
 
     public AbstractLinkTask getLink() {

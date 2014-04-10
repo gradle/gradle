@@ -27,6 +27,11 @@ import org.gradle.nativebinaries.tasks.BuildBinaryTask;
 @Incubating
 public interface NativeBinaryTasks extends DomainObjectSet<Task> {
     /**
+     * The 'lifecycle' task, that can be used to construct this native binary.
+     */
+    Task getLifecycle();
+
+    /**
      * The link task, if one is present. Null otherwise.
      */
     Task getLink();
