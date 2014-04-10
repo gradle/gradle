@@ -184,17 +184,13 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
             CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-            Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePathAndDefinitions();
-            commandLineTool.withSpecTransformer(specTransformer);
-            CppCompiler cppCompiler = new CppCompiler(commandLineTool);
+            CppCompiler cppCompiler = new CppCompiler(commandLineTool, addIncludePathAndDefinitions(CppCompileSpec.class));
             return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
             CommandLineTool<CCompileSpec> commandLineTool = commandLineTool("C compiler", visualCpp.getCompiler(targetPlatform));
-            Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePathAndDefinitions();
-            commandLineTool.withSpecTransformer(specTransformer);
-            CCompiler cCompiler = new CCompiler(commandLineTool);
+            CCompiler cCompiler = new CCompiler(commandLineTool, addIncludePathAndDefinitions(CCompileSpec.class));
             return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
         }
 
@@ -213,16 +209,13 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
 
         public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
             CommandLineTool<WindowsResourceCompileSpec> commandLineTool = commandLineTool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
-            Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer = addIncludePathAndDefinitions();
-            commandLineTool.withSpecTransformer(specTransformer);
-            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool);
+            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
             return (Compiler<T>) new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
         }
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {
             CommandLineTool<LinkerSpec> commandLineTool = commandLineTool("Linker", visualCpp.getLinker(targetPlatform));
-            commandLineTool.withSpecTransformer(addLibraryPath());
-            return (Compiler<T>) new LinkExeLinker(commandLineTool);
+            return (Compiler<T>) new LinkExeLinker(commandLineTool, addLibraryPath());
         }
 
         public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
@@ -258,7 +251,7 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
             return String.format("%s-%s", getName(), operatingSystem.getName());
         }
 
-        private <T extends NativeCompileSpec> Transformer<T, T> addIncludePathAndDefinitions() {
+        private <T extends NativeCompileSpec> Transformer<T, T> addIncludePathAndDefinitions(Class<T> type) {
             return new Transformer<T, T>() {
                 public T transform(T original) {
                     original.include(visualCpp.getIncludePath(targetPlatform));

@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
@@ -34,16 +35,18 @@ import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs
 class LinkExeLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineTool<LinkerSpec> commandLineTool;
+    private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
 
-    public LinkExeLinker(CommandLineTool<LinkerSpec> commandLineTool) {
+    public LinkExeLinker(CommandLineTool<LinkerSpec> commandLineTool, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
         this.commandLineTool = commandLineTool
                 .withArguments(new OptionsFileArgsTransformer<LinkerSpec>(
                 ArgWriter.windowsStyleFactory(), new LinkerArgsTransformer()
         ));
+        this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        return commandLineTool.execute(spec);
+        return commandLineTool.execute(specTransformer.transform(spec));
     }
 
     private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {

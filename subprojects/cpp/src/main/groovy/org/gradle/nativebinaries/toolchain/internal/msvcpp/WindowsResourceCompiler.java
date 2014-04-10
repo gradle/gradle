@@ -16,6 +16,7 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
@@ -34,14 +35,17 @@ import java.util.List;
 public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileSpec> {
 
     private final CommandLineTool<WindowsResourceCompileSpec> commandLineTool;
+    private final Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer;
 
-    WindowsResourceCompiler(CommandLineTool<WindowsResourceCompileSpec> commandLineTool) {
+    WindowsResourceCompiler(CommandLineTool<WindowsResourceCompileSpec> commandLineTool, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer) {
         this.commandLineTool = commandLineTool;
+        this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(WindowsResourceCompileSpec spec) {
         boolean didWork = false;
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
+        spec = specTransformer.transform(spec);
         CommandLineTool<WindowsResourceCompileSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
             WorkResult result = commandLineAssembler.withArguments(new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation)).execute(spec);

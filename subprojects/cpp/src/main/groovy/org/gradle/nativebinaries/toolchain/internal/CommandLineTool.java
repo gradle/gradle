@@ -18,7 +18,6 @@ package org.gradle.nativebinaries.toolchain.internal;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
@@ -38,7 +37,6 @@ public class CommandLineTool<T extends BinaryToolSpec> {
     private final Map<String, String> environment = new HashMap<String, String>();
     private final List<File> path = new ArrayList<File>();
     private ArgsTransformer<T> specToArgs;
-    private Transformer<T, T> specTransformer = new IdentityTransformer<T>();
     private File workDir;
 
     public CommandLineTool(String action, File executable, ExecActionFactory execActionFactory) {
@@ -50,11 +48,6 @@ public class CommandLineTool<T extends BinaryToolSpec> {
     public CommandLineTool<T> inWorkDirectory(File workDir) {
         GFileUtils.mkdirs(workDir);
         this.workDir = workDir;
-        return this;
-    }
-
-    public CommandLineTool<T> withSpecTransformer(Transformer<T, T> specAction) {
-        this.specTransformer = specAction;
         return this;
     }
 
@@ -72,7 +65,7 @@ public class CommandLineTool<T extends BinaryToolSpec> {
         environment.put(name, value);
         return this;
     }
-
+    
     public CommandLineTool<T> withArguments(ArgsTransformer<T> arguments) {
         this.specToArgs = arguments;
         return this;
@@ -85,7 +78,7 @@ public class CommandLineTool<T extends BinaryToolSpec> {
             compiler.workingDir(workDir);
         }
 
-        List<String> args = specToArgs.transform(specTransformer.transform(spec));
+        List<String> args = specToArgs.transform(spec);
         compiler.args(args);
 
         if (!path.isEmpty()) {
@@ -103,11 +96,5 @@ public class CommandLineTool<T extends BinaryToolSpec> {
             throw new GradleException(String.format("%s failed; see the error output for details.", action), e);
         }
         return new SimpleWorkResult(true);
-    }
-
-    static class IdentityTransformer<T> implements Transformer<T, T> {
-        public T transform(T original) {
-            return original;
-        }
     }
 }
