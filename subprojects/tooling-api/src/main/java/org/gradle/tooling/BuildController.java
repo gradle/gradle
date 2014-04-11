@@ -47,7 +47,7 @@ public interface BuildController {
      *     <li>{@link org.gradle.tooling.model.eclipse.HierarchicalEclipseProject}</li>
      * </ul>
      *
-     * <p>A build may also expose additional custom tooling models.
+     * <p>A build may also expose additional custom tooling models. You can use this method to query these models.
      *
      * @param modelType The model type.
      * @param <T> The model type.

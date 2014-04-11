@@ -21,7 +21,7 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradlePublication;
 
 /**
- * A model providing information about project publications.
+ * A model providing information about the publications of a Gradle project.
  *
  * @since 1.12
  */
