@@ -18,7 +18,7 @@ Thank you to all of the contributors.
 
 Gradle 1.12 will be the last release in the Gradle 1.x line.
 The next release will be Gradle 2.0.
-For information on what this means for you and for the future of Gradle, please see our announcement on the topic (TBD - turn into link when announcement is posted).
+For information on what this means for you and for the future of Gradle, please see [the Gradle 2.0 announcement](http://forums.gradle.org/gradle/topics/after_1_12_comes_2_0).
 
 ## New and noteworthy
 
