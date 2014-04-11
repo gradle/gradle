@@ -50,6 +50,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
+    private List<TaskParameter> taskParameters = new ArrayList<TaskParameter>();
     private List<String> taskNames = new ArrayList<String>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
@@ -121,6 +122,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.projectPath = projectPath;
         p.settingsFile = settingsFile;
         p.useEmptySettings = useEmptySettings;
+        p.taskParameters = new ArrayList<TaskParameter>(taskParameters);
         p.taskNames = new ArrayList<String>(taskNames);
         p.excludedTaskNames = new LinkedHashSet<String>(excludedTaskNames);
         p.buildProjectDependencies = buildProjectDependencies;
@@ -246,6 +248,25 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public void setTaskNames(Iterable<String> taskNames) {
         this.taskNames = Lists.newArrayList(taskNames);
+    }
+
+    /**
+     * Returns the tasks to execute in this build. When empty, the default tasks for the project will be executed.
+     *
+     * @return the tasks to execute in this build. Never returns null.
+     */
+    public List<TaskParameter> getTaskParameters() {
+        return taskParameters;
+    }
+
+    /**
+     * <p>Sets the task parameters to execute in this build. Set to an empty list, to execute the default tasks for the project. The tasks are executed in the order provided, subject to dependency
+     * between the tasks.</p>
+     *
+     * @param taskParameters the tasks to execute in this build.
+     */
+    public void setTaskParameters(Iterable<TaskParameter> taskParameters) {
+        this.taskParameters = Lists.newArrayList(taskParameters);
     }
 
     /**
@@ -665,7 +686,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     @Override
     public String toString() {
         return "StartParameter{"
-                + "taskNames=" + taskNames
+                + "taskParameters=" + taskParameters
                 + ", excludedTaskNames=" + excludedTaskNames
                 + ", currentDir=" + currentDir
                 + ", searchUpwards=" + searchUpwards

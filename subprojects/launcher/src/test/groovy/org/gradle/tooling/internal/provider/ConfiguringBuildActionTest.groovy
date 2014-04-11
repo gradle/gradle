@@ -18,9 +18,10 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.TaskParameter
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.impl.LaunchableImplementation
+import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
@@ -102,9 +103,11 @@ class ConfiguringBuildActionTest extends Specification {
         assertThat(new ConfiguringBuildAction({} as ProviderOperationParameters, null, [foo: 'bar']), isSerializable())
     }
 
+    abstract class LaunchableParameter implements InternalLaunchable, TaskParameter {}
+
     def "accepts launchables from consumer"() {
         given:
-        def selector = Mock(LaunchableImplementation)
+        def selector = Mock(LaunchableParameter)
         _ * selector.taskName >> 'myTask'
         _ * selector.projectPath >> ':child'
 
@@ -117,6 +120,6 @@ class ConfiguringBuildActionTest extends Specification {
         def start = action.configureStartParameter()
 
         then:
-        start.projectPath == ':child'
+        start.taskParameters.size() == 1
     }
 }

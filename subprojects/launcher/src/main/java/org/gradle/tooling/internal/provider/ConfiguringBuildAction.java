@@ -15,14 +15,16 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
+import org.gradle.TaskParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
-import org.gradle.tooling.internal.impl.LaunchableImplementation;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -30,7 +32,6 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -86,32 +87,20 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
         }
 
         if (launchables != null) {
-            List<String> allTasks = new ArrayList<String>();
-            String projectPath = null;
-            for (InternalLaunchable launchable : launchables) {
-                if (launchable instanceof LaunchableImplementation) {
-                    LaunchableImplementation launchableImpl = (LaunchableImplementation) launchable;
-                    allTasks.add(launchableImpl.getTaskName());
-                    if (launchableImpl.getProjectPath() != null) {
-                        if (projectPath != null && !projectPath.equals(launchableImpl.getProjectPath())) {
+            startParameter.setTaskParameters(Iterables.transform(
+                    launchables,
+                    new Function<InternalLaunchable, TaskParameter>() {
+                        public TaskParameter apply(InternalLaunchable launchable) {
+                            if (launchable instanceof TaskParameter) {
+                                TaskParameter launchableImpl = (TaskParameter) launchable;
+                                return launchableImpl;
+                            }
                             throw new InternalUnsupportedBuildArgumentException(
                                     "Problem with provided launchable arguments: " + launchables + ". "
-                                            + "\nOnly selector from the same Gradle project can be built."
+                                            + "\nOnly objects from this provider can be built."
                             );
                         }
-                        projectPath = launchableImpl.getProjectPath();
-                    }
-                } else {
-                    throw new InternalUnsupportedBuildArgumentException(
-                            "Problem with provided launchable arguments: " + launchables + ". "
-                                    + "\nOnly objects from this provider can be built."
-                    );
-                }
-            }
-            if (projectPath != null) {
-                startParameter.setProjectPath(projectPath);
-            }
-            startParameter.setTaskNames(allTasks);
+                    }));
         } else if (tasks != null) {
             startParameter.setTaskNames(tasks);
         }

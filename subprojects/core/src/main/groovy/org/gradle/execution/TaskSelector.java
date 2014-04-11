@@ -16,6 +16,7 @@
 package org.gradle.execution;
 
 import com.google.common.collect.SetMultimap;
+import org.gradle.TaskParameter;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
@@ -44,8 +45,17 @@ public class TaskSelector {
     }
 
     public TaskSelection getSelection(String path) {
+        return getSelection(path, gradle.getDefaultProject());
+    }
+    public TaskSelection getSelection(TaskParameter taskParameter) {
+        ProjectInternal project = taskParameter.getProjectPath() != null
+                ? gradle.getRootProject().findProject(taskParameter.getProjectPath())
+                : gradle.getDefaultProject();
+        return getSelection(taskParameter.getTaskName(), project);
+    }
+
+    private TaskSelection getSelection(String path, ProjectInternal project) {
         SetMultimap<String, TaskSelectionResult> tasksByName;
-        ProjectInternal project = gradle.getDefaultProject();
         ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
 
         if (taskPath.isQualified()) {

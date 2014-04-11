@@ -104,17 +104,18 @@ project(':b:c') {
         when:
         BuildInvocations rootProjectSelectors = withConnection { connection ->
             connection.action(new FetchTaskSelectorsBuildAction('test')).run() }
-        TaskSelector rootSelector = rootProjectSelectors.taskSelectors.find { it -> it.name == 't1'}
-        withBuild { BuildLauncher it ->
+        TaskSelector rootSelector = rootProjectSelectors.taskSelectors.find { it ->
+            it.name == 't1' && !it.description.contains(':b:c')
+        }
+        def secondResult = withBuild { BuildLauncher it ->
             it.forLaunchables(selector, rootSelector)
         }
 
         then:
-        UnsupportedBuildArgumentException e = thrown()
-        e.message.contains('Problem with provided launchable arguments')
+        secondResult.result.assertTasksExecuted(':b:c:t1', ':t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-9")
+    @TargetGradleVersion(">=1.0-milestone-8")
     def "build task selectors from connection"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -132,7 +133,7 @@ project(':b:c') {
         result.result.assertTasksExecuted(':t1', ':b:c:t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
+    @TargetGradleVersion(">=1.0-milestone-5")
     def "build task selectors from connection in specified order"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -155,7 +156,7 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
+    @TargetGradleVersion(">=1.0-milestone-5")
     def "can request task selectors for project"() {
         given:
         BuildInvocations model = withConnection { connection ->
@@ -170,7 +171,19 @@ project(':b:c') {
         selectors*.name as Set == ['t1', 't2', 't3'] as Set
     }
 
-    @TargetGradleVersion("=1.12")
+    @TargetGradleVersion("<1.0-milestone-5")
+    def "cannot request BuildInvocations for old project"() {
+        when:
+        withConnection { connection ->
+            connection.getModel(BuildInvocations)
+        }
+
+        then:
+        UnknownModelException e = thrown()
+        e.message.contains('does not support building a model of type \'' + BuildInvocations.simpleName + '\'')
+    }
+
+    @TargetGradleVersion(">=1.12")
     def "get tasks for projects"() {
         when:
         List<Task> tasks = withConnection { connection ->
@@ -185,39 +198,6 @@ project(':b:c') {
         tasks[0].project
         then:
         UnsupportedMethodException e = thrown()
-        e != null
-    }
-
-    @TargetGradleVersion(">=2.0")
-    def "get tasks including implicit for projects"() {
-        when:
-        List<Task> tasks = withConnection { connection ->
-            connection.action(new FetchTasksBuildAction(':b')).run()
-        }
-
-        then:
-        tasks.size() == 2 + nonRootImplicitTaskNames.size()
-        tasks*.name as Set == (['t2', 't3'] + nonRootImplicitTaskNames) as Set
-
-        when:
-        tasks[0].project
-        then:
-        UnsupportedMethodException e = thrown()
-        e != null
-
-        when:
-        tasks = withConnection { connection ->
-            connection.action(new FetchTasksBuildAction(':')).run()
-        }
-
-        then:
-        tasks.size() == 1 + implicitTaskNames.size()
-        tasks*.name as Set == (['t1'] + implicitTaskNames) as Set
-
-        when:
-        tasks[0].project
-        then:
-        e = thrown()
         e != null
     }
 
@@ -238,7 +218,7 @@ project(':b:c') {
         result.result.assertTaskNotExecuted(':b:c:t2')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
+    @TargetGradleVersion(">=1.0-milestone-5")
     def "build task from connection as Launchable"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -256,7 +236,7 @@ project(':b:c') {
         result.result.assertTasksExecuted(':t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
+    @TargetGradleVersion(">=1.0-milestone-5")
     def "build tasks Launchables in order"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -300,7 +280,7 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
+    @TargetGradleVersion(">=1.0-milestone-5")
     def "build tasks and selectors in order cross version"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -340,6 +320,26 @@ project(':b:c') {
         then:
         UnsupportedBuildArgumentException e = thrown()
         e.message.contains 'Only selector from the same Gradle project can be built.'
+    }
+
+    @TargetGradleVersion(">=2.0")
+    def "builds selectors from different projects"() {
+        when:
+        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
+        BuildInvocations rootSelectors = withConnection { connection ->
+            connection.action(new FetchTaskSelectorsBuildAction('test')).run()
+        }
+        BuildInvocations bSelectors = withConnection { connection ->
+            connection.action(new FetchTaskSelectorsBuildAction('b')).run()
+        }
+        TaskSelector selectorT1 = rootSelectors.taskSelectors.find { it.name == 't1' }
+        TaskSelector selectorBT1 = bSelectors.taskSelectors.find { it.name == 't1' }
+        TaskSelector selectorBT3 = bSelectors.taskSelectors.find { it.name == 't3' }
+        def result = withBuild { BuildLauncher it ->
+            it.forLaunchables(selectorBT1, selectorBT3, selectorT1)
+        }
+        then:
+        result.result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
     }
 
     @TargetGradleVersion(">=1.0-milestone-8")
