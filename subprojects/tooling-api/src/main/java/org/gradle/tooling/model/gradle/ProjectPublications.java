@@ -18,7 +18,6 @@ package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.GradlePublication;
 
 /**
  * A model providing information about the publications of a Gradle project.
