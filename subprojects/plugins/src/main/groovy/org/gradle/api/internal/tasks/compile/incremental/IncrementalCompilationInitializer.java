@@ -17,13 +17,12 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.collect.Iterables;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.util.PatternSet;
 
-import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 
 import static java.util.Arrays.asList;
 
@@ -53,9 +52,7 @@ class IncrementalCompilationInitializer {
         //since we're compiling selectively we need to include the classes compiled previously
         spec.setClasspath(Iterables.concat(spec.getClasspath(), asList(spec.getDestinationDir())));
         //get rid of stale files
-        Set<File> staleClassFiles = fileOperations.fileTree(spec.getDestinationDir()).matching(classesToDelete).getFiles();
-        for (File staleClassFile : staleClassFiles) {
-            staleClassFile.delete();
-        }
+        FileTree deleteMe = fileOperations.fileTree(spec.getDestinationDir()).matching(classesToDelete);
+        fileOperations.delete(deleteMe);
     }
 }
