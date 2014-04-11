@@ -71,3 +71,5 @@ class PrepareVersionsInfo extends DefaultTask {
        logger.info "Saved released versions information in: $destFile"
    }
 }
+
+apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"

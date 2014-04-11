@@ -92,7 +92,7 @@ public interface ProjectConnection {
     BuildLauncher newBuild();
 
     /**
-     * Creates a builder which can be used to build the model of the given type.
+     * Creates a builder which can be used to query the model of the given type.
      *
      * <p>Any of following models types may be available, depending on the version of Gradle being used by the target
      * build:
@@ -101,13 +101,15 @@ public interface ProjectConnection {
      *     <li>{@link org.gradle.tooling.model.gradle.GradleBuild}</li>
      *     <li>{@link org.gradle.tooling.model.build.BuildEnvironment}</li>
      *     <li>{@link org.gradle.tooling.model.GradleProject}</li>
+     *     <li>{@link org.gradle.tooling.model.gradle.BuildInvocations}</li>
+     *     <li>{@link org.gradle.tooling.model.gradle.ProjectPublications}</li>
      *     <li>{@link org.gradle.tooling.model.idea.IdeaProject}</li>
      *     <li>{@link org.gradle.tooling.model.idea.BasicIdeaProject}</li>
      *     <li>{@link org.gradle.tooling.model.eclipse.EclipseProject}</li>
      *     <li>{@link org.gradle.tooling.model.eclipse.HierarchicalEclipseProject}</li>
      * </ul>
      *
-     * <p>A build may also expose additional custom tooling models.
+     * <p>A build may also expose additional custom tooling models. You can use this method to query these models.
      *
      * @param modelType The model type
      * @param <T> The model type.

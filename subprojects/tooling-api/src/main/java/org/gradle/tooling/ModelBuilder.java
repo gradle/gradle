@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * A {@code ModelBuilder} allows you to fetch a snapshot of the model for a project.
+ * A {@code ModelBuilder} allows you to fetch a snapshot of some model for a project or a build.
  * Instances of {@code ModelBuilder} are not thread-safe.
  * <p>
  * You use a {@code ModelBuilder} as follows:
