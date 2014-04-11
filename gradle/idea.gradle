@@ -202,6 +202,7 @@ idea {
                       <excludes>
                         <file url="file://$PROJECT_DIR$/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy" />
                       </excludes>
+                      <option name="heapSize" value="2000" />
                     </component>
                 '''))
             }
