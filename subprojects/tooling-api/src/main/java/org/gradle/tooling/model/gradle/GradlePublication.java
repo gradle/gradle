@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.model.GradleModuleVersion;
 
 /**
- * A publication of a Gradle project.
+ * Represents some publication produced by a Gradle project, typically to a Maven or Ivy repository.
  *
  * @since 1.12
  */
