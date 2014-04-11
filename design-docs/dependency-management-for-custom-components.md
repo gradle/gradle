@@ -6,7 +6,7 @@ This spec describes some work to allow plugins to define the kinds of components
 There is currently a disconnect in the terminology used for the dependency management component model, and that used
 for the component model provided by the native plugins.
 
-The dependency management model uses the term `component instance` or `component` to refer to what is knoen as a `binary`
+The dependency management model uses the term `component instance` or `component` to refer to what is known as a `binary`
 in the native model. A `component` in the native model doesn't really have a corresponding concept in the dependency
 management model (a `module` is the closest we have, and this is not the same thing).
 
@@ -15,11 +15,79 @@ Part of the work for this spec is to unify the terminology. This is yet to be de
 For now, this spec uses the terminology from the native component model, using `binary` to refer to what is also
 known as a `component instance` or `variant`.
 
+TODO - replace 'binary' with 'component'.
+
 # Stories
 
-## Feature: Plugins produce and consume local binaries with custom type
+## Feature: Plugins produce and consume local jvm library binaries
 
-### Plugin declares a structured binary type
+### Rename 'binary' to 'component'
+
+TBD
+
+### API to resolve dependencies on a graph of binaries
+
+- Add a new consumer API that allows a graph of binaries to be resolved. Takes as input:
+    - A set of dependency declarations. Can be a set of `Dependency` instances at this stage.
+    - The expected binary type. Only jvm library binaries will be supported for this story.
+    - The usage. Only 'compile' and 'runtime' will be supported for this story.
+- Produces a `ResolutionResult` and an `ArtifactResolutionResult`.
+- Dependencies are resolved as per the `Configuration` API.
+    - All usages should resolve using the `default` configuration, or the configuration specified using an override.
+- A custom plugin can use this API to resolve a graph of dependencies.
+
+#### Test cases
+
+- Project with custom plugin that uses new resolution API can use the jar produced by another project that uses the `java` plugin.
+
+#### Open issues
+
+- Should be possible to declare the consuming binary, for conflict resolution.
+- The new dependency sets should be visible in the dependency reports.
+- Probably need to retro-fit this to `Configuration`.
+- Task dependencies on artifacts for a usage.
+
+### Plugin declares a local jvm library binary that it produces
+
+This story introduces the ability to declare a jvm library binary and some basic interoperability between old and new resolution APIs, and between
+new and old JVM plugins.
+
+- A custom plugin can register a binary that it produces for a given project. Only jvm library binaries are supported for this story.
+- Add some convenience to allow a plugin to implement or define a jvm library binary.
+- To resolve a project dependency via old API:
+    - When the dependency include a 'configuration' override, use that project configuration.
+    - When the project produces a binary, resolve using the default usage for that binary. Fail when multiple binaries.
+        - Do not allow 'artifacts' or 'exclude' overrides on dependency.
+    - Otherwise, use the `default` project configuration.
+- To resolve a project dependency via new API:
+    - When the dependency include a 'configuration' override, use that project configuration.
+    - When the project produces a binary, resolve using the requested usage for that binary. Fail when multiple binaries.
+        - Do not allow 'artifacts' or 'exclude' overrides on dependency.
+        - Fail for unknown usage.
+    - Otherwise, use the `default` project configuration.
+
+#### Test cases
+
+- Project that uses `java` plugin can use a jvm library binary produced by another project that does not use the `java` plugin.
+    - Uses runtime dependencies and artifacts.
+- Project with custom plugin that uses new resolution API can use a jvm library binary produced by another project.
+    - Can require different dependencies at compile and runtime.
+    - Can provide different artifacts at compile and runtime.
+
+#### Open issues
+
+- Task dependencies on artifacts for a usage.
+- Resolution result should use binary's id.
+- Dependencies report should use binary's display name.
+
+### Legacy jvm plugins declare local jvm binary
+
+- The 'java' plugin declares a jvm binary, backed by the project configurations.
+- To resolve a project dependency via new API:
+    - Fail if target project does not produce a jvm binary.
+    - Do not allow 'configuration' overrides.
+
+### Plugin declares a custom structured binary type
 
 - Plugin registers some meta-data about a binary type.
     - binary type is identified by some fully qualified name.
@@ -27,68 +95,21 @@ known as a `component instance` or `variant`.
     - the artifacts types included for each usage.
     - the meta-data must declare a default usage.
 - API should allow this meta-data to be inferred from a Java interface that represents the binary type.
-
-### Plugin declares a local binary that it produces
-
-- Every project produces an implicit 'legacy' or 'untyped' binary
-    - This binary will be used to transition from the existing model to the component model, and will be deprecated and removed
-      once the work described in this spec has been completed.
-    - The dependency meta-data for this binary is backed by the project's configurations.
-- A plugin can register a binary that it produces for a given project.
 - API should allow a way to map the properties of this object to the dependency meta-data for the binary:
     - The binary type.
     - The dependencies for each usage.
     - The artifacts for each usage.
-- API should allow a convenience to register the binary and its meta-data as a single operation.
-- To resolve a project dependency:
-    - When the dependency include a 'configuration' override, use that project configuration.
-    - Otherwise, resolve using the dependencies and artifacts from the legacy binary's default usage.
-    - Cannot use 'artifacts' or 'exclude' overrides on dependency.
+- Some base jvm plugin defines jvm library binary.
+- New resolution API uses this meta-data to validate dependency.
+- To resolve a project dependency, select the binary with the requested type. Fail if not exactly one such binary.
 
 #### Open issues
 
-- Task dependencies on artifacts for a usage.
-- Resolution result should use binary's id
-- Dependencies report should use binary's display name.
-
-### API to resolve dependencies for a given binary type and usage
-
-- Add a new consumer API that allows a graph of dependencies to be resolved and:
-    - Allows the expected binary type to be declared.
-    - Allows the usage to be declared.
-    - Allows the consuming binary to be declared.
-- To resolve a project dependency:
-    - When the dependency include a 'configuration' override, use that project configuration.
-    - Otherwise, select a matching binary
-        - Select the binary with the declared type, if any. Fall back to the legacy binary if none. Fail if multiple such binaries.
-        - Resolve using the dependencies and artifacts from the nominated usage.
-        - Do not allow any 'artifact' overrides in this kind of dependency.
-
-#### Open issues
-
-- The new dependency sets should be visible in the `dependencies` report.
-- Probably need to retro-fit this to `Configuration`.
-
-## Feature: Core plugins produce and consume jvm library binaries
-
-### Core plugins define jvm library binary type
-
-- Core plugins define a jvm library binary type.
-    - Compile and runtime usages.
-    - Has jar artifacts.
-    - Has source and javadoc artifacts.
-- Artifact query API uses binary meta-data to produce results, rather than hard-coded in the implementation.
-
-#### Open issues
-
+- Should be possible to extend the jvm library binary type.
 - Make a binary specific meta-data view available in the resolution result.
 - Make the binary specific artifact types available in the consumer.
 
-### Legacy jvm plugins declare the binaries that they produce
-
-- `java` plugin declares a jvm library binary.
-- The usage meta-data of this binary is backed by the project's configurations.
-- The API should allow the `java` plugin to decorate the legacy binary to attach jvm library meta-data to it.
+## Feature: Core plugins produce and consume jvm library components
 
 ### Java component plugins declare the binaries that they produce
 
@@ -112,27 +133,11 @@ produce something.
 
 - Apply to legacy plugins too.
 
-## Feature: Core plugins produce and consume jvm libraries
+### Plugin declares the jvm library components it produces
 
-This feature refers to jvm library components, as an aggregate of jvm library binaries.
-
-### Plugin declares a custom structured component type
-
-- Plugin registers some meta-data about a component type:
-    - Component types are identified by a fully qualified name
-    - The binary types the component can be packaged as
-- API allows component meta-data to be inferred from some Java interface.
-
-### Plugin declares the components it produces
-
-- Plugin can declare the components it produces for a given project.
+- Plugin can declare the jvm library components it produces for a given project. Only jvm libraries are supported at this stage.
 - Each component can have one or more binaries associated with it.
 - Binaries of all components are considered when resolving a project dependency.
-
-### Core plugins declare jvm library component type
-
-- Declare a jvm library component type
-    - Packaged as a jvm library binary.
 
 ### Dependency can be declared on a library
 
@@ -140,8 +145,17 @@ This feature refers to jvm library components, as an aggregate of jvm library bi
 - Change project dependencies to allow a 'library' attribute to be specified.
     - Cannot use with 'configuration' or 'artifact' overrides with 'library'.
     - Cannot use 'transitive' flag or 'exclude' rules overrides with 'library'.
-- When resolving such a dependency, consider only the binaries of the requested library component.
+- When resolving such a dependency, consider only the binaries of the target library component.
     - Fail if not exactly one such binary.
+
+### Plugin declares a custom structured component type
+
+- Plugin registers some meta-data about a component type:
+    - Component types are identified by a fully qualified name
+    - The binary types the component can be packaged as
+- API allows component meta-data to be inferred from some Java interface.
+- Core plugins declare a jvm library component type
+    - Packaged as a jvm library binary.
 
 ### Java component plugins produce and consume test fixtures
 
@@ -152,6 +166,8 @@ test fixtures to be declared.
 - Plugin attaches test fixture binaries to production binaries.
 - Test compilation classpath includes compile usage of test fixtures of all production and test dependencies.
 - Test runtime classpath includes runtime usage of test fixtures of all production and test dependencies.
+
+### Java component plugins produce and consume source and javadoc artifacts
 
 #### Open issues
 
