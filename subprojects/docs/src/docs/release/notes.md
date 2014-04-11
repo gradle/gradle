@@ -205,6 +205,11 @@ This way the custom listeners are more robust because they can affect the test s
 There should be no impact of this change because majority of users does not employ custom listeners
 and even if they do healthy listeners will work correctly regardless of the listeners' order.
 
+### Removed Methods
+
+- `GradleLauncher.newInstance()`
+- `GradleLauncher.createStartParameter()`
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

@@ -15,7 +15,6 @@
  */
 package org.gradle.initialization
 
-import org.gradle.GradleLauncher
 import org.gradle.StartParameter
 import org.gradle.cli.CommandLineConverter
 import org.gradle.internal.nativeplatform.services.NativeServices
@@ -32,21 +31,6 @@ class DefaultGradleLauncherFactoryTest extends Specification {
 
     def setup() {
         factory.setCommandLineConverter(parameterConverter);
-    }
-
-    def cleanup() {
-        GradleLauncher.injectCustomFactory(null);
-    }
-
-    def registersSelfWithGradleLauncher() {
-        StartParameter startParameter = new StartParameter();
-
-        when:
-        def result = GradleLauncher.createStartParameter('a')
-
-        then:
-        result == startParameter
-        1 * parameterConverter.convert(['a']) >> startParameter
     }
 
     def newInstanceWithStartParameterAndRequestMetaData() {

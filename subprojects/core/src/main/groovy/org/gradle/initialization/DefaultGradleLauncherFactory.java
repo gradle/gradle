@@ -20,10 +20,6 @@ import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.internal.progress.BuildProgressFilter;
-import org.gradle.internal.progress.BuildProgressLogger;
-import org.gradle.internal.progress.LoggerProvider;
-import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cache.CacheRepository;
@@ -33,8 +29,12 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.progress.BuildProgressFilter;
+import org.gradle.internal.progress.BuildProgressLogger;
+import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
@@ -62,8 +62,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         buildProgressLogger = new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class));
         listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
         listenerManager.useLogger(new DependencyResolutionLogger(sharedServices.get(ProgressLoggerFactory.class)));
-
-        GradleLauncher.injectCustomFactory(this);
     }
 
     public void addListener(Object listener) {

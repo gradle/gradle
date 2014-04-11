@@ -320,14 +320,6 @@ public class DefaultGradleLauncherTest {
         });
     }
 
-    // todo: This test is rather weak. Make it stronger.
-    @Test
-    public void testNewInstanceFactory() {
-        StartParameter startParameter = new StartParameter();
-        GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-        assertThat(gradleLauncher, notNullValue());
-    }
-
     private Matcher<BuildResult> result(final Matcher<? extends Throwable> exceptionMatcher) {
         return new BaseMatcher<BuildResult>() {
             public void describeTo(Description description) {

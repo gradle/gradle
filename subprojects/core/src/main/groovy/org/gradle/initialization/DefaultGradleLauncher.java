@@ -45,8 +45,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildExecuter buildExecuter;
 
     /**
-     * Creates a new instance.  Don't call this directly, use {@link #newInstance(org.gradle.StartParameter)} or {@link
-     * #newInstance(String...)} instead.
+     * Creates a new instance.
      */
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,

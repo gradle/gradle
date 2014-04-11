@@ -39,8 +39,6 @@ import java.util.*;
  * <p>{@code StartParameter} defines the configuration used by a Gradle instance to execute a build. The properties of {@code StartParameter} generally
  * correspond to the command-line options of Gradle.
  *
- * <p>You pass a {@code StartParameter} instance to {@link GradleLauncher#newInstance(StartParameter)} when you create a new Gradle instance.</p>
- *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  *
  * @see GradleLauncher
