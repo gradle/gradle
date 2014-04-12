@@ -16,30 +16,34 @@
 
 package org.gradle.initialization;
 
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
 
 /**
- * This is intended to eventually replace {@link GradleLauncher} internally. It's pretty rough at the moment.
+ * This is intended to eventually replace {@link org.gradle.GradleLauncher} internally. It's pretty rough at the moment.
  */
 public interface BuildController {
     /**
-     * Specifies the start parameter to use to run the build. Cannot be used after the launcher has been created.
+     * Specifies the start parameter to use to run the build. This method cannot be called after any other methods have been called on this controller.
      */
     void setStartParameter(StartParameter startParameter);
 
     /**
-     * Returns the launcher to use to run the build.
+     * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
      */
-    GradleLauncher getLauncher();
+    GradleInternal getGradle();
 
     /**
-     * Runs the build.
+     * Configure the build and schedules and executes tasks specified in the {@link org.gradle.StartParameter} associated with the build.
+     *
+     * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
      */
-    void run();
+    GradleInternal run();
 
     /**
-     * Configures the build but does not run any tasks.
+     * Configures the build but does not schedule or run any tasks.
+     *
+     * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
      */
-    void configure();
+    GradleInternal configure();
 }

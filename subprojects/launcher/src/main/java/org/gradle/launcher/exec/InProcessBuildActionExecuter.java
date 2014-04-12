@@ -17,10 +17,11 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
+import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -46,7 +47,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         private State state = State.NotStarted;
         private final BuildActionParameters actionParameters;
         private final GradleLauncherFactory gradleLauncherFactory;
-        private GradleLauncher gradleLauncher;
+        private DefaultGradleLauncher gradleLauncher;
         private StartParameter startParameter = new StartParameter();
 
         private DefaultBuildController(GradleLauncherFactory gradleLauncherFactory, BuildActionParameters actionParameters) {
@@ -61,30 +62,35 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
             this.startParameter = startParameter;
         }
 
-        public GradleLauncher getLauncher() {
+        public DefaultGradleLauncher getLauncher() {
             if (state == State.Completed) {
                 throw new IllegalStateException("Cannot use launcher after build has completed.");
             }
             if (state == State.NotStarted) {
-                gradleLauncher = gradleLauncherFactory.newInstance(startParameter, actionParameters.getBuildRequestMetaData());
+                gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(startParameter, actionParameters.getBuildRequestMetaData());
                 state = State.Created;
             }
             return gradleLauncher;
         }
 
-        public void run() {
-            check(getLauncher().run());
+        public GradleInternal getGradle() {
+            return getLauncher().getGradle();
         }
 
-        public void configure() {
-            check(getLauncher().getBuildAnalysis());
+        public GradleInternal run() {
+            return check(getLauncher().run());
         }
 
-        private void check(BuildResult buildResult) {
+        public GradleInternal configure() {
+            return check(getLauncher().getBuildAnalysis());
+        }
+
+        private GradleInternal check(BuildResult buildResult) {
             state = State.Completed;
             if (buildResult.getFailure() != null) {
                 throw new ReportedException(buildResult.getFailure());
             }
+            return (GradleInternal) buildResult.getGradle();
         }
 
         public void stop() {
