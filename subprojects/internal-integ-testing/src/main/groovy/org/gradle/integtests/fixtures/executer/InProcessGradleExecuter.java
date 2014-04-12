@@ -173,11 +173,15 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         DefaultGradleLauncherFactory factory = GLOBAL_SERVICES.get(DefaultGradleLauncherFactory.class);
         factory.addListener(listener);
-        GradleLauncher gradleLauncher = factory.newInstance(parameter);
-        gradleLauncher.addStandardOutputListener(outputListener);
-        gradleLauncher.addStandardErrorListener(errorListener);
         try {
-            return gradleLauncher.run();
+            GradleLauncher gradleLauncher = factory.newInstance(parameter);
+            try {
+                gradleLauncher.addStandardOutputListener(outputListener);
+                gradleLauncher.addStandardErrorListener(errorListener);
+                return gradleLauncher.run();
+            } finally {
+                gradleLauncher.stop();
+            }
         } finally {
             // Restore the environment
             System.setProperties(originalSysProperties);
