@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization.buildsrc
 
+import org.gradle.GradleLauncher
 import org.gradle.StartParameter
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.cache.CacheRepository
@@ -46,6 +47,8 @@ class BuildSourceBuilderTest extends Specification {
     void "creates classpath when build src exists"() {
         def cache = Mock(PersistentCache)
         def classpath = Mock(ClassPath)
+        def launcher = Mock(GradleLauncher)
+        launcherFactory.newInstance(_) >> launcher
         buildSourceBuilder.createCache(parameter) >> cache
         cache.useCache(_ as String, _ as BuildSrcUpdateFactory) >> classpath
 

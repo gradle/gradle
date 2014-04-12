@@ -19,9 +19,11 @@ package org.gradle.launcher.exec;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
-import org.gradle.initialization.BuildController;
 import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildController;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -32,10 +34,16 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
 
     public <T> T execute(BuildAction<T> action, BuildActionParameters actionParameters) {
         DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, actionParameters);
-        return action.run(buildController);
+        try {
+            return action.run(buildController);
+        } finally {
+            buildController.stop();
+        }
     }
 
-    private static class DefaultBuildController implements BuildController {
+    private static class DefaultBuildController implements BuildController, Stoppable {
+        private enum State { NotStarted, Created, Completed }
+        private State state = State.NotStarted;
         private final BuildActionParameters actionParameters;
         private final GradleLauncherFactory gradleLauncherFactory;
         private GradleLauncher gradleLauncher;
@@ -47,15 +55,19 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         }
 
         public void setStartParameter(StartParameter startParameter) {
-            if (gradleLauncher != null) {
-                throw new IllegalStateException("Cannot change start parameter after launcher has been created.");
+            if (state != State.NotStarted) {
+                throw new IllegalStateException("Cannot change start parameter after build has started.");
             }
             this.startParameter = startParameter;
         }
 
         public GradleLauncher getLauncher() {
-            if (gradleLauncher == null) {
+            if (state == State.Completed) {
+                throw new IllegalStateException("Cannot use launcher after build has completed.");
+            }
+            if (state == State.NotStarted) {
                 gradleLauncher = gradleLauncherFactory.newInstance(startParameter, actionParameters.getBuildRequestMetaData());
+                state = State.Created;
             }
             return gradleLauncher;
         }
@@ -69,9 +81,14 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         }
 
         private void check(BuildResult buildResult) {
+            state = State.Completed;
             if (buildResult.getFailure() != null) {
                 throw new ReportedException(buildResult.getFailure());
             }
+        }
+
+        public void stop() {
+            CompositeStoppable.stoppable(gradleLauncher).stop();
         }
     }
 }

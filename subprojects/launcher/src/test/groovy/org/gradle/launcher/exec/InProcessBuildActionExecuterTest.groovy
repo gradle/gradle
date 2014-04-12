@@ -39,6 +39,21 @@ class InProcessBuildActionExecuterTest extends Specification {
         _ * param.buildRequestMetaData >> metaData
     }
 
+    def "does nothing when action does not use the build"() {
+        BuildAction<String> action = Mock()
+
+        when:
+        def result = executer.execute(action, param)
+
+        then:
+        result == '<result>'
+
+        and:
+        1 * action.run(!null) >> { BuildController controller ->
+            return '<result>'
+        }
+    }
+
     def "creates a launcher using a default StartParameter when the action does not specify any"() {
         BuildAction<String> action = Mock()
 
@@ -54,6 +69,7 @@ class InProcessBuildActionExecuterTest extends Specification {
             assert controller.launcher == launcher
             return '<result>'
         }
+        1 * launcher.stop()
     }
 
     def "creates a launcher using StartParameter specified by the action"() {
@@ -73,6 +89,7 @@ class InProcessBuildActionExecuterTest extends Specification {
             assert controller.launcher == launcher
             return '<result>'
         }
+        1 * launcher.stop()
     }
 
     def "cannot set start parameters after launcher created"() {
@@ -91,7 +108,10 @@ class InProcessBuildActionExecuterTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'Cannot change start parameter after launcher has been created.'
+        e.message == 'Cannot change start parameter after build has started.'
+
+        and:
+        1 * launcher.stop()
     }
 
     def "runs build when requested by action"() {
@@ -111,6 +131,7 @@ class InProcessBuildActionExecuterTest extends Specification {
             controller.run()
             return '<result>'
         }
+        1 * launcher.stop()
     }
 
     def "configures build when requested by action"() {
@@ -130,6 +151,29 @@ class InProcessBuildActionExecuterTest extends Specification {
             controller.configure()
             return '<result>'
         }
+        1 * launcher.stop()
+    }
+
+    def "cannot request configuration after build has been run"() {
+        BuildAction<String> action = Mock()
+
+        given:
+        action.run(!null) >> { BuildController controller ->
+            controller.run()
+            controller.configure()
+        }
+
+        when:
+        executer.execute(action, param)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot use launcher after build has completed.'
+
+        and:
+        1 * factory.newInstance(!null, metaData) >> launcher
+        1 * launcher.run() >> buildResult
+        1 * launcher.stop()
     }
 
     def "wraps build failure"() {
@@ -152,5 +196,6 @@ class InProcessBuildActionExecuterTest extends Specification {
         1 * action.run(!null) >> { BuildController controller ->
             controller.run()
         }
+        1 * launcher.stop()
     }
 }

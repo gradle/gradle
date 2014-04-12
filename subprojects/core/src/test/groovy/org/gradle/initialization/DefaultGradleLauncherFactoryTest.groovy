@@ -16,7 +16,6 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.cli.CommandLineConverter
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -25,13 +24,8 @@ import org.gradle.logging.LoggingServiceRegistry
 import spock.lang.Specification
 
 class DefaultGradleLauncherFactoryTest extends Specification {
-    final CommandLineConverter<StartParameter> parameterConverter = Mock()
     final ServiceRegistry sharedServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices(false))
     final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(sharedServices)
-
-    def setup() {
-        factory.setCommandLineConverter(parameterConverter);
-    }
 
     def newInstanceWithStartParameterAndRequestMetaData() {
         StartParameter startParameter = new StartParameter();
@@ -68,16 +62,4 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         request != requestMetaData
         request.client == clientMetaData
     }
-
-    def createStartParameter() {
-        StartParameter startParameter = new StartParameter();
-
-        when:
-        def result = factory.createStartParameter('a')
-
-        then:
-        result == startParameter
-        1 * parameterConverter.convert(['a']) >> startParameter
-    }
-
 }

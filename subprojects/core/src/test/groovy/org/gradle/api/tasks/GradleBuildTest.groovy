@@ -51,6 +51,7 @@ public class GradleBuildTest extends Specification {
         1 * launcherFactory.newInstance(task.startParameter) >> launcher
         1 * launcher.run() >> resultMock
         1 * resultMock.rethrowFailure()
+        1 * launcher.stop()
         0 * _._
     }
 }

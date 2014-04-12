@@ -74,7 +74,11 @@ public class BuildSourceBuilder {
         final PersistentCache buildSrcCache = createCache(startParameter);
         try {
             GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
-            return buildSrcCache.useCache("rebuild buildSrc", new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, new BuildSrcBuildListenerFactory()));
+            try {
+                return buildSrcCache.useCache("rebuild buildSrc", new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, new BuildSrcBuildListenerFactory()));
+            } finally {
+                gradleLauncher.stop();
+            }
         } finally {
             // This isn't quite right. We should not unlock the classes until we're finished with them, and the classes may be used across multiple builds
             buildSrcCache.close();

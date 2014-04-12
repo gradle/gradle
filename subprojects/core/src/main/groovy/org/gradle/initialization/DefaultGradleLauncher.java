@@ -187,4 +187,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         loggingManager.addStandardErrorListener(listener);
     }
 
+    public void stop() {
+        // No-op for now
+    }
 }

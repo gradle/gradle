@@ -16,6 +16,7 @@
 package org.gradle;
 
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.concurrent.Stoppable;
 
 /**
  * <p>Executes a Gradle build.
@@ -27,7 +28,7 @@ import org.gradle.api.logging.StandardOutputListener;
  * @deprecated Use the tooling API instead.
  */
 @Deprecated
-public abstract class GradleLauncher {
+public abstract class GradleLauncher implements Stoppable {
 
     /**
      * <p>Executes the build for this {@code GradleLauncher} instance and returns the result. Note that when the build

@@ -23,7 +23,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
@@ -45,13 +44,10 @@ import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.Arrays;
-
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final ServiceRegistry sharedServices;
     private final NestedBuildTracker tracker;
     private final BuildProgressLogger buildProgressLogger;
-    private CommandLineConverter<StartParameter> commandLineConverter;
 
     public DefaultGradleLauncherFactory(ServiceRegistry globalServices) {
         sharedServices = globalServices;
@@ -70,13 +66,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
     public void removeListener(Object listener) {
         sharedServices.get(ListenerManager.class).removeListener(listener);
-    }
-
-    public StartParameter createStartParameter(String... commandLineArgs) {
-        if (commandLineConverter == null) {
-            commandLineConverter = sharedServices.get(CommandLineConverter.class);
-        }
-        return commandLineConverter.convert(Arrays.asList(commandLineArgs));
     }
 
     public DefaultGradleLauncher newInstance(StartParameter startParameter) {
@@ -143,11 +132,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 listenerManager.getBroadcaster(ModelConfigurationListener.class),
                 listenerManager.getBroadcaster(TasksCompletionListener.class),
                 gradle.getServices().get(BuildExecuter.class));
-    }
-
-    public void setCommandLineConverter(
-            CommandLineConverter<StartParameter> commandLineConverter) {
-        this.commandLineConverter = commandLineConverter;
     }
 
     private static class BuildCleanupListener extends BuildAdapter {

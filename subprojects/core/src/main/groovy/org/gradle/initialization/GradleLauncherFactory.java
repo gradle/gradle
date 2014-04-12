@@ -25,13 +25,14 @@ import org.gradle.StartParameter;
 public interface GradleLauncherFactory {
     /**
      * Creates a new {@link org.gradle.GradleLauncher} instance for the given parameters.
-     *
-     * @param startParameter The parameters to use for the build.
-     * @return The new instance.
+     * Caller must call {@link org.gradle.GradleLauncher#stop()} when finished with the launcher.
      */
     GradleLauncher newInstance(StartParameter startParameter, BuildRequestMetaData requestMetaData);
 
+    /**
+     * Creates a new {@link org.gradle.GradleLauncher} instance for the given parameters.
+     * Caller must call {@link org.gradle.GradleLauncher#stop()} when finished with the launcher.
+     */
     GradleLauncher newInstance(StartParameter startParameter);
 
-    StartParameter createStartParameter(String... commandLineArgs);
 }
