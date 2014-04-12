@@ -46,28 +46,12 @@ public abstract class GradleLauncher {
     public abstract BuildResult getBuildAnalysis();
 
     /**
-     * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via
-     * the {@link org.gradle.api.invocation.Gradle#getRootProject()} object. Fills the execution plan without running
-     * the build. The tasks to be executed tasks are available via {@link org.gradle.api.invocation.Gradle#getTaskGraph()}.
-     *
-     * @return The result. Never returns null.
-     */
-    public abstract BuildResult getBuildAndRunAnalysis();
-
-    /**
      * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of
      * the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for supported listener types.</p>
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
     public abstract void addListener(Object listener);
-
-    /**
-     * Use the given listener. See {@link org.gradle.api.invocation.Gradle#useLogger(Object)} for details.
-     *
-     * @param logger The logger to use.
-     */
-    public abstract void useLogger(Object logger);
 
     /**
      * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
@@ -83,10 +67,4 @@ public abstract class GradleLauncher {
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
     public abstract void addStandardErrorListener(StandardOutputListener listener);
-
-    /**
-     * Returns the {@link StartParameter} used by this build instance.
-     * @return The parameter. Never null.
-     */
-    public abstract StartParameter getStartParameter();
 }

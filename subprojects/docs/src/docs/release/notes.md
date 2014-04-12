@@ -209,6 +209,9 @@ and even if they do healthy listeners will work correctly regardless of the list
 
 - `GradleLauncher.newInstance()`
 - `GradleLauncher.createStartParameter()`
+- `GradleLauncher.getBuildAndRunAnalysis()`
+- `GradleLauncher.useLogger()`
+- `GradleLauncher.getStartParameter()`
 
 ## External contributions
 

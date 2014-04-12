@@ -18,7 +18,6 @@ package org.gradle.initialization;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
-import org.gradle.StartParameter;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -29,7 +28,7 @@ import org.gradle.logging.LoggingManagerInternal;
 
 public class DefaultGradleLauncher extends GradleLauncher {
     private enum Stage {
-        Configure, PopulateTaskGraph, Build
+        Configure, Build
     }
 
     private final GradleInternal gradle;
@@ -91,18 +90,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         return doBuild(Stage.Configure);
     }
 
-    /**
-     * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via
-     * the {@link org.gradle.api.invocation.Gradle#getRootProject()} object. Fills the execution plan without running
-     * the build. The tasks to be executed tasks are available via {@link org.gradle.api.invocation.Gradle#getTaskGraph()}.
-     *
-     * @return A BuildResult object. Never returns null.
-     */
-    @Override
-    public BuildResult getBuildAndRunAnalysis() {
-        return doBuild(Stage.PopulateTaskGraph);
-    }
-
     private BuildResult doBuild(Stage upTo) {
         loggingManager.start();
         buildListener.buildStarted(gradle);
@@ -157,10 +144,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
             buildListener.projectsEvaluated(gradle);
         }
 
-        if (upTo == Stage.PopulateTaskGraph) {
-            return;
-        }
-
         // Execute build
         buildExecuter.execute();
         tasksCompletionListener.onTasksFinished(gradle);
@@ -183,16 +166,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     /**
-     * Use the given listener. See {@link org.gradle.api.invocation.Gradle#useLogger(Object)} for details.
-     *
-     * @param logger The logger to use.
-     */
-    @Override
-    public void useLogger(Object logger) {
-        gradle.useLogger(logger);
-    }
-    
-    /**
      * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
      * standard output by Gradle's logging system
      *
@@ -214,8 +187,4 @@ public class DefaultGradleLauncher extends GradleLauncher {
         loggingManager.addStandardErrorListener(listener);
     }
 
-    @Override
-    public StartParameter getStartParameter() {
-        return gradle.getStartParameter();
-    }
 }

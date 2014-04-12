@@ -145,18 +145,6 @@ public class DefaultGradleLauncherTest {
     }
 
     @Test
-    public void testGetBuildAndRunAnalysis() {
-        expectLoggingStartedAndStoped();
-        expectInitScriptsExecuted();
-        expectSettingsBuilt();
-        expectDagBuilt();
-        expectBuildListenerCallbacks();
-        BuildResult buildResult = gradleLauncher.getBuildAndRunAnalysis();
-        assertThat(buildResult.getGradle(), sameInstance((Object) gradleMock));
-        assertThat(buildResult.getFailure(), nullValue());
-    }
-
-    @Test
     public void testGetBuildAnalysis() {
         expectLoggingStartedAndStoped();
         expectInitScriptsExecuted();
