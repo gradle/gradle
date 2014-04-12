@@ -44,6 +44,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final LoggingManagerInternal loggingManager;
     private final ModelConfigurationListener modelConfigurationListener;
     private final TasksCompletionListener tasksCompletionListener;
+    private final BuildCompletionListener buildCompletionListener;
     private final BuildExecuter buildExecuter;
     private final Closeable buildServices;
 
@@ -54,7 +55,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
                                  ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
                                  ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
-                                 BuildExecuter buildExecuter, Closeable buildServices) {
+                                 BuildExecuter buildExecuter, BuildCompletionListener buildCompletionListener, Closeable buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -66,6 +67,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.modelConfigurationListener = modelConfigurationListener;
         this.tasksCompletionListener = tasksCompletionListener;
         this.buildExecuter = buildExecuter;
+        this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
     }
 
@@ -185,12 +187,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     public void stop() {
-        // Switching Logging off is important if the Gradle factory is used to
-        // run multiple Gradle builds (each one requiring a new instances of GradleLauncher).
-        // Switching it off shouldn't be strictly necessary as StandardOutput capturing should
-        // always be closed. But as we expose this functionality to the builds, we can't
-        // guarantee this.
-        loggingManager.stop();
-        CompositeStoppable.stoppable(buildServices).stop();
+        try {
+            loggingManager.stop();
+            CompositeStoppable.stoppable(buildServices).stop();
+        } finally {
+            buildCompletionListener.completed();
+        }
     }
 }
