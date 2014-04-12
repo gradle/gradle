@@ -24,7 +24,10 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.logging.LoggingManagerInternal;
+
+import java.io.Closeable;
 
 public class DefaultGradleLauncher extends GradleLauncher {
     private enum Stage {
@@ -42,6 +45,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final ModelConfigurationListener modelConfigurationListener;
     private final TasksCompletionListener tasksCompletionListener;
     private final BuildExecuter buildExecuter;
+    private final Closeable buildServices;
 
     /**
      * Creates a new instance.
@@ -50,7 +54,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
                                  ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
                                  ModelConfigurationListener modelConfigurationListener, TasksCompletionListener tasksCompletionListener,
-                                 BuildExecuter buildExecuter) {
+                                 BuildExecuter buildExecuter, Closeable buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -62,6 +66,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.modelConfigurationListener = modelConfigurationListener;
         this.tasksCompletionListener = tasksCompletionListener;
         this.buildExecuter = buildExecuter;
+        this.buildServices = buildServices;
     }
 
     public GradleInternal getGradle() {
@@ -103,12 +108,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         BuildResult buildResult = new BuildResult(gradle, failure);
         buildListener.buildFinished(buildResult);
 
-        // Switching Logging off is important if the Gradle factory is used to
-        // run multiple Gradle builds (each one requiring a new instances of GradleLauncher).
-        // Switching it off shouldn't be strictly necessary as StandardOutput capturing should
-        // always be closed. But as we expose this functionality to the builds, we can't
-        // guarantee this.
-        loggingManager.stop();
         return buildResult;
     }
 
@@ -151,8 +150,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         assert upTo == Stage.Build;
     }
 
-    // This is used for mocking
-
     /**
      * <p>Adds a listener to this build instance. The listener is notified of events which occur during the
      * execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for supported listener
@@ -188,6 +185,12 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     public void stop() {
-        // No-op for now
+        // Switching Logging off is important if the Gradle factory is used to
+        // run multiple Gradle builds (each one requiring a new instances of GradleLauncher).
+        // Switching it off shouldn't be strictly necessary as StandardOutput capturing should
+        // always be closed. But as we expose this functionality to the builds, we can't
+        // guarantee this.
+        loggingManager.stop();
+        CompositeStoppable.stoppable(buildServices).stop();
     }
 }

@@ -16,7 +16,9 @@
 
 package org.gradle.initialization;
 
-import org.gradle.*;
+import org.gradle.BuildLogger;
+import org.gradle.StartParameter;
+import org.gradle.TaskExecutionLogger;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -102,7 +104,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
         }
         listenerManager.addListener(tracker);
-        listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
 
         listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
@@ -131,20 +132,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 loggingManager,
                 listenerManager.getBroadcaster(ModelConfigurationListener.class),
                 listenerManager.getBroadcaster(TasksCompletionListener.class),
-                gradle.getServices().get(BuildExecuter.class));
+                gradle.getServices().get(BuildExecuter.class),
+                serviceRegistry);
     }
-
-    private static class BuildCleanupListener extends BuildAdapter {
-        private final BuildScopeServices services;
-
-        private BuildCleanupListener(BuildScopeServices services) {
-            this.services = services;
-        }
-
-        @Override
-        public void buildFinished(BuildResult result) {
-            services.close();
-        }
-    }
-
 }
