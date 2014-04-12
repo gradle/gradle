@@ -69,7 +69,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 class InProcessGradleExecuter extends AbstractGradleExecuter {
-    private static ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
+    private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
             .displayName("Global services")
             .parent(LoggingServiceRegistry.newProcessLogging())
             .parent(NativeServices.getInstance())
