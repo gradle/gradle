@@ -41,15 +41,15 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
     public BuildActionResult run(BuildController buildController) {
         GradleInternal gradle = buildController.getGradle();
 
-        gradle.addListener(new ModelConfigurationListener() {
-            public void onConfigure(GradleInternal gradle) {
-                // Currently need to force everything to be configured
-                ensureAllProjectsEvaluated(gradle);
-            }
-        });
         if (runTasks) {
             buildController.run();
         } else {
+            gradle.addListener(new ModelConfigurationListener() {
+                public void onConfigure(GradleInternal gradle) {
+                    // Currently need to force everything to be configured
+                    ensureAllProjectsEvaluated(gradle);
+                }
+            });
             buildController.configure();
         }
 
