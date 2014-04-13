@@ -343,6 +343,30 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    public void appliesConventionMappingToProtectedMethods() throws Exception {
+        BeanWithNonPublicProperties bean = generator.newInstance(BeanWithNonPublicProperties.class);
+
+        assertThat(bean.getPackageProtected(), equalTo("package-protected"));
+        assertThat(bean.getProtected(), equalTo("protected"));
+        assertThat(bean.getPrivate(), equalTo("private"));
+
+        IConventionAware conventionAware = (IConventionAware) bean;
+        conventionAware.getConventionMapping().map("packageProtected", new Callable<String>() {
+            public String call() {
+                return "1";
+            }
+        });
+        conventionAware.getConventionMapping().map("protected", new Callable<String>() {
+            public String call() {
+                return "2";
+            }
+        });
+
+        assertThat(bean.getPackageProtected(), equalTo("1"));
+        assertThat(bean.getProtected(), equalTo("2"));
+    }
+
+    @Test
     @Issue("GRADLE-2163")
     public void appliesConventionMappingToGroovyBoolean() throws Exception {
         BeanWithGroovyBoolean bean = generator.generate(BeanWithGroovyBoolean.class).newInstance();
@@ -666,6 +690,10 @@ public class AsmBackedClassGeneratorTest {
         bean.prop = "value";
 
         call("{def value; it.doStuff { value = it }; assert value == \'value\' }", bean);
+
+        BeanWithOverloadedMethods subBean = generator.generate(BeanWithOverloadedMethods.class).newInstance();
+
+        call("{def value; it.doStuff { value = it }; assert value == \'overloaded\' }", subBean);
     }
 
     @Test
@@ -700,9 +728,45 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public static class BeanWithOverloadedMethods extends Bean {
+        @Override
+        public String getProp() {
+            return super.getProp();
+        }
+
+        @Override
+        public void setProp(String prop) {
+            super.setProp(prop);
+        }
+
+        @Override
+        public String doStuff(String value) {
+            return super.doStuff(value);
+        }
+
+        @Override
+        public void doStuff(Action<String> action) {
+            action.execute("overloaded");
+        }
+    }
+
     public static class BeanWithReadOnlyProperties {
         public String getProp() {
             return "value";
+        }
+    }
+
+    public static class BeanWithNonPublicProperties {
+        String getPackageProtected() {
+            return "package-protected";
+        }
+
+        protected String getProtected() {
+            return "protected";
+        }
+
+        private String getPrivate() {
+            return "private";
         }
     }
 
