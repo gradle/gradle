@@ -47,12 +47,12 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
         boolean didWork = false;
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
         spec = specTransformer.transform(spec);
-        CommandLineTool commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
             RcCompilerArgsTransformer argsTransformer = new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation);
             CommandLineToolInvocation invocation = new CommandLineToolInvocation();
             invocation.args = argsTransformer.transform(spec);
-            WorkResult result = commandLineAssembler.execute(invocation);
+            invocation.workDirectory = spec.getObjectFileDir();
+            WorkResult result = commandLineTool.execute(invocation);
             didWork |= result.getDidWork();
         }
         return new SimpleWorkResult(didWork);

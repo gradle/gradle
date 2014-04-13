@@ -93,14 +93,14 @@ class GccPlatformToolChain implements PlatformToolChain {
 
     public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
         CommandLineTool commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
-            return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool, toolRegistry.getTool(ToolType.STATIC_LIB_ARCHIVER).getArgAction());
+        return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool, toolRegistry.getTool(ToolType.STATIC_LIB_ARCHIVER).getArgAction());
     }
 
     private String getOutputFileSuffix() {
         return OperatingSystem.current().isWindows() ? ".obj" : ".o";
     }
 
-    private <T extends BinaryToolSpec> CommandLineTool commandLineTool(ToolType key) {
+    private CommandLineTool commandLineTool(ToolType key) {
         String exeName = toolRegistry.getTool(key).getExecutable();
         CommandLineTool commandLineTool = new CommandLineTool(key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
         // MinGW requires the path to be set

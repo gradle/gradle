@@ -51,7 +51,8 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements org
                     true);
             CommandLineToolInvocation invocation = new CommandLineToolInvocation();
             invocation.args = argTransformer.transform(specTransformer.transform(spec));
-            WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(invocation);
+            invocation.workDirectory = spec.getObjectFileDir();
+            WorkResult result = commandLineTool.execute(invocation);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);

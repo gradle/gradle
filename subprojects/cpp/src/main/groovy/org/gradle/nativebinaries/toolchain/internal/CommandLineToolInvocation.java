@@ -15,9 +15,11 @@
  */
 package org.gradle.nativebinaries.toolchain.internal;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CommandLineToolInvocation {
     public List<String> args = new ArrayList<String>();
+    public File workDirectory;
 }

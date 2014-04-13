@@ -42,11 +42,11 @@ class Assembler implements Compiler<AssembleSpec> {
 
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
-        CommandLineTool commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
             CommandLineToolInvocation invocation = new CommandLineToolInvocation();
             invocation.args = new AssemblerArgsTransformer(sourceFile).transform(spec);
-            WorkResult result = commandLineAssembler.execute(invocation);
+            invocation.workDirectory = spec.getObjectFileDir();
+            WorkResult result = commandLineTool.execute(invocation);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);

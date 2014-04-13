@@ -55,8 +55,8 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
                     windowsPathLimitation,
                     false);
             invocation.args = argTransformer.transform(spec);
-            WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir())
-                    .execute(invocation);
+            invocation.workDirectory = spec.getObjectFileDir();
+            WorkResult result = commandLineTool.execute(invocation);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);

@@ -46,13 +46,13 @@ class Assembler implements Compiler<AssembleSpec> {
 
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
-        CommandLineTool commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
             ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile, spec.getObjectFileDir(), outputFileSuffix);
             arguments = new PostTransformActionArgsTransformer<AssembleSpec>(arguments, argsAction);
             CommandLineToolInvocation invocation = new CommandLineToolInvocation();
             invocation.args = arguments.transform(spec);
-            WorkResult result = commandLineAssembler.execute(invocation);
+            invocation.workDirectory = spec.getObjectFileDir();
+            WorkResult result = commandLineTool.execute(invocation);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);

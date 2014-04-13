@@ -35,18 +35,11 @@ public class CommandLineTool {
     private final ExecActionFactory execActionFactory;
     private final Map<String, String> environment = new HashMap<String, String>();
     private final List<File> path = new ArrayList<File>();
-    private File workDir;
 
     public CommandLineTool(String action, File executable, ExecActionFactory execActionFactory) {
         this.action = action;
         this.executable = executable;
         this.execActionFactory = execActionFactory;
-    }
-
-    public CommandLineTool inWorkDirectory(File workDir) {
-        GFileUtils.mkdirs(workDir);
-        this.workDir = workDir;
-        return this;
     }
 
     public CommandLineTool withPath(List<File> pathEntries) {
@@ -67,8 +60,9 @@ public class CommandLineTool {
     public WorkResult execute(CommandLineToolInvocation invocation) {
         ExecAction compiler = execActionFactory.newExecAction();
         compiler.executable(executable);
-        if (workDir != null) {
-            compiler.workingDir(workDir);
+        if (invocation.workDirectory != null) {
+            GFileUtils.mkdirs(invocation.workDirectory);
+            compiler.workingDir(invocation.workDirectory);
         }
 
         compiler.args(invocation.args);
