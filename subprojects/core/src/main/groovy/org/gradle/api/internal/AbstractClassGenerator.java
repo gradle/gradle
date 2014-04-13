@@ -24,10 +24,12 @@ import org.apache.commons.collections.map.AbstractReferenceMap;
 import org.apache.commons.collections.map.ReferenceMap;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.Nullable;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -80,11 +82,11 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         Class<? extends T> subclass;
         try {
-            ClassBuilder<T> builder = start(type);
+            ClassMetaData classMetaData = inspectType(type);
 
-            boolean isConventionAware = type.getAnnotation(NoConventionMapping.class) == null;
+            ClassBuilder<T> builder = start(type, classMetaData);
 
-            builder.startClass(isConventionAware);
+            builder.startClass();
 
             if (!DynamicObjectAware.class.isAssignableFrom(type)) {
                 if (ExtensionAware.class.isAssignableFrom(type)) {
@@ -96,7 +98,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 builder.mixInGroovyObject();
             }
             builder.addDynamicMethods();
-            if (isConventionAware && !IConventionAware.class.isAssignableFrom(type)) {
+            if (classMetaData.conventionAware && !IConventionAware.class.isAssignableFrom(type)) {
                 builder.mixInConventionAware();
             }
 
@@ -107,20 +109,20 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
 
-            Set<PropertyMetaData> settableProperties = new HashSet<PropertyMetaData>();
             Set<PropertyMetaData> conventionProperties = new HashSet<PropertyMetaData>();
 
-            ClassMetaData classMetaData = inspectType(type);
             for (PropertyMetaData property : classMetaData.properties.values()) {
                 if (SKIP_PROPERTIES.contains(property.name)) {
                     continue;
                 }
 
                 boolean needsConventionMapping = false;
-                for (Method getter : property.getters) {
-                    if (!Modifier.isFinal(getter.getModifiers()) && !getter.getDeclaringClass().isAssignableFrom(noMappingClass)) {
-                        needsConventionMapping = true;
-                        break;
+                if (classMetaData.isExtensible()) {
+                    for (Method getter : property.getters) {
+                        if (!Modifier.isFinal(getter.getModifiers()) && !getter.getDeclaringClass().isAssignableFrom(noMappingClass)) {
+                            needsConventionMapping = true;
+                            break;
+                        }
                     }
                 }
 
@@ -128,27 +130,17 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     conventionProperties.add(property);
                     builder.addConventionProperty(property);
                     for (Method getter : property.getters) {
-                        builder.overrideGetter(property, getter);
+                        builder.applyConventionMappingToGetter(property, getter);
                     }
-                }
-
-                if (property.setters.isEmpty()) {
-                    continue;
                 }
 
                 if (needsConventionMapping) {
                     for (Method setter : property.setters) {
                         if (!Modifier.isFinal(setter.getModifiers())) {
-                            builder.overrideSetter(property, setter);
+                            builder.applyConventionMappingToSetter(property, setter);
                         }
                     }
                 }
-
-                if (Iterable.class.isAssignableFrom(property.getType())) {
-                    continue;
-                }
-
-                settableProperties.add(property);
             }
 
             Set<Method> actionMethods = classMetaData.missingOverloads;
@@ -157,14 +149,22 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             // Adds a set method for each mutable property
-            for (PropertyMetaData property : settableProperties) {
+            for (PropertyMetaData property : classMetaData.properties.values()) {
+                if (property.setters.isEmpty()) {
+                    continue;
+                }
+                if (Iterable.class.isAssignableFrom(property.getType())) {
+                    // Currently not supported
+                    continue;
+                }
+
                 if (property.setMethods.isEmpty()) {
                     for (Method setter : property.setters) {
                         builder.addSetMethod(property, setter);
                     }
                 } else if (conventionProperties.contains(property)) {
                     for (Method setMethod : property.setMethods) {
-                        builder.overrideSetMethod(property, setMethod);
+                        builder.applyConventionMappingToSetMethod(property, setMethod);
                     }
                 }
             }
@@ -185,10 +185,13 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         return subclass;
     }
 
-    protected abstract <T> ClassBuilder<T> start(Class<T> type);
+    protected abstract <T> ClassBuilder<T> start(Class<T> type, ClassMetaData classMetaData);
 
     private ClassMetaData inspectType(Class<?> type) {
-        ClassMetaData classMetaData = new ClassMetaData();
+        boolean isConventionAware = type.getAnnotation(NoConventionMapping.class) == null;
+        boolean extensible = JavaReflectionUtil.getAnnotation(type, NonExtensible.class) == null;
+
+        ClassMetaData classMetaData = new ClassMetaData(extensible, isConventionAware);
         for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
             inspectType(current, classMetaData);
         }
@@ -263,7 +266,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 classMetaData.property(propertyName).addSetter(method);
             } else {
                 if (parameterTypes.length == 1) {
-                    classMetaData.addSetMethod(method);
+                    classMetaData.addCandidateSetMethod(method);
                 }
                 if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length-1].equals(Action.class)) {
                     classMetaData.addActionMethod(method);
@@ -274,12 +277,19 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private static class ClassMetaData {
-        final Map<String, PropertyMetaData> properties = new LinkedHashMap<String, PropertyMetaData>();
-        final Set<Method> missingOverloads = new LinkedHashSet<Method>();
-        MethodSet actionMethods = new MethodSet();
-        SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
-        MethodSet setMethods = new MethodSet();
+    protected static class ClassMetaData {
+        private final Map<String, PropertyMetaData> properties = new LinkedHashMap<String, PropertyMetaData>();
+        private final Set<Method> missingOverloads = new LinkedHashSet<Method>();
+        private final boolean extensible;
+        private final boolean conventionAware;
+        private MethodSet actionMethods = new MethodSet();
+        private SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
+        private MethodSet setMethods = new MethodSet();
+
+        public ClassMetaData(boolean extensible, boolean conventionAware) {
+            this.extensible = extensible;
+            this.conventionAware = conventionAware;
+        }
 
         @Nullable
         public PropertyMetaData getProperty(String name) {
@@ -303,7 +313,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             closureMethods.put(method.getName(), method);
         }
 
-        public void addSetMethod(Method method) {
+        public void addCandidateSetMethod(Method method) {
             setMethods.add(method);
         }
 
@@ -315,6 +325,19 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         public void actionMethodRequiresOverload(Method method) {
             missingOverloads.add(method);
+        }
+
+        public boolean providesDynamicObjectImplementation() {
+            PropertyMetaData property = properties.get("asDynamicObject");
+            return property != null && !property.getters.isEmpty();
+        }
+
+        public boolean isExtensible() {
+            return extensible;
+        }
+
+        public boolean isConventionAware() {
+            return conventionAware;
         }
     }
 
@@ -403,7 +426,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     protected interface ClassBuilder<T> {
-        void startClass(boolean isConventionAware);
+        void startClass();
 
         void addConstructor(Constructor<?> constructor) throws Exception;
 
@@ -417,11 +440,11 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         void addConventionProperty(PropertyMetaData property) throws Exception;
 
-        void overrideGetter(PropertyMetaData property, Method getter) throws Exception;
+        void applyConventionMappingToGetter(PropertyMetaData property, Method getter) throws Exception;
 
-        void overrideSetter(PropertyMetaData property, Method setter) throws Exception;
+        void applyConventionMappingToSetter(PropertyMetaData property, Method setter) throws Exception;
 
-        void overrideSetMethod(PropertyMetaData property, Method metaMethod) throws Exception;
+        void applyConventionMappingToSetMethod(PropertyMetaData property, Method metaMethod) throws Exception;
 
         void addSetMethod(PropertyMetaData propertyMetaData, Method setter) throws Exception;
 

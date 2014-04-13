@@ -33,17 +33,18 @@ import spock.lang.Issue;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.reflect.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.AbstractClassGeneratorTestGroovy.BeanWithGroovyBoolean;
+import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.TestUtil.TEST_CLOSURE;
 import static org.gradle.util.TestUtil.call;
-import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-
-import static org.gradle.api.internal.AbstractClassGeneratorTestGroovy.*;
 
 public class AsmBackedClassGeneratorTest {
     private final AbstractClassGenerator generator = new AsmBackedClassGenerator();
@@ -413,6 +414,7 @@ public class AsmBackedClassGeneratorTest {
         assertTrue(bean instanceof IConventionAware);
         assertThat(bean.getSmallB(), equalTo(false));
         assertThat(bean.getBigB(), nullValue());
+        assertThat(bean.getMixedB(), equalTo(false));
 
         IConventionAware conventionAware = (IConventionAware) bean;
 
@@ -438,6 +440,15 @@ public class AsmBackedClassGeneratorTest {
         assertThat(bean.getBigB(), equalTo(Boolean.TRUE));
         bean.setBigB(Boolean.FALSE);
         assertThat(bean.getBigB(), equalTo(Boolean.FALSE));
+
+        conventionAware.getConventionMapping().map("mixedB", new Callable<Object>() {
+            public Object call() throws Exception {
+                return Boolean.TRUE;
+            }
+        });
+
+        assertThat(bean.getMixedB(), equalTo(true));
+        assertThat(bean.isMixedB(), equalTo(Boolean.TRUE));
     }
 
     @Test
@@ -609,6 +620,10 @@ public class AsmBackedClassGeneratorTest {
 
         bean.getAsDynamicObject().setProperty("dynamicProp", "value");
         assertThat(call("{ it.dynamicProp }", bean), equalTo((Object) "value"));
+
+        call("{ it.ext.anotherProp = 12 }", bean);
+        assertThat(bean.getAsDynamicObject().getProperty("anotherProp"), equalTo((Object) 12));
+        assertThat(call("{ it.anotherProp }", bean), equalTo((Object) 12));
     }
 
     @Test
