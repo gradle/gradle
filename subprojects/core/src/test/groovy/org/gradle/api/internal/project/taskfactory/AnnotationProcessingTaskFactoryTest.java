@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.*;
@@ -82,12 +83,13 @@ public class AnnotationProcessingTaskFactoryTest {
 
     private <T extends Task> T expectTaskCreated(final Class<T> type, final Object... params) {
         DefaultProject project = TestUtil.createRootProject();
+        final Class<? extends T> decorated = project.getServices().get(ClassGenerator.class).generate(type);
         T task = AbstractTask.injectIntoNewInstance(project, "task", new Callable<T>() {
             public T call() throws Exception {
                 if (params.length > 0) {
-                    return type.cast(type.getConstructors()[0].newInstance(params));
+                    return type.cast(decorated.getConstructors()[0].newInstance(params));
                 } else {
-                    return type.newInstance();
+                    return decorated.newInstance();
                 }
             }
         });

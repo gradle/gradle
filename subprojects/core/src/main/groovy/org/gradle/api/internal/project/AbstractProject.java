@@ -40,7 +40,6 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.resources.ResourceHandler;
@@ -69,6 +68,7 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
 import java.util.*;
@@ -111,8 +111,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private ProjectStateInternal state;
 
     private FileResolver fileResolver;
-    private FileOperations fileOperations;
-    private ProcessOperations processOperations;
 
     private Factory<AntBuilder> antBuilderFactory;
 
@@ -120,15 +118,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private Object buildDir = Project.DEFAULT_BUILD_DIR_NAME;
 
-    private PluginContainer pluginContainer;
-
     private final int depth;
 
     private TaskContainerInternal taskContainer;
 
     private TaskContainerInternal implicitTasksContainer;
-
-    private ProjectRegistry<ProjectInternal> projectRegistry;
 
     private DependencyHandler dependencyHandler;
 
@@ -136,28 +130,15 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private ArtifactHandler artifactHandler;
 
-    private RepositoryHandler repositoryHandler;
-
-    private ScriptHandler scriptHandler;
-
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
-
-    private LoggingManagerInternal loggingManager;
-
-    private SoftwareComponentContainer softwareComponentContainer;
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
-    private ProjectConfigurationActionContainer configurationActions;
-
-    private final ModelRegistry modelRegistry;
     private final ModelRules modelRules;
 
     private String description;
 
     private final Path path;
-    private final ScriptPluginFactory scriptPluginFactory;
-    private final ScriptHandlerFactory scriptHandlerFactory;
 
     public AbstractProject(String name,
                            ProjectInternal parent,
@@ -187,26 +168,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         }
 
         services = serviceRegistryFactory.createFor(this);
-        fileResolver = services.get(FileResolver.class);
-        antBuilderFactory = services.getFactory(AntBuilder.class);
         taskContainer = services.newInstance(TaskContainerInternal.class);
-        implicitTasksContainer = services.newInstance(TaskContainerInternal.class);
-        fileOperations = services.get(FileOperations.class);
-        processOperations = services.get(ProcessOperations.class);
-        projectEvaluator = services.get(ProjectEvaluator.class);
-        repositoryHandler = services.get(RepositoryHandler.class);
-        configurationContainer = services.get(ConfigurationContainerInternal.class);
-        pluginContainer = services.get(PluginContainer.class);
-        artifactHandler = services.get(ArtifactHandler.class);
-        dependencyHandler = services.get(DependencyHandler.class);
-        scriptHandler = services.get(ScriptHandler.class);
-        projectRegistry = services.get(ProjectRegistry.class);
-        loggingManager = services.get(LoggingManagerInternal.class);
-        softwareComponentContainer = services.get(SoftwareComponentContainer.class);
-        scriptPluginFactory = services.get(ScriptPluginFactory.class);
-        scriptHandlerFactory = services.get(ScriptHandlerFactory.class);
-        configurationActions = services.get(ProjectConfigurationActionContainer.class);
-        modelRegistry = services.get(ModelRegistry.class);
         modelRules = services.get(ModelRules.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
@@ -254,11 +216,16 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return gradle;
     }
 
+    @Inject
     public PluginContainer getPlugins() {
-        return pluginContainer;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     public ProjectEvaluator getProjectEvaluator() {
+        if (projectEvaluator == null) {
+            projectEvaluator = services.get(ProjectEvaluator.class);
+        }
         return projectEvaluator;
     }
 
@@ -266,8 +233,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         this.projectEvaluator = projectEvaluator;
     }
 
+    @Inject
     public ScriptHandler getBuildscript() {
-        return scriptHandler;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     public File getBuildFile() {
@@ -365,6 +334,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public FileResolver getFileResolver() {
+        if (fileResolver == null) {
+            fileResolver = services.get(FileResolver.class);
+        }
         return fileResolver;
     }
 
@@ -377,6 +349,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public ArtifactHandler getArtifacts() {
+        if (artifactHandler == null) {
+            artifactHandler = services.get(ArtifactHandler.class);
+        }
         return artifactHandler;
     }
 
@@ -384,11 +359,16 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         this.artifactHandler = artifactHandler;
     }
 
+    @Inject
     public RepositoryHandler getRepositories() {
-        return repositoryHandler;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     public ConfigurationContainerInternal getConfigurations() {
+        if (configurationContainer == null) {
+            configurationContainer = services.get(ConfigurationContainerInternal.class);
+        }
         return configurationContainer;
     }
 
@@ -408,8 +388,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return depth;
     }
 
+    @Inject
     public ProjectRegistry<ProjectInternal> getProjectRegistry() {
-        return projectRegistry;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     public int depthCompare(Project otherProject) {
@@ -445,15 +427,15 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         if (!isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
-        return projectRegistry.getProject(absoluteProjectPath(path));
+        return getProjectRegistry().getProject(absoluteProjectPath(path));
     }
 
     public Set<Project> getAllprojects() {
-        return new TreeSet<Project>(projectRegistry.getAllProjects(getPath()));
+        return new TreeSet<Project>(getProjectRegistry().getAllProjects(getPath()));
     }
 
     public Set<Project> getSubprojects() {
-        return new TreeSet<Project>(projectRegistry.getSubProjects(getPath()));
+        return new TreeSet<Project>(getProjectRegistry().getSubProjects(getPath()));
     }
 
     public void subprojects(Action<? super Project> action) {
@@ -479,7 +461,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public AntBuilder createAntBuilder() {
-        return antBuilderFactory.create();
+        return getAntBuilderFactory().create();
     }
 
     /**
@@ -490,7 +472,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public AbstractProject evaluate() {
-        projectEvaluator.evaluate(this, state);
+        getProjectEvaluator().evaluate(this, state);
         state.rethrowFailure();
         return this;
     }
@@ -500,6 +482,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public TaskContainerInternal getImplicitTasks() {
+        if (implicitTasksContainer == null) {
+            implicitTasksContainer = services.newInstance(TaskContainerInternal.class);
+        }
         return implicitTasksContainer;
     }
 
@@ -677,65 +662,71 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return foundTasks;
     }
 
+    @Inject
+    FileOperations getFileOperations() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
     public File file(Object path) {
-        return fileOperations.file(path);
+        return getFileOperations().file(path);
     }
 
     public File file(Object path, PathValidation validation) {
-        return fileOperations.file(path, validation);
+        return getFileOperations().file(path, validation);
     }
 
     public URI uri(Object path) {
-        return fileOperations.uri(path);
+        return getFileOperations().uri(path);
     }
 
     public ConfigurableFileCollection files(Object... paths) {
-        return fileOperations.files(paths);
+        return getFileOperations().files(paths);
     }
 
     public ConfigurableFileCollection files(Object paths, Closure closure) {
-        return fileOperations.files(paths, closure);
+        return getFileOperations().files(paths, closure);
     }
 
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return fileOperations.fileTree(baseDir);
+        return getFileOperations().fileTree(baseDir);
     }
 
     public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
-        return fileOperations.fileTree(baseDir, closure);
+        return getFileOperations().fileTree(baseDir, closure);
     }
 
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
-        return fileOperations.fileTree(args);
+        return getFileOperations().fileTree(args);
     }
 
     public ConfigurableFileTree fileTree(Closure closure) {
         DeprecationLogger.nagUserOfDeprecated("fileTree(Closure)", "Use fileTree((Object){ baseDir }) to have the closure used as the file tree base directory");
-        return fileOperations.fileTree(closure);
+        return getFileOperations().fileTree(closure);
     }
 
     public FileTree zipTree(Object zipPath) {
-        return fileOperations.zipTree(zipPath);
+        return getFileOperations().zipTree(zipPath);
     }
 
     public FileTree tarTree(Object tarPath) {
-        return fileOperations.tarTree(tarPath);
+        return getFileOperations().tarTree(tarPath);
     }
 
     public ResourceHandler getResources() {
-        return fileOperations.getResources();
+        return getFileOperations().getResources();
     }
 
     public String relativePath(Object path) {
-        return fileOperations.relativePath(path);
+        return getFileOperations().relativePath(path);
     }
 
     public File mkdir(Object path) {
-        return fileOperations.mkdir(path);
+        return getFileOperations().mkdir(path);
     }
 
     public boolean delete(Object... paths) {
-        return fileOperations.delete(paths);
+        return getFileOperations().delete(paths);
     }
 
     /**
@@ -761,19 +752,17 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return dirTask;
     }
 
-    public void setTaskContainer(TaskContainerInternal taskContainer) {
-        this.taskContainer = taskContainer;
-    }
-
     public Factory<AntBuilder> getAntBuilderFactory() {
+        if (antBuilderFactory == null) {
+            antBuilderFactory = services.getFactory(AntBuilder.class);
+        }
         return antBuilderFactory;
     }
 
-    public void setAntBuilderFactory(Factory<AntBuilder> antBuilderFactory) {
-        this.antBuilderFactory = antBuilderFactory;
-    }
-
     public DependencyHandler getDependencies() {
+        if (dependencyHandler == null) {
+            dependencyHandler = services.get(DependencyHandler.class);
+        }
         return dependencyHandler;
     }
 
@@ -806,15 +795,19 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public StandardOutputCapture getStandardOutputCapture() {
-        return loggingManager;
+        return getLogging();
     }
 
-    public LoggingManager getLogging() {
-        return loggingManager;
+    @Inject
+    public LoggingManagerInternal getLogging() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
+    @Inject
     public SoftwareComponentContainer getComponents() {
-        return softwareComponentContainer;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     public Object property(String propertyName) throws MissingPropertyException {
@@ -838,27 +831,33 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public WorkResult copy(Closure closure) {
-        return fileOperations.copy(closure);
+        return getFileOperations().copy(closure);
     }
 
     public WorkResult sync(Action<? super CopySpec> action) {
-        return fileOperations.sync(action);
+        return getFileOperations().sync(action);
     }
 
     public CopySpec copySpec(Closure closure) {
-        return fileOperations.copySpec(closure);
+        return getFileOperations().copySpec(closure);
     }
 
     public CopySpec copySpec(Action<? super CopySpec> action) {
-        return fileOperations.copySpec(action);
+        return getFileOperations().copySpec(action);
+    }
+
+    @Inject
+    ProcessOperations getProcessOperations() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     public ExecResult javaexec(Closure closure) {
-        return processOperations.javaexec(closure);
+        return getProcessOperations().javaexec(closure);
     }
 
     public ExecResult exec(Closure closure) {
-        return processOperations.exec(closure);
+        return getProcessOperations().exec(closure);
     }
 
     public ServiceRegistry getServices() {
@@ -952,22 +951,28 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return task(options, task.toString(), configureClosure);
     }
 
+    @Inject
     public ProjectConfigurationActionContainer getConfigurationActions() {
-        return configurationActions;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
+    @Inject
     public ModelRegistry getModelRegistry() {
-        return modelRegistry;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
-    @Override
+    @Override @Inject
     protected ScriptPluginFactory getScriptPluginFactory() {
-        return scriptPluginFactory;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
-    @Override
+    @Override @Inject
     protected ScriptHandlerFactory getScriptHandlerFactory() {
-        return scriptHandlerFactory;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     @Override
