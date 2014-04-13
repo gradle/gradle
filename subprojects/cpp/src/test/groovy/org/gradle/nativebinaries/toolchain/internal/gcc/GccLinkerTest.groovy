@@ -16,13 +16,12 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc
 
-import org.gradle.api.Action
+import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.internal.LinkerSpec
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
-import org.gradle.process.internal.ExecAction
-import org.gradle.process.internal.ExecActionFactory
+import org.gradle.nativebinaries.toolchain.internal.MutableCommandLineToolInvocation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -31,17 +30,15 @@ class GccLinkerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
     def executable = new File("executable")
-    def execActionFactory = Mock(ExecActionFactory)
-    Action<List<String>> argAction = Mock(Action)
-    CommandLineTool commandLineTool = new CommandLineTool("linker", executable, execActionFactory)
-    GccLinker linker = new GccLinker(commandLineTool, argAction, false);
+    def invocation = Mock(MutableCommandLineToolInvocation)
+    CommandLineTool commandLineTool = Mock(CommandLineTool)
+    GccLinker linker = new GccLinker(commandLineTool, invocation, false);
 
     def "compiles all source files in a single execution"() {
         given:
         def testDir = tmpDirProvider.testDirectory
         def outputFile = testDir.file("output/lib")
 
-        def execAction = Mock(ExecAction)
         final expectedArgs = [
                 "-sys1", "-sys2",
                 "-shared",
@@ -65,13 +62,10 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
-        1 * argAction.execute(expectedArgs)
-        1 * execActionFactory.newExecAction() >> execAction
-        1 * execAction.executable(executable)
-        1 * execAction.args(expectedArgs)
-        1 * execAction.environment([:])
-        1 * execAction.execute()
-        0 * execAction._
+        1 * invocation.copy() >> invocation
+        1 * invocation.setArgs(expectedArgs)
+        1 * commandLineTool.execute(invocation) >> new SimpleWorkResult(true)
+        0 * _
     }
 
     List<String> getSoNameProp(def value) {

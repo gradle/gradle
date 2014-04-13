@@ -30,16 +30,18 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements org
     private final CommandLineTool commandLineTool;
     private final ArgsTransformer<T> argsTransFormer;
     private final Transformer<T, T> specTransformer;
+    private final CommandLineToolInvocation baseInvocation;
 
-    NativeCompiler(CommandLineTool commandLineTool, ArgsTransformer<T> argsTransFormer, Transformer<T, T> specTransformer) {
+    NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, ArgsTransformer<T> argsTransFormer, Transformer<T, T> specTransformer) {
         this.argsTransFormer = argsTransFormer;
         this.commandLineTool = commandLineTool;
+        this.baseInvocation = invocation;
         this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(T spec) {
         boolean didWork = false;
-        MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
 
         for (File sourceFile : spec.getSourceFiles()) {

@@ -19,11 +19,12 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 import org.gradle.api.Transformer;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 
 class CCompiler extends NativeCompiler<CCompileSpec> {
 
-    CCompiler(CommandLineTool commandLineTool, Transformer<CCompileSpec, CCompileSpec> specTransformer) {
-        super(commandLineTool, new CCompilerArgsTransformer(), specTransformer);
+    CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CCompileSpec, CCompileSpec> specTransformer) {
+        super(commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer);
     }
 
     private static class CCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CCompileSpec> {

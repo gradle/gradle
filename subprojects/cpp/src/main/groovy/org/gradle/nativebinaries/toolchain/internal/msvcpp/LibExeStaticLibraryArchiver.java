@@ -30,14 +30,16 @@ import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs
 class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     private final CommandLineTool commandLineTool;
     private final ArgsTransformer<StaticLibraryArchiverSpec> args;
+    private final CommandLineToolInvocation baseInvocation;
 
-    public LibExeStaticLibraryArchiver(CommandLineTool commandLineTool) {
+    public LibExeStaticLibraryArchiver(CommandLineTool commandLineTool, CommandLineToolInvocation invocation) {
         args = new LibExeSpecToArguments();
         this.commandLineTool = commandLineTool;
+        this.baseInvocation = invocation;
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
-        MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
         invocation.setArgs(args.transform(spec));
         return commandLineTool.execute(invocation);

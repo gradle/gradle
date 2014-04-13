@@ -15,12 +15,12 @@
  */
 
 package org.gradle.nativebinaries.toolchain.internal.gcc
+import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.internal.hash.HashUtil
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation
 import org.gradle.nativebinaries.toolchain.internal.MutableCommandLineToolInvocation
-import org.gradle.process.internal.ExecAction
-import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -29,18 +29,15 @@ class AssemblerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
     def executable = new File("executable")
-    def execActionFactory = Mock(ExecActionFactory)
-    def baseInvocation = Mock(MutableCommandLineToolInvocation)
-    CommandLineTool commandLineTool = new CommandLineTool("assembler", executable, execActionFactory)
-    Assembler assembler = new Assembler(commandLineTool, baseInvocation, ".o");
+    def baseInvocation = Mock(CommandLineToolInvocation)
+    def invocation = Mock(MutableCommandLineToolInvocation)
+    def commandLineTool = Mock(CommandLineTool)
+    def assembler = new Assembler(commandLineTool, baseInvocation, ".o");
 
     def "assembles each source file independently"() {
         given:
         def testDir = tmpDirProvider.testDirectory
         def objectFileDir = testDir.file("output/objects")
-
-        def execAction1 = Mock(ExecAction)
-        def execAction2 = Mock(ExecAction)
 
         def sourceOne = testDir.file("one.s")
         def sourceTwo = testDir.file("two.s")
@@ -55,23 +52,14 @@ class AssemblerTest extends Specification {
         assembler.execute(assembleSpec)
 
         then:
-        1 * argAction.execute(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceOne), sourceOne.absolutePath])
-        1 * execActionFactory.newExecAction() >> execAction1
-        1 * execAction1.executable(executable)
-        1 * execAction1.workingDir(objectFileDir)
-        1 * execAction1.args(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceOne), sourceOne.absolutePath])
-        1 * execAction1.environment([:])
-        1 * execAction1.execute()
-        0 * execAction1._
+        1 * baseInvocation.copy() >> invocation
+        1 * invocation.setWorkDirectory(objectFileDir)
+        1 * invocation.setArgs(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceOne), sourceOne.absolutePath])
+        1 * commandLineTool.execute(invocation) >> new SimpleWorkResult(true)
 
-        1 * argAction.execute(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceTwo), sourceTwo.absolutePath])
-        1 * execActionFactory.newExecAction() >> execAction2
-        1 * execAction2.executable(executable)
-        1 * execAction2.workingDir(objectFileDir)
-        1 * execAction2.args(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceTwo), sourceTwo.absolutePath])
-        1 * execAction2.environment([:])
-        1 * execAction2.execute()
-        0 * execAction2._
+        1 * invocation.setArgs(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceTwo), sourceTwo.absolutePath])
+        1 * commandLineTool.execute(invocation) >> new SimpleWorkResult(true)
+        0 * _
     }
 
     String outputFilePathFor(File objectFileRoot, File sourceFile) {

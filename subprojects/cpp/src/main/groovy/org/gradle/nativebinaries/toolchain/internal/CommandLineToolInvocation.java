@@ -15,13 +15,20 @@
  */
 package org.gradle.nativebinaries.toolchain.internal;
 
+import org.gradle.api.internal.tasks.compile.CompileSpec;
+
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
-public interface CommandLineToolInvocation {
-    List<String> getArgs();
+public interface CommandLineToolInvocation extends CompileSpec {
+    MutableCommandLineToolInvocation copy();
 
     File getWorkDirectory();
 
-    MutableCommandLineToolInvocation copy();
+    List<File> getPath();
+
+    Map<String, String> getEnvironment();
+
+    List<String> getArgs();
 }

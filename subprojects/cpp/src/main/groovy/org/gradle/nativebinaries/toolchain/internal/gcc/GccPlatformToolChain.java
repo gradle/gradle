@@ -107,15 +107,14 @@ class GccPlatformToolChain implements PlatformToolChain {
     private CommandLineTool commandLineTool(GccToolInternal tool) {
         ToolType key = tool.getToolType();
         String exeName = tool.getExecutable();
-        CommandLineTool commandLineTool = new CommandLineTool(key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
-        // MinGW requires the path to be set
-        commandLineTool.withPath(toolSearchPath.getPath());
-        commandLineTool.withEnvironmentVar("CYGWIN", "nodosfilewarning");
-        return commandLineTool;
+        return new CommandLineTool(key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
     }
 
     private CommandLineToolInvocation commandLineToolInvocation(GccToolInternal staticLibArchiverTool) {
         MutableCommandLineToolInvocation baseInvocation = new DefaultCommandLineToolInvocation();
+        // MinGW requires the path to be set
+        baseInvocation.addPath(toolSearchPath.getPath());
+        baseInvocation.addEnvironmentVar("CYGWIN", "nodosfilewarning");
         baseInvocation.addPostArgsAction(staticLibArchiverTool.getArgAction());
         return baseInvocation;
     }

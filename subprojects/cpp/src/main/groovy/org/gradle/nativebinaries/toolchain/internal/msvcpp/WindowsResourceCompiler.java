@@ -34,16 +34,18 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
 
     private final CommandLineTool commandLineTool;
     private final Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer;
+    private final CommandLineToolInvocation baseInvocation;
 
-    WindowsResourceCompiler(CommandLineTool commandLineTool, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer) {
+    WindowsResourceCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer) {
         this.commandLineTool = commandLineTool;
         this.specTransformer = specTransformer;
+        this.baseInvocation = invocation;
     }
 
     public WorkResult execute(WindowsResourceCompileSpec spec) {
         boolean didWork = false;
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
-        MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         spec = specTransformer.transform(spec);
         for (File sourceFile : spec.getSourceFiles()) {
             RcCompilerArgsTransformer argsTransformer = new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation);

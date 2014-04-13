@@ -26,4 +26,10 @@ public interface MutableCommandLineToolInvocation extends CommandLineToolInvocat
     void setArgs(List<String> args);
 
     void setWorkDirectory(File workDirectory);
+
+    void addPath(File pathEntry);
+
+    void addPath(List<File> path);
+
+    void addEnvironmentVar(String key, String value);
 }

@@ -34,15 +34,17 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     private final CommandLineTool commandLineTool;
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
     private final ArgsTransformer<LinkerSpec> argsTransformer;
+    private final CommandLineToolInvocation baseInvocation;
 
-    public LinkExeLinker(CommandLineTool commandLineTool, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
+    public LinkExeLinker(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
         argsTransformer = new LinkerArgsTransformer();
         this.commandLineTool = commandLineTool;
+        this.baseInvocation = invocation;
         this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
         invocation.setArgs(argsTransformer.transform(specTransformer.transform(spec)));
         return commandLineTool.execute(invocation);

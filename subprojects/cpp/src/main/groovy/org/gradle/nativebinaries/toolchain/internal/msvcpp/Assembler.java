@@ -33,14 +33,16 @@ import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs
 class Assembler implements Compiler<AssembleSpec> {
 
     private final CommandLineTool commandLineTool;
+    private final CommandLineToolInvocation baseInvocation;
 
-    public Assembler(CommandLineTool commandLineTool) {
+    public Assembler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation) {
         this.commandLineTool = commandLineTool;
+        this.baseInvocation = invocation;
     }
 
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
-        MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.setWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
             invocation.setArgs(new AssemblerArgsTransformer(sourceFile).transform(spec));

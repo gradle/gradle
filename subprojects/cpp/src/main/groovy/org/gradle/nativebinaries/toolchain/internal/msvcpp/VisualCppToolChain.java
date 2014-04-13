@@ -164,9 +164,9 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
     }
 
     private class VisualCppPlatformToolChain implements PlatformToolChain {
+        private final VisualCppInstall visualCpp;
         private final WindowsSdk sdk;
         private final Platform targetPlatform;
-        private final VisualCppInstall visualCpp;
 
         private VisualCppPlatformToolChain(VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
             this.visualCpp = visualCpp;
@@ -182,14 +182,14 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-            CommandLineTool commandLineTool = commandLineTool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-            CppCompiler cppCompiler = new CppCompiler(commandLineTool, addIncludePathAndDefinitions(CppCompileSpec.class));
+            CommandLineTool commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
+            CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(), addIncludePathAndDefinitions(CppCompileSpec.class));
             return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-            CommandLineTool commandLineTool = commandLineTool("C compiler", visualCpp.getCompiler(targetPlatform));
-            CCompiler cCompiler = new CCompiler(commandLineTool, addIncludePathAndDefinitions(CCompileSpec.class));
+            CommandLineTool commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
+            CCompiler cCompiler = new CCompiler(commandLineTool, invocation(), addIncludePathAndDefinitions(CCompileSpec.class));
             return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
         }
 
@@ -202,46 +202,50 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-            CommandLineTool commandLineTool = commandLineTool("Assembler", visualCpp.getAssembler(targetPlatform));
-            return (Compiler<T>) new Assembler(commandLineTool);
+            CommandLineTool commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
+            return (Compiler<T>) new Assembler(commandLineTool, invocation());
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
-            CommandLineTool commandLineTool = commandLineTool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
-            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
+            CommandLineTool commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
+            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, invocation(), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
             return (Compiler<T>) new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
         }
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {
-            CommandLineTool commandLineTool = commandLineTool("Linker", visualCpp.getLinker(targetPlatform));
-            return (Compiler<T>) new LinkExeLinker(commandLineTool, addLibraryPath());
+            CommandLineTool commandLineTool = tool("Linker", visualCpp.getLinker(targetPlatform));
+            return (Compiler<T>) new LinkExeLinker(commandLineTool, invocation(), addLibraryPath());
         }
 
         public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            CommandLineTool commandLineTool = commandLineTool("Static library archiver", visualCpp.getArchiver(targetPlatform));
-            return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool);
+            CommandLineTool commandLineTool = tool("Static library archiver", visualCpp.getArchiver(targetPlatform));
+            return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool, invocation());
         }
 
-        private <T extends BinaryToolSpec> CommandLineTool commandLineTool(String toolName, File exe) {
-            CommandLineTool tool = new CommandLineTool(toolName, exe, execActionFactory);
+        private CommandLineTool tool(String toolName, File exe) {
+            return new CommandLineTool(toolName, exe, execActionFactory);
+        }
 
+        private CommandLineToolInvocation invocation() {
+            MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
             // The visual C++ tools use the path to find other executables
             // TODO:ADAM - restrict this to the specific path for the target tool
-            tool.withPath(visualCpp.getPath(targetPlatform));
-            tool.withPath(sdk.getBinDir(targetPlatform));
+            invocation.addPath(visualCpp.getPath(targetPlatform));
+            invocation.addPath(sdk.getBinDir(targetPlatform));
 
             // Clear environment variables that might effect cl.exe & link.exe
-            clearEnvironmentVars(tool, "INCLUDE", "CL", "LIBPATH", "LINK", "LIB");
-            return tool;
+            clearEnvironmentVars(invocation, "INCLUDE", "CL", "LIBPATH", "LINK", "LIB");
+            return invocation;
         }
 
-        private <T extends BinaryToolSpec> void clearEnvironmentVars(CommandLineTool tool, String... names) {
+        private void clearEnvironmentVars(MutableCommandLineToolInvocation invocation, String... names) {
+            // TODO:DAZ This check should really be done in the compiler process
             Map<String, ?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(System.getenv());
             for (String name : names) {
                 Object value = environmentVariables.get(name);
                 if (value != null) {
                     LOGGER.warn("Ignoring value '{}' set for environment variable '{}'.", value, name);
-                    tool.withEnvironmentVar(name, "");
+                    invocation.addEnvironmentVar(name, "");
                 }
             }
         }
@@ -250,6 +254,7 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
             return String.format("%s-%s", getName(), operatingSystem.getName());
         }
 
+        // TODO:DAZ These should be modelled properly, not hidden in a compile spec transformation
         private <T extends NativeCompileSpec> Transformer<T, T> addIncludePathAndDefinitions(Class<T> type) {
             return new Transformer<T, T>() {
                 public T transform(T original) {

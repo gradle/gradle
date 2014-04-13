@@ -20,10 +20,14 @@ import org.gradle.api.Action;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DefaultCommandLineToolInvocation implements MutableCommandLineToolInvocation {
     private final List<Action<List<String>>> postArgsActions = new ArrayList<Action<List<String>>>();
+    private final Map<String, String> environment = new HashMap<String, String>();
+    private final List<File> path = new ArrayList<File>();
     private List<String> args = new ArrayList<String>();
     private File workDirectory;
 
@@ -59,5 +63,25 @@ public class DefaultCommandLineToolInvocation implements MutableCommandLineToolI
 
     public void setWorkDirectory(File workDirectory) {
         this.workDirectory = workDirectory;
+    }
+
+    public void addPath(File pathEntry) {
+        this.path.add(pathEntry);
+    }
+
+    public List<File> getPath() {
+        return path;
+    }
+
+    public void addPath(List<File> path) {
+        this.path.addAll(path);
+    }
+
+    public Map<String, String> getEnvironment() {
+        return environment;
+    }
+
+    public void addEnvironmentVar(String key, String value) {
+        this.environment.put(key, value);
     }
 }
