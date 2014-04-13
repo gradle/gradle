@@ -50,15 +50,12 @@ class SFTPServer extends ServerWithExpectations {
     private int port
 
     private final TestDirectoryProvider testDirectoryProvider
-    TestFile baseDir
     private TestFile configDir
     private SshServer sshd
 
+    TestFile baseDir
     Map<Integer, String> handleCreatedByRequest = [:]
     Map<String, Integer> openingRequestIdForPath = [:]
-
-    SftpSubsystem sftpSubsystem = new TestSftpSubsystem()
-
     List<SftpExpectation> expectations = []
 
     public SFTPServer(TestDirectoryProvider testDirectoryProvider) {
@@ -104,7 +101,7 @@ class SFTPServer extends ServerWithExpectations {
         sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory());
         sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystem.Factory() {
             Command create() {
-                sftpSubsystem
+                new TestSftpSubsystem()
             }
         }));
         sshServer.setCommandFactory(new ScpCommandFactory());
@@ -135,7 +132,6 @@ class SFTPServer extends ServerWithExpectations {
     }
 
     void expectMetadataRetrieve(String path) {
-        expectInit()
         expectLstat(path)
     }
 
@@ -152,14 +148,12 @@ class SFTPServer extends ServerWithExpectations {
     }
 
     void expectFileDownload(String path) {
-        expectInit()
         expectOpen(path)
         allowRead(path)
         expectClose(path)
     }
 
     void expectFileUpload(String path) {
-        expectInit()
         expectLstat(FilenameUtils.getFullPathNoEndSeparator(path))
         expectOpen(path)
         allowWrite(path)
@@ -191,7 +185,6 @@ class SFTPServer extends ServerWithExpectations {
     }
 
     void expectDirectoryList(String path) {
-        expectInit()
         expectOpendir(path)
         allowReaddir(path)
         expectClose(path)

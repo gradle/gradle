@@ -34,6 +34,6 @@ class MavenSftpRepository implements MavenRepository {
     }
 
     MavenSftpModule module(String organisation, String module, Object revision = "1.0") {
-        new MavenSftpModule(backingRepository.module(organisation, module, revision))
+        new MavenSftpModule(server, backingRepository.module(organisation, module, revision))
     }
 }

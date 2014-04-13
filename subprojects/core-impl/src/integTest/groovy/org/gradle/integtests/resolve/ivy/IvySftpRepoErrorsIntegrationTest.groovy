@@ -55,6 +55,7 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractDependencyResolutionTest 
         def module = ivySftpRepo.module('org.group.name', 'projectA', '1.2')
 
         when:
+        server.expectInit()
         module.ivy.expectMetadataRetrieve()
         module.jar.expectMetadataRetrieve()
 
@@ -186,6 +187,4 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractDependencyResolutionTest 
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
                 .assertHasCause("Could not get resource 'sftp://$ivySftpRepo.uri.host:$ivySftpRepo.uri.port/repo/org.group.name/projectA/1.2/ivy-1.2.xml'")
     }
-
-
 }

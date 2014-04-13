@@ -66,6 +66,7 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
+        server.expectInit()
         module.ivy.expectMetadataRetrieve()
         module.ivy.expectFileDownload()
 
@@ -113,6 +114,7 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
+        server.expectInit()
         module.ivy.expectMetadataRetrieve()
         module.ivy.expectFileDownload()
 
@@ -164,6 +166,7 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
+        server.expectInit()
         thirdPartyModule.ivy.expectMetadataRetrieve()
         thirdPartyModule.ivy.expectFileDownload()
 
@@ -189,8 +192,10 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         given:
         def ivySftpRepo1 = getIvySftpRepo('/repo1')
         def ivySftpRepo2 = getIvySftpRepo('/repo2')
-        ivySftpRepo1.module('org.group.name', 'projectA', '1.2').publish()
-        ivySftpRepo2.module('org.group.name', 'projectB', '1.3').publish()
+        def repo1Module = ivySftpRepo1.module('org.group.name', 'projectA', '1.2')
+        repo1Module.publish()
+        def repo2Module = ivySftpRepo2.module('org.group.name', 'projectB', '1.3')
+        repo2Module.publish()
 
         and:
         buildFile << """
@@ -220,9 +225,22 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
-        succeeds 'retrieve'
+        server.expectInit()
+        repo1Module.ivy.expectMetadataRetrieve()
+        repo1Module.ivy.expectFileDownload()
+        repo1Module.jar.expectMetadataRetrieve()
+        repo1Module.jar.expectFileDownload()
+
+        server.expectInit()
+        server.expectMetadataRetrieve('/repo1/org.group.name/projectB/1.3/ivy-1.3.xml')
+        repo2Module.ivy.expectMetadataRetrieve()
+        repo2Module.ivy.expectFileDownload()
+        server.expectMetadataRetrieve('/repo1/org.group.name/projectB/1.3/projectB-1.3.jar')
+        repo2Module.jar.expectMetadataRetrieve()
+        repo2Module.jar.expectFileDownload()
 
         then:
+        succeeds 'retrieve'
         file('libs').assertHasDescendants 'projectA-1.2.jar', 'projectB-1.3.jar'
     }
 }

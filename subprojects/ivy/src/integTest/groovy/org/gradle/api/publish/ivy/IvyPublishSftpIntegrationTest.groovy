@@ -95,6 +95,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         """
 
         when:
+        server.expectInit()
         module.jar.expectMkdirs()
         module.jar.expectFileAndSha1Upload()
         module.ivy.expectFileAndSha1Upload()
@@ -148,6 +149,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         """
 
         when:
+        server.expectInit()
         module.jar.expectMkdirs()
         module.jar.expectFileAndSha1Upload()
         module.ivy.expectFileAndSha1Upload()

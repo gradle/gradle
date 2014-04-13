@@ -71,6 +71,7 @@ class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractDependencyResolu
         projectB1.publish()
 
         and:
+        server.expectInit()
         server.expectDirectoryList('/repo/group/projectA/')
 
         projectA1.ivy.expectMetadataRetrieve()
@@ -103,6 +104,7 @@ class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractDependencyResolu
         projectB2.publish()
 
         and:
+        server.expectInit()
         server.expectDirectoryList('/repo/group/projectA/')
 
         projectA2.ivy.expectMetadataRetrieve()

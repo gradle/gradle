@@ -71,9 +71,7 @@ task listJars << {
         server.expectClose('/repos/libs/group/projectA/1.2')
 
         module.ivy.expectStat()
-        module.ivy.expectOpen()
-        module.ivy.allowRead()
-        module.ivy.expectClose()
+        module.ivy.expectFileDownload()
 
         module.jar.expectStat()
 
@@ -82,9 +80,7 @@ task listJars << {
         server.expectClose('/repos/libs/group/projectA/1.2')
 
         module.jar.expectStat()
-        module.jar.expectOpen()
-        module.jar.allowRead()
-        module.jar.expectClose()
+        module.jar.expectFileDownload()
 
         and:
         executer.withDeprecationChecksDisabled()

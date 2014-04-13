@@ -39,7 +39,8 @@ class MavenSftpRepoResolveIntegrationTest extends AbstractIntegrationSpec {
     void "can resolve dependencies from a SFTP Maven repository"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()
-        mavenSftpRepo.module('org.group.name', 'projectA', '1.2').publish()
+        def module = mavenSftpRepo.module('org.group.name', 'projectA', '1.2')
+        module.publish()
 
         and:
         buildFile << """
@@ -61,9 +62,15 @@ class MavenSftpRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'retrieve'
+        server.expectInit()
+        module.pom.expectMetadataRetrieve()
+        module.pom.expectFileDownload()
+
+        module.artifact.expectMetadataRetrieve()
+        module.artifact.expectFileDownload()
 
         then:
+        succeeds 'retrieve'
         file('libs').assertHasDescendants 'projectA-1.2.jar'
     }
 }
