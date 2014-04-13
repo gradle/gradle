@@ -31,6 +31,7 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
+import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -38,6 +39,11 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Generates a subclass of the target class to mix-in some DSL behaviour.
+ *
+ * <p>By default, for each property, a convention mapping is applied. If @Inject is attached to a getter, the appropriate service instance will be injected instead.</p>
+ */
 public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class<?>, Map<Class<?>, Class<?>>> GENERATED_CLASSES = new HashMap<Class<?>, Map<Class<?>, Class<?>>>();
     private static final Lock CACHE_LOCK = new ReentrantLock();
@@ -113,6 +119,14 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
             for (PropertyMetaData property : classMetaData.properties.values()) {
                 if (SKIP_PROPERTIES.contains(property.name)) {
+                    continue;
+                }
+
+                if (property.injector) {
+                    builder.addInjectorProperty(property);
+                    for (Method getter : property.getters) {
+                        builder.applyServiceInjectionToGetter(property, getter);
+                    }
                     continue;
                 }
 
@@ -239,7 +253,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
     private void inspectType(Class<?> type, ClassMetaData classMetaData) {
         for (Method method : type.getDeclaredMethods()) {
-            if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers())) {
+            if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers()) || method.isBridge()) {
                 continue;
             }
 
@@ -346,6 +360,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         final MethodSet getters = new MethodSet();
         final MethodSet setters = new MethodSet();
         final MethodSet setMethods = new MethodSet();
+        boolean injector;
 
         private PropertyMetaData(String name) {
             this.name = name;
@@ -368,7 +383,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public void addGetter(Method method) {
-            getters.add(method);
+            if (getters.add(method) && method.getAnnotation(Inject.class) != null) {
+                injector = true;
+            }
         }
 
         public void addSetter(Method method) {
@@ -384,11 +401,16 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         private final Set<MethodSignature> signatures = new HashSet<MethodSignature>();
         private final List<Method> methods = new ArrayList<Method>();
 
-        public void add(Method method) {
+        /**
+         * @return true if the method was added, false if not
+         */
+        public boolean add(Method method) {
             MethodSignature methodSignature = new MethodSignature(method.getName(), method.getParameterTypes());
             if (signatures.add(methodSignature)) {
                 methods.add(method);
+                return true;
             }
+            return false;
         }
 
         public Iterator<Method> iterator() {
@@ -437,6 +459,10 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         void mixInGroovyObject() throws Exception;
 
         void addDynamicMethods() throws Exception;
+
+        void addInjectorProperty(PropertyMetaData property);
+
+        void applyServiceInjectionToGetter(PropertyMetaData property, Method getter) throws Exception;
 
         void addConventionProperty(PropertyMetaData property) throws Exception;
 

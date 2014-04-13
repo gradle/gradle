@@ -383,6 +383,22 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    public void appliesConventionMappingToPropertyWithGetterCovariantType() throws Exception {
+        CovariantPropertyTypes bean = generator.newInstance(CovariantPropertyTypes.class);
+
+        new DslObject(bean).getConventionMapping().map("value", new Callable<String>() {
+            public String call() {
+                return "conventionValue";
+            }
+        });
+
+        assertThat(bean.getValue(), equalTo("conventionValue"));
+
+        bean.setValue(12);
+        assertThat(bean.getValue(), equalTo("12"));
+    }
+
+    @Test
     public void appliesConventionMappingToProtectedMethods() throws Exception {
         BeanWithNonPublicProperties bean = generator.newInstance(BeanWithNonPublicProperties.class);
 
@@ -813,6 +829,25 @@ public class AsmBackedClassGeneratorTest {
         @Override
         public void doStuff(Action<String> action) {
             action.execute("overloaded");
+        }
+    }
+
+    public static class ParentBean {
+        Object value;
+
+        public Object getValue() {
+            return value;
+        }
+
+        public void setValue(Object value) {
+            this.value = value;
+        }
+    }
+
+    public static class CovariantPropertyTypes extends ParentBean {
+        @Override
+        public String getValue() {
+            return String.valueOf(super.getValue());
         }
     }
 

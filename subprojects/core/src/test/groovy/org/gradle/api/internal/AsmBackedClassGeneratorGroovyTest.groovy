@@ -20,10 +20,13 @@ import org.gradle.api.Action
 import org.gradle.api.NonExtensible
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
 import spock.lang.Specification
+
+import javax.inject.Inject
 
 class AsmBackedClassGeneratorGroovyTest extends Specification {
 
@@ -228,7 +231,6 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         i.calledWith == Integer
     }
 
-
     def "can use non extensible objects"() {
         def i = create(NonExtensibleObject)
 
@@ -271,6 +273,46 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
 
         then:
         obj.callsPrivateStringMethodWithGString("$foo") == "BAR"
+    }
+
+    def "can inject service using a service getter method"() {
+        given:
+        def services = Mock(ServiceRegistry)
+        def service = Mock(Runnable)
+        _ * services.get(Runnable) >> service
+
+        when:
+        def obj = create(BeanWithServices, services)
+
+        then:
+        obj.thing == service
+        obj.getThing() == service
+        obj.getProperty("thing") == service
+    }
+
+    def "service lookup is lazy and the result is cached"() {
+        given:
+        def services = Mock(ServiceRegistry)
+        def service = Mock(Runnable)
+
+        when:
+        def obj = create(BeanWithServices, services)
+
+        then:
+        0 * services._
+
+        when:
+        obj.thing
+
+        then:
+        1 * services.get(Runnable) >> service
+        0 * services._
+
+        when:
+        obj.thing
+
+        then:
+        0 * services._
     }
 }
 
@@ -425,4 +467,15 @@ class CallsPrivateMethods {
     private upperCaser(String str) {
         str.toUpperCase()
     }
+}
+
+class BeanWithServices {
+    ServiceRegistry services
+
+    BeanWithServices(ServiceRegistry services) {
+        this.services = services
+    }
+
+    @Inject
+    Runnable getThing() { throw new UnsupportedOperationException() }
 }
