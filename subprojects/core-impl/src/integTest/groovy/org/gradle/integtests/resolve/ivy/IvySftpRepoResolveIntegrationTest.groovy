@@ -42,7 +42,8 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
     void "can resolve dependencies from a SFTP Ivy repository with #layout layout"() {
         given:
         def ivySftpRepo = getIvySftpRepo(m2Compatible)
-        ivySftpRepo.module('org.group.name', 'projectA', '1.2').publish()
+        def module = ivySftpRepo.module('org.group.name', 'projectA', '1.2')
+        module.publish()
 
         and:
         buildFile << """
@@ -65,9 +66,14 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
-        succeeds 'retrieve'
+        module.ivy.expectMetadataRetrieve()
+        module.ivy.expectFileDownload()
+
+        module.jar.expectMetadataRetrieve()
+        module.jar.expectFileDownload()
 
         then:
+        succeeds 'retrieve'
         file('libs').assertHasDescendants 'projectA-1.2.jar'
 
         where:
@@ -78,9 +84,9 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
 
     void "can resolve dependencies from a SFTP Ivy repository with pattern layout and m2compatible: #m2Compatible"() {
         given:
-
         def ivySftpRepo = getIvySftpRepo(m2Compatible, "[module]/[organisation]/[revision]")
-        ivySftpRepo.module('org.group.name', 'projectA', '1.2').publish()
+        def module = ivySftpRepo.module('org.group.name', 'projectA', '1.2')
+        module.publish()
 
         and:
         buildFile << """
@@ -107,9 +113,14 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
-        succeeds 'retrieve'
+        module.ivy.expectMetadataRetrieve()
+        module.ivy.expectFileDownload()
+
+        module.jar.expectMetadataRetrieve()
+        module.jar.expectFileDownload()
 
         then:
+        succeeds 'retrieve'
         file('libs').assertHasDescendants 'projectA-1.2.jar'
 
         where:
@@ -119,11 +130,14 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
     void "can resolve dependencies from a SFTP Ivy repository with multiple patterns configured"() {
         given:
         def thirdPartyIvySftpRepo = getIvySftpRepo(false, "third-party/[organisation]/[module]/[revision]")
-        thirdPartyIvySftpRepo.module('other', '3rdParty', '1.2').publish()
+        def thirdPartyModule = thirdPartyIvySftpRepo.module('other', '3rdParty', '1.2')
+        thirdPartyModule.publish()
 
         and:
         def companyIvySftpRepo = getIvySftpRepo(false, "company/[module]/[revision]")
-        companyIvySftpRepo.module('company', 'original', '1.1').publish()
+        def companyModule = companyIvySftpRepo.module('company', 'original', '1.1')
+        companyModule.publish()
+
 
         and:
         buildFile << """
@@ -150,9 +164,24 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
-        succeeds 'retrieve'
+        thirdPartyModule.ivy.expectMetadataRetrieve()
+        thirdPartyModule.ivy.expectFileDownload()
+
+        thirdPartyModule.jar.expectMetadataRetrieve()
+        thirdPartyModule.jar.expectFileDownload()
+
+        server.expectMetadataRetrieve('/repo/third-party/company/original/1.1/ivy-1.1.xml')
+
+        companyModule.ivy.expectMetadataRetrieve()
+        companyModule.ivy.expectFileDownload()
+
+        server.expectMetadataRetrieve('/repo/third-party/company/original/1.1/original-1.1.jar')
+
+        companyModule.jar.expectMetadataRetrieve()
+        companyModule.jar.expectFileDownload()
 
         then:
+        succeeds 'retrieve'
         file('libs').assertHasDescendants '3rdParty-1.2.jar', 'original-1.1.jar'
     }
 

@@ -64,9 +64,28 @@ class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractDependencyResolu
         """
 
         when: "Version 1.1 is published"
-        def projectA1 = ivySftpRepo.module("group", "projectA", "1.1").publish()
+        def projectA1 = ivySftpRepo.module("group", "projectA", "1.1")
+        projectA1.publish()
         ivySftpRepo.module("group", "projectA", "2.0").publish()
-        def projectB1 = ivySftpRepo.module("group", "projectB", "1.1").publish()
+        def projectB1 = ivySftpRepo.module("group", "projectB", "1.1")
+        projectB1.publish()
+
+        and:
+        server.expectDirectoryList('/repo/group/projectA/')
+
+        projectA1.ivy.expectMetadataRetrieve()
+        projectA1.ivy.expectFileDownload()
+
+        server.expectDirectoryList('/repo/group/projectB/')
+
+        projectB1.ivy.expectMetadataRetrieve()
+        projectB1.ivy.expectFileDownload()
+
+        projectA1.jar.expectMetadataRetrieve()
+        projectA1.jar.expectFileDownload()
+
+        projectB1.jar.expectMetadataRetrieve()
+        projectB1.jar.expectFileDownload()
 
         and:
         run 'retrieve'
@@ -77,8 +96,28 @@ class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractDependencyResolu
         file('libs/projectB-1.1.jar').assertIsCopyOf(projectB1.jarFile)
 
         when: "New versions are published"
-        def projectA2 = ivySftpRepo.module("group", "projectA", "1.2").publish()
-        def projectB2 = ivySftpRepo.module("group", "projectB", "2.2").publish()
+        server.resetExpectations()
+        def projectA2 = ivySftpRepo.module("group", "projectA", "1.2")
+        projectA2.publish()
+        def projectB2 = ivySftpRepo.module("group", "projectB", "2.2")
+        projectB2.publish()
+
+        and:
+        server.expectDirectoryList('/repo/group/projectA/')
+
+        projectA2.ivy.expectMetadataRetrieve()
+        projectA2.ivy.expectFileDownload()
+
+        server.expectDirectoryList('/repo/group/projectB/')
+
+        projectB2.ivy.expectMetadataRetrieve()
+        projectB2.ivy.expectFileDownload()
+
+        projectA2.jar.expectMetadataRetrieve()
+        projectA2.jar.expectFileDownload()
+
+        projectB2.jar.expectMetadataRetrieve()
+        projectB2.jar.expectFileDownload()
 
         and:
         run 'retrieve'

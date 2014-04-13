@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.custom
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
-import org.gradle.test.fixtures.ivy.IvyRepository
+import org.gradle.test.fixtures.ivy.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -61,27 +61,48 @@ task listJars << {
 }
 """
         when:
+        server.expectInit()
+        server.expectRealpath('')
+
+        module.ivy.expectStat()
+
+        server.expectOpendir('/repos/libs/group/projectA/1.2')
+        server.allowReaddir('/repos/libs/group/projectA/1.2')
+        server.expectClose('/repos/libs/group/projectA/1.2')
+
+        module.ivy.expectStat()
+        module.ivy.expectOpen()
+        module.ivy.allowRead()
+        module.ivy.expectClose()
+
+        module.jar.expectStat()
+
+        server.expectOpendir('/repos/libs/group/projectA/1.2')
+        server.allowReaddir('/repos/libs/group/projectA/1.2')
+        server.expectClose('/repos/libs/group/projectA/1.2')
+
+        module.jar.expectStat()
+        module.jar.expectOpen()
+        module.jar.allowRead()
+        module.jar.expectClose()
+
+        and:
         executer.withDeprecationChecksDisabled()
         run 'listJars'
 
         then:
-        server.fileRequestLogger.fileRequests == ["repos/libs/group/projectA/1.2/ivy-1.2.xml",
-                "repos/libs/group/projectA/1.2/projectA-1.2.jar"
-        ] as Set
-
         progressLogging.downloadProgressLogged("repos/libs/group/projectA/1.2/ivy-1.2.xml")
         progressLogging.downloadProgressLogged("repos/libs/group/projectA/1.2/projectA-1.2.jar")
 
         when:
-        server.fileRequestLogger.fileRequests.clear()
+        server.resetExpectations()
         executer.withDeprecationChecksDisabled()
-        run 'listJars'
 
         then:
-        server.fileRequestLogger.fileRequests.empty
+        run 'listJars'
     }
 
-    IvyRepository ivyRepo() {
-        return ivy(server.file("repos/libs/"))
+    IvySftpRepository ivyRepo() {
+        return new IvySftpRepository(server, '/repos/libs')
     }
 }
