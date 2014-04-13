@@ -17,8 +17,6 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.internal.tasks.compile.ArgWriter;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 
 import java.io.File;
@@ -30,11 +28,11 @@ import java.util.List;
  * Uses an option file for arguments passed to GCC if possible.
  * Certain GCC options do not function correctly when included in an option file, so include these directly on the command line as well.
  */
-class GccOptionsFileArgTransformer<T extends BinaryToolSpec> extends OptionsFileArgsTransformer<T> {
+class GccOptionsFileArgTransformer extends OptionsFileArgsTransformer {
     private static final List<String> CLI_ONLY_ARGS = Arrays.asList("-m32", "-m64");
 
-    public GccOptionsFileArgTransformer(ArgsTransformer<T> delegate) {
-        super(ArgWriter.unixStyleFactory(), delegate);
+    public GccOptionsFileArgTransformer(File tempDir) {
+        super(ArgWriter.unixStyleFactory(), tempDir);
     }
 
     @Override

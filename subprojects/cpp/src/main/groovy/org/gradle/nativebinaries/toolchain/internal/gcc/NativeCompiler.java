@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
@@ -25,18 +24,17 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;
-import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
     private final CommandLineTool commandLineTool;
     private final ArgsTransformer<T> argsTransfomer;
+    private final CommandLineToolInvocation baseInvocation;
+    private final boolean useCommandFile;
 
-    public NativeCompiler(CommandLineTool commandLineTool, Action<List<String>> toolChainArgsAction, ArgsTransformer<T> argsTransformer, boolean useCommandFile) {
-        argsTransformer = new PostTransformActionArgsTransformer<T>(argsTransformer, toolChainArgsAction);
-        if (useCommandFile) {
-            argsTransformer = new GccOptionsFileArgTransformer<T>(argsTransformer);
-        }
+    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, boolean useCommandFile) {
+        this.baseInvocation = baseInvocation;
+        this.useCommandFile = useCommandFile;
         this.argsTransfomer = argsTransformer;
         this.commandLineTool = commandLineTool;
     }
@@ -46,16 +44,19 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
 
         String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        invocation.setWorkDirectory(spec.getObjectFileDir());
+        if (useCommandFile) {
+            invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
+        }
         for (File sourceFile : spec.getSourceFiles()) {
             String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
-            CommandLineToolInvocation invocation = new CommandLineToolInvocation();
             SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
                     objectFileName,
                     new ShortCircuitArgsTransformer(argsTransfomer),
                     windowsPathLimitation,
                     false);
-            invocation.args = argTransformer.transform(spec);
-            invocation.workDirectory = spec.getObjectFileDir();
+            invocation.setArgs(argTransformer.transform(spec));
             WorkResult result = commandLineTool.execute(invocation);
             didWork = didWork || result.getDidWork();
         }

@@ -22,9 +22,7 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -42,10 +40,10 @@ class Assembler implements Compiler<AssembleSpec> {
 
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
+        MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
+        invocation.setWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
-            CommandLineToolInvocation invocation = new CommandLineToolInvocation();
-            invocation.args = new AssemblerArgsTransformer(sourceFile).transform(spec);
-            invocation.workDirectory = spec.getObjectFileDir();
+            invocation.setArgs(new AssemblerArgsTransformer(sourceFile).transform(spec));
             WorkResult result = commandLineTool.execute(invocation);
             didWork = didWork || result.getDidWork();
         }

@@ -19,7 +19,6 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.nativebinaries.toolchain.internal.gcc.ShortCircuitArgsTransformer;
@@ -29,19 +28,20 @@ import java.io.File;
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements org.gradle.api.internal.tasks.compile.Compiler<T> {
 
     private final CommandLineTool commandLineTool;
-    private final OptionsFileArgsTransformer<T> argsTransFormer;
+    private final ArgsTransformer<T> argsTransFormer;
     private final Transformer<T, T> specTransformer;
 
     NativeCompiler(CommandLineTool commandLineTool, ArgsTransformer<T> argsTransFormer, Transformer<T, T> specTransformer) {
-        this.argsTransFormer = new OptionsFileArgsTransformer<T>(
-                        ArgWriter.windowsStyleFactory(),
-                        argsTransFormer);
+        this.argsTransFormer = argsTransFormer;
         this.commandLineTool = commandLineTool;
         this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(T spec) {
         boolean didWork = false;
+        MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
+        invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
+
         for (File sourceFile : spec.getSourceFiles()) {
             String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + ".obj";
             SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
@@ -49,9 +49,8 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements org
                     new ShortCircuitArgsTransformer<T>(argsTransFormer),
                     true,
                     true);
-            CommandLineToolInvocation invocation = new CommandLineToolInvocation();
-            invocation.args = argTransformer.transform(specTransformer.transform(spec));
-            invocation.workDirectory = spec.getObjectFileDir();
+            invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
+            invocation.setWorkDirectory(spec.getObjectFileDir());
             WorkResult result = commandLineTool.execute(invocation);
             didWork = didWork || result.getDidWork();
         }

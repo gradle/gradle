@@ -16,32 +16,32 @@
 
 package org.gradle.nativebinaries.toolchain.internal;
 
+import com.beust.jcommander.internal.Lists;
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 
-public class OptionsFileArgsTransformer<T extends BinaryToolSpec> implements ArgsTransformer<T> {
+public class OptionsFileArgsTransformer implements Action<List<String>> {
     private final Transformer<ArgWriter, PrintWriter> argWriterFactory;
-    private final ArgsTransformer<T> delegate;
+    private final File tempDir;
 
-    public OptionsFileArgsTransformer(Transformer<ArgWriter, PrintWriter> argWriterFactory, ArgsTransformer<T> delegate) {
+    public OptionsFileArgsTransformer(Transformer<ArgWriter, PrintWriter> argWriterFactory, File tempDir) {
         this.argWriterFactory = argWriterFactory;
-        this.delegate = delegate;
+        this.tempDir = tempDir;
     }
 
-    public List<String> transform(T spec) {
-        List<String> output = new ArrayList<String>();
-        transformArgs(delegate.transform(spec), output, spec.getTempDir());
-        return output;
+    public void execute(List<String> args) {
+        List<String> original = Lists.newArrayList(args);
+        args.clear();
+        transformArgs(original, args, tempDir);
     }
 
     protected void transformArgs(List<String> input, List<String> output, File tempDir) {

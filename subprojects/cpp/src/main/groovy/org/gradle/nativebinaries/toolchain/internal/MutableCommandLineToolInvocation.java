@@ -15,13 +15,15 @@
  */
 package org.gradle.nativebinaries.toolchain.internal;
 
+import org.gradle.api.Action;
+
 import java.io.File;
 import java.util.List;
 
-public interface CommandLineToolInvocation {
-    List<String> getArgs();
+public interface MutableCommandLineToolInvocation extends CommandLineToolInvocation {
+    void addPostArgsAction(Action<List<String>> postArgsAction);
 
-    File getWorkDirectory();
+    void setArgs(List<String> args);
 
-    MutableCommandLineToolInvocation copy();
+    void setWorkDirectory(File workDirectory);
 }

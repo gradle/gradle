@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
@@ -25,6 +24,7 @@ import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativebinaries.toolchain.internal.MutableCommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,20 +34,22 @@ class GccLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineTool commandLineTool;
     private final ArgsTransformer<LinkerSpec> argsTransformer;
+    private final CommandLineToolInvocation baseInvocation;
+    private final boolean useCommandFile;
 
-    public GccLinker(CommandLineTool commandLineTool, Action<List<String>> argsAction, boolean useCommandFile) {
-        ArgsTransformer<LinkerSpec> argsTransformer = new GccLinkerArgsTransformer();
-        argsTransformer = new PostTransformActionArgsTransformer<LinkerSpec>(argsTransformer, argsAction);
-        if (useCommandFile) {
-            argsTransformer = new GccOptionsFileArgTransformer<LinkerSpec>(argsTransformer);
-        }
-        this.argsTransformer = argsTransformer;
+    public GccLinker(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, boolean useCommandFile) {
+        this.argsTransformer = new GccLinkerArgsTransformer();
+        this.baseInvocation = baseInvocation;
+        this.useCommandFile = useCommandFile;
         this.commandLineTool = commandLineTool;
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        CommandLineToolInvocation invocation = new CommandLineToolInvocation();
-        invocation.args = argsTransformer.transform(spec);
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        if (useCommandFile) {
+            invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
+        }
+        invocation.setArgs(argsTransformer.transform(spec));
         return commandLineTool.execute(invocation);
     }
 

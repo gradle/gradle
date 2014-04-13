@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
@@ -26,6 +25,7 @@ import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativebinaries.toolchain.internal.MutableCommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,23 +35,23 @@ import java.util.List;
 class Assembler implements Compiler<AssembleSpec> {
 
     private final CommandLineTool commandLineTool;
-    private final Action<List<String>> argsAction;
+    private final CommandLineToolInvocation baseInvocation;
     private String outputFileSuffix;
 
-    public Assembler(CommandLineTool commandLineTool, Action<List<String>> argsAction, String outputFileSuffix) {
+    public Assembler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String outputFileSuffix) {
         this.commandLineTool = commandLineTool;
-        this.argsAction = argsAction;
+        this.baseInvocation = baseInvocation;
         this.outputFileSuffix = outputFileSuffix;
     }
 
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
+
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        invocation.setWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
             ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile, spec.getObjectFileDir(), outputFileSuffix);
-            arguments = new PostTransformActionArgsTransformer<AssembleSpec>(arguments, argsAction);
-            CommandLineToolInvocation invocation = new CommandLineToolInvocation();
-            invocation.args = arguments.transform(spec);
-            invocation.workDirectory = spec.getObjectFileDir();
+            invocation.setArgs(arguments.transform(spec));
             WorkResult result = commandLineTool.execute(invocation);
             didWork = didWork || result.getDidWork();
         }

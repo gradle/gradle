@@ -17,15 +17,11 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
-import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,19 +33,18 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineTool commandLineTool;
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
-    private final OptionsFileArgsTransformer<LinkerSpec> argsTransformer;
+    private final ArgsTransformer<LinkerSpec> argsTransformer;
 
     public LinkExeLinker(CommandLineTool commandLineTool, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
-        argsTransformer = new OptionsFileArgsTransformer<LinkerSpec>(
-                ArgWriter.windowsStyleFactory(), new LinkerArgsTransformer()
-        );
+        argsTransformer = new LinkerArgsTransformer();
         this.commandLineTool = commandLineTool;
         this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        CommandLineToolInvocation invocation = new CommandLineToolInvocation();
-        invocation.args = argsTransformer.transform(specTransformer.transform(spec));
+        MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
+        invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
+        invocation.setArgs(argsTransformer.transform(specTransformer.transform(spec)));
         return commandLineTool.execute(invocation);
     }
 

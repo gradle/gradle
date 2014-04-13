@@ -24,10 +24,7 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
-import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter;
+import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -46,12 +43,12 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
     public WorkResult execute(WindowsResourceCompileSpec spec) {
         boolean didWork = false;
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
+        MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
         spec = specTransformer.transform(spec);
         for (File sourceFile : spec.getSourceFiles()) {
             RcCompilerArgsTransformer argsTransformer = new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation);
-            CommandLineToolInvocation invocation = new CommandLineToolInvocation();
-            invocation.args = argsTransformer.transform(spec);
-            invocation.workDirectory = spec.getObjectFileDir();
+            invocation.setArgs(argsTransformer.transform(spec));
+            invocation.setWorkDirectory(spec.getObjectFileDir());
             WorkResult result = commandLineTool.execute(invocation);
             didWork |= result.getDidWork();
         }

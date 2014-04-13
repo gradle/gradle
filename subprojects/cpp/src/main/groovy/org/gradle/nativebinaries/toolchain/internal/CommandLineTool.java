@@ -60,12 +60,12 @@ public class CommandLineTool {
     public WorkResult execute(CommandLineToolInvocation invocation) {
         ExecAction compiler = execActionFactory.newExecAction();
         compiler.executable(executable);
-        if (invocation.workDirectory != null) {
-            GFileUtils.mkdirs(invocation.workDirectory);
-            compiler.workingDir(invocation.workDirectory);
+        if (invocation.getWorkDirectory() != null) {
+            GFileUtils.mkdirs(invocation.getWorkDirectory());
+            compiler.workingDir(invocation.getWorkDirectory());
         }
 
-        compiler.args(invocation.args);
+        compiler.args(invocation.getArgs());
 
         if (!path.isEmpty()) {
             String pathVar = OperatingSystem.current().getPathVar();
