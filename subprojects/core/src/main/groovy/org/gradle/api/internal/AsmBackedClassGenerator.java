@@ -627,41 +627,29 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     });
         }
 
-        public void addGetter(PropertyMetaData property) throws Exception {
+        public void addConventionProperty(PropertyMetaData property) throws Exception {
             if (!extensible) {
                 return;
             }
-            Method getter = property.getter;
 
             // GENERATE private boolean <prop>Set;
 
-            String flagName = String.format("%sSet", property.getName());
+            String flagName = flagName(property);
             visitor.visitField(Opcodes.ACC_PRIVATE, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
-
-            addConventionGetter(getter.getName(), flagName, property);
-
-            String getterName = getter.getName();
-            Class<?> returnType = getter.getReturnType();
-
-            // If it's a boolean property, there can be get or is type variants.
-            // If this class has both, decorate both.
-            if (returnType.equals(Boolean.TYPE)) {
-                boolean getterIsIsMethod = getterName.startsWith("is");
-                String propertyNameComponent = getterName.substring(getterIsIsMethod ? 2 : 3);
-                String alternativeGetterName = String.format("%s%s", getterIsIsMethod ? "get" : "is", propertyNameComponent);
-
-                try {
-                    type.getMethod(alternativeGetterName);
-                    addConventionGetter(alternativeGetterName, flagName, property);
-                } catch (NoSuchMethodException e) {
-                    // ignore, no method to override
-                }
-            }
         }
 
-        private void addConventionGetter(String getterName, String flagName, PropertyMetaData property) throws Exception {
+        private String flagName(PropertyMetaData property) {
+            return String.format("__%s_set__", property.getName());
+        }
+
+        public void overrideGetter(PropertyMetaData property, Method getter) throws Exception {
+            if (!extensible) {
+                return;
+            }
+
             // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', <prop>Set); }
-            Method getter = property.getter;
+            String flagName = flagName(property);
+            String getterName = getter.getName();
 
             Type returnType = Type.getType(getter.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType);
@@ -713,11 +701,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
-        public void addSetter(PropertyMetaData property) throws Exception {
+        public void overrideSetter(PropertyMetaData property, Method setter) throws Exception {
             if (!extensible) {
                 return;
             }
-            Method setter = property.setter;
 
             // GENERATE public <return-type> <setter>(<type> v) { <return-type> v = super.<setter>(v); <prop>Set = true; return v; }
 
@@ -740,8 +727,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitLdcInsn(true);
-            methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), String.format("%sSet",
-                    property.getName()), Type.BOOLEAN_TYPE.getDescriptor());
+            methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), flagName(property), Type.BOOLEAN_TYPE.getDescriptor());
 
             // END
 
@@ -750,8 +736,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
-        public void addSetMethod(PropertyMetaData property) throws Exception {
-            Method setter = property.setter;
+        public void addSetMethod(PropertyMetaData property, Method setter) throws Exception {
             Type paramType = Type.getType(setter.getParameterTypes()[0]);
             Type returnType = Type.getType(setter.getReturnType());
             String setterDescriptor = Type.getMethodDescriptor(returnType, paramType);
@@ -800,8 +785,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitLdcInsn(true);
-            methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), String.format("%sSet",
-                    property.getName()), Type.BOOLEAN_TYPE.getDescriptor());
+            methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), flagName(property), Type.BOOLEAN_TYPE.getDescriptor());
 
             // END
 

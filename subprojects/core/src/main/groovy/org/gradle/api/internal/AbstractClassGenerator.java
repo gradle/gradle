@@ -116,33 +116,32 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     continue;
                 }
 
-                boolean needsConventionMapping = true;
-                Method getter = property.getter;
-                if (getter == null) {
-                    needsConventionMapping = false;
-                } else {
-                    if (Modifier.isFinal(getter.getModifiers())) {
-                        needsConventionMapping = false;
-                    } else {
-                        Class<?> declaringClass = getter.getDeclaringClass();
-                        if (declaringClass.isAssignableFrom(noMappingClass)) {
-                            needsConventionMapping = false;
-                        }
+                boolean needsConventionMapping = false;
+                for (Method getter : property.getters) {
+                    if (!Modifier.isFinal(getter.getModifiers()) && !getter.getDeclaringClass().isAssignableFrom(noMappingClass)) {
+                        needsConventionMapping = true;
+                        break;
                     }
                 }
 
                 if (needsConventionMapping) {
                     conventionProperties.add(property);
-                    builder.addGetter(property);
+                    builder.addConventionProperty(property);
+                    for (Method getter : property.getters) {
+                        builder.overrideGetter(property, getter);
+                    }
                 }
 
-                Method setter = property.setter;
-                if (setter == null) {
+                if (property.setters.isEmpty()) {
                     continue;
                 }
 
-                if (needsConventionMapping && !Modifier.isFinal(setter.getModifiers())) {
-                    builder.addSetter(property);
+                if (needsConventionMapping) {
+                    for (Method setter : property.setters) {
+                        if (!Modifier.isFinal(setter.getModifiers())) {
+                            builder.overrideSetter(property, setter);
+                        }
+                    }
                 }
 
                 if (Iterable.class.isAssignableFrom(property.getType())) {
@@ -160,7 +159,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             // Adds a set method for each mutable property
             for (PropertyMetaData property : settableProperties) {
                 if (property.setMethods.isEmpty()) {
-                    builder.addSetMethod(property);
+                    for (Method setter : property.setters) {
+                        builder.addSetMethod(property, setter);
+                    }
                 } else if (conventionProperties.contains(property)) {
                     for (Method setMethod : property.setMethods) {
                         builder.overrideSetMethod(property, setMethod);
@@ -198,7 +199,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private void findMissingClosureOverloads(ClassMetaData classMetaData) {
-        for (Method method : classMetaData.actionMethods.values()) {
+        for (Method method : classMetaData.actionMethods) {
             Method overload = findClosureOverload(method, classMetaData.closureMethods.get(method.getName()));
             if (overload == null) {
                 classMetaData.actionMethodRequiresOverload(method);
@@ -276,9 +277,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     private static class ClassMetaData {
         final Map<String, PropertyMetaData> properties = new LinkedHashMap<String, PropertyMetaData>();
         final Set<Method> missingOverloads = new LinkedHashSet<Method>();
-        Map<MethodSignature, Method> actionMethods = new LinkedHashMap<MethodSignature, Method>();
+        MethodSet actionMethods = new MethodSet();
         SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
-        Set<Method> setMethods = new LinkedHashSet<Method>();
+        MethodSet setMethods = new MethodSet();
 
         @Nullable
         public PropertyMetaData getProperty(String name) {
@@ -295,10 +296,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public void addActionMethod(Method method) {
-            MethodSignature methodSignature = new MethodSignature(method.getName(), method.getParameterTypes());
-            if (!actionMethods.containsKey(methodSignature)) {
-                actionMethods.put(methodSignature, method);
-            }
+            actionMethods.add(method);
         }
 
         public void addClosureMethod(Method method) {
@@ -322,9 +320,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected static class PropertyMetaData {
         final String name;
-        Method getter;
-        Method setter;
-        Set<Method> setMethods = new LinkedHashSet<Method>();
+        final MethodSet getters = new MethodSet();
+        final MethodSet setters = new MethodSet();
+        final MethodSet setMethods = new MethodSet();
 
         private PropertyMetaData(String name) {
             this.name = name;
@@ -340,26 +338,46 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public Class<?> getType() {
-            if (getter != null) {
-                return getter.getReturnType();
+            if (!getters.isEmpty()) {
+                return getters.getValues().get(0).getReturnType();
             }
-            return setter.getParameterTypes()[0];
+            return setters.getValues().get(0).getParameterTypes()[0];
         }
 
         public void addGetter(Method method) {
-            if (getter == null) {
-                getter = method;
-            }
+            getters.add(method);
         }
 
         public void addSetter(Method method) {
-            if (setter == null) {
-                setter = method;
-            }
+            setters.add(method);
         }
 
         public void addSetMethod(Method method) {
             setMethods.add(method);
+        }
+    }
+
+    private static class MethodSet implements Iterable<Method> {
+        private final Set<MethodSignature> signatures = new HashSet<MethodSignature>();
+        private final List<Method> methods = new ArrayList<Method>();
+
+        public void add(Method method) {
+            MethodSignature methodSignature = new MethodSignature(method.getName(), method.getParameterTypes());
+            if (signatures.add(methodSignature)) {
+                methods.add(method);
+            }
+        }
+
+        public Iterator<Method> iterator() {
+            return methods.iterator();
+        }
+
+        public List<Method> getValues() {
+            return methods;
+        }
+
+        public boolean isEmpty() {
+            return methods.isEmpty();
         }
     }
 
@@ -397,16 +415,18 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         void addDynamicMethods() throws Exception;
 
-        void addGetter(PropertyMetaData property) throws Exception;
+        void addConventionProperty(PropertyMetaData property) throws Exception;
 
-        void addSetter(PropertyMetaData property) throws Exception;
+        void overrideGetter(PropertyMetaData property, Method getter) throws Exception;
+
+        void overrideSetter(PropertyMetaData property, Method setter) throws Exception;
 
         void overrideSetMethod(PropertyMetaData property, Method metaMethod) throws Exception;
 
-        void addSetMethod(PropertyMetaData propertyMetaData) throws Exception;
-
-        Class<? extends T> generate() throws Exception;
+        void addSetMethod(PropertyMetaData propertyMetaData, Method setter) throws Exception;
 
         void addActionMethod(Method method) throws Exception;
+
+        Class<? extends T> generate() throws Exception;
     }
 }

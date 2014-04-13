@@ -319,7 +319,7 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void appliesConventionMappingToEachGetter() throws Exception {
+    public void appliesConventionMappingToEachProperty() throws Exception {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class);
         assertTrue(IConventionAware.class.isAssignableFrom(generatedClass));
         Bean bean = generatedClass.newInstance();
@@ -340,6 +340,45 @@ public class AsmBackedClassGeneratorTest {
 
         bean.setProp(null);
         assertThat(bean.getProp(), nullValue());
+    }
+
+    @Test
+    public void appliesConventionMappingToPropertyWithMultipleSetters() throws Exception {
+        BeanWithVariousGettersAndSetters bean = generator.newInstance(BeanWithVariousGettersAndSetters.class);
+        new DslObject(bean).getConventionMapping().map("overloaded", new Callable<String>() {
+            public String call() {
+                return "conventionValue";
+            }
+        });
+
+        assertThat(bean.getOverloaded(), equalTo("conventionValue"));
+
+        bean.setOverloaded("value");
+        assertThat(bean.getOverloaded(), equalTo("chars = value"));
+
+        bean = generator.newInstance(BeanWithVariousGettersAndSetters.class);
+        new DslObject(bean).getConventionMapping().map("overloaded", new Callable<String>() {
+            public String call() {
+                return "conventionValue";
+            }
+        });
+
+        assertThat(bean.getOverloaded(), equalTo("conventionValue"));
+
+        bean.setOverloaded(12);
+        assertThat(bean.getOverloaded(), equalTo("number = 12"));
+
+        bean = generator.newInstance(BeanWithVariousGettersAndSetters.class);
+        new DslObject(bean).getConventionMapping().map("overloaded", new Callable<String>() {
+            public String call() {
+                return "conventionValue";
+            }
+        });
+
+        assertThat(bean.getOverloaded(), equalTo("conventionValue"));
+
+        bean.setOverloaded(true);
+        assertThat(bean.getOverloaded(), equalTo("object = true"));
     }
 
     @Test
@@ -594,6 +633,18 @@ public class AsmBackedClassGeneratorTest {
 
         call("{ it.primitive 12}", bean);
         assertThat(bean.getPrimitive(), equalTo(12));
+
+        call("{ it.bool true}", bean);
+        assertThat(bean.isBool(), equalTo(true));
+
+        call("{ it.overloaded 'value'}", bean);
+        assertThat(bean.getOverloaded(), equalTo("chars = value"));
+
+        call("{ it.overloaded 12}", bean);
+        assertThat(bean.getOverloaded(), equalTo("number = 12"));
+
+        call("{ it.overloaded true}", bean);
+        assertThat(bean.getOverloaded(), equalTo("object = true"));
     }
 
     @Test
@@ -691,7 +742,7 @@ public class AsmBackedClassGeneratorTest {
 
         call("{def value; it.doStuff { value = it }; assert value == \'value\' }", bean);
 
-        BeanWithOverloadedMethods subBean = generator.generate(BeanWithOverloadedMethods.class).newInstance();
+        BeanWithOverriddenMethods subBean = generator.generate(BeanWithOverriddenMethods.class).newInstance();
 
         call("{def value; it.doStuff { value = it }; assert value == \'overloaded\' }", subBean);
     }
@@ -728,7 +779,7 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static class BeanWithOverloadedMethods extends Bean {
+    public static class BeanWithOverriddenMethods extends Bean {
         @Override
         public String getProp() {
             return super.getProp();
@@ -1018,6 +1069,7 @@ public class AsmBackedClassGeneratorTest {
         private boolean bool;
         private String finalGetter;
         private Integer writeOnly;
+        private String overloaded;
 
         public int getPrimitive() {
             return primitive;
@@ -1025,6 +1077,14 @@ public class AsmBackedClassGeneratorTest {
 
         public void setPrimitive(int primitive) {
             this.primitive = primitive;
+        }
+
+        public boolean isBool() {
+            return bool;
+        }
+
+        public void setBool(boolean bool) {
+            this.bool = bool;
         }
 
         public final String getFinalGetter() {
@@ -1037,6 +1097,22 @@ public class AsmBackedClassGeneratorTest {
 
         public void setWriteOnly(Integer value) {
             writeOnly = value;
+        }
+
+        public String getOverloaded() {
+            return overloaded;
+        }
+
+        public void setOverloaded(Number overloaded) {
+            this.overloaded = String.format("number = %s", overloaded);
+        }
+
+        public void setOverloaded(CharSequence overloaded) {
+            this.overloaded = String.format("chars = %s", overloaded);
+        }
+
+        public void setOverloaded(Object overloaded) {
+            this.overloaded = String.format("object = %s", overloaded);
         }
     }
 
