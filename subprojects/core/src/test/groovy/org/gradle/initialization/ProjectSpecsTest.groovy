@@ -35,18 +35,6 @@ class ProjectSpecsTest extends Specification {
 
     }
 
-    def "path based spec"() {
-        given:
-        StartParameter parameter = new StartParameter()
-        parameter.setProjectPath(':a')
-        parameter.setBuildFile(buildFile)
-        parameter.setProjectDir(projectDir)
-        parameter.setCurrentDir(currentDir)
-
-        expect:
-        ProjectSpecs.forStartParameter(parameter).class == ProjectPathProjectSpec
-    }
-
     def "build file based spec"() {
         given:
         StartParameter parameter = new StartParameter()

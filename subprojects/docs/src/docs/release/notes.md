@@ -317,6 +317,10 @@ native integration to these platforms.
 - `CodeNarc.reportFile` replaced with `CodeNarc.reports.<type>.destination`.
 - `ResolvedArtifact.resolvedDependency` with `ResolvedArtifact.moduleVersion` as a partial replacement.
 
+### Removed incubating method
+
+- `StartParameter.setProjectPath` and `StartParameter.getProjectPath` were replaced with `TaskParameter`.
+
 ### Task constructor changes
 
 All task types now have a zero args constructor. The following types are affected:

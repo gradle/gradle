@@ -86,16 +86,6 @@ class InstantiatingBuildLoaderTest extends Specification {
         rootProject.childProjects['child'].is childProject
     }
 
-    def createsBuildWithMultipleProjectsAndSetsDefaultFromPath() {
-        when:
-        expectProjectsCreatedNoDefaultProject()
-        startParameter.projectPath = ':child'
-        buildLoader.load(rootDescriptor, build, rootProjectClassLoaderScope)
-
-        then:
-        1 * build.setDefaultProject(childProject)
-    }
-
     def expectProjectsCreatedNoDefaultProject() {
         1 * projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope) >> rootProject
         1 * projectFactory.createProject(childDescriptor, rootProject, !null, _ as ClassLoaderScope) >> childProject
