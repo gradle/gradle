@@ -107,10 +107,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, paramTypes.toArray(
                     new Type[paramTypes.size()]));
 
-            String signature = signature(constructor);
-
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", methodDescriptor, signature,
-                    new String[0]);
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", methodDescriptor, signature(constructor), new String[0]);
 
             for (Annotation annotation : constructor.getDeclaredAnnotations()) {
                 if (annotation.annotationType().getAnnotation(Inherited.class) != null) {
@@ -151,9 +148,44 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
          */
         private String signature(Constructor<?> constructor) {
             StringBuilder builder = new StringBuilder();
-            if (constructor.getTypeParameters().length > 0) {
+            visitFormalTypeParameters(builder, constructor.getTypeParameters());
+            visitParameters(builder, constructor.getGenericParameterTypes());
+            builder.append("V");
+            visitExceptions(builder, constructor.getGenericExceptionTypes());
+            return builder.toString();
+        }
+
+        /**
+         * Generates the signature for the given method
+         */
+        private String signature(Method method) {
+            StringBuilder builder = new StringBuilder();
+            visitFormalTypeParameters(builder, method.getTypeParameters());
+            visitParameters(builder, method.getGenericParameterTypes());
+            visitType(method.getGenericReturnType(), builder);
+            visitExceptions(builder, method.getGenericExceptionTypes());
+            return builder.toString();
+        }
+
+        private void visitExceptions(StringBuilder builder, java.lang.reflect.Type[] exceptionTypes) {
+            for (java.lang.reflect.Type exceptionType : exceptionTypes) {
+                builder.append('^');
+                visitType(exceptionType, builder);
+            }
+        }
+
+        private void visitParameters(StringBuilder builder, java.lang.reflect.Type[] parameterTypes) {
+            builder.append('(');
+            for (java.lang.reflect.Type paramType : parameterTypes) {
+                visitType(paramType, builder);
+            }
+            builder.append(")");
+        }
+
+        private void visitFormalTypeParameters(StringBuilder builder, TypeVariable<?>[] typeParameters) {
+            if (typeParameters.length > 0) {
                 builder.append('<');
-                for (TypeVariable<?> typeVariable : constructor.getTypeParameters()) {
+                for (TypeVariable<?> typeVariable : typeParameters) {
                     builder.append(typeVariable.getName());
                     for (java.lang.reflect.Type bound : typeVariable.getBounds()) {
                         builder.append(':');
@@ -162,16 +194,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 }
                 builder.append('>');
             }
-            builder.append('(');
-            for (java.lang.reflect.Type paramType : constructor.getGenericParameterTypes()) {
-                visitType(paramType, builder);
-            }
-            builder.append(")V");
-            for (java.lang.reflect.Type exceptionType : constructor.getGenericExceptionTypes()) {
-                builder.append('^');
-                visitType(exceptionType, builder);
-            }
-            return builder.toString();
         }
 
         private void visitType(java.lang.reflect.Type type, StringBuilder builder) {
@@ -482,8 +504,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         private void addSetter(Method method, MethodCodeBody body) throws Exception {
             String methodDescriptor = Type.getMethodDescriptor(method);
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor,
-                    null, new String[0]);
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor, null, new String[0]);
             methodVisitor.visitCode();
             body.add(methodVisitor);
             methodVisitor.visitInsn(Opcodes.RETURN);
@@ -498,8 +519,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void addGetter(String methodName, String methodDescriptor, MethodCodeBody body) throws Exception {
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, methodName, methodDescriptor,
-                    null, new String[0]);
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, methodName, methodDescriptor, null, new String[0]);
             methodVisitor.visitCode();
             body.add(methodVisitor);
             methodVisitor.visitInsn(Opcodes.ARETURN);
@@ -634,20 +654,22 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void applyServiceInjectionToGetter(PropertyMetaData property, Method getter) throws Exception {
-            // GENERATE public <type> <getter>() { if (<field> == null) { <field> = getServices().get(Class.forName(<type-name>)); } return <field> }
+            // GENERATE public <type> <getter>() { if (<field> == null) { <field> = getServices().get(getClass().getDeclaredMethod(<getter-name>).getGenericReturnType()); } return <field> }
 
             Type serviceRegistryType = Type.getType(ServiceRegistry.class);
             Type classType = Type.getType(Class.class);
+            Type methodType = Type.getType(Method.class);
+            Type typeType = Type.getType(java.lang.reflect.Type.class);
 
             String getterName = getter.getName();
             Type returnType = Type.getType(getter.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType);
             Type serviceType = Type.getType(property.getType());
 
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, getterName, methodDescriptor, null, new String[0]);
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, getterName, methodDescriptor, signature(getter), new String[0]);
             methodVisitor.visitCode();
 
-            // if (this.<field> == nul) { ...  }
+            // if (this.<field> == null) { ...  }
 
             // this.field
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -662,12 +684,21 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getServices", Type.getMethodDescriptor(serviceRegistryType));
 
-            // Class.forName(<type-name>)
-            methodVisitor.visitLdcInsn(returnType.getClassName());
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, classType.getInternalName(), "forName", Type.getMethodDescriptor(classType, Type.getType(String.class)));
+            // this.getClass()
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getClass", Type.getMethodDescriptor(classType));
+
+            // <class>.getDeclaredMethod(<getter-name>)
+            methodVisitor.visitLdcInsn(getterName);
+            methodVisitor.visitInsn(Opcodes.ICONST_0);
+            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, classType.getInternalName());
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, classType.getInternalName(), "getDeclaredMethod", Type.getMethodDescriptor(methodType, Type.getType(String.class), Type.getType(Class[].class)));
+
+            // <method>.getGenericReturnType()
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, methodType.getInternalName(), "getGenericReturnType", Type.getMethodDescriptor(typeType));
 
             // get(<type>)
-            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, serviceRegistryType.getInternalName(), "get", Type.getMethodDescriptor(Type.getType(Object.class), classType));
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, serviceRegistryType.getInternalName(), "get", Type.getMethodDescriptor(Type.getType(Object.class), typeType));
 
             // this.field = (<type>)<service>
             methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, serviceType.getInternalName());

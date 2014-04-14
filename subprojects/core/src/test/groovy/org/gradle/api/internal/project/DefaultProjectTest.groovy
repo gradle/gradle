@@ -49,7 +49,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.logging.StandardOutputCapture
 import org.gradle.model.ModelRules
 import org.gradle.model.internal.ModelRegistry
 import org.gradle.model.internal.ModelRegistryBackedModelRules
@@ -62,6 +61,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import java.awt.*
+import java.lang.reflect.Type
 import java.text.FieldPosition
 
 import static org.hamcrest.Matchers.*
@@ -137,30 +137,29 @@ class DefaultProjectTest {
             allowing(taskContainerMock).getTasksAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
             allowing(taskContainerMock).all(withParam(notNullValue()))
             allowing(taskContainerMock).whenObjectRemoved(withParam(notNullValue()))
-            allowing(serviceRegistryMock).get(RepositoryHandler); will(returnValue(repositoryHandlerMock))
+            allowing(serviceRegistryMock).get((Type)RepositoryHandler); will(returnValue(repositoryHandlerMock))
             allowing(serviceRegistryMock).get(ConfigurationContainerInternal); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
-            allowing(serviceRegistryMock).get(ComponentMetadataHandler); will(returnValue(moduleHandlerMock))
-            allowing(serviceRegistryMock).get(SoftwareComponentContainer); will(returnValue(softwareComponentsMock))
+            allowing(serviceRegistryMock).get((Type)ComponentMetadataHandler); will(returnValue(moduleHandlerMock))
+            allowing(serviceRegistryMock).get((Type)SoftwareComponentContainer); will(returnValue(softwareComponentsMock))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).getFactory(AntBuilder); will(returnValue(antBuilderFactoryMock))
-            allowing(serviceRegistryMock).get(PluginContainer); will(returnValue(pluginContainerMock))
-            allowing(serviceRegistryMock).get(ScriptHandler); will(returnValue(scriptHandlerMock))
-            allowing(serviceRegistryMock).get(LoggingManagerInternal); will(returnValue(loggingManagerMock))
-            allowing(serviceRegistryMock).get(StandardOutputCapture); will(returnValue(context.mock(StandardOutputCapture)))
-            allowing(serviceRegistryMock).get(ProjectRegistry); will(returnValue(projectRegistry))
+            allowing(serviceRegistryMock).get((Type)PluginContainer); will(returnValue(pluginContainerMock))
+            allowing(serviceRegistryMock).get((Type)ScriptHandler); will(returnValue(scriptHandlerMock))
+            allowing(serviceRegistryMock).get((Type)LoggingManagerInternal); will(returnValue(loggingManagerMock))
+            allowing(serviceRegistryMock).get(projectRegistryType); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: {-> "file resolver" }] as FileResolver))
             allowing(serviceRegistryMock).get(Instantiator); will(returnValue(instantiatorMock))
-            allowing(serviceRegistryMock).get(FileOperations); will(returnValue(fileOperationsMock))
-            allowing(serviceRegistryMock).get(ProcessOperations); will(returnValue(processOperationsMock))
-            allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: {-> "script plugin factory" }] as ScriptPluginFactory))
-            allowing(serviceRegistryMock).get(ScriptHandlerFactory); will(returnValue([toString: {-> "script plugin factory" }] as ScriptHandlerFactory))
-            allowing(serviceRegistryMock).get(ProjectConfigurationActionContainer); will(returnValue(configureActions))
+            allowing(serviceRegistryMock).get((Type)FileOperations); will(returnValue(fileOperationsMock))
+            allowing(serviceRegistryMock).get((Type)ProcessOperations); will(returnValue(processOperationsMock))
+            allowing(serviceRegistryMock).get((Type)ScriptPluginFactory); will(returnValue([toString: {-> "script plugin factory" }] as ScriptPluginFactory))
+            allowing(serviceRegistryMock).get((Type)ScriptHandlerFactory); will(returnValue([toString: {-> "script plugin factory" }] as ScriptHandlerFactory))
+            allowing(serviceRegistryMock).get((Type)ProjectConfigurationActionContainer); will(returnValue(configureActions))
             ModelRegistry modelRegistry = context.mock(ModelRegistry)
             ignoring(modelRegistry)
-            allowing(serviceRegistryMock).get(ModelRegistry); will(returnValue(modelRegistry))
+            allowing(serviceRegistryMock).get((Type)ModelRegistry); will(returnValue(modelRegistry))
             allowing(serviceRegistryMock).get(ModelRules); will(returnValue(new ModelRegistryBackedModelRules(modelRegistry)))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
@@ -168,7 +167,6 @@ class DefaultProjectTest {
             will(returnValue(listener))
         }
 
-        // TODO - don't decorate the project objects
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
         project = classGenerator.newInstance(DefaultProject.class, 'root', null, rootDir, script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope);
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild()
@@ -181,6 +179,10 @@ class DefaultProjectTest {
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
         }
+    }
+
+    Type getProjectRegistryType() {
+        return AbstractProject.class.getDeclaredMethod("getProjectRegistry").getGenericReturnType()
     }
 
     //TODO please move more coverage to NewDefaultProjectTest

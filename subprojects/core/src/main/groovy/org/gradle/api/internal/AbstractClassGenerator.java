@@ -42,7 +42,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Generates a subclass of the target class to mix-in some DSL behaviour.
  *
- * <p>By default, for each property, a convention mapping is applied. If @Inject is attached to a getter, the appropriate service instance will be injected instead.</p>
+ * <p>By default, for each property, a convention mapping is applied. If {@code @Inject} is attached to a getter, the appropriate service instance will be injected instead.</p>
  */
 public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class<?>, Map<Class<?>, Class<?>>> GENERATED_CLASSES = new HashMap<Class<?>, Map<Class<?>, Class<?>>>();
@@ -253,6 +253,14 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
     private void inspectType(Class<?> type, ClassMetaData classMetaData) {
         for (Method method : type.getDeclaredMethods()) {
+            if (method.getAnnotation(Inject.class) != null) {
+                if (!Modifier.isPublic(method.getModifiers()) && !Modifier.isProtected(method.getModifiers())){
+                    throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is not public or protected.", method.getDeclaringClass().getSimpleName(), method.getName()));
+                }
+                if (Modifier.isStatic(method.getModifiers())) {
+                    throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is static.", method.getDeclaringClass().getSimpleName(), method.getName()));
+                }
+            }
             if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers()) || method.isBridge()) {
                 continue;
             }

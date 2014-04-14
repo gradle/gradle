@@ -663,7 +663,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     @Inject
-    FileOperations getFileOperations() {
+    protected FileOperations getFileOperations() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
@@ -847,7 +847,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     @Inject
-    ProcessOperations getProcessOperations() {
+    protected ProcessOperations getProcessOperations() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
