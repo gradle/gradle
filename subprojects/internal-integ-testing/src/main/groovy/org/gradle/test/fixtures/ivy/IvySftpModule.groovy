@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.ivy
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.maven.SftpResource
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 
 class IvySftpModule implements IvyModule {
@@ -103,5 +104,13 @@ class IvySftpModule implements IvyModule {
 
     String getRevision() {
         return backingModule.revision
+    }
+
+    SftpResource getIvy() {
+        return new SftpResource(server, ivyFile)
+    }
+
+    SftpResource getJar() {
+        return new SftpResource(server, jarFile)
     }
 }

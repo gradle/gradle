@@ -52,10 +52,15 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractDependencyResolutionTest 
             }
         """
 
+        def module = ivySftpRepo.module('org.group.name', 'projectA', '1.2')
+
         when:
-        fails 'retrieve'
+        server.expectInit()
+        module.ivy.expectMetadataRetrieve()
+        module.jar.expectMetadataRetrieve()
 
         then:
+        fails 'retrieve'
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not find org.group.name:projectA:1.2')
     }
@@ -81,9 +86,11 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractDependencyResolutionTest 
         """
 
         when:
-        fails 'retrieve'
+        server.expectInit()
+        server.expectOpendir('/repo/org.group.name/projectA/')
 
         then:
+        fails 'retrieve'
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not find any version that matches org.group.name:projectA:1.+')
     }
@@ -147,5 +154,37 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractDependencyResolutionTest 
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
                 .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
+    }
+
+    void 'resolve dependencies from a SFTP Ivy that returns a failure'() {
+        given:
+        buildFile << """
+            repositories {
+                ivy {
+                    url "${ivySftpRepo.uri}"
+                    credentials {
+                        username 'sftp'
+                        password 'sftp'
+                    }
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'org.group.name:projectA:1.2' }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
+
+        when:
+        ivySftpRepo.module('org.group.name', 'projectA', '1.2').ivy.expectMetadataRetrieveFailure()
+
+        and:
+        failure = executer.withStackTraceChecksDisabled().withTasks('retrieve').runWithFailure()
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+                .assertHasCause('Could not resolve org.group.name:projectA:1.2')
+                .assertHasCause("Could not get resource 'sftp://$ivySftpRepo.uri.host:$ivySftpRepo.uri.port/repo/org.group.name/projectA/1.2/ivy-1.2.xml'")
     }
 }

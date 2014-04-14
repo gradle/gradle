@@ -30,8 +30,36 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
     @Rule
     final SFTPServer server = new SFTPServer(this)
 
-    IvySftpRepository getIvySftpRepo(boolean m2Compatible, String dirPattern = null) {
+    IvySftpRepository getIvySftpRepo(boolean m2Compatible = false, String dirPattern = null) {
         new IvySftpRepository(server, '/repo', m2Compatible, dirPattern)
+    }
+
+    private void buildAndSettingsFilesForPublishing() {
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
+
+            version = '2'
+            group = 'org.group.name'
+
+            publishing {
+                repositories {
+                    ivy {
+                        url "${ivySftpRepo.uri}"
+                        credentials {
+                            username 'sftp'
+                            password 'sftp'
+                        }
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
     }
 
     def "can publish to a SFTP repository with layout #layout"() {
@@ -67,9 +95,14 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         """
 
         when:
-        succeeds 'publish'
+        server.expectInit()
+        module.jar.expectMkdirs()
+        module.jar.expectFileAndSha1Upload()
+        module.ivy.expectFileAndSha1Upload()
 
         then:
+        succeeds 'publish'
+
         module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
@@ -116,13 +149,59 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         """
 
         when:
-        succeeds 'publish'
+        server.expectInit()
+        module.jar.expectMkdirs()
+        module.jar.expectFileAndSha1Upload()
+        module.ivy.expectFileAndSha1Upload()
 
         then:
+        succeeds 'publish'
+
         module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         where:
         m2Compatible << [true, false]
+    }
+
+    def "publishing to a SFTP repo when directory creation fails"() {
+        given:
+        buildAndSettingsFilesForPublishing()
+
+        when:
+        def directory = '/repo/org.group.name/publish/2'
+        server.expectInit()
+        directory.tokenize('/').findAll().inject('') { path, token ->
+            def currentPath = "$path/$token"
+            server.expectLstat(currentPath)
+            currentPath
+        }
+        server.expectMkdirFailure('/repo')
+
+        then:
+        fails 'publish'
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+                .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
+                .assertHasCause("org.apache.sshd.common.SshException: SFTP error (4): Failure")
+    }
+
+    def "publishing to a SFTP repo when file uploading fails"() {
+        given:
+        buildAndSettingsFilesForPublishing()
+        def module = ivySftpRepo.module('org.group.name', 'publish', '2')
+
+        when:
+        server.expectInit()
+        server.expectLstat('/repo/org.group.name/publish/2')
+        module.jar.expectMkdirs()
+        module.jar.expectOpen()
+        module.jar.expectWriteFailure()
+        module.jar.expectClose()
+
+        then:
+        fails 'publish'
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+                .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
+                .assertHasCause("org.apache.sshd.common.SshException: SFTP error (4): Failure")
     }
 }

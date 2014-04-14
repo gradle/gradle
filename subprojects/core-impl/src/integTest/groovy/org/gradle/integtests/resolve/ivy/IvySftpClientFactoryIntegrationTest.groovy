@@ -45,6 +45,7 @@ class IvySftpClientFactoryIntegrationTest extends AbstractIntegrationSpec {
         PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
 
         when:
+        server.expectInit()
         SftpClient client = sftpClientFactory.createSftpClient(uri, credentials)
 
         then:
@@ -74,6 +75,7 @@ class IvySftpClientFactoryIntegrationTest extends AbstractIntegrationSpec {
         PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
 
         when:
+        server.expectInit()
         SftpClient initialClient = sftpClientFactory.createSftpClient(uri, credentials)
 
         then:
@@ -83,6 +85,7 @@ class IvySftpClientFactoryIntegrationTest extends AbstractIntegrationSpec {
         initialClient.locked
 
         when:
+        server.expectInit()
         SftpClient newClient = sftpClientFactory.createSftpClient(uri, credentials)
 
         then:
@@ -102,6 +105,7 @@ class IvySftpClientFactoryIntegrationTest extends AbstractIntegrationSpec {
         PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
 
         when:
+        server.expectInit()
         SftpClient initialClient = sftpClientFactory.createSftpClient(uri, credentials)
         sftpClientFactory.releaseSftpClient(initialClient)
 
@@ -137,7 +141,9 @@ class IvySftpClientFactoryIntegrationTest extends AbstractIntegrationSpec {
         PasswordCredentials credentials2 = new DefaultPasswordCredentials('sftp2', 'sftp2')
 
         when:
+        server.expectInit()
         SftpClient client1 = sftpClientFactory.createSftpClient(uri1, credentials1)
+        server.expectInit()
         SftpClient client2 = sftpClientFactory.createSftpClient(uri2, credentials2)
 
         then:

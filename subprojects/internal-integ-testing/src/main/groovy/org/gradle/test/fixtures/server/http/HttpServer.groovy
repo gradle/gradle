@@ -19,10 +19,12 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.hash.HashUtil
+import org.gradle.test.fixtures.server.ExpectOne
+import org.gradle.test.fixtures.server.ServerExpectation
+import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matcher
-import org.junit.rules.ExternalResource
 import org.mortbay.jetty.*
 import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
@@ -36,9 +38,9 @@ import javax.servlet.http.HttpServletResponse
 import java.security.Principal
 import java.util.zip.GZIPOutputStream
 
-class HttpServer extends ExternalResource {
+class HttpServer extends ServerWithExpectations {
 
-    private static Logger logger = LoggerFactory.getLogger(HttpServer.class)
+    private final static Logger logger = LoggerFactory.getLogger(HttpServer.class)
 
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
@@ -48,9 +50,9 @@ class HttpServer extends ExternalResource {
     private SslSocketConnector sslConnector
     AuthScheme authenticationScheme = AuthScheme.BASIC
 
-    private Throwable failure
-    private final List<Expection> expections = []
     private Matcher expectedUserAgent = null
+
+    List<ServerExpectation> expectations = []
 
     enum AuthScheme {
         BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler())
@@ -104,6 +106,10 @@ class HttpServer extends ExternalResource {
         server.setHandler(handlers)
     }
 
+    protected Logger getLogger() {
+        logger
+    }
+
     String getAddress() {
         if (!server.started) {
             server.start()
@@ -139,17 +145,9 @@ class HttpServer extends ExternalResource {
     }
 
     void stop() {
-        resetExpectations()
         server?.stop()
         if (connector) {
             server?.removeConnector(connector)
-        }
-    }
-
-    private void onFailure(Throwable failure) {
-        logger.error(failure.message)
-        if (this.failure == null) {
-            this.failure = failure
         }
     }
 
@@ -175,24 +173,12 @@ class HttpServer extends ExternalResource {
 
     void resetExpectations() {
         try {
-            if (failure != null) {
-                throw failure
-            }
-            for (Expection e in expections) {
-                e.assertMet()
-            }
+            super.resetExpectations()
         } finally {
             realm = null
-            failure = null
             expectedUserAgent = null
-            expections.clear()
             collection.setHandlers()
         }
-    }
-
-    @Override
-    protected void after() {
-        stop()
     }
 
     /**
@@ -566,8 +552,8 @@ class HttpServer extends ExternalResource {
             action = withAuthentication(path, credentials.username, credentials.password, action)
         }
 
-        ExpectOne expectation = new ExpectOne(action, methods, path)
-        expections << expectation
+        HttpExpectOne expectation = new HttpExpectOne(action, methods, path)
+        expectations << expectation
         add(path, matchPrefix, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (expectation.run) {
@@ -610,26 +596,21 @@ class HttpServer extends ExternalResource {
         return server.connectors[0].localPort
     }
 
-    interface Expection {
-        void assertMet()
-    }
 
-    static class ExpectOne implements Expection {
-        boolean run
+
+    static class HttpExpectOne extends ExpectOne {
         final Action action
         final Collection<String> methods
         final String path
 
-        ExpectOne(Action action, Collection<String> methods, String path) {
+        HttpExpectOne(Action action, Collection<String> methods, String path) {
             this.action = action
             this.methods = methods
             this.path = path
         }
 
-        void assertMet() {
-            if (!run) {
-                throw new AssertionError("Expected HTTP request not received: ${methods.size() == 1 ? methods[0] : methods} $path and $action.displayName")
-            }
+        String getNotMetMessage() {
+            "Expected HTTP request not received: ${methods.size() == 1 ? methods[0] : methods} $path and $action.displayName"
         }
     }
 
