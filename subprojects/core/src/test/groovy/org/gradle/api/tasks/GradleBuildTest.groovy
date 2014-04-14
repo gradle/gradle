@@ -16,7 +16,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.BuildResult
-import org.gradle.GradleLauncher
+import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification

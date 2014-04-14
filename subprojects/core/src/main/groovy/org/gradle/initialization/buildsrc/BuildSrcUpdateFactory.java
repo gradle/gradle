@@ -16,7 +16,7 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.GradleLauncher;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;

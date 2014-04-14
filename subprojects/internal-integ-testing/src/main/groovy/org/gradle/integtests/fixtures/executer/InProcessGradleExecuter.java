@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;

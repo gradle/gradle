@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.GradleLauncher;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.initialization.GradleLauncherFactory;

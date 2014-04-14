@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.ExceptionAnalyser;

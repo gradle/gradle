@@ -185,13 +185,9 @@ This way the custom listeners are more robust because they can affect the test s
 There should be no impact of this change because majority of users do not employ custom listeners
 and even if they do healthy listeners will work correctly regardless of the listeners' order.
 
-### Removed Methods
+### Removed Deprecated Classes
 
-- `GradleLauncher.newInstance()`
-- `GradleLauncher.createStartParameter()`
-- `GradleLauncher.getBuildAndRunAnalysis()`
-- `GradleLauncher.useLogger()`
-- `GradleLauncher.getStartParameter()`
+- `GradleLauncher`
 
 ### Task constructor changes
 

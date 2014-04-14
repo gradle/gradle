@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.initialization;
 
+import org.gradle.BuildResult;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.concurrent.Stoppable;
 
 /**
- * <p>Executes a Gradle build.
- *
- * <p>{@code GradleLauncher} is deprecated. It has been replaced by the Tooling API.
- * If you're interested in embedding Gradle you should read the user guide chapter on embedding Gradle.
- * The main entry point to the Tooling API (and embedding Gradle) is {@code org.gradle.tooling.GradleConnector}.
- *
- * @deprecated Use the tooling API instead.
+ * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into
+ * {@link org.gradle.initialization.BuildController}.
  */
-@Deprecated
 public abstract class GradleLauncher implements Stoppable {
 
     /**

@@ -41,7 +41,7 @@ import java.util.*;
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  *
- * @see GradleLauncher
+ * @see org.gradle.initialization.GradleLauncher
  */
 public class StartParameter extends LoggingConfiguration implements Serializable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";

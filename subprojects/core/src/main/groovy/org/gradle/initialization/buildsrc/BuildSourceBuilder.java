@@ -16,7 +16,7 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.GradleLauncher;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.CacheRepository;

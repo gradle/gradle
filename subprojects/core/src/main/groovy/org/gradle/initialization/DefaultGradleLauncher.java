@@ -17,7 +17,6 @@ package org.gradle.initialization;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
