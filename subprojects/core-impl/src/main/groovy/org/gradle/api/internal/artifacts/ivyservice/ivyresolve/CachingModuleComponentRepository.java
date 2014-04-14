@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -54,14 +55,13 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ModuleComponentRepository delegate;
     private final BuildCommencedTimeProvider timeProvider;
     private final ModuleMetadataProcessor metadataProcessor;
-    private final Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor;
     private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
     public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                             ModuleArtifactsCache moduleArtifactsCache, CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                             CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
-                                            ModuleMetadataProcessor metadataProcessor, Transformer<ModuleIdentifier, ModuleVersionSelector> moduleExtractor) {
+                                            ModuleMetadataProcessor metadataProcessor) {
         this.delegate = delegate;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleVersionsCache = moduleVersionsCache;
@@ -70,7 +70,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
         this.metadataProcessor = metadataProcessor;
-        this.moduleExtractor = moduleExtractor;
     }
 
     public String getId() {
@@ -92,6 +91,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return resolveAndCacheRepositoryAccess;
+    }
+
+    public boolean canListModuleVersions() {
+        return delegate.canListModuleVersions();
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
@@ -132,11 +135,19 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
     }
 
+    private DefaultModuleIdentifier getCacheKey(ModuleVersionSelector requested) {
+        if (canListModuleVersions()) {
+            return new DefaultModuleIdentifier(requested.getGroup(), requested.getName());
+        } else {
+            return new DefaultModuleIdentifier(requested.getGroup(), requested.getName() + ":" + requested.getVersion());
+        }
+    }
+
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
 
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
             ModuleVersionSelector requested = dependency.getRequested();
-            final ModuleIdentifier moduleId = moduleExtractor.transform(requested);
+            final ModuleIdentifier moduleId = getCacheKey(requested);
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
             if (cachedModuleVersionList != null) {
                 ModuleVersionListing versionList = cachedModuleVersionList.getModuleVersions();
@@ -244,7 +255,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:
-                    ModuleIdentifier moduleId = moduleExtractor.transform(dependency.getRequested());
+                    ModuleIdentifier moduleId = getCacheKey(dependency.getRequested());
                     ModuleVersionListing versionList = result.getVersions();
                     moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
                     break;

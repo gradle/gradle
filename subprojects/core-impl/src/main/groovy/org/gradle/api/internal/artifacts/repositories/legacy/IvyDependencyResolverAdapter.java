@@ -64,6 +64,10 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
         return resolver.getName();
     }
 
+    public boolean canListModuleVersions() {
+        return false;
+    }
+
     @Override
     public String toString() {
         return String.format("Repository '%s'", resolver.getName());

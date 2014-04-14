@@ -103,6 +103,10 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return name;
     }
 
+    public boolean canListModuleVersions() {
+        return true;
+    }
+
     public void setName(String name) {
         this.name = name;
     }

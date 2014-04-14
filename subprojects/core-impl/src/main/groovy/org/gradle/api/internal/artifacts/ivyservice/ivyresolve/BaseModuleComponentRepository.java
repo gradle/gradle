@@ -43,6 +43,10 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
         return delegate.getName();
     }
 
+    public boolean canListModuleVersions() {
+        return delegate.canListModuleVersions();
+    }
+
     public ModuleComponentRepositoryAccess getLocalAccess() {
         return localAccess;
     }

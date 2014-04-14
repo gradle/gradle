@@ -20,11 +20,7 @@ import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -103,7 +99,7 @@ public class ResolveIvyFactory {
                 moduleComponentRepository = new CacheLockReleasingModuleComponentsRepository(moduleComponentRepository, cacheLockingManager);
                 moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
                 moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
-                        cachePolicy, timeProvider, metadataProcessor, getModuleExtractor(baseRepository));
+                        cachePolicy, timeProvider, metadataProcessor);
             }
 
             if (baseRepository.isDynamicResolveMode()) {
@@ -133,14 +129,6 @@ public class ResolveIvyFactory {
         options.setDownload(false);
         options.setConfs(WrapUtil.toArray(configurationName));
         return new ResolveData(ivy.getResolveEngine(), options);
-    }
-
-    private Transformer<ModuleIdentifier, ModuleVersionSelector> getModuleExtractor(ConfiguredModuleComponentRepository rootRepository) {
-        // If the backing repository is a custom ivy resolver, then we don't get a full listing
-        if (rootRepository instanceof IvyAwareModuleVersionRepository) {
-            return new LegacyIvyResolverModuleIdExtractor();
-        }
-        return new DefaultModuleIdExtractor();
     }
 
     /**
@@ -195,20 +183,6 @@ public class ResolveIvyFactory {
                     artifactResolver.resolveArtifact(artifact, moduleSource, result);
                 }
             });
-        }
-    }
-
-    private static class DefaultModuleIdExtractor implements Transformer<ModuleIdentifier, ModuleVersionSelector> {
-        public ModuleIdentifier transform(ModuleVersionSelector original) {
-            return new DefaultModuleIdentifier(original.getGroup(), original.getName());
-        }
-    }
-
-    // When caching module listing for ivy resolvers, we can only cache for a particular version request
-    // TODO: Remove this when we remove support for Ivy DependencyResolvers
-    private static class LegacyIvyResolverModuleIdExtractor implements Transformer<ModuleIdentifier, ModuleVersionSelector> {
-        public ModuleIdentifier transform(ModuleVersionSelector original) {
-            return new DefaultModuleIdentifier(original.getGroup(), original.getName() + ":" + original.getVersion());
         }
     }
 }
