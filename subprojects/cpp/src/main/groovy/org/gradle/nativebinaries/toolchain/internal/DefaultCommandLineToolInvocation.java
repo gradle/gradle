@@ -36,8 +36,10 @@ public class DefaultCommandLineToolInvocation implements MutableCommandLineToolI
         for (Action<List<String>> postArgsAction : postArgsActions) {
             invocation.addPostArgsAction(postArgsAction);
         }
-        invocation.setArgs(getArgs());
-        invocation.setWorkDirectory(getWorkDirectory());
+        invocation.args.addAll(this.args);
+        invocation.workDirectory = this.workDirectory;
+        invocation.path.addAll(this.path);
+        invocation.environment.putAll(environment);
         return invocation;
     }
 
@@ -69,12 +71,12 @@ public class DefaultCommandLineToolInvocation implements MutableCommandLineToolI
         this.path.add(pathEntry);
     }
 
-    public List<File> getPath() {
-        return path;
-    }
-
     public void addPath(List<File> path) {
         this.path.addAll(path);
+    }
+
+    public List<File> getPath() {
+        return path;
     }
 
     public Map<String, String> getEnvironment() {
