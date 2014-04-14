@@ -66,6 +66,10 @@ This prevents us from using that information in helpful ways.
 For example, tooling could determine which plugins are in use without having to run full configuration and could provide better authoring assistance.
 It also allows more optimised classloading structures to be formed.
 
+Another important implication here is that it opens the door to better tooling support.
+Knowing which plugins are in use can potentially provide a lot of information relevant to editors in order to provide assistance (e.g. autocomplete).
+By plugins being forward declared, we can know what plugins are in use without requiring the script to be well formed.
+
 ## Isolation
 
 Plugins also need to be insulated from each other.
