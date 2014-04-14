@@ -33,13 +33,12 @@ import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 
 import javax.inject.Inject
+
 /**
  * Compiles native source files into object files.
  */
 @Incubating
 abstract class AbstractNativeCompileTask extends DefaultTask {
-    private final IncrementalCompilerBuilder incrementalCompilerBuilder
-
     /**
      * The tool chain used for compilation.
      */
@@ -92,12 +91,19 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     @Input
     List<String> compilerArgs
 
-    @Inject
     AbstractNativeCompileTask() {
-        incrementalCompilerBuilder = new IncrementalCompilerBuilder(services.get(TaskArtifactStateCacheAccess),
-                                                                    services.get(FileSnapshotter), this)
         includes = project.files()
         source = project.files()
+    }
+
+    @Inject
+    TaskArtifactStateCacheAccess getCacheAccess() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Inject
+    FileSnapshotter getFileSnapshotter() {
+        throw new UnsupportedOperationException()
     }
 
     @TaskAction
@@ -115,6 +121,8 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
 
         PlatformToolChain platformToolChain = toolChain.select(targetPlatform)
         final compiler = createCompiler(platformToolChain)
+        def incrementalCompilerBuilder = new IncrementalCompilerBuilder(cacheAccess, fileSnapshotter, this)
+
         def result = incrementalCompilerBuilder.createIncrementalCompiler(compiler).execute(spec)
         didWork = result.didWork
     }

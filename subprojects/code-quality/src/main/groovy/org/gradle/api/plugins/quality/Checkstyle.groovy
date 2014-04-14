@@ -84,12 +84,18 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     @Nested
     private final CheckstyleReportsImpl reports
 
-    private final IsolatedAntBuilder antBuilder
+    Checkstyle() {
+        reports = instantiator.newInstance(CheckstyleReportsImpl, this)
+    }
 
     @Inject
-    Checkstyle(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
-        this.antBuilder = antBuilder
-        reports = instantiator.newInstance(CheckstyleReportsImpl, this)
+    Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    IsolatedAntBuilder getAntBuilder() {
+        throw new UnsupportedOperationException();
     }
 
     /**

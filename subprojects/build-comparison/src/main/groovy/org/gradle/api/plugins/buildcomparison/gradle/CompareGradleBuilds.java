@@ -18,7 +18,6 @@ package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.filestore.FileStore;
 import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult;
@@ -37,6 +36,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.internal.filestore.FileStore;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.logging.ConsoleRenderer;
 import org.gradle.logging.ProgressLogger;
@@ -65,14 +65,9 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     private boolean ignoreFailures;
     private Object reportDir;
 
-    private final FileResolver fileResolver;
-    private final ProgressLoggerFactory progressLoggerFactory;
-
-    @Inject
-    public CompareGradleBuilds(FileResolver fileResolver, ProgressLoggerFactory progressLoggerFactory, Instantiator instantiator) {
-        this.fileResolver = fileResolver;
-        this.progressLoggerFactory = progressLoggerFactory;
-
+    public CompareGradleBuilds() {
+        FileResolver fileResolver = getFileResolver();
+        Instantiator instantiator = getInstantiator();
         sourceBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
         sourceBuild.setTasks(DEFAULT_TASKS);
         targetBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
@@ -84,6 +79,21 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
                 return false;
             }
         });
+    }
+
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ProgressLoggerFactory getProgressLoggerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -173,7 +183,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
      */
     @OutputDirectory
     public File getReportDir() {
-        return reportDir == null ? null : fileResolver.resolve(reportDir);
+        return reportDir == null ? null : getFileResolver().resolve(reportDir);
     }
 
     /**
@@ -209,7 +219,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         ComparableGradleBuildExecuter targetBuildExecuter = new ComparableGradleBuildExecuter(targetBuild);
 
         Logger logger = getLogger();
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(getClass());
+        ProgressLogger progressLogger = getProgressLoggerFactory().newOperation(getClass());
         progressLogger.setDescription("Gradle Build Comparison");
         progressLogger.setShortDescription(getName());
 
@@ -233,7 +243,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
                 new UnknownBuildOutcomeHtmlRenderer()
         );
 
-        File fileStoreTmpBase = fileResolver.resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s", getName(), System.currentTimeMillis()));
+        File fileStoreTmpBase = getFileResolver().resolve(String.format(TMP_FILESTORAGE_PREFIX + "-%s-%s", getName(), System.currentTimeMillis()));
         FileStore<String> fileStore = new PathNormalisingKeyFileStore(fileStoreTmpBase);
 
         Map<String, String> hostAttributes = new LinkedHashMap<String, String>(4);

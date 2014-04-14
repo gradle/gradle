@@ -39,10 +39,7 @@ import javax.inject.Inject
 class WindowsResourceCompile extends DefaultTask {
     private final IncrementalCompilerBuilder incrementalCompilerBuilder
 
-    @Inject
     WindowsResourceCompile() {
-        incrementalCompilerBuilder = new IncrementalCompilerBuilder(services.get(TaskArtifactStateCacheAccess),
-                                                                    services.get(FileSnapshotter), this)
         includes = project.files()
         source = project.files()
     }
@@ -93,6 +90,16 @@ class WindowsResourceCompile extends DefaultTask {
      @Input
      List<String> compilerArgs = []
 
+    @Inject
+    TaskArtifactStateCacheAccess getCacheAccess() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Inject
+    FileSnapshotter getFileSnapshotter() {
+        throw new UnsupportedOperationException()
+    }
+
      @TaskAction
      void compile(IncrementalTaskInputs inputs) {
          def spec = new DefaultWindowsResourceCompileSpec()
@@ -106,6 +113,7 @@ class WindowsResourceCompile extends DefaultTask {
 
          PlatformToolChain platformToolChain = toolChain.select(targetPlatform)
          final compiler = platformToolChain.createWindowsResourceCompiler()
+         def incrementalCompilerBuilder = new IncrementalCompilerBuilder(cacheAccess, fileSnapshotter, this)
          def result = incrementalCompilerBuilder.createIncrementalCompiler(compiler).execute(spec)
          didWork = result.didWork
      }

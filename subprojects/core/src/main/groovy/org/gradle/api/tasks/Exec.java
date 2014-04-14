@@ -22,6 +22,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -55,7 +56,12 @@ public class Exec extends ConventionTask implements ExecSpec {
     private ExecResult execResult;
 
     public Exec() {
-        execAction = getServices().get(ExecActionFactory.class).newExecAction();
+        execAction = getExecActionFactory().newExecAction();
+    }
+
+    @Inject
+    protected ExecActionFactory getExecActionFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @TaskAction

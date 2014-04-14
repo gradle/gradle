@@ -213,6 +213,28 @@ and even if they do healthy listeners will work correctly regardless of the list
 - `GradleLauncher.useLogger()`
 - `GradleLauncher.getStartParameter()`
 
+### Task constructor changes
+
+All task types now have a zero args constructor. The following types are affected:
+
+- `org.gradle.api.tasks.testing.Test`
+- `org.gradle.api.tasks.Upload`
+- `org.gradle.api.plugins.quality.Checkstyle`
+- `org.gradle.api.plugins.quality.CodeNarc`
+- `org.gradle.api.plugins.quality.FindBugs`
+- `org.gradle.api.plugins.quality.Pmd`
+- `org.gradle.api.plugins.quality.JDepend`
+- `org.gradle.testing.jacoco.tasks.JacocoReport`
+- `org.gradle.api.tasks.GradleBuild`
+- `org.gradle.api.tasks.diagnostics.DependencyInsightReportTask`
+- `org.gradle.api.reporting.GenerateBuildDashboard`
+- `org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor`
+- `org.gradle.api.publish.maven.tasks.GenerateMavenPom`
+- `org.gradle.api.publish.maven.tasks.PublishToMavenRepository`
+- `org.gradle.api.publish.maven.tasks.PublishToMavenLocal`
+- `org.gradle.nativebinaries.tasks.InstallExecutable`
+- `org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds`
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

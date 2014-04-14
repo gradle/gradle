@@ -80,15 +80,14 @@ public class DependencyInsightReportTask extends DefaultTask {
      */
     Spec<DependencyResult> dependencySpec;
 
-    private final StyledTextOutput output;
-    private final GraphRenderer renderer;
-    private final VersionMatcher versionMatcher;
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException()
+    }
 
     @Inject
-    DependencyInsightReportTask(StyledTextOutputFactory outputFactory, VersionMatcher versionMatcher) {
-        output = outputFactory.create(getClass());
-        renderer = new GraphRenderer(output)
-        this.versionMatcher = versionMatcher
+    protected VersionMatcher getVersionMatcher() {
+        throw new UnsupportedOperationException()
     }
 
     /**
@@ -153,6 +152,9 @@ public class DependencyInsightReportTask extends DefaultTask {
                     + "\nIt can be specified from the command line, e.g: '$path --dependency someDep'")
         }
 
+        StyledTextOutput output = textOutputFactory.create(getClass())
+        GraphRenderer renderer = new GraphRenderer(output)
+
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
 
         Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>()
@@ -170,11 +172,11 @@ public class DependencyInsightReportTask extends DefaultTask {
         def sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionMatcher)
 
         def nodeRenderer = new NodeRenderer() {
-            void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
+            void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {
                 boolean leaf = node.children.empty
-                output.text(leaf ? DependencyInsightReportTask.this.configuration.name : node.name);
+                target.text(leaf ? DependencyInsightReportTask.this.configuration.name : node.name);
                 if (alreadyRendered && !leaf) {
-                    output.withStyle(Info).text(" (*)")
+                    target.withStyle(Info).text(" (*)")
                 }
             }
         }

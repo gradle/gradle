@@ -26,6 +26,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.logging.StyledTextOutputFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -51,6 +52,11 @@ public abstract class AbstractReportTask extends ConventionTask {
         projects.add(getProject());
     }
 
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void generate() {
         try {
@@ -59,7 +65,7 @@ public abstract class AbstractReportTask extends ConventionTask {
             if (outputFile != null) {
                 renderer.setOutputFile(outputFile);
             } else {
-                renderer.setOutput(getServices().get(StyledTextOutputFactory.class).create(getClass()));
+                renderer.setOutput(getTextOutputFactory().create(getClass()));
             }
             Set<Project> projects = new TreeSet<Project>(getProjects());
             for (Project project : projects) {

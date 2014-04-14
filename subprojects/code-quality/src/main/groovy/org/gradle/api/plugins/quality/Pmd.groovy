@@ -65,8 +65,6 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     @Nested
     private final PmdReportsImpl reports
 
-    private final IsolatedAntBuilder antBuilder
-
     /**
      * Whether or not to allow the build to continue if there are warnings.
      *
@@ -74,9 +72,18 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      */
     boolean ignoreFailures
 
-    @Inject Pmd(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
+    Pmd() {
         reports = instantiator.newInstance(PmdReportsImpl, this)
-        this.antBuilder = antBuilder
+    }
+
+    @Inject
+    Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    IsolatedAntBuilder getAntBuilder() {
+        throw new UnsupportedOperationException();
     }
 
     @TaskAction

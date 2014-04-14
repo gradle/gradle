@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.specs.Spec;
@@ -27,6 +28,7 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.DeprecationLogger;
 
+import javax.inject.Inject;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.Set;
@@ -46,19 +48,39 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     }
 
     protected CopySpecInternal createRootSpec() {
-        Instantiator instantiator = getServices().get(Instantiator.class);
-        FileResolver fileResolver = getServices().get(FileResolver.class);
+        Instantiator instantiator = getInstantiator();
+        FileResolver fileResolver = getFileResolver();
         return instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
     }
 
     protected abstract CopyAction createCopyAction();
 
+    @Inject
+    protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileSystem getFileSystem() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileLookup getFileLookup() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     protected void copy() {
         configureRootSpec();
 
-        Instantiator instantiator = getServices().get(Instantiator.class);
-        FileSystem fileSystem = getServices().get(FileSystem.class);
+        Instantiator instantiator = getInstantiator();
+        FileSystem fileSystem = getFileSystem();
 
         CopyActionExecuter copyActionExecuter = new CopyActionExecuter(instantiator, fileSystem);
         CopyAction copyAction = createCopyAction();

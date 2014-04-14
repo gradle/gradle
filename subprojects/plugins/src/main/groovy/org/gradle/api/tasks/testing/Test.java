@@ -120,9 +120,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
-    private final StyledTextOutputFactory textOutputFactory;
-    private final Instantiator instantiator;
-    private final ProgressLoggerFactory progressLoggerFactory;
     private final TestLoggingContainer testLogging;
     private final DefaultJavaForkOptions forkOptions;
     private final DefaultTestFilter filter;
@@ -143,26 +140,55 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Nested
     private final DefaultTestTaskReports reports;
 
-    @Inject
-    public Test(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory, FileResolver fileResolver,
-                Factory<WorkerProcessBuilder> processBuilderFactory, ActorFactory actorFactory, Instantiator instantiator,
-                ProgressLoggerFactory progressLoggerFactory) {
-        this.progressLoggerFactory = progressLoggerFactory;
-        this.instantiator = instantiator;
+    public Test() {
+        ListenerManager listenerManager = getListenerManager();
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
-        this.textOutputFactory = textOutputFactory;
-        forkOptions = new DefaultJavaForkOptions(fileResolver);
+        forkOptions = new DefaultJavaForkOptions(getFileResolver());
         forkOptions.setEnableAssertions(true);
-        testExecuter = new DefaultTestExecuter(processBuilderFactory, actorFactory);
+        Instantiator instantiator = getInstantiator();
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
-        testReporter = new DefaultTestReport();
 
         reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().setEnabled(true);
         reports.getHtml().setEnabled(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
+    }
+
+    @Inject
+    protected ProgressLoggerFactory getProgressLoggerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ActorFactory getActorFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected Factory<WorkerProcessBuilder> getProcessBuilderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ListenerManager getListenerManager() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -444,7 +470,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         LogLevel currentLevel = getCurrentLogLevel();
         TestLogging levelLogging = testLogging.get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-        TestEventLogger eventLogger = new TestEventLogger(textOutputFactory, currentLevel, levelLogging, exceptionFormatter);
+        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
         if (!getFilter().getIncludePatterns().isEmpty()) {
@@ -464,15 +490,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         addTestListener(testReportDataCollector);
         addTestOutputListener(testReportDataCollector);
 
-        TestCountLogger testCountLogger = new TestCountLogger(progressLoggerFactory);
+        TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
 
         TestResultProcessor resultProcessor = new TestListenerAdapter(
                 getTestListenerBroadcaster().getSource(), testOutputListenerBroadcaster.getSource());
 
+        if (testExecuter == null) {
+            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory());
+        }
+
         try {
             testExecuter.execute(this, resultProcessor);
         } finally {
+            testExecuter = null;
             testListenerBroadcaster.removeAll();
             testOutputListenerBroadcaster.removeAll();
             outputWriter.close();
@@ -483,6 +514,10 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore.reader());
 
         try {
+            if (testReporter == null) {
+                testReporter = new DefaultTestReport();
+            }
+
             JUnitXmlReport junitXml = reports.getJunitXml();
             if (junitXml.isEnabled()) {
                 TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
@@ -500,15 +535,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             }
         } finally {
             CompositeStoppable.stoppable(testResultsProvider).stop();
+            testReporter = null;
+            testFramework = null;
         }
-
-        testFramework = null;
 
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         }
     }
-
 
     /**
      * Returns the {@link org.gradle.api.tasks.testing.TestListener} broadcaster.  This broadcaster will send messages to all listeners that have been registered with the ListenerManager.
@@ -922,7 +956,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this, this.filter, instantiator), testFrameworkConfigure);
+        useTestFramework(new TestNGTestFramework(this, this.filter, getInstantiator()), testFrameworkConfigure);
     }
 
     /**

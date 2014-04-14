@@ -108,17 +108,23 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     @Nested
     private final CodeNarcReportsImpl reports
 
-    private final IsolatedAntBuilder antBuilder
-
     /**
      * Whether or not the build should break when the verifications performed by this task fail.
      */
     boolean ignoreFailures
 
-    @Inject
-    CodeNarc(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
+    CodeNarc() {
         reports = instantiator.newInstance(CodeNarcReportsImpl, this)
-        this.antBuilder = antBuilder
+    }
+
+    @Inject
+    Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    IsolatedAntBuilder getAntBuilder() {
+        throw new UnsupportedOperationException();
     }
 
     @TaskAction

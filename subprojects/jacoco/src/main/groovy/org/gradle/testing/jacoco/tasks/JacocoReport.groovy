@@ -66,9 +66,14 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
     @Nested
     private final JacocoReportsContainerImpl reports
 
-    @Inject JacocoReport(Instantiator instantiator) {
+    JacocoReport() {
         reports = instantiator.newInstance(JacocoReportsContainerImpl, this)
         onlyIf { getExecutionData().every { it.exists() } }
+    }
+
+    @Inject
+    Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
     }
 
     @TaskAction
