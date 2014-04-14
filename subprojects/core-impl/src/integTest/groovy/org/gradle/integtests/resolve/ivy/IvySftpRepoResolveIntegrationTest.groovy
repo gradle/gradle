@@ -42,7 +42,8 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
     void "can resolve dependencies from a SFTP Ivy repository with #layout layout"() {
         given:
         def ivySftpRepo = getIvySftpRepo(m2Compatible)
-        ivySftpRepo.module('org.group.name', 'projectA', '1.2').publish()
+        def module = ivySftpRepo.module('org.group.name', 'projectA', '1.2')
+        module.publish()
 
         and:
         buildFile << """
@@ -65,9 +66,15 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
-        succeeds 'retrieve'
+        server.expectInit()
+        module.ivy.expectMetadataRetrieve()
+        module.ivy.expectFileDownload()
+
+        module.jar.expectMetadataRetrieve()
+        module.jar.expectFileDownload()
 
         then:
+        succeeds 'retrieve'
         file('libs').assertHasDescendants 'projectA-1.2.jar'
 
         where:
@@ -78,9 +85,9 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
 
     void "can resolve dependencies from a SFTP Ivy repository with pattern layout and m2compatible: #m2Compatible"() {
         given:
-
         def ivySftpRepo = getIvySftpRepo(m2Compatible, "[module]/[organisation]/[revision]")
-        ivySftpRepo.module('org.group.name', 'projectA', '1.2').publish()
+        def module = ivySftpRepo.module('org.group.name', 'projectA', '1.2')
+        module.publish()
 
         and:
         buildFile << """
@@ -107,9 +114,15 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
-        succeeds 'retrieve'
+        server.expectInit()
+        module.ivy.expectMetadataRetrieve()
+        module.ivy.expectFileDownload()
+
+        module.jar.expectMetadataRetrieve()
+        module.jar.expectFileDownload()
 
         then:
+        succeeds 'retrieve'
         file('libs').assertHasDescendants 'projectA-1.2.jar'
 
         where:
@@ -119,11 +132,14 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
     void "can resolve dependencies from a SFTP Ivy repository with multiple patterns configured"() {
         given:
         def thirdPartyIvySftpRepo = getIvySftpRepo(false, "third-party/[organisation]/[module]/[revision]")
-        thirdPartyIvySftpRepo.module('other', '3rdParty', '1.2').publish()
+        def thirdPartyModule = thirdPartyIvySftpRepo.module('other', '3rdParty', '1.2')
+        thirdPartyModule.publish()
 
         and:
         def companyIvySftpRepo = getIvySftpRepo(false, "company/[module]/[revision]")
-        companyIvySftpRepo.module('company', 'original', '1.1').publish()
+        def companyModule = companyIvySftpRepo.module('company', 'original', '1.1')
+        companyModule.publish()
+
 
         and:
         buildFile << """
@@ -150,9 +166,25 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
-        succeeds 'retrieve'
+        server.expectInit()
+        thirdPartyModule.ivy.expectMetadataRetrieve()
+        thirdPartyModule.ivy.expectFileDownload()
+
+        thirdPartyModule.jar.expectMetadataRetrieve()
+        thirdPartyModule.jar.expectFileDownload()
+
+        server.expectMetadataRetrieve('/repo/third-party/company/original/1.1/ivy-1.1.xml')
+
+        companyModule.ivy.expectMetadataRetrieve()
+        companyModule.ivy.expectFileDownload()
+
+        server.expectMetadataRetrieve('/repo/third-party/company/original/1.1/original-1.1.jar')
+
+        companyModule.jar.expectMetadataRetrieve()
+        companyModule.jar.expectFileDownload()
 
         then:
+        succeeds 'retrieve'
         file('libs').assertHasDescendants '3rdParty-1.2.jar', 'original-1.1.jar'
     }
 
@@ -160,8 +192,10 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         given:
         def ivySftpRepo1 = getIvySftpRepo('/repo1')
         def ivySftpRepo2 = getIvySftpRepo('/repo2')
-        ivySftpRepo1.module('org.group.name', 'projectA', '1.2').publish()
-        ivySftpRepo2.module('org.group.name', 'projectB', '1.3').publish()
+        def repo1Module = ivySftpRepo1.module('org.group.name', 'projectA', '1.2')
+        repo1Module.publish()
+        def repo2Module = ivySftpRepo2.module('org.group.name', 'projectB', '1.3')
+        repo2Module.publish()
 
         and:
         buildFile << """
@@ -191,9 +225,22 @@ class IvySftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         """
 
         when:
-        succeeds 'retrieve'
+        server.expectInit()
+        repo1Module.ivy.expectMetadataRetrieve()
+        repo1Module.ivy.expectFileDownload()
+        repo1Module.jar.expectMetadataRetrieve()
+        repo1Module.jar.expectFileDownload()
+
+        server.expectInit()
+        server.expectMetadataRetrieve('/repo1/org.group.name/projectB/1.3/ivy-1.3.xml')
+        repo2Module.ivy.expectMetadataRetrieve()
+        repo2Module.ivy.expectFileDownload()
+        server.expectMetadataRetrieve('/repo1/org.group.name/projectB/1.3/projectB-1.3.jar')
+        repo2Module.jar.expectMetadataRetrieve()
+        repo2Module.jar.expectFileDownload()
 
         then:
+        succeeds 'retrieve'
         file('libs').assertHasDescendants 'projectA-1.2.jar', 'projectB-1.3.jar'
     }
 }

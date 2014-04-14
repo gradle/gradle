@@ -17,21 +17,28 @@ package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
+import org.gradle.test.fixtures.ivy.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
-class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
+class IvySFtpResolverPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final SFTPServer sftpServer = new SFTPServer(this)
     @Rule
     ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
+    IvySftpRepository getIvySftpRepo() {
+        new IvySftpRepository(sftpServer, '/repos/libs', false, '[organisation]/[module]')
+    }
+
     public void "can publish using SftpResolver"() {
         given:
+        def module = ivySftpRepo.module("org.gradle", "publish", "2")
+
         file("settings.gradle") << 'rootProject.name = "publish"'
 
         and:
@@ -56,12 +63,30 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when:
+        sftpServer.expectInit()
+        sftpServer.expectRealpath('')
+        module.jar.withEachDirectory {
+            sftpServer.expectStat(it)
+            sftpServer.expectMkdir(it)
+        }
+        module.jar.expectStat()
+        module.jar.expectOpen()
+        module.jar.allowWrite()
+        module.jar.expectClose()
+
+        sftpServer.expectStat('/repos/libs/org.gradle/publish')
+        module.ivy.expectStat()
+        module.ivy.expectOpen()
+        module.ivy.allowWrite()
+        module.ivy.expectClose()
+
+        and:
         run "uploadArchives"
 
         then:
         sftpServer.hasFile("repos/libs/org.gradle/publish/publish-2.jar")
         sftpServer.hasFile("repos/libs/org.gradle/publish/ivy-2.xml");
-        sftpServer.file("repos/libs/org.gradle/publish/publish-2.jar").assertIsCopyOf(file('build/libs/publish-2.jar'))
+        module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         and:
         progressLogging.uploadProgressLogged("repos/libs/org.gradle/publish/ivy-2.xml")

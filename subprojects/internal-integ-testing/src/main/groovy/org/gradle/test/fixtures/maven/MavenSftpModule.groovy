@@ -17,11 +17,14 @@
 package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.sftp.SFTPServer
 
 class MavenSftpModule implements MavenModule {
     MavenFileModule backingModule
+    SFTPServer server
 
-    MavenSftpModule(MavenFileModule backingModule) {
+    MavenSftpModule(SFTPServer server, MavenFileModule backingModule) {
+        this.server = server
         this.backingModule = backingModule
     }
 
@@ -79,5 +82,13 @@ class MavenSftpModule implements MavenModule {
 
     MavenMetaData getRootMetaData() {
         backingModule.getRootMetaData()
+    }
+
+    SftpResource getPom() {
+        new SftpResource(server, pomFile)
+    }
+
+    SftpResource getArtifact() {
+        new SftpResource(server, artifactFile)
     }
 }
