@@ -1320,7 +1320,7 @@ ability to all command-line based tool chains. It also permits the configuration
 * Rename `GccTool` to `CommandLineTool` and change to have `withInvocation(Action<CommandLineToolInvocation>)` in place of `withArguments`
 * Remove tool-specific getters from `Gcc`, and instead make `Gcc` serve as a NamedDomainObjectSet of `CommandLineTool` instances.
     * Continue to register a `CommandLineTool` for every supported language.
-* Allow the `eachInvocation` method to override the default executable to use.
+* Allow the `withInvocation` method to override the default executable to use.
 * Extract `CommandLineToolChain` interface out of `Gcc` and introduce similar functionality to VisualCpp and Clang tool chains.
 * Add a sample, user-guide documentation and note the breaking change in the release notes.
 * Consolidate various `ArgsTransformer` implementations so that most/all simply set/modify args on a `CommandLineToolInvocation`.
