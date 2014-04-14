@@ -46,6 +46,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         helloWorldApp.writeSources(file("src/main"))
 
         when:
+        executer.withArgument("--debug")
         run "mainExecutable"
 
         then:
