@@ -307,7 +307,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
 
     /**
      * <p>Checks if the task actually did any work.  Even if a Task executes, it may determine that it has nothing to
-     * do.  For example, the Compile task may determine that source files have not changed since the last time a the
+     * do.  For example, a compilation task may determine that source files have not changed since the last time a the
      * task was run.</p>
      *
      * @return true if this task did any work
