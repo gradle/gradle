@@ -58,8 +58,14 @@ uploadArchives {
 
 // Customize the contents of the pom
 
-ext.installer = install.repositories.mavenInstaller
-ext.deployer = uploadArchives.repositories.mavenDeployer
+// START SNIPPET when-configured
+def installer = install.repositories.mavenInstaller
+def deployer = uploadArchives.repositories.mavenDeployer
+
+[installer, deployer]*.pom*.whenConfigured {pom ->
+    pom.dependencies.find {dep -> dep.groupId == 'group3' && dep.artifactId == 'runtime' }.optional = true
+}
+// END SNIPPET when-configured
 
 [installer, deployer]*.pom*.version = '1.0MVN'
 installer.pom.project {
@@ -83,12 +89,6 @@ task writeNewPom << {
     }.writeTo("$buildDir/newpom.xml")
 }
 // END SNIPPET new-pom
-
-// START SNIPPET when-configured
-[installer, deployer]*.pom*.whenConfigured {pom ->
-    pom.dependencies.find {dep -> dep.groupId == 'group3' && dep.artifactId == 'runtime' }.optional = true
-}
-// END SNIPPET when-configured
 
 task writeDeployerPom(dependsOn: uploadArchives) << {
     deployer.pom.writeTo("$buildDir/deployerpom.xml")
