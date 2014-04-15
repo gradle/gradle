@@ -62,15 +62,12 @@ public class Groovydoc extends SourceTask {
 
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
-        IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
-        ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
-        antGroovydoc = new AntGroovydoc(antBuilder, classPathRegistry);
     }
 
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
-        antGroovydoc.execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(), getDocTitle(), getHeader(),
+        getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(), getDocTitle(), getHeader(),
                 getFooter(), getOverview(), isIncludePrivate(), getLinks(), getGroovyClasspath(), getClasspath(), getProject());
     }
 
@@ -132,6 +129,11 @@ public class Groovydoc extends SourceTask {
     }
 
     public AntGroovydoc getAntGroovydoc() {
+        if (antGroovydoc == null) {
+            IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
+            ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
+            antGroovydoc = new AntGroovydoc(antBuilder, classPathRegistry);
+        }
         return antGroovydoc;
     }
 

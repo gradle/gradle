@@ -40,19 +40,6 @@ public class GroovyCompile extends AbstractCompile {
     private FileCollection groovyClasspath;
     private final CompileOptions compileOptions = new CompileOptions();
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
-    private final TemporaryFileProvider tempFileProvider;
-
-    public GroovyCompile() {
-        ProjectInternal projectInternal = (ProjectInternal) getProject();
-        JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
-        tempFileProvider = projectInternal.getServices().get(TemporaryFileProvider.class);
-        CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
-        InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-        DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, inProcessCompilerFactory, compilerDaemonManager);
-        GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
-        Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory);
-        compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
-    }
 
     @TaskAction
     protected void compile() {
@@ -67,11 +54,12 @@ public class GroovyCompile extends AbstractCompile {
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
+            TemporaryFileProvider tempFileProvider = getServices().get(TemporaryFileProvider.class);
             File dir = tempFileProvider.newTemporaryFile("groovy-java-stubs");
             GFileUtils.mkdirs(dir);
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
-        WorkResult result = compiler.execute(spec);
+        WorkResult result = getCompiler().execute(spec);
         setDidWork(result.getDidWork());
     }
 
@@ -123,6 +111,16 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     public Compiler<GroovyJavaJointCompileSpec> getCompiler() {
+        if (compiler == null) {
+            ProjectInternal projectInternal = (ProjectInternal) getProject();
+            JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
+            CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
+            InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
+            DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, inProcessCompilerFactory, compilerDaemonManager);
+            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
+            Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory);
+            compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
+        }
         return compiler;
     }
 

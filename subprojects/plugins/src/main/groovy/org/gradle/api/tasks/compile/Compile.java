@@ -51,8 +51,6 @@ import java.io.File;
  */
 @Deprecated
 public class Compile extends AbstractCompile {
-
-    private CleaningJavaCompiler cleaningCompiler;
     private File dependencyCacheDir;
     private final CompileOptions compileOptions = new CompileOptions();
 
@@ -60,13 +58,6 @@ public class Compile extends AbstractCompile {
         if (!(this instanceof JavaCompile)) {
             DeprecationLogger.nagUserOfReplacedTaskType("Compile", "JavaCompile task type");
         }
-        Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
-        JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
-        ProjectInternal projectInternal = (ProjectInternal) getProject();
-        CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
-        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, inProcessCompilerFactory, compilerDaemonManager);
-        DelegatingJavaCompiler javaCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
-        cleaningCompiler = new CleaningJavaCompiler(javaCompiler, antBuilderFactory, getOutputs());
     }
 
     @TaskAction
@@ -87,13 +78,23 @@ public class Compile extends AbstractCompile {
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //can be replaced with converter that parses input source class
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, dependencyInfoSerializer, (FileOperations) getProject(), jarSnapshotFeeder);
         IncrementalCompilationSupport incrementalSupport = new IncrementalCompilationSupport(jarSnapshotFeeder, dependencyInfoSerializer, (FileOperations) getProject(),
-                analyzer, cleaningCompiler, getPath(), recompilationSpecProvider);
+                analyzer, createCompiler(), getPath(), recompilationSpecProvider);
         Compiler<JavaCompileSpec> compiler = incrementalSupport.prepareCompiler(inputs, sourceDirs);
         performCompilation(compiler);
     }
 
     protected void compile() {
-        performCompilation(cleaningCompiler);
+        performCompilation(createCompiler());
+    }
+
+    private CleaningJavaCompiler createCompiler() {
+        Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
+        JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
+        ProjectInternal projectInternal = (ProjectInternal) getProject();
+        CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
+        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, inProcessCompilerFactory, compilerDaemonManager);
+        DelegatingJavaCompiler javaCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
+        return new CleaningJavaCompiler(javaCompiler, antBuilderFactory, getOutputs());
     }
 
     private void performCompilation(Compiler<JavaCompileSpec> compiler) {
