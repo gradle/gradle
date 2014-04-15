@@ -26,12 +26,12 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.DefaultScript;
-import org.gradle.plugin.PluginHandler;
+import org.gradle.plugin.PluginDependenciesSpec;
 
 public class PluginsAndBuildscriptTransformer implements StatementTransformer {
 
     private static final String PLUGINS = "plugins";
-    private static final ScriptBlockToServiceConfigurationTransformer PLUGIN_BLOCK_TRANSFORMER = new ScriptBlockToServiceConfigurationTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginHandler.class);
+    private static final ScriptBlockToServiceConfigurationTransformer PLUGIN_BLOCK_TRANSFORMER = new ScriptBlockToServiceConfigurationTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginDependenciesSpec.class);
 
     private final String classpathBlockName;
     private boolean seenNonClasspathStatement;

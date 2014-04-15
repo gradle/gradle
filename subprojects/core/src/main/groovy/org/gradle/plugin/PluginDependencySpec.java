@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.internal;
+package org.gradle.plugin;
 
-import org.gradle.api.Nullable;
+import org.gradle.api.Incubating;
 
-public interface PluginRequest {
+@Incubating
+public interface PluginDependencySpec {
 
-    String getId();
-
-    @Nullable
-    String getVersion();
+    void version(String version);
 
 }

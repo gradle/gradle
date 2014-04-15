@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.internal;
+package org.gradle.plugin.internal;
 
-import org.gradle.api.Nullable;
+import org.gradle.plugin.PluginDependenciesSpec;
+import org.gradle.plugin.PluginDependencySpec;
 
-public interface PluginRequest {
+import java.util.Map;
 
-    String getId();
+public class UnsupportedPluginDependenciesSpec implements PluginDependenciesSpec {
 
-    @Nullable
-    String getVersion();
+    public PluginDependencySpec id(String id) {
+        throw new UnsupportedOperationException("Plugin use dsl is not supported");
+    }
 
 }

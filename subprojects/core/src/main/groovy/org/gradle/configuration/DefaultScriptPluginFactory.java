@@ -32,13 +32,12 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.plugin.PluginHandler;
+import org.gradle.plugin.PluginDependenciesSpec;
 import org.gradle.plugin.internal.*;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.plugin.resolve.internal.PluginResolver;
 
 import java.io.File;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -103,11 +102,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             ScriptSource withImports = importsReader.withImports(scriptSource);
 
-            List<PluginRequest> pluginRequests = new LinkedList<PluginRequest>();
+            PluginDependenciesService pluginDependenciesService = new PluginDependenciesService();
             if (target instanceof PluginAware) {
-                services.add(PluginHandler.class, new DefaultPluginHandler(pluginRequests));
+                services.add(PluginDependenciesSpec.class, pluginDependenciesService.createSpec());
             } else {
-                services.add(PluginHandler.class, new NonPluggableTargetPluginHandler(target));
+                services.add(PluginDependenciesSpec.class, new UnsupportedPluginDependenciesSpec());
             }
 
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
@@ -129,12 +128,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             ClassLoader exportedClassLoader = classLoaderScope.export(classPath);
 
+            List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
             if (!pluginRequests.isEmpty()) {
-                PluginResolver pluginResolver = pluginResolverFactory.createPluginResolver(exportedClassLoader);
-                @SuppressWarnings("ConstantConditions")
-                PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator((PluginAware) target, classLoaderScope);
-                PluginRequestApplicator requestApplicator = new PluginRequestApplicator(pluginResolver, resolutionApplicator);
-                requestApplicator.applyPlugin(pluginRequests);
+//                PluginResolver pluginResolver = pluginResolverFactory.createPluginResolver(exportedClassLoader);
+//                @SuppressWarnings("ConstantConditions")
+//                PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator((PluginAware) target, classLoaderScope);
+//                PluginRequestApplicator requestApplicator = new PluginRequestApplicator(pluginResolver, resolutionApplicator);
+//                requestApplicator.applyPlugin(pluginRequests);
             }
 
             classLoaderScope.lock();

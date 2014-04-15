@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.internal;
+package org.gradle.plugin
 
-import org.gradle.plugin.PluginHandler;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import java.util.Map;
+class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
-public class NonPluggableTargetPluginHandler implements PluginHandler {
+    def "can use plugins block in project build scripts"() {
+        when:
+        buildScript """
+          plugins {
+            id "foo"
+            id "bar" version "1.0"
+          }
+        """
 
-    private final Object target;
-
-    public NonPluggableTargetPluginHandler(Object target) {
-        this.target = target;
+        then:
+        succeeds "help"
     }
 
-    public void apply(Map<String, ?> attributes) {
-        throw fail();
-    }
-
-    private RuntimeException fail() {
-        return new UnsupportedOperationException("Script target " + target + " cannot have plugins applied to it");
-    }
 }

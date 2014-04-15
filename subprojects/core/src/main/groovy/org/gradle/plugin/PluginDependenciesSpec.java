@@ -21,11 +21,11 @@ import org.gradle.api.Incubating;
 import java.util.Map;
 
 /**
- * A manager of plugins.
+ * A DSL for declaring dependencies on plugins.
  */
 @Incubating
-public interface PluginHandler {
+public interface PluginDependenciesSpec {
 
-    void apply(Map<String, ?> attributes);
+    PluginDependencySpec id(String id);
 
 }

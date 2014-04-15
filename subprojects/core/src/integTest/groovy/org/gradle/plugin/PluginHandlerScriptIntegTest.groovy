@@ -24,9 +24,11 @@ import org.gradle.test.fixtures.bintray.BintrayTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.GradleVersion
 import org.junit.Rule
+import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
+@Ignore // now outdated, tests are being incrementally extracted and adapted in new specs
 class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
     private static final String SCRIPT = "plugins { println 'in' }; println 'out'"
@@ -119,7 +121,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
                 }
 
                 assert delegate == null
-                assert this instanceof ${PluginHandler.name}
+                assert this instanceof ${PluginDependenciesSpec.name}
                 assert owner == this
 
                 println "end-of-plugins"
