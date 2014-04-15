@@ -347,12 +347,12 @@ Adds the `plugins {}` DSL to build scripts (settings, init or arbitrary script n
 
 ### Test cases
 
-- `plugins {}` block is available to build scripts
-- `plugins {}` block in init, settings and arbitrary scripts yields suitable 'not supported' method
-- Statement other than `buildscript {}` before `plugins {}` statement causes compile error, with correct line number of offending statement
-- `buildscript {}` is allowed before `plugins {}` statement
-- multiple `plugins {}` blocks in a single script causes compile error, with correct line number of first offending plugin statement
-- `buildscript {}` after `plugins {}` statement causes compile error, with correct line number of offending buildscript statement
+- ~~`plugins {}` block is available to build scripts~~
+- ~~`plugins {}` block in init, settings and arbitrary scripts yields suitable 'not supported' method~~
+- ~~Statement other than `buildscript {}` before `plugins {}` statement causes compile error, with correct line number of offending statement~~
+- ~~`buildscript {}` is allowed before `plugins {}` statement~~
+- ~~multiple `plugins {}` blocks in a single script causes compile error, with correct line number of first offending plugin statement~~
+- ~~`buildscript {}` after `plugins {}` statement causes compile error, with correct line number of offending buildscript statement~~
 - Disallowed syntax/constructs cause compile errors, with correct line number of offending statement and suitable explanation of what is allowed (following list is not exhaustive)
   - Cannot access `Script` api
   - Cannot access script target API (e.g. `Gradle` for init scripts, `Settings` for settings script, `Project` for build)
