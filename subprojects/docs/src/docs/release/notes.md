@@ -213,7 +213,7 @@ All versions of integrating tools released since the release of Gradle 1.2 (Sept
 
 ### Deprecated method in Tooling API
 
-The [`org.gradle.tooling.model.Task.getProject()`](javadoc/org/gradle/tooling/model/Task.html#getProject()) method is now deprecated and
+The <a href="javadoc/org/gradle/tooling/model/Task.html#getProject()">`org.gradle.tooling.model.Task.getProject()`</a> method is now deprecated and
 can throw `UnsupportedMethodException`. There is no replacement as it is expected that the caller has a reference to project prior calling to this method.
 
 ## Potential breaking changes
