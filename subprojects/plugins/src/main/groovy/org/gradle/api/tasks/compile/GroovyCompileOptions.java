@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.List;
@@ -32,7 +31,7 @@ import java.util.Map;
 public class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
     private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
-            ImmutableSet.of("forkOptions", "optimizationOptions", "useAnt", "stubDir", "keepStubs", "fileExtensions");
+            ImmutableSet.of("forkOptions", "optimizationOptions", "stubDir", "keepStubs", "fileExtensions");
 
     private boolean failOnError = true;
 
@@ -51,12 +50,6 @@ public class GroovyCompileOptions extends AbstractOptions {
     private GroovyForkOptions forkOptions = new GroovyForkOptions();
 
     private Map<String, Boolean> optimizationOptions = Maps.newHashMap();
-
-    private boolean stacktrace;
-
-    private boolean useAnt;
-
-    private boolean includeJavaRuntime;
 
     private File stubDir;
 
@@ -172,80 +165,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      */
     public void setOptimizationOptions(Map<String, Boolean> optimizationOptions) {
         this.optimizationOptions = optimizationOptions;
-    }
-
-    /**
-     * Tells whether to print a stack trace when the compiler hits a problem (like a compile error).
-     * Defaults to {@code false}. Only used when {@link #isUseAnt()} is {@code true}.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    public boolean isStacktrace() {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.stacktrace", "There is no replacement for this property.");
-        return stacktrace;
-    }
-
-    /**
-     * Sets whether to print a stack trace when the compiler hits a problem (like a compile error).
-     * Defaults to {@code false}. Only used when {@link #isUseAnt()} is {@code true}.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    public void setStacktrace(boolean stacktrace) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.stacktrace", "This property has no replacement.");
-        this.stacktrace = stacktrace;
-    }
-
-    /**
-     * Tells whether the groovyc Ant task should be used over Gradle's own Groovy compiler integration.
-     * Defaults to {@code false}.
-     *
-     * @deprecated No replacement
-     */
-    @Input
-    @Deprecated
-    public boolean isUseAnt() {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.useAnt", "There is no replacement for this property.");
-        return useAnt;
-    }
-
-    /**
-     * Sets whether the groovyc Ant task should be used over Gradle's own Groovy compiler integration.
-     * Defaults to {@code false}.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    public void setUseAnt(boolean useAnt) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.useAnt", "There is no replacement for this property.");
-        this.useAnt = useAnt;
-    }
-
-    /**
-     * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
-     * {@code useAnt} is {@code true}. Defaults to {@code false}.
-     *
-     * @deprecated No replacement
-     */
-    @Input
-    @Deprecated
-    public boolean isIncludeJavaRuntime() {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.includeJavaRuntime", "There is no replacement for this property.");
-        return includeJavaRuntime;
-    }
-
-    /**
-     * Sets whether the Java runtime should be put on the compile class path. Only takes effect if
-     * {@code useAnt} is {@code true}. Defaults to {@code false}.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    public void setIncludeJavaRuntime(boolean includeJavaRuntime) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.includeJavaRuntime", "There is no replacement for this property.");
-        this.includeJavaRuntime = includeJavaRuntime;
     }
 
     /**

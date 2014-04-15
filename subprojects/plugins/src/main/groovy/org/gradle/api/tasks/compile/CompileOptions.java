@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.SingleMessageLogger;
 
 import java.util.List;
@@ -35,7 +34,7 @@ public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
     private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
-            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "useAnt", "incremental");
+            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "incremental");
 
     private boolean failOnError = true;
 
@@ -49,8 +48,6 @@ public class CompileOptions extends AbstractOptions {
 
     private String encoding;
 
-    private boolean optimize;
-
     private boolean debug = true;
 
     private DebugOptions debugOptions = new DebugOptions();
@@ -63,17 +60,12 @@ public class CompileOptions extends AbstractOptions {
 
     private DependOptions dependOptions = new DependOptions();
 
-    private String compiler;
-
-    private boolean includeJavaRuntime;
-
     private String bootClasspath;
 
     private String extensionDirs;
 
     private List<String> compilerArgs = Lists.newArrayList();
 
-    private boolean useAnt;
     private boolean incremental;
 
     /**
@@ -81,17 +73,6 @@ public class CompileOptions extends AbstractOptions {
      */
     @Input
     public boolean isFailOnError() {
-        return failOnError;
-    }
-
-    /**
-     * Deprecated.
-     *
-     * @deprecated use {@link #isFailOnError()}
-     */
-    @Deprecated
-    public boolean getFailOnError() {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.getFailOnError()", "CompileOptions.isFailOnError()");
         return failOnError;
     }
 
@@ -177,57 +158,11 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Tells whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
-     * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    public boolean isOptimize() {
-        return optimize;
-    }
-
-    /**
-     * Tells whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
-     * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
-     *
-     * @deprecated No replacement
-     */
-    @Input
-    @Deprecated
-    public boolean getOptimize() {
-        return optimize;
-    }
-
-    /**
-     * Sets whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
-     * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    public void setOptimize(boolean optimize) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.optimize", "There is no replacement for this property.");
-        this.optimize = optimize;
-    }
-
-    /**
      * Tells whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     @Input
     public boolean isDebug() {
-        return debug;
-    }
-
-    /**
-     * Deprecated.
-     *
-     * @deprecated use {@link #isDebug()}
-     */
-    @Deprecated
-    public boolean getDebug() {
-        DeprecationLogger.nagUserOfReplacedMethod("CompileOptions.getDebug()", "CompileOptions.isDebug()");
         return debug;
     }
 
@@ -320,64 +255,6 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the compiler to be used. Only takes effect if {@code useAnt} is {@code true}.
-     *
-     * @deprecated use {@code CompileOptions.forkOptions.executable} instead
-     */
-    @Deprecated
-    @Input @Optional
-    public String getCompiler() {
-        return compiler;
-    }
-
-    /**
-     * Sets the compiler to be used. Only takes effect if {@code useAnt} is {@code true}.
-     *
-     * @deprecated use {@code CompileOptions.forkOptions.executable instead}
-     */
-    @Deprecated
-    public void setCompiler(String compiler) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.compiler", "To use an alternative compiler, "
-                + "set 'CompileOptions.fork' to 'true', and 'CompileOptions.forkOptions.executable' to the path of the compiler executable.");
-        this.compiler = compiler;
-    }
-
-    /**
-     * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
-     * {@code useAnt} is {@code true}. Defaults to {@code false}.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    public boolean isIncludeJavaRuntime() {
-        return includeJavaRuntime;
-    }
-
-    /**
-     * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
-     * {@code useAnt} is {@code true}. Defaults to {@code false}.
-     *
-     * @deprecated No replacement
-     */
-    @Input
-    @Deprecated
-    public boolean getIncludeJavaRuntime() {
-        return includeJavaRuntime;
-    }
-
-    /**
-     * Sets whether the Java runtime should be put on the compile class path. Only takes effect if
-     * {@code useAnt} is {@code true}. Defaults to {@code false}.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    public void setIncludeJavaRuntime(boolean includeJavaRuntime) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.includeJavaRuntime", "There is no replacement for this property.");
-        this.includeJavaRuntime = includeJavaRuntime;
-    }
-
-    /**
      * Returns the bootstrap classpath to be used for the compiler process.
      * Only takes effect if {@code fork} is {@code true}. Defaults to {@code null}.
      */
@@ -428,29 +305,6 @@ public class CompileOptions extends AbstractOptions {
      */
     public void setCompilerArgs(List<String> compilerArgs) {
         this.compilerArgs = compilerArgs;
-    }
-
-    /**
-     * Tells whether to use the Ant javac task over Gradle's own Java compiler integration.
-     * Defaults to {@code false}.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    public boolean isUseAnt() {
-        return useAnt;
-    }
-
-    /**
-     * Sets whether to use the Ant javac task over Gradle's own Java compiler integration.
-     * Defaults to {@code false}.
-     *
-     * @deprecated No replacement
-     */
-    @Deprecated
-    public void setUseAnt(boolean useAnt) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.useAnt", "There is no replacement for this property.");
-        this.useAnt = useAnt;
     }
 
     /**

@@ -16,22 +16,18 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.AntBuilder;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Factory;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -48,15 +44,12 @@ public class GroovyCompile extends AbstractCompile {
 
     public GroovyCompile() {
         ProjectInternal projectInternal = (ProjectInternal) getProject();
-        IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
-        ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
-        Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
         tempFileProvider = projectInternal.getServices().get(TemporaryFileProvider.class);
         CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
         InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
-        DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, antBuilderFactory, inProcessCompilerFactory, compilerDaemonManager);
-        GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, antBuilder, classPathRegistry, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
+        DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, inProcessCompilerFactory, compilerDaemonManager);
+        GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory);
         compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
     }

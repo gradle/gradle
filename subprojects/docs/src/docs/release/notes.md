@@ -187,7 +187,22 @@ and even if they do healthy listeners will work correctly regardless of the list
 
 ### Removed Deprecated Classes
 
-- `GradleLauncher`
+- `GradleLauncher` replaced by tooling API.
+
+### Removed Deprecated Methods
+
+- `CompileOptions.getFailOnError()` replaced with `isFailOnError()`
+- `CompileOptions.getDebug()` replaced with `isDebug()`
+
+### Removed Deprecated Properties
+
+- `CompileOptions.compiler` replaced with `CompileOptions.fork` and `CompileOptions.forkOptions.executable`
+- `CompileOptions.useAnt` with no replacement.
+- `CompileOptions.optimize` with no replacement.
+- `CompileOptions.includeJavaRuntime` with no replacement.
+- `GroovyCompileOptions.useAnt` with no replacement.
+- `GroovyCompileOptions.stacktrace` with no replacement.
+- `GroovyCompileOptions.includeJavaRuntime` with no replacement.
 
 ### Task constructor changes
 

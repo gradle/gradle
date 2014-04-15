@@ -30,7 +30,7 @@ public class InProcessJavaCompilerFactory implements JavaCompilerFactory {
         if (SUN_COMPILER_AVAILABLE) {
             return new SunCompilerFactory().create();
         }
-        throw new RuntimeException("Cannot find a Java compiler API. Please let us know which JDK/platform you are using. To work around this problem, try 'compileJava.options.useAnt=true'.");
+        throw new RuntimeException("Cannot find a Java compiler API. Please let us know which JDK/platform you are using.");
     }
 
     private Compiler<JavaCompileSpec> createJdk6Compiler() {

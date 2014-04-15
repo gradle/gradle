@@ -33,8 +33,6 @@ class GroovyCompileOptionsTest {
 
     @Test public void testCompileOptions() {
         assertTrue(compileOptions.failOnError)
-        assertFalse(compileOptions.includeJavaRuntime)
-        assertFalse(compileOptions.stacktrace)
         assertFalse(compileOptions.listFiles)
         assertFalse(compileOptions.verbose)
         assertTrue(compileOptions.fork)
@@ -53,8 +51,7 @@ class GroovyCompileOptionsTest {
                 failOnError: 'failOnError',
                 verbose: 'verbose',
                 listFiles: 'listFiles',
-                fork: 'fork',
-                includeJavaRuntime: 'includeJavaRuntime'
+                fork: 'fork'
         ]
         booleans.keySet().each {compileOptions."$it" = true}
         Map optionMap = compileOptions.optionMap()
@@ -89,12 +86,10 @@ class GroovyCompileOptionsTest {
     }
 
     @Test public void testDefine() {
-        compileOptions.stacktrace = false
         compileOptions.verbose = false
         compileOptions.encoding = 'xxxx'
         compileOptions.fork = false
-        compileOptions.define(stacktrace: true, encoding: 'encoding')
-        assertTrue(compileOptions.stacktrace)
+        compileOptions.define( encoding: 'encoding')
         assertEquals('encoding', compileOptions.encoding)
         assertFalse(compileOptions.verbose)
     }

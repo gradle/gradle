@@ -25,9 +25,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         executer.withArguments("-i")
         buildFile << buildScript()
         buildFile << """
-DeprecationLogger.whileDisabled {
     ${compilerConfiguration()}
-}
 """
     }
 

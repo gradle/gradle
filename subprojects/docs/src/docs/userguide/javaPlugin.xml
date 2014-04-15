@@ -1092,10 +1092,6 @@
             </tr>
         </table>
 
-        <para>The compile task delegates to Ant's javac task. Setting <literal>options.useAnt</literal> to <literal>false</literal>
-            activates Gradle's direct compiler integration, bypassing the Ant task. In a future Gradle release, this will become the default.
-        </para>
-
         <para>By default, the Java compiler runs in the Gradle process. Setting <literal>options.fork</literal> to <literal>true</literal>
             causes compilation to occur in a separate process. In the case of the Ant javac task, this means that a new process will be
             forked for each compile task, which can slow down compilation. Conversely, Gradle's direct compiler integration (see above) will

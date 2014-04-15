@@ -29,7 +29,6 @@ class CommandLineJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec
 
         """
 compileJava.options.with {
-    useAnt = false
     fork = true
     forkOptions.executable = "$executable"
 }

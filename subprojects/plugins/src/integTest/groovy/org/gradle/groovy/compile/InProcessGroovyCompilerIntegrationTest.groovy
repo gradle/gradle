@@ -20,7 +20,6 @@ class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegratio
     String compilerConfiguration() {
 '''
     tasks.withType(GroovyCompile) {
-        groovyOptions.useAnt = false
         groovyOptions.fork = false
     }
 '''

@@ -19,7 +19,6 @@ class InProcessJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
     def compilerConfiguration() {
         '''
 compileJava.options.with {
-    useAnt = false
     fork = false
 }
 '''

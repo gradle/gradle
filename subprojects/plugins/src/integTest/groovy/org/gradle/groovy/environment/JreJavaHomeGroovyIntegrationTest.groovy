@@ -27,7 +27,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll
-    def "groovy java cross compilation works in forking mode = #forkMode and useAnt = #useAnt when JAVA_HOME is set to JRE"() {
+    def "groovy java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre
         writeJavaTestSource("src/main/groovy")
@@ -40,7 +40,6 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
                 }
                 compileGroovy{
                     options.fork = ${forkMode}
-                    DeprecationLogger.whileDisabled { options.useAnt = ${useAnt} }
                 }
                 """
         when:
@@ -50,15 +49,12 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/main/org/test/GroovyClazz.class").exists()
 
         where:
-        forkMode | useAnt
-        false    | false
-        false    | true
-        true     | false
+        forkMode << [true, false]
     }
 
     @Requires(TestPrecondition.WINDOWS)
     @Unroll
-    def "groovy compiler works when gradle is started with no JAVA_HOME defined in forking mode = #forkMode and useAnt = #useAnt"() {
+    def "groovy compiler works when gradle is started with no JAVA_HOME defined in forking mode = #forkMode"() {
         given:
         writeJavaTestSource("src/main/groovy")
         writeGroovyTestSource("src/main/groovy")
@@ -69,8 +65,6 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
             }
             compileGroovy {
                 options.fork = ${forkMode}
-                options.useAnt = ${useAnt}
-                groovyOptions.useAnt = ${useAnt}
             }
             """
         when:
@@ -83,10 +77,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/main/org/test/GroovyClazz.class").exists()
 
         where:
-        forkMode | useAnt
-        false    | false
-        false    | true
-        true     | false
+        forkMode << [true, false]
     }
 
     private writeJavaTestSource(String srcDir, String clazzName = "JavaClazz") {
