@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
@@ -24,7 +25,6 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.jvm.ClassDirectoryBinary
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
@@ -38,11 +38,10 @@ class JavaBasePluginTest extends Specification {
     @Rule
     public SetSystemProperties sysProperties = new SetSystemProperties()
     private final Project project = TestUtil.createRootProject()
-    private final JavaBasePlugin javaBasePlugin = new JavaBasePlugin(project.services.get(Instantiator))
 
     void appliesBasePluginsAndAddsConventionObject() {
         when:
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
 
         then:
         project.plugins.hasPlugin(ReportingBasePlugin)
@@ -53,7 +52,7 @@ class JavaBasePluginTest extends Specification {
 
     void createsTasksAndAppliesMappingsForNewSourceSet() {
         when:
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
         
         then:
@@ -89,7 +88,7 @@ class JavaBasePluginTest extends Specification {
 
     void "wires generated resources task into classes task for sourceset"() {
         when:
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
 
         and:
@@ -106,7 +105,7 @@ class JavaBasePluginTest extends Specification {
         def resourcesDir = project.file('target/resources')
 
         when:
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
         project.sourceSets.custom.output.classesDir = classesDir
         project.sourceSets.custom.output.resourcesDir = resourcesDir
@@ -121,7 +120,7 @@ class JavaBasePluginTest extends Specification {
 
     void createsConfigurationsForNewSourceSet() {
         when:
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
         def sourceSet = project.sourceSets.create('custom')
 
         then:
@@ -147,7 +146,7 @@ class JavaBasePluginTest extends Specification {
 
     void appliesMappingsToTasksDefinedByBuildScript() {
         when:
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
@@ -166,7 +165,7 @@ class JavaBasePluginTest extends Specification {
 
     void "configures test task for testNG"() {
         given:
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
         def test = project.task('customTest', type: Test.class)
 
         when:
@@ -185,7 +184,7 @@ class JavaBasePluginTest extends Specification {
 
     void appliesMappingsToCustomJarTasks() {
         when:
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
         def task = project.task('customJar', type: Jar)
 
         then:
@@ -195,7 +194,7 @@ class JavaBasePluginTest extends Specification {
 
     void createsLifecycleBuildTasks() {
         when:
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
 
         then:
         def build = project.tasks[JavaBasePlugin.BUILD_TASK_NAME]
@@ -209,7 +208,7 @@ class JavaBasePluginTest extends Specification {
     }
 
     def configuresTestTaskWhenDebugSystemPropertyIsSet() {
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
         def task = project.tasks.create('test', Test.class)
 
         when:
@@ -221,7 +220,7 @@ class JavaBasePluginTest extends Specification {
     }
 
     def "configures test task when test.single is used"() {
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
         def task = project.tasks.create('test', Test.class)
         task.include 'ignoreme'
 
@@ -235,7 +234,7 @@ class JavaBasePluginTest extends Specification {
     }
 
     def "adds functional and language source sets for each source set added to the 'sourceSets' container"() {
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
 
         when:
         project.sourceSets {
@@ -267,7 +266,7 @@ class JavaBasePluginTest extends Specification {
     }
 
     def "adds a class directory binary for each source set added to the 'sourceSets' container"() {
-        javaBasePlugin.apply(project)
+        project.plugins.apply(JavaBasePlugin)
 
         when:
         project.sourceSets {
