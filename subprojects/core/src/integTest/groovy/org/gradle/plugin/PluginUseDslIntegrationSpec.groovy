@@ -120,5 +120,45 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         errorOutput.contains "only buildscript {} and and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
     }
 
+    def "settings scripts cannot plugin blocks"() {
+        when:
+        settingsFile << "plugins {}"
 
+        then:
+        fails "help"
+
+        failure.assertHasLineNumber 1
+        failure.assertHasFileName("Settings file '$settingsFile.absolutePath'")
+        errorOutput.contains "Only Project build scripts can contain plugins {} blocks"
+    }
+
+    def "init scripts cannot have plugin blocks"() {
+        def initScript = file("init.gradle")
+
+        when:
+        initScript << "plugins {}"
+
+        then:
+        args "-I", initScript.absolutePath
+        fails "help"
+
+        failure.assertHasLineNumber 1
+        failure.assertHasFileName("Initialization script '$initScript.absolutePath'")
+        errorOutput.contains "Only Project build scripts can contain plugins {} blocks"
+    }
+
+    def "script plugins cannot have plugin blocks"() {
+        def scriptPlugin = file("plugin.gradle")
+
+        when:
+        scriptPlugin << "plugins {}"
+        buildScript "apply from: 'plugin.gradle'"
+
+        then:
+        fails "help"
+
+        failure.assertHasLineNumber 1
+        failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
+        errorOutput.contains "Only Project build scripts can contain plugins {} blocks"
+    }
 }

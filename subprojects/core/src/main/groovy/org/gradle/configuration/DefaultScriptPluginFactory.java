@@ -21,6 +21,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
@@ -33,9 +34,10 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.plugin.PluginDependenciesSpec;
-import org.gradle.plugin.internal.*;
+import org.gradle.plugin.internal.PluginDependenciesService;
+import org.gradle.plugin.internal.PluginResolverFactory;
+import org.gradle.plugin.internal.UnsupportedPluginDependenciesSpec;
 import org.gradle.plugin.resolve.internal.PluginRequest;
-import org.gradle.plugin.resolve.internal.PluginResolver;
 
 import java.io.File;
 import java.util.List;
@@ -112,7 +114,10 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
             compiler.setClassloader(classLoaderScope.getBase().getChildClassLoader());
 
-            PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName);
+            boolean supportsPluginsBlock = ProjectScript.class.isAssignableFrom(scriptType);
+            String onPluginBlockError = supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
+
+            PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName, onPluginBlockError);
 
             StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(classpathClosureName, scriptBlockTransformer);
 
@@ -129,13 +134,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             ClassLoader exportedClassLoader = classLoaderScope.export(classPath);
 
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
-            if (!pluginRequests.isEmpty()) {
+//            if (!pluginRequests.isEmpty()) {
 //                PluginResolver pluginResolver = pluginResolverFactory.createPluginResolver(exportedClassLoader);
 //                @SuppressWarnings("ConstantConditions")
 //                PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator((PluginAware) target, classLoaderScope);
 //                PluginRequestApplicator requestApplicator = new PluginRequestApplicator(pluginResolver, resolutionApplicator);
 //                requestApplicator.applyPlugin(pluginRequests);
-            }
+//            }
 
             classLoaderScope.lock();
 

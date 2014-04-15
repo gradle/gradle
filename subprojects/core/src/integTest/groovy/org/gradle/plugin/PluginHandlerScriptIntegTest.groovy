@@ -26,8 +26,6 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Ignore
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 @Ignore // now outdated, tests are being incrementally extracted and adapted in new specs
 class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
@@ -49,52 +47,6 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir() // to negate caching effects
     }
 
-    def "settings scripts have plugin blocks"() {
-        when:
-        settingsFile << SCRIPT
-
-        then:
-        executesCorrectly()
-    }
-
-    def "init scripts have plugin blocks"() {
-        def initScript = file("init.gradle")
-
-        when:
-        initScript << SCRIPT
-
-        then:
-        args "-I", initScript.absolutePath
-        executesCorrectly()
-    }
-
-    def "cannot use plugin block when script target is not plugin capable"() {
-        buildFile << """
-            task foo {}
-            apply {
-                from "plugin.gradle"
-                to foo
-            }
-        """
-
-        file("plugin.gradle") << """
-            plugins {
-                apply plugin: "foo"
-            }
-        """
-
-        when:
-        fails "foo"
-
-        then:
-        errorOutput.contains("cannot have plugins applied to it")
-    }
-
-
-    def void executesCorrectly() {
-        succeeds "tasks"
-        assert output.contains(toPlatformLineSeparators("in\nout\n"))
-    }
 
     void "can resolve core plugins"() {
         when:

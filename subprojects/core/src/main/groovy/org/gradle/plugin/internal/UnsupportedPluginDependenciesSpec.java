@@ -19,8 +19,6 @@ package org.gradle.plugin.internal;
 import org.gradle.plugin.PluginDependenciesSpec;
 import org.gradle.plugin.PluginDependencySpec;
 
-import java.util.Map;
-
 public class UnsupportedPluginDependenciesSpec implements PluginDependenciesSpec {
 
     public PluginDependencySpec id(String id) {

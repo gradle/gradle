@@ -18,8 +18,6 @@ package org.gradle.plugin;
 
 import org.gradle.api.Incubating;
 
-import java.util.Map;
-
 /**
  * A DSL for declaring dependencies on plugins.
  */
