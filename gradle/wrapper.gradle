@@ -21,7 +21,7 @@ def wrapperUpdateTask = { name, label ->
     task "$configureWrapperTaskName" {
         doLast {
             configure(tasks."$wrapperTaskName") {
-                def version = new groovy.json.JsonSlurper().parseText(new URL("http://services.gradle.org/versions/$label").text)
+                def version = new groovy.json.JsonSlurper().parseText(new URL("https://services.gradle.org/versions/$label").text)
                 if (version.empty) {
                     throw new GradleException("Cannot update wrapper to '${label}' version as there is currently no version of that label")
                 }
