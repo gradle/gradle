@@ -33,4 +33,92 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "help"
     }
 
+    void "plugins block has no implicit access to owner context"() {
+        when:
+        buildScript """
+            plugins {
+                try {
+                    buildscript {}
+                } catch(MissingMethodException e) {
+                    // ok
+                }
+
+                try {
+                    version
+                } catch(MissingPropertyException e) {
+                    // ok
+                }
+
+                assert delegate == null
+                assert this instanceof ${PluginDependenciesSpec.name}
+                assert owner == this
+
+                println "end-of-plugins"
+            }
+        """
+
+        then:
+        succeeds "tasks"
+        and:
+        output.contains("end-of-plugins")
+    }
+
+    def "buildscript blocks are allowed before plugin statements"() {
+        when:
+        buildScript """
+            buildscript {}
+            plugins {}
+        """
+
+        then:
+        succeeds "tasks"
+    }
+
+    def "buildscript blocks are not allowed after plugin blocks"() {
+        when:
+        buildScript """
+            plugins {}
+            buildscript {}
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasLineNumber 3
+        errorOutput.contains("all buildscript {} blocks must appear before any plugins {} blocks")
+    }
+
+    def "build logic cannot precede plugins block"() {
+        when:
+        buildScript """
+            someThing()
+            plugins {}
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasLineNumber 3
+        errorOutput.contains "only buildscript {} and and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+    }
+
+    def "build logic cannot precede any plugins block"() {
+        when:
+        buildScript """
+            plugins {}
+            someThing()
+            plugins {}
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasLineNumber 4
+        errorOutput.contains "only buildscript {} and and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+    }
+
+
 }
