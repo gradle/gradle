@@ -101,7 +101,7 @@
                     <term>check</term>
                     <listitem>
                         <para>Compiles and tests your code. Other plugins add more checks to this task. For example, if
-                            you use the Code-quality plugin, this task will also run Checkstyle against your source
+                            you use the <literal>checkstyle</literal> plugin, this task will also run Checkstyle against your source
                             code.
                         </para>
                     </listitem>

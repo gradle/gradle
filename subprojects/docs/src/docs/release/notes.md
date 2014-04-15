@@ -185,9 +185,17 @@ This way the custom listeners are more robust because they can affect the test s
 There should be no impact of this change because majority of users do not employ custom listeners
 and even if they do healthy listeners will work correctly regardless of the listeners' order.
 
+### Removed Deprecated Plugins
+
+- `code-quality` plugin replaced by `checkstyle` and `codenarc`.
+
 ### Removed Deprecated Classes
 
-- `GradleLauncher` replaced by tooling API.
+- `GradleLauncher` replaced by the tooling API.
+- `Compile` replaced by `JavaCompile`.
+- `CodeQualityPlugin` replaced by the `checkstyle` and `codenarc` plugins.
+- `GroovyCodeQualityPluginConvention` with no replacement.
+- `JavaCodeQualityPluginConvention` with no replacement.
 
 ### Removed Deprecated Methods
 
