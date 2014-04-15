@@ -54,6 +54,70 @@ This story changes the `idea` and `eclipse` plugins to use the resolution result
 - Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
   external dependencies.
 
+## Story: Allow the source and Javadoc artifacts for an external Java library to be queried (✓)
+
+This story introduces an API which allows the source and Javadoc artifacts for a Java library to be queried
+
+- Should be possible to query the artifacts as a single batch, so that, for example, we will be able to resolve and download artifacts
+  in parallel.
+- The API should expose download failures.
+- A component may have zero or more source artifacts associated with it.
+- A component may have zero or more Javadoc artifacts associated with it.
+- Should introduce the concept of a Java library to the result.
+- Should have something in common with the story to expose component artifacts, above.
+- Initial implementation should use the Maven style convention to currently used by the IDE plugins. The a later story will improve this for Ivy repositories.
+
+### Test cases
+
+- Query the source artifacts only
+- Query the Javadoc artifacts only
+- Query which artifacts could not be resolved or downloaded.
+- Caching is applied as appropriate.
+
+## Story: IDE plugins use new artifact resolution API to download sources and javadoc (✓)
+
+This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
+
+- Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the source and Javadoc artifacts.
+- Should ignore project components.
+
+## Story: Dependency resolution uses conventional schemes to locate source and Javadoc artifacts for Ivy modules (✓)
+
+This story improves the convention used to locate the source and Javadocs to cover some common Ivy conventions.
+
+### User visible changes
+
+Source artifacts contained in a 'sources' configuration in ivy.xml will be now be automatically downloaded and linked into an IDE project. Similar for javadoc artifacts in a 'javadoc' configuration.
+
+### Implementation
+
+* Make it possible to use ResolveIvyFactory to create a DependencyToModuleVersionResolver without a configuration: use a default ResolutionStrategy and supplied name.
+* Create a `DependencyMetaData` for each supplied `ModuleComponentIdentifier`, and use this to obtain the ModuleVersionMetaData for the component.
+    * Fail for any other types of `ComponentIdentifier`
+* Add a new method: `ArtifactResolver.resolve(ModuleVersionMetaData, Class<? extends JvmLibraryArtifact>, BuildableMultipleArtifactResolveResult)`
+    * Note that this is a transitional API: long term the second parameter may be generalised in some way
+    * `BuildableMultipleArtifactResolveResult` allows the collection of multiple downloaded artifacts of the type, or multiple failures, or a combination.
+* Add a method to `ModuleVersionRepository` that provides the `ModuleVersionArtifactMetaData` for candidate artifacts
+  given a particular ModuleVersionMetaData + JvmLibraryArtifact class.
+    * This method should not require remote access to the repository.
+    * For `MavenResolver` and `IvyDependencyResolverAdapter`, this would return artifacts defined with the appropriate classifiers.
+    * For `IvyResolver`, this would inspect the `ModuleVersionMetaData` to determine the candidate artifacts.
+    * This method should be used to implement the new `resolve` method on `UserResolverChain.ModuleVersionRepositoryArtifactResolverAdapter`.
+
+### Test cases
+
+* Where ivy.xml contains a 'sources' and/or 'javadoc' configuration:
+    * Defined artifacts are included in generated IDE files
+    * Defined artifacts are available via Artifact Query API
+    * Detect and report on artifacts that are defined in ivy configuration but not found
+    * Detect and report error for artifacts that are defined in ivy configuration where download fails
+* Use ivy scheme to retrieve source/javadoc artifacts from a local ivy repository
+* Resolve source/javadoc artifacts by maven conventions where no ivy convention can be used:
+    * Flatdir repository
+    * No ivy.xml file for module
+    * Ivy module with no source/javadoc configurations defined in metadata
+* Maven conventions are not used if ivy file declares empty sources and javadoc configuration
+
 ## Story: Dependency resolution result exposes a consumer that is not a module version
 
 This story exposes different kinds of consumers for a dependency graph. The consumer is represented as the root of the dependency resolution result.
@@ -223,119 +287,6 @@ Change dependency resolution implementation to resolve all artifacts as a single
 ## Story: Profile report displays artifact resolution time
 
 TBD
-
-## Story: Allow the source and Javadoc artifacts for an external Java library to be queried
-
-This story introduces an API which allows the source and Javadoc artifacts for a Java library to be queried
-
-- Should be possible to query the artifacts as a single batch, so that, for example, we will be able to resolve and download artifacts
-  in parallel.
-- The API should expose download failures.
-- A component may have zero or more source artifacts associated with it.
-- A component may have zero or more Javadoc artifacts associated with it.
-- Should introduce the concept of a Java library to the result.
-- Should have something in common with the story to expose component artifacts, above.
-- Initial implementation should use the Maven style convention to currently used by the IDE plugins. The a later story will improve this for Ivy repositories.
-
-### Test cases
-
-- Query the source artifacts only
-- Query the Javadoc artifacts only
-- Query which artifacts could not be resolved or downloaded.
-- Caching is applied as appropriate.
-
-### API design proposals
-
-#### Resolve and iterate over all jvm libraries, without resolving artifacts
-
-Not supported because this API is all about resolving artifacts.
-
-#### Resolve jvm libraries together with their main and source artifacts, iterate over artifacts
-
-```
-def componentIds = ... // ComponentIdentifier's whose artifacts are to be resolved. Can be obtained from `configuration.incoming` API.
-def result = dependencies.createArtifactResolutionQuery()
-  .forComponents(componentIds)
-  .forArtifacts(JvmLibrary, JvmLibraryMainArtifact, JvmLibrarySourceArtifact)
-  .execute()
-for (jvmLibrary in result.getComponents(JvmLibrary)) { // separate type for each type of component
-  for (artifact in jvmLibrary.artifacts) { // separate type for each type of artifact
-    println artifact.id
-    println artifact.file
-  }
-}
-```
-
-#### Resolve jvm libraries together with their main and source artifacts, inspect component resolution failures
-
-```
-def componentIds = ... // ComponentIdentifier's whose artifacts are to be resolved. Can be obtained from `configuration.incoming` API.
-def result = dependencies.createArtifactResolutionQuery()
-  .forComponents(componentIds)
-  .forArtifacts(JvmLibrary) // shorthand for resolving all of the component's artifacts
-  .execute()
-for (component in result.unresolvedComponents) { // same representation for all components
-    println component.id
-    println component.failure
-  }
-}
-```
-
-### Open issues
-
-* API for artifact download failures
-* How to implement API for artifact download failures (`LenientConfiguration` only exposes module resolution failures)
-* How to determine what the main artifacts of a `JvmLibrary` component are (or more specifically, how to deal with Maven artifacts with classifiers;
-  the current API just provides the component ID). Resolving main artifacts isn't required for this story, but is related.
-
-## Story: IDE plugins use the resolution result to determine library source and Javadoc artifacts
-
-This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
-
-- Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the source and Javadoc artifacts.
-- Should ignore project components.
-
-## Story: Dependency resolution uses conventional schemes to locate source and Javadoc artifacts for Ivy modules
-
-This story improves the convention used to locate the source and Javadocs to cover some common Ivy conventions.
-
-### User visible changes
-
-Source artifacts contained in a 'sources' configuration in ivy.xml will be now be automatically downloaded and linked into an IDE project. Similar for javadoc artifacts in a 'javadoc' configuration.
-
-### Implementation
-
-* Make it possible to use ResolveIvyFactory to create a DependencyToModuleVersionResolver without a configuration: use a default ResolutionStrategy and supplied name.
-* Create a `DependencyMetaData` for each supplied `ModuleComponentIdentifier`, and use this to obtain the ModuleVersionMetaData for the component.
-    * Fail for any other types of `ComponentIdentifier`
-* Add a new method: `ArtifactResolver.resolve(ModuleVersionMetaData, Class<? extends JvmLibraryArtifact>, BuildableMultipleArtifactResolveResult)`
-    * Note that this is a transitional API: long term the second parameter may be generalised in some way
-    * `BuildableMultipleArtifactResolveResult` allows the collection of multiple downloaded artifacts of the type, or multiple failures, or a combination.
-* Add a method to `ModuleVersionRepository` that provides the `ModuleVersionArtifactMetaData` for candidate artifacts
-  given a particular ModuleVersionMetaData + JvmLibraryArtifact class.
-    * This method should not require remote access to the repository.
-    * For `MavenResolver` and `IvyDependencyResolverAdapter`, this would return artifacts defined with the appropriate classifiers.
-    * For `IvyResolver`, this would inspect the `ModuleVersionMetaData` to determine the candidate artifacts.
-    * This method should be used to implement the new `resolve` method on `UserResolverChain.ModuleVersionRepositoryArtifactResolverAdapter`.
-
-### Test cases
-
-* Where ivy.xml contains a 'sources' and/or 'javadoc' configuration:
-    * Defined artifacts are included in generated IDE files
-    * Defined artifacts are available via Artifact Query API
-    * Detect and report on artifacts that are defined in ivy configuration but not found
-    * Detect and report error for artifacts that are defined in ivy configuration where download fails
-* Use ivy scheme to retrieve source/javadoc artifacts from a local ivy repository
-* Resolve source/javadoc artifacts by maven conventions where no ivy convention can be used:
-    * Flatdir repository
-    * No ivy.xml file for module
-    * Ivy module with no source/javadoc configurations defined in metadata
-* Maven conventions are not used if ivy file declares empty sources and javadoc configuration
-
-### Open issues
-
-* If the files defined by a ivy-specific scheme are not available, should we then use the maven convention to look for artifacts?
-  Or, for backward-compatibility should we first use the maven scheme, trying the ivy-specific scheme if not found?
 
 ## Story: Source and javadoc artifacts are updated when Maven snapshot changes
 
