@@ -34,10 +34,9 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.plugin.PluginDependenciesSpec;
-import org.gradle.plugin.internal.PluginDependenciesService;
-import org.gradle.plugin.internal.PluginResolverFactory;
-import org.gradle.plugin.internal.UnsupportedPluginDependenciesSpec;
+import org.gradle.plugin.internal.*;
 import org.gradle.plugin.resolve.internal.PluginRequest;
+import org.gradle.plugin.resolve.internal.PluginResolver;
 
 import java.io.File;
 import java.util.List;
@@ -134,13 +133,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             ClassLoader exportedClassLoader = classLoaderScope.export(classPath);
 
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
-//            if (!pluginRequests.isEmpty()) {
-//                PluginResolver pluginResolver = pluginResolverFactory.createPluginResolver(exportedClassLoader);
-//                @SuppressWarnings("ConstantConditions")
-//                PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator((PluginAware) target, classLoaderScope);
-//                PluginRequestApplicator requestApplicator = new PluginRequestApplicator(pluginResolver, resolutionApplicator);
-//                requestApplicator.applyPlugin(pluginRequests);
-//            }
+            if (!pluginRequests.isEmpty()) {
+                PluginResolver pluginResolver = pluginResolverFactory.createPluginResolver(exportedClassLoader);
+                @SuppressWarnings("ConstantConditions")
+                PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator((PluginAware) target, classLoaderScope);
+                PluginRequestApplicator requestApplicator = new PluginRequestApplicator(pluginResolver, resolutionApplicator);
+                requestApplicator.applyPlugin(pluginRequests);
+            }
 
             classLoaderScope.lock();
 

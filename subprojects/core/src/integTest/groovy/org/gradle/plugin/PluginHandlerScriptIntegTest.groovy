@@ -48,32 +48,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
     }
 
 
-    void "can resolve core plugins"() {
-        when:
-        buildScript """
-            plugins {
-              apply plugin: 'java'
-            }
-        """
 
-        then:
-        succeeds "javadoc"
-    }
-
-    void "core plugins cannot have a version number"() {
-        given:
-        buildScript """
-            plugins {
-                apply plugin: "java", version: "1.0"
-            }
-        """
-
-        when:
-        fails "tasks"
-
-        then:
-        failure.assertHasCause("Plugin 'java' is a core Gradle plugin, which cannot be specified with a version number")
-    }
 
     def void publishPluginToBintray(PluginBuilder pluginBuilder, String group, String name, String version = pluginVersion) {
         def module = bintray.jcenter.module(group, name, version)
