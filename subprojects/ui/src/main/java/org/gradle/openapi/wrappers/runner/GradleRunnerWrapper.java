@@ -18,6 +18,7 @@ package org.gradle.openapi.wrappers.runner;
 import org.gradle.gradleplugin.foundation.runner.GradleRunner;
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1;
 import org.gradle.openapi.external.runner.GradleRunnerVersion1;
+import org.gradle.openapi.wrappers.NoLongerSupportedException;
 
 import java.io.File;
 
@@ -30,7 +31,13 @@ public class GradleRunnerWrapper implements GradleRunnerVersion1 {
     private File workingDirectory;
     private GradleRunnerInteractionWrapper interactionWrapper;
 
+    // This method is used by older versions of the open API.
     public GradleRunnerWrapper(File gradleHomeDirectory, GradleRunnerInteractionVersion1 interactionVersion1) {
+        throw new NoLongerSupportedException();
+    }
+
+    // Constructor with different signature to that used by the open API.
+    public GradleRunnerWrapper(File gradleHomeDirectory, GradleRunnerInteractionVersion1 interactionVersion1, boolean dummy) {
         this.gradleHomeDirectory = gradleHomeDirectory;
         this.workingDirectory = interactionVersion1.getWorkingDirectory();
         interactionWrapper = new GradleRunnerInteractionWrapper(interactionVersion1);

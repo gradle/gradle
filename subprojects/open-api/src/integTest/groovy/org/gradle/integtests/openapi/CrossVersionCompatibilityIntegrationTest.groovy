@@ -27,6 +27,8 @@ import org.junit.Rule
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.lang.reflect.InvocationTargetException
+
 @Requires(TestPrecondition.SWING)
 class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSpec {
     private final Logger logger = LoggerFactory.getLogger(CrossVersionCompatibilityIntegrationTest)
@@ -40,6 +42,15 @@ class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSp
     public void canUseOpenApiFromOlderVersionToBuildUsingCurrentVersion() {
         expect:
         checkCanBuildUsing(previous, current)
+    }
+
+    public void cannotUseOpenApiFromOlderVersionToRunUsingCurrentVersion() {
+        when:
+        attemptToCreateRunner(previous, current)
+
+        then:
+        InvocationTargetException e = thrown()
+        e.cause.message == 'Support for the Gradle Open API was removed in the Gradle 2.0 release. You should use the Gradle tooling API instead.'
     }
 
     void checkCanBuildUsing(GradleDistribution openApiVersion, GradleDistribution buildVersion) {
@@ -61,5 +72,29 @@ class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSp
         builder.currentDir = testDirectory
         builder.version = buildVersion.version.version
         builder.build()
+    }
+
+    void attemptToCreateRunner(GradleDistribution openApiVersion, GradleDistribution buildVersion) {
+        if (!buildVersion.openApiSupported) {
+            System.out.println("skipping $buildVersion as it does not support the open API.")
+            return
+        }
+        if (!openApiVersion.openApiSupported) {
+            System.out.println("skipping $openApiVersion as it does not support the open API.")
+            return
+        }
+        def classpath = openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
+        logger.info('Using Open API classpath {}', classpath)
+        def classloader = new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI() })
+
+        def interactionType = classloader.loadClass("org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1")
+        def interaction = [getWorkingDirectory: { testDirectory }, getCustomGradleExecutable: { null }].asType(interactionType)
+        def factory = classloader.loadClass("org.gradle.openapi.external.runner.GradleRunnerFactory")
+        def method = factory.getMethods().find { it.name == 'createGradleRunner' }
+        try {
+            method.invoke(null, classloader, buildVersion.gradleHomeDir, interaction, true)
+        } catch (InvocationTargetException e) {
+            throw e.cause
+        }
     }
 }

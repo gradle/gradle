@@ -185,6 +185,10 @@ This way the custom listeners are more robust because they can affect the test s
 There should be no impact of this change because majority of users do not employ custom listeners
 and even if they do healthy listeners will work correctly regardless of the listeners' order.
 
+### Support for the Gradle Open API removed
+
+- `GradleRunnerFactory` removed
+
 ### Removed Deprecated Plugins
 
 - `code-quality` plugin replaced by `checkstyle` and `codenarc`.
