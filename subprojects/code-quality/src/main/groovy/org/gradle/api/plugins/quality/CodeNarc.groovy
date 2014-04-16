@@ -25,7 +25,6 @@ import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.util.DeprecationLogger
 
 import javax.inject.Inject
 
@@ -62,48 +61,6 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
      */
     @Input
     int maxPriority3Violations
-
-    /**
-     * The format type of the CodeNarc report.
-     *
-     * @deprecated Use {@code reports.<report-type>.enabled} instead.
-     */
-    @Deprecated
-    String getReportFormat() {
-        DeprecationLogger.nagUserOfReplacedProperty("CodeNarc.reportFormat", "reports.<report-type>.enabled")
-        reports.firstEnabled?.name
-    }
-
-    /**
-     * @deprecated Use {@code reports.<report-type>.enabled} instead.
-     */
-    @Deprecated
-    void setReportFormat(String reportFormat) {
-        DeprecationLogger.nagUserOfReplacedProperty("CodeNarc.reportFormat", "reports.<report-type>.enabled")
-        reports.each {
-            it.enabled == it.name == reportFormat
-        }
-    }
-
-    /**
-     * The file to write the report to.
-     *
-     * @deprecated Use {@code reports.<report-type>.destination} instead.
-     */
-    @Deprecated
-    File getReportFile() {
-        DeprecationLogger.nagUserOfReplacedProperty("CodeNarc.reportFile", "reports.<report-type>.destination")
-        reports.firstEnabled?.destination
-    }
-
-    /**
-     * @deprecated Use {@code reports.<report-type>.destination} instead.
-     */
-    @Deprecated
-    void setReportFile(File reportFile) {
-        DeprecationLogger.nagUserOfReplacedProperty("CodeNarc.reportFile", "reports.<report-type>.destination")
-        reports.firstEnabled?.destination = reportFile
-    }
 
     @Nested
     private final CodeNarcReportsImpl reports

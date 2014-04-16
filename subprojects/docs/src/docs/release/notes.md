@@ -211,6 +211,10 @@ and even if they do healthy listeners will work correctly regardless of the list
 - `GroovyCompileOptions.useAnt` with no replacement.
 - `GroovyCompileOptions.stacktrace` with no replacement.
 - `GroovyCompileOptions.includeJavaRuntime` with no replacement.
+- `Checkstyle.properties` replaced with `Checkstyle.configProperties`.
+- `Checkstyle.resultFile` replaced with `Checkstyle.reports.xml.destination`.
+- `CodeNarc.reportFormat` replaced with `CodeNarc.reports.<type>.enabled`.
+- `CodeNarc.reportFile` replaced with `CodeNarc.reports.<type>.destination`.
 
 ### Task constructor changes
 

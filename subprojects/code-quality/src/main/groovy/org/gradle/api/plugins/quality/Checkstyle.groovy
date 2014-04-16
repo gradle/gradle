@@ -23,7 +23,6 @@ import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.util.DeprecationLogger
 
 import javax.inject.Inject
 
@@ -56,30 +55,6 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     @Input
     @Optional
     Map<String, Object> configProperties = [:]
-
-    /**
-     * The properties available for use in the configuration file. These are substituted into the configuration
-     * file.
-     *
-     * @deprecated renamed to <tt>configProperties</tt>
-     */
-    @Deprecated
-    Map<String, Object> getProperties() {
-        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.properties", "configProperties")
-        getConfigProperties()
-    }
-
-    /**
-     * The properties available for use in the configuration file. These are substituted into the configuration
-     * file.
-     *
-     * @deprecated renamed to <tt>configProperties</tt>
-     */
-    @Deprecated
-    void setProperties(Map<String, Object> properties) {
-        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.properties", "configProperties")
-        setConfigProperties(properties)
-    }
 
     @Nested
     private final CheckstyleReportsImpl reports
@@ -127,26 +102,6 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      */
     CheckstyleReports reports(Closure closure) {
         reports.configure(closure)
-    }
-
-    /**
-     * Returns the destination file for the XML report.
-     *
-     * @deprecated Use {@code reports.xml.destination} instead.
-     */
-    @Deprecated
-    File getResultFile() {
-        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.resultFile", "reports.xml.destination")
-        return reports.xml.destination
-    }
-
-    /**
-     * @deprecated Use {@code reports.xml.destination} instead.
-     */
-    @Deprecated
-    void setResultFile(File file) {
-        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.resultFile", "reports.xml.destination")
-        reports.xml.destination = file
     }
 
     /**
