@@ -30,10 +30,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.resolve.internal.CompositePluginResolver;
-import org.gradle.plugin.resolve.internal.NotInPluginRegistryPluginResolverCheck;
-import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
-import org.gradle.plugin.resolve.internal.PluginResolver;
+import org.gradle.plugin.resolve.internal.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -76,6 +73,7 @@ public class PluginResolverFactory {
     }
 
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
+        resolvers.add(new NoopPluginResolver());
         resolvers.add(new PluginRegistryPluginResolver(documentationRegistry, pluginRegistry));
         // resolvers.add(jcenterGradleOfficial(instantiator, createDependencyResolutionServices(), cacheRepository));
     }

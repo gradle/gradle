@@ -30,8 +30,8 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
           plugins {
-            id "foo"
-            id "bar" version "1.0"
+            id "noop"
+            id "noop" version "1.0"
           }
         """
 
@@ -180,15 +180,15 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         code << [
-                "id('foo')",
-                "id 'foo'",
-                "id('foo').version('bar')",
-                "id 'foo' version 'bar'",
-                "id('foo').\nversion 'bar'",
-                "id('foo');id('bar')",
-                "id('foo')\nid('bar')",
-                "id('foo').version('bar');id('bar').version('foo')",
-                "id('foo').version('bar')\nid('bar').version('foo')",
+                "id('noop')",
+                "id 'noop'",
+                "id('noop').version('bar')",
+                "id 'noop' version 'bar'",
+                "id('noop').\nversion 'bar'",
+                "id('noop');id('noop')",
+                "id('noop')\nid('noop')",
+                "id('noop').version('bar');id('noop').version('foo')",
+                "id('noop').version('bar')\nid('noop').version('foo')",
         ]
     }
 
