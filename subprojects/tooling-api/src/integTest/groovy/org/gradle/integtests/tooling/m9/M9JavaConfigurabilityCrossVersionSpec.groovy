@@ -129,7 +129,7 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     }
 
     // We use different ways of resolving JVM depending on the Gradle version
-    // this is necessary as we moved the Jvm class and dont ship the org.gradle.util.Jvm class with the
+    // this is necessary as we moved the Jvm class and don't ship the org.gradle.util.Jvm class with the
     // toolingApi jar
     File getOtherJava() {
         if (GradleVersion.current().compareTo(GradleVersion.version("1.0-milestone-9")) > 0) {

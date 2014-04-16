@@ -55,7 +55,7 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
     def "informs about java home as in the build script"() {
         given:
         file('build.gradle') << """
-        description = Jvm.current().javaHome.toString()
+        description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         """
 
         when:
