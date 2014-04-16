@@ -18,6 +18,8 @@ package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.hamcrest.Matchers.startsWith
+
 class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
     void "can resolve core plugins"() {
@@ -44,7 +46,9 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("Plugin 'java' is a core Gradle plugin, which cannot be specified with a version number")
+        failure.assertThatDescription(startsWith("Plugin 'java' is a core Gradle plugin, which cannot be specified with a version number"))
+        failure.assertHasFileName("Build file '$buildFile.absolutePath'")
+        failure.assertHasLineNumber(3)
     }
 
 }

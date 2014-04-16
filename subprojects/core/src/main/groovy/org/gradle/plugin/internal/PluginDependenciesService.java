@@ -17,6 +17,7 @@
 package org.gradle.plugin.internal;
 
 import org.gradle.api.Transformer;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.PluginDependenciesSpec;
 import org.gradle.plugin.PluginDependencySpec;
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
@@ -27,14 +28,27 @@ import java.util.List;
 
 import static org.gradle.util.CollectionUtils.collect;
 
+/**
+ * The real delegate of the plugins {} block.
+ *
+ * The PluginUseScriptBlockTransformer interacts with this type.
+ */
 public class PluginDependenciesService {
+
+    private final ScriptSource scriptSource;
+
+    public PluginDependenciesService(ScriptSource scriptSource) {
+        this.scriptSource = scriptSource;
+    }
 
     private static class DependencySpecImpl implements PluginDependencySpec {
         private final String id;
         private String version;
+        private final int lineNumber;
 
-        private DependencySpecImpl(String id) {
+        private DependencySpecImpl(String id, int lineNumber) {
             this.id = id;
+            this.lineNumber = lineNumber;
         }
 
         public void version(String version) {
@@ -44,10 +58,10 @@ public class PluginDependenciesService {
 
     private final List<DependencySpecImpl> specs = new LinkedList<DependencySpecImpl>();
 
-    public PluginDependenciesSpec createSpec() {
+    public PluginDependenciesSpec createSpec(final int lineNumber) {
         return new PluginDependenciesSpec() {
             public PluginDependencySpec id(String id) {
-                DependencySpecImpl spec = new DependencySpecImpl(id);
+                DependencySpecImpl spec = new DependencySpecImpl(id, lineNumber);
                 specs.add(spec);
                 return spec;
             }
@@ -57,7 +71,7 @@ public class PluginDependenciesService {
     public List<PluginRequest> getRequests() {
         return collect(specs, new Transformer<PluginRequest, DependencySpecImpl>() {
             public PluginRequest transform(DependencySpecImpl original) {
-                return new DefaultPluginRequest(original.id, original.version);
+                return new DefaultPluginRequest(original.id, original.version, original.lineNumber, scriptSource);
             }
         });
     }

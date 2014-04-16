@@ -23,7 +23,7 @@ import org.gradle.messaging.serialize.Serializer;
 public class PluginRequestSerializer implements Serializer<PluginRequest> {
 
     public PluginRequest read(Decoder decoder) throws Exception {
-        return new DefaultPluginRequest(decoder.readString(), decoder.readNullableString());
+        return new DefaultPluginRequest(decoder.readString(), decoder.readNullableString(), -1, null);
     }
 
     public void write(Encoder encoder, PluginRequest value) throws Exception {

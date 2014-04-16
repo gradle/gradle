@@ -79,14 +79,14 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
         if (results.isEmpty()) {
             systemId = NOT_FOUND;
         } else if (request.getVersion() == null) {
-            throw new InvalidPluginRequestException(String.format("No version number supplied for plugin '%s'. A version number must be supplied for plugins resolved from '%s'.", pluginId, getBintrayRepoUrl()));
+            throw new InvalidPluginRequestException(request, String.format("No version number supplied for plugin '%s'. A version number must be supplied for plugins resolved from '%s'.", pluginId, getBintrayRepoUrl()));
         } else if (results.size() > 1) {
-            throw new InvalidPluginRequestException("Found more than one plugin for plugin id " + pluginId);
+            throw new InvalidPluginRequestException(request, "Found more than one plugin for plugin id " + pluginId);
         } else {
             Pkg pluginPackage = results.get(0);
             List<String> systemIds = pluginPackage.systemIds();
             if (systemIds.isEmpty()) {
-                throw new InvalidPluginRequestException("No artifacts in maven layout found for plugin id" + pluginId);
+                throw new InvalidPluginRequestException(request, "No artifacts in maven layout found for plugin id" + pluginId);
             }
 
             systemId = systemIds.get(0);

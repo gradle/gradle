@@ -56,7 +56,7 @@ class JCenterPluginMapperSpec extends Specification {
         when:
         def dependencyHandler = Mock(DependencyHandler)
         0 * dependencyHandler._
-        mapper.map(new DefaultPluginRequest(TEST_PLUGIN_ID), dependencyHandler)
+        mapper.map(new DefaultPluginRequest(TEST_PLUGIN_ID, null, -1, null), dependencyHandler)
 
         then:
         def e = thrown InvalidPluginRequestException
@@ -65,7 +65,7 @@ class JCenterPluginMapperSpec extends Specification {
 
     def 'Explicit version of plugin maps correctly from Bintray'() {
         when:
-        Dependency dependency = mapper.map(new DefaultPluginRequest(TEST_PLUGIN_ID, TEST_PLUGIN_EXPLICIT_VERSION), getMockForVersion(TEST_PLUGIN_EXPLICIT_VERSION))
+        Dependency dependency = mapper.map(new DefaultPluginRequest(TEST_PLUGIN_ID, TEST_PLUGIN_EXPLICIT_VERSION, -1, null), getMockForVersion(TEST_PLUGIN_EXPLICIT_VERSION))
 
         then:
         dependency.group == TEST_PLUGIN_MAVEN_GROUP_ID
@@ -75,6 +75,6 @@ class JCenterPluginMapperSpec extends Specification {
 
     def 'Query for non-existing plugin returns null'() {
         expect:
-        mapper.map(new DefaultPluginRequest("not-exist"), getMockForVersion(TEST_PLUGIN_EXPLICIT_VERSION)) == null
+        mapper.map(new DefaultPluginRequest("not-exist", null, -1, null), getMockForVersion(TEST_PLUGIN_EXPLICIT_VERSION)) == null
     }
 }

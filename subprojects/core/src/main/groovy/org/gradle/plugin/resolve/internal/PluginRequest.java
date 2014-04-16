@@ -17,6 +17,7 @@
 package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.Nullable;
+import org.gradle.groovy.scripts.ScriptSource;
 
 public interface PluginRequest {
 
@@ -24,5 +25,9 @@ public interface PluginRequest {
 
     @Nullable
     String getVersion();
+
+    int getLineNumber();
+
+    ScriptSource getScriptSource();
 
 }

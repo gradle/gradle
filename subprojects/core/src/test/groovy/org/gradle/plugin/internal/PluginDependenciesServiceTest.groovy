@@ -16,21 +16,24 @@
 
 package org.gradle.plugin.internal
 
+import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest
 import org.gradle.plugin.resolve.internal.PluginRequest
 import spock.lang.Specification
 
 class PluginDependenciesServiceTest extends Specification {
 
+    final scriptSource = new StringScriptSource("d", "c")
+
     List<PluginRequest> plugins(Closure<?> closure) {
-        new PluginDependenciesService().with {
-            createSpec().with(closure)
+        new PluginDependenciesService(scriptSource).with {
+            createSpec(10).with(closure)
             getRequests()
         }
     }
 
     List<PluginRequest> requests(Map<String, String> requests) {
-        requests.collect { new DefaultPluginRequest(it.key, it.value) }
+        requests.collect { new DefaultPluginRequest(it.key, it.value, 10, scriptSource) }
     }
 
     def "can use spec dsl to build one request"() {

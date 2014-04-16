@@ -18,6 +18,8 @@ package org.gradle.plugin.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.plugin.resolve.internal.InvalidPluginRequestException;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.plugin.resolve.internal.PluginResolution;
 import org.gradle.plugin.resolve.internal.PluginResolver;
@@ -39,7 +41,12 @@ public class PluginRequestApplicator {
     }
 
     public void applyPlugin(PluginRequest request) {
-        PluginResolution resolution = pluginResolver.resolve(request);
+        PluginResolution resolution;
+        try {
+            resolution = pluginResolver.resolve(request);
+        } catch (InvalidPluginRequestException e) {
+            throw new LocationAwareException(e, e.getPluginRequest().getScriptSource(), e.getPluginRequest().getLineNumber());
+        }
         if (resolution == null) {
             throw new UnknownPluginException("Cannot resolve plugin request " + request + " from " + pluginResolver.getDescriptionForNotFoundMessage());
         }

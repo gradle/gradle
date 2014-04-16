@@ -26,7 +26,7 @@ import org.gradle.api.Nullable;
 public interface PluginResolver {
 
     @Nullable
-    PluginResolution resolve(PluginRequest pluginRequest);
+    PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException;
 
     String getDescriptionForNotFoundMessage();
 

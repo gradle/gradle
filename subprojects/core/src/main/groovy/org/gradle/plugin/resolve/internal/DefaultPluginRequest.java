@@ -16,19 +16,20 @@
 
 package org.gradle.plugin.resolve.internal;
 
+import org.gradle.groovy.scripts.ScriptSource;
+
 public class DefaultPluginRequest implements PluginRequest {
 
     private final String id;
     private final String version;
+    private final int lineNumber;
+    private final ScriptSource scriptSource;
 
-    public DefaultPluginRequest(String id) {
-        this.id = id;
-        this.version = null;
-    }
-
-    public DefaultPluginRequest(String id, String version) {
+    public DefaultPluginRequest(String id, String version, int lineNumber, ScriptSource scriptSource) {
         this.id = id;
         this.version = version;
+        this.lineNumber = lineNumber;
+        this.scriptSource = scriptSource;
     }
 
     public String getId() {
@@ -37,6 +38,14 @@ public class DefaultPluginRequest implements PluginRequest {
 
     public String getVersion() {
         return version;
+    }
+
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    public ScriptSource getScriptSource() {
+        return scriptSource;
     }
 
     @Override

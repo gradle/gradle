@@ -40,6 +40,7 @@ public class NotInPluginRegistryPluginResolverCheck implements PluginResolver {
             return delegate.resolve(pluginRequest);
         } else {
             throw new InvalidPluginRequestException(
+                    pluginRequest,
                     String.format("Plugin '%s' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: '%s'\" outside of the plugins {} block)", pluginId, pluginId)
             );
         }

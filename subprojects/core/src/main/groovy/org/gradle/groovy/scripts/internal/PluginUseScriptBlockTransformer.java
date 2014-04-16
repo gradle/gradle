@@ -43,7 +43,7 @@ public class PluginUseScriptBlockTransformer {
         ClosureExpression closureArg = scriptBlock.getClosureExpression();
 
         PropertyExpression servicesProperty = new PropertyExpression(VariableExpression.THIS_EXPRESSION, servicesFieldName);
-        MethodCallExpression getServiceMethodCall = new MethodCallExpression(servicesProperty, "get",
+        final MethodCallExpression getServiceMethodCall = new MethodCallExpression(servicesProperty, "get",
                 new ArgumentListExpression(
                         new ClassExpression(new ClassNode(serviceClass))
                 )
@@ -51,7 +51,7 @@ public class PluginUseScriptBlockTransformer {
 
         // Remove access to any surrounding context
         Expression hydrateMethodCall = new MethodCallExpression(closureArg, "rehydrate", new ArgumentListExpression(
-                ConstantExpression.NULL, getServiceMethodCall, getServiceMethodCall
+                getServiceMethodCall, ConstantExpression.NULL, ConstantExpression.NULL
         ));
 
         Expression closureCall = new MethodCallExpression(hydrateMethodCall, "call", ArgumentListExpression.EMPTY_ARGUMENTS);
@@ -85,7 +85,10 @@ public class PluginUseScriptBlockTransformer {
                             hasSingleConstantStringArg(call);
 
                             if (methodName.getText().equals("id")) {
-                                if (!call.isImplicitThis()) {
+                                if (call.isImplicitThis()) {
+                                    call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"), "createSpec", new ConstantExpression(call.getLineNumber(), true)));
+                                    call.setImplicitThis(false);
+                                } else {
                                     restrict(call, BASE_MESSAGE);
                                 }
                             }

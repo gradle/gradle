@@ -33,8 +33,10 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.plugin.PluginDependenciesSpec;
-import org.gradle.plugin.internal.*;
+import org.gradle.plugin.internal.PluginDependenciesService;
+import org.gradle.plugin.internal.PluginRequestApplicator;
+import org.gradle.plugin.internal.PluginResolutionApplicator;
+import org.gradle.plugin.internal.PluginResolverFactory;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.plugin.resolve.internal.PluginResolver;
 
@@ -103,12 +105,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             ScriptSource withImports = importsReader.withImports(scriptSource);
 
-            PluginDependenciesService pluginDependenciesService = new PluginDependenciesService();
-            if (target instanceof PluginAware) {
-                services.add(PluginDependenciesSpec.class, pluginDependenciesService.createSpec());
-            } else {
-                services.add(PluginDependenciesSpec.class, new UnsupportedPluginDependenciesSpec());
-            }
+            PluginDependenciesService pluginDependenciesService = new PluginDependenciesService(getSource());
+            services.add(PluginDependenciesService.class, pluginDependenciesService);
 
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
             compiler.setClassloader(classLoaderScope.getBase().getChildClassLoader());
