@@ -66,7 +66,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
-        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, artifactResolver, oldModelBuilder);
+        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, artifactResolver);
         traverseGraph(resolveState);
 
         assembleResult(resolveState, oldModelBuilder, newModelBuilder);
@@ -350,14 +350,14 @@ public class DependencyGraphBuilder {
             }
         }
 
-        private Set<ResolvedArtifact> getArtifacts(ConfigurationNode childConfiguration) {
+        private Set<ResolvedArtifact> getArtifacts(ConfigurationNode childConfiguration, ResolvedConfigurationBuilder builder) {
             Set<ComponentArtifactMetaData> dependencyArtifacts = dependencyMetaData.getArtifacts(from.metaData, childConfiguration.metaData);
             if (dependencyArtifacts.isEmpty()) {
-                return Collections.emptySet();
+                return childConfiguration.getArtifacts(builder);
             }
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
             for (ComponentArtifactMetaData artifact : dependencyArtifacts) {
-                artifacts.add(resolveState.builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getComponent(), artifact, resolveState.artifactResolver));
+                artifacts.add(builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getComponent(), artifact, resolveState.artifactResolver));
             }
             return artifacts;
         }
@@ -367,12 +367,8 @@ public class DependencyGraphBuilder {
             ResolvedConfigurationIdentifier child = childConfiguration.id;
             oldModelBuilder.addChild(parent, child);
 
-            Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration);
-            if (artifacts.isEmpty()) {
-                artifacts = childConfiguration.getArtifacts();
-            }
             //TODO SF merge with addChild
-            oldModelBuilder.addParentSpecificArtifacts(child, parent, artifacts);
+            oldModelBuilder.addParentSpecificArtifacts(child, parent, getArtifacts(childConfiguration, oldModelBuilder));
 
             if (parent == resolveState.root.id) {
                 EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) dependencyDescriptor;
@@ -421,16 +417,14 @@ public class DependencyGraphBuilder {
         private final DependencyToModuleVersionIdResolver resolver;
         private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
         private final ArtifactResolver artifactResolver;
-        private final ResolvedConfigurationBuilder builder;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
         public ResolveState(ComponentResolveResult rootResult, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver,
-                            DependencyToConfigurationResolver dependencyToConfigurationResolver, ArtifactResolver artifactResolver, ResolvedConfigurationBuilder builder) {
+                            DependencyToConfigurationResolver dependencyToConfigurationResolver, ArtifactResolver artifactResolver) {
             this.resolver = resolver;
             this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
             this.artifactResolver = artifactResolver;
-            this.builder = builder;
             ModuleVersionResolveState rootVersion = getRevision(rootResult.getId());
             rootVersion.setResolveResult(rootResult);
             root = new RootConfigurationNode(rootVersion, new ResolvedConfigurationIdentifier(rootVersion.id, rootConfigurationName), this);
@@ -721,7 +715,7 @@ public class DependencyGraphBuilder {
             return String.format("%s(%s)", moduleRevision, metaData.getName());
         }
 
-        public Set<ResolvedArtifact> getArtifacts() {
+        public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder) {
             if (artifacts == null) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
 
@@ -729,7 +723,7 @@ public class DependencyGraphBuilder {
                 resolveState.artifactResolver.resolveModuleArtifacts(metaData.getComponent(), new DefaultComponentUsage(metaData.getName()), result);
 
                 for (ComponentArtifactMetaData artifact : result.getArtifacts()) {
-                    artifacts.add(resolveState.builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver));
+                    artifacts.add(builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver));
                 }
             }
             return artifacts;
