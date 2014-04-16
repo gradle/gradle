@@ -22,7 +22,9 @@ import org.gradle.test.fixtures.bintray.BintrayTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore
 class BintrayPluginResolutionIntegTest extends AbstractIntegrationSpec {
 
     @Rule BintrayTestServer bintray = new BintrayTestServer(executer, mavenRepo)
