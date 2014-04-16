@@ -377,8 +377,8 @@ Note: plugins from buildSrc are not core plugins.
 
 ### Test cases
 
-- `plugins { id "java" }` applies the java plugin to the project when used in a _build_ script (equally for any core plugin)
-- `plugins { id "java" version "«anything»" }` produces error stating that core plugins cannot have version constraints
+- ~~`plugins { id "java" }` applies the java plugin to the project when used in a _build_ script (equally for any core plugin)~~
+- ~~`plugins { id "java" version "«anything»" }` produces error stating that core plugins cannot have version constraints~~
 - `plugins { id "java"; id "java" }` produces error stating that the same plugin was specified twice
 - `plugins { id "org.gradle.java" }` is equivalent to `plugins { id "java"}`
 - `plugins { id "«non core plugin»" }` produces suitable 'not found' type error message
