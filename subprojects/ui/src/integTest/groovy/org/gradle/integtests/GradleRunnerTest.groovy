@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.openapi
+package org.gradle.integtests
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.openapi.external.runner.GradleRunnerFactory
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1
 import org.gradle.openapi.external.runner.GradleRunnerVersion1
+import org.gradle.openapi.wrappers.runner.GradleRunnerWrapper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Assert
 import org.junit.Before
@@ -30,43 +29,23 @@ import org.junit.Test
 
 class GradleRunnerTest {
 
-  static final String JAVA_PROJECT_NAME = 'javaproject'
-  static final String SHARED_NAME = 'shared'
-  static final String API_NAME = 'api'
-  static final String WEBAPP_NAME = 'webservice'
-  static final String SERVICES_NAME = 'services'
-  static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
-
-  private File javaprojectDir
+  private File projectDir
     File gradleUserHomeDir
 
   @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
   final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
-  @Rule public final TestResources resources = new TestResources(temporaryFolder, 'testproject')
 
   @Before
   void setUp() {
-      javaprojectDir = temporaryFolder.testDirectory
+      projectDir = temporaryFolder.testDirectory
       gradleUserHomeDir = temporaryFolder.file("gradle-user-home")
-
+      projectDir.file("settings.gradle") << "// "
+      projectDir.file("build.gradle") << "apply plugin: 'java'"
   }
 
     String toCommand(String command) {
         "'-g=$gradleUserHomeDir.absolutePath' $command"
     }
-
-  /**
-   * We just want to make sure we can instantiate a GradleRunner here. That's all
-  */
-  @Test
-  public void testInstantiation()
-  {
-    TestGradleRunnerInteractionVersion1 interaction = new TestGradleRunnerInteractionVersion1(javaprojectDir)
-
-    GradleRunnerVersion1 runner = GradleRunnerFactory.createGradleRunner(getClass().getClassLoader(), dist.getGradleHomeDir(), interaction, true)
-
-    Assert.assertNotNull( "Failed to instantiate runner", runner )
-  }
 
   /**
    * This does a basic execution. It also checks to make sure that the notifications were fired
@@ -75,10 +54,9 @@ class GradleRunnerTest {
   @Test
   public void testExecution()
   {
-      def gradleUserHome = temporaryFolder.file("gradle-user-home")
-    TestGradleRunnerInteractionVersion1 interaction = new TestGradleRunnerInteractionVersion1( javaprojectDir )
+    TestGradleRunnerInteractionVersion1 interaction = new TestGradleRunnerInteractionVersion1( projectDir )
 
-    GradleRunnerVersion1 runner = GradleRunnerFactory.createGradleRunner(getClass().getClassLoader(), dist.getGradleHomeDir(), interaction, true)
+    GradleRunnerVersion1 runner = new GradleRunnerWrapper(dist.getGradleHomeDir(), interaction, true)
 
     Assert.assertNotNull( "Failed to instantiate runner", runner )
 
@@ -135,9 +113,9 @@ class GradleRunnerTest {
   @Test
   public void testKill()
   {
-    KillTestInteraction interaction = new KillTestInteraction(javaprojectDir)
+    KillTestInteraction interaction = new KillTestInteraction(projectDir)
 
-    GradleRunnerVersion1 runner = GradleRunnerFactory.createGradleRunner(getClass().getClassLoader(), dist.getGradleHomeDir(), interaction, true)
+    GradleRunnerVersion1 runner = new GradleRunnerWrapper(dist.getGradleHomeDir(), interaction, true)
 
     interaction.runner = runner
 
