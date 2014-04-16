@@ -17,6 +17,12 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Matchers
+import spock.lang.Unroll
+
+import java.util.regex.Pattern
+
+import static org.gradle.groovy.scripts.internal.PluginUseScriptBlockTransformer.*
 
 class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -31,36 +37,6 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds "help"
-    }
-
-    void "plugins block has no implicit access to owner context"() {
-        when:
-        buildScript """
-            plugins {
-                try {
-                    buildscript {}
-                } catch(MissingMethodException e) {
-                    // ok
-                }
-
-                try {
-                    version
-                } catch(MissingPropertyException e) {
-                    // ok
-                }
-
-                assert delegate == null
-                assert this instanceof ${PluginDependenciesSpec.name}
-                assert owner == this
-
-                println "end-of-plugins"
-            }
-        """
-
-        then:
-        succeeds "tasks"
-        and:
-        output.contains("end-of-plugins")
     }
 
     def "buildscript blocks are allowed before plugin statements"() {
@@ -161,4 +137,59 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
         errorOutput.contains "Only Project build scripts can contain plugins {} blocks"
     }
+
+    @Unroll
+    def "illegal syntax in plugins block - #code"() {
+        when:
+        buildScript("""plugins {\n$code\n}""")
+
+        then:
+        fails "help"
+        failure.assertHasLineNumber lineNumber
+        failure.assertThatCause(Matchers.containsText(Pattern.quote(msg)))
+
+        where:
+        lineNumber | code                                | msg
+        2          | "a"                                 | BASE_MESSAGE
+        2          | "def a = null"                      | BASE_MESSAGE
+        2          | "def a = id('foo')"                 | BASE_MESSAGE
+        2          | "delegate.id('a')"                  | BASE_MESSAGE
+        2          | "id()"                              | INVALID_ARGUMENT_LIST
+        2          | "id(1)"                             | INVALID_ARGUMENT_LIST
+        2          | "id(System.getProperty('foo'))"     | INVALID_ARGUMENT_LIST
+        2          | "id('a' + 'b')"                     | INVALID_ARGUMENT_LIST
+        2          | "id(\"\${'foo'}\")"                 | INVALID_ARGUMENT_LIST
+        2          | "version('foo')"                    | BASE_MESSAGE
+        2          | "id('foo').version(1)"              | INVALID_ARGUMENT_LIST
+        2          | "id 'foo' version 1"                | INVALID_ARGUMENT_LIST
+        2          | "id 'foo' bah '1'"                  | VERSION_MESSAGE
+        2          | "foo 'foo' version '1'"             | BASE_MESSAGE
+        3          | "id('foo')\nfoo 'bar'"              | BASE_MESSAGE
+        2          | "if (true) id 'foo'"                | BASE_MESSAGE
+        2          | "id 'foo';version 'bar'"            | BASE_MESSAGE
+        2          | "id('foo').\"\${'version'}\" 'bar'" | BASE_MESSAGE
+    }
+
+    @Unroll
+    def "allowed syntax in plugins block - #code"() {
+        when:
+        buildScript("""plugins {\n$code\n}""")
+
+        then:
+        succeeds "help"
+
+        where:
+        code << [
+                "id('foo')",
+                "id 'foo'",
+                "id('foo').version('bar')",
+                "id 'foo' version 'bar'",
+                "id('foo').\nversion 'bar'",
+                "id('foo');id('bar')",
+                "id('foo')\nid('bar')",
+                "id('foo').version('bar');id('bar').version('foo')",
+                "id('foo').version('bar')\nid('bar').version('foo')",
+        ]
+    }
+
 }

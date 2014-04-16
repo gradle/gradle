@@ -31,7 +31,7 @@ import org.gradle.plugin.PluginDependenciesSpec;
 public class PluginsAndBuildscriptTransformer implements StatementTransformer {
 
     private static final String PLUGINS = "plugins";
-    private static final ScriptBlockToServiceConfigurationTransformer PLUGIN_BLOCK_TRANSFORMER = new ScriptBlockToServiceConfigurationTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginDependenciesSpec.class);
+    private static final PluginUseScriptBlockTransformer PLUGIN_BLOCK_TRANSFORMER = new PluginUseScriptBlockTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginDependenciesSpec.class);
 
     private final String classpathBlockName;
     private final String pluginsBlockMessage;
@@ -64,7 +64,7 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
                                 classpathBlockName, PLUGINS, PLUGINS
                         );
                     } else {
-                        returnStatement = PLUGIN_BLOCK_TRANSFORMER.transform(scriptBlock);
+                        returnStatement = PLUGIN_BLOCK_TRANSFORMER.transform(sourceUnit, scriptBlock);
                     }
                 }
 
