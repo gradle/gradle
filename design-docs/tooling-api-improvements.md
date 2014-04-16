@@ -292,6 +292,7 @@ TBD
 ### Test cases
 
 - Can execute task selectors from multiple projects, for all target Gradle versions
+- Can execute overlapping task selectors.
 
 ## Story: Tooling API exposes project's implicit tasks as launchable
 
@@ -306,6 +307,10 @@ root of a multi-project build runs `help` in the root project only.
 ## Story: Expose information about the visibility of a task
 
 This story allows the IDE to hide those tasks that are part of the implementation details of a build.
+
+## Story: Allow options to be specified for tasks
+
+For example, allow something similar to `gradle test --tests SomePattern`
 
 ## Story: Tooling API build action requests a tooling model for a Gradle build
 

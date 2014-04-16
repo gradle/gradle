@@ -80,9 +80,9 @@ new and old JVM plugins.
 - Resolution result should use binary's id.
 - Dependencies report should use binary's display name.
 
-### Legacy jvm plugins declare local jvm binary
+### Legacy jvm plugins declare local jvm library binary
 
-- The 'java' plugin declares a jvm binary, backed by the project configurations.
+- The `java` plugin declares a jvm binary, backed by the project configurations.
 - To resolve a project dependency via new API:
     - Fail if target project does not produce a jvm binary.
     - Do not allow 'configuration' overrides.
