@@ -172,6 +172,8 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "id 'foo_bar'"                      | invalidPluginIdCharMessage('_' as char)
         2          | "id ''"                             | INVALID_ARGUMENT_LIST
         2          | "id 'foo' version ''"               | INVALID_ARGUMENT_LIST
+        2          | "id null"                           | INVALID_ARGUMENT_LIST
+        2          | "id 'foo' version null"             | INVALID_ARGUMENT_LIST
     }
 
     @Unroll
