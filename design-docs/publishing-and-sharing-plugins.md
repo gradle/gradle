@@ -387,7 +387,7 @@ Note: plugins from buildSrc are not core plugins.
 - ~~`plugins { id "org.gradle.java" }` is equivalent to `plugins { id "java" }`~~
 - ~~plugins already on the classpath (buildscript, buildSrc) are not considered core, and cannot be applied using `plugins {}`~~
 - `plugins { id "«non core plugin»" }` produces suitable 'not found' type error message
-- Using project.apply() to apply a plugin that was already applied using the plugins {} mechanism works (i.e. has no effect)
+- ~~Using project.apply() to apply a plugin that was already applied using the plugins {} mechanism works (i.e. has no effect)~~
 - Plugins are applied alphabetically based on name
 
 ### Open questions 

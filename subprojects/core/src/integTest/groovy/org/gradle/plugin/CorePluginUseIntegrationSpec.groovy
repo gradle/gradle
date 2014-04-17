@@ -98,4 +98,36 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(4)
     }
 
+    def "can reapply core plugin applied via plugins block"() {
+        when:
+        buildScript """
+            plugins {
+                id "java"
+            }
+
+            assert plugins.hasPlugin("java")
+
+            apply plugin: "java"
+        """
+
+        then:
+        succeeds "tasks"
+    }
+
+    def "can reapply core plugin applied via qualified id in plugins block"() {
+        when:
+        buildScript """
+            plugins {
+                id "org.gradle.java"
+            }
+
+            assert plugins.hasPlugin("java")
+
+            apply plugin: "java"
+        """
+
+        then:
+        succeeds "tasks"
+    }
+
 }
