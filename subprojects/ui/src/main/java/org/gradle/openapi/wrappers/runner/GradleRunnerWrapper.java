@@ -16,7 +16,6 @@
 package org.gradle.openapi.wrappers.runner;
 
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1;
-import org.gradle.openapi.external.runner.GradleRunnerVersion1;
 import org.gradle.openapi.wrappers.NoLongerSupportedException;
 
 import java.io.File;
@@ -24,22 +23,8 @@ import java.io.File;
 /**
  * Entry point for the open API. No longer usable but still implemented so that old clients receive a decent error message.
  */
-public class GradleRunnerWrapper implements GradleRunnerVersion1 {
-    // This method is used by older versions of the open API.
+public class GradleRunnerWrapper {
     public GradleRunnerWrapper(File gradleHomeDirectory, GradleRunnerInteractionVersion1 interactionVersion1) {
-        throw new NoLongerSupportedException();
-    }
-
-    public void executeCommand(String commandLine) {
-        throw new NoLongerSupportedException();
-    }
-
-    /*
-       Call this to stop the gradle command. This is killing the process, not
-       gracefully exiting.
-    */
-
-    public void killProcess() {
         throw new NoLongerSupportedException();
     }
 }
