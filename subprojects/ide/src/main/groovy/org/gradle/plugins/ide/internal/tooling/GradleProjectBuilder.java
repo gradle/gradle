@@ -45,7 +45,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
     }
 
     private DefaultGradleProject<LaunchableGradleTask> buildHierarchy(Project project) {
-        List<DefaultGradleProject> children = new ArrayList<DefaultGradleProject>();
+        List<DefaultGradleProject<LaunchableGradleTask>> children = new ArrayList<DefaultGradleProject<LaunchableGradleTask>>();
         for (Project child : project.getChildProjects().values()) {
             children.add(buildHierarchy(child));
         }

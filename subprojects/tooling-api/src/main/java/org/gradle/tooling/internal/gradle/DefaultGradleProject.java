@@ -29,25 +29,25 @@ public class DefaultGradleProject<T> extends PartialGradleProject implements Int
     private List<T> tasks = new LinkedList<T>();
 
     @Override
-    public DefaultGradleProject setName(String name) {
+    public DefaultGradleProject<T> setName(String name) {
         super.setName(name);
         return this;
     }
 
     @Override
-    public DefaultGradleProject setPath(String path) {
+    public DefaultGradleProject<T> setPath(String path) {
         super.setPath(path);
         return this;
     }
 
     @Override
-    public DefaultGradleProject setDescription(String description) {
+    public DefaultGradleProject<T> setDescription(String description) {
         super.setDescription(description);
         return this;
     }
 
     @Override
-    public DefaultGradleProject setChildren(List<? extends PartialGradleProject> children) {
+    public DefaultGradleProject<T> setChildren(List<? extends PartialGradleProject> children) {
         super.setChildren(children);
         return this;
     }
@@ -56,7 +56,7 @@ public class DefaultGradleProject<T> extends PartialGradleProject implements Int
         return tasks;
     }
 
-    public DefaultGradleProject setTasks(List<T> tasks) {
+    public DefaultGradleProject<T> setTasks(List<T> tasks) {
         this.tasks = tasks;
         return this;
     }
@@ -70,7 +70,7 @@ public class DefaultGradleProject<T> extends PartialGradleProject implements Int
     }
 
     @Override
-    public DefaultGradleProject findByPath(String path) {
-        return (DefaultGradleProject) super.findByPath(path);
+    public DefaultGradleProject<T> findByPath(String path) {
+        return (DefaultGradleProject<T>) super.findByPath(path);
     }
 }
