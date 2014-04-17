@@ -22,8 +22,7 @@ import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 import java.io.File;
 
 /**
- * Uses an option file for arguments passed to GCC if possible.
- * Certain GCC options do not function correctly when included in an option file, so include these directly on the command line as well.
+ * Uses an option file for arguments passed to Visual C++.
  */
 class VisualCppOptionsFileArgTransformer extends OptionsFileArgsTransformer {
     public VisualCppOptionsFileArgTransformer(File tempDir) {
