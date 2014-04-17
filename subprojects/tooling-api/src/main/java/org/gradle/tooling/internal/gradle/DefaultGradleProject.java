@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.impl;
+package org.gradle.tooling.internal.gradle;
 
-import org.gradle.tooling.internal.gradle.DefaultGradleScript;
-import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
-import org.gradle.tooling.internal.gradle.PartialGradleProject;
 import org.gradle.tooling.internal.protocol.InternalGradleProject;
 
 import java.io.File;
@@ -27,9 +24,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultGradleProject extends PartialGradleProject implements InternalGradleProject, Serializable, GradleProjectIdentity {
+public class DefaultGradleProject<T> extends PartialGradleProject implements InternalGradleProject, Serializable, GradleProjectIdentity {
     private DefaultGradleScript buildScript = new DefaultGradleScript();
-    private List<LaunchableGradleTask> tasks = new LinkedList<LaunchableGradleTask>();
+    private List<T> tasks = new LinkedList<T>();
 
     @Override
     public DefaultGradleProject setName(String name) {
@@ -55,11 +52,11 @@ public class DefaultGradleProject extends PartialGradleProject implements Intern
         return this;
     }
 
-    public Collection<LaunchableGradleTask> getTasks() {
+    public Collection<T> getTasks() {
         return tasks;
     }
 
-    public DefaultGradleProject setTasks(List<LaunchableGradleTask> tasks) {
+    public DefaultGradleProject setTasks(List<T> tasks) {
         this.tasks = tasks;
         return this;
     }

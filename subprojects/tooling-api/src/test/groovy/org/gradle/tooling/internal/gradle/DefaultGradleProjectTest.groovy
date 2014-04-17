@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.impl
+package org.gradle.tooling.internal.gradle
 
 import spock.lang.Specification
 

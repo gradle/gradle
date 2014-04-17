@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import com.google.common.collect.Lists;
-import org.gradle.tooling.internal.impl.DefaultGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.*;
@@ -124,7 +124,7 @@ public class DefaultEclipseProject implements EclipseProjectVersion3, Serializab
         this.linkedResources = linkedResources;
     }
 
-    public DefaultGradleProject getGradleProject() {
+    public DefaultGradleProject<?> getGradleProject() {
         return gradleProject;
     }
 
