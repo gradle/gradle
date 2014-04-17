@@ -833,6 +833,10 @@
                     </para>
                 </listitem>
                 <listitem>
+                    <para>The protocol sftp currently only supports username/password-based authentication.
+                    </para>
+                </listitem>
+                <listitem>
                     <para>Each repository can have its own layout.
                     </para>
                 </listitem>
