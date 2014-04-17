@@ -187,7 +187,9 @@ and even if they do healthy listeners will work correctly regardless of the list
 
 ### Support for the Gradle Open API removed
 
-- `GradleRunnerFactory` removed
+- `GradleRunnerFactory` removed.
+- `UIFactory` removed.
+- `ExternalUtility` removed.
 
 ### Removed Deprecated Plugins
 

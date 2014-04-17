@@ -18,83 +18,85 @@ package org.gradle.integtests.openapi
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.junit.Assert
 import org.junit.Rule
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.lang.reflect.InvocationTargetException
 
-@Requires(TestPrecondition.SWING)
 class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSpec {
     private final Logger logger = LoggerFactory.getLogger(CrossVersionCompatibilityIntegrationTest)
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
-    public void canUseOpenApiFromCurrentVersionToBuildUsingAnOlderVersion() {
-        expect:
-        checkCanBuildUsing(current, previous)
-    }
+    public void cannotUseOpenApiFromOlderVersionToBuildUsingCurrentVersion() {
+        if (!previous.openApiSupported) {
+            System.out.println("skipping $previous as it does not support the open API.")
+            return
+        }
+        def classloader = loadOpenApi(previous)
 
-    public void canUseOpenApiFromOlderVersionToBuildUsingCurrentVersion() {
-        expect:
-        checkCanBuildUsing(previous, current)
-    }
-
-    public void cannotUseOpenApiFromOlderVersionToRunUsingCurrentVersion() {
         when:
-        attemptToCreateRunner(previous, current)
+        attemptToCreateSinglePaneUI(classloader)
 
         then:
         InvocationTargetException e = thrown()
         e.cause.message == 'Support for the Gradle Open API was removed in the Gradle 2.0 release. You should use the Gradle tooling API instead.'
+
+        when:
+        attemptToCreateDualPaneUI(classloader)
+
+        then:
+        e = thrown()
+        e.cause.message == 'Support for the Gradle Open API was removed in the Gradle 2.0 release. You should use the Gradle tooling API instead.'
+
+        when:
+        attemptToCreateRunner(classloader)
+
+        then:
+        e = thrown()
+        e.cause.message == 'Support for the Gradle Open API was removed in the Gradle 2.0 release. You should use the Gradle tooling API instead.'
     }
 
-    void checkCanBuildUsing(GradleDistribution openApiVersion, GradleDistribution buildVersion) {
-        if (!buildVersion.openApiSupported) {
-            System.out.println("skipping $buildVersion as it does not support the open API.")
-            return
-        }
-        if (!openApiVersion.openApiSupported) {
-            System.out.println("skipping $openApiVersion as it does not support the open API.")
-            return
-        }
-        def testClasses = ClasspathUtil.getClasspathForClass(CrossVersionBuilder.class)
-        def junitJar = ClasspathUtil.getClasspathForClass(Assert.class)
-        def classpath = [testClasses, junitJar] + openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
-        logger.info('Using Open API classpath {}', classpath)
-        def classloader = new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI() })
-        def builder = classloader.loadClass(CrossVersionBuilder.class.name).newInstance()
-        builder.targetGradleHomeDir = buildVersion.gradleHomeDir
-        builder.currentDir = testDirectory
-        builder.version = buildVersion.version.version
-        builder.build()
-    }
-
-    void attemptToCreateRunner(GradleDistribution openApiVersion, GradleDistribution buildVersion) {
-        if (!buildVersion.openApiSupported) {
-            System.out.println("skipping $buildVersion as it does not support the open API.")
-            return
-        }
-        if (!openApiVersion.openApiSupported) {
-            System.out.println("skipping $openApiVersion as it does not support the open API.")
-            return
-        }
-        def classpath = openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
-        logger.info('Using Open API classpath {}', classpath)
-        def classloader = new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI() })
-
-        def interactionType = classloader.loadClass("org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1")
-        def interaction = [getWorkingDirectory: { testDirectory }, getCustomGradleExecutable: { null }].asType(interactionType)
-        def factory = classloader.loadClass("org.gradle.openapi.external.runner.GradleRunnerFactory")
-        def method = factory.getMethods().find { it.name == 'createGradleRunner' }
+    void attemptToCreateSinglePaneUI(ClassLoader classloader) {
+        def interactionType = classloader.loadClass("org.gradle.openapi.external.ui.SinglePaneUIInteractionVersion1")
+        def interaction = [:].asType(interactionType)
+        def factory = classloader.loadClass("org.gradle.openapi.external.ui.UIFactory")
+        def method = factory.getMethods().find { it.name == 'createSinglePaneUI' }
         try {
-            method.invoke(null, classloader, buildVersion.gradleHomeDir, interaction, true)
+            method.invoke(null, classloader, current.gradleHomeDir, interaction, true)
         } catch (InvocationTargetException e) {
             throw e.cause
         }
+    }
+
+    void attemptToCreateDualPaneUI(ClassLoader classloader) {
+        def interactionType = classloader.loadClass("org.gradle.openapi.external.ui.DualPaneUIInteractionVersion1")
+        def interaction = [:].asType(interactionType)
+        def factory = classloader.loadClass("org.gradle.openapi.external.ui.UIFactory")
+        def method = factory.getMethods().find { it.name == 'createDualPaneUI' }
+        try {
+            method.invoke(null, classloader, current.gradleHomeDir, interaction, true)
+        } catch (InvocationTargetException e) {
+            throw e.cause
+        }
+    }
+
+    void attemptToCreateRunner(ClassLoader classloader) {
+        def interactionType = classloader.loadClass("org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1")
+        def interaction = [:].asType(interactionType)
+        def factory = classloader.loadClass("org.gradle.openapi.external.runner.GradleRunnerFactory")
+        def method = factory.getMethods().find { it.name == 'createGradleRunner' }
+        try {
+            method.invoke(null, classloader, current.gradleHomeDir, interaction, true)
+        } catch (InvocationTargetException e) {
+            throw e.cause
+        }
+    }
+
+    private ClassLoader loadOpenApi(GradleDistribution openApiVersion) {
+        def classpath = openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
+        logger.info('Using Open API classpath {}', classpath)
+        new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI() })
     }
 }
