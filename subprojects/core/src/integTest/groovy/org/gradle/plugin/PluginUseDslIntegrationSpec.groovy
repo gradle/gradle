@@ -174,6 +174,9 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "id 'foo' version ''"               | INVALID_ARGUMENT_LIST
         2          | "id null"                           | INVALID_ARGUMENT_LIST
         2          | "id 'foo' version null"             | INVALID_ARGUMENT_LIST
+        2          | "id '.foo'"                         | ID_SEPARATOR_ON_START_OR_END
+        2          | "id 'foo.'"                         | ID_SEPARATOR_ON_START_OR_END
+        2          | "id '.'"                            | ID_SEPARATOR_ON_START_OR_END
     }
 
     @Unroll

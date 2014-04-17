@@ -31,6 +31,7 @@ public class PluginUseScriptBlockTransformer {
     public static final String VERSION_MESSAGE = "only version(String) method calls allowed";
     private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal";
     private static final String NOT_LITERAL_ID_METHOD_NAME = BASE_MESSAGE + " - " + NOT_LITERAL_METHOD_NAME;
+    public static final String ID_SEPARATOR_ON_START_OR_END = "plugin id cannot begin or end with '" + PluginIds.SEPARATOR + "'";
 
     private final String servicesFieldName;
     private final Class<?> serviceClass;
@@ -96,13 +97,17 @@ public class PluginUseScriptBlockTransformer {
 
                             if (methodName.getText().equals("id")) {
                                 if (call.isImplicitThis()) {
-                                    int invalidCharIndex = PluginIds.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(argStringValue);
-                                    if (invalidCharIndex < 0) {
-                                        call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"), "createSpec", new ConstantExpression(call.getLineNumber(), true)));
-                                        call.setImplicitThis(false);
+                                    if (argStringValue.startsWith(PluginIds.SEPARATOR) || argStringValue.endsWith(PluginIds.SEPARATOR)) {
+                                        restrict(argumentExpression, ID_SEPARATOR_ON_START_OR_END);
                                     } else {
-                                        char invalidChar = argStringValue.charAt(invalidCharIndex);
-                                        restrict(argumentExpression, invalidPluginIdCharMessage(invalidChar));
+                                        int invalidCharIndex = PluginIds.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(argStringValue);
+                                        if (invalidCharIndex < 0) {
+                                            call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"), "createSpec", new ConstantExpression(call.getLineNumber(), true)));
+                                            call.setImplicitThis(false);
+                                        } else {
+                                            char invalidChar = argStringValue.charAt(invalidCharIndex);
+                                            restrict(argumentExpression, invalidPluginIdCharMessage(invalidChar));
+                                        }
                                     }
                                 } else {
                                     restrict(call, BASE_MESSAGE);

@@ -31,7 +31,7 @@ public abstract class PluginIds {
             .or(anyOf(".-"))
             .negate();
 
-    private static final char SEPARATOR = '.';
+    public static final String SEPARATOR = ".";
 
     public static boolean isQualified(String id) {
         return id.indexOf(SEPARATOR) >= 0;
