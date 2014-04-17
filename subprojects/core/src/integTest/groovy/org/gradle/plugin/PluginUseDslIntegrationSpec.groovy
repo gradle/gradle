@@ -168,6 +168,8 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "if (true) id 'foo'"                | BASE_MESSAGE
         2          | "id 'foo';version 'bar'"            | BASE_MESSAGE
         2          | "id('foo').\"\${'version'}\" 'bar'" | BASE_MESSAGE
+        2          | "id ' '"                            | invalidPluginIdCharMessage(' ' as char)
+        2          | "id 'foo_bar'"                      | invalidPluginIdCharMessage('_' as char)
     }
 
     @Unroll

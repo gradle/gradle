@@ -22,6 +22,7 @@ import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
+import org.gradle.plugin.internal.PluginIds;
 
 public class PluginUseScriptBlockTransformer {
 
@@ -82,12 +83,22 @@ public class PluginUseScriptBlockTransformer {
                     if (isString(methodName)) {
                         String methodNameText = methodName.getText();
                         if (methodNameText.equals("id") || methodNameText.equals("version")) {
-                            hasSingleConstantStringArg(call);
+                            ConstantExpression argExpression = hasSingleConstantStringArg(call);
+                            if (argExpression == null) {
+                                return;
+                            }
 
                             if (methodName.getText().equals("id")) {
                                 if (call.isImplicitThis()) {
-                                    call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"), "createSpec", new ConstantExpression(call.getLineNumber(), true)));
-                                    call.setImplicitThis(false);
+                                    String pluginId = argExpression.getValue().toString();
+                                    int invalidCharIndex = PluginIds.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(pluginId);
+                                    if (invalidCharIndex < 0) {
+                                        call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"), "createSpec", new ConstantExpression(call.getLineNumber(), true)));
+                                        call.setImplicitThis(false);
+                                    } else {
+                                        char invalidChar = pluginId.charAt(invalidCharIndex);
+                                        restrict(argExpression, invalidPluginIdCharMessage(invalidChar));
+                                    }
                                 } else {
                                     restrict(call, BASE_MESSAGE);
                                 }
@@ -114,13 +125,15 @@ public class PluginUseScriptBlockTransformer {
                 }
             }
 
-            private void hasSingleConstantStringArg(MethodCallExpression call) {
+            private ConstantExpression hasSingleConstantStringArg(MethodCallExpression call) {
                 ArgumentListExpression argumentList = (ArgumentListExpression) call.getArguments();
                 if (argumentList.getExpressions().size() == 1) {
                     Expression argumentExpression = argumentList.getExpressions().get(0);
                     if (argumentExpression instanceof ConstantExpression) {
                         ConstantExpression constantArgumentExpression = (ConstantExpression) argumentExpression;
-                        if (!isString(constantArgumentExpression)) {
+                        if (isString(constantArgumentExpression)) {
+                            return constantArgumentExpression;
+                        } else {
                             restrict(constantArgumentExpression, INVALID_ARGUMENT_LIST);
                         }
                     } else {
@@ -129,6 +142,8 @@ public class PluginUseScriptBlockTransformer {
                 } else {
                     restrict(argumentList, INVALID_ARGUMENT_LIST);
                 }
+
+                return null;
             }
 
             private boolean isString(ConstantExpression constantExpression) {
@@ -142,6 +157,10 @@ public class PluginUseScriptBlockTransformer {
         });
 
         return new ExpressionStatement(closureCall);
+    }
+
+    public static String invalidPluginIdCharMessage(char invalidChar) {
+        return "Plugin id contains invalid char '" + invalidChar + "' (only " + PluginIds.PLUGIN_ID_VALID_CHARS_DESCRIPTION + " characters are valid)";
     }
 
 }
