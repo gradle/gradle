@@ -16,8 +16,10 @@
 package org.gradle.openapi.wrappers.ui;
 
 import org.gradle.gradleplugin.userinterface.swing.generic.SinglePaneUIInstance;
+import org.gradle.openapi.external.ui.SettingsNodeVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIInteractionVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1;
+import org.gradle.openapi.wrappers.NoLongerSupportedException;
 
 import javax.swing.*;
 
@@ -27,6 +29,17 @@ import javax.swing.*;
  */
 public class SinglePaneUIWrapper extends AbstractOpenAPIUIWrapper<SinglePaneUIInstance> implements SinglePaneUIVersion1 {
     public SinglePaneUIWrapper(SinglePaneUIInteractionVersion1 singlePaneUIArguments) {
+        super(notSupported(), null);
+    }
+
+    private static SettingsNodeVersion1 notSupported() {
+        throw new NoLongerSupportedException();
+    }
+
+    /**
+     * The open API uses the other constructor.
+     */
+    public SinglePaneUIWrapper(SinglePaneUIInteractionVersion1 singlePaneUIArguments, boolean dummy) {
 
         super(singlePaneUIArguments.instantiateSettings(), singlePaneUIArguments.instantiateAlternateUIInteraction());
 

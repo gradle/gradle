@@ -18,6 +18,8 @@ package org.gradle.openapi.wrappers.ui;
 import org.gradle.gradleplugin.userinterface.swing.generic.DualPaneUIInstance;
 import org.gradle.openapi.external.ui.DualPaneUIInteractionVersion1;
 import org.gradle.openapi.external.ui.DualPaneUIVersion1;
+import org.gradle.openapi.external.ui.SettingsNodeVersion1;
+import org.gradle.openapi.wrappers.NoLongerSupportedException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,6 +30,17 @@ import java.awt.*;
  */
 public class DualPaneUIWrapper extends AbstractOpenAPIUIWrapper<DualPaneUIInstance> implements DualPaneUIVersion1 {
     public DualPaneUIWrapper(DualPaneUIInteractionVersion1 dualPaneUIArguments) {
+        super(notSupported(), null);
+    }
+
+    private static SettingsNodeVersion1 notSupported() {
+        throw new NoLongerSupportedException();
+    }
+
+    /**
+     * The open API uses the above constructor.
+     */
+    public DualPaneUIWrapper(DualPaneUIInteractionVersion1 dualPaneUIArguments, boolean dummy) {
 
         super(dualPaneUIArguments.instantiateSettings(), dualPaneUIArguments.instantiateAlternateUIInteraction());
 
