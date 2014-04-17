@@ -20,5 +20,7 @@ import java.io.File;
 import java.io.IOException;
 
 public interface Symlink {
+    boolean isSupported();
+
     void symlink(File link, File target) throws IOException;
 }

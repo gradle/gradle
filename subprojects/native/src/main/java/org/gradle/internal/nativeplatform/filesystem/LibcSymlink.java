@@ -29,6 +29,10 @@ public class LibcSymlink implements Symlink {
         this.libC = libC;
     }
 
+    public boolean isSupported() {
+        return true;
+    }
+
     public void symlink(File link, File target) throws IOException {
         link.getParentFile().mkdirs();
         try {

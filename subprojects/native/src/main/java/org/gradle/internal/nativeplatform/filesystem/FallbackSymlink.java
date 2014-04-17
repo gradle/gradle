@@ -20,6 +20,10 @@ import java.io.File;
 import java.io.IOException;
 
 public class FallbackSymlink implements Symlink {
+    public boolean isSupported() {
+        return false;
+    }
+
     public void symlink(File link, File target) throws IOException {
         throw new IOException("Creation of symlinks is not supported on the platform.");
     }

@@ -77,13 +77,13 @@ public class GenericFileSystem implements FileSystem {
         this.stat = stat;
         this.symlink = symlink;
         this.chmod = chmod;
+        canCreateSymbolicLink = symlink.isSupported();
         String content = generateUniqueContent();
         File file = null;
         try {
             checkJavaIoTmpDirExists();
             file = createFile(content);
             caseSensitive = probeCaseSensitive(file, content);
-            canCreateSymbolicLink = probeCanCreateSymbolicLink(file, content);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -114,25 +114,8 @@ public class GenericFileSystem implements FileSystem {
         }
     }
 
-    private boolean probeCanCreateSymbolicLink(File file, String content) {
-        File link = null;
-        try {
-            link = generateUniqueTempFileName();
-            return tryCreateSymbolicLink(link, file) && hasContent(link, content);
-        } catch (IOException e) {
-            LOGGER.info("Failed to determine if file system can create symbolic links. Assuming it can't.");
-            return false;
-        } finally {
-            FileUtils.deleteQuietly(link);
-        }
-    }
-
     private boolean hasContent(File file, String content) throws IOException {
         return file.exists() && Files.readFirstLine(file, Charsets.UTF_8).equals(content);
-    }
-
-    private File generateUniqueTempFileName() throws IOException {
-        return new File(System.getProperty("java.io.tmpdir"), "gradle_unique_file_name" + UUID.randomUUID().toString());
     }
 
     private void checkJavaIoTmpDirExists() throws IOException {
