@@ -32,6 +32,9 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 
 @ToolingApiVersion(">=1.12")
 class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
+    def implicitTaskNames = ['dependencies', 'dependencyInsight', 'help', 'init', 'projects', 'properties', 'tasks', 'wrapper']
+    def nonRootImplicitTaskNames = ['dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks']
+
     def setup() {
         settingsFile << '''
 include 'a'
@@ -184,7 +187,7 @@ project(':b:c') {
         e.message.contains('does not support building a model of type \'' + BuildInvocations.simpleName + '\'')
     }
 
-    @TargetGradleVersion(">=1.12")
+    @TargetGradleVersion("=1.12")
     def "get tasks for projects"() {
         when:
         List<Task> tasks = withConnection { connection ->
@@ -199,6 +202,39 @@ project(':b:c') {
         tasks[0].project
         then:
         UnsupportedMethodException e = thrown()
+        e != null
+    }
+
+    @TargetGradleVersion(">=2.0")
+    def "get tasks including implicit for projects"() {
+        when:
+        List<Task> tasks = withConnection { connection ->
+            connection.action(new FetchTasksBuildAction(':b')).run()
+        }
+
+        then:
+        tasks.size() == 2 + nonRootImplicitTaskNames.size()
+        tasks*.name as Set == (['t2', 't3'] + nonRootImplicitTaskNames) as Set
+
+        when:
+        tasks[0].project
+        then:
+        UnsupportedMethodException e = thrown()
+        e != null
+
+        when:
+        tasks = withConnection { connection ->
+            connection.action(new FetchTasksBuildAction(':')).run()
+        }
+
+        then:
+        tasks.size() == 1 + implicitTaskNames.size()
+        tasks*.name as Set == (['t1'] + implicitTaskNames) as Set
+
+        when:
+        tasks[0].project
+        then:
+        e = thrown()
         e != null
     }
 
@@ -333,10 +369,10 @@ project(':b:c') {
         }
 
         expect:
-        model.tasks.count { it.name != 'setupBuild' } == 1
+        model.tasks.count { it.name != 'setupBuild' && !implicitTaskNames.contains(it.name) } == 1
 
         when:
-        def task = model.tasks.find { Task it -> it.name != 'setupBuild' }
+        def task = model.tasks.find { Task it -> it.name != 'setupBuild' && !implicitTaskNames.contains(it.name) }
 
         then:
         task.name == 't1'

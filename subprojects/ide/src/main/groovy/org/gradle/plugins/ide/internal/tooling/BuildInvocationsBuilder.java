@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.tooling.internal.gradle.DefaultBuildInvocations;
 import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector;
@@ -31,10 +32,10 @@ import java.util.List;
 import java.util.Set;
 
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
-    private final GradleProjectBuilder gradleProjectBuilder;
+    private final ProjectTaskLister taskLister;
 
-    public BuildInvocationsBuilder(GradleProjectBuilder gradleProjectBuilder) {
-        this.gradleProjectBuilder = gradleProjectBuilder;
+    public BuildInvocationsBuilder(ProjectTaskLister taskLister) {
+        this.taskLister = taskLister;
     }
 
     public boolean canBuild(String modelName) {
@@ -60,7 +61,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         }
         return new DefaultBuildInvocations<LaunchableGradleTask>()
                 .setSelectors(selectors)
-                .setTasks(convertTasks(gradleProjectBuilder.buildAll(project).findByPath(project.getPath()).getTasks()));
+                .setTasks(tasks(project));
     }
 
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
@@ -68,16 +69,16 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
     }
 
     // build tasks without project reference
-    private List<LaunchableGradleTask> convertTasks(Iterable<LaunchableGradleTask> tasks) {
-        List<LaunchableGradleTask> convertedTasks = Lists.newArrayList();
-        for (LaunchableGradleTask task : tasks) {
-            convertedTasks.add(new LaunchableGradleTask()
+    private List<LaunchableGradleTask> tasks(Project project) {
+        List<LaunchableGradleTask> tasks = Lists.newArrayList();
+        for (Task task : taskLister.listProjectTasks(project)) {
+            tasks.add(new LaunchableGradleTask()
                     .setPath(task.getPath())
                     .setName(task.getName())
                     .setDisplayName(task.toString())
                     .setDescription(task.getDescription()));
         }
-        return convertedTasks;
+        return tasks;
     }
 
     private void findTasks(Project project, Collection<String> tasks) {

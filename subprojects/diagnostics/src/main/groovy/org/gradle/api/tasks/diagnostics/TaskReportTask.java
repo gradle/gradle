@@ -15,14 +15,13 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.tasks.options.Option;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.diagnostics.internal.*;
 
+import javax.inject.Inject;
 import java.io.IOException;
 
 /**
@@ -59,18 +58,12 @@ public class TaskReportTask extends AbstractReportTask {
         TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
 
         SingleProjectTaskReportModel projectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
-        ProjectInternal projectInternal = (ProjectInternal) project;
-        TaskContainerInternal tasks = projectInternal.getTasks();
-        tasks.actualize();
-        projectTaskModel.build(Sets.union(tasks, projectInternal.getImplicitTasks()));
+        projectTaskModel.build(getProjectTaskLister().listProjectTasks(project));
         aggregateModel.add(projectTaskModel);
 
         for (Project subproject : project.getSubprojects()) {
             SingleProjectTaskReportModel subprojectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
-            ProjectInternal subprojectInternal = (ProjectInternal) subproject;
-            TaskContainerInternal subprojectTasks = subprojectInternal.getTasks();
-            subprojectTasks.actualize();
-            subprojectTaskModel.build(subprojectTasks);
+            subprojectTaskModel.build(getProjectTaskLister().listProjectTasks(subproject));
             aggregateModel.add(subprojectTaskModel);
         }
 
@@ -93,5 +86,10 @@ public class TaskReportTask extends AbstractReportTask {
         for (Rule rule : project.getTasks().getRules()) {
             renderer.addRule(rule);
         }
+    }
+
+    @Inject
+    protected ProjectTaskLister getProjectTaskLister() {
+        throw new UnsupportedOperationException();
     }
 }

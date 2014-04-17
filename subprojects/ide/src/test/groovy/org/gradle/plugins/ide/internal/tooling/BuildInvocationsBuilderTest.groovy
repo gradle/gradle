@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.internal.project.DefaultProjectTaskLister
 import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.TestUtil
@@ -25,7 +26,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class BuildInvocationsBuilderTest extends Specification {
-    def builder = new BuildInvocationsBuilder(new GradleProjectBuilder())
+    def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())
     @Shared def project = TestUtil.builder().withName("root").build()
     @Shared def child1 = TestUtil.builder().withName("child1").withParent(project).build()
     @Shared def child1a = TestUtil.builder().withName("child1a").withParent(child1).build()

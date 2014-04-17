@@ -291,6 +291,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new RootClassLoaderScope(classLoaderRegistry.getGradleApiClassLoader(), classLoaderCache);
     }
 
+    protected ProjectTaskLister createProjectTaskLister() {
+        return new DefaultProjectTaskLister();
+    }
+
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
         public ModuleInternal getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
