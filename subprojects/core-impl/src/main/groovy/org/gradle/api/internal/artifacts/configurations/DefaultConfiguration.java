@@ -25,8 +25,6 @@ import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -256,48 +254,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * {@inheritDoc}
      */
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
-        return new AbstractTaskDependency() {
-            public void resolve(TaskDependencyResolveContext context) {
-                if (useDependedOn) {
-                    addTaskDependenciesFromProjectsIDependOn(taskName, context);
-                } else {
-                    Project thisProject = context.getTask().getProject();
-                    addTaskDependenciesFromProjectsDependingOnMe(thisProject, taskName, context);
-                }
-            }
-
-            private void addTaskDependenciesFromProjectsIDependOn(final String taskName,
-                                                                  final TaskDependencyResolveContext context) {
-                Set<ProjectDependency> projectDependencies = getAllDependencies().withType(ProjectDependency.class);
-                for (ProjectDependency projectDependency : projectDependencies) {
-                    Task nextTask = projectDependency.getDependencyProject().getTasks().findByName(taskName);
-                    if (nextTask != null) {
-                        context.add(nextTask);
-                    }
-                }
-            }
-
-            private void addTaskDependenciesFromProjectsDependingOnMe(final Project thisProject, final String taskName,
-                                                                      final TaskDependencyResolveContext context) {
-                Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
-                for (Task nextTask : tasksWithName) {
-                    Configuration configuration = nextTask.getProject().getConfigurations().findByName(getName());
-                    if (configuration != null && doesConfigurationDependOnProject(configuration, thisProject)) {
-                        context.add(nextTask);
-                    }
-                }
-            }
-        };
-    }
-
-    private static boolean doesConfigurationDependOnProject(Configuration configuration, Project project) {
-        Set<ProjectDependency> projectDependencies = configuration.getAllDependencies().withType(ProjectDependency.class);
-        for (ProjectDependency projectDependency : projectDependencies) {
-            if (projectDependency.getDependencyProject().equals(project)) {
-                return true;
-            }
+        if (useDependedOn) {
+            return new TasksFromProjectDependencies(taskName, getAllDependencies());
+        } else {
+            return new TasksFromDependentProjects(taskName, getName());
         }
-        return false;
     }
 
     public DependencySet getDependencies() {
@@ -569,4 +530,5 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return DefaultConfiguration.this.cachedResolverResults.getResolutionResult();
         }
     }
+
 }
