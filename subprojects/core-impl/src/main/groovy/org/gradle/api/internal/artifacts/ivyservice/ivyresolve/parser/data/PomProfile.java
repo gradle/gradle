@@ -23,6 +23,7 @@ import java.util.Map;
 
 public interface PomProfile {
     String getId();
+    boolean isActiveByDefault();
     Map<String, String> getProperties();
     List<PomDependencyMgt> getDependencyMgts();
     List<PomDependencyData> getDependencies();

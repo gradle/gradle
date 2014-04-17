@@ -821,4 +821,920 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
     }
+
+    def "pom with project coordinates defined by profile activated by system property value"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>\${some.group}</groupId>
+    <artifactId>\${some.artifact}</artifactId>
+    <version>\${some.version}</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <some.group>group-one</some.group>
+                <some.artifact>artifact-one</some.artifact>
+                <some.version>version-one</some.version>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        descriptor.dependencies.length == 0
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "pom with dependency coordinates defined by profile activated by system property value"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>\${some.group}</groupId>
+            <artifactId>\${some.artifact}</artifactId>
+            <version>\${some.version}</version>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <some.group>group-two</some.group>
+                <some.artifact>artifact-two</some.artifact>
+                <some.version>version-two</some.version>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        descriptor.dependencies.length == 1
+        descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        hasDefaultDependencyArtifact(descriptor.dependencies.first())
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "uses parent properties from activated by system property value to provide default values for a dependency"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <some.group>group-two</some.group>
+                <some.artifact>artifact-two</some.artifact>
+                <some.version>version-two</some.version>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>\${some.group}</groupId>
+            <artifactId>\${some.artifact}</artifactId>
+            <version>\${some.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact(_, MavenPomArtifact.class) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "uses grand parent properties from profile activated by system property value to provide default values for a dependency"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        def grandParent = tmpDir.file("grandparent.xml") << """
+<project>
+    <groupId>different-group</groupId>
+    <artifactId>grandparent</artifactId>
+    <version>different-version</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <some.group>group-two</some.group>
+                <some.artifact>artifact-two</some.artifact>
+                <some.version>version-two</some.version>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>different-group</groupId>
+        <artifactId>grandparent</artifactId>
+        <version>different-version</version>
+    </parent>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>\${some.group}</groupId>
+            <artifactId>\${some.artifact}</artifactId>
+            <version>\${some.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact({ it.name == 'parent' }, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "uses dependency management section in profile activated by system property value to provide default values for a dependency"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>1.2</version>
+                        <scope>test</scope>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>group-three</groupId>
+                                <artifactId>artifact-three</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['test']
+        dep.allExcludeRules.length == 1
+        dep.allExcludeRules.first().id.moduleId == createModuleId('group-three', 'artifact-three')
+        hasDefaultDependencyArtifact(dep)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "uses parent pom dependency management section in profile activated by system property value to provide default values for a dependency"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>1.2</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact(_, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "uses grand parent pom dependency management section in profile activated by system property value to provide default values for a dependency"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        def grandParent = tmpDir.file("grandparent.xml") << """
+<project>
+    <groupId>different-group</groupId>
+    <artifactId>grandparent</artifactId>
+    <version>different-version</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>1.2</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>different-group</groupId>
+        <artifactId>grandparent</artifactId>
+        <version>different-version</version>
+    </parent>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact({ it.name == 'parent' }, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "uses dependency management section from imported POM in profile activated by system property value to define defaults for main POM body dependency"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        def imported = tmpDir.file("imported.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>different-group</groupId>
+    <artifactId>imported</artifactId>
+    <version>different-version</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>1.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>different-group</groupId>
+                        <artifactId>imported</artifactId>
+                        <version>different-version</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact({ it.name == 'imported' }, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "pom with dependency defined in profile activated by system property value"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>group-two</groupId>
+                    <artifactId>artifact-two</artifactId>
+                    <version>version-two</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        descriptor.dependencies.length == 1
+        descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        hasDefaultDependencyArtifact(descriptor.dependencies.first())
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "uses parent dependency from profile activated by system property value"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        def parent = tmpDir.file("parent.xlm") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>group-two</groupId>
+                    <artifactId>artifact-two</artifactId>
+                    <version>version-two</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact(_, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "uses grand parent dependency from profile activated by system property value"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        def grandParent = tmpDir.file("grandparent.xml") << """
+<project>
+    <groupId>different-group</groupId>
+    <artifactId>grandparent</artifactId>
+    <version>different-version</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>group-two</groupId>
+                    <artifactId>artifact-two</artifactId>
+                    <version>1.2</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>different-group</groupId>
+        <artifactId>grandparent</artifactId>
+        <version>different-version</version>
+    </parent>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact({ it.name == 'parent' }, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "uses parent dependency over grand parent dependency with same groupId and artifactId from profile activated by system property value"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        def grandParent = tmpDir.file("grandparent.xml") << """
+<project>
+    <groupId>different-group</groupId>
+    <artifactId>grandparent</artifactId>
+    <version>different-version</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>group-two</groupId>
+                    <artifactId>artifact-two</artifactId>
+                    <version>1.2</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>different-group</groupId>
+        <artifactId>grandparent</artifactId>
+        <version>different-version</version>
+    </parent>
+
+    <profiles>
+        <profile>
+            <id>profile-2</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>group-two</groupId>
+                    <artifactId>artifact-two</artifactId>
+                    <version>1.3</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact({ it.name == 'parent' }, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getMetaDataArtifact({ it.name == 'grandparent' }, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.3')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "uses dependency management section from imported POM in profile activated by system property value to define defaults for profile dependency"() {
+        given:
+        System.properties['customProperty'] = 'BLUE'
+
+        and:
+        def imported = tmpDir.file("imported.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>different-group</groupId>
+    <artifactId>imported</artifactId>
+    <version>different-version</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>1.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>different-group</groupId>
+                        <artifactId>imported</artifactId>
+                        <version>different-version</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-two</groupId>
+                    <artifactId>artifact-two</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact({ it.name == 'imported' }, MavenPomArtifact) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
 }

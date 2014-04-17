@@ -1563,4 +1563,760 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         pomReader.getDependencies().size() == 1
         assertResolvedPomDependency(key, 'version-three')
     }
+
+    def "cannot use POM property to control profile property activation"() {
+        setup:
+        System.properties['customProperty'] = 'BLUE'
+
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <properties>
+        <activate.profile>BLUE</activate.profile>
+    </properties>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>\${activate.profile}</value>
+                </property>
+            </activation>
+            <properties>
+                <groupId.prop>group-two</groupId.prop>
+                <artifactId.prop>artifact-two</artifactId.prop>
+                <version.prop>version-two</version.prop>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 0
+        !pomReader.properties.containsKey('groupId.prop')
+        !pomReader.properties.containsKey('artifactId.prop')
+        !pomReader.properties.containsKey('version.prop')
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "activates single profile by matching system property value"() {
+        setup:
+        System.properties['customProperty'] = 'BLUE'
+
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <prop1>myproperty1</prop1>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-three</groupId>
+                    <artifactId>artifact-three</artifactId>
+                    <version>version-three</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 1
+        activePomProfiles[0].id == 'profile-1'
+        pomReader.properties['prop1'] == 'myproperty1'
+        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
+        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "activates multiple profiles by matching same system property value"() {
+        setup:
+        System.properties['customProperty'] = 'BLUE'
+
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <prop1>myproperty1</prop1>
+            </properties>
+        </profile>
+        <profile>
+            <id>profile-2</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <prop2>myproperty2</prop2>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 2
+        activePomProfiles[0].id == 'profile-1'
+        activePomProfiles[1].id == 'profile-2'
+        pomReader.properties['prop1'] == 'myproperty1'
+        pomReader.properties['prop2'] == 'myproperty2'
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "activates multiple profiles by matching different system property value"() {
+        setup:
+        System.properties['customProperty'] = 'BLUE'
+        System.properties['someOtherProperty'] = 'GREEN'
+
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <prop1>myproperty1</prop1>
+            </properties>
+        </profile>
+        <profile>
+            <id>profile-2</id>
+            <activation>
+                <property>
+                    <name>someOtherProperty</name>
+                    <value>GREEN</value>
+                </property>
+            </activation>
+            <properties>
+                <prop2>myproperty2</prop2>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 2
+        activePomProfiles[0].id == 'profile-1'
+        activePomProfiles[1].id == 'profile-2'
+        pomReader.properties['prop1'] == 'myproperty1'
+        pomReader.properties['prop2'] == 'myproperty2'
+
+        cleanup:
+        System.clearProperty('customProperty')
+        System.clearProperty('someOtherProperty')
+    }
+
+    def "does not activate profile if system property value is not matching"() {
+        setup:
+        System.properties['customProperty'] = 'GREEN'
+
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <prop1>myproperty1</prop1>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-three</groupId>
+                    <artifactId>artifact-three</artifactId>
+                    <version>version-three</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 0
+        !pomReader.properties.containsKey('prop1')
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
+        !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null))
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "activates profile by the absence of a property"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>!customProperty</name>
+                </property>
+            </activation>
+            <properties>
+                <prop1>myproperty1</prop1>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-three</groupId>
+                    <artifactId>artifact-three</artifactId>
+                    <version>version-three</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 1
+        activePomProfiles[0].id == 'profile-1'
+        pomReader.properties['prop1'] == 'myproperty1'
+        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
+        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
+    }
+
+    def "does not activate profile for negated property if system property is provided"() {
+        setup:
+        System.properties['customProperty'] = 'BLUE'
+
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>!customProperty</name>
+                </property>
+            </activation>
+            <properties>
+                <prop1>myproperty1</prop1>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-three</groupId>
+                    <artifactId>artifact-three</artifactId>
+                    <version>version-three</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 0
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "does not activate profile if property value is not declared and system property is not set"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                </property>
+            </activation>
+            <properties>
+                <prop1>myproperty1</prop1>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-three</groupId>
+                    <artifactId>artifact-three</artifactId>
+                    <version>version-three</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 0
+        !pomReader.properties.containsKey('prop1')
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
+        !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null))
+    }
+
+    def "activates profile if property value is not declared and system property is set with any value"() {
+        setup:
+        System.properties['customProperty'] = 'BLUE'
+
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                </property>
+            </activation>
+            <properties>
+                <prop1>myproperty1</prop1>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-three</groupId>
+                    <artifactId>artifact-three</artifactId>
+                    <version>version-three</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 1
+        activePomProfiles[0].id == 'profile-1'
+        pomReader.properties['prop1'] == 'myproperty1'
+        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
+        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "system property activation removes all other profiles that are active by default"() {
+        setup:
+        System.properties['customProperty'] = 'BLUE'
+
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <prop1>myproperty1</prop1>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-one</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-three</groupId>
+                    <artifactId>artifact-three</artifactId>
+                    <version>version-one</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>profile-2</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <prop2>myproperty2</prop2>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-three</groupId>
+                    <artifactId>artifact-three</artifactId>
+                    <version>version-two</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>profile-3</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>GREEN</value>
+                </property>
+            </activation>
+            <properties>
+                <prop3>myproperty3</prop3>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-three</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-three</groupId>
+                    <artifactId>artifact-three</artifactId>
+                    <version>version-three</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>profile-4</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <prop4>myproperty4</prop4>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-four</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>group-three</groupId>
+                    <artifactId>artifact-three</artifactId>
+                    <version>version-four</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
+        activePomProfiles.size() == 1
+        activePomProfiles[0].id == 'profile-2'
+        !pomReader.properties.containsKey('prop1')
+        !pomReader.properties.containsKey('prop3')
+        !pomReader.properties.containsKey('prop4')
+        pomReader.properties['prop2'] == 'myproperty2'
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-one', 'jar', null))
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-three', 'jar', null))
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-four', 'jar', null))
+        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
+        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-two')
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "parse POM with multiple active profile providing same properties activated by system property"() {
+        setup:
+        System.properties['customProperty'] = 'BLUE'
+
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                 <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <groupId.prop>group-two</groupId.prop>
+                <artifactId.prop>artifact-two</artifactId.prop>
+                <version.prop>version-two</version.prop>
+            </properties>
+        </profile>
+        <profile>
+            <id>profile-2</id>
+            <activation>
+                 <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <groupId.prop>group-two</groupId.prop>
+                <artifactId.prop>artifact-two</artifactId.prop>
+                <version.prop>version-two</version.prop>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        pomReader.parseActivePomProfiles().size() == 2
+        pomReader.properties.size() == 7
+        pomReader.properties['groupId.prop'] == 'group-two'
+        pomReader.properties['artifactId.prop'] == 'artifact-two'
+        pomReader.properties['version.prop'] == 'version-two'
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
+
+    def "finds dependency default if declared in parent POM profile activated by a system property"() {
+        setup:
+        System.properties['customProperty'] = 'BLUE'
+
+        when:
+        String parentPom = """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-two</groupId>
+    <artifactId>artifact-two</artifactId>
+    <version>version-two</version>
+
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>customProperty</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>group-two</groupId>
+                        <artifactId>artifact-two</artifactId>
+                        <version>version-two</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+        PomReader parentPomReader = createPomReader('parent-pom.xml', parentPom)
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-two</groupId>
+        <artifactId>artifact-two</artifactId>
+        <version>version-two</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-four</groupId>
+            <artifactId>artifact-four</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>group-five</groupId>
+            <artifactId>artifact-five</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader.setPomParent(parentPomReader)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+
+        then:
+        pomReader.getDependencyMgt().size() == 1
+        assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
+        pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
+        !pomReader.findDependencyDefaults(keyGroupThree)
+
+        cleanup:
+        System.clearProperty('customProperty')
+    }
 }

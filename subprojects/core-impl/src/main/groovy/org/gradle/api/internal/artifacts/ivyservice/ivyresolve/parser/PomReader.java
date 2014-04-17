@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.License;
 import org.apache.ivy.core.module.id.ModuleId;
@@ -75,6 +78,7 @@ public class PomReader implements PomParent {
     private static final String PROFILE_ID = "id";
     private static final String PROFILE_ACTIVATION = "activation";
     private static final String PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT = "activeByDefault";
+    private static final String PROFILE_ACTIVATION_PROPERTY = "property";
 
     private PomParent pomParent = new RootPomParent();
     private final Map<String, String> properties = new HashMap<String, String>();
@@ -546,15 +550,21 @@ public class PomReader implements PomParent {
 
     public class PomProfileElement implements PomProfile {
         private final Element element;
+        private final boolean activeByDefault;
         private List<PomDependencyMgt> declaredDependencyMgts;
         private List<PomDependencyData> declaredDependencies;
 
-        PomProfileElement(Element element) {
+        PomProfileElement(Element element, boolean activeByDefault) {
             this.element = element;
+            this.activeByDefault = activeByDefault;
         }
 
         public String getId() {
             return getFirstChildText(element, PROFILE_ID);
+        }
+
+        public boolean isActiveByDefault() {
+            return activeByDefault;
         }
 
         public Map<String, String> getProperties() {
@@ -597,17 +607,72 @@ public class PomReader implements PomParent {
                             String activeByDefault = getFirstChildText(activationElement, PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT);
 
                             if(activeByDefault != null && "true".equals(activeByDefault)) {
-                                activePomProfiles.add(new PomProfileElement(profileElement));
+                                activePomProfiles.add(new PomProfileElement(profileElement, true));
+                            } else {
+                                Element propertyElement = getFirstChildElement(activationElement, PROFILE_ACTIVATION_PROPERTY);
+
+                                if(propertyElement != null) {
+                                    if(isActivationPropertyActivated(propertyElement)) {
+                                        activePomProfiles.add(new PomProfileElement(profileElement, false));
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
 
-            declaredActivePomProfiles = activePomProfiles;
+            declaredActivePomProfiles = removeActiveByDefaultProfilesIfOtherActivationMethodsPresent(activePomProfiles);
         }
 
         return declaredActivePomProfiles;
+    }
+
+    /**
+     * If a profile is identified as active through any other activation method than activeByDefault, none of the existing
+     * profiles marked as activeByDefault apply.
+     *
+     * @param parsedActiveProfiles Parsed active profiles
+     * @return List of active profiles that are not activeByDefault
+     */
+    private List<PomProfile> removeActiveByDefaultProfilesIfOtherActivationMethodsPresent(List<PomProfile> parsedActiveProfiles) {
+        Predicate<PomProfile> notActiveByDefaultPredicate = new Predicate<PomProfile>() {
+            public boolean apply(PomProfile profile) {
+                return !profile.isActiveByDefault();
+            }
+        };
+
+        boolean containsNotActiveByDefaultActivationMethods = Iterables.any(parsedActiveProfiles, notActiveByDefaultPredicate);
+
+        if(containsNotActiveByDefaultActivationMethods) {
+            return Lists.newArrayList(Iterables.filter(parsedActiveProfiles, notActiveByDefaultPredicate));
+        }
+
+        return parsedActiveProfiles;
+    }
+
+    /**
+     * Checks if activation property is actived by provided system properties.
+     * TODO: Ben - in the future we'll also have to support other activation methods like jdk, os and file (plus their combined ruleset)
+     *
+     * @param propertyElement Property element
+     * @return Activation indicator
+     * @see <a href="http://books.sonatype.com/mvnref-book/reference/profiles-sect-activation.html#profiles-sect-activation-config">Maven documentation</a>
+     */
+    private boolean isActivationPropertyActivated(Element propertyElement) {
+        String propertyName = getFirstChildText(propertyElement, "name");
+        String propertyValue = getFirstChildText(propertyElement, "value");
+        boolean negatedPropertyName = propertyName.startsWith("!");
+        String rawPropertyName = negatedPropertyName ? propertyName.replaceFirst("!", "") : propertyName;
+        String systemPropertyValue = System.getProperty(rawPropertyName);
+
+        if(negatedPropertyName) {
+            return systemPropertyValue == null ? true : false;
+        } else if(systemPropertyValue != null) {
+            return propertyValue != null ? systemPropertyValue.equals(propertyValue) : true;
+        }
+
+        return false;
     }
 
     /**
