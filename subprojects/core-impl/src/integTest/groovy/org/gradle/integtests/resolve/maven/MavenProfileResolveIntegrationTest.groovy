@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resolve.ResolveTestFixture
+import org.gradle.internal.id.UUIDGenerator
 
 class MavenProfileResolveIntegrationTest extends AbstractDependencyResolutionTest {
     ResolveTestFixture resolve
@@ -218,7 +219,8 @@ dependencies { compile 'groupA:artifactA:1.2' }
 
     def "uses properties from profile activated by system property to resolve dependency"() {
         given:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         and:
         def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
@@ -239,7 +241,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -281,11 +283,12 @@ dependencies { compile 'groupA:artifactA:1.2' }
         }
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "uses properties from profile activated by the absence of a property"() {
         given:
+        String customPropertyName = new UUIDGenerator().generateId()
         def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
         requestedModule.pomFile.text = """
 <project>
@@ -304,7 +307,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>!customProperty</name>
+                    <name>!${customPropertyName}</name>
                 </property>
             </activation>
             <properties>
@@ -347,7 +350,8 @@ dependencies { compile 'groupA:artifactA:1.2' }
 
     def "uses properties from profile activated if property value is not declared and system property is set with any value"() {
         given:
-        System.properties['customProperty'] = 'GREEN'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'GREEN'
 
         and:
         def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
@@ -368,7 +372,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                 </property>
             </activation>
             <properties>
@@ -409,12 +413,13 @@ dependencies { compile 'groupA:artifactA:1.2' }
         }
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "uses properties from profile activated by system property over active by default to resolve dependency"() {
         given:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         and:
         def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
@@ -446,7 +451,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
             <id>profile-2</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -488,12 +493,13 @@ dependencies { compile 'groupA:artifactA:1.2' }
         }
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "uses dependency management defaults from profile activated by system property to resolve dependency"() {
         given:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         and:
         def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
@@ -513,7 +519,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -559,12 +565,13 @@ dependencies { compile 'groupA:artifactA:1.2' }
         }
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "resolves dependency from profile activated by system property"() {
         given:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         and:
         def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
@@ -590,7 +597,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -634,6 +641,6 @@ dependencies { compile 'groupA:artifactA:1.2' }
         }
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 }

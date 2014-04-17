@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile
+import org.gradle.internal.id.UUIDGenerator
 
 class PomReaderProfileTest extends AbstractPomReaderTest {
     def "parse POM without active profile"() {
@@ -1566,7 +1567,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
     def "cannot use POM property to control profile property activation"() {
         setup:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         when:
         pomFile << """
@@ -1584,7 +1586,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>\${activate.profile}</value>
                 </property>
             </activation>
@@ -1607,12 +1609,13 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         !pomReader.properties.containsKey('version.prop')
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "activates single profile by matching system property value"() {
         setup:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         when:
         pomFile << """
@@ -1627,7 +1630,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -1665,12 +1668,13 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "activates multiple profiles by matching same system property value"() {
         setup:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         when:
         pomFile << """
@@ -1685,7 +1689,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -1697,7 +1701,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-2</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -1719,13 +1723,15 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         pomReader.properties['prop2'] == 'myproperty2'
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "activates multiple profiles by matching different system property value"() {
         setup:
-        System.properties['customProperty'] = 'BLUE'
-        System.properties['someOtherProperty'] = 'GREEN'
+        String customPropertyName = new UUIDGenerator().generateId()
+        String someOtherPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
+        System.properties[someOtherPropertyName] = 'GREEN'
 
         when:
         pomFile << """
@@ -1740,7 +1746,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -1752,7 +1758,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-2</id>
             <activation>
                 <property>
-                    <name>someOtherProperty</name>
+                    <name>${someOtherPropertyName}</name>
                     <value>GREEN</value>
                 </property>
             </activation>
@@ -1774,13 +1780,14 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         pomReader.properties['prop2'] == 'myproperty2'
 
         cleanup:
-        System.clearProperty('customProperty')
-        System.clearProperty('someOtherProperty')
+        System.clearProperty(customPropertyName)
+        System.clearProperty(someOtherPropertyName)
     }
 
     def "does not activate profile if system property value is not matching"() {
         setup:
-        System.properties['customProperty'] = 'GREEN'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'GREEN'
 
         when:
         pomFile << """
@@ -1795,7 +1802,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -1832,10 +1839,13 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null))
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "activates profile by the absence of a property"() {
+        setup:
+        String customPropertyName = new UUIDGenerator().generateId()
+
         when:
         pomFile << """
 <project>
@@ -1849,7 +1859,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>!customProperty</name>
+                    <name>!${customPropertyName}</name>
                 </property>
             </activation>
             <properties>
@@ -1888,7 +1898,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
     def "does not activate profile for negated property if system property is provided"() {
         setup:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         when:
         pomFile << """
@@ -1903,7 +1914,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>!customProperty</name>
+                    <name>!${customPropertyName}</name>
                 </property>
             </activation>
             <properties>
@@ -1936,10 +1947,13 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         activePomProfiles.size() == 0
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "does not activate profile if property value is not declared and system property is not set"() {
+        given:
+        String customPropertyName = new UUIDGenerator().generateId()
+
         when:
         pomFile << """
 <project>
@@ -1953,7 +1967,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                 </property>
             </activation>
             <properties>
@@ -1991,7 +2005,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
     def "activates profile if property value is not declared and system property is set with any value"() {
         setup:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         when:
         pomFile << """
@@ -2006,7 +2021,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                 </property>
             </activation>
             <properties>
@@ -2043,12 +2058,13 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "system property activation removes all other profiles that are active by default"() {
         setup:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         when:
         pomFile << """
@@ -2088,7 +2104,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-2</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -2116,7 +2132,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-3</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>GREEN</value>
                 </property>
             </activation>
@@ -2185,12 +2201,13 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-two')
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "parse POM with multiple active profile providing same properties activated by system property"() {
         setup:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         when:
         pomFile << """
@@ -2205,7 +2222,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                  <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -2219,7 +2236,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-2</id>
             <activation>
                  <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -2242,12 +2259,13 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         pomReader.properties['version.prop'] == 'version-two'
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 
     def "finds dependency default if declared in parent POM profile activated by a system property"() {
         setup:
-        System.properties['customProperty'] = 'BLUE'
+        String customPropertyName = new UUIDGenerator().generateId()
+        System.properties[customPropertyName] = 'BLUE'
 
         when:
         String parentPom = """
@@ -2262,7 +2280,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>customProperty</name>
+                    <name>${customPropertyName}</name>
                     <value>BLUE</value>
                 </property>
             </activation>
@@ -2317,6 +2335,6 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         !pomReader.findDependencyDefaults(keyGroupThree)
 
         cleanup:
-        System.clearProperty('customProperty')
+        System.clearProperty(customPropertyName)
     }
 }
