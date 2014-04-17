@@ -374,7 +374,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 result.append(" ");
             }
             if (jvmArg.contains(" ")) {
-                assert !jvmArg.contains("\"");
+                assert !jvmArg.contains("\"") : "jvmArg '" + jvmArg + "' contains \\\"";
                 result.append('"');
                 result.append(jvmArg);
                 result.append('"');
