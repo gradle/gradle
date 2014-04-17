@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.openapi
+package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.openapi.external.ExternalUtility
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion2
 import org.gradle.openapi.external.foundation.ProjectVersion1
 import org.gradle.openapi.external.foundation.RequestVersion1
@@ -26,14 +24,12 @@ import org.gradle.openapi.external.foundation.TaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
 import org.gradle.openapi.external.ui.*
+import org.gradle.openapi.wrappers.ui.SinglePaneUIWrapper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Assert
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 
 import javax.swing.*
 import java.awt.*
@@ -46,15 +42,23 @@ import static org.hamcrest.Matchers.*
 /**
  * This tests numerous aspects of the Open API UI. This is how the Idea plugin extracts the UI from
  * Gradle.
+ *
+ * Note: even though the open API has been removed, this test covers aspects of the GUI that are not covered elsewhere. This test will
+ * gradually be replaced by other GUI tests.
  */
 @Requires(TestPrecondition.SWING)
 class OpenApiUiTest {
 
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
-    @Rule public TestResources resources = new TestResources(temporaryFolder, 'testproject')
     @Rule public OpenApiFixture openApi = new OpenApiFixture(temporaryFolder)
     @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()
+
+    @Before
+    void setup() {
+        temporaryFolder.file("settings.gradle") << "include 'services', 'services:webservice', 'api'"
+        temporaryFolder.file("build.gradle") << "allprojects { apply plugin: 'java' }"
+    }
 
     /**
      This tests to see if we can call the UIFactory to create a single pane UI.
@@ -315,7 +319,7 @@ class OpenApiUiTest {
 
         ProjectVersion1 rootProject = rootProjects.get(0);
         Assert.assertNotNull(rootProject);
-        Assert.assertThat(rootProject.getSubProjects().size(), equalTo(3))
+        Assert.assertThat(rootProject.getSubProjects().size(), equalTo(2))
 
         //Quick check to make sure there are tasks on each of the sub projects.
         //The exact task names will change over time, so I don't want to try
@@ -582,12 +586,7 @@ class OpenApiUiTest {
         TestSettingsNodeVersion1 settingsNode = new TestSettingsNodeVersion1();
 
         TestSingleDualPaneUIInteractionVersion1 testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), settingsNode);
-        SinglePaneUIVersion1 singlePane = null;
-        try {
-            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), buildContext.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
-        } catch (Exception e) {
-            throw new AssertionError("Failed to extract single pane: Caused by " + e.getMessage())
-        }
+        SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI(testSingleDualPaneUIInteractionVersion1);
 
         File illegalDirectory = temporaryFolder.testDirectory.file("non-existant").createDir();
         if (illegalDirectory.equals(singlePane.getCurrentDirectory())) {
@@ -606,7 +605,7 @@ class OpenApiUiTest {
         //now instantiate it again
         testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), settingsNode);
         try {
-            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), buildContext.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
+            singlePane = new SinglePaneUIWrapper(testSingleDualPaneUIInteractionVersion1, false);
         } catch (Exception e) {
             throw new AssertionError("Failed to extract single pane (second time): Caused by " + e.getMessage())
         }
@@ -685,18 +684,6 @@ class OpenApiUiTest {
         Assert.assertNotNull("null version number", version)
 
         Assert.assertFalse("Empty version number", version.trim().equals(""))       //shouldn't be empty
-
-        File gradleJar = ExternalUtility.getGradleJar(buildContext.gradleHomeDir)
-
-        Assert.assertNotNull("Missing gradle jar", gradleJar)                         //we should have a gradle jar
-
-        int indexOfExtension = gradleJar.getName().toLowerCase().lastIndexOf(".jar")  //get the index of its extension
-
-        Assert.assertTrue("Has no '.jar' extension", indexOfExtension != -1)          //it had better have an extension
-
-        String jarName = gradleJar.getName().substring(0, indexOfExtension)              //get its name minus the extension
-
-        assert jarName.endsWith(version)  //the name (minus extension) should end with the version
     }
 
     /**

@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.openapi;
+package org.gradle.integtests;
 
 import org.gradle.openapi.external.ui.CommandLineArgumentAlteringListenerVersion1;
 
 import java.io.File;
 
-public class ExtraTestCommandLineOptionsListener implements CommandLineArgumentAlteringListenerVersion1 {
+public class ExtraTestCommandLineOptionsListenerWrapper implements CommandLineArgumentAlteringListenerVersion1 {
     private final File gradleUserHomeDir;
 
-    public ExtraTestCommandLineOptionsListener(File gradleUserHomeDir) {
+    public ExtraTestCommandLineOptionsListenerWrapper(File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
     }
 

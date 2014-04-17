@@ -21,10 +21,8 @@ import org.gradle.foundation.output.FileLink
 import org.gradle.foundation.output.FileLinkDefinitionLord
 import org.gradle.foundation.output.LiveOutputParser
 import org.gradle.gradleplugin.foundation.GradlePluginLord
-import org.gradle.gradleplugin.foundation.runner.GradleRunner
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.logging.ShowStacktrace
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -72,33 +70,6 @@ that's likely to change over time. This version executes the command via GradleP
 
         verifyLiveOutputObtained( executionInteraction );
     }
-
-    /**
-This executes 'build' on the java multiproject sample. We want to make sure that
-we do get live output from gradle. We're not concerned with what it is, because
-that's likely to change over time. This version executes the command via GradleRunner.
-*/
-    @Test
-    public void liveOutputObtainedViaGradleRunner() {
-        File multiProjectDirectory = sample.getDir();
-        Assert.assertTrue(multiProjectDirectory.exists()); //make sure things are setup the way we expect
-
-        GradleRunner gradleRunner = new GradleRunner( multiProjectDirectory, distribution.gradleHomeDir, null );
-
-        TestExecutionInteraction executionInteraction = new TestExecutionInteraction();
-
-        //execute a command. We don't really care what the command is, just something that generates output
-        def cl = new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir).getAdditionalCommandLineArguments('') + ' tasks'
-        gradleRunner.executeCommand(cl, org.gradle.api.logging.LogLevel.LIFECYCLE,
-                                            ShowStacktrace.INTERNAL_EXCEPTIONS,
-                                            executionInteraction);
-
-        executionInteraction.waitForCompletion(100, TimeUnit.SECONDS)
-
-        verifyLiveOutputObtained( executionInteraction );
-    }
-
-
 
    /**
   This verifies that it has live output. It also checks that we received some final output as well
