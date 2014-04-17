@@ -52,7 +52,7 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
         env.java.jvmArguments.each { inputArgsInBuild.contains(it) }
     }
 
-    @TargetGradleVersion("=1.0-milestone-8 =1.0-milestone-8a =1.0-milestone-9")
+    @TargetGradleVersion(">=1.0-milestone-8 <=1.0-milestone-9")
     def "informs about java home as in the build script for older versions"() {
         given:
         file('build.gradle') << """
