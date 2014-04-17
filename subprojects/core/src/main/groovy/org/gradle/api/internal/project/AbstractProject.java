@@ -648,6 +648,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         final Set<Task> foundTasks = new HashSet<Task>();
         Action<Project> action = new Action<Project>() {
             public void execute(Project project) {
+                //in configure-on-demand we don't know if the project was configured, hence explicit evaluate.
+                // Not especially tidy, we should clean this up while working on new configuration model.
+                ((ProjectInternal) project).evaluate();
+
                 Task task = project.getTasks().findByName(name);
                 if (task != null) {
                     foundTasks.add(task);

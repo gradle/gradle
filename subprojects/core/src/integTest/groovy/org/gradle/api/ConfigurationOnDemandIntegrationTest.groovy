@@ -331,4 +331,41 @@ project(':api') {
         then:
         fixture.assertProjectsConfigured(":", ":a", ":b")
     }
+
+    def "handles buildNeeded"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        file("a/build.gradle") << """ apply plugin: 'java' """
+        file("b/build.gradle") << """
+            apply plugin: 'java'
+            project(':b') {
+                dependencies { compile project(':a') }
+            }
+        """
+
+        when:
+        run(":b:buildNeeded")
+
+        then:
+        result.executedTasks.containsAll ':b:buildNeeded', ':a:buildNeeded'
+        fixture.assertProjectsConfigured(":", ":b", ":a")
+    }
+
+    def "handles buildDependents"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        file("a/build.gradle") << """ apply plugin: 'java' """
+        file("b/build.gradle") << """
+            apply plugin: 'java'
+            project(':b') {
+                dependencies { compile project(':a') }
+            }
+        """
+
+        when:
+        run(":a:buildDependents")
+
+        then:
+        result.executedTasks.containsAll ':b:buildDependents', ':a:buildDependents'
+        //unfortunately buildDependents requires all projects to be configured
+        fixture.assertProjectsConfigured(":", ":a", ":b", ":c")
+    }
 }

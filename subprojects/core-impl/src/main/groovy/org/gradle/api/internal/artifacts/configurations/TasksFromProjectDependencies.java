@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
@@ -39,6 +40,10 @@ class TasksFromProjectDependencies extends AbstractTaskDependency {
 
     void resolveProjectDependencies(TaskDependencyResolveContext context, Set<ProjectDependency> projectDependencies) {
         for (ProjectDependency projectDependency : projectDependencies) {
+            //in configure-on-demand we don't know if the project was configured, hence explicit evaluate.
+            // Not especially tidy, we should clean this up while working on new configuration model.
+            ((ProjectInternal) projectDependency.getDependencyProject()).evaluate();
+
             Task nextTask = projectDependency.getDependencyProject().getTasks().findByName(taskName);
             if (nextTask != null) {
                 context.add(nextTask);

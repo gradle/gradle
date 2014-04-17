@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -32,6 +33,7 @@ class TasksFromProjectDependenciesTest extends Specification {
     def project2 = TestUtil.createChildProject(project1, "project2")
     def projectDep1 = Mock(ProjectDependency) { getDependencyProject() >> project1 }
     def projectDep2 = Mock(ProjectDependency) { getDependencyProject() >> project2 }
+    def taskContainerDummy = project1.tasks
 
     def "provides tasks from project dependencies"() {
         def tasks = new TasksFromProjectDependencies("buildNeeded", dependencies)
@@ -44,5 +46,17 @@ class TasksFromProjectDependenciesTest extends Specification {
         then:
         1 * context.add(project1.tasks["buildNeeded"])
         0 * context._
+    }
+
+    def "evaluates target project"() {
+        def tasks = new TasksFromProjectDependencies("buildNeeded", dependencies)
+
+        def project1 = Mock(ProjectInternal) { getTasks() >> taskContainerDummy }
+        def projectDep1 = Mock(ProjectDependency) { getDependencyProject() >> project1}
+
+        when: tasks.resolveProjectDependencies(context, [projectDep1] as Set)
+
+        then:
+        1 * project1.evaluate()
     }
 }
