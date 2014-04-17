@@ -52,6 +52,22 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
         env.java.jvmArguments.each { inputArgsInBuild.contains(it) }
     }
 
+    @TargetGradleVersion("<=1.0-milestone-9")
+    def "informs about java home as in the build script for older versions"() {
+        given:
+        file('build.gradle') << """
+        description = org.gradle.util.Jvm.current().javaHome.toString()
+        """
+
+        when:
+        BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
+
+        then:
+        env.java.javaHome.toString() == project.description
+    }
+
+    @TargetGradleVersion(">1.0-milestone-9")
     def "informs about java home as in the build script"() {
         given:
         file('build.gradle') << """
