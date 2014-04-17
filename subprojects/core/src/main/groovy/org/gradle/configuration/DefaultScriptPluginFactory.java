@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileLookup;
@@ -30,6 +31,7 @@ import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
@@ -37,11 +39,15 @@ import org.gradle.plugin.internal.PluginDependenciesService;
 import org.gradle.plugin.internal.PluginRequestApplicator;
 import org.gradle.plugin.internal.PluginResolutionApplicator;
 import org.gradle.plugin.internal.PluginResolverFactory;
+import org.gradle.plugin.resolve.internal.InvalidPluginRequestException;
+import org.gradle.plugin.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.plugin.resolve.internal.PluginResolver;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
@@ -132,6 +138,28 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
             if (!pluginRequests.isEmpty()) {
+
+                Map<String, List<PluginRequest>> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<String, PluginRequest>() {
+                    public String transform(PluginRequest pluginRequest) {
+                        return pluginRequest.getId();
+                    }
+                });
+
+                // Ignore duplicate noops - noop plugin just used for testing
+                groupedById.remove(NoopPluginResolver.PLUGIN_ID);
+
+                // Check for duplicates
+                for (Map.Entry<String, List<PluginRequest>> entry : groupedById.entrySet()) {
+                    List<PluginRequest> pluginRequestsForId = entry.getValue();
+                    if (pluginRequestsForId.size() > 1) {
+                        PluginRequest first = pluginRequests.get(0);
+                        PluginRequest second = pluginRequests.get(1);
+
+                        InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + entry.getKey() + "' was already requested at line " + first.getLineNumber());
+                        throw new LocationAwareException(exception, second.getScriptSource(), second.getLineNumber());
+                    }
+                }
+
                 PluginResolver pluginResolver = pluginResolverFactory.createPluginResolver(exportedClassLoader);
                 @SuppressWarnings("ConstantConditions")
                 PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator((PluginAware) target, classLoaderScope);

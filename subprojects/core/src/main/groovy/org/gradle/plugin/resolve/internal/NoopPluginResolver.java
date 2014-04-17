@@ -22,8 +22,10 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 // Used for testing the plugins DSL
 public class NoopPluginResolver implements PluginResolver {
 
+    public static final String PLUGIN_ID = "noop";
+
     public PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException {
-        if (pluginRequest.getId().equals("noop")) {
+        if (pluginRequest.getId().equals(PLUGIN_ID)) {
             return new NoopPluginResolution();
         } else {
             return null;
