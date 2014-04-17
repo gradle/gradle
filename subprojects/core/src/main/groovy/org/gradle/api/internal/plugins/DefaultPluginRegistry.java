@@ -36,8 +36,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
     private final Factory<ClassLoader> classLoaderFactory;
     private final Instantiator instantiator;
 
-    public DefaultPluginRegistry(ClassLoader classLoaderFactory, Instantiator instantiator) {
-        this(null, Factories.constant(classLoaderFactory), instantiator);
+    public DefaultPluginRegistry(ClassLoader classLoader, Instantiator instantiator) {
+        this(null, Factories.constant(classLoader), instantiator);
     }
 
     private DefaultPluginRegistry(DefaultPluginRegistry parent, Factory<ClassLoader> classLoaderFactory, Instantiator instantiator) {
