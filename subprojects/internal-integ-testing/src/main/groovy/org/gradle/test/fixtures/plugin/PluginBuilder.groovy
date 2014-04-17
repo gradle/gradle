@@ -29,10 +29,8 @@ class PluginBuilder {
     String packageName = "org.gradle.test"
 
     final Map<String, String> pluginIds = [:]
-    private final GradleExecuter executer
 
-    PluginBuilder(GradleExecuter executer, TestFile projectDir) {
-        this.executer = executer
+    PluginBuilder(TestFile projectDir) {
         this.projectDir = projectDir
     }
 
@@ -59,7 +57,7 @@ class PluginBuilder {
         file("build.gradle").text = (generateManagedBuildScript() + additions)
     }
 
-    void publishTo(TestFile testFile) {
+    void publishTo(GradleExecuter executer, TestFile testFile) {
         generateBuildScript """
             jar {
                 archiveName = "$testFile.name"
@@ -69,6 +67,11 @@ class PluginBuilder {
 
         writePluginDescriptors(pluginIds)
         executer.inDirectory(projectDir).withTasks("jar").run()
+    }
+
+    void generateForBuildSrc() {
+        generateBuildScript()
+        writePluginDescriptors(pluginIds)
     }
 
     protected void writePluginDescriptors(Map<String, String> pluginIds) {

@@ -39,11 +39,12 @@ public class NotInPluginRegistryPluginResolverCheck implements PluginResolver {
         if (pluginDescriptor == null || isCorePlugin(pluginId)) {
             return delegate.resolve(pluginRequest);
         } else {
-            throw new InvalidPluginRequestException(
-                    pluginRequest,
-                    String.format("Plugin '%s' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: '%s'\" outside of the plugins {} block)", pluginId, pluginId)
-            );
+            throw new InvalidPluginRequestException(pluginRequest, pluginOnClasspathErrorMessage(pluginId));
         }
+    }
+
+    public static String pluginOnClasspathErrorMessage(String pluginId) {
+        return String.format("Plugin '%s' is already on the script classpath. Plugins on the script classpath cannot be applied in the plugins {} block. Add  \"apply plugin: '%s'\" to the body of the script to use the plugin.", pluginId, pluginId);
     }
 
     private boolean isCorePlugin(String pluginId) {

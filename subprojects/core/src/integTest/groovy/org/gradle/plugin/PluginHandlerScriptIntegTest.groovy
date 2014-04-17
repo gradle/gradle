@@ -188,27 +188,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         errorOutput.contains "Plugin 'plugin' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: 'plugin'\" outside of the plugins {} block)"
     }
 
-    def "cannot apply plugins added to parent buildscript classpath in plugins block"() {
-        given:
-        publishTestPlugin()
 
-        when:
-        buildScript """
-            ${testPluginBuildscriptBlock()}
-        """
-
-        settingsFile << "include 'sub'"
-
-        file("sub/build.gradle") << """
-            ${testPluginPluginsBlock()}
-        """
-
-        then:
-        fails "sub:tasks"
-
-        and:
-        errorOutput.contains "Plugin 'plugin' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: 'plugin'\" outside of the plugins {} block)"
-    }
 
     def "plugin classes are reused across projects and resolution is cached"() {
         when:
