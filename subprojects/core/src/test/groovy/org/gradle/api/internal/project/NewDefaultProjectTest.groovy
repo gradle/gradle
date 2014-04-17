@@ -16,19 +16,14 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.util.TestUtil
-import org.junit.Test
 import spock.lang.Specification
 
 import static org.gradle.util.TestUtil.createChildProject
-import static org.junit.Assert.assertEquals
 
 class NewDefaultProjectTest extends Specification {
 
@@ -83,11 +78,11 @@ class NewDefaultProjectTest extends Specification {
 
         then:
         rootTasks.size() == 2
-        rootTasks[root]*.path == [":bar", ":foo"]
-        rootTasks[a]*.path == [":a:bar", ":a:foo"]
+        rootTasks[root]*.path as Set == [":bar", ":foo"] as Set
+        rootTasks[a]*.path as Set == [":a:bar", ":a:foo"] as Set
 
         aTasks.size() == 1
-        aTasks[a]*.path == [":a:bar", ":a:foo"]
+        aTasks[a]*.path as Set == [":a:bar", ":a:foo"] as Set
     }
 
     def "provides all tasks non-recursively"() {
@@ -101,10 +96,10 @@ class NewDefaultProjectTest extends Specification {
 
         then:
         rootTasks.size() == 1
-        rootTasks[root]*.path == [":bar", ":foo"]
+        rootTasks[root]*.path as Set == [":bar", ":foo"] as Set
 
         aTasks.size() == 1
-        aTasks[a]*.path == [":a:bar", ":a:foo"]
+        aTasks[a]*.path as Set == [":a:bar", ":a:foo"] as Set
     }
 
     def "provides task by name recursively"() {
@@ -117,7 +112,7 @@ class NewDefaultProjectTest extends Specification {
         def aTasks = a.getTasksByName("bar", true)
 
         then:
-        rootTasks*.path == [":foo", ":a:foo"]
+        rootTasks*.path as Set == [":a:foo", ":foo"] as Set
         aTasks*.path == [":a:bar"]
     }
 
