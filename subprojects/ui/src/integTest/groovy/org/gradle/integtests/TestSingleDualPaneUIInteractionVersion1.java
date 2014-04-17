@@ -16,7 +16,6 @@
 package org.gradle.integtests;
 
 import org.gradle.openapi.external.ui.AlternateUIInteractionVersion1;
-import org.gradle.openapi.external.ui.DualPaneUIInteractionVersion1;
 import org.gradle.openapi.external.ui.SettingsNodeVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIInteractionVersion1;
 
@@ -24,7 +23,7 @@ import org.gradle.openapi.external.ui.SinglePaneUIInteractionVersion1;
  * This is a test implementation of both SinglePaneUIInteractionVersion1 and DualPaneUIInteractionVersion1.
  * This is really just a container to hand off more complex interactions to the UI when asked for.
  */
-public class TestSingleDualPaneUIInteractionVersion1 implements SinglePaneUIInteractionVersion1, DualPaneUIInteractionVersion1 {
+public class TestSingleDualPaneUIInteractionVersion1 implements SinglePaneUIInteractionVersion1 {
 
     private AlternateUIInteractionVersion1 alternateUIInteractionVersion1;
     private SettingsNodeVersion1 settingsNodeVersion1;

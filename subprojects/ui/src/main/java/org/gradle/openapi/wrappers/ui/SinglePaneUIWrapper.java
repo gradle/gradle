@@ -49,6 +49,10 @@ public class SinglePaneUIWrapper extends AbstractOpenAPIUIWrapper<SinglePaneUIIn
         initialize(singlePaneUIInstance);
     }
 
+    public int getNumberOfOpenedOutputTabs() {
+        return getGradleUI().getOutputUILord().getTabCount();
+    }
+
     /**
      * Returns this panel as a Swing object suitable for inserting in your UI.
      *

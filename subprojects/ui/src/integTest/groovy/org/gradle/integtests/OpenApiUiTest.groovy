@@ -81,40 +81,14 @@ class OpenApiUiTest {
     }
 
     /**
-     * This tests to see if we can call the UIFactory to create a dual pane UI.
-     This is only testing that extracting the UI returns something without giving
-     errors and that it has its dual components. This is just a good general-case test
-     to make sure the basics are working.
-     */
-    @Test
-    void testDualPaneBasic() {
-        DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
-
-        //make sure we got something
-        Assert.assertNotNull(dualPane)
-
-        //tell it we're about to show it, so it'll create a component
-        dualPane.aboutToShow();
-
-        //make sure we now have the main component
-        Assert.assertNotNull(dualPane.getMainComponent())
-
-        //and the output component
-        Assert.assertNotNull(dualPane.getOutputPanel())
-    }
-
-    /**
      * This verifies that favorites are working for some basics. We're going to test this with both
-     * the single and dual pane UIs (they actually use the same editor then for other tests we'll
+     * the single pane UIs (they actually use the same editor then for other tests we'll
      * assume they're same).
      */
     @Test
     void testFavoritesBasic() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         checkFavoritesBasic(singlePane)
-
-        DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
-        checkFavoritesBasic(dualPane)
     }
 
     /**
@@ -294,8 +268,8 @@ class OpenApiUiTest {
      */
     @Test
     void testProjectsAndTasks() {
-        DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
-        GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
+        SinglePaneUIVersion1 panel = openApi.createSinglePaneUI()
+        GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) panel.getGradleInterfaceVersion1()
 
         //make sure our samples directory exists
         Assert.assertTrue(gradleInterface.getCurrentDirectory().isDirectory())
@@ -306,7 +280,7 @@ class OpenApiUiTest {
         gradleInterface.addRequestObserver(testRequestObserver)
 
         //this starts the execution queue
-        dualPane.aboutToShow()
+        panel.aboutToShow()
 
         gradleInterface.refreshTaskTree()
 
@@ -383,8 +357,8 @@ class OpenApiUiTest {
      */
     @Test
     void testRefreshWithArguments() {
-        DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
-        GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
+        SinglePaneUIVersion1 panel = openApi.createSinglePaneUI()
+        GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) panel.getGradleInterfaceVersion1()
 
         //make sure our samples directory exists
         if (!gradleInterface.getCurrentDirectory().exists()) {
@@ -395,7 +369,7 @@ class OpenApiUiTest {
         gradleInterface.addRequestObserver(setupListener)
 
         //this starts the execution queue
-        dualPane.aboutToShow()
+        panel.aboutToShow()
 
         // wait for the implicit refresh to complete
         setupListener.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
@@ -630,11 +604,11 @@ class OpenApiUiTest {
      */
     @Test
     void testCommandLineAlteringListener() {
-        DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
-        GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
+        SinglePaneUIVersion1 panel = openApi.createSinglePaneUI()
+        GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) panel.getGradleInterfaceVersion1()
 
         //this starts the execution queue. This also initiates a refresh that we'll ignore later.
-        dualPane.aboutToShow()
+        panel.aboutToShow()
 
         //add a request observer so we can observe when the command is finished. This allows us to
         //see what was actually executed.
@@ -710,39 +684,38 @@ class OpenApiUiTest {
     }
 
     /**
-     * This tests that you can correctly obtain the number of output tabs from a
-     * dual pane UI. This
+     * This tests that you can correctly obtain the number of output tabs from the ui.
      */
     @Test
-    void testDualPaneOutputPaneNumber() {
+    void testOutputPaneNumber() {
         if (java.awt.GraphicsEnvironment.isHeadless()) {
             return;  // Can't run this test in headless mode!
         }
 
-        DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
+        SinglePaneUIWrapper panel = openApi.createSinglePaneUI()
 
         //now create a frame, place the UI in it, then show it briefly
-        JFrame frame = openApi.open(dualPane)
+        JFrame frame = openApi.open(panel)
 
         //make sure we got something
-        Assert.assertNotNull(dualPane)
+        Assert.assertNotNull(panel)
 
         //tell it we're about to show it, so it'll create a component
-        dualPane.aboutToShow()
+        panel.aboutToShow()
 
-        dualPane.refreshTaskTree()
+        panel.refreshTaskTree()
 
         openApi.flushEventQueue(frame)
 
         //there should be one opened output tab for the refresh
-        Assert.assertEquals(1, dualPane.getNumberOfOpenedOutputTabs())
+        Assert.assertEquals(1, panel.getNumberOfOpenedOutputTabs())
 
-        dualPane.executeCommand("build", "build")
+        panel.executeCommand("build", "build")
 
         openApi.flushEventQueue(frame)
 
         //there should be 2 opened output tabs. One for refresh, one for build
-        Assert.assertEquals(2, dualPane.getNumberOfOpenedOutputTabs())
+        Assert.assertEquals(2, panel.getNumberOfOpenedOutputTabs())
     }
 
     /**
@@ -756,11 +729,11 @@ class OpenApiUiTest {
      */
     @Test
     void testBusy() {
-        DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
-        GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
+        SinglePaneUIVersion1 panel = openApi.createSinglePaneUI()
+        GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) panel.getGradleInterfaceVersion1()
 
         //this starts the execution queue. This also initiates a refresh that we'll ignore later.
-        dualPane.aboutToShow()
+        panel.aboutToShow()
 
         //add a request observer so we can observe when the command is finished.
         BlockingRequestObserver testRequestObserver = new BlockingRequestObserver(RequestVersion1.EXECUTION_TYPE)
@@ -769,12 +742,12 @@ class OpenApiUiTest {
         gradleInterface.executeCommand("build", "test command")
 
         //now that there's a real command in the queue, we should be considered busy
-        Assert.assertTrue(dualPane.isBusy())
+        Assert.assertTrue(panel.isBusy())
         Assert.assertTrue(gradleInterface.isBusy())
 
         //we're busy, we shouldn't be able to close
         TestCloseInteraction testCloseInteraction = new TestCloseInteraction(false)
-        Assert.assertFalse(dualPane.canClose(testCloseInteraction))
+        Assert.assertFalse(panel.canClose(testCloseInteraction))
 
         //since we just asked to close and we're busy, make sure we prompted the user
         Assert.assertTrue(testCloseInteraction.wasPromptedToConfirmClose)
@@ -787,12 +760,12 @@ class OpenApiUiTest {
         Assert.assertEquals("Execution failed with return code: " + testRequestObserver.result + "\nOutput:\n" + testRequestObserver.output, 0, testRequestObserver.result)
 
         //make sure we're not longer considered busy
-        Assert.assertFalse(dualPane.isBusy())
+        Assert.assertFalse(panel.isBusy())
         Assert.assertFalse(gradleInterface.isBusy())
 
         //make sure we can close now
         testCloseInteraction = new TestCloseInteraction(false)
-        Assert.assertTrue(dualPane.canClose(testCloseInteraction))
+        Assert.assertTrue(panel.canClose(testCloseInteraction))
 
         //since we just asked to close and we're NOT busy, make sure we did NOT prompt the user
         Assert.assertFalse(testCloseInteraction.wasPromptedToConfirmClose)
@@ -805,8 +778,8 @@ class OpenApiUiTest {
      */
     @Test
     void testSettingCustomGradleExecutor() {
-        DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
-        GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
+        SinglePaneUIVersion1 panel = openApi.createSinglePaneUI()
+        GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) panel.getGradleInterfaceVersion1()
 
         //it should be null by default
         Assert.assertNull(gradleInterface.getCustomGradleExecutable())
@@ -821,16 +794,16 @@ class OpenApiUiTest {
 
         //make sure it was set
         Assert.assertEquals(gradleExecutor, gradleInterface.getCustomGradleExecutable())
-        Assert.assertEquals(gradleExecutor, dualPane.getCustomGradleExecutable()) //just another way to get it
+        Assert.assertEquals(gradleExecutor, panel.getCustomGradleExecutable()) //just another way to get it
 
         //add a request observer so we can observe when the command is finished.
         BlockingRequestObserver testRequestObserver = new BlockingRequestObserver(RequestVersion1.REFRESH_TYPE)
         gradleInterface.addRequestObserver(testRequestObserver)
 
         //this starts the execution queue
-        dualPane.aboutToShow()
+        panel.aboutToShow()
 
-        dualPane.refreshTaskTree()
+        panel.refreshTaskTree()
 
         testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
 

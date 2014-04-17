@@ -17,10 +17,8 @@ package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.internal.UncheckedException;
-import org.gradle.openapi.external.ui.DualPaneUIVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIInteractionVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1;
-import org.gradle.openapi.wrappers.ui.DualPaneUIWrapper;
 import org.gradle.openapi.wrappers.ui.SinglePaneUIWrapper;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.junit.Assert;
@@ -84,31 +82,8 @@ public class OpenApiFixture implements MethodRule {
         return singlePane;
     }
 
-    public DualPaneUIVersion1 createDualPaneUI() {
-        System.setProperty("gradle.home", buildContext.getGradleHomeDir().getAbsolutePath());
-        TestSingleDualPaneUIInteractionVersion1 testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), new TestSettingsNodeVersion1());
-        DualPaneUIVersion1 dualPane;
-        try {
-            dualPane = new DualPaneUIWrapper(testSingleDualPaneUIInteractionVersion1, false);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-
-        //make sure we got something
-        Assert.assertNotNull(dualPane);
-
-        dualPane.setCurrentDirectory(testDirectoryProvider.getTestDirectory());
-        dualPane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListenerWrapper(buildContext.getGradleUserHomeDir()));
-
-        return dualPane;
-    }
-
     public JFrame open(SinglePaneUIVersion1 ui) {
         return createTestFrame(ui.getComponent(), null);
-    }
-
-    public JFrame open(DualPaneUIVersion1 ui) {
-        return createTestFrame(ui.getMainComponent(), ui.getOutputPanel());
     }
 
     /*
