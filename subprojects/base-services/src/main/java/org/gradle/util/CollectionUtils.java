@@ -530,4 +530,21 @@ public abstract class CollectionUtils {
         return target;
     }
 
+    public static <K, V> Map<K, List<V>> groupBy(Iterable<? extends V> iterable, Transformer<? extends K, V> grouper) {
+        Map<K, List<V>> map = new LinkedHashMap<K, List<V>>();
+
+        for (V element : iterable) {
+            K key = grouper.transform(element);
+            List<V> entries = map.get(key);
+            if (entries == null) {
+                entries = new LinkedList<V>();
+                map.put(key, entries);
+            }
+
+            entries.add(element);
+        }
+
+        return map;
+    }
+
 }
