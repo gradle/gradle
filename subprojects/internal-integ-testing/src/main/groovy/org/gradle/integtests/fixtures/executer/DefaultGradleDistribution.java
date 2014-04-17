@@ -99,7 +99,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public boolean isOpenApiSupported() {
-        return isSameOrNewer("0.9-rc-1");
+        return isSameOrNewer("0.9-rc-1") && !isSameOrNewer("2.0");
     }
 
     public boolean isToolingApiSupported() {

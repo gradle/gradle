@@ -16,6 +16,7 @@
 package org.gradle.integtests.openapi
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
@@ -25,15 +26,12 @@ import org.slf4j.LoggerFactory
 
 import java.lang.reflect.InvocationTargetException
 
+@IgnoreVersions({!it.openApiSupported})
 class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSpec {
     private final Logger logger = LoggerFactory.getLogger(CrossVersionCompatibilityIntegrationTest)
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     public void cannotUseOpenApiFromOlderVersionToBuildUsingCurrentVersion() {
-        if (!previous.openApiSupported) {
-            System.out.println("skipping $previous as it does not support the open API.")
-            return
-        }
         def classloader = loadOpenApi(previous)
 
         when:
