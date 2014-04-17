@@ -32,13 +32,67 @@ TBD
     - The expected binary type. Only jvm library binaries will be supported for this story.
     - The usage. Only 'compile' and 'runtime' will be supported for this story.
 - Produces a `ResolutionResult` and an `ArtifactResolutionResult`.
-- Dependencies are resolved as per the `Configuration` API.
+- External module dependencies are resolved as per the `Configuration` API.
     - All usages should resolve using the `default` configuration, or the configuration specified using an override.
+- Project dependencies are resolved as per the `Configuration` API.
+    - All usages should resolve using the `default` configuarion.
+    - Fail if a project dependency contains configuration, artifact or exclude overrides
 - A custom plugin can use this API to resolve a graph of dependencies.
+
+#### User visible changes
+
+Resolve dependencies with inline notation:
+
+    def compileClasspath = dependencies.newDependencySet()
+                .withType(JvmLibrary.class)
+                .withUsage(Usage.COMPILE)
+                .forDependencies("org.group:module:1.0", ...) // Any dependency notation, or dependency instances
+                .create()
+
+    compileTask.classPath = compileClasspath.files
+    assert compileClasspath.files == compileClasspath.artifactResolutionResult.files
+
+Resolve dependencies based on a configuration:
+
+    def testRuntimeUsage = dependencies.newDependencySet()
+                .withType(JvmLibrary.class)
+                .withUsage(Usage.RUNTIME)
+                .forDependencies(configurations.test.incoming.dependencies)
+                .create()
+    copy {
+        from testRuntimeUsage.artifactResolutionResult.artifactFiles
+        into "libs"
+    }
+
+    testRuntimeUsage.resolutionResult.allDependencies { dep ->
+        println dep.requested
+    }
+
+Resolve dependencies not added a configuration:
+
+    dependencies {
+        def lib1 = create("org.group:mylib:1.+") {
+            transitive false
+        }
+        def projectDep = project(":foo")
+    }
+    def deps = dependencies.newDependencySet()
+                .withType(JvmLibrary)
+                .withUsage(Usage.RUNTIME)
+                .forDependencies(lib1, projectDep)
+                .create()
+    deps.files.each {
+        println it
+    }
 
 #### Test cases
 
-- Project with custom plugin that uses new resolution API can use the jar produced by another project that uses the `java` plugin.
+- Project can use new resolution API to:
+    - Use jars from external module dependencies, both direct and transitive
+        - referenced by override configuration of an external module dependency
+        - referenced by artifact and classifier overrides on an external module dependency
+    - Use jars from another project that applies the `java` plugin, both direct and transitive
+- Fails if a project dependency contains configuration, artifact or exclude overrides
 
 #### Open issues
 
@@ -60,7 +114,7 @@ new and old JVM plugins.
         - Do not allow 'artifacts' or 'exclude' overrides on dependency.
     - Otherwise, use the `default` project configuration.
 - To resolve a project dependency via new API:
-    - When the dependency include a 'configuration' override, use that project configuration.
+    - Do not allow configuration, artifact or exclude overrides
     - When the project produces a binary, resolve using the requested usage for that binary. Fail when multiple binaries.
         - Do not allow 'artifacts' or 'exclude' overrides on dependency.
         - Fail for unknown usage.
@@ -85,7 +139,7 @@ new and old JVM plugins.
 - The `java` plugin declares a jvm binary, backed by the project configurations.
 - To resolve a project dependency via new API:
     - Fail if target project does not produce a jvm binary.
-    - Do not allow 'configuration' overrides.
+    - Do not allow configuration, artifact or exclude overrides
 
 ### Plugin declares a custom structured binary type
 
