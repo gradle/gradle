@@ -26,7 +26,7 @@ import org.gradle.plugin.internal.PluginIds;
 
 public class PluginUseScriptBlockTransformer {
 
-    public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal string";
+    public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
     public static final String BASE_MESSAGE = "only id(String) method calls allowed";
     public static final String VERSION_MESSAGE = "only version(String) method calls allowed";
     private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal";
@@ -83,21 +83,26 @@ public class PluginUseScriptBlockTransformer {
                     if (isString(methodName)) {
                         String methodNameText = methodName.getText();
                         if (methodNameText.equals("id") || methodNameText.equals("version")) {
-                            ConstantExpression argExpression = hasSingleConstantStringArg(call);
-                            if (argExpression == null) {
+                            ConstantExpression argumentExpression = hasSingleConstantStringArg(call);
+                            if (argumentExpression == null) {
+                                return;
+                            }
+
+                            String argStringValue = argumentExpression.getValue().toString();
+                            if (argStringValue.length() == 0) {
+                                restrict(argumentExpression, INVALID_ARGUMENT_LIST);
                                 return;
                             }
 
                             if (methodName.getText().equals("id")) {
                                 if (call.isImplicitThis()) {
-                                    String pluginId = argExpression.getValue().toString();
-                                    int invalidCharIndex = PluginIds.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(pluginId);
+                                    int invalidCharIndex = PluginIds.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(argStringValue);
                                     if (invalidCharIndex < 0) {
                                         call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"), "createSpec", new ConstantExpression(call.getLineNumber(), true)));
                                         call.setImplicitThis(false);
                                     } else {
-                                        char invalidChar = pluginId.charAt(invalidCharIndex);
-                                        restrict(argExpression, invalidPluginIdCharMessage(invalidChar));
+                                        char invalidChar = argStringValue.charAt(invalidCharIndex);
+                                        restrict(argumentExpression, invalidPluginIdCharMessage(invalidChar));
                                     }
                                 } else {
                                     restrict(call, BASE_MESSAGE);

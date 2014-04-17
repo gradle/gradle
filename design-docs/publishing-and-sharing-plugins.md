@@ -359,6 +359,9 @@ Adds the `plugins {}` DSL to build scripts (settings, init or arbitrary script n
   - ~~Cannot use if statement~~
   - ~~Cannot define local variable~~
   - ~~Cannot use GString values as string arguments to `id()` or `version()`~~
+- ~~Plugin ids contain only valid characters~~
+- ~~Plugin id cannot be empty string
+- ~~Pluginv version cannot be empty string
   
 ## Story: Can use plugins {} in build script to use core plugin
 
