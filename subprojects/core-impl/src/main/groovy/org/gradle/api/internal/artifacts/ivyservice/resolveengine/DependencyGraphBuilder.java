@@ -69,7 +69,11 @@ public class DependencyGraphBuilder {
         ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), dependencyResolver, dependencyToConfigurationResolver, artifactResolver);
         traverseGraph(resolveState);
 
-        assembleResult(resolveState, oldModelBuilder, newModelBuilder);
+        DependencyGraphVisitor oldListener = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder, artifactResolver);
+        DependencyGraphVisitor newListener = new ResolutionResultDependencyGraphVisitor(newModelBuilder);
+        DependencyGraphVisitor listener = new CompositeDependencyGraphVisitor(oldListener, newListener);
+
+        assembleResult(resolveState, listener);
     }
 
     /**
@@ -147,39 +151,125 @@ public class DependencyGraphBuilder {
     /**
      * Populates the result from the graph traversal state.
      */
-    private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder oldModelBuilder, ResolutionResultBuilder newModelBuilder) {
-        FailureState failureState = new FailureState(resolveState.root);
-        newModelBuilder.start(resolveState.root.moduleRevision.id, resolveState.root.metaData.getComponent().getComponentId());
+    private void assembleResult(ResolveState resolveState, DependencyGraphVisitor listener) {
+        listener.start(resolveState.root);
 
         // Visit the nodes
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             if (resolvedConfiguration.isSelected()) {
                 resolvedConfiguration.validate();
-                oldModelBuilder.newResolvedDependency(resolvedConfiguration.id);
-                resolvedConfiguration.collectFailures(failureState);
-                newModelBuilder.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
+                listener.visitNode(resolvedConfiguration);
             }
         }
         // Visit the edges
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             if (resolvedConfiguration.isSelected()) {
-                resolvedConfiguration.attachToParents(oldModelBuilder);
-                newModelBuilder.resolvedConfiguration(resolvedConfiguration.toId(), resolvedConfiguration.outgoingEdges);
+                listener.visitEdge(resolvedConfiguration);
             }
         }
-        failureState.attachFailures(oldModelBuilder);
-        oldModelBuilder.done(resolveState.root.id);
+
+        listener.finish(resolveState.root);
     }
 
-    private static class FailureState {
-        final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
-        final ConfigurationNode root;
+    private interface DependencyGraphVisitor {
+        void start(ConfigurationNode root);
+        void visitNode(ConfigurationNode resolvedConfiguration);
+        void visitEdge(ConfigurationNode resolvedConfiguration);
+        void finish(ConfigurationNode root);
+    }
 
-        private FailureState(ConfigurationNode root) {
+    private static class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
+        private final DependencyGraphVisitor oldModelVisitor;
+        private final DependencyGraphVisitor newModelVisitor;
+
+        private CompositeDependencyGraphVisitor(DependencyGraphVisitor oldModelVisitor, DependencyGraphVisitor newModelVisitor) {
+            this.oldModelVisitor = oldModelVisitor;
+            this.newModelVisitor = newModelVisitor;
+        }
+
+        public void start(ConfigurationNode root) {
+            oldModelVisitor.start(root);
+            newModelVisitor.start(root);
+        }
+
+        public void visitNode(ConfigurationNode resolvedConfiguration) {
+            oldModelVisitor.visitNode(resolvedConfiguration);
+            newModelVisitor.visitNode(resolvedConfiguration);
+        }
+
+        public void visitEdge(ConfigurationNode resolvedConfiguration) {
+            oldModelVisitor.visitEdge(resolvedConfiguration);
+            newModelVisitor.visitEdge(resolvedConfiguration);
+        }
+
+        public void finish(ConfigurationNode root) {
+            oldModelVisitor.finish(root);
+            newModelVisitor.finish(root);
+        }
+    }
+
+    private static class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisitor {
+        private final ResolvedConfigurationBuilder builder;
+        private final ArtifactResolver artifactResolver;
+        private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
+        private ConfigurationNode root;
+
+        private ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder, ArtifactResolver artifactResolver) {
+            this.builder = builder;
+            this.artifactResolver = artifactResolver;
+        }
+
+        public void start(ConfigurationNode root) {
             this.root = root;
         }
 
-        public void attachFailures(ResolvedConfigurationBuilder result) {
+        public void visitNode(ConfigurationNode resolvedConfiguration) {
+            builder.newResolvedDependency(resolvedConfiguration.id);
+            for (DependencyEdge dependency : resolvedConfiguration.outgoingEdges) {
+                ModuleVersionResolveException failure = dependency.getFailure();
+                if (failure != null) {
+                    addUnresolvedDependency(dependency, dependency.selector.dependencyMetaData.getRequested(), failure);
+                }
+            }
+        }
+
+        public void visitEdge(ConfigurationNode resolvedConfiguration) {
+            LOGGER.debug("Attaching {} to its parents.", resolvedConfiguration);
+            for (DependencyEdge dependency : resolvedConfiguration.incomingEdges) {
+                attachToParents(dependency, resolvedConfiguration, builder);
+            }
+        }
+
+        private void attachToParents(DependencyEdge dependency, ConfigurationNode childConfiguration, ResolvedConfigurationBuilder oldModelBuilder) {
+            ResolvedConfigurationIdentifier parent = dependency.from.id;
+            ResolvedConfigurationIdentifier child = childConfiguration.id;
+            oldModelBuilder.addChild(parent, child);
+            oldModelBuilder.addParentSpecificArtifacts(child, parent, getArtifacts(dependency, childConfiguration, oldModelBuilder));
+
+            if (parent == root.id) {
+                EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) dependency.dependencyDescriptor;
+                oldModelBuilder.addFirstLevelDependency(enhancedDependencyDescriptor.getModuleDependency(), child);
+            }
+        }
+
+        private Set<ResolvedArtifact> getArtifacts(DependencyEdge dependency, ConfigurationNode childConfiguration, ResolvedConfigurationBuilder builder) {
+            Set<ComponentArtifactMetaData> dependencyArtifacts = dependency.dependencyMetaData.getArtifacts(dependency.from.metaData, childConfiguration.metaData);
+            if (dependencyArtifacts.isEmpty()) {
+                return childConfiguration.getArtifacts(builder);
+            }
+            Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
+            for (ComponentArtifactMetaData artifact : dependencyArtifacts) {
+                artifacts.add(builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getComponent(), artifact, artifactResolver));
+            }
+            return artifacts;
+        }
+
+        public void finish(ConfigurationNode root) {
+            attachFailures(builder);
+            builder.done(root.id);
+        }
+
+        private void attachFailures(ResolvedConfigurationBuilder result) {
             for (Map.Entry<ModuleVersionSelector, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
                 Collection<List<ModuleVersionIdentifier>> paths = calculatePaths(entry.getValue());
                 result.addUnresolvedDependency(new DefaultUnresolvedDependency(entry.getKey(), entry.getValue().failure.withIncomingPaths(paths)));
@@ -188,7 +278,7 @@ public class DependencyGraphBuilder {
 
         private Collection<List<ModuleVersionIdentifier>> calculatePaths(BrokenDependency brokenDependency) {
             // Include the shortest path from each version that has a direct dependency on the broken dependency, back to the root
-            
+
             Map<ModuleVersionResolveState, List<ModuleVersionIdentifier>> shortestPaths = new LinkedHashMap<ModuleVersionResolveState, List<ModuleVersionIdentifier>>();
             List<ModuleVersionIdentifier> rootPath = new ArrayList<ModuleVersionIdentifier>();
             rootPath.add(root.moduleRevision.id);
@@ -246,7 +336,7 @@ public class DependencyGraphBuilder {
             return paths;
         }
 
-        public void addUnresolvedDependency(DependencyEdge dependency, ModuleVersionSelector requested, ModuleVersionResolveException failure) {
+        private void addUnresolvedDependency(DependencyEdge dependency, ModuleVersionSelector requested, ModuleVersionResolveException failure) {
             BrokenDependency breakage = failuresByRevisionId.get(requested);
             if (breakage == null) {
                 breakage = new BrokenDependency(failure);
@@ -254,7 +344,7 @@ public class DependencyGraphBuilder {
             }
             breakage.requiredBy.add(dependency.from);
         }
-        
+
         private static class BrokenDependency {
             final ModuleVersionResolveException failure;
             final List<ConfigurationNode> requiredBy = new ArrayList<ConfigurationNode>();
@@ -262,6 +352,30 @@ public class DependencyGraphBuilder {
             private BrokenDependency(ModuleVersionResolveException failure) {
                 this.failure = failure;
             }
+        }
+    }
+
+    private static class ResolutionResultDependencyGraphVisitor implements DependencyGraphVisitor {
+        private final ResolutionResultBuilder newModelBuilder;
+
+        private ResolutionResultDependencyGraphVisitor(ResolutionResultBuilder newModelBuilder) {
+            this.newModelBuilder = newModelBuilder;
+        }
+
+        public void start(ConfigurationNode root) {
+            newModelBuilder.start(root.moduleRevision.id, root.metaData.getComponent().getComponentId());
+        }
+
+        public void visitNode(ConfigurationNode resolvedConfiguration) {
+            newModelBuilder.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
+        }
+
+        public void visitEdge(ConfigurationNode resolvedConfiguration) {
+            newModelBuilder.resolvedConfiguration(resolvedConfiguration.toId(), resolvedConfiguration.outgoingEdges);
+        }
+
+        public void finish(ConfigurationNode root) {
+
         }
     }
 
@@ -350,32 +464,6 @@ public class DependencyGraphBuilder {
             }
         }
 
-        private Set<ResolvedArtifact> getArtifacts(ConfigurationNode childConfiguration, ResolvedConfigurationBuilder builder) {
-            Set<ComponentArtifactMetaData> dependencyArtifacts = dependencyMetaData.getArtifacts(from.metaData, childConfiguration.metaData);
-            if (dependencyArtifacts.isEmpty()) {
-                return childConfiguration.getArtifacts(builder);
-            }
-            Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-            for (ComponentArtifactMetaData artifact : dependencyArtifacts) {
-                artifacts.add(builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getComponent(), artifact, resolveState.artifactResolver));
-            }
-            return artifacts;
-        }
-
-        public void attachToParents(ConfigurationNode childConfiguration, ResolvedConfigurationBuilder oldModelBuilder) {
-            ResolvedConfigurationIdentifier parent = from.id;
-            ResolvedConfigurationIdentifier child = childConfiguration.id;
-            oldModelBuilder.addChild(parent, child);
-
-            //TODO SF merge with addChild
-            oldModelBuilder.addParentSpecificArtifacts(child, parent, getArtifacts(childConfiguration, oldModelBuilder));
-
-            if (parent == resolveState.root.id) {
-                EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) dependencyDescriptor;
-                oldModelBuilder.addFirstLevelDependency(enhancedDependencyDescriptor.getModuleDependency(), child);
-            }
-        }
-
         public ModuleVersionSpec getSelector() {
             String[] configurations = from.metaData.getHierarchy().toArray(new String[from.metaData.getHierarchy().size()]);
             ModuleVersionSpec selector = ModuleVersionSpec.forExcludes(dependencyDescriptor.getExcludeRules(configurations));
@@ -396,13 +484,6 @@ public class DependencyGraphBuilder {
 
         public ComponentSelectionReason getReason() {
             return selector.getSelectionReason();
-        }
-
-        public void collectFailures(FailureState failureState) {
-            ModuleVersionResolveException failure = getFailure();
-            if (failure != null) {
-                failureState.addUnresolvedDependency(this, selector.dependencyMetaData.getRequested(), failure);
-            }
         }
     }
 
@@ -800,19 +881,6 @@ public class DependencyGraphBuilder {
 
         public boolean isSelected() {
             return moduleRevision.state == ModuleState.Selected;
-        }
-
-        public void attachToParents(ResolvedConfigurationBuilder oldModelBuilder) {
-            LOGGER.debug("Attaching {} to its parents.", this);
-            for (DependencyEdge dependency : incomingEdges) {
-                dependency.attachToParents(this, oldModelBuilder);
-            }
-        }
-
-        public void collectFailures(FailureState failureState) {
-            for (DependencyEdge dependency : outgoingEdges) {
-                dependency.collectFailures(failureState);
-            }
         }
 
         private ModuleVersionSpec getSelector(List<DependencyEdge> transitiveEdges) {
