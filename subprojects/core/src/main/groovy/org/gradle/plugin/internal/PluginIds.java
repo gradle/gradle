@@ -31,4 +31,22 @@ public abstract class PluginIds {
             .or(anyOf(".-"))
             .negate();
 
+    private static final char SEPARATOR = '.';
+
+    public static boolean isQualified(String id) {
+        return id.indexOf(SEPARATOR) >= 0;
+    }
+
+    public static String qualifyIfUnqualified(String qualification, String id) {
+        return isQualified(id) ? id : qualification + SEPARATOR + id;
+    }
+
+    public static boolean inNamespace(String namespace, String id) {
+        return isQualified(id) ? id.startsWith(namespace + SEPARATOR) : false;
+    }
+
+    public static String getName(String id) {
+        return isQualified(id) ? id.substring(id.lastIndexOf(SEPARATOR) + 1) : id;
+    }
+
 }

@@ -21,6 +21,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 
 public interface PluginRequest {
 
+    // Value is always a valid id (i.e. only valid chars and not empty)
     String getId();
 
     @Nullable

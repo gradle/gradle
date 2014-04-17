@@ -34,6 +34,18 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "javadoc"
     }
 
+    void "can resolve qualified core plugins"() {
+        when:
+        buildScript """
+            plugins {
+              id 'org.gradle.java'
+            }
+        """
+
+        then:
+        succeeds "javadoc"
+    }
+
     void "core plugins cannot have a version number"() {
         given:
         buildScript """
@@ -47,6 +59,23 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         failure.assertThatDescription(startsWith("Plugin 'java' is a core Gradle plugin, which cannot be specified with a version number"))
+        failure.assertHasFileName("Build file '$buildFile.absolutePath'")
+        failure.assertHasLineNumber(3)
+    }
+
+    void "qualified core plugins cannot have a version number"() {
+        given:
+        buildScript """
+            plugins {
+                id "org.gradle.java" version "1.0"
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertThatDescription(startsWith("Plugin 'org.gradle.java' is a core Gradle plugin, which cannot be specified with a version number"))
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(3)
     }

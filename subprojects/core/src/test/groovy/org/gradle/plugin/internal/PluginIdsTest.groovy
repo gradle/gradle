@@ -18,6 +18,9 @@ package org.gradle.plugin.internal
 
 import spock.lang.Specification
 
+import static org.gradle.plugin.internal.PluginIds.isQualified
+import static org.gradle.plugin.internal.PluginIds.qualifyIfUnqualified
+
 class PluginIdsTest extends Specification {
 
     def "test validation matcher"() {
@@ -32,6 +35,18 @@ class PluginIdsTest extends Specification {
         "foo.bür" | 5
         "123"     | -1
         "FOO.bar" | -1
+    }
+
+    def "is qualified"() {
+        expect:
+        !isQualified("foo")
+        isQualified("foo.bar")
+    }
+
+    def "qualify if unqualified"() {
+        expect:
+        qualifyIfUnqualified("foo", "bar") == "foo.bar"
+        qualifyIfUnqualified("bar", "foo.bar") == "foo.bar"
     }
 
 }

@@ -20,8 +20,11 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.plugin.internal.PluginIds;
 
 public class PluginRegistryPluginResolver implements PluginResolver {
+
+    public static final String CORE_PLUGIN_NAMESPACE = "org.gradle";
 
     private final DocumentationRegistry documentationRegistry;
     private final PluginRegistry pluginRegistry;
@@ -32,15 +35,22 @@ public class PluginRegistryPluginResolver implements PluginResolver {
     }
 
     public PluginResolution resolve(PluginRequest pluginRequest) {
-        try {
-            Class<? extends Plugin> typeForId = pluginRegistry.getTypeForId(pluginRequest.getId());
-            if (pluginRequest.getVersion() != null) {
-                throw new InvalidPluginRequestException(pluginRequest,
-                        "Plugin '" + pluginRequest.getId() + "' is a core Gradle plugin, which cannot be specified with a version number. "
-                                + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration.");
+        String effectiveId = PluginIds.qualifyIfUnqualified(CORE_PLUGIN_NAMESPACE, pluginRequest.getId());
+
+        if (PluginIds.inNamespace(CORE_PLUGIN_NAMESPACE, effectiveId)) {
+            try {
+                String pluginName = PluginIds.getName(effectiveId);
+                Class<? extends Plugin> typeForId = pluginRegistry.getTypeForId(pluginName);
+                if (pluginRequest.getVersion() != null) {
+                    throw new InvalidPluginRequestException(pluginRequest,
+                            "Plugin '" + pluginRequest.getId() + "' is a core Gradle plugin, which cannot be specified with a version number. "
+                                    + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration.");
+                }
+                return new SimplePluginResolution(typeForId);
+            } catch (UnknownPluginException e) {
+                return null;
             }
-            return new SimplePluginResolution(typeForId);
-        } catch (UnknownPluginException e) {
+        } else {
             return null;
         }
     }
