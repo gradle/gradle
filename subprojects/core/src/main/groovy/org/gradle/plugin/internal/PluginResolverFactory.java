@@ -74,7 +74,7 @@ public class PluginResolverFactory {
 
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver());
-        resolvers.add(new PluginRegistryPluginResolver(documentationRegistry, pluginRegistry));
+        resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
         // resolvers.add(jcenterGradleOfficial(instantiator, createDependencyResolutionServices(), cacheRepository));
     }
 

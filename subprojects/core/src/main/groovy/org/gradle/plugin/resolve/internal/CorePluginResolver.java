@@ -22,14 +22,14 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.plugin.internal.PluginIds;
 
-public class PluginRegistryPluginResolver implements PluginResolver {
+public class CorePluginResolver implements PluginResolver {
 
     public static final String CORE_PLUGIN_NAMESPACE = "org.gradle";
 
     private final DocumentationRegistry documentationRegistry;
     private final PluginRegistry pluginRegistry;
 
-    public PluginRegistryPluginResolver(DocumentationRegistry documentationRegistry, PluginRegistry pluginRegistry) {
+    public CorePluginResolver(DocumentationRegistry documentationRegistry, PluginRegistry pluginRegistry) {
         this.documentationRegistry = documentationRegistry;
         this.pluginRegistry = pluginRegistry;
     }
@@ -57,7 +57,7 @@ public class PluginRegistryPluginResolver implements PluginResolver {
 
     @Override
     public String toString() {
-        return "PluginRegistryPluginResolver[" + pluginRegistry + "]";
+        return "Core Plugin Resolver";
     }
 
     public String getDescriptionForNotFoundMessage() {
