@@ -22,14 +22,10 @@ import org.gradle.foundation.ipc.basic.Server;
  * This protocol is used by a client that launches its own server. See KillGradleClientProtocol.
  */
 public class KillGradleServerProtocol implements Server.Protocol<Server> {
-    private Server server;
-
     public void initialize(Server server) {
-        this.server = server;
     }
 
     public void connectionAccepted() {
-
     }
 
     public boolean continueConnection() {
