@@ -100,11 +100,36 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
     }
 
     def "deletion of jar with dependents causes compilation failure"() {
-        //TODO
+        java api: ["class A {}"], impl: ["class ImplA extends A {}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        buildFile << """
+            project(':impl') {
+                configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
+            }
+        """
+        fails "impl:compileJava"
+
+        then:
+        impl.noneRecompiled()
     }
 
-    def "deletion of jar with source annotations causes full rebuild"() {
-        //TODO
+    @Ignore //TODO
+    def "deletion of jar with non-private constant annotations causes full rebuild"() {
+        java api: ["class A { final static int x = 1; }"], impl: ["class X {}", "class Y {}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        buildFile << """
+            project(':impl') {
+                configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
+            }
+        """
+        run "impl:compileJava"
+
+        then:
+        impl.recompiledClasses("X", "Y")
     }
 
     def "detects change to dependency and ensures class dependency info refreshed"() {
