@@ -27,10 +27,8 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         outputs = new CompilationOutputsFixture(file("build/classes/main"))
 
         buildFile << """
-            allprojects {
-                apply plugin: 'java'
-                compileJava.options.incremental = true
-            }
+            apply plugin: 'java'
+            compileJava.options.incremental = true
         """
     }
 
@@ -251,7 +249,7 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         then: outputs.recompiledClasses 'B', 'A'
     }
 
-    def "detects class changes in subsequent runs"() {
+    def "detects class changes in subsequent runs ensuring the class dependency data is refreshed"() {
         java "class A {}", "class B {}", "class C {}"
         outputs.snapshot { run "compileJava" }
 

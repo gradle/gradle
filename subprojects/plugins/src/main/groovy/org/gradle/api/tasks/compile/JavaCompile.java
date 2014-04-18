@@ -69,7 +69,7 @@ public class JavaCompile extends AbstractCompile {
 
         //bunch of services that enable incremental java compilation. Should be pushed out to services/factories.
         ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer(); //TODO SF needs caching
-        JarSnapshotCache jarSnapshotCache = new JarSnapshotCache(new File(getProject().getRootProject().getProjectDir(), ".gradle/jar-snapshot-cache.bin")); //TODO SF cannot be global
+        JarSnapshotCache jarSnapshotCache = new JarSnapshotCache(new File(getProject().getBuildDir(), "jar-snapshot-cache.bin"));
         JarSnapshotFeeder jarSnapshotFeeder = new JarSnapshotFeeder(jarSnapshotCache, new JarSnapshotter(new ClassSnapshotter(new DefaultHasher(), analyzer)));
         ClassDependencyInfoSerializer dependencyInfoSerializer = new ClassDependencyInfoSerializer(new File(getProject().getBuildDir(), "class-info.bin"));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
