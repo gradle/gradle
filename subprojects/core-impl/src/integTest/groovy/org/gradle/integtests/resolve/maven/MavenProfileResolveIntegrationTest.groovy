@@ -217,6 +217,72 @@ dependencies { compile 'groupA:artifactA:1.2' }
         }
     }
 
+    def "uses properties from profile activated by system property to resolve dependency"() {
+        given:
+        String customPropertyName = new UUIDGenerator().generateId()
+        executer.withArguments("-D${customPropertyName}=BLUE")
+
+        and:
+        def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
+        requestedModule.pomFile.text = """
+<project>
+    <groupId>groupA</groupId>
+    <artifactId>artifactA</artifactId>
+    <version>1.2</version>
+    <dependencies>
+        <dependency>
+            <groupId>\${groupId.prop}</groupId>
+            <artifactId>\${artifactId.prop}</artifactId>
+            <version>\${version.prop}</version>
+        </dependency>
+    </dependencies>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>${customPropertyName}</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <groupId.prop>groupB</groupId.prop>
+                <artifactId.prop>artifactB</artifactId.prop>
+                <version.prop>1.4</version.prop>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def transitiveModule = mavenHttpRepo.module("groupB", "artifactB", "1.4").publish()
+
+        and:
+        buildFile << """
+repositories { maven { url '${mavenHttpRepo.uri}' } }
+configurations { compile }
+dependencies { compile 'groupA:artifactA:1.2' }
+"""
+
+        and:
+        requestedModule.pom.expectGet()
+        requestedModule.artifact.expectGet()
+        transitiveModule.pom.expectGet()
+        transitiveModule.artifact.expectGet()
+
+        when:
+        run "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:unspecified") {
+                module("groupA:artifactA:1.2") {
+                    module("groupB:artifactB:1.4")
+                }
+            }
+        }
+    }
+
     def "uses properties from profile activated by the absence of a property"() {
         given:
         String customPropertyName = new UUIDGenerator().generateId()
@@ -246,6 +312,290 @@ dependencies { compile 'groupA:artifactA:1.2' }
                 <artifactId.prop>artifactB</artifactId.prop>
                 <version.prop>1.4</version.prop>
             </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def transitiveModule = mavenHttpRepo.module("groupB", "artifactB", "1.4").publish()
+
+        and:
+        buildFile << """
+repositories { maven { url '${mavenHttpRepo.uri}' } }
+configurations { compile }
+dependencies { compile 'groupA:artifactA:1.2' }
+"""
+
+        and:
+        requestedModule.pom.expectGet()
+        requestedModule.artifact.expectGet()
+        transitiveModule.pom.expectGet()
+        transitiveModule.artifact.expectGet()
+
+        when:
+        run "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:unspecified") {
+                module("groupA:artifactA:1.2") {
+                    module("groupB:artifactB:1.4")
+                }
+            }
+        }
+    }
+
+    def "uses properties from profile activated if property value is not declared and system property is set with any value"() {
+        given:
+        String customPropertyName = new UUIDGenerator().generateId()
+        executer.withArguments("-D${customPropertyName}=GREEN")
+
+        and:
+        def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
+        requestedModule.pomFile.text = """
+<project>
+    <groupId>groupA</groupId>
+    <artifactId>artifactA</artifactId>
+    <version>1.2</version>
+    <dependencies>
+        <dependency>
+            <groupId>\${groupId.prop}</groupId>
+            <artifactId>\${artifactId.prop}</artifactId>
+            <version>\${version.prop}</version>
+        </dependency>
+    </dependencies>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>${customPropertyName}</name>
+                </property>
+            </activation>
+            <properties>
+                <groupId.prop>groupB</groupId.prop>
+                <artifactId.prop>artifactB</artifactId.prop>
+                <version.prop>1.4</version.prop>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def transitiveModule = mavenHttpRepo.module("groupB", "artifactB", "1.4").publish()
+
+        and:
+        buildFile << """
+repositories { maven { url '${mavenHttpRepo.uri}' } }
+configurations { compile }
+dependencies { compile 'groupA:artifactA:1.2' }
+"""
+
+        and:
+        requestedModule.pom.expectGet()
+        requestedModule.artifact.expectGet()
+        transitiveModule.pom.expectGet()
+        transitiveModule.artifact.expectGet()
+
+        when:
+        run "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:unspecified") {
+                module("groupA:artifactA:1.2") {
+                    module("groupB:artifactB:1.4")
+                }
+            }
+        }
+    }
+
+    def "uses properties from profile activated by system property over active by default to resolve dependency"() {
+        given:
+        String customPropertyName = new UUIDGenerator().generateId()
+        executer.withArguments("-D${customPropertyName}=BLUE")
+
+        and:
+        def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
+        requestedModule.pomFile.text = """
+<project>
+    <groupId>groupA</groupId>
+    <artifactId>artifactA</artifactId>
+    <version>1.2</version>
+    <dependencies>
+        <dependency>
+            <groupId>\${groupId.prop}</groupId>
+            <artifactId>\${artifactId.prop}</artifactId>
+            <version>\${version.prop}</version>
+        </dependency>
+    </dependencies>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <groupId.prop>groupB</groupId.prop>
+                <artifactId.prop>artifactB</artifactId.prop>
+                <version.prop>1.4</version.prop>
+            </properties>
+        </profile>
+        <profile>
+            <id>profile-2</id>
+            <activation>
+                <property>
+                    <name>${customPropertyName}</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <properties>
+                <groupId.prop>groupB</groupId.prop>
+                <artifactId.prop>artifactB</artifactId.prop>
+                <version.prop>1.5</version.prop>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def transitiveModule = mavenHttpRepo.module("groupB", "artifactB", "1.5").publish()
+
+        and:
+        buildFile << """
+repositories { maven { url '${mavenHttpRepo.uri}' } }
+configurations { compile }
+dependencies { compile 'groupA:artifactA:1.2' }
+"""
+
+        and:
+        requestedModule.pom.expectGet()
+        requestedModule.artifact.expectGet()
+        transitiveModule.pom.expectGet()
+        transitiveModule.artifact.expectGet()
+
+        when:
+        run "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:unspecified") {
+                module("groupA:artifactA:1.2") {
+                    module("groupB:artifactB:1.5")
+                }
+            }
+        }
+    }
+
+    def "uses dependency management defaults from profile activated by system property to resolve dependency"() {
+        given:
+        String customPropertyName = new UUIDGenerator().generateId()
+        executer.withArguments("-D${customPropertyName}=BLUE")
+
+        and:
+        def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
+        requestedModule.pomFile.text = """
+<project>
+    <groupId>groupA</groupId>
+    <artifactId>artifactA</artifactId>
+    <version>1.2</version>
+    <dependencies>
+        <dependency>
+            <groupId>groupB</groupId>
+            <artifactId>artifactB</artifactId>
+        </dependency>
+    </dependencies>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>${customPropertyName}</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>groupB</groupId>
+                        <artifactId>artifactB</artifactId>
+                        <version>1.4</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
+</project>
+"""
+
+        def transitiveModule = mavenHttpRepo.module("groupB", "artifactB", "1.4").publish()
+
+        and:
+        buildFile << """
+repositories { maven { url '${mavenHttpRepo.uri}' } }
+configurations { compile }
+dependencies { compile 'groupA:artifactA:1.2' }
+"""
+
+        and:
+        requestedModule.pom.expectGet()
+        requestedModule.artifact.expectGet()
+        transitiveModule.pom.expectGet()
+        transitiveModule.artifact.expectGet()
+
+        when:
+        run "checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:unspecified") {
+                module("groupA:artifactA:1.2") {
+                    module("groupB:artifactB:1.4")
+                }
+            }
+        }
+    }
+
+    def "resolves dependency from profile activated by system property"() {
+        given:
+        String customPropertyName = new UUIDGenerator().generateId()
+        executer.withArguments("-D${customPropertyName}=BLUE")
+
+        and:
+        def requestedModule = mavenHttpRepo.module("groupA", "artifactA", "1.2").publish()
+        requestedModule.pomFile.text = """
+<project>
+    <groupId>groupA</groupId>
+    <artifactId>artifactA</artifactId>
+    <version>1.2</version>
+    <dependencies>
+        <dependency>
+            <groupId>groupB</groupId>
+            <artifactId>artifactB</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>groupB</groupId>
+            <artifactId>artifactB</artifactId>
+            <version>1.7</version>
+        </dependency>
+    </dependencies>
+    <profiles>
+        <profile>
+            <id>profile-1</id>
+            <activation>
+                <property>
+                    <name>${customPropertyName}</name>
+                    <value>BLUE</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>groupB</groupId>
+                    <artifactId>artifactB</artifactId>
+                    <version>1.4</version>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 </project>
