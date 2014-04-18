@@ -25,7 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-public class GenericFileSystem implements FileSystem {
+class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
 
     final boolean caseSensitive;

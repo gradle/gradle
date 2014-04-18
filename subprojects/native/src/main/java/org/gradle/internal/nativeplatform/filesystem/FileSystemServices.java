@@ -36,7 +36,7 @@ public class FileSystemServices {
     public FileSystem createFileSystem(OperatingSystem operatingSystem) {
         // Use no-op implementations for windows
         if (operatingSystem.isWindows()) {
-            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), new FallbackSymlink());
+            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), new WindowsSymlink());
         }
 
         // Use the native-platform integration, if available
@@ -83,14 +83,14 @@ public class FileSystemServices {
         if (libC != null) {
             return new LibcSymlink(libC);
         }
-        LOGGER.debug("Using FallbackSymlink implementation.");
-        return new FallbackSymlink();
+        LOGGER.debug("Using UnsupportedSymlink implementation.");
+        return new UnsupportedSymlink();
     }
 
     private FileModeAccessor stat() {
         POSIX posix = PosixUtil.current();
         if (posix instanceof JavaPOSIX) {
-            return new FallbackStat();
+            return new UnsupportedStat();
         } else {
             return new PosixStat(posix);
         }
@@ -100,8 +100,8 @@ public class FileSystemServices {
         if (libC != null) {
             return new LibcChmod(libC, new DefaultFilePathEncoder(libC));
         }
-        LOGGER.debug("Using EmptyChmod implementation.");
-        return new EmptyChmod();
+        LOGGER.debug("Using UnsupportedChmod implementation.");
+        return new UnsupportedChmod();
     }
 
     private static LibC loadLibC() {

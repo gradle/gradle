@@ -19,12 +19,12 @@ package org.gradle.internal.nativeplatform.filesystem;
 import java.io.File;
 import java.io.IOException;
 
-public class FallbackSymlink implements Symlink {
+class UnsupportedSymlink implements Symlink {
     public boolean isSupported() {
         return false;
     }
 
     public void symlink(File link, File target) throws IOException {
-        throw new IOException("Creation of symlinks is not supported on this platform.");
+        throw new IOException("Support for the creation of symlinks is only available on this platform using Java 7 or later.");
     }
 }

@@ -20,7 +20,7 @@ import org.gradle.internal.nativeplatform.jna.LibC;
 
 import java.io.File;
 
-public class LibcSymlink implements Symlink {
+class LibcSymlink implements Symlink {
     private final LibC libC;
 
     public LibcSymlink(LibC libC) {

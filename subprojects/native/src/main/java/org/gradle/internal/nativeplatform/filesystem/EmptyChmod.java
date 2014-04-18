@@ -17,8 +17,12 @@
 package org.gradle.internal.nativeplatform.filesystem;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 class EmptyChmod implements FileModeMutator {
-    public void chmod(File f, int mode) {
+    public void chmod(File f, int mode) throws FileNotFoundException {
+        if (!f.exists()) {
+            throw new FileNotFoundException(String.format("File '%s' does not exist.", f));
+        }
     }
 }

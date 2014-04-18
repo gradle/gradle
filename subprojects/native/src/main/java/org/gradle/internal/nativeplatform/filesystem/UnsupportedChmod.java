@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,22 @@
 
 package org.gradle.internal.nativeplatform.filesystem;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-class FallbackStat implements FileModeAccessor {
-    public int getUnixMode(File f) throws IOException {
-        if (f.isDirectory()) {
-            return FileSystem.DEFAULT_DIR_MODE;
-        } else if (f.exists()) {
-            return FileSystem.DEFAULT_FILE_MODE;
-        } else {
-            throw new FileNotFoundException(String.format("File '%s' not found.", f));
+public class UnsupportedChmod extends EmptyChmod {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnsupportedChmod.class);
+    private final AtomicBoolean warned = new AtomicBoolean();
+
+    @Override
+    public void chmod(File f, int mode) throws FileNotFoundException {
+        if (warned.compareAndSet(false, true)) {
+            LOGGER.warn("Support for setting file permissions is only available on this platform using Java 7 or later.");
         }
+        super.chmod(f, mode);
     }
 }
