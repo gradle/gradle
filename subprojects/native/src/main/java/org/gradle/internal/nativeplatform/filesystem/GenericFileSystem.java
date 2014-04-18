@@ -32,7 +32,7 @@ public class GenericFileSystem implements FileSystem {
     final boolean caseSensitive;
     final boolean canCreateSymbolicLink;
 
-    private final Chmod chmod;
+    private final FileModeMutator chmod;
     private final Stat stat;
     private final Symlink symlink;
 
@@ -62,9 +62,12 @@ public class GenericFileSystem implements FileSystem {
         return stat.getUnixMode(f);
     }
 
-    public void chmod(File f, int mode) throws IOException {
-        assertFileExists(f);
-        chmod.chmod(f, mode);
+    public void chmod(File f, int mode) {
+        try {
+            chmod.chmod(f, mode);
+        } catch (Exception e) {
+            throw new FileException(String.format("Could not set file mode %o on '%s'.", mode, f), e);
+        }
     }
 
     protected final void assertFileExists(File f) throws FileNotFoundException {
@@ -73,7 +76,7 @@ public class GenericFileSystem implements FileSystem {
         }
     }
 
-    public GenericFileSystem(Chmod chmod, Stat stat, Symlink symlink) {
+    public GenericFileSystem(FileModeMutator chmod, Stat stat, Symlink symlink) {
         this.stat = stat;
         this.symlink = symlink;
         this.chmod = chmod;

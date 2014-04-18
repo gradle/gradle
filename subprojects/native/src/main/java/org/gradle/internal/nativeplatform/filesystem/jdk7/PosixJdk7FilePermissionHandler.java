@@ -16,20 +16,20 @@
 
 package org.gradle.internal.nativeplatform.filesystem.jdk7;
 
+import org.gradle.internal.nativeplatform.NativeIntegrationException;
+import org.gradle.internal.nativeplatform.filesystem.FileModeMutator;
+import org.gradle.internal.nativeplatform.filesystem.Stat;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 
-import org.gradle.internal.nativeplatform.NativeIntegrationException;
-import org.gradle.internal.nativeplatform.filesystem.Chmod;
-import org.gradle.internal.nativeplatform.filesystem.Stat;
-
 import static org.gradle.internal.nativeplatform.filesystem.jdk7.PosixFilePermissionConverter.convertToInt;
 import static org.gradle.internal.nativeplatform.filesystem.jdk7.PosixFilePermissionConverter.convertToPermissionsSet;
 
-public class PosixJdk7FilePermissionHandler implements Stat, Chmod {
+public class PosixJdk7FilePermissionHandler implements Stat, FileModeMutator {
 
     public int getUnixMode(File file) {
         try {

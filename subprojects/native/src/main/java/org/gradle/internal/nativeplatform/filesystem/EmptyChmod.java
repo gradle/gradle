@@ -17,9 +17,8 @@
 package org.gradle.internal.nativeplatform.filesystem;
 
 import java.io.File;
-import java.io.IOException;
 
-class EmptyChmod implements Chmod {
-    public void chmod(File f, int mode) throws IOException {
+class EmptyChmod implements FileModeMutator {
+    public void chmod(File f, int mode) {
     }
 }

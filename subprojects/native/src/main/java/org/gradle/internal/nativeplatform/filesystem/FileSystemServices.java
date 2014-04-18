@@ -42,7 +42,7 @@ public class FileSystemServices {
         try {
             PosixFiles posixFiles = net.rubygrapefruit.platform.Native.get(PosixFiles.class);
             Symlink symlink = new NativePlatformBackedSymlink(posixFiles);
-            Chmod chmod = new NativePlatformBackedChmod(posixFiles);
+            FileModeMutator chmod = new NativePlatformBackedChmod(posixFiles);
             Stat stat = new NativePlatformBackedStat(posixFiles);
             return new GenericFileSystem(chmod, stat, symlink);
         } catch (NativeIntegrationUnavailableException ex) {
@@ -56,7 +56,7 @@ public class FileSystemServices {
         POSIX posix = PosixUtil.current();
         if ((libC != null && (operatingSystem.isLinux())) && posix instanceof BaseNativePOSIX) {
             FilePathEncoder filePathEncoder = new DefaultFilePathEncoder(libC);
-            Chmod chmod = new LibcChmod(libC, filePathEncoder);
+            FileModeMutator chmod = new LibcChmod(libC, filePathEncoder);
             Stat stat = new LibCStat(libC, operatingSystem, (BaseNativePOSIX) posix, filePathEncoder);
             return new GenericFileSystem(chmod, stat, symlink);
         }
@@ -66,7 +66,7 @@ public class FileSystemServices {
             String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
             try {
                 Object handler = FileSystemServices.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
-                return new GenericFileSystem((Chmod) handler, (Stat) handler, symlink);
+                return new GenericFileSystem((FileModeMutator) handler, (Stat) handler, symlink);
             } catch (ClassNotFoundException e) {
                 LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.", jdkFilePermissionclass));
             } catch (Exception e) {
@@ -95,7 +95,7 @@ public class FileSystemServices {
         }
     }
 
-    private Chmod chmod(LibC libC) {
+    private FileModeMutator chmod(LibC libC) {
         if (libC != null) {
             return new LibcChmod(libC, new DefaultFilePathEncoder(libC));
         }

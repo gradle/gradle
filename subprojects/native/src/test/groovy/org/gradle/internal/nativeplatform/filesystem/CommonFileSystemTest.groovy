@@ -36,11 +36,14 @@ class CommonFileSystemTest extends Specification {
     }
 
     def "unix permissions cannot be set on non existing file"() {
+        def file = tmpDir.file("someFile")
+
         when:
-        fs.chmod(tmpDir.file("someFile"), 0644)
+        fs.chmod(file, 0644)
 
         then:
-        thrown(FileNotFoundException)
+        FileException e = thrown()
+        e.message == "Could not set file mode 644 on '$file'."
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)

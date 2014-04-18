@@ -20,9 +20,8 @@ import com.sun.jna.LastErrorException;
 import org.gradle.internal.nativeplatform.jna.LibC;
 
 import java.io.File;
-import java.io.IOException;
 
-class LibcChmod implements Chmod {
+class LibcChmod implements FileModeMutator {
     private final LibC libc;
     private final FilePathEncoder encoder;
 
@@ -31,12 +30,8 @@ class LibcChmod implements Chmod {
         this.encoder = encoder;
     }
 
-    public void chmod(File f, int mode) throws IOException {
-        try {
-            byte[] encodedFilePath = encoder.encode(f);
-            libc.chmod(encodedFilePath, mode);
-        } catch (LastErrorException exception) {
-            throw new IOException(String.format("Failed to set file permissions %s on file %s. errno: %d", mode, f.getName(), exception.getErrorCode()));
-        }
+    public void chmod(File f, int mode) throws LastErrorException {
+        byte[] encodedFilePath = encoder.encode(f);
+        libc.chmod(encodedFilePath, mode);
     }
 }
