@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.util.Arrays.asList;
+
 public class DefaultDependentsSet implements Serializable, DependentsSet {
 
     private final Set<String> dependentClasses = new HashSet<String>();
@@ -55,8 +57,8 @@ public class DefaultDependentsSet implements Serializable, DependentsSet {
         return this;
     }
 
-    public static DefaultDependentsSet dependentsSet(Collection<String> dependentClasses) {
-        return new DefaultDependentsSet(dependentClasses);
+    public static DefaultDependentsSet dependents(String ... dependentClasses) {
+        return new DefaultDependentsSet(asList(dependentClasses));
     }
 
     public void setDependencyToAll(boolean dependencyToAll) {

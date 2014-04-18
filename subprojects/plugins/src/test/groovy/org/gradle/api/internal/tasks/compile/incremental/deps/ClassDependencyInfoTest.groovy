@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.compile.incremental.deps
 
 import spock.lang.Specification
 
+import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents
+
 class ClassDependencyInfoTest extends Specification {
 
     def "returns empty info"() {
@@ -51,9 +53,9 @@ class ClassDependencyInfoTest extends Specification {
 
     def "recurses nested dependencies"() {
         def info = new ClassDependencyInfo([
-                "Foo": new DefaultDependentsSet(["Bar"]),
-                "Bar": new DefaultDependentsSet(["Baz"]),
-                "Baz": new DefaultDependentsSet([]),
+                "Foo": dependents("Bar"),
+                "Bar": dependents("Baz"),
+                "Baz": dependents(),
         ])
         def deps = info.getRelevantDependents("Foo")
 
@@ -65,11 +67,11 @@ class ClassDependencyInfoTest extends Specification {
 
     def "recurses multiple dependencies"() {
         def info = new ClassDependencyInfo([
-                "a": new DefaultDependentsSet(["b", "c"]),
-                "b": new DefaultDependentsSet(["d"]),
-                "c": new DefaultDependentsSet(["e"]),
-                "d": new DefaultDependentsSet([]),
-                "e": new DefaultDependentsSet([])
+                "a": dependents("b", "c"),
+                "b": dependents("d"),
+                "c": dependents("e"),
+                "d": dependents(),
+                "e": dependents()
         ])
         def deps = info.getRelevantDependents("a")
 
@@ -79,7 +81,7 @@ class ClassDependencyInfoTest extends Specification {
 
     def "removes self from dependents"() {
         def info = new ClassDependencyInfo([
-                "Foo": new DefaultDependentsSet(["Foo"])
+                "Foo": dependents("Foo")
         ])
         def deps = info.getRelevantDependents("Foo")
 
@@ -89,9 +91,9 @@ class ClassDependencyInfoTest extends Specification {
 
     def "handles dependency cycles"() {
         def info = new ClassDependencyInfo([
-                "Foo": new DefaultDependentsSet(["Bar"]),
-                "Bar": new DefaultDependentsSet(["Baz"]),
-                "Baz": new DefaultDependentsSet(["Foo"]),
+                "Foo": dependents("Bar"),
+                "Bar": dependents("Baz"),
+                "Baz": dependents("Foo"),
         ])
         def deps = info.getRelevantDependents("Foo")
 
@@ -101,10 +103,10 @@ class ClassDependencyInfoTest extends Specification {
 
     def "recurses but filters out inner classes"() {
         def info = new ClassDependencyInfo([
-                "a":   new DefaultDependentsSet(['a$b', 'c']),
-                'a$b': new DefaultDependentsSet(['d']),
-                "c": new DefaultDependentsSet([]),
-                "d": new DefaultDependentsSet([]),
+                "a":   dependents('a$b', 'c'),
+                'a$b': dependents('d'),
+                "c": dependents(),
+                "d": dependents(),
         ])
         def deps = info.getRelevantDependents("a")
 
@@ -114,9 +116,9 @@ class ClassDependencyInfoTest extends Specification {
 
     def "handles cycles with inner classes"() {
         def info = new ClassDependencyInfo([
-                "a":   new DefaultDependentsSet(['a$b']),
-                'a$b': new DefaultDependentsSet(['a', 'c']),
-                "c": new DefaultDependentsSet([])
+                "a":   dependents('a$b'),
+                'a$b': dependents('a', 'c'),
+                "c": dependents()
         ])
         def deps = info.getRelevantDependents("a")
 
