@@ -125,4 +125,40 @@ class ClassDependencyInfoTest extends Specification {
         expect:
         deps.dependentClasses == ["c"] as Set
     }
+
+    def "provides dependents of all input classes"() {
+        def info = new ClassDependencyInfo([
+                "A": dependents("B"), "B": dependents(),
+                "C": dependents("D"), "D": dependents(),
+                "E": dependents("D"), "F": dependents(),
+        ])
+        def deps = info.getRelevantDependents(["A", "E"])
+
+        expect:
+        deps.dependentClasses == ["D", "B"] as Set
+    }
+
+    def "provides recursive dependents of all input classes"() {
+        def info = new ClassDependencyInfo([
+                "A": dependents("B"), "B": dependents("C"), "C": dependents(),
+                "D": dependents("E"), "E": dependents(),
+                "F": dependents("G"), "G": dependents(),
+        ])
+        def deps = info.getRelevantDependents(["A", "D"])
+
+        expect:
+        deps.dependentClasses == ["E", "B", "C"] as Set
+    }
+
+    def "knows when any of the input classes is a dependency to all"() {
+        def info = new ClassDependencyInfo([
+                "A": dependents("B"), "B": dependents(),
+                "C": new DefaultDependentsSet(true, []),
+                "D": dependents("E"), "E": dependents(),
+        ])
+        def deps = info.getRelevantDependents(["A", "C", "will not be reached"])
+
+        expect:
+        deps.dependencyToAll
+    }
 }

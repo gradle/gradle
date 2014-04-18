@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.compile.incremental.SourceToNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoProvider;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
+import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
@@ -46,7 +47,7 @@ public class RecompilationSpecProvider {
         //creating an action that will be executed against all changes
         DefaultRecompilationSpec spec = new DefaultRecompilationSpec(dependencyInfo);
         JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(dependencyInfo, sourceToNameConverter);
-        JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarSnapshotFeeder);
+        JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarSnapshotFeeder, new PreviousCompilation(dependencyInfo));
         InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, jarChangeProcessor);
 
         //go!

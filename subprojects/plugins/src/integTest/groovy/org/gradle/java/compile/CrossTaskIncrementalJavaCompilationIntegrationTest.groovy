@@ -20,7 +20,7 @@ package org.gradle.java.compile;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import spock.lang.Ignore;
+import spock.lang.Ignore
 
 public class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -81,6 +81,30 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
         then:
         impl.recompiledClasses("ImplB", "ImplB2")
+    }
+
+    def "deletion of jar without dependents does not recompile any classes"() {
+        java api: ["class A {}"], impl: ["class SomeImpl {}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        buildFile << """
+            project(':impl') {
+                configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
+            }
+        """
+        run "impl:compileJava"
+
+        then:
+        impl.noneRecompiled()
+    }
+
+    def "deletion of jar with dependents causes compilation failure"() {
+        //TODO
+    }
+
+    def "deletion of jar with source annotations causes full rebuild"() {
+        //TODO
     }
 
     def "detects change to dependency and ensures class dependency info refreshed"() {

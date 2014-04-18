@@ -21,21 +21,24 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarArchive;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarChangeDependentsFinder;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
+import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 class JarChangeProcessor {
 
     private final FileOperations fileOperations;
     private final JarSnapshotFeeder jarSnapshotFeeder;
+    private final PreviousCompilation previousCompilation;
 
-    public JarChangeProcessor(FileOperations fileOperations, JarSnapshotFeeder jarSnapshotFeeder) {
+    public JarChangeProcessor(FileOperations fileOperations, JarSnapshotFeeder jarSnapshotFeeder, PreviousCompilation previousCompilation) {
         this.fileOperations = fileOperations;
         this.jarSnapshotFeeder = jarSnapshotFeeder;
+        this.previousCompilation = previousCompilation;
     }
 
     public void processChange(InputFileDetails input, DefaultRecompilationSpec spec) {
         JarArchive jarArchive = new JarArchive(input.getFile(), fileOperations.zipTree(input.getFile()));
-        JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarSnapshotFeeder);
+        JarChangeDependentsFinder dependentsFinder = new JarChangeDependentsFinder(jarSnapshotFeeder, previousCompilation);
         DependentsSet actualDependents = dependentsFinder.getActualDependents(input, jarArchive);
         if (actualDependents.isDependencyToAll()) {
             spec.fullRebuildCause = input.getFile();

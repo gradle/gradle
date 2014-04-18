@@ -17,9 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ClassDependencyInfo implements Serializable {
 
@@ -27,6 +25,18 @@ public class ClassDependencyInfo implements Serializable {
 
     public ClassDependencyInfo(Map<String, ? extends DependentsSet> dependents) {
         this.dependents = dependents;
+    }
+
+    public DependentsSet getRelevantDependents(Iterable<String> classes) {
+        List<String> result = new LinkedList<String>();
+        for (String cls : classes) {
+            DependentsSet d = getRelevantDependents(cls);
+            if (d.isDependencyToAll()) {
+                return d;
+            }
+            result.addAll(d.getDependentClasses());
+        }
+        return new DefaultDependentsSet(result);
     }
 
     public DependentsSet getRelevantDependents(String className) {

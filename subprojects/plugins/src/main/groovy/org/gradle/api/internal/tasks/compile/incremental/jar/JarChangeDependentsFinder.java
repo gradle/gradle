@@ -18,14 +18,19 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+
+import java.util.Set;
 
 public class JarChangeDependentsFinder {
 
     private JarSnapshotFeeder jarSnapshotFeeder;
+    private PreviousCompilation previousCompilation;
 
-    public JarChangeDependentsFinder(JarSnapshotFeeder jarSnapshotFeeder) {
+    public JarChangeDependentsFinder(JarSnapshotFeeder jarSnapshotFeeder, PreviousCompilation previousCompilation) {
         this.jarSnapshotFeeder = jarSnapshotFeeder;
+        this.previousCompilation = previousCompilation;
     }
 
     //TODO SF coverage
@@ -42,10 +47,15 @@ public class JarChangeDependentsFinder {
         }
 
         if (jarChangeDetails.isRemoved()) {
-            return new DefaultDependentsSet(true);
+            Set<String> allClasses = existing.getAllClasses();
+            return previousCompilation.getDependents(allClasses);
         }
 
         if (jarChangeDetails.isModified()) {
+            //TODO, the model needs to change to fix this:
+            // - stop storing dependency info with jar snapshot
+            //compare existing snapshot with new snapshot -> classes changed
+            //ask previous compilation for dependents of classes changed
             JarSnapshot snapshotNoDeps = jarSnapshotFeeder.newSnapshotWithoutDependents(jarArchive);
             return existing.getDependentsDelta(snapshotNoDeps);
         }

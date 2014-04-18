@@ -20,10 +20,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsS
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class JarSnapshot implements Serializable {
 
@@ -48,5 +45,9 @@ class JarSnapshot implements Serializable {
             }
         }
         return new DefaultDependentsSet(allDependents);
+    }
+
+    public Set<String> getAllClasses() {
+        return classSnapshots.keySet();
     }
 }
