@@ -17,8 +17,7 @@
 package org.gradle.internal.nativeplatform.filesystem;
 
 import java.io.File;
-import java.io.IOException;
 
 public interface Stat {
-    public int getUnixMode(File f) throws IOException;
+    public int getUnixMode(File f) throws FileException;
 }

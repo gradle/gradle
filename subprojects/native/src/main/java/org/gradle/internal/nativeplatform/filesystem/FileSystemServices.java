@@ -39,11 +39,12 @@ public class FileSystemServices {
             return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), new FallbackSymlink());
         }
 
+        // Use the native-platform integration, if available
         try {
             PosixFiles posixFiles = net.rubygrapefruit.platform.Native.get(PosixFiles.class);
             Symlink symlink = new NativePlatformBackedSymlink(posixFiles);
             FileModeMutator chmod = new NativePlatformBackedChmod(posixFiles);
-            Stat stat = new NativePlatformBackedStat(posixFiles);
+            FileModeAccessor stat = new NativePlatformBackedStat(posixFiles);
             return new GenericFileSystem(chmod, stat, symlink);
         } catch (NativeIntegrationUnavailableException ex) {
             LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
@@ -57,7 +58,7 @@ public class FileSystemServices {
         if ((libC != null && (operatingSystem.isLinux())) && posix instanceof BaseNativePOSIX) {
             FilePathEncoder filePathEncoder = new DefaultFilePathEncoder(libC);
             FileModeMutator chmod = new LibcChmod(libC, filePathEncoder);
-            Stat stat = new LibCStat(libC, operatingSystem, (BaseNativePOSIX) posix, filePathEncoder);
+            FileModeAccessor stat = new LibCStat(libC, operatingSystem, (BaseNativePOSIX) posix, filePathEncoder);
             return new GenericFileSystem(chmod, stat, symlink);
         }
 
@@ -66,7 +67,7 @@ public class FileSystemServices {
             String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
             try {
                 Object handler = FileSystemServices.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
-                return new GenericFileSystem((FileModeMutator) handler, (Stat) handler, symlink);
+                return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink);
             } catch (ClassNotFoundException e) {
                 LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.", jdkFilePermissionclass));
             } catch (Exception e) {
@@ -86,7 +87,7 @@ public class FileSystemServices {
         return new FallbackSymlink();
     }
 
-    private Stat stat() {
+    private FileModeAccessor stat() {
         POSIX posix = PosixUtil.current();
         if (posix instanceof JavaPOSIX) {
             return new FallbackStat();

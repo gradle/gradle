@@ -19,7 +19,7 @@ package org.gradle.internal.nativeplatform.filesystem;
 import java.io.File;
 import java.io.IOException;
 
-class FallbackStat implements Stat {
+class FallbackStat implements FileModeAccessor {
     public int getUnixMode(File f) throws IOException {
         if (f.isDirectory()) {
             return FileSystem.DEFAULT_DIR_MODE;

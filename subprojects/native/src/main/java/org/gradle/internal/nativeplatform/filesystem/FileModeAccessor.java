@@ -16,19 +16,8 @@
 
 package org.gradle.internal.nativeplatform.filesystem;
 
-import net.rubygrapefruit.platform.PosixFiles;
-
 import java.io.File;
-import java.io.IOException;
 
-class NativePlatformBackedStat implements FileModeAccessor {
-    private final PosixFiles posixFiles;
-
-    public NativePlatformBackedStat(PosixFiles posixFiles) {
-        this.posixFiles = posixFiles;
-    }
-
-    public int getUnixMode(File f) throws IOException {
-        return posixFiles.getMode(f);
-    }
+public interface FileModeAccessor {
+    public int getUnixMode(File f) throws Exception;
 }

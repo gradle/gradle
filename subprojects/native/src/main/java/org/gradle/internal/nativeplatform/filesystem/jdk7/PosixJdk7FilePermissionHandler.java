@@ -16,9 +16,8 @@
 
 package org.gradle.internal.nativeplatform.filesystem.jdk7;
 
-import org.gradle.internal.nativeplatform.NativeIntegrationException;
+import org.gradle.internal.nativeplatform.filesystem.FileModeAccessor;
 import org.gradle.internal.nativeplatform.filesystem.FileModeMutator;
-import org.gradle.internal.nativeplatform.filesystem.Stat;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,15 +28,11 @@ import java.nio.file.attribute.PosixFileAttributes;
 import static org.gradle.internal.nativeplatform.filesystem.jdk7.PosixFilePermissionConverter.convertToInt;
 import static org.gradle.internal.nativeplatform.filesystem.jdk7.PosixFilePermissionConverter.convertToPermissionsSet;
 
-public class PosixJdk7FilePermissionHandler implements Stat, FileModeMutator {
+public class PosixJdk7FilePermissionHandler implements FileModeAccessor, FileModeMutator {
 
-    public int getUnixMode(File file) {
-        try {
-            final PosixFileAttributes posixFileAttributes = Files.readAttributes(file.toPath(), PosixFileAttributes.class);
-            return convertToInt(posixFileAttributes.permissions());
-        }catch (Exception e) {
-            throw new NativeIntegrationException(String.format("Failed to read File permissions for %s", file.getAbsolutePath()), e);
-        }
+    public int getUnixMode(File file) throws IOException {
+        final PosixFileAttributes posixFileAttributes = Files.readAttributes(file.toPath(), PosixFileAttributes.class);
+        return convertToInt(posixFileAttributes.permissions());
     }
 
     public void chmod(File f, int mode) throws IOException {

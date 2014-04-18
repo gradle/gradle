@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -33,7 +32,7 @@ public class GenericFileSystem implements FileSystem {
     final boolean canCreateSymbolicLink;
 
     private final FileModeMutator chmod;
-    private final Stat stat;
+    private final FileModeAccessor stat;
     private final Symlink symlink;
 
     public boolean isCaseSensitive() {
@@ -44,22 +43,20 @@ public class GenericFileSystem implements FileSystem {
         return canCreateSymbolicLink;
     }
 
-    public void createSymbolicLink(File link, File target) throws IOException {
-        symlink.symlink(link, target);
-    }
-
-    public boolean tryCreateSymbolicLink(File link, File target) {
+    public void createSymbolicLink(File link, File target) {
         try {
             symlink.symlink(link, target);
-            return true;
-        } catch (IOException e) {
-            return false;
+        } catch (Exception e) {
+            throw new FileException(String.format("Could not create symlink from '%s' to '%s'.", link.getPath(), target.getPath()), e);
         }
     }
 
-    public int getUnixMode(File f) throws IOException {
-        assertFileExists(f);
-        return stat.getUnixMode(f);
+    public int getUnixMode(File f) {
+        try {
+            return stat.getUnixMode(f);
+        } catch (Exception e) {
+            throw new FileException(String.format("Could not get file mode for '%s'.", f), e);
+        }
     }
 
     public void chmod(File f, int mode) {
@@ -70,13 +67,7 @@ public class GenericFileSystem implements FileSystem {
         }
     }
 
-    protected final void assertFileExists(File f) throws FileNotFoundException {
-        if (!f.exists()) {
-            throw new FileNotFoundException(f + " does not exist");
-        }
-    }
-
-    public GenericFileSystem(FileModeMutator chmod, Stat stat, Symlink symlink) {
+    public GenericFileSystem(FileModeMutator chmod, FileModeAccessor stat, Symlink symlink) {
         this.stat = stat;
         this.symlink = symlink;
         this.chmod = chmod;

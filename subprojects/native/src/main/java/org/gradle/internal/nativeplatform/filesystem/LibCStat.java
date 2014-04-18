@@ -23,9 +23,8 @@ import org.jruby.ext.posix.FileStat;
 import org.jruby.ext.posix.Linux64FileStat;
 
 import java.io.File;
-import java.io.IOException;
 
-class LibCStat implements Stat {
+class LibCStat implements FileModeAccessor {
     private final LibC libc;
     private final FilePathEncoder encoder;
     private final OperatingSystem operatingSystem;
@@ -38,7 +37,7 @@ class LibCStat implements Stat {
         this.encoder = encoder;
     }
 
-    public int getUnixMode(File f) throws IOException {
+    public int getUnixMode(File f) {
         FileStat stat = nativePOSIX.allocateStat();
         initPlatformSpecificStat(stat, encoder.encode(f));
         return stat.mode() & 0777;

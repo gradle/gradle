@@ -16,11 +16,9 @@
 
 package org.gradle.internal.nativeplatform.filesystem;
 
-import com.sun.jna.LastErrorException;
 import org.gradle.internal.nativeplatform.jna.LibC;
 
 import java.io.File;
-import java.io.IOException;
 
 public class LibcSymlink implements Symlink {
     private final LibC libC;
@@ -33,12 +31,8 @@ public class LibcSymlink implements Symlink {
         return true;
     }
 
-    public void symlink(File link, File target) throws IOException {
+    public void symlink(File link, File target) {
         link.getParentFile().mkdirs();
-        try {
-            libC.symlink(target.getPath(), link.getPath());
-        } catch (LastErrorException e) {
-            throw new IOException(String.format("Could not create symlink from '%s' to '%s'. Errno is %s.", link.getPath(), target.getPath(), e.getErrorCode()));
-        }
+        libC.symlink(target.getPath(), link.getPath());
     }
 }

@@ -20,7 +20,9 @@ import spock.lang.Specification
 
 class GenericFileSystemTest extends Specification {
     def fileModeMutator = Stub(FileModeMutator)
-    def fileSystem = new GenericFileSystem(fileModeMutator, Stub(Stat), Stub(Symlink))
+    def fileModeAccessor = Stub(FileModeAccessor)
+    def symlink = Stub(Symlink)
+    def fileSystem = new GenericFileSystem(fileModeMutator, fileModeAccessor, symlink)
 
     def "wraps failure to set file mode"() {
         def failure = new RuntimeException()
@@ -35,5 +37,36 @@ class GenericFileSystemTest extends Specification {
         then:
         FileException e = thrown()
         e.message == "Could not set file mode 640 on '$file'."
+    }
+
+    def "wraps failure to get file mode"() {
+        def failure = new RuntimeException()
+        def file = new File("does-not-exist")
+
+        given:
+        fileModeAccessor.getUnixMode(_) >> { throw failure }
+
+        when:
+        fileSystem.getUnixMode(file)
+
+        then:
+        FileException e = thrown()
+        e.message == "Could not get file mode for '$file'."
+    }
+
+    def "wraps failure to get create symlink"() {
+        def failure = new RuntimeException()
+        def file = new File("does-not-exist")
+        def target = new File("target")
+
+        given:
+        symlink.symlink(_, _) >> { throw failure }
+
+        when:
+        fileSystem.createSymbolicLink(file, target)
+
+        then:
+        FileException e = thrown()
+        e.message == "Could not create symlink from '$file' to '$target'."
     }
 }

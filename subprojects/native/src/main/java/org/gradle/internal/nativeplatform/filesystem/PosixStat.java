@@ -21,7 +21,7 @@ import org.jruby.ext.posix.POSIX;
 import java.io.File;
 import java.io.IOException;
 
-class PosixStat implements Stat {
+class PosixStat implements FileModeAccessor {
     private final POSIX posix;
 
     public PosixStat(POSIX posix) {
