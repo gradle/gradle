@@ -63,4 +63,14 @@ class JarSnapshotTest extends Specification {
         s1.getDependentsDelta(s2).dependencyToAll
         s2.getDependentsDelta(s1).dependentClasses == [] as Set
     }
+
+    def "knows if any of the classes may incur full rebuild"() {
+        JarSnapshot s1 = new JarSnapshot(["A": new ClassSnapshot("A".bytes, ['B']),
+                                          "B": new ClassSnapshot("B".bytes)])
+        JarSnapshot s2 = new JarSnapshot(["C": new ClassSnapshot("C".bytes, ['D'])])
+
+        expect:
+        s1.containsFullRebuildClasses()
+        !s2.containsFullRebuildClasses()
+    }
 }

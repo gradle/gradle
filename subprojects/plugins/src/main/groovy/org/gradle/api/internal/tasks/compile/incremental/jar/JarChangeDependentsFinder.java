@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.InputFileDetails;
@@ -44,6 +45,10 @@ public class JarChangeDependentsFinder {
             //we don't know what classes were dependents of the jar in the previous build
             //for example, a class (in jar) with a constant might have changed into a class without a constant - we need to rebuild everything
             return new DefaultDependentsSet(true);
+        }
+
+        if (jarChangeDetails.isRemoved() && existing.containsFullRebuildClasses()) {
+            return new DependencyToAll();
         }
 
         if (jarChangeDetails.isRemoved()) {

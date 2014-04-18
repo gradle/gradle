@@ -50,4 +50,13 @@ class JarSnapshot implements Serializable {
     public Set<String> getAllClasses() {
         return classSnapshots.keySet();
     }
+
+    public boolean containsFullRebuildClasses() {
+        for (ClassSnapshot classSnapshot : classSnapshots.values()) {
+            if (classSnapshot.getDependents().isDependencyToAll()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

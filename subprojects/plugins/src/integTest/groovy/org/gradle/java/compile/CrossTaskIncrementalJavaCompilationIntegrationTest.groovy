@@ -115,7 +115,6 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         impl.noneRecompiled()
     }
 
-    @Ignore //TODO
     def "deletion of jar with non-private constant annotations causes full rebuild"() {
         java api: ["class A { final static int x = 1; }"], impl: ["class X {}", "class Y {}"]
         impl.snapshot { run "compileJava" }
