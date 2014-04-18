@@ -113,7 +113,7 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
         !compare(notExistingFrom, existingTo).outcomesAreIdentical
         !compare(existingFrom, notExistingTo).outcomesAreIdentical
         !compare(existingFrom, unequal).outcomesAreIdentical
-        !compare(notExistingFrom, notExistingTo).outcomesAreIdentical
+        compare(notExistingFrom, notExistingTo).outcomesAreIdentical
     }
 
     protected GeneratedArchiveBuildOutcomeComparisonResult compare(from, to) {
