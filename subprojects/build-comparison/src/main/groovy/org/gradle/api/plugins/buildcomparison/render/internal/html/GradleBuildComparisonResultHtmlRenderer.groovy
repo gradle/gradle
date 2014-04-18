@@ -116,8 +116,9 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
             h2 "Compared build outcomes"
             p "Compared build outcomes are outcomes that have been identified as being intended to be the same between the target and source build."
 
+            def comparisons = result.comparisons.sort { name(it) }
             ol {
-                for (comparison in result.comparisons) {
+                for (comparison in comparisons) {
                     li {
                         // TODO: assuming that the names are unique and that they are always the same on both sides which they are in 1.2
                         a("class": context.diffClass(comparison.outcomesAreIdentical), href: "#${name(comparison)}", name(comparison))
@@ -125,7 +126,7 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
                 }
             }
 
-            for (BuildOutcomeComparisonResult comparison in result.comparisons) {
+            for (BuildOutcomeComparisonResult comparison in comparisons) {
                 BuildOutcomeComparisonResultRenderer renderer = comparisonRenderers.getRenderer(comparison.getClass())
 
                 if (renderer == null) {

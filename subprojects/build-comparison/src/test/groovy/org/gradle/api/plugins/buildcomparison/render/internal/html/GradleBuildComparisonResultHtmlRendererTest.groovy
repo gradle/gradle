@@ -124,4 +124,23 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
         html.select(".build-outcome.target").find { it.id() == "bar" }
     }
 
+    def "sort buildcomparison report by name"() {
+        given:
+        comparisonRenderers.registerRenderer(new StringBuildOutcomeComparisonResultHtmlRenderer())
+        outcomeRenderers.registerRenderer(new StringBuildOutcomeHtmlRenderer())
+
+        and:
+        comparisons << strcmp("a", "a")
+        comparisons << strcmp("c", "a")
+        comparisons << strcmp("b", "a")
+
+        when:
+        def html = render()
+
+        then:
+        def tables = html.select(".build-outcome-comparison table")
+        tables[0].select("td")[0].text() == "a"
+        tables[1].select("td")[0].text() == "b"
+        tables[2].select("td")[0].text() == "c"
+    }
 }
