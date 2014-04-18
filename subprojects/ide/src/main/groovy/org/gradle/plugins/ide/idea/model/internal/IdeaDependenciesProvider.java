@@ -19,10 +19,7 @@ package org.gradle.plugins.ide.idea.model.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.plugins.ide.idea.model.Dependency;
@@ -96,10 +93,7 @@ public class IdeaDependenciesProvider {
 
     private Set<Dependency> provideFromScopeRuleMappings(IdeaModule ideaModule) {
         Multimap<IdeDependencyKey<?, Dependency>, String> dependencyToConfigurations = LinkedHashMultimap.create();
-        for (Configuration configuration : ideaModule.getProject().getConfigurations()) {
-            if (!isMappedToIdeaScope(configuration, ideaModule)) {
-                continue;
-            }
+        for (Configuration configuration : ideaConfigurations(ideaModule)) {
             // project dependencies
             Collection<IdeProjectDependency> ideProjectDependencies = dependenciesExtractor.extractProjectDependencies(
                     ideaModule.getProject(), Collections.singletonList(configuration), Collections.<Configuration>emptyList());
@@ -209,8 +203,23 @@ public class IdeaDependenciesProvider {
         };
     }
 
+    private Iterable<Configuration> ideaConfigurations(final IdeaModule ideaModule) {
+        Set<Configuration> configurations = Sets.newHashSet(ideaModule.getProject().getConfigurations());
+        for (Map<String, Collection<Configuration>> scopeMap : ideaModule.getScopes().values()) {
+            for (Configuration cfg : Iterables.concat(scopeMap.values())) {
+                configurations.add(cfg);
+            }
+        }
+        return Iterables.filter(
+                configurations,
+                new Predicate<Configuration>() {
+                    public boolean apply(Configuration input) {
+                        return isMappedToIdeaScope(input, ideaModule);
+                    }
+                });
+    }
 
-    boolean isMappedToIdeaScope(final Configuration configuration, IdeaModule ideaModule) {
+    private boolean isMappedToIdeaScope(final Configuration configuration, IdeaModule ideaModule) {
         Iterable<IdeaScopeMappingRule> rules = Iterables.concat(scopeMappings.values());
         boolean matchesRule = Iterables.any(rules, new Predicate<IdeaScopeMappingRule>() {
             public boolean apply(IdeaScopeMappingRule ideaScopeMappingRule) {
