@@ -83,8 +83,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         impl.recompiledClasses("ImplB", "ImplB2")
     }
 
-    @Ignore //TODO
-    def "detects change to transitive dependency and ensures class dependency info refreshed"() {
+    def "detects change to dependency and ensures class dependency info refreshed"() {
         java api: ["class A {}", "class B extends A {}"]
         java impl: ["class SomeImpl {}", "class ImplB extends B {}", "class ImplB2 extends ImplB {}"]
         impl.snapshot { run "compileJava" }
