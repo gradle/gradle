@@ -38,24 +38,18 @@ class ClassDependencyInfoUpdaterTest extends Specification {
 
     def "does not update info when recompilation was not necessary"() {
         def result = Stub(RecompilationNotNecessary)
-        result.initialDependencyInfo >> info
 
-        when:
-        def out = updater.updateInfo(Mock(JavaCompileSpec), result)
+        when: updater.updateInfo(Mock(JavaCompileSpec), result)
 
-        then:
-        out == info
-        0 * _
+        then: 0 * _
     }
 
     def "updates info"() {
-        when:
-        def out = updater.updateInfo(Stub(JavaCompileSpec), Mock(WorkResult))
+        when: updater.updateInfo(Stub(JavaCompileSpec), Mock(WorkResult))
+
         then:
         1 * operations.fileTree(_) >> Mock(ConfigurableFileTree)
         1 * extractor.getDependencyInfo() >> info
         1 * writer.writeInfo(_)
-
-        out == info
     }
 }

@@ -42,19 +42,17 @@ public class ClassDependencyInfoUpdater {
         this.extractor = extractor;
     }
 
-    public ClassDependencyInfo updateInfo(JavaCompileSpec spec, WorkResult compilationResult) {
+    public void updateInfo(JavaCompileSpec spec, WorkResult compilationResult) {
         if (compilationResult instanceof RecompilationNotNecessary) {
-            //performance tweak
-            //update not necessary. Reuse dependency info loaded for compilation
-            return ((RecompilationNotNecessary) compilationResult).getInitialDependencyInfo();
-        } else {
-            Clock clock = new Clock();
-            FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
-            tree.visit(extractor);
-            ClassDependencyInfo info = extractor.getDependencyInfo();
-            writer.writeInfo(info);
-            LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), writer);
-            return info;
+            //performance tweak, update not necessary
+            return;
         }
+
+        Clock clock = new Clock();
+        FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
+        tree.visit(extractor);
+        ClassDependencyInfo info = extractor.getDependencyInfo();
+        writer.writeInfo(info);
+        LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), writer);
     }
 }

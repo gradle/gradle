@@ -16,22 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.tasks.WorkResult;
 
 public class RecompilationNotNecessary implements WorkResult {
 
-    private final RecompilationSpec recompilationSpec;
-
-    public RecompilationNotNecessary(RecompilationSpec recompilationSpec) {
-        this.recompilationSpec = recompilationSpec;
-    }
-
     public boolean getDidWork() {
         return true;
-    }
-
-    public ClassDependencyInfo getInitialDependencyInfo() {
-        return recompilationSpec.getInitialDependencyInfo();
     }
 }

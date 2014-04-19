@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
 import org.gradle.api.logging.Logger;
@@ -46,7 +45,7 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
     public WorkResult execute(JavaCompileSpec spec) {
         WorkResult out = delegate.execute(spec);
 
-        ClassDependencyInfo info = updater.updateInfo(spec, out);
+        updater.updateInfo(spec, out);
 
         Clock clock = new Clock();
         jarSnapshotFeeder.storeJarSnapshots(classpathJarFinder.findJarArchives(spec.getClasspath()));
