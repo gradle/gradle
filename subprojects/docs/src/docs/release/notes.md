@@ -219,6 +219,24 @@ This way the custom listeners are more robust because they can affect the test s
 There should be no impact of this change because majority of users do not employ custom listeners
 and even if they do healthy listeners will work correctly regardless of the listeners' order.
 
+### Support for reading or setting file permissions on certain platforms with Java 5 or 6
+
+Gradle previously supported file permissions on Solaris and Linux ia-64 using Java 5 and Java 6. This support has
+been removed. You will receive a warning when attempting to use file permissions on these platforms.
+
+Note that file permissions are supported on these platforms when you use Java 7 and later, and is supported for all Java
+versions on Linux, OS X, Windows and FreeBSD for x86 and amd64 architectures.
+
+### Support for terminal integration on certain platforms
+
+Gradle previously supported terminal integration on Solaris and Linux ia-64. This support has been removed. When you use Gradle on these
+platforms, Gradle will fall back to using plain text output.
+
+Note that terminal integration is supported on Linux, OS X, Windows and FreeBSD for x86 and amd64 architectures.
+
+If you wish to have terminal integration on other platforms and architectures, please help us out with porting our
+native integration to these platforms.
+
 ### Support for the Gradle Open API removed
 
 - `GradleRunnerFactory` removed.

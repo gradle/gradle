@@ -16,16 +16,10 @@
 
 package org.gradle.internal.nativeplatform.filesystem;
 
-import com.sun.jna.Native;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.PosixFiles;
 import org.gradle.api.JavaVersion;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.nativeplatform.jna.LibC;
 import org.gradle.internal.os.OperatingSystem;
-import org.jruby.ext.posix.BaseNativePOSIX;
-import org.jruby.ext.posix.JavaPOSIX;
-import org.jruby.ext.posix.POSIX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +27,7 @@ public class FileSystemServices {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServices.class);
 
     @SuppressWarnings("UnusedDeclaration")
-    public FileSystem createFileSystem(OperatingSystem operatingSystem) {
+    public FileSystem createFileSystem(OperatingSystem operatingSystem) throws Exception {
         // Use no-op implementations for windows
         if (operatingSystem.isWindows()) {
             return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), new WindowsSymlink());
@@ -50,68 +44,26 @@ public class FileSystemServices {
             LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
         }
 
-        LibC libC = loadLibC();
-        Symlink symlink = symlink(libC);
-
-        // Use libc backed implementations on Linux, if libc available
-        POSIX posix = PosixUtil.current();
-        if ((libC != null && (operatingSystem.isLinux())) && posix instanceof BaseNativePOSIX) {
-            FilePathEncoder filePathEncoder = new DefaultFilePathEncoder(libC);
-            FileModeMutator chmod = new LibcChmod(libC, filePathEncoder);
-            FileModeAccessor stat = new LibCStat(libC, operatingSystem, (BaseNativePOSIX) posix, filePathEncoder);
-            return new GenericFileSystem(chmod, stat, symlink);
-        }
+        LOGGER.debug("Using UnsupportedSymlink implementation.");
+        Symlink symlink = new UnsupportedSymlink();
 
         // Use java 7 APIs, if available
         if (JavaVersion.current().isJava7()) {
             String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
+            Class<?> handlerClass = null;
             try {
-                Object handler = FileSystemServices.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
-                return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink);
+                handlerClass = FileSystemServices.class.getClassLoader().loadClass(jdkFilePermissionclass);
             } catch (ClassNotFoundException e) {
                 LOGGER.warn(String.format("Unable to load %s. Continuing with fallback.", jdkFilePermissionclass));
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+            }
+            if (handlerClass != null) {
+                LOGGER.debug("Using JDK 7 file services.");
+                Object handler = handlerClass.newInstance();
+                return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink);
             }
         }
 
-        // Attempt to use libc for chmod and posix for stat, and fallback to no-op implementations if not available
-        return new GenericFileSystem(chmod(libC), stat(), symlink);
+        // Fallback to no-op implementations if not available
+        return new GenericFileSystem(new UnsupportedChmod(), new UnsupportedStat(), symlink);
     }
-
-    private Symlink symlink(LibC libC) {
-        if (libC != null) {
-            return new LibcSymlink(libC);
-        }
-        LOGGER.debug("Using UnsupportedSymlink implementation.");
-        return new UnsupportedSymlink();
-    }
-
-    private FileModeAccessor stat() {
-        POSIX posix = PosixUtil.current();
-        if (posix instanceof JavaPOSIX) {
-            return new UnsupportedStat();
-        } else {
-            return new PosixStat(posix);
-        }
-    }
-
-    private FileModeMutator chmod(LibC libC) {
-        if (libC != null) {
-            return new LibcChmod(libC, new DefaultFilePathEncoder(libC));
-        }
-        LOGGER.debug("Using UnsupportedChmod implementation.");
-        return new UnsupportedChmod();
-    }
-
-    private static LibC loadLibC() {
-        try {
-            return (LibC) Native.loadLibrary("c", LibC.class);
-        } catch (LinkageError e) {
-            LOGGER.debug("Unable to load LibC library. Continuing with fallback filesystem implementations.");
-            return null;
-        }
-    }
-
 }
-
