@@ -31,7 +31,7 @@ class LayoutCommandLineConverterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
     def convert(String... args) {
-        converter.convert(Arrays.asList(args))
+        converter.convert(Arrays.asList(args), new BuildLayoutParameters())
     }
 
     def "has reasonable defaults"() {

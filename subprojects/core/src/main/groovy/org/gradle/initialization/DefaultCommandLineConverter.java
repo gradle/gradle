@@ -27,6 +27,7 @@ import org.gradle.internal.nativeplatform.services.FileSystems;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
@@ -94,19 +95,14 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. This means faster build for large multi-project builds.").incubating();
     }
 
-    @Override
-    protected StartParameter newInstance() {
-        return new StartParameter();
-    }
-
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
         loggingConfigurationCommandLineConverter.convert(options, startParameter);
         FileResolver resolver = fileLookup.getFileResolver(startParameter.getCurrentDir());
 
-        Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options);
+        Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options, new HashMap<String, String>());
         convertCommandLineSystemProperties(systemProperties, startParameter, resolver);
 
-        Map<String, String> projectProperties = projectPropertiesCommandLineConverter.convert(options);
+        Map<String, String> projectProperties = projectPropertiesCommandLineConverter.convert(options, new HashMap<String, String>());
         startParameter.getProjectProperties().putAll(projectProperties);
 
         BuildLayoutParameters layout = new BuildLayoutParameters()

@@ -41,7 +41,7 @@ public class BuildLogLevelMixIn {
             return LogLevel.DEBUG;
         }
 
-        LoggingConfiguration loggingConfiguration = converter.convert(parsedCommandLine);
+        LoggingConfiguration loggingConfiguration = converter.convert(parsedCommandLine, new LoggingConfiguration());
         return loggingConfiguration.getLogLevel();
     }
 }

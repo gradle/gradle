@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Properties;
 
 public class GradleWrapperMain {
@@ -45,7 +46,7 @@ public class GradleWrapperMain {
         ParsedCommandLine options = parser.parse(args);
 
         Properties systemProperties = System.getProperties();
-        systemProperties.putAll(converter.convert(options));
+        systemProperties.putAll(converter.convert(options, new HashMap<String, String>()));
 
         File gradleUserHome = gradleUserHome(options);
 

@@ -35,10 +35,6 @@ public class LayoutCommandLineConverter extends AbstractCommandLineConverter<Bui
         this.fileLookup = fileLookup;
     }
 
-    protected BuildLayoutParameters newInstance() {
-        return new BuildLayoutParameters();
-    }
-
     public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {
         FileResolver resolver = fileLookup.getFileResolver(target.getProjectDir());
         if (options.hasOption(NO_SEARCH_UPWARDS)) {

@@ -162,7 +162,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         converter.configure(parser);
         ParsedCommandLine parsedCommandLine = parser.parse(getAllArgs());
 
-        BuildLayoutParameters layout = converter.getLayoutConverter().convert(parsedCommandLine);
+        BuildLayoutParameters layout = converter.getLayoutConverter().convert(parsedCommandLine, new BuildLayoutParameters());
 
         Map<String, String> properties = new HashMap<String, String>();
         new LayoutToPropertiesConverter().convert(layout, properties);

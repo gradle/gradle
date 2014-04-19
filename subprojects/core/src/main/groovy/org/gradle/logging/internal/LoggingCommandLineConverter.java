@@ -53,11 +53,6 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         showStacktraceMap.put(STACKTRACE, ShowStacktrace.ALWAYS);
     }
 
-    @Override
-    protected LoggingConfiguration newInstance() {
-        return new LoggingConfiguration();
-    }
-
     public LoggingConfiguration convert(ParsedCommandLine commandLine, LoggingConfiguration loggingConfiguration) throws CommandLineArgumentException {
         for (Map.Entry<String, LogLevel> entry : logLevelMap.entrySet()) {
             if (commandLine.hasOption(entry.getKey())) {
