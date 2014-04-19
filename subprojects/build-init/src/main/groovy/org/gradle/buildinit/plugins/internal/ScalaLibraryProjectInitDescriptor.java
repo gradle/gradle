@@ -30,7 +30,8 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
                 .withTarget("build.gradle")
                 .withDocumentationBindings(GUtil.map("ref_userguide_scala_plugin", "scala_plugin"))
                 .withBindings(GUtil.map("scalaVersion", libraryVersionProvider.getVersion("scala-library")))
-                .withBindings(GUtil.map("scalaTestVersion", libraryVersionProvider.getVersion("scalatest_2.10")))
+                .withBindings(GUtil.map("scalaTestModule", "scalatest_" + libraryVersionProvider.getVersion("scala")))
+                .withBindings(GUtil.map("scalaTestVersion", libraryVersionProvider.getVersion("scalatest")))
                 .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
                 .create()
         );

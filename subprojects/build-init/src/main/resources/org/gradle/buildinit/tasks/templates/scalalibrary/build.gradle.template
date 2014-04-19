@@ -24,5 +24,5 @@ dependencies {
 
     // We use the latest version of the scalatest for testing our library
     testCompile 'junit:junit:${junitVersion.groovyString}'
-    testCompile 'org.scalatest:scalatest_2.10:${scalaTestVersion.groovyString}'
+    testCompile 'org.scalatest:${scalaTestModule.groovyString}:${scalaTestVersion.groovyString}'
 }
