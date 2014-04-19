@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -30,14 +30,14 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
     private static final Logger LOG = Logging.getLogger(IncrementalCompilationFinalizer.class);
 
     private final Compiler<JavaCompileSpec> delegate;
-    private final JarSnapshotFeeder jarSnapshotFeeder;
+    private final JarSnapshotsMaker jarSnapshotsMaker;
     private final ClasspathJarFinder classpathJarFinder;
     private final ClassDependencyInfoUpdater updater;
 
-    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, JarSnapshotFeeder jarSnapshotFeeder,
+    public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, JarSnapshotsMaker jarSnapshotsMaker,
                                            ClasspathJarFinder classpathJarFinder, ClassDependencyInfoUpdater updater) {
         this.delegate = delegate;
-        this.jarSnapshotFeeder = jarSnapshotFeeder;
+        this.jarSnapshotsMaker = jarSnapshotsMaker;
         this.classpathJarFinder = classpathJarFinder;
         this.updater = updater;
     }
@@ -48,7 +48,7 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
         updater.updateInfo(spec, out);
 
         Clock clock = new Clock();
-        jarSnapshotFeeder.storeJarSnapshots(classpathJarFinder.findJarArchives(spec.getClasspath()));
+        jarSnapshotsMaker.storeJarSnapshots(classpathJarFinder.findJarArchives(spec.getClasspath()));
         LOG.lifecycle("Created and written jar snapshots in {}.", clock.getTime());
 
         return out;

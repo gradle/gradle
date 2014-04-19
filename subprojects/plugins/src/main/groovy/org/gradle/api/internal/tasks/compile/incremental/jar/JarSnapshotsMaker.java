@@ -20,12 +20,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JarSnapshotFeeder {
+public class JarSnapshotsMaker {
 
     private final JarSnapshotCache jarSnapshotCache;
     private final JarSnapshotter jarSnapshotter;
 
-    public JarSnapshotFeeder(JarSnapshotCache jarSnapshotCache, JarSnapshotter jarSnapshotter) {
+    public JarSnapshotsMaker(JarSnapshotCache jarSnapshotCache, JarSnapshotter jarSnapshotter) {
         this.jarSnapshotCache = jarSnapshotCache;
         this.jarSnapshotter = jarSnapshotter;
     }

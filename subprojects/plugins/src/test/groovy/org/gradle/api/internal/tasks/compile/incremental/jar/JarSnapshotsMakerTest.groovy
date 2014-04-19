@@ -23,13 +23,13 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInf
 import spock.lang.Specification
 import spock.lang.Subject
 
-class JarSnapshotFeederTest extends Specification {
+class JarSnapshotsMakerTest extends Specification {
 
     def cache = Mock(JarSnapshotCache)
     def info = Mock(ClassDependencyInfo)
     def snapshotter = Mock(JarSnapshotter)
 
-    @Subject feeder = new JarSnapshotFeeder(cache, snapshotter)
+    @Subject feeder = new JarSnapshotsMaker(cache, snapshotter)
 
     def "stores jar snapshot"() {
         def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree))
