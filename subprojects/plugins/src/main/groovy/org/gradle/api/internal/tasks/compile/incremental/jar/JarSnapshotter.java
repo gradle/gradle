@@ -37,11 +37,10 @@ public class JarSnapshotter {
 
     public JarSnapshot createSnapshot(JarArchive jarArchive) {
         FileTree classes = jarArchive.contents;
-        return createSnapshot(classes);
+        return createSnapshot(classes, new ClassDependencyInfoExtractor(analyzer));
     }
 
-    JarSnapshot createSnapshot(FileTree classes) {
-        final ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
+    JarSnapshot createSnapshot(FileTree classes, final ClassDependencyInfoExtractor extractor) {
         final Map<String, byte[]> hashes = new HashMap<String, byte[]>();
         classes.visit(new FileVisitor() {
             public void visitDir(FileVisitDetails dirDetails) {

@@ -28,49 +28,24 @@ class JarSnapshotsMakerTest extends Specification {
     def cache = Mock(JarSnapshotCache)
     def info = Mock(ClassDependencyInfo)
     def snapshotter = Mock(JarSnapshotter)
+    def finder = Mock(ClasspathJarFinder)
 
-    @Subject feeder = new JarSnapshotsMaker(cache, snapshotter, Mock(ClasspathJarFinder))
+    @Subject maker = new JarSnapshotsMaker(cache, snapshotter, finder)
 
-    def "stores jar snapshot"() {
-        def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree))
-        def snapshot = Mock(JarSnapshot)
+    def "stores jar snapshots"() {
+        def sn1 = Mock(JarSnapshot); def sn2 = Mock(JarSnapshot)
+        def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree)); def jar2 = new JarArchive(new File("jar2.jar"), Mock(FileTree))
 
-        when:
-        feeder.storeJarSnapshots([jar1])
-
-        then:
-        1 * cache.getSnapshot(jar1.file)
-        1 * snapshotter.createSnapshot(jar1.contents, info) >> snapshot
-        1 * cache.putSnapshots([(jar1.file): snapshot])
-        0 * _
-    }
-
-    def "stores multiple snapshots"() {
-        def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree))
-        def jar2 = new JarArchive(new File("jar2.jar"), Mock(FileTree))
+        def classpath = [new File("foo.zip"), new File("someDir"), new File("some.jar")]
 
         when:
-        feeder.storeJarSnapshots([jar1, jar2])
+        maker.storeJarSnapshots(classpath)
 
         then:
-        1 * snapshotter.createSnapshot(jar1.contents, info) >> Mock(JarSnapshot)
-        1 * snapshotter.createSnapshot(jar2.contents, info) >> Mock(JarSnapshot)
-        1 * cache.putSnapshots({ it.size() == 2})
-    }
-
-    def "avoids storing unchanged jar snapshots"() {
-        def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree))
-        def jar2 = new JarArchive(new File("jar2.jar"), Mock(FileTree))
-
-        when:
-        feeder.changedJar(jar2.file)
-        feeder.storeJarSnapshots([jar1, jar2])
-
-        then:
-        1 * cache.getSnapshot(jar1.file) >> Mock(JarSnapshot)
-        1 * cache.getSnapshot(jar2.file) >> Mock(JarSnapshot)
-        1 * snapshotter.createSnapshot(jar2.contents, info) >> Mock(JarSnapshot)
-        1 * cache.putSnapshots({ it[jar2.file] })
+        1 * finder.findJarArchives(classpath) >> [jar1, jar2]
+        1 * snapshotter.createSnapshot(jar1) >> sn1
+        1 * snapshotter.createSnapshot(jar2) >> sn2
+        1 * cache.putSnapshots([(jar1.file): sn1, (jar2.file): sn2])
         0 * _
     }
 }

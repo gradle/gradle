@@ -19,8 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationNotNecessary
 import org.gradle.api.tasks.WorkResult
@@ -31,10 +30,9 @@ class ClassDependencyInfoUpdaterTest extends Specification {
 
     def writer = Mock(ClassDependencyInfoWriter)
     def operations = Mock(FileOperations)
-    def extractor = Mock(ClassDependencyInfoExtractor)
-    def info = Mock(ClassDependencyInfo)
+    def analyzer = Mock(ClassDependenciesAnalyzer)
 
-    @Subject updater = new ClassDependencyInfoUpdater(writer, operations, extractor)
+    @Subject updater = new ClassDependencyInfoUpdater(writer, operations, analyzer)
 
     def "does not update info when recompilation was not necessary"() {
         def result = Stub(RecompilationNotNecessary)
@@ -49,7 +47,6 @@ class ClassDependencyInfoUpdaterTest extends Specification {
 
         then:
         1 * operations.fileTree(_) >> Mock(ConfigurableFileTree)
-        1 * extractor.getDependencyInfo() >> info
         1 * writer.writeInfo(_)
     }
 }

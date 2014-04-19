@@ -18,10 +18,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents
 
 class JarSnapshotCacheTest extends Specification {
 
@@ -34,21 +37,16 @@ class JarSnapshotCacheTest extends Specification {
     }
 
     def "caches snapshots"() {
+        def info = new ClassDependencyInfo(["Foo": dependents("Bar"), "Bar": dependents()])
+        cache.putSnapshots([(new File("foo.jar")): new JarSnapshot(["Foo": "f".bytes], info)])
+
         when:
-        cache.putSnapshots([(new File("foo.jar")): new JarSnapshot(["Foo": new ClassSnapshot("f".bytes, ['a', 'b'])])])
-        def sn = cache.getSnapshot(new File("foo.jar")).classSnapshots["Foo"]
-
-        then:
-        sn.hash == "f".bytes
-        sn.dependentClasses == ['a', 'b']
-    }
-
-    def "caches snapshots in file"() {
-        when:
-        cache.putSnapshots([(new File("foo.jar")): new JarSnapshot(["Foo": new ClassSnapshot("f".bytes, [])])])
-
-        then:
         def cache2 = new JarSnapshotCache(temp.file("cache.bin"))
-        cache2.getSnapshot(new File("foo.jar")).classSnapshots["Foo"].hash == "f".bytes
+        def sn = cache2.getSnapshot(new File("foo.jar"))
+
+        then:
+        sn == cache2.getSnapshot(new File("foo.jar"))
+        sn.hashes == ["Foo": "f".bytes]
+        sn.info.getRelevantDependents("Foo").dependentClasses == ["Bar"] as Set
     }
 }

@@ -22,6 +22,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.hash.Hasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,29 +32,35 @@ import spock.lang.Subject
 class JarSnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    @Subject snapshotter = new JarSnapshotter(Mock(Hasher), Mock(ClassDependenciesAnalyzer));
+    def hasher = Mock(Hasher)
+
+    @Subject snapshotter = new JarSnapshotter(hasher, Mock(ClassDependenciesAnalyzer))
 
     def "creates snapshot for an empty jar"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(new FileTreeAdapter(new DirectoryFileTree(new File("missing"))))
-        snapshot.allClasses.isEmpty()
+        def snapshot = snapshotter.createSnapshot(new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing")))))
+        snapshot.hashes.isEmpty()
+        snapshot.info
     }
 
     def "creates snapshot of a jar with classes"() {
         def f1 = temp.createFile("foo/Foo.class")
         def f2 = temp.createFile("foo/com/Foo2.class")
-        def sn1 = Mock(ClassSnapshot); def sn2 = Mock(ClassSnapshot)
+        def extractor = Mock(ClassDependencyInfoExtractor)
+        def info = Stub(ClassDependencyInfo)
 
         when:
-        def snapshot = snapshotter.createSnapshot(new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), info)
+        def snapshot = snapshotter.createSnapshot(new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), extractor)
 
         then:
-        1 * classSnapshotter.createSnapshot("Foo", f1, info) >> sn1
-        1 * classSnapshotter.createSnapshot("com.Foo2", f2, info) >> sn2
-
-        snapshot.classSnapshots["Foo"] == sn1
-        snapshot.classSnapshots["com.Foo2"] == sn2
-
+        2 * extractor.visitFile(_)
+        1 * hasher.hash(f1)
+        1 * hasher.hash(f2)
+        1 * extractor.getDependencyInfo() >> info
         0 * _._
+
+        and:
+        snapshot.hashes.keySet() == ["Foo", "com.Foo2"] as Set
+        snapshot.info == info
     }
 }

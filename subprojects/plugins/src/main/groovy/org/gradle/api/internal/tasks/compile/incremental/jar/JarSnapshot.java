@@ -28,10 +28,13 @@ import java.util.Set;
 
 public class JarSnapshot implements Serializable {
 
-    private Map<String, byte[]> hashes;
-    private ClassDependencyInfo info;
+    final Map<String, byte[]> hashes;
+    final ClassDependencyInfo info;
 
     public JarSnapshot(Map<String, byte[]> hashes, ClassDependencyInfo info) {
+        assert hashes != null;
+        assert info != null;
+
         this.hashes = hashes;
         this.info = info;
     }
