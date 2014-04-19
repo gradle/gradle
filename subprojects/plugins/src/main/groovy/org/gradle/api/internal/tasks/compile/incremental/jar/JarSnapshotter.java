@@ -18,29 +18,43 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
+import org.gradle.api.internal.hash.Hasher;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class JarSnapshotter {
 
-    private final ClassSnapshotter classSnapshotFactory;
+    private final Hasher hasher;
+    private final ClassDependenciesAnalyzer analyzer;
 
-    public JarSnapshotter(ClassSnapshotter classSnapshotFactory) {
-        this.classSnapshotFactory = classSnapshotFactory;
+    public JarSnapshotter(Hasher hasher, ClassDependenciesAnalyzer analyzer) {
+        this.hasher = hasher;
+        this.analyzer = analyzer;
     }
 
-    JarSnapshot createSnapshot(FileTree archivedClasses, final ClassDependencyInfo dependencyInfo) {
-        final Map<String, ClassSnapshot> hashes = new HashMap<String, ClassSnapshot>();
-        archivedClasses.visit(new FileVisitor() {
-            public void visitDir(FileVisitDetails dirDetails) {}
+    public JarSnapshot createSnapshot(JarArchive jarArchive) {
+        FileTree classes = jarArchive.contents;
+        return createSnapshot(classes);
+    }
+
+    JarSnapshot createSnapshot(FileTree classes) {
+        final ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
+        final Map<String, byte[]> hashes = new HashMap<String, byte[]>();
+        classes.visit(new FileVisitor() {
+            public void visitDir(FileVisitDetails dirDetails) {
+            }
 
             public void visitFile(FileVisitDetails fileDetails) {
+                extractor.visitFile(fileDetails);
                 String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");
-                hashes.put(className, classSnapshotFactory.createSnapshot(className, fileDetails.getFile(), dependencyInfo));
+                byte[] classHash = hasher.hash(fileDetails.getFile());
+                hashes.put(className, classHash);
             }
         });
-        return new JarSnapshot(hashes);
+
+        return new JarSnapshot(hashes, extractor.getDependencyInfo());
     }
 }

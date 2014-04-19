@@ -16,16 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
-
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JarSnapshotFeeder {
 
     private final JarSnapshotCache jarSnapshotCache;
-    private final Set<File> changedJars = new HashSet<File>();
     private final JarSnapshotter jarSnapshotter;
 
     public JarSnapshotFeeder(JarSnapshotCache jarSnapshotCache, JarSnapshotter jarSnapshotter) {
@@ -33,25 +30,11 @@ public class JarSnapshotFeeder {
         this.jarSnapshotter = jarSnapshotter;
     }
 
-    public JarSnapshot changedJar(File jarFile) {
-        JarSnapshot snapshot = jarSnapshotCache.getSnapshot(jarFile);
-        changedJars.add(jarFile);
-        return snapshot;
-    }
-
-    public void storeJarSnapshots(Iterable<JarArchive> jars, ClassDependencyInfo info) {
+    public void storeJarSnapshots(Iterable<JarArchive> jars) {
         Map<File, JarSnapshot> newSnapshots = new HashMap<File, JarSnapshot>();
         for (JarArchive jar : jars) {
-            if (!changedJars.contains(jar.file) && jarSnapshotCache.getSnapshot(jar.file) != null) {
-                //if jar was not changed and the the snapshot already exists, skip
-                continue;
-            }
-            newSnapshots.put(jar.file, jarSnapshotter.createSnapshot(jar.contents, info));
+            newSnapshots.put(jar.file, jarSnapshotter.createSnapshot(jar));
         }
         jarSnapshotCache.putSnapshots(newSnapshots);
-    }
-
-    public JarSnapshot newSnapshotWithoutDependents(JarArchive jarArchive) {
-        return jarSnapshotter.createSnapshot(jarArchive.contents, new ClassDependencyInfo(Collections.<String, DependentsSet>emptyMap()));
     }
 }

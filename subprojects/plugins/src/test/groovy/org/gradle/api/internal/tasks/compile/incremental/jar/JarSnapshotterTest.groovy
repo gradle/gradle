@@ -20,7 +20,8 @@ package org.gradle.api.internal.tasks.compile.incremental.jar
 
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo
+import org.gradle.api.internal.hash.Hasher
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -29,14 +30,12 @@ import spock.lang.Subject
 class JarSnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    def classSnapshotter = Mock(ClassSnapshotter)
-    def info = Mock(ClassDependencyInfo)
-    @Subject snapshotter = new JarSnapshotter(classSnapshotter);
+    @Subject snapshotter = new JarSnapshotter(Mock(Hasher), Mock(ClassDependenciesAnalyzer));
 
-    def "creates snapshot of an empty jar"() {
+    def "creates snapshot for an empty jar"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(new FileTreeAdapter(new DirectoryFileTree(new File("missing"))), null)
-        snapshot.classSnapshots.isEmpty()
+        def snapshot = snapshotter.createSnapshot(new FileTreeAdapter(new DirectoryFileTree(new File("missing"))))
+        snapshot.allClasses.isEmpty()
     }
 
     def "creates snapshot of a jar with classes"() {

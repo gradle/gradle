@@ -16,11 +16,10 @@
 
 
 
-package org.gradle.java.compile;
+package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import spock.lang.Ignore
 
 public class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -69,7 +68,6 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         impl.recompiledClasses("ImplA")
     }
 
-    @Ignore //TODO
     def "detects change to transitive dependency in an upstream project"() {
         java api: ["class A {}", "class B extends A {}"]
         java impl: ["class SomeImpl {}", "class ImplB extends B {}", "class ImplB2 extends ImplB {}"]
@@ -113,22 +111,6 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
         then:
         impl.noneRecompiled()
-    }
-
-    def "deletion of jar with non-private constant annotations causes full rebuild"() {
-        java api: ["class A { final static int x = 1; }"], impl: ["class X {}", "class Y {}"]
-        impl.snapshot { run "compileJava" }
-
-        when:
-        buildFile << """
-            project(':impl') {
-                configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
-            }
-        """
-        run "impl:compileJava"
-
-        then:
-        impl.recompiledClasses("X", "Y")
     }
 
     def "detects change to dependency and ensures class dependency info refreshed"() {
@@ -175,7 +157,23 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         impl.noneRecompiled()
     }
 
-    def "recompiles all sources if upstream project changes a class with non-private constant"() {
+    def "deletion of jar with non-private constant causes full rebuild"() {
+        java api: ["class A { final static int x = 1; }"], impl: ["class X {}", "class Y {}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        buildFile << """
+            project(':impl') {
+                configurations.compile.dependencies.clear() //so that api jar is no longer on classpath
+            }
+        """
+        run "impl:compileJava"
+
+        then:
+        impl.recompiledClasses("X", "Y")
+    }
+
+    def "change in an upstream class with non-private constant causes full rebuild"() {
         java api: ["class A {}", "class B { final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run "compileJava" }
 
@@ -185,6 +183,18 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
         then:
         impl.recompiledClasses('ImplA', 'ImplB')
+    }
+
+    def "change in an upstream transitive class with non-private constant does not cause full rebuild"() {
+        java api: ["class A { final static int x = 1; }", "class B extends A {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class B { /* change */ }"]
+        run "impl:compileJava"
+
+        then:
+        impl.recompiledClasses('ImplB')
     }
 
     def "private constant in upstream project does not trigger full rebuild"() {

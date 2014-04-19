@@ -28,7 +28,6 @@ import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilationS
 import org.gradle.api.internal.tasks.compile.incremental.SourceToNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoSerializer;
-import org.gradle.api.internal.tasks.compile.incremental.jar.ClassSnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
@@ -70,11 +69,12 @@ public class JavaCompile extends AbstractCompile {
         //bunch of services that enable incremental java compilation. Should be pushed out to services/factories.
         ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer(); //TODO SF needs caching
         JarSnapshotCache jarSnapshotCache = new JarSnapshotCache(new File(getProject().getBuildDir(), "jar-snapshot-cache.bin"));
-        JarSnapshotFeeder jarSnapshotFeeder = new JarSnapshotFeeder(jarSnapshotCache, new JarSnapshotter(new ClassSnapshotter(new DefaultHasher(), analyzer)));
+        JarSnapshotter jarSnapshotter = new JarSnapshotter(new DefaultHasher(), analyzer);
+        JarSnapshotFeeder jarSnapshotFeeder = new JarSnapshotFeeder(jarSnapshotCache, jarSnapshotter);
         ClassDependencyInfoSerializer dependencyInfoSerializer = new ClassDependencyInfoSerializer(new File(getProject().getBuildDir(), "class-info.bin"));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //can be replaced with converter that parses input source class
-        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, dependencyInfoSerializer, (FileOperations) getProject(), jarSnapshotFeeder);
+        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, dependencyInfoSerializer, (FileOperations) getProject(), jarSnapshotter, jarSnapshotCache);
         IncrementalCompilationSupport incrementalSupport = new IncrementalCompilationSupport(jarSnapshotFeeder, dependencyInfoSerializer, (FileOperations) getProject(),
                 analyzer, createCompiler(), getPath(), recompilationSpecProvider);
         org.gradle.api.internal.tasks.compile.Compiler<JavaCompileSpec> compiler = incrementalSupport.prepareCompiler(inputs, sourceDirs);

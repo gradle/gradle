@@ -25,11 +25,11 @@ import java.util.Map;
 //TODO SF this obviously needs to be replaced with a proper cache
 public class JarSnapshotCache {
 
-    private File sharedJarSnapshotCache;
+    private File storage;
     private Map<File, JarSnapshot> snapshots;
 
-    public JarSnapshotCache(File sharedJarSnapshotCache) {
-        this.sharedJarSnapshotCache = sharedJarSnapshotCache;
+    public JarSnapshotCache(File storage) {
+        this.storage = storage;
     }
 
     public JarSnapshot getSnapshot(File jar) {
@@ -40,13 +40,13 @@ public class JarSnapshotCache {
     public void putSnapshots(Map<File, JarSnapshot> newSnapshots) {
         init();
         this.snapshots.putAll(newSnapshots);
-        DummySerializer.writeTargetTo(sharedJarSnapshotCache, this.snapshots);
+        DummySerializer.writeTargetTo(storage, this.snapshots);
     }
 
     private void init() {
         if (snapshots == null) {
-            if (sharedJarSnapshotCache.isFile()) {
-                snapshots = (Map) DummySerializer.readFrom(sharedJarSnapshotCache);
+            if (storage.isFile()) {
+                snapshots = (Map) DummySerializer.readFrom(storage);
             } else {
                 snapshots = new HashMap<File, JarSnapshot>();
             }

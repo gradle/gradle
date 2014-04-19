@@ -49,7 +49,7 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
         ClassDependencyInfo info = updater.updateInfo(spec, out);
 
         Clock clock = new Clock();
-        jarSnapshotFeeder.storeJarSnapshots(classpathJarFinder.findJarArchives(spec.getClasspath()), info);
+        jarSnapshotFeeder.storeJarSnapshots(classpathJarFinder.findJarArchives(spec.getClasspath()));
         LOG.lifecycle("Created and written jar snapshots in {}.", clock.getTime());
 
         return out;

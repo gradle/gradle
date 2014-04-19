@@ -21,7 +21,8 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.SourceToNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoProvider;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotFeeder;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
@@ -31,23 +32,27 @@ public class RecompilationSpecProvider {
     private final SourceToNameConverter sourceToNameConverter;
     private final ClassDependencyInfoProvider dependencyInfoProvider;
     private final FileOperations fileOperations;
-    private final JarSnapshotFeeder jarSnapshotFeeder;
+    private final JarSnapshotter jarSnapshotter;
+    private JarSnapshotCache jarSnapshotCache;
 
-    public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, ClassDependencyInfoProvider dependencyInfoProvider, FileOperations fileOperations, JarSnapshotFeeder jarSnapshotFeeder) {
+    public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, ClassDependencyInfoProvider dependencyInfoProvider,
+                                     FileOperations fileOperations, JarSnapshotter jarSnapshotter, JarSnapshotCache jarSnapshotCache) {
         this.sourceToNameConverter = sourceToNameConverter;
         this.dependencyInfoProvider = dependencyInfoProvider;
         this.fileOperations = fileOperations;
-        this.jarSnapshotFeeder = jarSnapshotFeeder;
+        this.jarSnapshotter = jarSnapshotter;
+        this.jarSnapshotCache = jarSnapshotCache;
     }
 
     public RecompilationSpec provideRecompilationSpec(IncrementalTaskInputs inputs) {
         //load the dependency info
         ClassDependencyInfo dependencyInfo = dependencyInfoProvider.provideInfo();
+        PreviousCompilation previousCompilation = new PreviousCompilation(dependencyInfo, jarSnapshotCache);
 
         //creating an action that will be executed against all changes
         DefaultRecompilationSpec spec = new DefaultRecompilationSpec(dependencyInfo);
         JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(dependencyInfo, sourceToNameConverter);
-        JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarSnapshotFeeder, new PreviousCompilation(dependencyInfo));
+        JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarSnapshotter, previousCompilation);
         InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, jarChangeProcessor);
 
         //go!

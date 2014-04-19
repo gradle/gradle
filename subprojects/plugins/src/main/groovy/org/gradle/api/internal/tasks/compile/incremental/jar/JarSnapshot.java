@@ -16,47 +16,56 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-class JarSnapshot implements Serializable {
+public class JarSnapshot implements Serializable {
 
-    final Map<String, ClassSnapshot> classSnapshots;
+    private Map<String, byte[]> hashes;
+    private ClassDependencyInfo info;
 
-    JarSnapshot(Map<String, ClassSnapshot> classSnapshots) {
-        this.classSnapshots = classSnapshots;
+    public JarSnapshot(Map<String, byte[]> hashes, ClassDependencyInfo info) {
+        this.hashes = hashes;
+        this.info = info;
     }
 
-    DependentsSet getDependentsDelta(JarSnapshot current) {
-        final List<String> allDependents = new LinkedList<String>();
-        for (String thisCls : classSnapshots.keySet()) {
-            ClassSnapshot otherCls = current.classSnapshots.get(thisCls);
-            //if class was removed from current snapshot or hash does not match
-            if (otherCls == null || !Arrays.equals(otherCls.getHash(), classSnapshots.get(thisCls).getHash())) {
-                DependentsSet dependents = classSnapshots.get(thisCls).getDependents();
+    public DependentsSet getAllClasses() {
+        final Set<String> result = new HashSet<String>();
+        for (Map.Entry<String, byte[]> cls : hashes.entrySet()) {
+            String className = cls.getKey();
+            DependentsSet dependents = info.getRelevantDependents(className);
+            if (dependents.isDependencyToAll()) {
+                return dependents;
+            }
+            result.add(className);
+        }
+        return new DefaultDependentsSet(result);
+    }
+
+    public DependentsSet getAffectedClassesSince(JarSnapshot other) {
+        final Set<String> affected = new HashSet<String>();
+        for (Map.Entry<String, byte[]> otherClass : other.hashes.entrySet()) {
+            String otherClassName = otherClass.getKey();
+            byte[] otherClassBytes = otherClass.getValue();
+            byte[] thisClsBytes = hashes.get(otherClassName);
+            if (thisClsBytes == null || !Arrays.equals(thisClsBytes, otherClassBytes)) {
+                //removed since or changed since
+                affected.add(otherClassName);
+                DependentsSet dependents = other.info.getRelevantDependents(otherClassName);
                 if (dependents.isDependencyToAll()) {
-                    //one of the classes changed/removed in the jar is a 'dependencyToAll', let's return it, there is no point in further collection of dependents.
                     return dependents;
                 }
-                allDependents.addAll(dependents.getDependentClasses());
+                affected.addAll(dependents.getDependentClasses());
             }
+            //we ignore added since
         }
-        return new DefaultDependentsSet(allDependents);
-    }
-
-    public Set<String> getAllClasses() {
-        return classSnapshots.keySet();
-    }
-
-    public boolean containsFullRebuildClasses() {
-        for (ClassSnapshot classSnapshot : classSnapshots.values()) {
-            if (classSnapshot.getDependents().isDependencyToAll()) {
-                return true;
-            }
-        }
-        return false;
+        return new DefaultDependentsSet(affected);
     }
 }

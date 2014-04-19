@@ -36,7 +36,7 @@ class JarSnapshotFeederTest extends Specification {
         def snapshot = Mock(JarSnapshot)
 
         when:
-        feeder.storeJarSnapshots([jar1], info)
+        feeder.storeJarSnapshots([jar1])
 
         then:
         1 * cache.getSnapshot(jar1.file)
@@ -50,7 +50,7 @@ class JarSnapshotFeederTest extends Specification {
         def jar2 = new JarArchive(new File("jar2.jar"), Mock(FileTree))
 
         when:
-        feeder.storeJarSnapshots([jar1, jar2], info)
+        feeder.storeJarSnapshots([jar1, jar2])
 
         then:
         1 * snapshotter.createSnapshot(jar1.contents, info) >> Mock(JarSnapshot)
@@ -64,7 +64,7 @@ class JarSnapshotFeederTest extends Specification {
 
         when:
         feeder.changedJar(jar2.file)
-        feeder.storeJarSnapshots([jar1, jar2], info)
+        feeder.storeJarSnapshots([jar1, jar2])
 
         then:
         1 * cache.getSnapshot(jar1.file) >> Mock(JarSnapshot)
