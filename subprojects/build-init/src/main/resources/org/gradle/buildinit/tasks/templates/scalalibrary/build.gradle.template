@@ -19,10 +19,11 @@ repositories {
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    // We use the latest 2.10 scala version in our library project
-    compile 'org.scala-lang:scala-library:${scalaVersion.groovyString}'
+    // We use Scala ${scalaVersion.groovyString} in our library project
+    compile 'org.scala-lang:scala-library:${scalaLibraryVersion.groovyString}'
 
-    // We use the latest version of the scalatest for testing our library
+    // We use Scalatest for testing our library
     testCompile 'junit:junit:${junitVersion.groovyString}'
     testCompile 'org.scalatest:${scalaTestModule.groovyString}:${scalaTestVersion.groovyString}'
+    testRuntime 'org.scala-lang.modules:${scalaXmlModule.groovyString}:${scalaXmlVersion.groovyString}'
 }

@@ -63,6 +63,7 @@ class GenerateVersionProperties extends DefaultTask {
         def scalaVersion = VersionNumber.parse(versionProperties['scala-library'])
         versionProperties.put('scala', "${scalaVersion.major}.${scalaVersion.minor}" as String)
         findLatest('scalatest', "org.scalatest:scalatest_${versionProperties.scala}:latest.release", versionProperties)
+        findLatest('scala-xml', "org.scala-lang.modules:scala-xml_${versionProperties.scala}:latest.release", versionProperties)
         findLatest('groovy', 'org.codehaus.groovy:groovy:latest.release', versionProperties)
         findLatest('junit', 'junit:junit:latest.release', versionProperties)
 
