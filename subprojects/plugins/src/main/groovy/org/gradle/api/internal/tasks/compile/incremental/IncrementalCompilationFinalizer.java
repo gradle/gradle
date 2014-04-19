@@ -18,38 +18,27 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.util.Clock;
 
 class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
 
-    private static final Logger LOG = Logging.getLogger(IncrementalCompilationFinalizer.class);
-
     private final Compiler<JavaCompileSpec> delegate;
     private final JarSnapshotsMaker jarSnapshotsMaker;
-    private final ClasspathJarFinder classpathJarFinder;
-    private final ClassDependencyInfoUpdater updater;
+    private final ClassDependencyInfoUpdater dependencyInfoUpdater;
 
     public IncrementalCompilationFinalizer(Compiler<JavaCompileSpec> delegate, JarSnapshotsMaker jarSnapshotsMaker,
-                                           ClasspathJarFinder classpathJarFinder, ClassDependencyInfoUpdater updater) {
+                                           ClassDependencyInfoUpdater dependencyInfoUpdater) {
         this.delegate = delegate;
         this.jarSnapshotsMaker = jarSnapshotsMaker;
-        this.classpathJarFinder = classpathJarFinder;
-        this.updater = updater;
+        this.dependencyInfoUpdater = dependencyInfoUpdater;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
         WorkResult out = delegate.execute(spec);
 
-        updater.updateInfo(spec, out);
-
-        Clock clock = new Clock();
-        jarSnapshotsMaker.storeJarSnapshots(classpathJarFinder.findJarArchives(spec.getClasspath()));
-        LOG.lifecycle("Created and written jar snapshots in {}.", clock.getTime());
+        dependencyInfoUpdater.updateInfo(spec, out);
+        jarSnapshotsMaker.storeJarSnapshots(spec.getClasspath());
 
         return out;
     }

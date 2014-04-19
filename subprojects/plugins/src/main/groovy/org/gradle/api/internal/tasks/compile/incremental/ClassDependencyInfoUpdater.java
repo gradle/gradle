@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoExtractor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoWriter;
@@ -34,12 +35,12 @@ public class ClassDependencyInfoUpdater {
 
     private final ClassDependencyInfoWriter writer;
     private final FileOperations fileOperations;
-    private final ClassDependencyInfoExtractor extractor;
+    private ClassDependenciesAnalyzer analyzer;
 
-    public ClassDependencyInfoUpdater(ClassDependencyInfoWriter writer, FileOperations fileOperations, ClassDependencyInfoExtractor extractor) {
+    public ClassDependencyInfoUpdater(ClassDependencyInfoWriter writer, FileOperations fileOperations, ClassDependenciesAnalyzer analyzer) {
         this.writer = writer;
         this.fileOperations = fileOperations;
-        this.extractor = extractor;
+        this.analyzer = analyzer;
     }
 
     public void updateInfo(JavaCompileSpec spec, WorkResult compilationResult) {
@@ -50,6 +51,7 @@ public class ClassDependencyInfoUpdater {
 
         Clock clock = new Clock();
         FileTree tree = fileOperations.fileTree(spec.getDestinationDir());
+        ClassDependencyInfoExtractor extractor = new ClassDependencyInfoExtractor(analyzer);
         tree.visit(extractor);
         ClassDependencyInfo info = extractor.getDependencyInfo();
         writer.writeInfo(info);

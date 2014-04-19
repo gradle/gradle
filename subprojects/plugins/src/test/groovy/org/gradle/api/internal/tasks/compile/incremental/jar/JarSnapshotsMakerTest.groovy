@@ -29,7 +29,7 @@ class JarSnapshotsMakerTest extends Specification {
     def info = Mock(ClassDependencyInfo)
     def snapshotter = Mock(JarSnapshotter)
 
-    @Subject feeder = new JarSnapshotsMaker(cache, snapshotter)
+    @Subject feeder = new JarSnapshotsMaker(cache, snapshotter, Mock(ClasspathJarFinder))
 
     def "stores jar snapshot"() {
         def jar1 = new JarArchive(new File("jar1.jar"), Mock(FileTree))

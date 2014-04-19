@@ -16,25 +16,37 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.util.Clock;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 public class JarSnapshotsMaker {
 
+    private static final Logger LOG = Logging.getLogger(JarSnapshotsMaker.class);
+
     private final JarSnapshotCache jarSnapshotCache;
     private final JarSnapshotter jarSnapshotter;
+    private ClasspathJarFinder classpathJarFinder;
 
-    public JarSnapshotsMaker(JarSnapshotCache jarSnapshotCache, JarSnapshotter jarSnapshotter) {
+    public JarSnapshotsMaker(JarSnapshotCache jarSnapshotCache, JarSnapshotter jarSnapshotter, ClasspathJarFinder classpathJarFinder) {
         this.jarSnapshotCache = jarSnapshotCache;
         this.jarSnapshotter = jarSnapshotter;
+        this.classpathJarFinder = classpathJarFinder;
     }
 
-    public void storeJarSnapshots(Iterable<JarArchive> jars) {
+    public void storeJarSnapshots(Iterable<File> classpath) {
+        Clock clock = new Clock();
+        Iterable<JarArchive> jarArchives = classpathJarFinder.findJarArchives(classpath);
+
         Map<File, JarSnapshot> newSnapshots = new HashMap<File, JarSnapshot>();
-        for (JarArchive jar : jars) {
+        for (JarArchive jar : jarArchives) {
             newSnapshots.put(jar.file, jarSnapshotter.createSnapshot(jar));
         }
         jarSnapshotCache.putSnapshots(newSnapshots);
+        LOG.lifecycle("Created and written jar snapshots in {}.", clock.getTime());
     }
 }
