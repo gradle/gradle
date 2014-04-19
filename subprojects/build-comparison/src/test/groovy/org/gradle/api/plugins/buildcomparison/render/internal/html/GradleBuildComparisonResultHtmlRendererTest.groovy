@@ -143,4 +143,28 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
         tables[1].select("td")[0].text() == "b"
         tables[2].select("td")[0].text() == "c"
     }
+
+    def "show differences first in the buildcomparison report"() {
+        given:
+        comparisonRenderers.registerRenderer(new StringBuildOutcomeComparisonResultHtmlRenderer())
+        outcomeRenderers.registerRenderer(new StringBuildOutcomeHtmlRenderer())
+
+        and:
+        comparisons << strcmp("a", "a")
+        comparisons << strcmp("c", "a")
+        comparisons << strcmp("b", "a")
+        comparisons << strcmp("e", "e")
+        comparisons << strcmp("d", "d")
+
+        when:
+        def html = render()
+
+        then:
+        def tables = html.select(".build-outcome-comparison table")
+        tables[0].select("td")[0].text() == "a"
+        tables[1].select("td")[0].text() == "d"
+        tables[2].select("td")[0].text() == "e"
+        tables[3].select("td")[0].text() == "b"
+        tables[4].select("td")[0].text() == "c"
+    }
 }
