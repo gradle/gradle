@@ -240,4 +240,21 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
 
         then: impl.recompiledClasses("ImplB")
     }
+
+    def "changes to resources in jar do not incur recompilation"() {
+        //TODO
+    }
+
+    def "each compile task uses separate local cache"() {
+        //TODO
+        //ensure that local jar snapshots cache does not 'leak' to other compile tasks in this project
+    }
+
+    def "class in source dir wins over a duplicate found in some jar on classpath"() {
+        //TODO
+    }
+
+    def "the order of classpath items is unchanged"() {
+        //TODO
+    }
 }
