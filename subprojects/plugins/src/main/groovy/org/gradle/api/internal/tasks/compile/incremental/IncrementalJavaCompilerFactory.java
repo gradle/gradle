@@ -25,9 +25,9 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
@@ -43,7 +43,7 @@ public class IncrementalJavaCompilerFactory {
         ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer(); //TODO needs cross-project caching
         JarSnapshotter jarSnapshotter = new JarSnapshotter(new DefaultHasher(), analyzer); //TODO needs cross-project caching
 
-        JarSnapshotCache jarSnapshotCache = new JarSnapshotCache(new File(project.getBuildDir(), "jar-snapshot-cache.bin")); //TODO needs to be per task
+        LocalJarSnapshotCache jarSnapshotCache = new LocalJarSnapshotCache(new File(project.getBuildDir(), "jar-snapshot-cache.bin")); //TODO needs to be per task
         ClassDependencyInfoSerializer dependencyInfoSerializer = new ClassDependencyInfoSerializer(new File(project.getBuildDir(), "class-info.bin")); //TODO needs to be per task
 
         JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(jarSnapshotCache, jarSnapshotter, new ClasspathJarFinder((FileOperations) project));

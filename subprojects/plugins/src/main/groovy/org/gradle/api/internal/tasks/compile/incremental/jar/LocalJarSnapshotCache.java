@@ -22,13 +22,15 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-//TODO SF this obviously needs to be replaced with a proper cache
-public class JarSnapshotCache {
+public class LocalJarSnapshotCache {
+
+    //TODO use standard caching mechanisms
+    //TODO just store File->checksum, use shared jar snapshot cache for contents
 
     private File storage;
     private Map<File, JarSnapshot> snapshots;
 
-    public JarSnapshotCache(File storage) {
+    public LocalJarSnapshotCache(File storage) {
         this.storage = storage;
     }
 

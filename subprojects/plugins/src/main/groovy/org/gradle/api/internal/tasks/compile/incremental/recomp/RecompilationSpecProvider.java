@@ -21,8 +21,8 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.SourceToNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoProvider;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.model.PreviousCompilation;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
@@ -33,10 +33,10 @@ public class RecompilationSpecProvider {
     private final ClassDependencyInfoProvider dependencyInfoProvider;
     private final FileOperations fileOperations;
     private final JarSnapshotter jarSnapshotter;
-    private JarSnapshotCache jarSnapshotCache;
+    private LocalJarSnapshotCache jarSnapshotCache;
 
     public RecompilationSpecProvider(SourceToNameConverter sourceToNameConverter, ClassDependencyInfoProvider dependencyInfoProvider,
-                                     FileOperations fileOperations, JarSnapshotter jarSnapshotter, JarSnapshotCache jarSnapshotCache) {
+                                     FileOperations fileOperations, JarSnapshotter jarSnapshotter, LocalJarSnapshotCache jarSnapshotCache) {
         this.sourceToNameConverter = sourceToNameConverter;
         this.dependencyInfoProvider = dependencyInfoProvider;
         this.fileOperations = fileOperations;

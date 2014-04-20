@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.model;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfo;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarSnapshotCache;
 
 import java.io.File;
 import java.util.Set;
@@ -27,9 +27,9 @@ import java.util.Set;
 public class PreviousCompilation {
 
     private ClassDependencyInfo dependencyInfo;
-    private JarSnapshotCache jarSnapshotCache;
+    private LocalJarSnapshotCache jarSnapshotCache;
 
-    public PreviousCompilation(ClassDependencyInfo dependencyInfo, JarSnapshotCache jarSnapshotCache) {
+    public PreviousCompilation(ClassDependencyInfo dependencyInfo, LocalJarSnapshotCache jarSnapshotCache) {
         this.dependencyInfo = dependencyInfo;
         this.jarSnapshotCache = jarSnapshotCache;
     }

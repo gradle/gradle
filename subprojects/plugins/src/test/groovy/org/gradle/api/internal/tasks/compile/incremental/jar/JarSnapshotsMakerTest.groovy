@@ -25,7 +25,7 @@ import spock.lang.Subject
 
 class JarSnapshotsMakerTest extends Specification {
 
-    def cache = Mock(JarSnapshotCache)
+    def cache = Mock(LocalJarSnapshotCache)
     def info = Mock(ClassDependencyInfo)
     def snapshotter = Mock(JarSnapshotter)
     def finder = Mock(ClasspathJarFinder)
