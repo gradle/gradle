@@ -64,11 +64,18 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
     }
 
     List<Map> fixedIssues() {
-        new JsonSlurper().parseText(new URL(FIXED_ISSUES_URL).text) as List<Map>
+        parseIssues(FIXED_ISSUES_URL)
     }
 
     List<Map> knownIssues() {
-        new JsonSlurper().parseText(new URL(KNOWN_ISSUES_URL).text) as List<Map>
+        parseIssues(KNOWN_ISSUES_URL)
+    }
+
+    private List<Map<String, String>> parseIssues(String url) {
+        def result = new JsonSlurper().parseText(new URL(url).text) as List<Map>
+        result.each { json ->
+            json.summary = json.summary.replace('\n', '').replace('\t', '').replaceAll('\\s+', ' ').trim()
+        }
     }
 
     def "has fixed issues"() {
@@ -85,7 +92,7 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
         page.fixedIssuesListItems.size() == numFixedIssues
         fixed.eachWithIndex { json, i ->
             def issue = page.fixedIssuesListItems[i]
-            assert issue.text() == "[$json.key] - ${json.summary.trim()}"
+            assert issue.text() == "[$json.key] - ${json.summary}"
             assert issue.find("a").attr("href") == json.link
         }
     }
@@ -105,7 +112,7 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
         page.knownIssuesListItems.size() == knownIssues.size()
         knownIssues.eachWithIndex { json, i ->
             def issue = page.knownIssuesListItems[i]
-            assert issue.text() == "[$json.key] - ${json.summary.trim()}"
+            assert issue.text() == "[$json.key] - ${json.summary}"
             assert issue.find("a").attr("href") == json.link
         }
     }
