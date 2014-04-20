@@ -37,10 +37,12 @@ public class IncrementalCompilationSupport {
     private final String displayName;
     private final RecompilationSpecProvider staleClassDetecter;
     private final ClassDependencyInfoUpdater classDependencyInfoUpdater;
+    private final CompilationSourceDirs sourceDirs;
 
     public IncrementalCompilationSupport(JarSnapshotsMaker jarSnapshotsMaker, ClassDependencyInfoSerializer dependencyInfoSerializer,
                                          FileOperations fileOperations, CleaningJavaCompiler cleaningCompiler, String displayName,
-                                         RecompilationSpecProvider staleClassDetecter, ClassDependencyInfoUpdater classDependencyInfoUpdater) {
+                                         RecompilationSpecProvider staleClassDetecter, ClassDependencyInfoUpdater classDependencyInfoUpdater,
+                                         CompilationSourceDirs sourceDirs) {
         this.jarSnapshotsMaker = jarSnapshotsMaker;
         this.dependencyInfoSerializer = dependencyInfoSerializer;
         this.fileOperations = fileOperations;
@@ -48,9 +50,10 @@ public class IncrementalCompilationSupport {
         this.displayName = displayName;
         this.staleClassDetecter = staleClassDetecter;
         this.classDependencyInfoUpdater = classDependencyInfoUpdater;
+        this.sourceDirs = sourceDirs;
     }
 
-    public Compiler<JavaCompileSpec> prepareCompiler(final IncrementalTaskInputs inputs, final CompilationSourceDirs sourceDirs) {
+    public Compiler<JavaCompileSpec> prepareCompiler(final IncrementalTaskInputs inputs) {
         final Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
         return new IncrementalCompilationFinalizer(compiler, jarSnapshotsMaker, classDependencyInfoUpdater);
     }
