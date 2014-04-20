@@ -60,11 +60,11 @@ public class RepositoryTransportFactory {
         this.sftpClientFactory = sftpClientFactory;
     }
 
-    public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
+    private RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
         return new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
     }
 
-    public RepositoryTransport createFileTransport(String name) {
+    private RepositoryTransport createFileTransport(String name) {
         return new FileTransport(name, localCacheManager, temporaryFileProvider);
     }
 
