@@ -19,14 +19,13 @@ import org.gradle.CacheUsage;
 import org.gradle.RefreshOptions;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.file.DefaultFileLookup;
-import org.gradle.api.internal.file.FileLookup;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.cli.*;
-import org.gradle.internal.nativeplatform.services.FileSystems;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,11 +58,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final LayoutCommandLineConverter layoutCommandLineConverter;
-    private final FileLookup fileLookup;
 
     public DefaultCommandLineConverter() {
-        this.fileLookup = new DefaultFileLookup(FileSystems.getDefault());
-        layoutCommandLineConverter = new LayoutCommandLineConverter(fileLookup);
+        layoutCommandLineConverter = new LayoutCommandLineConverter();
     }
 
     public void configure(CommandLineParser parser) {
@@ -97,7 +94,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
         loggingConfigurationCommandLineConverter.convert(options, startParameter);
-        FileResolver resolver = fileLookup.getFileResolver(startParameter.getCurrentDir());
+        Transformer<File, String> resolver = new BasicFileResolver(startParameter.getCurrentDir());
 
         Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options, new HashMap<String, String>());
         convertCommandLineSystemProperties(systemProperties, startParameter, resolver);
@@ -114,14 +111,14 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         startParameter.setSearchUpwards(layout.getSearchUpwards());
 
         if (options.hasOption(BUILD_FILE)) {
-            startParameter.setBuildFile(resolver.resolve(options.option(BUILD_FILE).getValue()));
+            startParameter.setBuildFile(resolver.transform(options.option(BUILD_FILE).getValue()));
         }
         if (options.hasOption(SETTINGS_FILE)) {
-            startParameter.setSettingsFile(resolver.resolve(options.option(SETTINGS_FILE).getValue()));
+            startParameter.setSettingsFile(resolver.transform(options.option(SETTINGS_FILE).getValue()));
         }
 
         for (String script : options.option(INIT_SCRIPT).getValues()) {
-            startParameter.addInitScript(resolver.resolve(script));
+            startParameter.addInitScript(resolver.transform(script));
         }
 
         if (options.hasOption(CACHE)) {
@@ -133,7 +130,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         if (options.hasOption(PROJECT_CACHE_DIR)) {
-            startParameter.setProjectCacheDir(resolver.resolve(options.option(PROJECT_CACHE_DIR).getValue()));
+            startParameter.setProjectCacheDir(resolver.transform(options.option(PROJECT_CACHE_DIR).getValue()));
         }
 
         if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
@@ -204,10 +201,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         return startParameter;
     }
 
-    void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, FileResolver resolver) {
+    void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, Transformer<File, String> resolver) {
         startParameter.getSystemPropertiesArgs().putAll(systemProperties);
         if (systemProperties.containsKey(GRADLE_USER_HOME_PROPERTY_KEY)) {
-            startParameter.setGradleUserHomeDir(resolver.resolve(systemProperties.get(GRADLE_USER_HOME_PROPERTY_KEY)));
+            startParameter.setGradleUserHomeDir(resolver.transform(systemProperties.get(GRADLE_USER_HOME_PROPERTY_KEY)));
         }
     }
 

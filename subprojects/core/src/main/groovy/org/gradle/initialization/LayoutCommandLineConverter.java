@@ -16,35 +16,31 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.file.FileLookup;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
-public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
+import java.io.File;
 
+public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
     public static final String GRADLE_USER_HOME = "g";
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
-    private final FileLookup fileLookup;
-
-    public LayoutCommandLineConverter(FileLookup fileLookup) {
-        this.fileLookup = fileLookup;
-    }
 
     public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {
-        FileResolver resolver = fileLookup.getFileResolver(target.getProjectDir());
+        Transformer<File, String> resolver = new BasicFileResolver(target.getProjectDir());
         if (options.hasOption(NO_SEARCH_UPWARDS)) {
             target.setSearchUpwards(false);
         }
         if (options.hasOption(PROJECT_DIR)) {
-            target.setProjectDir(resolver.resolve(options.option(PROJECT_DIR).getValue()));
+            target.setProjectDir(resolver.transform(options.option(PROJECT_DIR).getValue()));
         }
         if (options.hasOption(GRADLE_USER_HOME)) {
-            target.setGradleUserHomeDir(resolver.resolve(options.option(GRADLE_USER_HOME).getValue()));
+            target.setGradleUserHomeDir(resolver.transform(options.option(GRADLE_USER_HOME).getValue()));
         }
         return target;
     }

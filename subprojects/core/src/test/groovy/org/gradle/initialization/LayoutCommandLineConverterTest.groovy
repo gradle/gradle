@@ -16,7 +16,6 @@
 
 package org.gradle.initialization
 
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -26,7 +25,7 @@ import static org.gradle.util.GFileUtils.canonicalise
 
 class LayoutCommandLineConverterTest extends Specification {
 
-    def converter = new LayoutCommandLineConverter(TestFiles.fileLookup())
+    def converter = new LayoutCommandLineConverter()
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
     def convert(String... args) {
