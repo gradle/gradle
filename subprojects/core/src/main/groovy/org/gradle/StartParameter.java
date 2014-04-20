@@ -345,7 +345,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param gradleUserHomeDir The home directory. May be null.
      */
     public void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir == null ? DEFAULT_GRADLE_USER_HOME : GFileUtils.canonicalise(gradleUserHomeDir);
+        this.gradleUserHomeDir = gradleUserHomeDir == null ? new BuildLayoutParameters().getGradleUserHomeDir() : GFileUtils.canonicalise(gradleUserHomeDir);
     }
 
     /**

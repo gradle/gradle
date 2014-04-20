@@ -235,6 +235,22 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
     }
 
+    void "considers system properties for null user home dir"() {
+        def gradleUserHome = tmpDir.file("someGradleUserHomePath")
+        System.setProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHome.absolutePath)
+
+        given:
+        StartParameter parameter = new StartParameter()
+        parameter.gradleUserHomeDir = tmpDir.file("ignore-me")
+
+        when:
+        parameter.gradleUserHomeDir = null
+
+        then:
+        parameter.gradleUserHomeDir == gradleUserHome
+        assertThat(parameter, isSerializable())
+    }
+
     void "creates parameter for new build"() {
         StartParameter parameter = new StartParameter()
 
