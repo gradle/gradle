@@ -20,10 +20,12 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -38,8 +40,6 @@ public class FileToArchiveEntrySetTransformer implements Transformer<Set<Archive
     }
 
     public Set<ArchiveEntry> transform(File archiveFile) {
-        Set<ArchiveEntry> entries = new HashSet<ArchiveEntry>();
-
         FileInputStream fileInputStream;
         try {
             fileInputStream = new FileInputStream(archiveFile);
@@ -47,12 +47,48 @@ public class FileToArchiveEntrySetTransformer implements Transformer<Set<Archive
             throw new UncheckedIOException(e);
         }
 
-        ZipInputStream zipStream = new ZipInputStream(fileInputStream);
+        return transform(fileInputStream, null, null);
+    }
+
+    private Set<ArchiveEntry> transform(InputStream archiveInputStream, String sortPathPrefix, String pathPrefix) {
+        Set<ArchiveEntry> entries = new HashSet<ArchiveEntry>();
+
+        ZipInputStream zipStream = new ZipInputStream(archiveInputStream);
 
         try {
             ZipEntry entry = zipStream.getNextEntry();
             while (entry != null) {
-                entries.add(entryTransformer.transform(entry));
+                ArchiveEntry archiveEntry = entryTransformer.transform(entry);
+                if (sortPathPrefix == null) {
+                    archiveEntry.setSortPath(archiveEntry.getPath());
+                } else {
+                    archiveEntry.setSortPath(sortPathPrefix + archiveEntry.getPath());
+                }
+                if (pathPrefix != null) {
+                    archiveEntry.setPath(pathPrefix + archiveEntry.getPath());
+                }
+                if (!archiveEntry.isDirectory() && (zipStream.available() == 1)) {
+                    boolean zipEntry;
+                    final BufferedInputStream bis = new BufferedInputStream(zipStream) {
+                        @Override
+                        public void close() throws IOException {
+                        }
+                    };
+                    try {
+                        bis.mark(Integer.MAX_VALUE);
+                        zipEntry = new ZipInputStream(bis).getNextEntry() != null;
+                    } catch (IOException e) {
+                        zipEntry = false;
+                    } finally {
+                        bis.reset();
+                    }
+                    if (zipEntry) {
+                        Set<ArchiveEntry> subEntries = transform(bis, archiveEntry.getSortPath() + "::", "jar:" + archiveEntry.getPath() + "!/");
+                        archiveEntry.setSubEntries(subEntries);
+                    }
+                }
+                entries.add(archiveEntry);
+                entries.addAll(archiveEntry.getSubEntries());
                 zipStream.closeEntry();
                 entry = zipStream.getNextEntry();
             }

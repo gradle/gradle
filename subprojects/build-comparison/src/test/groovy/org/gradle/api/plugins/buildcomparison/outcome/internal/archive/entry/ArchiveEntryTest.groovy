@@ -47,5 +47,98 @@ class ArchiveEntryTest extends Specification {
         a1 != a2
         a2 != a1
         a1.hashCode() != a2.hashCode()
+
+        when:
+        a1.subEntries = []
+        a2.subEntries = []
+
+        then:
+        a1 == a2
+        a2 == a1
+        a1.hashCode() == a2.hashCode()
+
+        when:
+        a2.size = 10
+
+        then:
+        a1 == a2
+        a2 == a1
+        a1.hashCode() == a2.hashCode()
+
+        when:
+        def a3 = new ArchiveEntry(
+                path: "foo",
+                size: 10,
+                crc: 10,
+                directory: true
+        )
+        a1.subEntries = [a3]
+
+        then:
+        a1 != a2
+        a2 != a1
+        a1.hashCode() != a2.hashCode()
+
+        when:
+        a2.subEntries = [a3]
+
+        then:
+        a1 == a2
+        a2 == a1
+        a1.hashCode() == a2.hashCode()
+
+        when:
+        def a4 = new ArchiveEntry(
+                path: "foo",
+                size: 20,
+                crc: 10,
+                directory: true
+        )
+        a1.subEntries = [a4]
+
+        then:
+        a1 != a2
+        a2 != a1
+        a1.hashCode() != a2.hashCode()
+
+        when:
+        a1.subEntries = null
+
+        then:
+        a1 != a2
+        a2 != a1
+        a1.hashCode() != a2.hashCode()
+
+        when:
+        a2.subEntries = null
+
+        then:
+        a1 == a2
+        a2 == a1
+        a1.hashCode() == a2.hashCode()
+
+        when:
+        a1.crc = 20
+
+        then:
+        a1 != a2
+        a2 != a1
+        a1.hashCode() != a2.hashCode()
+
+        when:
+        a1.subEntries = []
+
+        then:
+        a1 != a2
+        a2 != a1
+        a1.hashCode() != a2.hashCode()
+
+        when:
+        a2.subEntries = []
+
+        then:
+        a1 == a2
+        a2 == a1
+        a1.hashCode() == a2.hashCode()
     }
 }
