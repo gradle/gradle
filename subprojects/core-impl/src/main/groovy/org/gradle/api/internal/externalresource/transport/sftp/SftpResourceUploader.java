@@ -62,6 +62,8 @@ public class SftpResourceUploader implements ExternalResourceUploader {
                 InputStream sourceStream = sourceFactory.create();
                 try {
                     IOUtils.copyLarge(sourceStream, outputStream);
+                    // sftp client expects a flush before closing
+                    outputStream.flush();
                 } finally {
                     sourceStream.close();
                 }
