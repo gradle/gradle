@@ -53,23 +53,22 @@ public class SftpResourceUploader implements ExternalResourceUploader {
     public void upload(Factory<InputStream> sourceFactory, Long contentLength, String destination) throws IOException {
         URI uri = toUri(destination);
         SftpClient client = sftpClientFactory.createSftpClient(uri, credentials);
-        String path = uri.getPath();
 
-        OutputStream outputStream = null;
         try {
+            String path = uri.getPath();
             ensureParentDirectoryExists(client, path);
-            outputStream = client.write(uri.getPath());
-            InputStream sourceStream = sourceFactory.create();
+            OutputStream outputStream = client.write(uri.getPath());
             try {
-                IOUtils.copyLarge(sourceStream, outputStream);
-                outputStream.flush();
+                InputStream sourceStream = sourceFactory.create();
+                try {
+                    IOUtils.copyLarge(sourceStream, outputStream);
+                } finally {
+                    sourceStream.close();
+                }
             } finally {
-                sourceStream.close();
-            }
-        } finally {
-            if (outputStream != null) {
                 outputStream.close();
             }
+        } finally {
             sftpClientFactory.releaseSftpClient(client);
         }
     }

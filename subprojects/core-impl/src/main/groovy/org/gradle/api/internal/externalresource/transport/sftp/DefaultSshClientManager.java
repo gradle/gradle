@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.externalresource.transport.sftp;
 
+import net.jcip.annotations.ThreadSafe;
 import org.apache.sshd.SshClient;
 
+@ThreadSafe
 public class DefaultSshClientManager implements SshClientManager {
     private final Object lock = new Object();
     private SshClient sshClient;

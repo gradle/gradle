@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.externalresource.transport.sftp;
 
+import net.jcip.annotations.ThreadSafe;
 import org.apache.sshd.ClientSession;
 import org.apache.sshd.SshClient;
 import org.apache.sshd.client.SftpClient;
@@ -24,12 +25,14 @@ import org.apache.sshd.client.future.ConnectFuture;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 
+@ThreadSafe
 public class SftpClientFactory implements Stoppable {
     private final Logger logger = Logging.getLogger(SftpClientFactory.class);
     private SshClientManager sshClientManager = new DefaultSshClientManager();
@@ -116,8 +119,12 @@ public class SftpClientFactory implements Stoppable {
                 for(LockableSftpClient client : allSftpClients) {
                     try {
                         client.close();
-                    } catch(IOException e) {
+                    } catch(NullPointerException e) {
+                        // SSHD client sometimes throws a NPE on close - ignore for now
+                        // TODO: Ben SSHD project needs to address this issue - https://issues.apache.org/jira/browse/SSHD-311
                         logger.warn("Failed to close SFTP client " + client);
+                    } catch(IOException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
             }

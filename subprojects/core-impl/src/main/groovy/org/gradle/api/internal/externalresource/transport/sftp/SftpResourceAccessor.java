@@ -54,9 +54,8 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
     }
 
     private ExternalResourceMetaData getMetaData(URI uri) throws IOException {
-        SftpClient sftpClient = null;
+        SftpClient sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
         try {
-            sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
             Attributes attributes = sftpClient.lstat(uri.getPath());
             return attributes != null ? toMetaData(uri.toString(), attributes) : null;
         } finally {

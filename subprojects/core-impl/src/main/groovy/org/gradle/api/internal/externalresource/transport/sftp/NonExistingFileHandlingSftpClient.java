@@ -19,13 +19,10 @@ package org.gradle.api.internal.externalresource.transport.sftp;
 import org.apache.sshd.ClientSession;
 import org.apache.sshd.client.sftp.DefaultSftpClient;
 import org.apache.sshd.common.util.Buffer;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 
 import java.io.IOException;
 
 public class NonExistingFileHandlingSftpClient extends DefaultSftpClient implements LockableSftpClient {
-    private final Logger logger = Logging.getLogger(NonExistingFileHandlingSftpClient.class);
     private final ClientSession clientSession;
     private boolean locked;
 
@@ -66,13 +63,7 @@ public class NonExistingFileHandlingSftpClient extends DefaultSftpClient impleme
     @Override
     public void close() throws IOException {
         super.close();
-
-        // TODO: Ben SSHD project needs to address this issue - https://issues.apache.org/jira/browse/SSHD-311
-        try {
-            clientSession.close(false).awaitUninterruptibly();
-        } catch(Exception e) {
-            logger.warn("Could not close client session " + clientSession, e);
-        }
+        clientSession.close(false).awaitUninterruptibly();
     }
 
     public boolean isLocked() {
