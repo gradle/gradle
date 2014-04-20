@@ -26,7 +26,6 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
 import org.gradle.initialization.DistributionInitScriptFinder;
 import org.gradle.initialization.UserHomeInitScriptFinder;
-import org.gradle.internal.SystemProperties;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
@@ -44,11 +43,12 @@ import java.util.*;
  * @see org.gradle.initialization.GradleLauncher
  */
 public class StartParameter extends LoggingConfiguration implements Serializable {
-    public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
+    public static final String GRADLE_USER_HOME_PROPERTY_KEY = BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY;
+
     /**
      * The default user home directory.
      */
-    public static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getUserHome() + "/.gradle");
+    public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
     private List<String> taskNames = new ArrayList<String>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
