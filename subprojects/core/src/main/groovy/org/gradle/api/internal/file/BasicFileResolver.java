@@ -47,14 +47,17 @@ public class BasicFileResolver implements Transformer<File, String> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
+
+        File file = new File(original);
+        if (file.isAbsolute()) {
+            return GFileUtils.canonicalise(file);
+        }
+
         if (URI_SCHEME.matcher(original).matches()) {
             throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.", original));
         }
 
-        File file = new File(original);
-        if (!file.isAbsolute()) {
-            file = new File(baseDir, original);
-        }
+        file = new File(baseDir, original);
         return GFileUtils.canonicalise(file);
     }
 }
