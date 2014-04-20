@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 
 class UnsupportedSymlink implements Symlink {
-    public boolean isSupported() {
+    public boolean isSymlinkSupported() {
         return false;
     }
 

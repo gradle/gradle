@@ -71,7 +71,7 @@ class GenericFileSystem implements FileSystem {
         this.stat = stat;
         this.symlink = symlink;
         this.chmod = chmod;
-        canCreateSymbolicLink = symlink.isSupported();
+        canCreateSymbolicLink = symlink.isSymlinkSupported();
         String content = generateUniqueContent();
         File file = null;
         try {

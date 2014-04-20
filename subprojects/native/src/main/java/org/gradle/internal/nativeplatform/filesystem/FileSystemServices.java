@@ -64,6 +64,7 @@ public class FileSystemServices {
         }
 
         // Fallback to no-op implementations if not available
-        return new GenericFileSystem(new UnsupportedChmod(), new UnsupportedStat(), symlink);
+        UnsupportedFilePermissions filePermissionsHandler = new UnsupportedFilePermissions();
+        return new GenericFileSystem(filePermissionsHandler, filePermissionsHandler, symlink);
     }
 }

@@ -28,7 +28,7 @@ class NativePlatformBackedSymlink implements Symlink {
         this.posixFiles = posixFiles;
     }
 
-    public boolean isSupported() {
+    public boolean isSymlinkSupported() {
         return true;
     }
 

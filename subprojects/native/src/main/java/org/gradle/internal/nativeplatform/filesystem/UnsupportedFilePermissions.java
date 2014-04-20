@@ -20,18 +20,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class UnsupportedChmod extends EmptyChmod {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UnsupportedChmod.class);
+public class UnsupportedFilePermissions implements FileModeAccessor, FileModeMutator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnsupportedFilePermissions.class);
     private final AtomicBoolean warned = new AtomicBoolean();
+    private final FallbackStat stat = new FallbackStat();
+    private final EmptyChmod chmod = new EmptyChmod();
 
-    @Override
-    public void chmod(File f, int mode) throws FileNotFoundException {
+    public int getUnixMode(File f) throws IOException {
+        maybeWarn();
+        return stat.getUnixMode(f);
+    }
+
+    public void chmod(File file, int mode) throws Exception {
+        maybeWarn();
+        chmod.chmod(file, mode);
+    }
+
+    private void maybeWarn() {
         if (warned.compareAndSet(false, true)) {
-            LOGGER.warn("Support for setting file permissions is only available on this platform using Java 7 or later.");
+            LOGGER.warn("Support for reading or changing file permissions is only available on this platform using Java 7 or later.");
         }
-        super.chmod(f, mode);
     }
 }
