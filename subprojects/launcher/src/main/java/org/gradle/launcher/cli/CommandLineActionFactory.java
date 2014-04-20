@@ -17,18 +17,22 @@ package org.gradle.launcher.cli;
 
 import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
-import org.gradle.internal.Actions;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.initialization.LayoutCommandLineConverter;
+import org.gradle.internal.Actions;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
@@ -150,21 +154,27 @@ public class CommandLineActionFactory {
         }
 
         public void execute(ExecutionListener executionListener) {
-            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = (CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
+            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = new LoggingCommandLineConverter();
+            CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
+            BuildLayoutParameters buildLayout = new BuildLayoutParameters();
             CommandLineParser parser = new CommandLineParser();
             loggingConfigurationConverter.configure(parser);
+            buildLayoutConverter.configure(parser);
             parser.allowUnknownOptions();
             parser.allowMixedSubcommandsAndOptions();
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
                 loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
+                buildLayoutConverter.convert(parsedCommandLine, buildLayout);
             } catch (CommandLineArgumentException e) {
-                // Ignore
+                // Ignore, deal with this problem later
             }
 
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevel(loggingConfiguration.getLogLevel());
             loggingManager.start();
+
+            NativeServices.initialize(buildLayout.getGradleUserHomeDir());
             loggingManager.attachConsole(loggingConfiguration.isColorOutput());
 
             action.execute(executionListener);
