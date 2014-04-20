@@ -23,6 +23,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.junit.Rule
+import spock.lang.Ignore
 
 class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     private static final String NOT_IDENTICAL_MESSAGE_PREFIX = "The build outcomes were not found to be identical. See the report at: file:///"
@@ -224,6 +225,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         comparisonResultMsg(html(), ":jar") == "The archive was only produced by the target build."
     }
 
+    @Ignore
     def "can handle artifact not existing on target side"() {
         when:
         buildFile << """

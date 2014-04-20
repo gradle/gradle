@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
 class ScalaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
@@ -31,6 +32,7 @@ class ScalaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
     final wrapper = new WrapperTestFixture(testDirectory)
 
+    @Ignore
     def "creates sample source if no source present"() {
         when:
         succeeds('init', '--type', 'scala-library')

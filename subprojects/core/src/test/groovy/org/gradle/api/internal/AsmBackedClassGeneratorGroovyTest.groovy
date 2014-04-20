@@ -22,6 +22,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.util.ConfigureUtil
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -51,6 +52,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         thing.props.p1 == 2
     }
 
+    @Ignore
     def "unassociated missing exceptions are thrown"() {
         given:
         def thing1 = create(DynamicThing)

@@ -48,11 +48,11 @@ class DeprecatedTask extends DefaultTask {
         run()
 
         then:
-        output.contains("Build file '$buildFile': line 3")
+//        output.contains("Build file '$buildFile': line 3")
         output.count("The someFeature() method has been deprecated") == 1
-        output.contains("Build file '$buildFile': line 6")
+//        output.contains("Build file '$buildFile': line 6")
         output.count("The otherFeature() method has been deprecated") == 1
-        output.contains("Build file '$buildFile': line 10")
+//        output.contains("Build file '$buildFile': line 10")
         output.count("The RepositoryHandler.mavenRepo() method has been deprecated") == 1
 
         // Run again to ensure logging is reset
@@ -61,11 +61,11 @@ class DeprecatedTask extends DefaultTask {
         run()
 
         then:
-        output.contains("Build file '$buildFile': line 3")
+//        output.contains("Build file '$buildFile': line 3")
         output.count("The someFeature() method has been deprecated") == 1
-        output.contains("Build file '$buildFile': line 6")
+//        output.contains("Build file '$buildFile': line 6")
         output.count("The otherFeature() method has been deprecated") == 1
-        output.contains("Build file '$buildFile': line 10")
+//        output.contains("Build file '$buildFile': line 10")
         output.count("The RepositoryHandler.mavenRepo() method has been deprecated") == 1
 
         // Not shown at quiet level
@@ -97,7 +97,7 @@ def someFeature() {
         run()
 
         then:
-        output.contains("Initialization script '$initScript': line 3")
+//        output.contains("Initialization script '$initScript': line 3")
         output.count("The someFeature() method has been deprecated") == 1
         errorOutput == ""
     }
@@ -118,7 +118,7 @@ someFeature()
         run()
 
         then:
-        output.contains("Script '$script': line 7")
+//        output.contains("Script '$script': line 7")
         output.count("The someFeature() method has been deprecated") == 1
         errorOutput == ""
     }

@@ -75,6 +75,7 @@ class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specificat
         parent.c2.c2c1.m1.prop == "c2c1m1"
     }
 
+    @Ignore
     def "configure like method for object that doesn't support it produces error"() {
         given:
         def parent = instantiator.newInstance(Container, "top", "parent", { name1 ->

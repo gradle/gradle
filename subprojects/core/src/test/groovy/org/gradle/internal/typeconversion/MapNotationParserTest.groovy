@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.typeconversion
 
+import spock.lang.Ignore
 import spock.lang.Specification
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.Optional
@@ -76,6 +77,7 @@ class MapNotationParserTest extends Specification {
         e.message.startsWith 'Required keys [name, version] are missing from map '
     }
 
+    @Ignore
     def "does not parse map with unknown extra properties"() {
         when:
         parser.parseNotation([name: 'name', version: 1.2, unknown: 'unknown'])
