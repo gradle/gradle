@@ -267,7 +267,7 @@ if (project.hasProperty('skipCache')) {
         fails 'retrieve'
 
         and:
-        result.error.contains("Artifact 'group:projectA:1.0:projectA.jar' not found.")
+        failure.assertHasCause("Artifact 'group:projectA:1.0:projectA.jar' not found.")
     }
 
     def "will use non-jar dependency type to determine jar artifact location"() {
