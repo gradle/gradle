@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.internal.artifacts.result.metadata.MavenPomArtifact
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
-import org.gradle.internal.id.UUIDGenerator
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
@@ -823,12 +822,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         hasDefaultDependencyArtifact(dep)
     }
 
-    def "pom with project coordinates defined by profile activated by system property value"() {
+    def "pom with project coordinates defined by profile activated by absence of system property"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         pomFile << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -841,8 +836,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!somePrpperty</name>
                 </property>
             </activation>
             <properties>
@@ -861,17 +855,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
         descriptor.dependencies.length == 0
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "pom with dependency coordinates defined by profile activated by system property value"() {
+    def "pom with dependency coordinates defined by profile activated by absence of system property"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         pomFile << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -892,8 +879,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <properties>
@@ -914,17 +900,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(descriptor.dependencies.first())
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "uses parent properties from activated by system property value to provide default values for a dependency"() {
+    def "uses parent properties from activated by absence of system property to provide default values for a dependency"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         def parent = tmpDir.file("parent.xml") << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -937,8 +916,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <properties>
@@ -985,17 +963,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "uses grand parent properties from profile activated by system property value to provide default values for a dependency"() {
+    def "uses grand parent properties from profile activated by absence of system property to provide default values for a dependency"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         def grandParent = tmpDir.file("grandparent.xml") << """
 <project>
     <groupId>different-group</groupId>
@@ -1007,8 +978,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <properties>
@@ -1071,17 +1041,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "uses dependency management section in profile activated by system property value to provide default values for a dependency"() {
+    def "uses dependency management section in profile activated by absence of system property to provide default values for a dependency"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         pomFile << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -1101,8 +1064,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <dependencyManagement>
@@ -1137,17 +1099,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.allExcludeRules.length == 1
         dep.allExcludeRules.first().id.moduleId == createModuleId('group-three', 'artifact-three')
         hasDefaultDependencyArtifact(dep)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "uses parent pom dependency management section in profile activated by system property value to provide default values for a dependency"() {
+    def "uses parent pom dependency management section in profile activated by absence of system property to provide default values for a dependency"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         def parent = tmpDir.file("parent.xml") << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -1160,8 +1115,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <dependencyManagement>
@@ -1211,17 +1165,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "uses grand parent pom dependency management section in profile activated by system property value to provide default values for a dependency"() {
+    def "uses grand parent pom dependency management section in profile activated by absence of system property to provide default values for a dependency"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         def grandParent = tmpDir.file("grandparent.xml") << """
 <project>
     <groupId>different-group</groupId>
@@ -1233,8 +1180,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <dependencyManagement>
@@ -1300,17 +1246,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "uses dependency management section from imported POM in profile activated by system property value to define defaults for main POM body dependency"() {
+    def "uses dependency management section from imported POM in profile activated by absence of system property to define defaults for main POM body dependency"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         def imported = tmpDir.file("imported.xml") << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -1349,8 +1288,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <dependencyManagement>
@@ -1380,17 +1318,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "pom with dependency defined in profile activated by system property value"() {
+    def "pom with dependency defined in profile activated by absence of system property"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         pomFile << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -1403,8 +1334,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <dependencies>
@@ -1427,17 +1357,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(descriptor.dependencies.first())
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "uses parent dependency from profile activated by system property value"() {
+    def "uses parent dependency from profile activated by absence of system property"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         def parent = tmpDir.file("parent.xlm") << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -1450,8 +1373,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <dependencies>
@@ -1492,17 +1414,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "uses grand parent dependency from profile activated by system property value"() {
+    def "uses grand parent dependency from profile activated by absence of system property"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         def grandParent = tmpDir.file("grandparent.xml") << """
 <project>
     <groupId>different-group</groupId>
@@ -1514,8 +1429,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <dependencies>
@@ -1572,17 +1486,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "uses parent dependency over grand parent dependency with same groupId and artifactId from profile activated by system property value"() {
+    def "uses parent dependency over grand parent dependency with same groupId and artifactId from profile activated by absence of system property"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         def grandParent = tmpDir.file("grandparent.xml") << """
 <project>
     <groupId>different-group</groupId>
@@ -1594,8 +1501,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <dependencies>
@@ -1668,17 +1574,10 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.3')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "uses dependency management section from imported POM in profile activated by system property value to define defaults for profile dependency"() {
+    def "uses dependency management section from imported POM in profile activated by absence of system property to define defaults for profile dependency"() {
         given:
-        String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
-
-        and:
         def imported = tmpDir.file("imported.xml") << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -1710,8 +1609,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <dependencyManagement>
@@ -1747,8 +1645,5 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
         dep.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(dep)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 }

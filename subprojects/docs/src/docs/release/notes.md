@@ -150,26 +150,10 @@ Here is an example usage of publishing an artifact to an Ivy repository hosted o
     }
 
 
-### Consumed Apache Maven POM profiles can be activated by properties
+### Consumed Apache Maven POM profile activation through absence of system property
 
-On top of the support for POM profiles that [are active by default](http://books.sonatype.com/mvnref-book/reference/profiles-sect-activation.html), profile activation can
-now also be controlled through properties. Profile activation properties can be provided through system properties. Let's consider the following POM:
-
-    <project>
-        ...
-        <profiles>
-            <profile>
-                <id>profile-1</id>
-                <property>
-                    <name>env</name>
-                    <value>dev</value>
-                </property>
-            </profile>
-        </profiles>
-    </project>
-
-To activate the profile with ID `profile-1`, provide the system property `env` with the corresponding value `dev`: `-Denv=dev`. Profile property names prefixed with a exclamation point
-become active if the system property is _not_ set. The following POM file demonstrates such a use case:
+On top of the support for POM profiles that [are active by default](http://books.sonatype.com/mvnref-book/reference/profiles-sect-activation.html), a profile also becomes active if the
+corresponding system property is _not_ set. The following POM file demonstrates such a use case:
 
     <project>
         ...

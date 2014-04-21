@@ -1612,7 +1612,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         System.clearProperty(customPropertyName)
     }
 
-    def "activates single profile by matching system property value"() {
+    def "does not activate profile for a matching system property value"() {
         setup:
         String customPropertyName = new UUIDGenerator().generateId()
         System.properties[customPropertyName] = 'BLUE'
@@ -1661,17 +1661,15 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
         then:
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
-        activePomProfiles.size() == 1
-        activePomProfiles[0].id == 'profile-1'
-        pomReader.properties['prop1'] == 'myproperty1'
-        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
-        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
+        activePomProfiles.size() == 0
+        !pomReader.properties.containsKey('prop1')
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
 
         cleanup:
         System.clearProperty(customPropertyName)
     }
 
-    def "activates multiple profiles by matching same system property value"() {
+    def "does not activate multiple profiles for a matching same system property with the same value"() {
         setup:
         String customPropertyName = new UUIDGenerator().generateId()
         System.properties[customPropertyName] = 'BLUE'
@@ -1716,17 +1714,15 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
         then:
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
-        activePomProfiles.size() == 2
-        activePomProfiles[0].id == 'profile-1'
-        activePomProfiles[1].id == 'profile-2'
-        pomReader.properties['prop1'] == 'myproperty1'
-        pomReader.properties['prop2'] == 'myproperty2'
+        activePomProfiles.size() == 0
+        !pomReader.properties.containsKey('prop1')
+        !pomReader.properties.containsKey('prop2')
 
         cleanup:
         System.clearProperty(customPropertyName)
     }
 
-    def "activates multiple profiles by matching different system property value"() {
+    def "does not activate multiple profiles for a matching different system property with different values"() {
         setup:
         String customPropertyName = new UUIDGenerator().generateId()
         String someOtherPropertyName = new UUIDGenerator().generateId()
@@ -1773,11 +1769,9 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
         then:
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
-        activePomProfiles.size() == 2
-        activePomProfiles[0].id == 'profile-1'
-        activePomProfiles[1].id == 'profile-2'
-        pomReader.properties['prop1'] == 'myproperty1'
-        pomReader.properties['prop2'] == 'myproperty2'
+        activePomProfiles.size() == 0
+        !pomReader.properties.containsKey('prop1')
+        !pomReader.properties.containsKey('prop2')
 
         cleanup:
         System.clearProperty(customPropertyName)
@@ -1896,7 +1890,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
     }
 
-    def "does not activate profile for negated property if system property is provided"() {
+    def "activates profile for negated property if system property is provided"() {
         setup:
         String customPropertyName = new UUIDGenerator().generateId()
         System.properties[customPropertyName] = 'BLUE'
@@ -1944,7 +1938,11 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
         then:
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
-        activePomProfiles.size() == 0
+        activePomProfiles.size() == 1
+        activePomProfiles[0].id == 'profile-1'
+        pomReader.properties['prop1'] == 'myproperty1'
+        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
+        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
 
         cleanup:
         System.clearProperty(customPropertyName)
@@ -2003,7 +2001,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null))
     }
 
-    def "activates profile if property value is not declared and system property is set with any value"() {
+    def "does not activate profile if property value is not declared and system property is set with any value"() {
         setup:
         String customPropertyName = new UUIDGenerator().generateId()
         System.properties[customPropertyName] = 'BLUE'
@@ -2051,11 +2049,10 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
         then:
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
-        activePomProfiles.size() == 1
-        activePomProfiles[0].id == 'profile-1'
-        pomReader.properties['prop1'] == 'myproperty1'
-        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
-        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
+        activePomProfiles.size() == 0
+        !pomReader.properties.containsKey('prop1')
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
+        !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null))
 
         cleanup:
         System.clearProperty(customPropertyName)
@@ -2064,7 +2061,6 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
     def "system property activation removes all other profiles that are active by default"() {
         setup:
         String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
 
         when:
         pomFile << """
@@ -2104,8 +2100,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-2</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!${customPropertyName}</name>
                 </property>
             </activation>
             <properties>
@@ -2132,8 +2127,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-3</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>GREEN</value>
+                    <name>!${customPropertyName}</name>
                 </property>
             </activation>
             <properties>
@@ -2188,26 +2182,22 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 
         then:
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
-        activePomProfiles.size() == 1
+        activePomProfiles.size() == 2
         activePomProfiles[0].id == 'profile-2'
+        activePomProfiles[1].id == 'profile-3'
         !pomReader.properties.containsKey('prop1')
-        !pomReader.properties.containsKey('prop3')
         !pomReader.properties.containsKey('prop4')
         pomReader.properties['prop2'] == 'myproperty2'
+        pomReader.properties['prop3'] == 'myproperty3'
         !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-one', 'jar', null))
-        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-three', 'jar', null))
         !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-four', 'jar', null))
-        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
-        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-two')
-
-        cleanup:
-        System.clearProperty(customPropertyName)
+        assertResolvedPomDependencyManagement(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null), 'version-three')
+        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
     }
 
-    def "parse POM with multiple active profile providing same properties activated by system property"() {
+    def "parse POM with multiple active profiles activated by absence of system property"() {
         setup:
         String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
 
         when:
         pomFile << """
@@ -2222,8 +2212,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                  <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!${customPropertyName}</name>
                 </property>
             </activation>
             <properties>
@@ -2236,8 +2225,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-2</id>
             <activation>
                  <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!${customPropertyName}</name>
                 </property>
             </activation>
             <properties>
@@ -2257,15 +2245,11 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         pomReader.properties['groupId.prop'] == 'group-two'
         pomReader.properties['artifactId.prop'] == 'artifact-two'
         pomReader.properties['version.prop'] == 'version-two'
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 
-    def "finds dependency default if declared in parent POM profile activated by a system property"() {
+    def "finds dependency default if declared in parent POM profile activated by absence of system property"() {
         setup:
         String customPropertyName = new UUIDGenerator().generateId()
-        System.properties[customPropertyName] = 'BLUE'
 
         when:
         String parentPom = """
@@ -2280,8 +2264,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>${customPropertyName}</name>
-                    <value>BLUE</value>
+                    <name>!${customPropertyName}</name>
                 </property>
             </activation>
             <dependencyManagement>
@@ -2333,8 +2316,5 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
         pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
         !pomReader.findDependencyDefaults(keyGroupThree)
-
-        cleanup:
-        System.clearProperty(customPropertyName)
     }
 }
