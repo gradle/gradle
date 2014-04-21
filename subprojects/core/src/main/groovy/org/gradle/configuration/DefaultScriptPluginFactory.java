@@ -100,7 +100,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(ScriptHandlerFactory.class, scriptHandlerFactory);
-            services.add(ClassLoaderScope.class, classLoaderScope.getBase());
+            services.add(ClassLoaderScope.class, classLoaderScope);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandler.class, scriptHandler);

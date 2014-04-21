@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.tooling.internal.impl.DefaultGradleProject;
+import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.impl.LaunchableGradleProjectTask;
 import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -44,13 +44,13 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return buildHierarchy(project.getRootProject());
     }
 
-    private DefaultGradleProject buildHierarchy(Project project) {
-        List<DefaultGradleProject> children = new ArrayList<DefaultGradleProject>();
+    private DefaultGradleProject<LaunchableGradleTask> buildHierarchy(Project project) {
+        List<DefaultGradleProject<LaunchableGradleTask>> children = new ArrayList<DefaultGradleProject<LaunchableGradleTask>>();
         for (Project child : project.getChildProjects().values()) {
             children.add(buildHierarchy(child));
         }
 
-        DefaultGradleProject gradleProject = new DefaultGradleProject()
+        DefaultGradleProject<LaunchableGradleTask> gradleProject = new DefaultGradleProject<LaunchableGradleTask>()
                 .setPath(project.getPath())
                 .setName(project.getName())
                 .setDescription(project.getDescription())

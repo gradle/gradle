@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.Dependency
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 import org.gradle.util.TestUtil
@@ -107,6 +108,25 @@ public class IdeaDependenciesProviderTest extends Specification {
 
         then:
         result.size() == 0
+    }
+
+    def "dependency is added from plus detached configuration"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+
+        def dependenciesProvider = new IdeaDependenciesProvider()
+        def module = project.ideaModule.module
+        def extraDependency = project.dependencies.create(project.files('lib/guava.jar'))
+        def detachedCfg = project.configurations.detachedConfiguration(extraDependency)
+        module.offline = true
+
+        when:
+        module.scopes.RUNTIME.plus += detachedCfg
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        result.size() == 1
+        result.findAll { Dependency it -> it.scope == 'RUNTIME' }.size() == 1
     }
 
     def "compile dependency on child project"() {
