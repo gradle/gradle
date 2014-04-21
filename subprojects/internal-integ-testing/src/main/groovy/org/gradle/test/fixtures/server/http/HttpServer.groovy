@@ -117,27 +117,15 @@ class HttpServer extends ServerWithExpectations {
         "http://localhost:${port}"
     }
 
-    void start() {
-        start(0)
-    }
-
     boolean isRunning() {
         server.running
     }
 
-    void start(int port) {
+    void start() {
         connector = new SocketConnector()
-        connector.port = port
+        connector.port = 0
         server.addConnector(connector)
-        try {
-            server.start()
-        } catch (java.net.BindException e) {
-            //without this, it is not possible to retry starting the server on the same port
-            //retrying is useful if we need to start server on a specific port
-            //and the OS forces us to wait until it is available.
-            server.removeConnector(connector)
-            throw e
-        }
+        server.start()
         def localPort = connector.localPort
         if (localPort <= 0) {
             throw new AssertionError("SocketConnector.localPort returned $localPort after starting server");

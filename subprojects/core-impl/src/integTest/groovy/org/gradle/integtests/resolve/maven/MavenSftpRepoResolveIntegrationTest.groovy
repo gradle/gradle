@@ -16,22 +16,9 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.maven.MavenSftpRepository
-import org.gradle.test.fixtures.server.sftp.SFTPServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.junit.Rule
+import org.gradle.integtests.fixtures.AbstractSftpDependencyResolutionTest
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
-class MavenSftpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    @Rule
-    final SFTPServer server = new SFTPServer(this)
-
-    MavenSftpRepository getMavenSftpRepo() {
-        new MavenSftpRepository(server, '/repo')
-    }
-
+class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResolutionTest {
     void "can resolve dependencies from a SFTP Maven repository"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()
