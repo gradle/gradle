@@ -54,16 +54,19 @@ public class SftpResourceLister implements ExternalResourceLister {
         try {
             SftpClient.Handle dirHandle = client.openDir(path);
             if (dirHandle != null) {
-                List<String> list = new ArrayList<String>();
-                SftpClient.DirEntry[] entries = client.readDir(dirHandle);
-                while (entries != null) {
-                    for (SftpClient.DirEntry entry : entries) {
-                        list.add(parent + entry.filename);
+                try {
+                    List<String> list = new ArrayList<String>();
+                    SftpClient.DirEntry[] entries = client.readDir(dirHandle);
+                    while (entries != null) {
+                        for (SftpClient.DirEntry entry : entries) {
+                            list.add(parent + entry.filename);
+                        }
+                        entries = client.readDir(dirHandle);
                     }
-                    entries = client.readDir(dirHandle);
+                    return list;
+                } finally {
+                    client.close(dirHandle);
                 }
-                client.close(dirHandle);
-                return list;
             } else {
                 return null;
             }
