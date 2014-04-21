@@ -153,6 +153,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles library and relinks executable with library source file change"() {
         given:
         run "installMainExecutable"
+        maybeWait()
         def install = installation("build/install/mainExecutable")
 
         when:
@@ -498,7 +499,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         if (toolChain.visualCpp) {
             def now = System.currentTimeMillis()
             def nextSecond = now % 1000
-            Thread.sleep(nextSecond)
+            Thread.sleep(1200 - nextSecond)
         }
     }
 
