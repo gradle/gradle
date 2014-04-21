@@ -17,7 +17,10 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.NOT_UNKNOWN_OS)
 class GradleNativeIntegrationTest extends AbstractIntegrationSpec {
     def "caches native binaries in specified user home"() {
         given:
