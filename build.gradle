@@ -59,7 +59,7 @@ buildTypes {
     localPerformanceTest "performance:integTest"
 
     // Used for cross version tests on CI
-    crossVersionTest "runtimeIntegTests", crossVersionTestsOnly: "", testVersions: "all", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
+    crossVersionTest "crossVersionIntegTest", useIncomingDistributions: true
 
     // Used to build production distros and smoke test them
     packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
