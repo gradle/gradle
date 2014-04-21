@@ -30,7 +30,10 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     /**
@@ -111,7 +114,8 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      */
     public List<IdeExtendedRepoFileDependency> getIdeRepoFileDependencies(Configuration configuration) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
-        List<ResolvedComponentResult> resolvedDependencies = findAllResolvedDependencyResults(result.getAllDependencies(), ModuleComponentIdentifier.class);
+        List<ResolvedComponentResult> resolvedDependencies = new ArrayList<ResolvedComponentResult>();
+        findAllResolvedDependencyResultsAndTheirDependencies(resolvedDependencies, result.getRoot().getDependencies(), ModuleComponentIdentifier.class);
         Set<ModuleVersionIdentifier> mappedResolvedDependencies = mapResolvedDependencies(resolvedDependencies);
         Set<ResolvedArtifact> artifacts = getExternalArtifacts(configuration);
 
@@ -126,6 +130,28 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         }
 
         return externalDependencies;
+    }
+
+    /**
+     * Finds all resolved components of the given type from the given set of dependency edges. If resolved component has dependencies itself, recursively resolve them as well
+     * and add them to the results. This method can handle circular dependencies.
+     *
+     * @param dependencies Dependencies
+     * @return Resolved dependency results
+     */
+    private void findAllResolvedDependencyResultsAndTheirDependencies(List<ResolvedComponentResult> matches, Set<? extends DependencyResult> dependencies, Class<? extends ComponentIdentifier> type) {
+        for (DependencyResult dependencyResult : dependencies) {
+            if (dependencyResult instanceof ResolvedDependencyResult) {
+                ResolvedDependencyResult resolvedResult = (ResolvedDependencyResult) dependencyResult;
+                if (type.isInstance(resolvedResult.getSelected().getId())) {
+                    // avoid circular dependencies by checking whether component result is already added
+                    if (!matches.contains(resolvedResult.getSelected())) {
+                        matches.add(resolvedResult.getSelected());
+                        findAllResolvedDependencyResultsAndTheirDependencies(matches, resolvedResult.getSelected().getDependencies(), type);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -235,52 +261,6 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @return External artifacts
      */
     private Set<ResolvedArtifact> getExternalArtifacts(Configuration configuration) {
-        ResolutionResult result = getIncomingResolutionResult(configuration);
-        List<ResolvedComponentResult> resolvedComponents = new ArrayList<ResolvedComponentResult>();
-        findAllResolvedDependencyResultsAndTheirDependencies(resolvedComponents, result.getRoot().getDependencies(), ModuleComponentIdentifier.class);
-        Map<ModuleVersionIdentifier, ResolvedComponentResult> mappedComponents = mapComponents(resolvedComponents);
-
-        Set<ResolvedArtifact> artifacts = configuration.getResolvedConfiguration().getLenientConfiguration().getArtifacts(Specs.satisfyAll());
-        Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>();
-
-        for(ResolvedArtifact artifact : artifacts) {
-            if(mappedComponents.containsKey(artifact.getModuleVersion().getId())) {
-                resolvedArtifacts.add(artifact);
-            }
-        }
-
-        return resolvedArtifacts;
-    }
-
-    /**
-     * Finds all resolved components of the given type from the given set of dependency edges. If resolved component has dependencies itself, recursively resolve them as well
-     * and add them to the results. This method can handle circular dependencies.
-     *
-     * @param dependencies Dependencies
-     * @return Resolved dependency results
-     */
-    private void findAllResolvedDependencyResultsAndTheirDependencies(List<ResolvedComponentResult> matches, Set<? extends DependencyResult> dependencies, Class<? extends ComponentIdentifier> type) {
-        for (DependencyResult dependencyResult : dependencies) {
-            if (dependencyResult instanceof ResolvedDependencyResult) {
-                ResolvedDependencyResult resolvedResult = (ResolvedDependencyResult) dependencyResult;
-                if (type.isInstance(resolvedResult.getSelected().getId())) {
-                    // avoid circular dependencies by checking whether component result is already added
-                    if (!matches.contains(resolvedResult.getSelected())) {
-                        matches.add(resolvedResult.getSelected());
-                        findAllResolvedDependencyResultsAndTheirDependencies(matches, resolvedResult.getSelected().getDependencies(), type);
-                    }
-                }
-            }
-        }
-    }
-
-    private Map<ModuleVersionIdentifier, ResolvedComponentResult> mapComponents(List<ResolvedComponentResult> resolvedComponents) {
-        Map<ModuleVersionIdentifier, ResolvedComponentResult> mappedComponents = new LinkedHashMap<ModuleVersionIdentifier, ResolvedComponentResult>();
-
-        for(ResolvedComponentResult component : resolvedComponents) {
-            mappedComponents.put(component.getModuleVersion(), component);
-        }
-
-        return mappedComponents;
+        return configuration.getResolvedConfiguration().getLenientConfiguration().getArtifacts(Specs.SATISFIES_ALL);
     }
 }
