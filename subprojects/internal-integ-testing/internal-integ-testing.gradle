@@ -32,44 +32,26 @@ useTestFixtures(sourceSet: 'main')
 useClassycle()
 
 task prepareVersionsInfo(type: PrepareVersionsInfo) {
-   url = "http://services.gradle.org/versions/all"
-   destDir = generatedResourcesDir
-   destFileName = "all-released-versions.json"
-   offline = gradle.startParameter.offline
+    destFile = new File(generatedResourcesDir, "all-released-versions.properties")
+    versions = releasedVersions.allVersions
+    mostRecent = releasedVersions.mostRecentFinalRelease
 }
 
-sourceSets.main.output.dir prepareVersionsInfo.destDir, builtBy: prepareVersionsInfo
+sourceSets.main.output.dir generatedResourcesDir, builtBy: prepareVersionsInfo
 
 class PrepareVersionsInfo extends DefaultTask {
-   File destDir
-   String destFileName
-   String url
-   boolean offline
+    @OutputFile File destFile
+    @Input String mostRecent
+    @Input List<String> versions
 
-   @TaskAction void prepareVersions() {
-       if (offline) {
-           logger.warn("Versions information will not be downloaded because --offline switch is used.\n"
-                   + "Without the version information certain integration tests may fail or use outdated version details.")
-           return
-       }
-       logger.info "Downloading the released versions from: $url"
-
-       def theUrl = "http://services.gradle.org/versions/all"
-       def json
-       try {
-           json = new URL(theUrl).text
-       } catch (UnknownHostException e) {
-           throw new GradleException("Unable to acquire versions info. I've tried this url: '$theUrl'.\n"
-                   + "If you don't have the network connection please run with '--offline' or exclude this task from execution via '-x'."
-                   , e)
-       }
-
-       def destFile = new File(destDir, destFileName)
-       assert destDir.mkdirs() || destDir.exists() : "Problems creating output directory for $name. Attempted to create $destDir"
-       destFile.text = json
-
-       logger.info "Saved released versions information in: $destFile"
-   }
+    @TaskAction void prepareVersions() {
+        def properties = new Properties()
+        properties.mostRecent = mostRecent
+        properties.versions = versions.join(' ')
+        destFile.withOutputStream {
+            properties.store(it, "")
+        }
+    }
 }
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"

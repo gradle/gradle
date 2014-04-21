@@ -20,25 +20,25 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.InputStream;
 import java.net.URL;
+import java.util.Properties;
 
-public class ClasspathVersionJsonSource implements Factory<Reader> {
+public class ClasspathVersionSource implements Factory<Properties> {
 
     private final String resourceName;
     private final ClassLoader classLoader;
 
-    public ClasspathVersionJsonSource() {
-        this("all-released-versions.json", ClasspathVersionJsonSource.class.getClassLoader());
+    public ClasspathVersionSource() {
+        this("all-released-versions.properties", ClasspathVersionSource.class.getClassLoader());
     }
 
-    ClasspathVersionJsonSource(String resourceName, ClassLoader classLoader) {
+    ClasspathVersionSource(String resourceName, ClassLoader classLoader) {
         this.resourceName = resourceName;
         this.classLoader = classLoader;
     }
 
-    public Reader create() {
+    public Properties create() {
         URL resource = classLoader.getResource(resourceName);
         if (resource == null) {
             throw new RuntimeException(
@@ -50,7 +50,14 @@ public class ClasspathVersionJsonSource implements Factory<Reader> {
         }
 
         try {
-            return new InputStreamReader(resource.openStream(), "utf8");
+            Properties properties = new Properties();
+            InputStream stream = resource.openStream();
+            try {
+                properties.load(stream);
+            } finally {
+                stream.close();
+            }
+            return properties;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

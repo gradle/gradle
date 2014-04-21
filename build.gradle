@@ -108,6 +108,7 @@ apply from: "gradle/idea.gradle"
 apply from: "gradle/eclipse.gradle"
 apply from: "gradle/classycle.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
+apply from: "gradle/testSetup.gradle"
 apply from: "gradle/testGroupings.gradle"
 
 allprojects {
