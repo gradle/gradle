@@ -15,18 +15,17 @@
  */
 package org.gradle.integtests.resolve.http
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
 
-class HttpRedirectResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class HttpRedirectResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
     @Rule public final HttpServer server2 = new HttpServer()
 
     public void "resolves module artifacts via HTTP redirect"() {
-        server.start()
         server2.start()
 
         given:
@@ -56,7 +55,6 @@ task listJars << {
 
     @Issue('GRADLE-2196')
     public void "resolves artifact-only module via HTTP redirect"() {
-        server.start()
         server2.start()
 
         given:

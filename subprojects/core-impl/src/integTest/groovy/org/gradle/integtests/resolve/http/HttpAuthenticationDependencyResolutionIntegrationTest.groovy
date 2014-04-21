@@ -15,17 +15,16 @@
  */
 package org.gradle.integtests.resolve.http
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.hamcrest.Matchers
 import spock.lang.Unroll
 
-class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     static String badCredentials = "credentials{username 'testuser'; password 'bad'}"
 
     @Unroll
     public void "can resolve dependencies from #authScheme authenticated HTTP ivy repository"() {
-        server.start()
         given:
         def moduleA = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
         ivyHttpRepo.module('group', 'projectB', '2.1').publish()
@@ -74,7 +73,6 @@ task listJars << {
 
     @Unroll
     public void "can resolve dependencies from #authScheme authenticated HTTP maven repository"() {
-        server.start()
         given:
         def moduleA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
         mavenHttpRepo.module('group', 'projectB', '2.0').publish()
@@ -134,7 +132,6 @@ task listJars << {
 
     @Unroll
     def "reports failure resolving with #credsName credentials from #authScheme authenticated HTTP ivy repository"() {
-        server.start()
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
         when:
@@ -177,9 +174,6 @@ task listJars << {
     @Unroll
     def "reports failure resolving with #credsName credentials from #authScheme authenticated HTTP maven repository"() {
         given:
-        server.start()
-
-        and:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
 
         when:

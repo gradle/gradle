@@ -18,12 +18,12 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact
 import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository
 import spock.lang.Unroll
 
-class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def repo = mavenHttpRepo
     def fileRepo = mavenRepo
     def module = repo.module("some.group", "some-artifact", "1.0")
@@ -32,7 +32,6 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     JvmLibraryArtifactResolveTestFixture fixture
 
     def setup() {
-        server.start()
         initBuild(repo)
 
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)

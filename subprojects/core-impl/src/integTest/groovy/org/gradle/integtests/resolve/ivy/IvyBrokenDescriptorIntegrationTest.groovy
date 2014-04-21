@@ -16,11 +16,10 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class IvyBrokenDescriptorIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyBrokenDescriptorIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "reports Ivy descriptor that cannot be parsed"() {
-        server.start()
         given:
         buildFile << """
 repositories {
@@ -51,7 +50,6 @@ task showBroken << { println configurations.compile.files }
     }
 
     def "reports missing parent descriptor"() {
-        server.start()
         given:
         buildFile << """
 repositories {
@@ -84,7 +82,6 @@ task showBroken << { println configurations.compile.files }
     }
 
     def "reports parent descriptor that cannot be parsed"() {
-        server.start()
         given:
         buildFile << """
 repositories {

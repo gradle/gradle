@@ -15,20 +15,19 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenHttpModule
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import spock.lang.FailsWith
 import spock.lang.Issue
 
-class MavenPomPackagingResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenPomPackagingResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     MavenHttpRepository repo1
     MavenHttpRepository repo2
     MavenHttpModule projectARepo1
     MavenHttpModule projectARepo2
 
     public setup() {
-        server.start()
         repo1 = mavenHttpRepo("repo1")
         repo2 = mavenHttpRepo("repo2")
         projectARepo1 = repo1.module('group', 'projectA')

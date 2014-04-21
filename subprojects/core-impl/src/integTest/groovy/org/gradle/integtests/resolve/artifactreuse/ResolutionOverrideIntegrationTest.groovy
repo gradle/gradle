@@ -15,12 +15,11 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class ResolutionOverrideIntegrationTest extends AbstractDependencyResolutionTest {
+class ResolutionOverrideIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public void "will refresh non-changing module when run with --refresh-dependencies"() {
         given:
-        server.start()
         def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
 
         and:
@@ -66,8 +65,6 @@ task retrieve(type: Sync) {
     }
 
     public void "will recover from missing module when run with --refresh-dependencies"() {
-        server.start()
-
         given:
         def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
         def artifact = module.artifact
@@ -103,8 +100,6 @@ task showMissing << { println configurations.missing.files }
     }
 
     public void "will recover from missing artifact when run with --refresh-dependencies"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {
@@ -147,7 +142,6 @@ task retrieve(type: Sync) {
     public void "will not expire cache entries when run with offline flag"() {
 
         given:
-        server.start()
         def module = mavenHttpRepo.module("org.name", "unique", "1.0-SNAPSHOT").publish()
 
         and:
@@ -193,9 +187,6 @@ task retrieve(type: Sync) {
 
     public void "does not attempt to contact server when run with offline flag"() {
         given:
-        server.start()
-
-        and:
         buildFile << """
 repositories {
     maven { url "${mavenHttpRepo.uri}" }

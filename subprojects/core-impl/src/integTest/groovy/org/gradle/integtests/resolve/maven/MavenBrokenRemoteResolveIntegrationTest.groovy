@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class MavenBrokenRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public void "reports and recovers from failed POM download"() {
-        server.start()
-
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
 
@@ -59,8 +57,6 @@ task showBroken << { println configurations.broken.files }
     }
 
     public void "reports and recovers from failed artifact download"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {

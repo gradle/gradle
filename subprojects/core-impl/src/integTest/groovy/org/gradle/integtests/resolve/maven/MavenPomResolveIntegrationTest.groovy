@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class MavenPomResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "follows relocation to another group"() {
-        server.start()
-
         given:
         def original = mavenHttpRepo.module("groupA", "projectA", "1.2").publishPom()
         original.pomFile.text = """

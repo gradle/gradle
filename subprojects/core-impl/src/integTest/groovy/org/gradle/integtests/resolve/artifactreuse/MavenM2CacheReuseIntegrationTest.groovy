@@ -15,15 +15,14 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class MavenM2CacheReuseIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenM2CacheReuseIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "uses cached artifacts from maven local cache"() {
         given:
         def module1 = mavenHttpRepo.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
         m2Installation.generateGlobalSettingsFile()
         def module2 = m2Installation.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
-        server.start()
 
         buildFile.text = """
 repositories {

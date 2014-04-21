@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.ivy.IvyHttpModule
 import spock.lang.Unroll
 
-class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
 
     def setup() {
@@ -28,8 +29,6 @@ class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractDependencyR
 
         resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
-
-        server.start()
     }
 
     def "uses latest version from version range and latest status"() {

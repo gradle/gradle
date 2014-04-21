@@ -15,15 +15,13 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
 
-class MavenParentPomResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenParentPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def "includes dependencies from parent pom"() {
         given:
-        server.start()
-
         def parentDep = mavenHttpRepo.module("org", "parent_dep", "1.2").publish()
         def childDep = mavenHttpRepo.module("org", "child_dep", "1.7").publish()
 
@@ -80,8 +78,6 @@ task retrieve(type: Sync) {
     @Issue("GRADLE-2641")
     def "can handle parent pom with SNAPSHOT version"() {
         given:
-        server.start()
-
         def parent = mavenHttpRepo.module("org", "parent", "1.0-SNAPSHOT")
         parent.hasPackaging('pom')
         parent.publish()
@@ -118,7 +114,6 @@ task retrieve(type: Sync) {
 
     def "looks for parent pom in different repository"() {
         given:
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
 
@@ -163,7 +158,6 @@ task retrieve(type: Sync) {
 
     def "fails with reasonable message if parent module is an ivy module"() {
         given:
-        server.start()
         def child = mavenHttpRepo.module("org", "child")
         child.parent("org", "parent", "1.0")
         child.publish()
@@ -200,8 +194,6 @@ task retrieve(type: Sync) {
 
     def "uses cached parent pom located in a different repository"() {
         given:
-        server.start()
-
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
 
@@ -275,8 +267,6 @@ task retrieveChild2(type: Sync) {
     @Issue("GRADLE-2861")
     def "two modules that share common parent"() {
         given:
-        server.start()
-
         def parent = mavenHttpRepo.module("org", "parent", "1.0")
         parent.hasPackaging('pom')
         parent.publish()
@@ -321,8 +311,6 @@ task retrieve(type: Sync) {
     @Issue("GRADLE-2861")
     def "module that has a parent and grandparent module"() {
         given:
-        server.start()
-
         def grandParent = mavenHttpRepo.module("org", "grandparent", "1.0")
         grandParent.hasPackaging('pom')
         grandParent.publish()
@@ -366,8 +354,6 @@ task retrieve(type: Sync) {
 
     def "parent pom parsing with custom properties for dependency coordinates"() {
         given:
-        server.start()
-
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').publish()
         parent.pomFile.text = parent.pomFile.text.replace("</project>", """
 <properties>
@@ -415,8 +401,6 @@ task retrieve(type: Sync) {
 
     def "dependency with same group ID and artifact ID defined in child and parent is used from child"() {
         given:
-        server.start()
-
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').dependsOn('my.group', 'myartifact', '1.1').publish()
         mavenHttpRepo.module('my.group', 'myartifact', '1.1').publish()
         def depModule = mavenHttpRepo.module('my.group', 'myartifact', '1.3').publish()

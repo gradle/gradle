@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.custom
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.ivy.IvyHttpRepository
 import org.junit.Rule
 
-class IvyUrlResolverIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyUrlResolverIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
@@ -28,7 +29,6 @@ class IvyUrlResolverIntegrationTest extends AbstractDependencyResolutionTest {
     }
 
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
-        server.start()
         given:
         final IvyHttpRepository repo = ivyHttpRepo
         def projectA = repo.module('group', 'projectA', '1.2').publish()
@@ -152,7 +152,6 @@ task retrieveDynamicMissing(type: Sync) {
 
     public void "reports module missing when directory listing for module is empty or broken"() {
         given:
-        server.start()
         def repo = ivyHttpRepo
 
         and:
@@ -193,7 +192,6 @@ task testResolve(type: Sync) {
     }
 
     public void "honours changing patterns from custom resolver"() {
-        server.start()
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2-SNAPSHOT').publish()
 

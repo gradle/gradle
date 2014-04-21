@@ -15,17 +15,15 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.HttpRepository
 
-abstract class ComponentMetadataRulesIntegrationTest extends AbstractDependencyResolutionTest {
+abstract class ComponentMetadataRulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     abstract HttpRepository getRepo()
     abstract String getRepoDeclaration()
     abstract String getDefaultStatus()
 
     def setup() {
-        server.start()
-
         buildFile <<
 """
 $repoDeclaration

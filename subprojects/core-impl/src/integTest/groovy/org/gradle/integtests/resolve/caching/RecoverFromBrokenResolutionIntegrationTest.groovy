@@ -16,19 +16,15 @@
 
 package org.gradle.integtests.resolve.caching
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenHttpModule
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.hamcrest.Matchers
 
-class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     MavenHttpRepository repo
     MavenHttpModule module
-
-    def setup() {
-        server.start()
-    }
 
     private void buildFileWithSnapshotDependency() {
         buildFile << """

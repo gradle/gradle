@@ -15,15 +15,14 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenHttpModule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-class MavenSnapshotResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def "can find and cache snapshots in multiple Maven HTTP repositories"() {
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
 
@@ -85,7 +84,6 @@ task retrieve(type: Sync) {
     }
 
     def "can find and cache snapshots in Maven HTTP repository with additional artifact urls"() {
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
 
@@ -144,7 +142,6 @@ task retrieve(type: Sync) {
     }
 
     def "can find and cache snapshots in Maven HTTP repository with artifact classifier"() {
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
 
         given:
@@ -194,8 +191,6 @@ task retrieve(type: Sync) {
     }
 
     def "will detect changed snapshot artifacts when pom has not changed"() {
-        server.start()
-
         buildFile << """
 repositories {
     maven { url "${mavenHttpRepo.uri}" }
@@ -251,8 +246,6 @@ task retrieve(type: Sync) {
     }
 
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {
@@ -323,8 +316,6 @@ task retrieve(type: Sync) {
     }
 
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
-        server.start()
-
         buildFile << """
 repositories {
     maven { url "${mavenHttpRepo.uri}" }
@@ -373,7 +364,6 @@ task retrieve(type: Sync) {
     }
 
     def "does not download snapshot artifacts more than once per build"() {
-        server.start()
         given:
         def module = mavenHttpRepo.module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").publish()
 
@@ -419,7 +409,6 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
 
     @Ignore //TODO SF need to rework this test. First step might be turning off in-memory metadata caching for this test.
     def "can update snapshot artifact during build even if it is locked earlier in build"() {
-        server.start()
         given:
         def module = mavenHttpRepo("/repo", maven("repo1")).module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         def module2 = mavenHttpRepo("/repo", maven("repo2")).module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
@@ -493,8 +482,6 @@ project('second') {
     }
 
     def "avoid redownload unchanged artifact when no checksum available"() {
-        server.start()
-
         given:
         buildFile << """
             repositories {
@@ -566,8 +553,6 @@ project('second') {
     @Issue("GRADLE-3017")
     def "resolves changed metadata in snapshot dependency"() {
         given:
-        server.start()
-
         def projectB1 = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
         def projectB2 = mavenHttpRepo.module('group', 'projectB', '2.0').publish()
         def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").dependsOn('group', 'projectB', '1.0').publish()

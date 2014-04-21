@@ -15,11 +15,9 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.junit.Test
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-public class ClientModuleDependenciesResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    @Test
+public class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public void "uses metadata from Client Module and looks up artifact in declared repositories"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -27,8 +25,6 @@ public class ClientModuleDependenciesResolveIntegrationTest extends AbstractDepe
         def projectAInRepo1 = repo1.module('group', 'projectA', '1.2')
         def projectAInRepo2 = repo2.module('group', 'projectA', '1.2').publish()
         def projectB = repo1.module('group', 'projectB', '1.3').publish()
-
-        server.start()
 
         and:
         buildFile << """

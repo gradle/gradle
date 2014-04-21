@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
-class IvyModuleResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyModuleResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "wildcard on LHS of configuration mapping includes all public configurations of target module"() {
         given:
         buildFile << """
@@ -88,8 +88,6 @@ task retrieve(type: Sync) {
     @Unroll
     def "correctly handles configuration mapping rule '#rule'"() {
         given:
-        server.start()
-
         buildFile << """
 configurations {
     compile
@@ -228,7 +226,6 @@ task retrieve(type: Sync) {
         def repo2 = ivyHttpRepo("repo2")
         def moduleWithMetaData = repo2.module("org.gradle", "test", "1.45").publishWithChangedContent()
         assert moduleWithNoMetaData.jarFile.text != moduleWithMetaData.jarFile.text
-        server.start()
 
         and:
         buildFile << """

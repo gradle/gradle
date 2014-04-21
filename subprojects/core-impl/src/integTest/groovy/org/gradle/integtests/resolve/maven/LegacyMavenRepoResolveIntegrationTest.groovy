@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class LegacyMavenRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class LegacyMavenRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "can configure legacy Maven resolver to verify artifact using checksums"() {
-        server.start()
-
         given:
         def module = mavenHttpRepo.module("group", "module", "1.2").publishWithChangedContent()
         buildFile << """
@@ -77,8 +75,6 @@ task check << {
     }
 
     def "fails when checksum does not match artifact contents"() {
-        server.start()
-
         given:
         def module = mavenHttpRepo.module("group", "module", "1.2").publishWithChangedContent()
         buildFile << """
@@ -118,8 +114,6 @@ task check << {
     }
 
     def "can configure resolver to fail when descriptor is not present"() {
-        server.start()
-
         given:
         def module = mavenHttpRepo.module("group", "module", "1.2").publish()
 
@@ -153,8 +147,6 @@ task check << {
     }
 
     def "can configure resolver to ignore poms"() {
-        server.start()
-
         given:
         def module = mavenHttpRepo.module("group", "module", "1.2").publish()
 
@@ -189,8 +181,6 @@ task check << {
     }
 
     def "can configure resolver to ignore maven-metadata.xml when resolving snapshots"() {
-        server.start()
-
         given:
         def module = mavenHttpRepo.module("group", "module", "1.2-SNAPSHOT").withNonUniqueSnapshots().publish()
 

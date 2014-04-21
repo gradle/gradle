@@ -16,15 +16,13 @@
 
 package org.gradle.integtests.resolve.caching
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
-class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTest {
+class CachedMissingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     public void "caches missing module when module found in another repository"() {
-        server.start()
-
         given:
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -61,7 +59,6 @@ task showMissing << { println configurations.missing.files }
 
     def "cached not-found information for dynamic version is ignored if module is not available in any repo"() {
         given:
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         repo1.module("group", "projectA", "1.0")
         def repo2 = mavenHttpRepo("repo2")
@@ -119,7 +116,6 @@ task showMissing << { println configurations.missing.files }
 
     def "cached not-found information for fixed version is ignored if module is not available in any repo"() {
         given:
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo1Module = repo1.module("group", "projectA", "1.0")
         def repo1Artifact = repo1Module.artifact
@@ -180,7 +176,6 @@ task showMissing << { println configurations.missing.files }
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
     def "hit each remote repo only once per build and missing module"() {
         given:
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo1Module = repo1.module("group", "projectA", "1.0")
         def repo1Artifact = repo1Module.artifact
@@ -251,7 +246,6 @@ task showMissing << { println configurations.missing.files }
 
     def "does not hit remote repositories if version is available in local repo"() {
         given:
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo1Module = repo1.module("group", "projectA", "1.0")
         def repo2 = mavenRepo("repo2")

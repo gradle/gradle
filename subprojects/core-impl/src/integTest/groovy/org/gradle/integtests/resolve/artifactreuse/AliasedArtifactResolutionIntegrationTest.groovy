@@ -15,18 +15,16 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Ignore
 
-class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def mavenRepo1 = mavenHttpRepo("maven1")
     def mavenRepo2 = mavenHttpRepo("maven2")
     def ivyRepo1 = ivyHttpRepo("ivy1")
     def ivyRepo2 = ivyHttpRepo("ivy2")
 
     def setup() {
-        server.start()
-
         buildFile << """
             repositories {
                 if (project.hasProperty('mavenRepository1')) {

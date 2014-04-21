@@ -16,18 +16,17 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.ResolveTestFixture
 import org.gradle.internal.id.UUIDGenerator
 
-class MavenProfileResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenProfileResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
 
     def setup() {
         settingsFile << "rootProject.name = 'test' "
         resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
-        server.start()
     }
 
     def "uses properties from active profile to resolve dependency"() {

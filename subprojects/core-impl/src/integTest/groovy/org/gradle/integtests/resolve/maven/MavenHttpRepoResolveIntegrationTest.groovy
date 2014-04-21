@@ -15,18 +15,16 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.junit.Rule
 
-class MavenHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def "can resolve and cache dependencies from HTTP Maven repository"() {
         given:
-        server.start()
-
         def projectB = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
         def projectA = mavenHttpRepo.module('group', 'projectA').dependsOn('group', 'projectB', '1.0').publish()
 
@@ -78,7 +76,6 @@ task retrieve(type: Sync) {
     }
 
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {
-        server.start()
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2')
         module.publish()
@@ -116,7 +113,6 @@ task listJars << {
     }
 
     def "can resolve and cache artifact-only dependencies with no pom from an HTTP Maven repository"() {
-        server.start()
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2')
         module.publish()
@@ -156,7 +152,6 @@ task listJars << {
 
     def "can resolve and cache dependencies from multiple HTTP Maven repositories"() {
         given:
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
 
@@ -206,7 +201,6 @@ task listJars << {
 
     def "uses artifactsUrl to resolve artifacts"() {
         given:
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
 
@@ -244,8 +238,6 @@ task listJars << {
 
     def "can resolve and cache dependencies from HTTP Maven repository with invalid settings.xml"() {
         given:
-        server.start()
-
         def projectB = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
         def projectA = mavenHttpRepo.module('group', 'projectA').dependsOn('group', 'projectB', '1.0').publish()
 

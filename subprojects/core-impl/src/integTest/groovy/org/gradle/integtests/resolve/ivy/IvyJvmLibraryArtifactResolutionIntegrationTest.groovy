@@ -18,19 +18,18 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact
 import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.ivy.IvyRepository
 import spock.lang.Unroll
 
-class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def fileRepo = ivyRepo
     def httpRepo = ivyHttpRepo
     def module = httpRepo.module("some.group", "some-artifact", "1.0")
     JvmLibraryArtifactResolveTestFixture fixture
 
     def setup() {
-        server.start()
         initBuild(httpRepo)
 
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)

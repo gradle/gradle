@@ -15,15 +15,13 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 import static org.hamcrest.Matchers.containsString
 
-class IvyBrokenRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     public void "reports and recovers from missing module"() {
-        server.start()
-
         given:
         def repo = ivyHttpRepo("repo1")
         def module = repo.module("group", "projectA", "1.2").publish()
@@ -60,8 +58,6 @@ task showMissing << { println configurations.missing.files }
     }
 
     public void "reports and recovers from failed Ivy descriptor download"() {
-        server.start()
-
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.3').publish()
 
@@ -99,8 +95,6 @@ task showBroken << { println configurations.broken.files }
     }
 
     public void "reports and caches missing artifacts"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {
@@ -139,8 +133,6 @@ task retrieve(type: Sync) {
     }
 
     public void "reports and recovers from failed artifact download"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {

@@ -15,19 +15,18 @@
  */
 package org.gradle.integtests.resolve.http
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Unroll
 
-class HttpProxyResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class HttpProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
 
     public void "uses configured proxy to access remote HTTP repository"() {
-        server.start()
         proxyServer.start()
 
         given:
@@ -62,7 +61,6 @@ task listJars << {
     }
 
     public void "uses authenticated proxy to access remote HTTP repository"() {
-        server.start()
         proxyServer.start()
 
         given:
@@ -104,7 +102,6 @@ task listJars << {
 
     @Unroll
     public void "passes target credentials to #authScheme authenticated server via proxy"() {
-        server.start()
         proxyServer.start()
 
         given:

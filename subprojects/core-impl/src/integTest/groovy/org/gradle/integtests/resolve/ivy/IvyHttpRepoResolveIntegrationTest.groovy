@@ -15,17 +15,16 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.junit.Rule
 import spock.lang.Unroll
 
-class IvyHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Rule ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
 
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
-        server.start()
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
@@ -60,7 +59,6 @@ task listJars << {
     }
 
     public void "can resolve and cache artifact-only dependencies from an HTTP Ivy repository"() {
-        server.start()
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
@@ -97,7 +95,6 @@ task listJars << {
     }
 
     def "can resolve and cache artifact-only dependencies with no descriptor from a HTTP repository"() {
-        server.start()
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
@@ -135,7 +132,6 @@ task listJars << {
     }
 
     public void "can resolve and cache dependencies from multiple HTTP Ivy repositories"() {
-        server.start()
         given:
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -195,8 +191,6 @@ task listJars << {
     }
 
     public void "uses all configured patterns to resolve artifacts and caches result"() {
-        server.start()
-
         given:
         def module = ivyRepo().module('group', 'projectA', '1.2').publish()
 
@@ -241,8 +235,6 @@ task show << { println configurations.compile.files }
 
     @Unroll
     public void "produces correct layout when using #layoutName layout"() {
-        server.start()
-
         given:
         def module = ivyRepo().module('org.name.here', 'projectA', '1.2').publish()
 
@@ -283,7 +275,6 @@ task retrieve(type: Sync) {
 
     def "reuses cached details when switching ivy resolve mode"() {
         given:
-        server.start()
         buildFile << """
 configurations {
     compile {

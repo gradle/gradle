@@ -16,13 +16,11 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenDynamicResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def "can resolve snapshot versions with version range"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {
@@ -84,8 +82,6 @@ task retrieve(type: Sync) {
 
     def "can resolve dynamic version declared in pom as transitive dependency from HTTP Maven repository"() {
         given:
-        server.start()
-
         mavenHttpRepo.module('org.test', 'projectC', '1.1').publish()
         def projectC = mavenHttpRepo.module('org.test', 'projectC', '1.5').publish()
         mavenHttpRepo.module('org.test', 'projectC', '2.0').publish()
@@ -134,7 +130,6 @@ task retrieve(type: Sync) {
 
     def "falls back to directory listing when maven-metadata.xml is missing"() {
         given:
-        server.start()
         mavenHttpRepo.module('org.test', 'projectA', '1.0').publish()
         def projectA = mavenHttpRepo.module('org.test', 'projectA', '1.5').publish()
 
@@ -177,7 +172,6 @@ task retrieve(type: Sync) {
 
     def "does not cache broken module information"() {
         given:
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
         def projectA1 = repo1.module('group', 'projectA', '1.1').publish()

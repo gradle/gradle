@@ -161,6 +161,9 @@ class HttpServer extends ServerWithExpectations {
             sslConnector.trustPassword = trustPassword
         }
         server.addConnector(sslConnector)
+        if (server.started) {
+            sslConnector.start()
+        }
     }
 
     int getSslPort() {
@@ -595,8 +598,6 @@ class HttpServer extends ServerWithExpectations {
     int getPort() {
         return server.connectors[0].localPort
     }
-
-
 
     static class HttpExpectOne extends ExpectOne {
         final Action action

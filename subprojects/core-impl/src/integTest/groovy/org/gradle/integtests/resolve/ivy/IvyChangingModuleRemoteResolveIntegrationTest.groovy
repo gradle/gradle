@@ -15,13 +15,11 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class IvyChangingModuleRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyChangingModuleRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def "detects changed module descriptor when flagged as changing"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {
@@ -82,8 +80,6 @@ task retrieve(type: Copy) {
     }
 
     def "can mark a module as changing after first retrieval"() {
-        server.start()
-
         given:
         buildFile << """
 def isChanging = project.hasProperty('isChanging') ? true : false
@@ -132,8 +128,6 @@ task retrieve(type: Copy) {
     }
 
     def "detects changed artifact when flagged as changing"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {
@@ -191,8 +185,6 @@ task retrieve(type: Copy) {
     }
 
     def "caches changing module descriptor and artifacts until cache expiry"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {
@@ -268,8 +260,6 @@ task retrieve(type: Copy) {
     }
 
     def "can use cache-control DSL to mimic changing pattern for ivy repository"() {
-        server.start()
-
         given:
         buildFile << """
 repositories {
@@ -347,8 +337,6 @@ task retrieve(type: Copy) {
     }
 
     def "avoid redownload unchanged artifact when no checksum available"() {
-        server.start()
-
         given:
         buildFile << """
             repositories {
