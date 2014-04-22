@@ -12,7 +12,7 @@ to using a custom Ivy DependencyResolver in order to handle a specific repositor
 
 # Stories
 
-## Allow caching for a slow file-backed repository
+## Allow caching for a slow file-backed repository (GRADLE-1964)
 
 Currently, the only way to enable caching for file-backed repository (eg when backed by a slow NFS share) is to set local attribute to false for a FileSystemResolver.
 We need a way to prevent very slow resolution in these cases, by either:
@@ -21,6 +21,8 @@ We need a way to prevent very slow resolution in these cases, by either:
 * detecting the slowness and automatically enabling caching
 * always using caching for file-backed repositories
 * something else?
+
+See [GRADLE-1964](http://issues.gradle.org/browse/GRADLE-1964)
 
 ## Detect servers that do not correctly handle HTTP HEAD requests
 
