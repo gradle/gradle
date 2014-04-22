@@ -190,10 +190,8 @@ apply plugin: "idea"
 sourceSets.main.output.dir "$buildDir/generated/main"
 sourceSets.test.output.dir "$buildDir/ws/test"
 '''
-        def iml = parseFile(print: true, 'root.iml')
-
         //then
-        def dependencies = new IdeaModuleFixture(iml).dependencies
+        def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.size() == 2
         dependencies.assertHasLibrary('RUNTIME', 'generated/main')
         dependencies.assertHasLibrary('TEST', 'ws/test')
@@ -390,10 +388,8 @@ dependencies {
     runtime 'org.gradle:impl-artifact:1.0'
 }
 """
-        def iml = parseFile(print: true, 'root.iml')
-
         //then
-        def dependencies = new IdeaModuleFixture(iml).dependencies
+        def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.size() == 3
         dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
         dependencies.assertHasLibrary('RUNTIME', 'impl-artifact-1.0.jar')
@@ -425,10 +421,8 @@ idea {
   }
 }
 """
-        def iml = parseFile(print: true, 'root.iml')
-
         //then
-        def dependencies = new IdeaModuleFixture(iml).dependencies
+        def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.size() == 1
         dependencies.assertHasLibrary('PROVIDED', 'api-artifact-1.0.jar')
     }
@@ -465,10 +459,8 @@ idea {
   }
 }
 """
-        def iml = parseFile(print: true, 'root.iml')
-
         //then
-        def dependencies = new IdeaModuleFixture(iml).dependencies
+        def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.size() == 2
         dependencies.assertHasLibrary('PROVIDED', 'bar-1.0.jar')
         dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
@@ -508,10 +500,8 @@ idea {
   }
 }
 """
-        def iml = parseFile(print: true, 'root.iml')
-
         //then
-        def dependencies = new IdeaModuleFixture(iml).dependencies
+        def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.size() == 3
         dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
         dependencies.assertHasLibrary('TEST', 'bar-1.0.jar')
@@ -541,10 +531,8 @@ dependencies {
     compile 'org.gradle:api-artifact:1.0'
 }
 """
-        def iml = parseFile(print: true, 'root.iml')
-
         //then
-        def dependencies = new IdeaModuleFixture(iml).dependencies
+        def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.isEmpty()
     }
 }

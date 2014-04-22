@@ -140,11 +140,11 @@ dependencies {
     }
 
     @Test
-        void libraryReferenceSubstitutesPathVariable() {
-            def repoDir = file("repo")
-            def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").publish().artifactFile
+    void libraryReferenceSubstitutesPathVariable() {
+        def repoDir = file("repo")
+        def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").publish().artifactFile
 
-            runIdeaTask """
+        runIdeaTask """
     apply plugin: "java"
     apply plugin: "idea"
 
@@ -161,13 +161,13 @@ dependencies {
     }
             """
 
-            def module = parseImlFile("root")
-            def libs = module.component.orderEntry.library
-            assert libs.size() == 1
-            assert libs.CLASSES.root*.@url*.text().collect { new File(it).name } as Set == [artifact1.name + "!"] as Set
-            assert libs.CLASSES.root*.@url*.text().findAll(){ it.contains("\$GRADLE_REPO\$") }.size() == 1
-            assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", relPath(repoDir))} as Set == ["jar://${relPath(artifact1)}!/"] as Set
-        }
+        def module = parseImlFile("root")
+        def libs = module.component.orderEntry.library
+        assert libs.size() == 1
+        assert libs.CLASSES.root*.@url*.text().collect { new File(it).name } as Set == [artifact1.name + "!"] as Set
+        assert libs.CLASSES.root*.@url*.text().findAll(){ it.contains("\$GRADLE_REPO\$") }.size() == 1
+        assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", relPath(repoDir))} as Set == ["jar://${relPath(artifact1)}!/"] as Set
+    }
 
     @Test
     void onlyAddsSourceDirsThatExistOnFileSystem() {

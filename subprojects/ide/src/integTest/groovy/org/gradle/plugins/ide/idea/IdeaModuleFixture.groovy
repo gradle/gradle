@@ -90,16 +90,20 @@ class IdeaModuleFixture {
             }
         }
     }
+
     class ImlDependency {
         String type
     }
+
     class ImlSource extends ImlDependency {
         String forTests
     }
+
     class ImlModule extends ImlDependency {
         String scope
         String moduleName
     }
+
     class ImlLibrary extends ImlDependency {
         String scope
         String url
