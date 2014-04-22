@@ -2002,6 +2002,7 @@ TBD
 
 # Open issues
 
+* For incremental build with visual c++, use `dumpbin  /RAWDATA` to strip timestamps from binary files before comparison
 * Add ABI as an aspect of target platform.
 * Output of any custom post link task should be treated as input to anything that depends on the binary.
 * Route stdout to info level when linking a shared library using visual studio, to get rid of the pointless notice.

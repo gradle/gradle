@@ -233,6 +233,7 @@ Extension objects have been available for over 2 years and are now an establishe
 ## Invocation API tidy-ups
 
 * Remove the public `StartParameter` constructor.
+* Remove the public `StartParameter` constants, `GRADLE_USER_HOME_PROPERTY_KEY` and `GRADLE_USER_HOME_PROPERTY_KEY`.
 * Change `StartParameter` into an interface.
 
 ## Misc API tidy-ups
