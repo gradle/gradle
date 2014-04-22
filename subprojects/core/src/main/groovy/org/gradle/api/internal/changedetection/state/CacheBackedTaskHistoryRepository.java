@@ -229,10 +229,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         static class TaskHistorySerializer implements Serializer<LazyTaskExecution> {
-            private ClassLoader classLoader;
+            private InputPropertiesSerializer inputPropertiesSerializer;
 
             public TaskHistorySerializer(ClassLoader classLoader) {
-                this.classLoader = classLoader;
+                this.inputPropertiesSerializer = new InputPropertiesSerializer(classLoader);
             }
 
             public LazyTaskExecution read(Decoder decoder) throws Exception {
@@ -249,8 +249,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
                 boolean inputProperties = decoder.readBoolean();
                 if (inputProperties) {
-                    DefaultSerializer<Map> defaultSerializer = new DefaultSerializer<Map>(classLoader);
-                    Map<String, Object> map = defaultSerializer.read(decoder);
+                    Map<String, Object> map = inputPropertiesSerializer.read(decoder);
                     execution.setInputProperties(map);
                 } else {
                     execution.setInputProperties(new HashMap<String, Object>());
@@ -270,11 +269,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     encoder.writeBoolean(false);
                 } else {
                     encoder.writeBoolean(true);
-                    DefaultSerializer<Map> defaultSerializer = new DefaultSerializer<Map>(classLoader);
-                    //TODO SF catch not serializable exception and try to help the user as much as possible.
-                    defaultSerializer.write(encoder, execution.getInputProperties());
+                    inputPropertiesSerializer.write(encoder, execution.getInputProperties());
                 }
             }
+
         }
     }
 }
