@@ -132,9 +132,8 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
                         result.missing();
                     } else {
                         LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", moduleComponent, getName());
-                        ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(revision.getDescriptor());
+                        MutableModuleVersionMetaData metaData = new DefaultIvyModuleVersionMetaData(revision.getDescriptor());
                         metaData.setChanging(isChanging(revision));
-                        metaData.setIvyMetaData(new DefaultIvyModuleVersionMetaData(revision.getDescriptor().getExtraInfo()));
                         result.resolved(metaData, null);
                     }
                 } catch (ParseException e) {

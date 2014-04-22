@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
+import org.gradle.api.internal.artifacts.metadata.MavenModuleVersionMetaData
 import org.gradle.api.internal.artifacts.result.metadata.MavenPomArtifact
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
@@ -44,10 +45,13 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 </project>
 """
 
+
         when:
-        def descriptor = parsePom()
+        def metaData = parseMetaData()
+        def descriptor = metaData.descriptor
 
         then:
+        metaData instanceof MavenModuleVersionMetaData
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
@@ -1264,7 +1268,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         then:
         descriptor.allArtifacts.length == 0
-        metaData.mavenMetaData.packaging == 'pom'
+        metaData.packaging == 'pom'
     }
 
     def "pom with project coordinates defined by custom properties"() {

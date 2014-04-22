@@ -23,14 +23,18 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveR
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.result.metadata.MavenPomArtifact;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.Transformers;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,15 +51,17 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     private boolean usepoms = true;
     private boolean useMavenMetadata = true;
     private final MavenMetadataLoader mavenMetaDataLoader;
+    private final MetaDataParser metaDataParser;
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
                          ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
-                locallyAvailableResourceFinder, new GradlePomModuleDescriptorParser(), resolverStrategy);
+                locallyAvailableResourceFinder, resolverStrategy);
         transport.configureCacheManager(this);
 
+        this.metaDataParser = new GradlePomModuleDescriptorParser();
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
         this.transport = transport;
         this.root = transport.convertToPath(rootUri);
@@ -240,12 +246,23 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return new MavenRemoteRepositoryAccess();
     }
 
+    @Override
+    protected MutableModuleVersionMetaData createMetaDataForDependency(DependencyMetaData dependency) {
+        return new DefaultMavenModuleVersionMetaData(dependency);
+    }
+
+    protected MutableModuleVersionMetaData parseMetaDataFromResource(LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
+        return metaDataParser.parseMetaData(context, cachedResource);
+    }
+
+    protected static MavenModuleVersionMetaData mavenMetaData(ModuleVersionMetaData metaData) {
+        return Transformers.cast(MavenModuleVersionMetaData.class).transform(metaData);
+    }
+
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
         protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
-            MavenModuleVersionMetaData mavenMetaData = module.getMavenMetaData();
-
-            if (mavenMetaData.isKnownJarPackaging()) {
+            if (mavenMetaData(module).isKnownJarPackaging()) {
                 ModuleVersionArtifactMetaData artifact = module.artifact("jar", "jar", null);
                 result.resolved(ImmutableSet.of(artifact));
             }
@@ -265,8 +282,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
         protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
-            MavenModuleVersionMetaData mavenMetaData = module.getMavenMetaData();
-
+            MavenModuleVersionMetaData mavenMetaData = mavenMetaData(module);
             if (mavenMetaData.isPomPackaging()) {
                 Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
                 artifacts.addAll(findOptionalArtifacts(module, "jar", null));

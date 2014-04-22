@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-public interface MavenModuleVersionMetaData {
+/**
+ * Meta-data for a module version resolved from a Maven repository.
+ */
+// TODO:DAZ Should not extend Mutable?
+public interface MavenModuleVersionMetaData extends MutableModuleVersionMetaData {
     String getPackaging();
     boolean isRelocated();
     boolean isPomPackaging();

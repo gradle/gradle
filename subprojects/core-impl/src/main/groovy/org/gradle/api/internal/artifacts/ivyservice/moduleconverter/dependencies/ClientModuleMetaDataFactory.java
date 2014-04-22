@@ -22,5 +22,6 @@ import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import java.util.Set;
 
 public interface ClientModuleMetaDataFactory {
+    // TODO:DAZ Rename
     MutableModuleVersionMetaData createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies);
 }

@@ -16,23 +16,42 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+
 import java.util.Arrays;
 import java.util.Collection;
 
-public class DefaultMavenModuleVersionMetaData implements MavenModuleVersionMetaData {
+public class DefaultMavenModuleVersionMetaData extends ModuleDescriptorAdapter implements MavenModuleVersionMetaData {
     private static final String POM_PACKAGING = "pom";
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private final String packaging;
     private final boolean relocated;
 
-    public DefaultMavenModuleVersionMetaData() {
-        packaging = null;
-        relocated = false;
-    }
-
-    public DefaultMavenModuleVersionMetaData(String packaging, boolean relocated) {
+    public DefaultMavenModuleVersionMetaData(ModuleDescriptor moduleDescriptor, String packaging, boolean relocated) {
+        super(moduleDescriptor);
         this.packaging = packaging;
         this.relocated = relocated;
+    }
+
+    public DefaultMavenModuleVersionMetaData(ModuleVersionIdentifier id, ModuleDescriptor descriptor, ModuleComponentIdentifier componentId, String packaging, boolean relocated) {
+        super(id, descriptor, componentId);
+        this.packaging = packaging;
+        this.relocated = relocated;
+    }
+
+    public DefaultMavenModuleVersionMetaData(DependencyMetaData dependencyMetaData) {
+        this(IvyUtil.createModuleDescriptor(dependencyMetaData.getDescriptor()), "jar", false);
+    }
+
+    @Override
+    public DefaultMavenModuleVersionMetaData copy() {
+        // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
+        DefaultMavenModuleVersionMetaData copy = new DefaultMavenModuleVersionMetaData(getId(), getDescriptor(), getComponentId(), packaging, relocated);
+        copyTo(copy);
+        return copy;
     }
 
     public String getPackaging() {
@@ -48,6 +67,6 @@ public class DefaultMavenModuleVersionMetaData implements MavenModuleVersionMeta
     }
 
     public boolean isKnownJarPackaging() {
-        return packaging == null || "jar".equals(packaging) || JAR_PACKAGINGS.contains(packaging);
+        return "jar".equals(packaging) || JAR_PACKAGINGS.contains(packaging);
     }
 }

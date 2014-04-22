@@ -15,13 +15,36 @@
  */
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+
 import java.util.Map;
 
-public class DefaultIvyModuleVersionMetaData implements IvyModuleVersionMetaData {
+public class DefaultIvyModuleVersionMetaData extends ModuleDescriptorAdapter implements IvyModuleVersionMetaData {
     private final Map<String, String> extraInfo;
 
-    public DefaultIvyModuleVersionMetaData(Map<String, String> extraInfo) {
-        this.extraInfo = extraInfo;
+    public DefaultIvyModuleVersionMetaData(ModuleDescriptor moduleDescriptor) {
+        super(moduleDescriptor);
+        this.extraInfo = moduleDescriptor.getExtraInfo();
+    }
+
+    public DefaultIvyModuleVersionMetaData(ModuleVersionIdentifier identifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
+        super(identifier, moduleDescriptor, componentIdentifier);
+        this.extraInfo = moduleDescriptor.getExtraInfo();
+    }
+
+    public DefaultIvyModuleVersionMetaData(DependencyMetaData dependencyMetaData) {
+        this(IvyUtil.createModuleDescriptor(dependencyMetaData.getDescriptor()));
+    }
+
+    @Override
+    public DefaultIvyModuleVersionMetaData copy() {
+        // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
+        DefaultIvyModuleVersionMetaData copy = new DefaultIvyModuleVersionMetaData(getId(), getDescriptor(), getComponentId());
+        copyTo(copy);
+        return copy;
     }
 
     public Map<String, String> getExtraInfo() {

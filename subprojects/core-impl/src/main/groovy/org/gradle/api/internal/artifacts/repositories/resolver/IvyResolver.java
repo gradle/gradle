@@ -18,11 +18,14 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
@@ -31,13 +34,13 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     private final RepositoryTransport transport;
     private final boolean dynamicResolve;
+    private final MetaDataParser metaDataParser;
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
                        boolean dynamicResolve, ResolverStrategy resolverStrategy) {
-        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()),
-                locallyAvailableResourceFinder, new DownloadedIvyModuleDescriptorParser(resolverStrategy),
-                resolverStrategy);
+        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, resolverStrategy);
+        this.metaDataParser = new DownloadedIvyModuleDescriptorParser(resolverStrategy);
         this.transport = transport;
         this.transport.configureCacheManager(this);
         this.dynamicResolve = dynamicResolve;
@@ -73,6 +76,14 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return new IvyRemoteRepositoryAccess();
+    }
+
+    protected MutableModuleVersionMetaData createMetaDataForDependency(DependencyMetaData dependency) {
+        return new DefaultIvyModuleVersionMetaData(dependency);
+    }
+
+    protected MutableModuleVersionMetaData parseMetaDataFromResource(LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
+        return metaDataParser.parseMetaData(context, cachedResource);
     }
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {

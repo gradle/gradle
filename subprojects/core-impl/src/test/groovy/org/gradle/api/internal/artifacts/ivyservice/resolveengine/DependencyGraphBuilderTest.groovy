@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBi
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
@@ -847,7 +847,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def revision(String name, String revision = '1.0') {
         DefaultModuleDescriptor descriptor = new DefaultModuleDescriptor(createModuleRevisionId("group", name, revision), "release", new Date())
-        ModuleVersionMetaData metaData = new ModuleDescriptorAdapter(descriptor)
+        ModuleVersionMetaData metaData = new DefaultIvyModuleVersionMetaData(descriptor)
         config(metaData, 'default')
         descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
         return metaData

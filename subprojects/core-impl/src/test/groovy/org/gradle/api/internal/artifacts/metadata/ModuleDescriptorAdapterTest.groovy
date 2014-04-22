@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.internal.artifacts.metadata
-
 import org.apache.ivy.core.module.descriptor.*
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import spock.lang.Specification
 
-class ModuleDescriptorAdapterTest extends Specification {
+abstract class ModuleDescriptorAdapterTest extends Specification {
+
     def id = Stub(ModuleVersionIdentifier)
+    def componentId = Stub(ModuleComponentIdentifier)
     def moduleDescriptor = Mock(ModuleDescriptor)
-    def metaData = new ModuleDescriptorAdapter(id, moduleDescriptor)
+    def metaData
+
+    def setup() {
+        metaData = createMetaData(id, moduleDescriptor, componentId)
+    }
+
+    abstract ModuleDescriptorAdapter createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier);
 
     def "has useful string representation"() {
         given:
@@ -249,46 +253,5 @@ class ModuleDescriptorAdapterTest extends Specification {
 
         and:
         0 * moduleDescriptor._
-    }
-
-    def "can make a copy"() {
-        def dependency1 = Stub(DependencyMetaData)
-        def dependency2 = Stub(DependencyMetaData)
-
-        given:
-        metaData.changing = true
-        metaData.dependencies = [dependency1, dependency2]
-        metaData.status = 'a'
-        metaData.statusScheme = ['a', 'b', 'c']
-
-        when:
-        def copy = metaData.copy()
-
-        then:
-        copy != metaData
-        copy.descriptor == moduleDescriptor
-        copy.changing
-        copy.dependencies == [dependency1, dependency2]
-        copy.status == 'a'
-        copy.statusScheme == ['a', 'b', 'c']
-    }
-
-    def "creates ModuleComponentIdentifier as component ID if not provided in constructor"() {
-        when:
-        ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier('group', 'name', 'version')
-        def metaData = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor)
-
-        then:
-        metaData.componentId == new DefaultModuleComponentIdentifier('group', 'name', 'version')
-    }
-
-    def "uses component ID if provided in constructor"() {
-        when:
-        def moduleVersionIdentifier = new DefaultModuleVersionIdentifier('group', 'name', 'version')
-        def componentIdentifier = new DefaultModuleComponentIdentifier('group', 'override', '1.2')
-        def metaData = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor, componentIdentifier)
-
-        then:
-        metaData.componentId == componentIdentifier
     }
 }

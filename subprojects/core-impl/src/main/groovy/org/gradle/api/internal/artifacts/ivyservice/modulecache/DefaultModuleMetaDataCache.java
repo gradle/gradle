@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
+import org.gradle.api.internal.artifacts.metadata.MavenModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
@@ -99,7 +100,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     }
 
     private String getPackaging(ModuleVersionMetaData metaData) {
-        return metaData.getMavenMetaData() != null ? metaData.getMavenMetaData().getPackaging() : null;
+        return metaData instanceof MavenModuleVersionMetaData ? ((MavenModuleVersionMetaData) metaData).getPackaging() : null;
     }
 
     private RevisionKey createKey(ModuleComponentRepository repository, ModuleComponentIdentifier id) {

@@ -37,18 +37,14 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
         if (moduleDescriptor == null) {
             metaData = null;
         } else {
-            ModuleDescriptorAdapter moduleDescriptorAdapter = new ModuleDescriptorAdapter(moduleDescriptor);
-            moduleDescriptorAdapter.setChanging(entry.isChanging);
-
+            // TODO:DAZ Should use a type field entry rather than relying on packaging != null
             if (entry.packaging == null) {
-                @SuppressWarnings("unchecked")
-                IvyModuleVersionMetaData ivyMetaData = new DefaultIvyModuleVersionMetaData(moduleDescriptor.getExtraInfo());
-                moduleDescriptorAdapter.setIvyMetaData(ivyMetaData);
+                metaData = new DefaultIvyModuleVersionMetaData(moduleDescriptor);
+            } else {
+                // TODO:DAZ relocation is not cached (not yet used?)
+                metaData = new DefaultMavenModuleVersionMetaData(moduleDescriptor, entry.packaging, false);
             }
-
-            MavenModuleVersionMetaData mavenMetaData = new DefaultMavenModuleVersionMetaData(entry.packaging, false);
-            moduleDescriptorAdapter.setMavenMetaData(mavenMetaData);
-            metaData = moduleDescriptorAdapter;
+            metaData.setChanging(entry.isChanging);
         }
     }
 

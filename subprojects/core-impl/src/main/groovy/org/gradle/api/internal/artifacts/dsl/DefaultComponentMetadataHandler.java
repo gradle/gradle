@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.reflect.Instantiator;
@@ -71,10 +72,10 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
             if (argType == ComponentMetadataDetails.class || argType == Object.class) {
                 args.add(details);
             } else if (argType == IvyModuleDescriptor.class) {
-                if (metadata.getIvyMetaData() == null) {
+                if (!(metadata instanceof IvyModuleVersionMetaData)) {
                     return;
                 }
-                args.add(new DefaultIvyModuleDescriptor(metadata.getIvyMetaData().getExtraInfo()));
+                args.add(new DefaultIvyModuleDescriptor(((IvyModuleVersionMetaData) metadata).getExtraInfo()));
             } else {
                 throw new GradleException(String.format("Unsupported parameter type for component metadata rule: %s", argType.getName()));
             }

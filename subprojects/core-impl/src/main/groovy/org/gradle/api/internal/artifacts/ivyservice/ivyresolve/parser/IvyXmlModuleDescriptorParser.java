@@ -36,8 +36,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -97,11 +95,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
         postProcess(moduleDescriptor);
 
-        MutableModuleVersionMetaData result = new ModuleDescriptorAdapter(moduleDescriptor);
-        @SuppressWarnings("unchecked")
-        IvyModuleVersionMetaData ivyMetaData = new DefaultIvyModuleVersionMetaData(moduleDescriptor.getExtraInfo());
-        result.setIvyMetaData(ivyMetaData);
-        return result;
+        return new DefaultIvyModuleVersionMetaData(moduleDescriptor);
     }
 
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {

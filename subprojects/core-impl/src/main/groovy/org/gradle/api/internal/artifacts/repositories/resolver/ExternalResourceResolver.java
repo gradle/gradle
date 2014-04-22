@@ -34,8 +34,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
@@ -58,8 +58,6 @@ import static org.gradle.api.internal.artifacts.repositories.cachemanager.Reposi
 
 public abstract class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
-
-    private final MetaDataParser metaDataParser;
 
     private List<String> ivyPatterns = new ArrayList<String>();
     private List<String> artifactPatterns = new ArrayList<String>();
@@ -85,13 +83,11 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
                                     ExternalResourceRepository repository,
                                     VersionLister versionLister,
                                     LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                    MetaDataParser metaDataParser,
                                     ResolverStrategy resolverStrategy) {
         this.name = name;
         this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.metaDataParser = metaDataParser;
         this.resolverStrategy = resolverStrategy;
     }
 
@@ -212,22 +208,23 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             throw new UncheckedIOException(e);
         }
 
-        MutableModuleVersionMetaData metaData =  metaDataParser.parseMetaData(context, cachedResource);
+        MutableModuleVersionMetaData metaData = parseMetaDataFromResource(cachedResource, context);
         return processMetaData(metaData);
     }
 
     private MutableModuleVersionMetaData createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleVersionIdentifier, DependencyMetaData dependency, ExternalResourceArtifactResolver artifactResolver) {
         for (IvyArtifactName artifact : getDependencyArtifactNames(dependency)) {
             if (artifactResolver.artifactExists(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier, artifact))) {
-                return processMetaData(getDefaultForDependency(dependency));
+                MutableModuleVersionMetaData metaData = createMetaDataForDependency(dependency);
+                return processMetaData(metaData);
             }
         }
         return null;
     }
 
-    protected MutableModuleVersionMetaData getDefaultForDependency(DependencyMetaData dependencyMetaData) {
-        return ModuleDescriptorAdapter.defaultForDependency(dependencyMetaData);
-    }
+    protected abstract MutableModuleVersionMetaData createMetaDataForDependency(DependencyMetaData dependency);
+
+    protected abstract MutableModuleVersionMetaData parseMetaDataFromResource(LocallyAvailableExternalResource cachedResource, DescriptorParseContext context);
 
     private Set<IvyArtifactName> getDependencyArtifactNames(DependencyMetaData dependency) {
         String moduleName = dependency.getRequested().getName();

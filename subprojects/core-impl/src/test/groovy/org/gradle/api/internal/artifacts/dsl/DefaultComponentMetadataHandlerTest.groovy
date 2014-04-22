@@ -15,13 +15,11 @@
  */
 
 package org.gradle.api.internal.artifacts.dsl
-
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
-import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import org.gradle.internal.reflect.DirectInstantiator
@@ -98,13 +96,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     def "supports rule with typed IvyModuleDescriptor parameter"() {
-        def metadata = Stub(MutableModuleVersionMetaData) {
+        def metadata = Stub(IvyModuleVersionMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
-            getIvyMetaData() >> Stub(IvyModuleVersionMetaData) {
-                getExtraInfo() >> [info1: "info1 value", info2: "info2 value"]
-            }
+            getExtraInfo() >> [info1: "info1 value", info2: "info2 value"]
         }
         def capturedDescriptor = null
         handler.eachComponent { details, IvyModuleDescriptor descriptor ->
@@ -122,12 +118,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
     }
 
-    def "rule with IvyModuleDescriptor parameter only gets invoked for Ivy components"() {
+    def "rule with IvyModuleDescriptor parameter does not get invoked for non-Ivy components"() {
         def metadata = Stub(MutableModuleVersionMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
-            getIvyMetaData() >> ivyMetaData
         }
 
         def invoked = false
@@ -139,12 +134,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.process(metadata)
 
         then:
-        invoked == ruleInvoked
-
-        where:
-        ivyMetaData                           | ruleInvoked
-        Stub(DefaultIvyModuleVersionMetaData) | true
-        null                                  | false
+        !invoked
     }
 
     def "complains if rule has unsupported parameter type"() {
@@ -169,13 +159,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     def "supports rule with multiple parameters in arbitrary order"() {
-        def metadata = Stub(MutableModuleVersionMetaData) {
+        def metadata = Stub(IvyModuleVersionMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
-            getIvyMetaData() >> Stub(IvyModuleVersionMetaData) {
-                getExtraInfo() >> [info1: "info1 value", info2: "info2 value"]
-            }
+            getExtraInfo() >> [info1: "info1 value", info2: "info2 value"]
         }
 
         def capturedDetails1 = null

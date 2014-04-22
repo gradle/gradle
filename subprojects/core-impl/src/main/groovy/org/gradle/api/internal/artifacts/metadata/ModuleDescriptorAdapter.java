@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -26,45 +28,27 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
 import java.util.*;
 
-public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
+// TODO:DAZ Rename
+abstract class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
     private Set<ModuleVersionArtifactMetaData> artifacts;
-    @Nullable
-    private IvyModuleVersionMetaData ivyMetaData;
-
-    private MavenModuleVersionMetaData mavenMetaData = new DefaultMavenModuleVersionMetaData();
-
-    public static ModuleDescriptorAdapter defaultForDependency(DependencyMetaData dependencyMetaData) {
-        DefaultModuleDescriptor moduleDescriptor = createModuleDescriptor(dependencyMetaData);
-        return new ModuleDescriptorAdapter(moduleDescriptor);
-    }
-
-    protected static DefaultModuleDescriptor createModuleDescriptor(DependencyMetaData dependencyMetaData) {
-        DependencyDescriptor dependencyDescriptor = dependencyMetaData.getDescriptor();
-        DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(dependencyDescriptor.getDependencyRevisionId(), dependencyDescriptor.getAllDependencyArtifacts());
-        moduleDescriptor.setStatus("integration");
-        return moduleDescriptor;
-    }
 
     public ModuleDescriptorAdapter(ModuleDescriptor moduleDescriptor) {
-        this(DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId()), moduleDescriptor);
+        this(moduleVersionIdentifier(moduleDescriptor), moduleDescriptor, moduleComponentIdentifier(moduleDescriptor));
+    }
+    
+    private static ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor descriptor) {
+        return DefaultModuleVersionIdentifier.newId(descriptor.getModuleRevisionId());
     }
 
-    public ModuleDescriptorAdapter(ModuleVersionIdentifier identifier, ModuleDescriptor moduleDescriptor) {
-        this(identifier, moduleDescriptor, DefaultModuleComponentIdentifier.newId(identifier));
+    private static ModuleComponentIdentifier moduleComponentIdentifier(ModuleDescriptor descriptor) {
+        return DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier(descriptor));
     }
 
     public ModuleDescriptorAdapter(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
         super(moduleVersionIdentifier, moduleDescriptor, componentIdentifier);
     }
 
-    public ModuleDescriptorAdapter copy() {
-        // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        ModuleDescriptorAdapter copy = new ModuleDescriptorAdapter(getId(), getDescriptor(), getComponentId());
-        copyTo(copy);
-        copy.ivyMetaData = ivyMetaData;
-        copy.mavenMetaData = mavenMetaData;
-        return copy;
-    }
+    public abstract ModuleDescriptorAdapter copy();
 
     public ModuleVersionMetaData withSource(ModuleSource source) {
         ModuleDescriptorAdapter copy = copy();
@@ -75,22 +59,6 @@ public class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaD
     @Override
     public ModuleComponentIdentifier getComponentId() {
         return (ModuleComponentIdentifier) super.getComponentId();
-    }
-
-    public IvyModuleVersionMetaData getIvyMetaData() {
-        return ivyMetaData;
-    }
-
-    public void setIvyMetaData(IvyModuleVersionMetaData ivyMetaData) {
-        this.ivyMetaData = ivyMetaData;
-    }
-
-    public MavenModuleVersionMetaData getMavenMetaData() {
-        return mavenMetaData;
-    }
-
-    public void setMavenMetaData(MavenModuleVersionMetaData mavenMetaData) {
-        this.mavenMetaData = mavenMetaData;
     }
 
     public ModuleVersionArtifactMetaData artifact(Artifact artifact) {
