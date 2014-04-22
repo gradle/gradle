@@ -19,7 +19,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
 
