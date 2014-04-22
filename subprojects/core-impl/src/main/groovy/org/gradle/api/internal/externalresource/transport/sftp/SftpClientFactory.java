@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.externalresource.transport.sftp;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.sshd.ClientSession;
 import org.apache.sshd.SshClient;
@@ -23,23 +25,21 @@ import org.apache.sshd.client.SftpClient;
 import org.apache.sshd.client.future.AuthFuture;
 import org.apache.sshd.client.future.ConnectFuture;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.List;
 
 @ThreadSafe
 public class SftpClientFactory implements Stoppable {
-    private final Logger logger = Logging.getLogger(SftpClientFactory.class);
-    private SshClientManager sshClientManager = new DefaultSshClientManager();
-    private final Map<SftpHost, List<LockableSftpClient>> clients = Collections.synchronizedMap(new HashMap<SftpHost, List<LockableSftpClient>>());
+    private final Object lock = new Object();
+    private SshClient sshClient;
+    private final ListMultimap<SftpHost, LockableSftpClient> clients = ArrayListMultimap.create();
 
     public SftpClient createSftpClient(URI uri, PasswordCredentials credentials) throws IOException {
-        synchronized(clients) {
+        synchronized(lock) {
             SftpHost sftpHost = new SftpHost(uri, credentials);
             LockableSftpClient sftpClient = acquireClient(sftpHost);
             sftpClient.lock();
@@ -67,16 +67,14 @@ public class SftpClientFactory implements Stoppable {
 
     private LockableSftpClient createAndStoreNewClient(SftpHost sftpHost) throws IOException {
         LockableSftpClient client = createNewClient(sftpHost);
-        List<LockableSftpClient> clientsByHost = new ArrayList<LockableSftpClient>();
-        clientsByHost.add(client);
-        clients.put(sftpHost, clientsByHost);
+        clients.put(sftpHost, client);
         return client;
     }
 
     private LockableSftpClient createNewClient(SftpHost sftpHost) throws IOException {
         ClientSession session = null;
         try {
-            SshClient sshClient = sshClientManager.getSshClient();
+            createSshClientIfNeeded();
             session = connect(sshClient, sftpHost);
             authenticate(session, sftpHost);
             return new NonExistingFileHandlingSftpClient(session);
@@ -88,8 +86,15 @@ public class SftpClientFactory implements Stoppable {
         }
     }
 
+    private void createSshClientIfNeeded() {
+        if(sshClient == null) {
+            sshClient = SshClient.setUpDefaultClient();
+            sshClient.start();
+        }
+    }
+
     public void releaseSftpClient(SftpClient sftpClient) {
-        synchronized(clients) {
+        synchronized(lock) {
             if(sftpClient != null && sftpClient instanceof LockableSftpClient) {
                 ((LockableSftpClient)sftpClient).unlock();
             }
@@ -114,23 +119,16 @@ public class SftpClientFactory implements Stoppable {
     }
 
     public void stop() {
-        synchronized(clients) {
-            for(List<LockableSftpClient> allSftpClients : clients.values()) {
-                for(LockableSftpClient client : allSftpClients) {
-                    try {
-                        client.close();
-                    } catch(NullPointerException e) {
-                        // SSHD client sometimes throws a NPE on close - ignore for now
-                        // TODO: Ben SSHD project needs to address this issue - https://issues.apache.org/jira/browse/SSHD-311
-                        logger.warn("Failed to close SFTP client " + client);
-                    } catch(IOException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-            }
-        }
+        synchronized(lock) {
+            CompositeStoppable stoppable = new CompositeStoppable();
 
-        sshClientManager.stopSshClient();
+            for(LockableSftpClient client : clients.values()) {
+                stoppable.add(client);
+            }
+
+            stoppable.add(sshClient);
+            stoppable.stop();
+        }
     }
 
     public static class SftpHost {

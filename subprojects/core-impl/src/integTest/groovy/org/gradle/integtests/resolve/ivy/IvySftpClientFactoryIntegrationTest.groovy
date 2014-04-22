@@ -89,7 +89,7 @@ class IvySftpClientFactoryIntegrationTest extends AbstractIntegrationSpec {
         SftpClient newClient = sftpClientFactory.createSftpClient(uri, credentials)
 
         then:
-        sftpClientFactory.clients.size() == 1
+        sftpClientFactory.clients.keySet().size() == 1
         clientsByHost.size() == 2
         newClient.locked
         initialClient != newClient
