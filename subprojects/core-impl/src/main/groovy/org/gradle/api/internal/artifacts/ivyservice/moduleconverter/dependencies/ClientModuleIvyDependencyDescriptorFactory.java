@@ -38,7 +38,7 @@ public class ClientModuleIvyDependencyDescriptorFactory extends AbstractIvyDepen
     public EnhancedDependencyDescriptor createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
         ClientModule clientModule = getClientModule(dependency);
-        MutableModuleVersionMetaData moduleVersionMetaData = clientModuleMetaDataFactory.createModuleDescriptor(
+        MutableModuleVersionMetaData moduleVersionMetaData = clientModuleMetaDataFactory.createModuleMetaData(
                 moduleRevisionId, clientModule.getDependencies());
 
         EnhancedDependencyDescriptor dependencyDescriptor = new ClientModuleDependencyDescriptor(

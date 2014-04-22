@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 
-class ClientModuleVersionMetaDataTest extends ModuleDescriptorAdapterTest {
+class ClientModuleVersionMetaDataTest extends AbstractModuleVersionMetaDataTest {
 
     @Override
     ClientModuleVersionMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {

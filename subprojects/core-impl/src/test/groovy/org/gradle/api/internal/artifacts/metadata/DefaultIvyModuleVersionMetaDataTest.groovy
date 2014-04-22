@@ -20,10 +20,10 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 
-class DefaultIvyModuleVersionMetaDataTest extends ModuleDescriptorAdapterTest {
+class DefaultIvyModuleVersionMetaDataTest extends AbstractModuleVersionMetaDataTest {
 
     @Override
-    ModuleDescriptorAdapter createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
+    AbstractModuleVersionMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
         return new DefaultIvyModuleVersionMetaData(id, moduleDescriptor, componentId)
     }
 

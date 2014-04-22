@@ -20,8 +20,7 @@ import java.util.Map;
 /**
  * Meta-data for a module version resolved from an Ivy repository.
  */
-// TODO:DAZ Should not extend Mutable?
-public interface IvyModuleVersionMetaData extends MutableModuleVersionMetaData {
+public interface IvyModuleVersionMetaData extends ModuleVersionMetaData {
     /**
      * Returns the extra info for the module.
      *

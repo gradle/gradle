@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import spock.lang.Specification
 
-abstract class ModuleDescriptorAdapterTest extends Specification {
+abstract class AbstractModuleVersionMetaDataTest extends Specification {
 
     def id = Stub(ModuleVersionIdentifier)
     def componentId = Stub(ModuleComponentIdentifier)
@@ -32,7 +32,7 @@ abstract class ModuleDescriptorAdapterTest extends Specification {
         metaData = createMetaData(id, moduleDescriptor, componentId)
     }
 
-    abstract ModuleDescriptorAdapter createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier);
+    abstract AbstractModuleVersionMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier);
 
     def "has useful string representation"() {
         given:

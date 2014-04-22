@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class DefaultMavenModuleVersionMetaData extends ModuleDescriptorAdapter implements MavenModuleVersionMetaData {
+public class DefaultMavenModuleVersionMetaData extends AbstractModuleVersionMetaData implements MavenModuleVersionMetaData {
     private static final String POM_PACKAGING = "pom";
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private final String packaging;

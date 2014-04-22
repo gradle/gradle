@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 
 import java.util.Map;
 
-public class DefaultIvyModuleVersionMetaData extends ModuleDescriptorAdapter implements IvyModuleVersionMetaData {
+public class DefaultIvyModuleVersionMetaData extends AbstractModuleVersionMetaData implements IvyModuleVersionMetaData {
     private final Map<String, String> extraInfo;
 
     public DefaultIvyModuleVersionMetaData(ModuleDescriptor moduleDescriptor) {

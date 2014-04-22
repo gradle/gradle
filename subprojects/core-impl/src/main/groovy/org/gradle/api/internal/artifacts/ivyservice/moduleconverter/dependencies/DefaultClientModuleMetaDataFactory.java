@@ -30,7 +30,7 @@ public class DefaultClientModuleMetaDataFactory implements ClientModuleMetaDataF
     // Because of bidirectional dependencies we need setter injection
     private DependencyDescriptorFactory dependencyDescriptorFactory;
 
-    public MutableModuleVersionMetaData createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies) {
+    public MutableModuleVersionMetaData createModuleMetaData(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies) {
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId,
                 "release", null);
         moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION));

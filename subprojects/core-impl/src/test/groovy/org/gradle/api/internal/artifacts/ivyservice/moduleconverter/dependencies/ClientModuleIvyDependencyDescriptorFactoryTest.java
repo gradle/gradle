@@ -57,7 +57,7 @@ public class ClientModuleIvyDependencyDescriptorFactoryTest extends AbstractDepe
         clientModule.addDependency(dependencyDependency);
         final MutableModuleVersionMetaData moduleVersionMetaData = context.mock(MutableModuleVersionMetaData.class);
         context.checking(new Expectations() {{
-            allowing(clientModuleMetaDataFactory).createModuleDescriptor(
+            allowing(clientModuleMetaDataFactory).createModuleMetaData(
                     testModuleRevisionId,
                     WrapUtil.toSet(dependencyDependency)
             );
@@ -76,7 +76,7 @@ public class ClientModuleIvyDependencyDescriptorFactoryTest extends AbstractDepe
         final ModuleRevisionId testModuleRevisionId = IvyUtil.createModuleRevisionId(clientModule);
         final MutableModuleVersionMetaData moduleVersionMetaData = context.mock(MutableModuleVersionMetaData.class);
         context.checking(new Expectations() {{
-            allowing(clientModuleMetaDataFactory).createModuleDescriptor(
+            allowing(clientModuleMetaDataFactory).createModuleMetaData(
                     testModuleRevisionId,
                     WrapUtil.<ModuleDependency>toSet()
             );

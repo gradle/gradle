@@ -28,11 +28,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
 import java.util.*;
 
-// TODO:DAZ Rename
-abstract class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
+abstract class AbstractModuleVersionMetaData extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
     private Set<ModuleVersionArtifactMetaData> artifacts;
 
-    public ModuleDescriptorAdapter(ModuleDescriptor moduleDescriptor) {
+    public AbstractModuleVersionMetaData(ModuleDescriptor moduleDescriptor) {
         this(moduleVersionIdentifier(moduleDescriptor), moduleDescriptor, moduleComponentIdentifier(moduleDescriptor));
     }
     
@@ -44,14 +43,14 @@ abstract class ModuleDescriptorAdapter extends AbstractModuleDescriptorBackedMet
         return DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier(descriptor));
     }
 
-    public ModuleDescriptorAdapter(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
+    public AbstractModuleVersionMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
         super(moduleVersionIdentifier, moduleDescriptor, componentIdentifier);
     }
 
-    public abstract ModuleDescriptorAdapter copy();
+    public abstract AbstractModuleVersionMetaData copy();
 
     public ModuleVersionMetaData withSource(ModuleSource source) {
-        ModuleDescriptorAdapter copy = copy();
+        AbstractModuleVersionMetaData copy = copy();
         copy.setModuleSource(source);
         return copy;
     }

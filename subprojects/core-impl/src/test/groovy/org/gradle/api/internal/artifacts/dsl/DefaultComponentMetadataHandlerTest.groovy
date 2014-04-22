@@ -96,7 +96,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     def "supports rule with typed IvyModuleDescriptor parameter"() {
-        def metadata = Stub(IvyModuleVersionMetaData) {
+        def metadata = Stub(TestIvyMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
@@ -159,7 +159,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     def "supports rule with multiple parameters in arbitrary order"() {
-        def metadata = Stub(IvyModuleVersionMetaData) {
+        def metadata = Stub(TestIvyMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
@@ -201,4 +201,6 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             extraInfo == [info1: "info1 value", info2: "info2 value"]
         }
     }
+
+    interface TestIvyMetaData extends IvyModuleVersionMetaData, MutableModuleVersionMetaData {}
 }

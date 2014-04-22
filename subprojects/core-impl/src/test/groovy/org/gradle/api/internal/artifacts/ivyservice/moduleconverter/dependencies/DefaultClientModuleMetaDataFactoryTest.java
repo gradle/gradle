@@ -43,7 +43,7 @@ public class DefaultClientModuleMetaDataFactoryTest {
         ModuleDependency dependencyMock = context.mock(ModuleDependency.class);
         final ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId("org", "name", "version");
 
-        MutableModuleVersionMetaData metaData = clientModuleDescriptorFactory.createModuleDescriptor(
+        MutableModuleVersionMetaData metaData = clientModuleDescriptorFactory.createModuleMetaData(
                 moduleRevisionId,
                 WrapUtil.toSet(dependencyMock));
 

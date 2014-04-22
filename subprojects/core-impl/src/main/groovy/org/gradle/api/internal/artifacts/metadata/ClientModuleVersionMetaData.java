@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import java.util.Collections;
 import java.util.Map;
 
-public class ClientModuleVersionMetaData extends ModuleDescriptorAdapter implements IvyModuleVersionMetaData, MavenModuleVersionMetaData {
+public class ClientModuleVersionMetaData extends AbstractModuleVersionMetaData implements IvyModuleVersionMetaData, MavenModuleVersionMetaData {
     public ClientModuleVersionMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentId) {
         super(id, moduleDescriptor, componentId);
     }
@@ -33,7 +33,7 @@ public class ClientModuleVersionMetaData extends ModuleDescriptorAdapter impleme
     }
 
     @Override
-    public ModuleDescriptorAdapter copy() {
+    public AbstractModuleVersionMetaData copy() {
         ClientModuleVersionMetaData copy = new ClientModuleVersionMetaData(getId(), getDescriptor(), getComponentId());
         copyTo(copy);
         return copy;
