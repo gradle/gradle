@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import groovy.lang.GString;
 import org.gradle.api.GradleException;
 import org.gradle.messaging.serialize.*;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -28,7 +30,15 @@ class InputPropertiesSerializer implements Serializer<Map<String, Object>> {
     private final MapSerializer<String, Object> serializer;
 
     InputPropertiesSerializer(ClassLoader classloader) {
-        this.serializer = new MapSerializer<String, Object>(BaseSerializerFactory.STRING_SERIALIZER, new DefaultSerializer<Object>(classloader));
+        this.serializer = new MapSerializer<String, Object>(BaseSerializerFactory.STRING_SERIALIZER, new DefaultSerializer<Object>(classloader) {
+            public void write(Encoder encoder, Object value) throws IOException {
+                if (value instanceof GString) {
+                    super.write(encoder, value.toString()); //avoid non-serializable values of GString
+                } else {
+                    super.write(encoder, value);
+                }
+            }
+        });
     }
 
     public Map<String, Object> read(Decoder decoder) throws Exception {

@@ -22,7 +22,6 @@ import org.gradle.api.GradleException
 import org.gradle.messaging.serialize.InputStreamBackedDecoder
 import org.gradle.messaging.serialize.MapSerializer
 import org.gradle.messaging.serialize.OutputStreamBackedEncoder
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -59,10 +58,9 @@ class InputPropertiesSerializerTest extends Specification {
         ex.cause.class == MapSerializer.EntrySerializationException
     }
 
-    @Ignore //TODO SF
     def "handles gracefully not serializable values in GStrings"() {
         when: write([a: 'x', b: "hey - ${new SomeNotSerializableObject()}"])
-        then: written == [a: 'x', b: "I'm not serializable"]
+        then: written == [a: 'x', b: "hey - I'm not serializable"]
     }
 
     static class SomeSerializableObject implements Serializable {
