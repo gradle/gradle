@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/providedConfiguration.gradle"
-
 configurations {
     reports
 }
