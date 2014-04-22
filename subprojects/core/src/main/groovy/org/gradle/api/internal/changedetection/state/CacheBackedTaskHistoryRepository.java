@@ -271,6 +271,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 } else {
                     encoder.writeBoolean(true);
                     DefaultSerializer<Map> defaultSerializer = new DefaultSerializer<Map>(classLoader);
+                    //TODO SF catch not serializable exception and try to help the user as much as possible.
                     defaultSerializer.write(encoder, execution.getInputProperties());
                 }
             }

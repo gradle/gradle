@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.integtests
+package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
