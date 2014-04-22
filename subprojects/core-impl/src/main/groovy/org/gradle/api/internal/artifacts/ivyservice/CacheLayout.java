@@ -22,7 +22,10 @@ import java.io.File;
 public enum CacheLayout {
     ROOT(null, "modules", 2),
     FILE_STORE(ROOT, "files", 1),
-    META_DATA(ROOT, "metadata", 9);
+    META_DATA(ROOT, "metadata", 10);
+
+    // If you update the META_DATA version, also update DefaultGradleDistribution.getArtifactCacheLayoutVersion() (which is the historical record)
+    // If you update FILE_STORE, you may also need to update LocallyAvailableResourceFinderFactory
 
     private final String name;
     private final CacheLayout parent;
