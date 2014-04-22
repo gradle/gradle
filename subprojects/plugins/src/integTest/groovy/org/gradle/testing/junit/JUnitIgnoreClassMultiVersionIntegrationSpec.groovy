@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,32 +23,24 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.testing.fixture.JUnitCoverage
 import org.junit.Rule
 
-@TargetCoverage({ JUnitCoverage.LARGE_COVERAGE })
-class JUnitCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
+@TargetCoverage({JUnitCoverage.STANDARD_COVERAGE})
+class JUnitIgnoreClassMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    def canRunTestsUsingJUnit() {
-        given:
-        resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
-        resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
-
-        buildFile << "dependencies { testCompile 'junit:junit:$version' }"
+    def canHandleClassLevelIgnoredTests() {
+        executer.noExtraLogging()
+        buildFile << """
+            dependencies { testCompile 'junit:junit:$version' }
+        """
 
         when:
         run('check')
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test')
-        result.testClass('org.gradle.Junit3Test')
-                .assertTestCount(1, 0, 0)
-                .assertTestsExecuted('testRenamesItself')
-                .assertTestPassed('testRenamesItself')
-        result.testClass('org.gradle.Junit4Test')
-                .assertTestCount(2, 0, 0)
-                .assertTestsExecuted('ok')
-                .assertTestPassed('ok')
-                .assertTestsSkipped('broken')
+        result.assertTestClassesExecuted('org.gradle.IgnoredTest', 'org.gradle.CustomIgnoredTest')
+        result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored")
+        result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
     }
 }

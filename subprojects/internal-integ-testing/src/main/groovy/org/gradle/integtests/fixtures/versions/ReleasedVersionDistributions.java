@@ -24,72 +24,55 @@ import org.gradle.internal.Factory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
-import static org.gradle.integtests.fixtures.versions.ReleasedGradleVersion.Type.FINAL;
-import static org.gradle.util.CollectionUtils.*;
+import static org.gradle.util.CollectionUtils.findFirst;
 
 /**
  * Provides access to {@link GradleDistribution}s for versions of Gradle that have been released.
  *
  * Only versions that are suitable for testing against are made available.
- *
- * @see IsTestableGradleVersionSpec
  */
 public class ReleasedVersionDistributions {
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
-    private final Factory<List<ReleasedGradleVersion>> versionsFactory;
-    private List<ReleasedGradleVersion> versions;
+    private final Factory<Properties> versionsFactory;
+    private Properties properties;
     private List<GradleDistribution> distributions;
 
     public ReleasedVersionDistributions() {
-        this(new Factory<List<ReleasedGradleVersion>>() {
-            public List<ReleasedGradleVersion> create() {
-                return sort(
-                        filter(
-                                new VersionWebServiceJsonParser(new ClasspathVersionJsonSource()).create(),
-                                new IsTestableGradleVersionSpec()
-                        ),
-                        Collections.reverseOrder()
-                );
-            }
-        });
+        this(new ClasspathVersionSource());
     }
 
-    ReleasedVersionDistributions(Factory<List<ReleasedGradleVersion>> versionsFactory) {
+    ReleasedVersionDistributions(Factory<Properties> versionsFactory) {
         this.versionsFactory = versionsFactory;
     }
 
-    private List<ReleasedGradleVersion> getVersions() {
-        if (versions == null) {
-            versions = versionsFactory.create();
+    private Properties getProperties() {
+        if (properties == null) {
+            properties = versionsFactory.create();
         }
 
-        return versions;
+        return properties;
     }
 
     public GradleDistribution getMostRecentFinalRelease() {
-        ReleasedGradleVersion mostRecentFinal = findFirst(getVersions(), new Spec<ReleasedGradleVersion>() {
-            public boolean isSatisfiedBy(ReleasedGradleVersion element) {
-                return element.getType() == FINAL;
-            }
-        });
+        String mostRecentFinal = getProperties().getProperty("mostRecent");
 
         if (mostRecentFinal == null) {
             throw new RuntimeException("Unable to get the last version");
         }
 
-        return buildContext.distribution(mostRecentFinal.getVersion().getVersion());
+        return buildContext.distribution(mostRecentFinal);
     }
 
     public List<GradleDistribution> getAll() {
         if (distributions == null) {
-            distributions = CollectionUtils.collect(getVersions(), new Transformer<GradleDistribution, ReleasedGradleVersion>() {
-                public GradleDistribution transform(ReleasedGradleVersion releasedGradleVersion) {
-                    return buildContext.distribution(releasedGradleVersion.getVersion().getVersion());
+            distributions = CollectionUtils.collect(getProperties().getProperty("versions").split("\\s+"), new Transformer<GradleDistribution, String>() {
+                public GradleDistribution transform(String version) {
+                    return buildContext.distribution(version);
                 }
             });
         }

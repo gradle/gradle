@@ -124,6 +124,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles but does not relink executable with source comment change"() {
         given:
         run "installMainExecutable"
+        maybeWait()
 
         when:
         sourceFile.text = sourceFile.text.replaceFirst("// Simple hello world app", "// Comment is changed")
@@ -152,6 +153,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles library and relinks executable with library source file change"() {
         given:
         run "installMainExecutable"
+        maybeWait()
         def install = installation("build/install/mainExecutable")
 
         when:
@@ -180,6 +182,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles binary when header file changes"() {
         given:
         run "installMainExecutable"
+        maybeWait()
 
         when:
         headerFile << """
@@ -208,6 +211,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
         given:
         run "installMainExecutable"
+        maybeWait()
 
         when:
         headerFile << """
@@ -491,6 +495,13 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         executedAndNotSkipped "compileMainExecutableMainCpp"
     }
 
+    private void maybeWait() {
+        if (toolChain.visualCpp) {
+            def now = System.currentTimeMillis()
+            def nextSecond = now % 1000
+            Thread.sleep(1200 - nextSecond)
+        }
+    }
 
     private static boolean rename(TestFile sourceFile) {
         final newFile = new File(sourceFile.getParentFile(), "changed_${sourceFile.name}")
