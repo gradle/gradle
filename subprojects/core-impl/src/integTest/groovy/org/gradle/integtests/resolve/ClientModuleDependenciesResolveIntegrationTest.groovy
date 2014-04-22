@@ -21,7 +21,7 @@ public class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttp
     public void "uses metadata from Client Module and looks up artifact in declared repositories"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
-        def repo2 = ivyHttpRepo("repo2")
+        def repo2 = mavenHttpRepo("repo2")
         def projectAInRepo1 = repo1.module('group', 'projectA', '1.2')
         def projectAInRepo2 = repo2.module('group', 'projectA', '1.2').publish()
         def projectB = repo1.module('group', 'projectB', '1.3').publish()
@@ -30,7 +30,7 @@ public class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttp
         buildFile << """
 repositories {
     ivy { url "${repo1.uri}" }
-    ivy { url "${repo2.uri}" }
+    maven { url "${repo2.uri}" }
 }
 configurations { compile }
 dependencies {
@@ -48,8 +48,8 @@ task listJars << {
         projectB.jar.expectGet()
         projectAInRepo1.ivy.expectGetMissing()
         projectAInRepo1.jar.expectHeadMissing()
-        projectAInRepo2.ivy.expectGet()
-        projectAInRepo2.jar.expectGet()
+        projectAInRepo2.pom.expectGet()
+        projectAInRepo2.artifact.expectGet()
 
         then:
         succeeds('listJars')

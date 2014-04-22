@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ClientModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 import java.util.Set;
@@ -37,7 +37,7 @@ public class DefaultClientModuleMetaDataFactory implements ClientModuleMetaDataF
         addDependencyDescriptors(moduleDescriptor, dependencies, dependencyDescriptorFactory);
         moduleDescriptor.addArtifact(Dependency.DEFAULT_CONFIGURATION,
                 new DefaultArtifact(moduleRevisionId, null, moduleRevisionId.getName(), "jar", "jar"));
-        return new DefaultIvyModuleVersionMetaData(moduleDescriptor);
+        return new ClientModuleVersionMetaData(moduleDescriptor);
     }
 
     private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<ModuleDependency> dependencies,
