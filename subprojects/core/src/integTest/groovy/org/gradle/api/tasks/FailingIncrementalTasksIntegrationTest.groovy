@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class IncrementalTaskIntegrationTest extends AbstractIntegrationSpec {
+class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "consecutively failing task has correct up-to-date status and failure"() {
         buildFile << """
