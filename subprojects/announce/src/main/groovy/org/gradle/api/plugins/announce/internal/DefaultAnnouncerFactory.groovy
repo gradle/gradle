@@ -57,7 +57,7 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
             case "snarl":
                 return new Snarl(iconProvider)
             case "growl":
-                if (JavaVersion.current().java6Compatible) {
+                if (JavaVersion.current().java6Compatible && !java.awt.GraphicsEnvironment.isHeadless()) {
                     try {
                         return getClass().getClassLoader().loadClass("org.gradle.api.plugins.announce.internal.jdk6.AppleScriptBackedGrowlAnnouncer").newInstance(iconProvider)
                     }
