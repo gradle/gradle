@@ -16,10 +16,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
-import org.gradle.api.artifacts.result.Component;
 
 public interface ArtifactResolutionQueryFactory {
-    <T extends Component> void registerComponentType(Class<T> type, ComponentTransformer<T> transformer);
-
     ArtifactResolutionQuery createArtifactResolutionQuery();
 }

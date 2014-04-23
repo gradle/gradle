@@ -16,9 +16,7 @@
 package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.language.jvm.JvmLibrary;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
@@ -34,7 +32,6 @@ import org.gradle.language.jvm.ClassDirectoryBinary;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultClassDirectoryBinary;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
-import org.gradle.language.jvm.internal.JvmLibraryComponentFactory;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
 import javax.inject.Inject;
@@ -52,19 +49,15 @@ import java.util.concurrent.Callable;
 public class JvmLanguagePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
-    private final ArtifactResolutionQueryFactory queryFactory;
 
     @Inject
-    public JvmLanguagePlugin(Instantiator instantiator, FileResolver fileResolver, ArtifactResolutionQueryFactory queryFactory) {
+    public JvmLanguagePlugin(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
-        this.queryFactory = queryFactory;
     }
 
     public void apply(final Project target) {
         target.getPlugins().apply(LanguageBasePlugin.class);
-
-        queryFactory.registerComponentType(JvmLibrary.class, new JvmLibraryComponentFactory());
 
         ProjectSourceSet projectSourceSet = target.getExtensions().getByType(ProjectSourceSet.class);
         projectSourceSet.all(new Action<FunctionalSourceSet>() {

@@ -110,7 +110,6 @@ class JvmLibraryArtifactResolveTestFixture {
      */
     void prepare() {
         buildFile << """
-apply plugin: 'java'
 configurations {
     ${config}
 }

@@ -16,23 +16,26 @@
 package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.result.ArtifactResolutionResult;
-import org.gradle.api.artifacts.result.Component;
-import org.gradle.api.artifacts.result.ComponentResult;
-import org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ComponentTransformer;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.result.*;
+import org.gradle.api.artifacts.result.jvm.JvmLibrary;
+import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
+import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
+import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibrary;
+import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibraryJavadocArtifact;
+import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibrarySourcesArtifact;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.CollectionUtils;
 
-import java.util.List;
 import java.util.Set;
 
 // TODO:DAZ Unit tests
 public class DefaultArtifactResolutionResult implements ArtifactResolutionResult {
     private final Set<ComponentResult> componentResults;
-    private final List<ComponentTransformer> transformers;
 
-    public DefaultArtifactResolutionResult(Set<ComponentResult> componentResults, List<ComponentTransformer> transformers) {
+    public DefaultArtifactResolutionResult(Set<ComponentResult> componentResults) {
         this.componentResults = componentResults;
-        this.transformers = transformers;
     }
 
     public Set<ComponentResult> getComponents() {
@@ -40,23 +43,36 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
     }
 
     public <T extends Component> Set<T> getResolvedComponents(Class<T> type) {
-        for (ComponentTransformer transformer : transformers) {
-            if (type.isAssignableFrom(transformer.getType())) {
-                return getTypedComponents(type, transformer);
-            }
+        if (type.isAssignableFrom(JvmLibrary.class)) {
+            return (Set<T>) getJvmLibraries();
         }
         throw new IllegalArgumentException("Not a known component type: " + type);
     }
 
-    private <S extends Component, T extends S> Set<T> getTypedComponents(Class<T> type, ComponentTransformer<S> transformer) {
-        Set<T> libraries = Sets.newLinkedHashSet();
+    // TODO:DAZ This should live with the JVM model classes
+    private Set<JvmLibrary> getJvmLibraries() {
+        Set<JvmLibrary> libraries = Sets.newLinkedHashSet();
         for (ComponentResult componentResult : componentResults) {
             if (componentResult instanceof ResolvedComponentArtifactsResult) {
-                S typedComponent = transformer.transform((ResolvedComponentArtifactsResult) componentResult);
-                libraries.add(type.cast(typedComponent));
+                Set<JvmLibrarySourcesArtifact> sourcesArtifacts = transform((ResolvedComponentArtifactsResult) componentResult, JvmLibrarySourcesArtifact.class, DefaultJvmLibrarySourcesArtifact.class);
+                Set<JvmLibraryJavadocArtifact> javadocArtifacts = transform((ResolvedComponentArtifactsResult) componentResult, JvmLibraryJavadocArtifact.class, DefaultJvmLibraryJavadocArtifact.class);
+                libraries.add(new DefaultJvmLibrary(componentResult.getId(), sourcesArtifacts, javadocArtifacts));
             }
         }
         return libraries;
     }
 
+    private <T extends Artifact, U extends T> Set<T> transform(ResolvedComponentArtifactsResult componentResult, Class<T> type, final Class<U> impl) {
+        Set<ArtifactResult> sourceArtifactResults = componentResult.getArtifacts(type);
+        final Instantiator instantiator = new DirectInstantiator();
+        return CollectionUtils.collect(sourceArtifactResults, new Transformer<T, ArtifactResult>() {
+            public T transform(ArtifactResult original) {
+                if (original instanceof ResolvedArtifactResult) {
+                    return instantiator.newInstance(impl, ((ResolvedArtifactResult) original).getFile());
+                } else {
+                    return instantiator.newInstance(impl, ((UnresolvedArtifactResult) original).getFailure());
+                }
+            }
+        });
+    }
 }

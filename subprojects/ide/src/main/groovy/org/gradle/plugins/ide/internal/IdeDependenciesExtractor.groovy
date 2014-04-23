@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.language.jvm.JvmLibrary
+import org.gradle.api.artifacts.result.jvm.JvmLibrary
 import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact
 import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier

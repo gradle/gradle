@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.jvm.internal;
+package org.gradle.api.internal.artifacts.result.jvm;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.Component;
-import org.gradle.language.jvm.JvmLibrary;
+import org.gradle.api.artifacts.result.jvm.JvmLibrary;
 import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
 import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
 
