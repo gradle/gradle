@@ -15,13 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.query;
 
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.result.Component;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ComponentTransformer;
+
+import java.util.List;
 
 public class DefaultArtifactResolutionQueryFactory implements ArtifactResolutionQueryFactory {
     private final ConfigurationContainerInternal configurationContainer;
@@ -29,6 +34,7 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
     private final ResolveIvyFactory ivyFactory;
     private final ModuleMetadataProcessor metadataProcessor;
     private final CacheLockingManager cacheLockingManager;
+    private final List<ComponentTransformer> transformers = Lists.newArrayList();
 
     public DefaultArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
                                                  ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor,
@@ -40,7 +46,11 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
         this.cacheLockingManager = cacheLockingManager;
     }
 
+    public <T extends Component> void registerComponentType(Class<T> type, ComponentTransformer<T> transformer) {
+        transformers.add(transformer);
+    }
+
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
-        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataProcessor, cacheLockingManager);
+        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataProcessor, cacheLockingManager, transformers);
     }
 }

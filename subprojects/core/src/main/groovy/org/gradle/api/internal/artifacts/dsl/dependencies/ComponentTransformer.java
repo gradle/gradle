@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.result.Component;
+import org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult;
 
-public interface ArtifactResolutionQueryFactory {
-    <T extends Component> void registerComponentType(Class<T> type, ComponentTransformer<T> transformer);
-
-    ArtifactResolutionQuery createArtifactResolutionQuery();
+public interface ComponentTransformer<T extends Component> extends Transformer<T, ResolvedComponentArtifactsResult> {
+    Class<T> getType();
 }

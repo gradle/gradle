@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.Artifact;
  *
  * @since 2.0
  */
+// TODO:DAZ Move this to the JVM module
 @Incubating
 public interface JvmLibrarySourcesArtifact extends Artifact {
 }

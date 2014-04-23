@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.result.jvm;
+package org.gradle.language.jvm.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.result.Component;
+import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
 
-import java.util.Set;
+import java.io.File;
 
-/**
- * Software component representing a JVM library.
- *
- * @since 2.0
- */
-@Incubating
-public interface JvmLibrary extends Component {
-    Set<JvmLibrarySourcesArtifact> getSourcesArtifacts();
-    Set<JvmLibraryJavadocArtifact> getJavadocArtifacts();
+public class DefaultJvmLibrarySourcesArtifact extends AbstractJvmLibraryArtifact implements JvmLibrarySourcesArtifact {
+    public DefaultJvmLibrarySourcesArtifact(File file) {
+        super(file);
+    }
+
+    public DefaultJvmLibrarySourcesArtifact(Throwable failure) {
+        super(failure);
+    }
 }

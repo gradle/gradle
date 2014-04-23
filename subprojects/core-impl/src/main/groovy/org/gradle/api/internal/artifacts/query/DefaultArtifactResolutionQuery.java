@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.result.*;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ComponentTransformer;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
@@ -47,18 +48,21 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ResolveIvyFactory ivyFactory;
     private final ModuleMetadataProcessor metadataProcessor;
     private final CacheLockingManager lockingManager;
+    private final List<ComponentTransformer> transformers;
 
     private Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
     private Class<? extends Component> componentType;
     private Set<Class<? extends Artifact>> artifactTypes = Sets.newLinkedHashSet();
 
     public DefaultArtifactResolutionQuery(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
-                                          ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor, CacheLockingManager lockingManager) {
+                                          ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor, CacheLockingManager lockingManager,
+                                          List<ComponentTransformer> transformers) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;
         this.metadataProcessor = metadataProcessor;
         this.lockingManager = lockingManager;
+        this.transformers = transformers;
     }
 
     public ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds) {
@@ -100,7 +104,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                     }
                 }
 
-                return new DefaultArtifactResolutionResult(componentResults);
+                return new DefaultArtifactResolutionResult(componentResults, transformers);
             }
         });
     }
