@@ -19,6 +19,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
 
@@ -228,10 +229,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         static class TaskHistorySerializer implements Serializer<LazyTaskExecution> {
-            private InputPropertiesSerializer inputPropertiesSerializer;
+            private ClassLoader classLoader;
 
             public TaskHistorySerializer(ClassLoader classLoader) {
-                this.inputPropertiesSerializer = new InputPropertiesSerializer(classLoader);
+                this.classLoader = classLoader;
             }
 
             public LazyTaskExecution read(Decoder decoder) throws Exception {
@@ -248,7 +249,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
                 boolean inputProperties = decoder.readBoolean();
                 if (inputProperties) {
-                    Map<String, Object> map = inputPropertiesSerializer.read(decoder);
+                    DefaultSerializer<Map> defaultSerializer = new DefaultSerializer<Map>(classLoader);
+                    Map<String, Object> map = defaultSerializer.read(decoder);
                     execution.setInputProperties(map);
                 } else {
                     execution.setInputProperties(new HashMap<String, Object>());
@@ -268,10 +270,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     encoder.writeBoolean(false);
                 } else {
                     encoder.writeBoolean(true);
-                    inputPropertiesSerializer.write(encoder, execution.getInputProperties());
+                    DefaultSerializer<Map> defaultSerializer = new DefaultSerializer<Map>(classLoader);
+                    //TODO SF catch not serializable exception and try to help the user as much as possible.
+                    defaultSerializer.write(encoder, execution.getInputProperties());
                 }
             }
-
         }
     }
 }
