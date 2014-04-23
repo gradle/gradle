@@ -19,27 +19,181 @@ TODO - replace 'binary' with 'component'.
 
 # Stories
 
-## Feature: Plugins produce and consume local jvm library binaries
+## Feature: Build author declares a Java library
 
-### Rename 'binary' to 'component'
+For example:
 
-TBD
+    apply plugin: 'new-java' // TBD - needs a better identifier
 
-### API to resolve dependencies on a graph of binaries
+    libraries {
+        myLib {
+            // Infer the type by the available set of library types
+        }
+    }
 
-- Add a new consumer API that allows a graph of binaries to be resolved. Takes as input:
-    - A set of dependency declarations. Can be a set of `Dependency` instances at this stage.
-    - The expected binary type. Only jvm library binaries will be supported for this story.
-    - The usage. Only 'compile' and 'runtime' will be supported for this story.
-- Produces a `ResolutionResult` and an `ArtifactResolutionResult`.
-- External module dependencies are resolved as per the `Configuration` API.
-    - All usages should resolve using the `default` configuration, or the configuration specified using an override.
-- Project dependencies are resolved as per the `Configuration` API.
-    - All usages should resolve using the `default` configuration.
-    - Fail if a project dependency contains configuration, artifact or exclude overrides
-- A custom plugin can use this API to resolve a graph of dependencies.
+This defines a Java library that:
+- Has a single Java source set
+- Has a single resources source set
+- Has no dependencies
+- Produces a jar binary as output.
+- Has a lifecycle task to build the binary.
 
-#### User visible changes
+It should be possible to declare multiple libraries for a given project.
+
+### Open issues
+
+- Need a better id for the plugin, to sync up with the native plugins.
+- Make the library type explicit, rather than infer it? Possibly with a type, possibly by naming the container
+- The legacy JVM plugins should also declare a jvm component
+
+## Feature: Build author declares a dependency on a Java library produced by another project
+
+For example:
+
+    apply plugin: 'new-java'
+
+    libraries {
+        myLib {
+            dependencies {
+                project 'other-project' // Infer the target library
+                project 'other-project' library 'my-lib'
+            }
+        }
+    }
+
+When the project attribute refers to a project with a component plugin applied:
+
+- Select the target library from the libraries of the project. Assert that there is exactly one matching JVM library.
+- At compile time, include the library's jar binary only.
+- At runtime time, include the library's jar binary and runtime dependencies.
+
+When the project attribute refers to a project without a component plugin applied:
+
+- At compile and runtime, include the artifacts and dependencies from the `default` configuration.
+
+### Open issues
+
+- Should be able to depend on a library in the same project.
+- Should be possible for old plugins to depend on project with new plugins.
+- Need an API to query the various classpaths.
+- Add this to native plugins
+- Add dependencies for each source set.
+- Need to be able to configure the resolution strategy for each usage.
+
+## Feature: Build author declares a dependency on an external Java library
+
+For example:
+
+    apply plugin: 'new-java'
+
+    libraries {
+        myLib {
+            dependencies {
+                library "myorg:mylib:2.3"
+            }
+        }
+    }
+
+This makes the jar of "myorg:mylib:2.3" and its dependencies available at both compile time and runtime.
+
+## Feature: Build author declares dependency for legacy Java project declares on a Java library produced by another project
+
+For example:
+
+    apply plugin: 'java'
+
+    dependencies {
+        compile project: 'other-project'
+    }
+
+When the project attribute refers to a project with a component plugin applied:
+
+- Select the target library from the libraries of the project. Assert that there is exactly one JVM library.
+- At compile time, include the library's jar binary only.
+- At runtime time, include the library's jar binary and runtime dependencies.
+
+## Feature: Build user views dependency report for the libraries of a project
+
+The dependency reports show the dependencies of the libraries of a project:
+
+- `dependencies` task
+- `dependencyInsight` task
+- HTML report
+
+## Feature: Build author declares an API dependency
+
+For example:
+
+    apply plugin: 'new-java'
+
+    libraries {
+        myLib {
+            dependencies {
+                api {
+                    project 'other-project' library 'other-lib'
+                }
+            }
+        }
+    }
+
+This makes the API of the library 'other-lib' available at compile time, and the runtime artifacts and dependencies of 'other-lib' available at
+runtime.
+
+It also exposes the API of the library 'other-lib' as part of the API for 'myLib', so that it is visible at compile time for any other component that
+depends on 'myLib'.
+
+The default API of a Java library is its Jar file and no dependencies.
+
+## Feature: Build author declares a runtime dependency
+
+For example:
+
+    apply plugin: 'new-java'
+
+    libraries {
+        myLib {
+            dependencies {
+                runtime {
+                    project 'other-project' library 'other-lib'
+                }
+            }
+        }
+    }
+
+## Feature: Build author declares the target platform for a Java library
+
+For example:
+
+    apply plugin: 'new-java'
+
+    platforms {
+        myContainer {
+            runsOn platforms.java6
+            provides {
+                library 'myorg:mylib:1.2'
+            }
+        }
+    }
+
+    libraries {
+        myLib {
+            runsOn platforms.myContainer
+        }
+    }
+
+This defines a custom container that requires Java 6 or later.
+
+This includes the API of 'myorg:mylib:1.2' at compile time, but not at runtime. The bytecode for the library is compiled for java 6.
+
+When a library depends on another library, assert that the referring library targets the same platform.
+
+### Open issues
+
+- Sync up with native components.
+
+## Feature: Custom plugin provides its own Java library implementation
+
+## Feature: API to resolve a Java library dependency graph
 
 Resolve dependencies with inline notation:
 
@@ -85,188 +239,11 @@ Resolve dependencies not added a configuration:
         println it
     }
 
-#### Test cases
+## Feature: Custom plugin consumes Java libraries
 
-- Project can use new resolution API to:
-    - Use jars from external module dependencies, both direct and transitive
-        - referenced by override configuration of an external module dependency
-        - referenced by artifact and classifier overrides on an external module dependency
-    - Use jars from another project that applies the `java` plugin, both direct and transitive
-- Fails if a project dependency contains configuration, artifact or exclude overrides
+## Feature: Java library produces multiple variants
 
-#### Open issues
-
-- Should be possible to declare the consuming binary, for conflict resolution.
-- The new dependency sets should be visible in the dependency reports.
-- Probably need to retro-fit this to `Configuration`.
-- Task dependencies on artifacts for a usage.
-
-### Plugin declares a local jvm library binary that it produces
-
-This story introduces the ability to declare a jvm library binary and some basic interoperability between old and new resolution APIs, and between
-new and old JVM plugins.
-
-- A custom plugin can register a binary that it produces for a given project. Only jvm library binaries are supported for this story.
-- Add some convenience to allow a plugin to implement or define a jvm library binary.
-- To resolve a project dependency via old API:
-    - When the dependency include a 'configuration' override, use that project configuration.
-    - When the project produces a binary, resolve using the default usage for that binary. Fail when multiple binaries.
-        - Do not allow 'artifacts' or 'exclude' overrides on dependency.
-    - Otherwise, use the `default` project configuration.
-- To resolve a project dependency via new API:
-    - Do not allow configuration, artifact or exclude overrides
-    - When the project produces a binary, resolve using the requested usage for that binary. Fail when multiple binaries.
-        - Do not allow 'artifacts' or 'exclude' overrides on dependency.
-        - Fail for unknown usage.
-    - Otherwise, use the `default` project configuration.
-
-#### Test cases
-
-- Project that uses `java` plugin can use a jvm library binary produced by another project that does not use the `java` plugin.
-    - Uses runtime dependencies and artifacts.
-- Project with custom plugin that uses new resolution API can use a jvm library binary produced by another project.
-    - Can require different dependencies at compile and runtime.
-    - Can provide different artifacts at compile and runtime.
-
-#### Open issues
-
-- Task dependencies on artifacts for a usage.
-- Resolution result should use binary's id.
-- Dependencies report should use binary's display name.
-
-### Legacy jvm plugins declare local jvm library binary
-
-- The `java` plugin declares a jvm binary, backed by the project configurations.
-- To resolve a project dependency via new API:
-    - Fail if target project does not produce a jvm binary.
-    - Do not allow configuration, artifact or exclude overrides
-
-### Plugin declares a custom structured binary type
-
-- Plugin registers some meta-data about a binary type.
-    - binary type is identified by some fully qualified name.
-    - the usages that binaries of this type provide.
-    - the artifacts types included for each usage.
-    - the meta-data must declare a default usage.
-- API should allow this meta-data to be inferred from a Java interface that represents the binary type.
-- API should allow a way to map the properties of this object to the dependency meta-data for the binary:
-    - The binary type.
-    - The dependencies for each usage.
-    - The artifacts for each usage.
-- Some base jvm plugin defines jvm library binary.
-- New resolution API uses this meta-data to validate dependency.
-- To resolve a project dependency, select the binary with the requested type. Fail if not exactly one such binary.
-
-#### Open issues
-
-- Should be possible to extend the jvm library binary type.
-- Make a binary specific meta-data view available in the resolution result.
-- Make the binary specific artifact types available in the consumer.
-
-## Feature: Core plugins produce and consume jvm library components
-
-### Java component plugins declare the binaries that they produce
-
-Note: this story assumes that the new java component plugins have been implemented sufficiently to actually
-produce something.
-
-- The java component plugins declare the jvm library binaries that they produce.
-    - Compile usage includes the jar and any dependencies of the binary's API.
-    - Runtime usage includes the jar and any runtime dependencies of the binary.
-- At this stage, only a single binary will be supported.
-
-### Java component plugins consume jvm library binaries
-
-- The java component plugins use the new consumer API to resolve dependencies as jvm library binaries.
-- Compilation classpath contains compile usage of all production dependencies.
-- Runtime classpath contains runtime usage of all production dependencies.
-- Test compilation classpath contains binary + compile usage of all production and test dependencies
-- Test runtime classpath contains binary + runtime usage of all production and test dependencies.
-
-#### Open issues
-
-- Apply to legacy plugins too.
-
-### Plugin declares the jvm library components it produces
-
-- Plugin can declare the jvm library components it produces for a given project. Only jvm libraries are supported at this stage.
-- Each component can have one or more binaries associated with it.
-- Binaries of all components are considered when resolving a project dependency.
-
-### Dependency can be declared on a library
-
-- Plugins declares that component type represents a library.
-- Change project dependencies to allow a 'library' attribute to be specified.
-    - Cannot use with 'configuration' or 'artifact' overrides with 'library'.
-    - Cannot use 'transitive' flag or 'exclude' rules overrides with 'library'.
-- When resolving such a dependency, consider only the binaries of the target library component.
-    - Fail if not exactly one such binary.
-
-### Plugin declares a custom structured component type
-
-- Plugin registers some meta-data about a component type:
-    - Component types are identified by a fully qualified name
-    - The binary types the component can be packaged as
-- API allows component meta-data to be inferred from some Java interface.
-- Core plugins declare a jvm library component type
-    - Packaged as a jvm library binary.
-
-### Java component plugins produce and consume test fixtures
-
-Note: this story assumes that the new Java component plugins have been implemented sufficiently to allow
-test fixtures to be declared.
-
-- Library component can have a test fixture library associated with it.
-- Plugin attaches test fixture binaries to production binaries.
-- Test compilation classpath includes compile usage of test fixtures of all production and test dependencies.
-- Test runtime classpath includes runtime usage of test fixtures of all production and test dependencies.
-
-### Java component plugins produce and consume source and javadoc artifacts
-
-#### Open issues
-
-- Apply to legacy java plugins too.
-
-## Feature: Plugin produces and consumes component variants
-
-### Plugin declares variant dimensions for component type
-
-- Plugin declares the variant dimensions that may be relevant for a component of a given type.
-
-### Plugin declares variant dimensions for local binary
-
-- Plugins declares the values of the variant dimensions for a given binary.
-
-### Project consumes variant dimension of local binaries
-
-- New consumer API allows variant dimensions to be declared when resolving the graph.
-- Resolution uses exact match on variant dimension.
-- Dependency reports need to show the per-dimension dependencies.
-
-#### Open issues
-
-- Apply to legacy jva plugins too.
-
-### Plugin can declare compatibility rules for variant dimensions
-
-- Plugin can select best match from the set of candidates for each variant dimension.
-
-## Feature: Dependency management for native binaries
-
-- Native plugins declare native component types.
-- Native plugins declare binaries and components.
-- Native plugins consume using new consumer API.
-    - Replaces existing configurations, `NativeDependencySet` and so on.
-- Prebuilt libraries are a kind of local binary.
-
-## Feature: Plugin extends some other binary or component type
-
-- Allow a new binary type to be derived some some other type (eg Android library is-a jvm library).
-- Allow artifacts to be attached to a binary.
-- Allow usages to be attached to a binary.
-- Allow binaries to be attached to a component.
-- Allow variant dimensions to be attached to a component.
-- Statically and ad hoc.
+## Feature: Dependency resolution for native components
 
 # Open issues and Later work
 
