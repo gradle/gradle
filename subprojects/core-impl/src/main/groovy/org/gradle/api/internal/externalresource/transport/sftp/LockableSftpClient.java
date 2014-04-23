@@ -17,7 +17,9 @@
 package org.gradle.api.internal.externalresource.transport.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
+import org.gradle.internal.concurrent.Stoppable;
 
-public interface LockableSftpClient {
+public interface LockableSftpClient extends Stoppable {
+    SftpHost getHost();
     ChannelSftp getSftpClient();
 }
