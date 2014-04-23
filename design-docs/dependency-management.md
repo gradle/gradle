@@ -205,9 +205,11 @@ Report on failed artifact downloads for a configuration:
 
 ### Test cases
 
-- Resolve artifacts for a configuration consisting of project and external components.
-- Resolve artifacts for configuration with classifier set on dependency
-- Resolve artifacts for configuration with artifact defined on dependency
+- Refactor existing test cases to verify:
+    - Can query artifacts for configuration consisting of project and external components
+    - Can query artifacts for configuration with classifier set on dependency
+    - Can query artifacts for configuration with artifact defined on dependency
+    - Can query artifacts for configuration with dependency on a configuration other than default
 - Caching of artifacts resolved from configuration
 - Reports failure to resolve dependency graph
 - Can report failures for all artifacts that could not be resolved or downloaded.
