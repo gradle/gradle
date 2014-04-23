@@ -287,6 +287,7 @@ We would like to thank the following community members for making contributions 
 * [Marcin Erdmann](https://github.com/erdi) - Support an ivy repository declared with 'sftp' as the URL scheme
 * [Lukasz Kryger](https://github.com/kryger) - Documentation improvements
 * [Ben McCann](https://github.com/benmccann) - Added named 'ivy' layout to 'ivy' repositories
+* [Alex Selesse](https://github.com/selesse) - Fixed announce plugin in headless mode on OS X
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
