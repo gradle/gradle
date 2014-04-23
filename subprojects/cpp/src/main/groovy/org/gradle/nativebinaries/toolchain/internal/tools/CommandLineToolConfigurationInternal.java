@@ -16,12 +16,12 @@
 package org.gradle.nativebinaries.toolchain.internal.tools;
 
 import org.gradle.api.Action;
-import org.gradle.nativebinaries.toolchain.GccTool;
+import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 
 import java.util.List;
 
-public interface GccToolInternal extends GccTool {
+public interface CommandLineToolConfigurationInternal extends CommandLineToolConfiguration {
 
     ToolType getToolType();
 

@@ -19,13 +19,13 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
-import org.gradle.nativebinaries.toolchain.GccTool;
+import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.tools.*;
 
 import java.util.List;
 import java.util.Map;
 
-public class DefaultConfigurableToolChain<T extends GccTool> extends DefaultNamedDomainObjectSet<T> implements ConfigurableToolChain<T> {
+public class DefaultConfigurableToolChain<T extends CommandLineToolConfiguration> extends DefaultNamedDomainObjectSet<T> implements ConfigurableToolChain<T> {
     private final String name;
     private final String displayName;
 
@@ -39,8 +39,8 @@ public class DefaultConfigurableToolChain<T extends GccTool> extends DefaultName
     }
 
     private T newConfiguredGccTool(T defaultTool) {
-        GccToolInternal gccToolInternal = (GccToolInternal) defaultTool;
-        DefaultTool platformTool = new DefaultTool(defaultTool.getName(), gccToolInternal.getToolType(), defaultTool.getExecutable());
+        CommandLineToolConfigurationInternal gccToolInternal = (CommandLineToolConfigurationInternal) defaultTool;
+        DefaultCommandLineToolConfiguration platformTool = new DefaultCommandLineToolConfiguration(defaultTool.getName(), gccToolInternal.getToolType(), defaultTool.getExecutable());
         Action<List<String>> argAction = gccToolInternal.getArgAction();
         platformTool.withArguments(argAction);
         return (T) platformTool;

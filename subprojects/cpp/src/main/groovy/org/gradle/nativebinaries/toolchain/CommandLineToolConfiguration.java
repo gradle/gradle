@@ -27,7 +27,7 @@ import java.util.List;
  * An executable tool that forms part of a tool chain.
  */
 @Incubating
-public interface GccTool extends Named {
+public interface CommandLineToolConfiguration extends Named {
     /**
      * The name of the executable file for this tool.
      */

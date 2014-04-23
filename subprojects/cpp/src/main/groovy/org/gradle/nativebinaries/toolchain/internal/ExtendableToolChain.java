@@ -20,11 +20,11 @@ import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.toolchain.GccTool;
+import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration;
 
 import java.io.File;
 
-public abstract class ExtendableToolChain<T extends GccTool> extends DefaultNamedDomainObjectSet<T> implements ToolChainInternal {
+public abstract class ExtendableToolChain<T extends CommandLineToolConfiguration> extends DefaultNamedDomainObjectSet<T> implements ToolChainInternal {
     private final String name;
     protected final OperatingSystem operatingSystem;
     private final FileResolver fileResolver;

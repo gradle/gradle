@@ -22,22 +22,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConfiguredToolRegistry implements ToolRegistry {
-    private final Map<ToolType, GccToolInternal> gccTools = new HashMap<ToolType, GccToolInternal>();
+    private final Map<ToolType, CommandLineToolConfigurationInternal> gccTools = new HashMap<ToolType, CommandLineToolConfigurationInternal>();
 
     public ConfiguredToolRegistry(ConfigurableToolChain configurableToolChain) {
         Map registeredTools = configurableToolChain.getAsMap();
         for (Object registeredTool : registeredTools.keySet()) {
-            register((GccToolInternal)registeredTools.get(registeredTool));
+            register((CommandLineToolConfigurationInternal)registeredTools.get(registeredTool));
         }
     }
 
-    private void register(GccToolInternal tool) {
+    private void register(CommandLineToolConfigurationInternal tool) {
         if(tool!=null){
             gccTools.put(tool.getToolType(), tool);
         }
     }
 
-    public GccToolInternal getTool(ToolType toolType) {
+    public CommandLineToolConfigurationInternal getTool(ToolType toolType) {
         return gccTools.get(toolType);
     }
 }

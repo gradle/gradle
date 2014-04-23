@@ -23,8 +23,8 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
+import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration;
 import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
-import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.nativebinaries.toolchain.internal.tools.*;
@@ -49,7 +49,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath toolSearchPath,
                                           Instantiator instantiator) {
-        super(GccToolInternal.class, name, operatingSystem, fileResolver, instantiator);
+        super(CommandLineToolConfigurationInternal.class, name, operatingSystem, fileResolver, instantiator);
         this.execActionFactory = execActionFactory;
         this.toolSearchPath = toolSearchPath;
         this.instantiator = instantiator;
@@ -60,7 +60,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         configInsertLocation = 0;
     }
 
-    protected CommandLineToolSearchResult locate(GccToolInternal gccTool) {
+    protected CommandLineToolSearchResult locate(CommandLineToolConfigurationInternal gccTool) {
         return toolSearchPath.locate(gccTool.getToolType(), gccTool.getExecutable());
     }
 
@@ -78,11 +78,11 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         SortedMap allTools = getAsMap();
         boolean found = false;
         for (Object o : allTools.values()) {
-            GccToolInternal tool = (GccToolInternal) o;
+            CommandLineToolConfigurationInternal tool = (CommandLineToolConfigurationInternal) o;
             found |= toolSearchPath.locate(tool.getToolType(), tool.getExecutable()).isAvailable();
         }
         if (!found) {
-            GccToolInternal cCompiler = (GccToolInternal) findByName("cCompiler");
+            CommandLineToolConfigurationInternal cCompiler = (CommandLineToolConfigurationInternal) findByName("cCompiler");
             if(cCompiler==null){
                 availability.unavailable("c compiler not found");
             }else{
@@ -149,7 +149,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolChain(result);
         }
-        DefaultConfigurableToolChain configurableToolChain  = instantiator.newInstance(DefaultConfigurableToolChain.class, GccTool.class, getAsMap(), instantiator, getName(), getDisplayName());
+        DefaultConfigurableToolChain configurableToolChain  = instantiator.newInstance(DefaultConfigurableToolChain.class, CommandLineToolConfiguration.class, getAsMap(), instantiator, getName(), getDisplayName());
         // apply the platform configuration
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
         ToolRegistry platformTools = new ConfiguredToolRegistry(configurableToolChain);
@@ -196,32 +196,32 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                             args.add("-m32");
                         }
                     };
-                    GccTool cppCompiler = (GccTool) configurableToolChain.findByName("cppCompiler");
+                    CommandLineToolConfiguration cppCompiler = (CommandLineToolConfiguration) configurableToolChain.findByName("cppCompiler");
                     if(cppCompiler!=null){
                         cppCompiler.withArguments(m32args);
                     }
 
-                    GccTool cCompiler = (GccTool) configurableToolChain.findByName("cCompiler");
+                    CommandLineToolConfiguration cCompiler = (CommandLineToolConfiguration) configurableToolChain.findByName("cCompiler");
                     if(cCompiler != null){
                         cCompiler.withArguments(m32args);
                     }
 
-                    GccTool objcCompiler = (GccTool) configurableToolChain.findByName("objcCompiler");
+                    CommandLineToolConfiguration objcCompiler = (CommandLineToolConfiguration) configurableToolChain.findByName("objcCompiler");
                     if(objcCompiler != null){
                         objcCompiler.withArguments(m32args);
                     }
 
-                    GccTool objcppCompiler = (GccTool) configurableToolChain.findByName("objcppCompiler");
+                    CommandLineToolConfiguration objcppCompiler = (CommandLineToolConfiguration) configurableToolChain.findByName("objcppCompiler");
                     if(objcppCompiler != null){
                         objcppCompiler.withArguments(m32args);
                     }
 
-                    GccTool linker = (GccTool) configurableToolChain.findByName("linker");
+                    CommandLineToolConfiguration linker = (CommandLineToolConfiguration) configurableToolChain.findByName("linker");
                     if(linker != null){
                         linker.withArguments(m32args);
                     }
 
-                    GccTool assembler = (GccTool)configurableToolChain.findByName("assembler");
+                    CommandLineToolConfiguration assembler = (CommandLineToolConfiguration)configurableToolChain.findByName("assembler");
                     if(assembler != null){
                         assembler.withArguments(new Action<List<String>>() {
                             public void execute(List<String> args) {
@@ -256,32 +256,32 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                             args.add("-m64");
                         }
                     };
-                    GccTool cppCompiler = (GccTool) configurableToolChain.findByName("cppCompiler");
+                    CommandLineToolConfiguration cppCompiler = (CommandLineToolConfiguration) configurableToolChain.findByName("cppCompiler");
                     if(cppCompiler!=null){
                         cppCompiler.withArguments(m64args);
                     }
 
-                    GccTool cCompiler = (GccTool) configurableToolChain.findByName("cCompiler");
+                    CommandLineToolConfiguration cCompiler = (CommandLineToolConfiguration) configurableToolChain.findByName("cCompiler");
                     if(cCompiler != null){
                         cCompiler.withArguments(m64args);
                     }
 
-                    GccTool objcCompiler = (GccTool) configurableToolChain.findByName("objcCompiler");
+                    CommandLineToolConfiguration objcCompiler = (CommandLineToolConfiguration) configurableToolChain.findByName("objcCompiler");
                     if(objcCompiler != null){
                         objcCompiler.withArguments(m64args);
                     }
 
-                    GccTool objcppCompiler = (GccTool) configurableToolChain.findByName("objcppCompiler");
+                    CommandLineToolConfiguration objcppCompiler = (CommandLineToolConfiguration) configurableToolChain.findByName("objcppCompiler");
                     if(objcppCompiler != null){
                         objcppCompiler.withArguments(m64args);
                     }
 
-                    GccTool linker = (GccTool) configurableToolChain.findByName("linker");
+                    CommandLineToolConfiguration linker = (CommandLineToolConfiguration) configurableToolChain.findByName("linker");
                     if(linker != null){
                         linker.withArguments(m64args);
                     }
 
-                    GccTool assembler = (GccTool) configurableToolChain.findByName("assembler");
+                    CommandLineToolConfiguration assembler = (CommandLineToolConfiguration) configurableToolChain.findByName("assembler");
                     if(assembler != null){
                         assembler.withArguments(new Action<List<String>>() {
                             public void execute(List<String> args) {

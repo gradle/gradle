@@ -18,5 +18,5 @@ package org.gradle.nativebinaries.toolchain.internal.tools;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 
 public interface ToolRegistry {
-    GccToolInternal getTool(ToolType toolType);
+    CommandLineToolConfigurationInternal getTool(ToolType toolType);
 }

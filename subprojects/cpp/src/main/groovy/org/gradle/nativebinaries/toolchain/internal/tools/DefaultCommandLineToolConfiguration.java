@@ -24,13 +24,13 @@ import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultTool implements GccToolInternal {
+public class DefaultCommandLineToolConfiguration implements CommandLineToolConfigurationInternal {
     private final ToolType toolType;
     private String executable;
     private List<Action<? super List<String>>> argActions = new ArrayList<Action<? super List<String>>>();
     private String name;
 
-    public DefaultTool(String name, ToolType toolType, String defaultExecutable) {
+    public DefaultCommandLineToolConfiguration(String name, ToolType toolType, String defaultExecutable) {
         this.name = name;
         this.toolType = toolType;
         this.executable = defaultExecutable;
