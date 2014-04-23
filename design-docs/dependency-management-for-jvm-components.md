@@ -44,7 +44,8 @@ It should be possible to declare multiple libraries for a given project.
 
 - Need a better id for the plugin, to sync up with the native plugins.
 - Make the library type explicit, rather than infer it? Possibly with a type, possibly by naming the container.
-- The legacy JVM plugins should also declare a jvm component.
+- The legacy JVM language plugins should also declare a jvm library.
+- The legacy application plugin should also declare a jvm application;
 - Move all this stuff to the rules model.
 
 ## Feature: Build author declares a dependency on a Java library produced by another project
@@ -286,20 +287,43 @@ Will have to move source sets live with the library domain object.
 
 - Fail or skip if target platform is not applicable for the the component's platform?
 
-## Feature: Custom plugin provides its own Java library implementation
+## Feature: Custom plugin defines a custom library type
 
-Change the legacy Java plugins to declare a Java library implementation backed by the project configurations
+Add a sample plugin that declares its own library type:
 
-Add a sample plugin that declares a Java library with an API and implementation Jar.
+    apply plugin: 'my-sample'
 
-These plugins should use public APIs only.
+    libraries {
+        myCustomLib {
+            someProperty 17
+        }
+    }
+
+A custom library type:
+- Has no dependencies.
+- Produces no artifacts.
+
+The plugin extends or implements some public base `Library` type.
 
 ### Open issues
 
 - How much stuff does the Android plugin need to reuse, and how?
 - Allow custom plugin to declare a library type that extends
+- Target platform
+- Needs to declare dependencies.
+- Needs to declare artifacts.
 
-## Feature: Custom plugin consumes Java libraries
+## Feature: Custom library produces artifacts
+
+Allow a plugin to declare the artifacts for a custom library.
+
+## Feature: Build author declares dependencies for custom library
+
+Allow a plugin to wire in the dependencies for a custom library.
+
+## Feature: Custom library targets a JVM platform
+
+## Feature: Custom library consumes Java libraries
 
 Introduce an API to resolve a library dependency graph:
 
