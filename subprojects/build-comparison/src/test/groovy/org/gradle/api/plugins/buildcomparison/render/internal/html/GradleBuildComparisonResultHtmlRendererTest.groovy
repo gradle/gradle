@@ -134,6 +134,16 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
         comparisons << strcmp("c", "a")
         comparisons << strcmp("b", "a")
 
+        and:
+        unassociatedFrom << str("ufa")
+        unassociatedFrom << str("ufc")
+        unassociatedFrom << str("ufb")
+
+        and:
+        unassociatedTo << str("uta")
+        unassociatedTo << str("utc")
+        unassociatedTo << str("utb")
+
         when:
         def html = render()
 
@@ -142,6 +152,18 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
         tables[0].select("td")[0].text() == "a"
         tables[1].select("td")[0].text() == "b"
         tables[2].select("td")[0].text() == "c"
+
+        and:
+        def uncomparedFroms = html.select(".build-outcome.source p")
+        uncomparedFroms[0].text() == "ufa"
+        uncomparedFroms[1].text() == "ufb"
+        uncomparedFroms[2].text() == "ufc"
+
+        and:
+        def uncomparedTos = html.select(".build-outcome.target p")
+        uncomparedTos[0].text() == "uta"
+        uncomparedTos[1].text() == "utb"
+        uncomparedTos[2].text() == "utc"
     }
 
     def "show differences first in the buildcomparison report"() {

@@ -88,15 +88,16 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
                 h2 "Uncompared ${side} outcomes"
                 p "Uncompared ${side} build outcomes are outcomes that were not matched with a ${other} build outcome."
 
+                def sortedUncompareds = uncompareds.sort { it.name }
                 ol {
-                    for (uncompared in uncompareds) {
+                    for (uncompared in sortedUncompareds) {
                         li {
                             a(href: "#${uncompared.name}", uncompared.name)
                         }
                     }
                 }
 
-                for (uncompared in uncompareds) {
+                for (uncompared in sortedUncompareds) {
                     BuildOutcomeRenderer renderer = outcomeRenderers.getRenderer(uncompared.getClass())
 
                     if (renderer == null) {
@@ -116,7 +117,7 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
             h2 "Compared build outcomes"
             p "Compared build outcomes are outcomes that have been identified as being intended to be the same between the target and source build."
 
-            def comparisons = result.comparisons.sort { name(it) }
+            def comparisons = result.comparisons.sort { name it }
             ol {
                 for (comparison in comparisons) {
                     if (!comparison.outcomesAreIdentical) {
