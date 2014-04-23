@@ -92,7 +92,7 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
                 ol {
                     for (uncompared in sortedUncompareds) {
                         li {
-                            a(href: "#${uncompared.name}", uncompared.name)
+                            a("class": context.diffClass(false), href: "#${uncompared.name}", uncompared.name)
                         }
                     }
                 }
