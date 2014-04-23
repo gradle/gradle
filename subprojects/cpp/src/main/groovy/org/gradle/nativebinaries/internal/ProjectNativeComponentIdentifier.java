@@ -15,16 +15,14 @@
  */
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-
 /**
  * An identifier for a native component that is built as part of the current build.
  */
-public class NativeProjectComponentIdentifier implements ProjectComponentIdentifier {
+public class ProjectNativeComponentIdentifier {
     private final String projectPath;
     private final String name;
 
-    public NativeProjectComponentIdentifier(String projectPath, String name) {
+    public ProjectNativeComponentIdentifier(String projectPath, String name) {
         this.projectPath = projectPath;
         this.name = name;
     }
@@ -37,20 +35,16 @@ public class NativeProjectComponentIdentifier implements ProjectComponentIdentif
         return projectPath;
     }
 
-    public String getDisplayName() {
-        return String.format("Project native component: %s.%s", projectPath, name);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof NativeProjectComponentIdentifier)) {
+        if (!(o instanceof ProjectNativeComponentIdentifier)) {
             return false;
         }
 
-        NativeProjectComponentIdentifier that = (NativeProjectComponentIdentifier) o;
+        ProjectNativeComponentIdentifier that = (ProjectNativeComponentIdentifier) o;
         return name.equals(that.name) && projectPath.equals(that.projectPath);
 
     }

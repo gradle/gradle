@@ -32,7 +32,7 @@ public class DefaultExecutableContainer extends AbstractNamedDomainObjectContain
 
     @Override
     protected Executable doCreate(String name) {
-        NativeProjectComponentIdentifier id = new NativeProjectComponentIdentifier(project.getPath(), name);
+        ProjectNativeComponentIdentifier id = new ProjectNativeComponentIdentifier(project.getPath(), name);
         return getInstantiator().newInstance(DefaultExecutable.class, id);
     }
 }

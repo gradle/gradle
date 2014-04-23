@@ -20,7 +20,7 @@ import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 
 public class DefaultLibrary extends AbstractTargetedProjectNativeComponent implements Library {
-    public DefaultLibrary(NativeProjectComponentIdentifier id) {
+    public DefaultLibrary(ProjectNativeComponentIdentifier id) {
         super(id);
     }
 

@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.internal
 import spock.lang.Specification
 
 class DefaultExecutableTest extends Specification {
-    def executable = new DefaultExecutable(new NativeProjectComponentIdentifier("project-path", "someExe"))
+    def executable = new DefaultExecutable(new ProjectNativeComponentIdentifier("project-path", "someExe"))
 
     def "has useful string representation"() {
         expect:

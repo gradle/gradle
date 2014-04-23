@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.BinaryContainer
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier
+import org.gradle.nativebinaries.internal.ProjectNativeComponentIdentifier
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.test.TestSuiteContainer
@@ -62,7 +62,7 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
     private CUnitTestSuite createCUnitTestSuite(ProjectNativeComponent testedComponent, BinaryContainer binaries, ProjectInternal project) {
         String suiteName = "${testedComponent.name}Test"
         String path = (testedComponent as ProjectNativeComponentInternal).projectPath
-        NativeProjectComponentIdentifier id = new NativeProjectComponentIdentifier(path, suiteName);
+        ProjectNativeComponentIdentifier id = new ProjectNativeComponentIdentifier(path, suiteName);
         CUnitTestSuite cUnitTestSuite = instantiator.newInstance(DefaultCUnitTestSuite, id, testedComponent);
 
         new ConfigureCUnitTestSources(project).apply(cUnitTestSuite)

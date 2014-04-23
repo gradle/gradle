@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.internal
 import spock.lang.Specification
 
 class DefaultLibraryTest extends Specification {
-    final library = new DefaultLibrary(new NativeProjectComponentIdentifier("project-path", "someLib"))
+    final library = new DefaultLibrary(new ProjectNativeComponentIdentifier("project-path", "someLib"))
 
     def "has useful string representation"() {
         expect:

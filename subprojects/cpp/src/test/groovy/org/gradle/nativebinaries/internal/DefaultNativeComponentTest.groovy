@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class DefaultNativeComponentTest extends Specification {
     def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    def id = new NativeProjectComponentIdentifier("project", "name")
+    def id = new ProjectNativeComponentIdentifier("project", "name")
     def component = new TestProjectNativeComponent(id)
 
     def "uses all source sets from a functional source set"() {
@@ -62,7 +62,7 @@ class DefaultNativeComponentTest extends Specification {
     }
 
     class TestProjectNativeComponent extends AbstractTargetedProjectNativeComponent {
-        TestProjectNativeComponent(NativeProjectComponentIdentifier id) {
+        TestProjectNativeComponent(ProjectNativeComponentIdentifier id) {
             super(id)
         }
 

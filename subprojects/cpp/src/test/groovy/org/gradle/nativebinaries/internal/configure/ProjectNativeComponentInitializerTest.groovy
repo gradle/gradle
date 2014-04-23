@@ -21,7 +21,7 @@ import org.gradle.language.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Flavor
 import org.gradle.nativebinaries.internal.DefaultExecutable
-import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier
+import org.gradle.nativebinaries.internal.ProjectNativeComponentIdentifier
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
@@ -37,7 +37,7 @@ class ProjectNativeComponentInitializerTest extends Specification {
     def buildType = createStub(BuildType, "buildType1")
     def flavor = createStub(Flavor, "flavor1")
 
-    def id = new NativeProjectComponentIdentifier("project", "name")
+    def id = new ProjectNativeComponentIdentifier("project", "name")
     def component = new DefaultExecutable(id)
 
     def "does not use variant dimension names for single valued dimensions"() {
