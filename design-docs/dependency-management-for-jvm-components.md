@@ -35,7 +35,7 @@ TBD
 - External module dependencies are resolved as per the `Configuration` API.
     - All usages should resolve using the `default` configuration, or the configuration specified using an override.
 - Project dependencies are resolved as per the `Configuration` API.
-    - All usages should resolve using the `default` configuarion.
+    - All usages should resolve using the `default` configuration.
     - Fail if a project dependency contains configuration, artifact or exclude overrides
 - A custom plugin can use this API to resolve a graph of dependencies.
 
