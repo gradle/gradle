@@ -15,7 +15,7 @@ Part of the work for this spec is to unify the terminology. This is yet to be de
 For now, this spec uses the terminology from the native component model, using `binary` to refer to what is also
 known as a `component instance` or `variant`.
 
-# Stories
+# Features
 
 ## Feature: Build author declares a Java library
 
@@ -42,11 +42,51 @@ This defines a Java library that:
 
 It should be possible to declare multiple libraries for a given project.
 
+### Story: Build author defines java library
+
+#### Test cases
+
+- Can apply plugin without defining library
+    - No binaries defined
+    - No lifecycle task added
+- Define a java library component
+    - JvmLibraryBinary added to binaries container
+    - Lifecycle task available to build binary
+    - Can add dependent tasks to binary
+
+### Story: Build author builds jar for java library
+
+#### Test cases
+
+- Define and build the jar for a java library (assert jar contents for each case)
+    - With no sources or resources
+    - With sources but no resources
+    - With resources but no sources
+    - With both sources and resources
+- Reports failure to compile library
+- Compiled sources and resources are separate
+
+### Story: Build author defines multiple java libraries in single project
+
+#### Test cases
+
+- Define and build multiple java libraries in the same project
+  - Build library jars individually using binary lifecycle task
+  - `gradle assemble` builds single jar for each library
+- `gradle clean` removes compiled sources, copied resources and generated jar for each library
+
+### Story: Legacy JVM language plugins declare a jvm library
+
+#### Test cases
+
+- JVM library with name 'main' is defined with any combination of `java`, `groovy` and `scala` plugins applied
+- Can build legacy jvm library jar using standard lifecycle task
+- When a library named 'main' is defined with the new plugin, conform to the naming conventions of the legacy plugin
+
 ### Open issues
 
 - Need a better id for the plugin, to sync up with the native plugins.
 - Make the library type explicit, rather than infer it? Possibly with a type, possibly by naming the container.
-- The legacy JVM language plugins should also declare a jvm library.
 - The legacy application plugin should also declare a jvm application.
 - Move everything to the rules model.
 
