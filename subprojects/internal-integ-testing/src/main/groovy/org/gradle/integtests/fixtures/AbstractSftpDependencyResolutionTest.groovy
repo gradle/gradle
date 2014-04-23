@@ -19,11 +19,8 @@ package org.gradle.integtests.fixtures
 import org.gradle.test.fixtures.ivy.IvySftpRepository
 import org.gradle.test.fixtures.maven.MavenSftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 class AbstractSftpDependencyResolutionTest extends AbstractDependencyResolutionTest {
     @Rule final SFTPServer server = new SFTPServer(this)
 

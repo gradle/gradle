@@ -18,12 +18,9 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.test.fixtures.ivy.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 @Unroll
 class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 
@@ -182,7 +179,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
         failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
                 .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-                .assertHasCause("org.apache.sshd.common.SshException: SFTP error (4): Failure")
+                .assertHasCause("Could not create resource 'sftp://$ivySftpRepo.uri.host:$ivySftpRepo.uri.port/repo'.")
     }
 
     def "publishing to a SFTP repo when file uploading fails"() {
@@ -196,12 +193,13 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         module.jar.expectMkdirs()
         module.jar.expectOpen()
         module.jar.expectWriteFailure()
-        module.jar.expectClose()
+        // TODO - should not need this request, should be CLOSE instead
+        module.jar.expectStat()
 
         then:
         fails 'publish'
         failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
                 .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-                .assertHasCause("org.apache.sshd.common.SshException: SFTP error (4): Failure")
+                .assertHasCause("Could not write to resource 'sftp://${ivySftpRepo.uri.host}:${ivySftpRepo.uri.port}${module.jar.pathOnServer}'.")
     }
 }

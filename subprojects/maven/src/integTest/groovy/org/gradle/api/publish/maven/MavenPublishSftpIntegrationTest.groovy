@@ -18,12 +18,9 @@ package org.gradle.api.publish.maven
 
 import org.gradle.test.fixtures.maven.MavenSftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Ignore
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     final SFTPServer server = new SFTPServer(this)

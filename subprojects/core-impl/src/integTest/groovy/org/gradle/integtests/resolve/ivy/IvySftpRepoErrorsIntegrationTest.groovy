@@ -74,7 +74,7 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
 
         when:
         server.expectInit()
-        server.expectOpendir('/repo/org.group.name/projectA/')
+        server.expectStat('/repo/org.group.name/projectA/')
 
         then:
         fails 'retrieve'

@@ -63,8 +63,9 @@ public interface ExternalResourceRepository {
      * Return a listing of resources names
      *
      * @param parent The parent directory from which to generate the listing.
-     * @return A listing of the parent directory's file content, as a List of String.
+     * @return A listing of the parent directory's file content, as a List of String. Returns null when the parent resource does not exist.
      * @throws IOException On listing failure.
      */
+    @Nullable
     List<String> list(String parent) throws IOException;
 }

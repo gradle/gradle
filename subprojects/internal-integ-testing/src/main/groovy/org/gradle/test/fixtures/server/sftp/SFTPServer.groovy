@@ -232,6 +232,11 @@ class SFTPServer extends ServerWithExpectations {
             int type = buffer.getByte()
             int id = buffer.getInt()
 
+            int pos = buffer.rpos()
+            def command = commandMessage(buffer, type)
+            println "Received SFTP command $command"
+            buffer.rpos(pos)
+
             def matched = expectations.find { it.matches(buffer, type, id) }
             if (matched) {
                 if (matched.failing) {
@@ -242,8 +247,7 @@ class SFTPServer extends ServerWithExpectations {
                     super.process(buffer)
                 }
             } else {
-                def message = unexpectedCommandMessage(buffer, type)
-                onFailure(new AssertionError("Unexpected SFTP command: $message"))
+                onFailure(new AssertionError("Unexpected SFTP command: $command"))
                 sendStatus(id, SSH_FX_FAILURE, "Unexpected command")
                 buffer.rpos(originalBufferPosition + length)
             }
@@ -255,7 +259,7 @@ class SFTPServer extends ServerWithExpectations {
             handleCreatedByRequest[id] = handle
         }
 
-        private String unexpectedCommandMessage(Buffer buffer, int type) {
+        private String commandMessage(Buffer buffer, int type) {
             switch (type) {
                 case SSH_FXP_INIT:
                     return "INIT"
@@ -273,6 +277,8 @@ class SFTPServer extends ServerWithExpectations {
                     return "STAT for ${buffer.getString()}"
                 case SSH_FXP_OPENDIR:
                     return "OPENDIR for ${buffer.getString()}"
+                case SSH_FXP_READDIR:
+                    return "READDIR for ${buffer.getString()}"
                 case SSH_FXP_MKDIR:
                     return "MKDIR for ${buffer.getString()}"
                 case SSH_FXP_WRITE:

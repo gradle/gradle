@@ -64,6 +64,8 @@ class SftpResource {
     }
 
     void expectFileDownload() {
+        // TODO - should not do this stat request
+        server.expectStat(pathOnServer)
         server.expectFileDownload(pathOnServer)
     }
 

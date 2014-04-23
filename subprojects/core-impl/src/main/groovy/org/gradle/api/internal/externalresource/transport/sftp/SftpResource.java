@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.externalresource.transport.sftp;
 
-import org.apache.sshd.client.SftpClient;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.AbstractExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -32,7 +31,7 @@ public class SftpResource extends AbstractExternalResource {
     private final URI uri;
     private final PasswordCredentials credentials;
 
-    private SftpClient client;
+    private LockableSftpClient client;
 
     public SftpResource(SftpClientFactory clientFactory, ExternalResourceMetaData metaData, URI uri, PasswordCredentials credentials) {
         this.clientFactory = clientFactory;
@@ -44,7 +43,11 @@ public class SftpResource extends AbstractExternalResource {
     @Override
     protected InputStream openStream() throws IOException {
         client = clientFactory.createSftpClient(uri, credentials);
-        return client.read(uri.getPath());
+        try {
+            return client.getSftpClient().get(uri.getPath());
+        } catch (com.jcraft.jsch.SftpException e) {
+            throw new SftpException(String.format("Could not get resource at '%s'.", uri), e);
+        }
     }
 
     public String getName() {

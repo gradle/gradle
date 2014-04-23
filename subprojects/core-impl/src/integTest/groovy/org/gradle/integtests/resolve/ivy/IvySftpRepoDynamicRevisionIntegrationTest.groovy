@@ -58,11 +58,13 @@ class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractSftpDependencyRe
 
         and:
         server.expectInit()
+        server.expectStat('/repo/group/projectA/')
         server.expectDirectoryList('/repo/group/projectA/')
 
         projectA1.ivy.expectMetadataRetrieve()
         projectA1.ivy.expectFileDownload()
 
+        server.expectStat('/repo/group/projectB/')
         server.expectDirectoryList('/repo/group/projectB/')
 
         projectB1.ivy.expectMetadataRetrieve()
@@ -91,11 +93,13 @@ class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractSftpDependencyRe
 
         and:
         server.expectInit()
+        server.expectStat('/repo/group/projectA/')
         server.expectDirectoryList('/repo/group/projectA/')
 
         projectA2.ivy.expectMetadataRetrieve()
         projectA2.ivy.expectFileDownload()
 
+        server.expectStat('/repo/group/projectB/')
         server.expectDirectoryList('/repo/group/projectB/')
 
         projectB2.ivy.expectMetadataRetrieve()

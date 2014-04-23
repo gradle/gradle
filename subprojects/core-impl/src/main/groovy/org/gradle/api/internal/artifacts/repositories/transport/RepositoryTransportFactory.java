@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
@@ -26,7 +24,6 @@ import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
 import org.gradle.api.internal.externalresource.transport.sftp.SftpClientFactory;
 import org.gradle.api.internal.externalresource.transport.sftp.SftpTransport;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.WrapUtil;
@@ -69,7 +66,6 @@ public class RepositoryTransportFactory {
     }
 
     private RepositoryTransport createSftpTransport(String name, PasswordCredentials credentials) {
-        checkSftpJavaVersionCompatibility();
         return new SftpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, sftpClientFactory);
     }
 
@@ -93,13 +89,5 @@ public class RepositoryTransportFactory {
             return createSftpTransport(name, credentials);
         }
         throw new InvalidUserDataException("You cannot mix different URL schemes for a single repository. Please declare separate repositories.");
-    }
-
-    private void checkSftpJavaVersionCompatibility() {
-        JavaVersion currentJavaVersion = Jvm.current().getJavaVersion();
-
-        if(!currentJavaVersion.isJava6Compatible()) {
-            throw new GradleException("The use of SFTP repositories requires Java 6 or later.");
-        }
     }
 }

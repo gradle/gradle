@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.externalresource.transport.sftp;
 
+import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.sshd.client.SftpClient;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
 import org.gradle.api.internal.resource.ResourceException;
@@ -26,7 +25,6 @@ import org.gradle.internal.Factory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -52,35 +50,44 @@ public class SftpResourceUploader implements ExternalResourceUploader {
 
     public void upload(Factory<InputStream> sourceFactory, Long contentLength, String destination) throws IOException {
         URI uri = toUri(destination);
-        SftpClient client = sftpClientFactory.createSftpClient(uri, credentials);
+        LockableSftpClient client = sftpClientFactory.createSftpClient(uri, credentials);
 
         try {
             String path = uri.getPath();
-            ensureParentDirectoryExists(client, path);
-            OutputStream outputStream = client.write(uri.getPath());
+            ChannelSftp channel = client.getSftpClient();
+            ensureParentDirectoryExists(channel, path, uri);
+            InputStream sourceStream = sourceFactory.create();
             try {
-                InputStream sourceStream = sourceFactory.create();
-                try {
-                    IOUtils.copyLarge(sourceStream, outputStream);
-                    // sftp client expects a flush before closing
-                    outputStream.flush();
-                } finally {
-                    sourceStream.close();
-                }
+                channel.put(sourceStream, uri.getPath());
             } finally {
-                outputStream.close();
+                sourceStream.close();
             }
+        } catch (com.jcraft.jsch.SftpException e) {
+            throw new SftpException(String.format("Could not write to resource '%s'.", uri), e);
         } finally {
             sftpClientFactory.releaseSftpClient(client);
         }
     }
 
-    private void ensureParentDirectoryExists(SftpClient client, String path) throws IOException {
+    private void ensureParentDirectoryExists(ChannelSftp channel, String path, URI baseUri) {
         String directory = FilenameUtils.getFullPathNoEndSeparator(path);
+        if (directory.equals("")) {
+            return;
+        }
 
-        if (!directory.equals("") && client.lstat(directory) == null) {
-            ensureParentDirectoryExists(client, directory);
-            client.mkdir(directory);
+        try {
+            channel.lstat(directory);
+            return;
+        } catch (com.jcraft.jsch.SftpException e) {
+            if (e.id != ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+                throw new SftpException(String.format("Could not get resource '%s'.", baseUri.resolve(directory)), e);
+            }
+        }
+        ensureParentDirectoryExists(channel, directory, baseUri);
+        try {
+            channel.mkdir(directory);
+        } catch (com.jcraft.jsch.SftpException e) {
+            throw new SftpException(String.format("Could not create resource '%s'.", baseUri.resolve(directory)), e);
         }
     }
 }

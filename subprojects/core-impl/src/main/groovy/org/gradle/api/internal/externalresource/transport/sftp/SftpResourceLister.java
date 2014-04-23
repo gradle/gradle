@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.externalresource.transport.sftp;
 
-import org.apache.sshd.client.SftpClient;
+import com.jcraft.jsch.ChannelSftp;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.resource.ResourceException;
@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 public class SftpResourceLister implements ExternalResourceLister {
     private final SftpClientFactory sftpClientFactory;
@@ -49,27 +50,20 @@ public class SftpResourceLister implements ExternalResourceLister {
     public List<String> list(final String parent) throws IOException {
         URI uri = toUri(parent);
         String path = uri.getPath();
-        SftpClient client = sftpClientFactory.createSftpClient(uri, credentials);
+        LockableSftpClient client = sftpClientFactory.createSftpClient(uri, credentials);
 
         try {
-            SftpClient.Handle dirHandle = client.openDir(path);
-            if (dirHandle != null) {
-                try {
-                    List<String> list = new ArrayList<String>();
-                    SftpClient.DirEntry[] entries = client.readDir(dirHandle);
-                    while (entries != null) {
-                        for (SftpClient.DirEntry entry : entries) {
-                            list.add(parent + entry.filename);
-                        }
-                        entries = client.readDir(dirHandle);
-                    }
-                    return list;
-                } finally {
-                    client.close(dirHandle);
-                }
-            } else {
+            Vector<ChannelSftp.LsEntry> entries = client.getSftpClient().ls(path);
+            List<String> list = new ArrayList<String>();
+            for (ChannelSftp.LsEntry entry : entries) {
+                list.add(entry.getFilename());
+            }
+            return list;
+        } catch (com.jcraft.jsch.SftpException e) {
+            if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
                 return null;
             }
+            throw new SftpException(String.format("Could not list children for resource '%s'.", uri), e);
         } finally {
             sftpClientFactory.releaseSftpClient(client);
         }

@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.externalresource.transport.sftp;
 
-import org.apache.sshd.client.SftpClient;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.SftpATTRS;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
@@ -28,10 +29,6 @@ import org.gradle.internal.hash.HashValue;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import static org.apache.sshd.client.SftpClient.Attribute.AcModTime;
-import static org.apache.sshd.client.SftpClient.Attribute.Size;
-import static org.apache.sshd.client.SftpClient.Attributes;
 
 public class SftpResourceAccessor implements ExternalResourceAccessor {
 
@@ -54,24 +51,29 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
     }
 
     private ExternalResourceMetaData getMetaData(URI uri) throws IOException {
-        SftpClient sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
+        LockableSftpClient sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
         try {
-            Attributes attributes = sftpClient.lstat(uri.getPath());
+            SftpATTRS attributes = sftpClient.getSftpClient().lstat(uri.getPath());
             return attributes != null ? toMetaData(uri.toString(), attributes) : null;
+        } catch (com.jcraft.jsch.SftpException e) {
+            if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+                return null;
+            }
+            throw new SftpException(String.format("Could not get resource '%s'.", uri), e);
         } finally {
             sftpClientFactory.releaseSftpClient(sftpClient);
         }
     }
 
-    private ExternalResourceMetaData toMetaData(String path, Attributes attributes) {
+    private ExternalResourceMetaData toMetaData(String path, SftpATTRS attributes) {
         long lastModified = -1;
         long contentLength = -1;
 
-        if (attributes.flags.contains(AcModTime)) {
-            lastModified = attributes.mtime * 1000;
+        if ((attributes.getFlags() & SftpATTRS.SSH_FILEXFER_ATTR_ACMODTIME) != 0) {
+            lastModified = attributes.getMTime() * 1000;
         }
-        if (attributes.flags.contains(Size)) {
-            contentLength = attributes.size;
+        if ((attributes.getFlags() & SftpATTRS.SSH_FILEXFER_ATTR_SIZE) != 0) {
+            contentLength = attributes.getSize();
         }
 
         return new DefaultExternalResourceMetaData(path, lastModified, contentLength, null, null);

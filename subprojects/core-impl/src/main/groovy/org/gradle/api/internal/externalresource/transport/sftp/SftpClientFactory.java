@@ -18,12 +18,8 @@ package org.gradle.api.internal.externalresource.transport.sftp;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.jcraft.jsch.*;
 import net.jcip.annotations.ThreadSafe;
-import org.apache.sshd.ClientSession;
-import org.apache.sshd.SshClient;
-import org.apache.sshd.client.SftpClient;
-import org.apache.sshd.client.future.AuthFuture;
-import org.apache.sshd.client.future.ConnectFuture;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -35,103 +31,120 @@ import java.util.List;
 @ThreadSafe
 public class SftpClientFactory implements Stoppable {
     private final Object lock = new Object();
-    private SshClient sshClient;
+    private JSch jsch;
     private final ListMultimap<SftpHost, LockableSftpClient> clients = ArrayListMultimap.create();
 
-    public SftpClient createSftpClient(URI uri, PasswordCredentials credentials) throws IOException {
-        synchronized(lock) {
+    public LockableSftpClient createSftpClient(URI uri, PasswordCredentials credentials) throws IOException {
+        synchronized (lock) {
             SftpHost sftpHost = new SftpHost(uri, credentials);
-            LockableSftpClient sftpClient = acquireClient(sftpHost);
-            sftpClient.lock();
-            return sftpClient;
+            return acquireClient(sftpHost);
         }
     }
 
     private LockableSftpClient acquireClient(SftpHost sftpHost) throws IOException {
-        return clients.containsKey(sftpHost) ? reuseExistingOrCreateNewClient(sftpHost) : createAndStoreNewClient(sftpHost);
+        return clients.containsKey(sftpHost) ? reuseExistingOrCreateNewClient(sftpHost) : createNewClient(sftpHost);
     }
 
     private LockableSftpClient reuseExistingOrCreateNewClient(SftpHost sftpHost) throws IOException {
         List<LockableSftpClient> clientsByHost = clients.get(sftpHost);
-
-        for(LockableSftpClient client : clientsByHost) {
-            if(!client.isLocked()) {
-                return client;
-            }
+        if (clientsByHost.isEmpty()) {
+            return createNewClient(sftpHost);
         }
-
-        LockableSftpClient client = createNewClient(sftpHost);
-        clientsByHost.add(client);
-        return client;
-    }
-
-    private LockableSftpClient createAndStoreNewClient(SftpHost sftpHost) throws IOException {
-        LockableSftpClient client = createNewClient(sftpHost);
-        clients.put(sftpHost, client);
-        return client;
+        return clientsByHost.remove(0);
     }
 
     private LockableSftpClient createNewClient(SftpHost sftpHost) throws IOException {
-        ClientSession session = null;
         try {
-            createSshClientIfNeeded();
-            session = connect(sshClient, sftpHost);
-            authenticate(session, sftpHost);
-            return new NonExistingFileHandlingSftpClient(session);
-        } catch (IOException e) {
-            if (session != null) {
-                session.close(true);
+            Session session = createJsch().getSession(sftpHost.getUsername(), sftpHost.getHostname(), sftpHost.getPort());
+            session.setPassword(sftpHost.getPassword());
+            session.connect();
+            Channel channel = session.openChannel("sftp");
+            channel.connect();
+            return new DefaultLockableSftpClient(sftpHost, (ChannelSftp) channel, session);
+        } catch (JSchException e) {
+            if (e.getMessage().equals("Auth fail")) {
+                throw new SftpException(String.format("Invalid credentials for SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
             }
-            throw e;
+            throw new SftpException(String.format("Could not connect to SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
         }
     }
 
-    private void createSshClientIfNeeded() {
-        if(sshClient == null) {
-            sshClient = SshClient.setUpDefaultClient();
-            sshClient.start();
+    private JSch createJsch() {
+        if (jsch == null) {
+            jsch = new JSch();
+            jsch.setHostKeyRepository(new HostKeyRepository() {
+                public int check(String host, byte[] key) {
+                    return OK;
+                }
+
+                public void add(HostKey hostkey, UserInfo ui) {
+                }
+
+                public void remove(String host, String type) {
+                }
+
+                public void remove(String host, String type, byte[] key) {
+                }
+
+                public String getKnownHostsRepositoryID() {
+                    return "allow-everything";
+                }
+
+                public HostKey[] getHostKey() {
+                    throw new UnsupportedOperationException();
+                }
+
+                public HostKey[] getHostKey(String host, String type) {
+                    return new HostKey[0];
+                }
+            });
         }
+        return jsch;
     }
 
-    public void releaseSftpClient(SftpClient sftpClient) {
-        synchronized(lock) {
-            if(sftpClient != null && sftpClient instanceof LockableSftpClient) {
-                ((LockableSftpClient)sftpClient).unlock();
-            }
+    public void releaseSftpClient(LockableSftpClient sftpClient) {
+        synchronized (lock) {
+            DefaultLockableSftpClient lockableClient = (DefaultLockableSftpClient) sftpClient;
+            clients.put(lockableClient.host, lockableClient);
         }
-    }
-
-    private ClientSession connect(SshClient client, SftpHost sftpHost) throws IOException {
-        ConnectFuture connectFuture = client.connect(sftpHost.getUsername(), sftpHost.getHostname(), sftpHost.getPort()).awaitUninterruptibly();
-        if (!connectFuture.isConnected()) {
-            throw new SftpException(String.format("Could not connect to SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()));
-        }
-        return connectFuture.getSession();
-    }
-
-    private ClientSession authenticate(ClientSession session, SftpHost sftpHost) throws IOException {
-        session.addPasswordIdentity(sftpHost.getPassword());
-        AuthFuture auth = session.auth().awaitUninterruptibly();
-        if (!auth.isSuccess()) {
-            throw new SftpException(String.format("Invalid credentials for SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()));
-        }
-        return session;
     }
 
     public void stop() {
-        synchronized(lock) {
-            CompositeStoppable stoppable = new CompositeStoppable();
-
-            for(LockableSftpClient client : clients.values()) {
-                stoppable.add(client);
+        synchronized (lock) {
+            try {
+                CompositeStoppable stoppable = new CompositeStoppable();
+                for (LockableSftpClient client : clients.values()) {
+                    stoppable.add(client);
+                }
+                stoppable.stop();
+            } finally {
+                clients.clear();
             }
-
-            stoppable.add(sshClient);
-            stoppable.stop();
         }
     }
 
-    public static class SftpHost {
+    private static class DefaultLockableSftpClient implements LockableSftpClient, Stoppable {
+        final SftpHost host;
+        final ChannelSftp channelSftp;
+        final Session session;
+
+        private DefaultLockableSftpClient(SftpHost host, ChannelSftp channelSftp, Session session) {
+            this.host = host;
+            this.channelSftp = channelSftp;
+            this.session = session;
+        }
+
+        public void stop() {
+            channelSftp.disconnect();
+            session.disconnect();
+        }
+
+        public ChannelSftp getSftpClient() {
+            return channelSftp;
+        }
+    }
+
+    private static class SftpHost {
         private final String hostname;
         private final int port;
         private final String username;
