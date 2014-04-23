@@ -15,8 +15,6 @@ Part of the work for this spec is to unify the terminology. This is yet to be de
 For now, this spec uses the terminology from the native component model, using `binary` to refer to what is also
 known as a `component instance` or `variant`.
 
-TODO - replace 'binary' with 'component'.
-
 # Stories
 
 ## Feature: Build author declares a Java library
@@ -31,12 +29,16 @@ For example:
         }
     }
 
+    binaries {
+        // A Java library binary is visible here
+    }
+
 This defines a Java library that:
-- Has a single Java source set
-- Has a single resources source set
+- Has a single Java source set hardcoded to `src/myLib/java`
+- Has a single resources source set hardocoded to `src/myLib/resources`
 - Has no dependencies
-- Produces a jar binary as output.
-- Has a lifecycle task to build the binary.
+- Produces a jar binary as output from the source.
+- Has a lifecycle task to build the jar.
 
 It should be possible to declare multiple libraries for a given project.
 
@@ -45,10 +47,10 @@ It should be possible to declare multiple libraries for a given project.
 - Need a better id for the plugin, to sync up with the native plugins.
 - Make the library type explicit, rather than infer it? Possibly with a type, possibly by naming the container.
 - The legacy JVM language plugins should also declare a jvm library.
-- The legacy application plugin should also declare a jvm application;
-- Move all this stuff to the rules model.
+- The legacy application plugin should also declare a jvm application.
+- Move everything to the rules model.
 
-## Feature: Build author declares a dependency on a Java library produced by another project
+## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
 For example:
 
@@ -79,7 +81,7 @@ When the project attribute refers to a project without a component plugin applie
 - Need an API to query the various classpaths.
 - Need to be able to configure the resolution strategy for each usage.
 
-## Feature: Build author declares a dependency on an external Java library
+## Feature: Build author declares that a Java library depends on an external Java library
 
 For example:
 
@@ -93,13 +95,14 @@ For example:
         }
     }
 
-This makes the jar of "myorg:mylib:2.3" and its dependencies available at both compile time and runtime.
+This makes the jar of `myorg:mylib:2.3` and its dependencies available at both compile time and runtime.
 
 ### Open issues
 
-- Using `library "some:coords"` will conflict with a dependency `library "someLib"` on a library declared in the same project.
+- Using `library "some:thing:1.2"` will conflict with a dependency `library "someLib"` on a library declared in the same project.
+Could potentially just assert that component names do not contain ':' (should do this anyway).
 
-## Feature: Build author declares dependency for legacy Java project declares on a Java library produced by another project
+## Feature: Build author declares that legacy Java project depends on a Java library produced by another project
 
 For example:
 
@@ -115,7 +118,11 @@ When the project attribute refers to a project with a component plugin applied:
 - At compile time, include the library's jar binary only.
 - At runtime time, include the library's jar binary and runtime dependencies.
 
-## Feature: Build user views dependency report for the libraries of a project
+### Open issues
+
+- Allow `library` attribute?
+
+## Feature: Build user views the dependencies for the libraries of a project
 
 The dependency reports show the dependencies of the libraries of a project:
 
@@ -123,9 +130,9 @@ The dependency reports show the dependencies of the libraries of a project:
 - `dependencyInsight` task
 - HTML report
 
-## Feature: Build author declares dependencies of a native component
+## Feature: Build author declares that a native component depends on a native library
 
-Add the ability to declare dependencies directly on a native component, using the same DSL as for Java libraries:
+Add the ability to declare dependencies directly on a native component, using a similar DSL as for Java libraries:
 
     apply plugin: 'cpp'
 
@@ -158,7 +165,7 @@ Also reuse the dependency DSL at the source set level:
         }
     }
 
-## Feature: Build author declares an API dependency
+## Feature: Build author that the API of a Java library requires some Java library
 
 For example:
 
@@ -186,7 +193,7 @@ The default API of a Java library is its Jar file and no dependencies.
 
 - Add this to native libraries
 
-## Feature: Build author declares a runtime dependency
+## Feature: Build author declares that a Java library requires some Java library at runtime
 
 For example:
 
@@ -202,15 +209,23 @@ For example:
         }
     }
 
+### Open issues
+
+- Add this to native libraries
+
 ## Feature: Build author declares the target JVM for a Java library
 
 For example:
 
     apply plugin: 'new-java'
 
+    platforms {
+        // Java versions are visible here
+    }
+
     libraries {
         myLib {
-            runsOn platforms.java7
+            buildFor platforms.java7
         }
     }
 
@@ -224,7 +239,7 @@ The target JVM for a legacy Java library is the lowest of `sourceCompatibility` 
 
 ### Open issues
 
-- Sync up with native components.
+- Need to discover or configure the JDK installations.
 
 ## Feature: Build author declares a custom target platform for a Java library
 
@@ -243,11 +258,11 @@ For example:
 
     libraries {
         myLib {
-            runsOn platforms.myContainer
+            buildFor platforms.myContainer
         }
     }
 
-This defines a custom container that requires Java 6 or later.
+This defines a custom container that requires Java 6 or later, and states that the library should be built for that container.
 
 This includes the API of 'myorg:mylib:1.2' at compile time, but not at runtime. The bytecode for the library is compiled for java 6.
 
@@ -256,7 +271,8 @@ the JVM for the platform of `a`.
 
 ### Open issues
 
-- Sync up with native components.
+- Rework the platform DSL for native component to work the same way.
+- Retrofit into legacy java and web plugins.
 
 ## Feature: Build author declares dependencies for a Java source set
 
@@ -300,32 +316,53 @@ Add a sample plugin that declares its own library type:
     }
 
 A custom library type:
+- Extends or implements some public base `Library` type.
 - Has no dependencies.
 - Produces no artifacts.
 
-The plugin extends or implements some public base `Library` type.
+## Feature: Custom library produces binaries
 
-### Open issues
+Change the sample plugin so that it declares its own binary type for the libraries it defines:
 
-- How much stuff does the Android plugin need to reuse, and how?
-- Allow custom plugin to declare a library type that extends
-- Target platform
-- Needs to declare dependencies.
-- Needs to declare artifacts.
+    apply plugin: 'my-sample'
 
-## Feature: Custom library produces artifacts
+    libraries {
+        myCustomLib {
+            binaries {
+                // Custom binaries are visible here, however it is that the plugin decides which binaries are available
+            }
+        }
+    }
 
-Allow a plugin to declare the artifacts for a custom library.
+    binaries {
+        // Custom binaries are visible here
+    }
+
+Allow a plugin to declare the binaries for a custom library.
+
+A custom binary:
+- Extends or implements some public base `LibraryBinary` type.
+- Has some lifecycle task to build its outputs.
 
 ## Feature: Build author declares dependencies for custom library
 
-Allow a plugin to wire in the dependencies for a custom library.
+Change the sample plugin so that it allows Java and custom libraries to be used as dependencies:
 
-## Feature: Custom library targets a JVM platform
+    apply plugin: 'my-sample'
 
-## Feature: Custom library consumes Java libraries
+    libraries {
+        myCustomLib {
+            dependencies {
+                project 'other-project'
+                customUsage {
+                    project 'other-project' library 'some-lib'
+                }
+            }
+        }
+    }
 
-Introduce an API to resolve a library dependency graph:
+Allow a plugin to resolve the dependencies for a custom library, via some API. Target library must produce exactly
+one binary of the target type.
 
 Resolve dependencies with inline notation:
 
@@ -371,7 +408,42 @@ Resolve dependencies not added a configuration:
         println it
     }
 
+### Open issues
+
+- Component type declares usages.
+- Binary declares artifacts and dependencies for a given usage.
+
+## Feature: Build author declares target platform for custom library
+
+Change the sample plugin to allow a target JVM based platform to be declared:
+
+    apply plugin: 'my-sample'
+
+    platforms {
+        // Several target platforms are visible here
+    }
+
+    libraries {
+        myCustomLib {
+            minSdk 12 // implies: buildFor platforms.mySdk12
+        }
+    }
+
 ## Feature: Java library produces multiple variants
+
+For example:
+
+    apply plugin: 'new-java'
+
+    libraries {
+        myLib {
+            buildFor platforms.java6, platforms.java8
+        }
+    }
+
+Builds a binary for Java 6 and Java 8.
+
+Dependency resolution selects the best binary from each dependency for the target platform.
 
 ## Feature: Dependency resolution for native components
 
