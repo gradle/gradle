@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.BinaryContainer
+import org.gradle.language.base.LibraryContainer
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeComponentIdentifier
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal

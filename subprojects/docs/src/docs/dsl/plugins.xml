@@ -78,8 +78,8 @@
         <extends targetClass="org.gradle.api.Project" id="sources" extensionClass="org.gradle.language.base.ProjectSourceSet"/>
     </plugin>
     <plugin id="native-binaries" description="Native Binaries Model Plugin">
+        <extends targetClass="org.gradle.api.Project" id="libraries" extensionClass="org.gradle.language.base.LibraryContainer"/>
         <extends targetClass="org.gradle.api.Project" id="executables" extensionClass="org.gradle.nativebinaries.ExecutableContainer"/>
-        <extends targetClass="org.gradle.api.Project" id="libraries" extensionClass="org.gradle.nativebinaries.LibraryContainer"/>
         <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.language.base.BinaryContainer"/>
         <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativebinaries.toolchain.ToolChainRegistry"/>
         <extends targetClass="org.gradle.api.Project" id="buildTypes" extensionClass="org.gradle.nativebinaries.BuildTypeContainer"/>

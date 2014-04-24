@@ -15,12 +15,13 @@
  */
 package org.gradle.nativebinaries.internal.resolve
 import org.gradle.api.DomainObjectSet
+import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.language.base.LibraryContainer
 import org.gradle.nativebinaries.NativeLibrary
-import org.gradle.nativebinaries.LibraryContainer
 import org.gradle.nativebinaries.NativeLibraryRequirement
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement
 import spock.lang.Specification
@@ -126,11 +127,14 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         def libraries = findLibraryContainer(project)
         libraries.getByName("libName") >> library
     }
-    private LibraryContainer findLibraryContainer(ProjectInternal project) {
+
+    private findLibraryContainer(ProjectInternal project) {
         def extensions = Mock(ExtensionContainerInternal)
         def libraries = Mock(LibraryContainer)
+        def nativeLibraries = Mock(NamedDomainObjectSet)
         project.getExtensions() >> extensions
         extensions.findByName("libraries") >> libraries
-        return libraries
+        libraries.withType(NativeLibrary) >> nativeLibraries
+        return nativeLibraries
     }
 }

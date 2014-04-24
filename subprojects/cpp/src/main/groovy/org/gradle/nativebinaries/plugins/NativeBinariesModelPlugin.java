@@ -26,16 +26,19 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
+import org.gradle.language.base.LibraryContainer;
+import org.gradle.language.base.internal.DefaultLibraryContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.BuildTypeContainer;
 import org.gradle.nativebinaries.FlavorContainer;
+import org.gradle.nativebinaries.NativeLibrary;
 import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
 import org.gradle.nativebinaries.internal.DefaultExecutableContainer;
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
-import org.gradle.nativebinaries.internal.DefaultLibraryContainer;
+import org.gradle.nativebinaries.internal.NativeLibraryFactory;
 import org.gradle.nativebinaries.internal.configure.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
@@ -86,15 +89,14 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
         modelRules.rule(new CreateNativeBinaries(instantiator, project, resolver));
         modelRules.rule(new CloseBinariesForTasks());
 
+        DefaultLibraryContainer libraries = (DefaultLibraryContainer) project.getExtensions().getByType(LibraryContainer.class);
+        libraries.registerFactory(NativeLibrary.class, new NativeLibraryFactory(instantiator, project));
+        // TODO:DAZ Decide if we want implicit library types or not, and implement properly
+        libraries.registerDefaultFactory(new NativeLibraryFactory(instantiator, project));
+
         project.getExtensions().create(
                 "executables",
                 DefaultExecutableContainer.class,
-                instantiator,
-                project
-        );
-        project.getExtensions().create(
-                "libraries",
-                DefaultLibraryContainer.class,
                 instantiator,
                 project
         );

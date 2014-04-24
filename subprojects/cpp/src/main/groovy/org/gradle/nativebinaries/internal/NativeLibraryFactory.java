@@ -16,23 +16,22 @@
 
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Project;
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.NativeLibrary;
-import org.gradle.nativebinaries.LibraryContainer;
 
-public class DefaultLibraryContainer extends AbstractNamedDomainObjectContainer<NativeLibrary> implements LibraryContainer {
+public class NativeLibraryFactory implements NamedDomainObjectFactory<NativeLibrary> {
+    private final Instantiator instantiator;
     private final Project project;
 
-    public DefaultLibraryContainer(Instantiator instantiator, Project project) {
-        super(NativeLibrary.class, instantiator);
+    public NativeLibraryFactory(Instantiator instantiator, Project project) {
+        this.instantiator = instantiator;
         this.project = project;
     }
 
-    @Override
-    protected NativeLibrary doCreate(String name) {
+    public NativeLibrary create(String name) {
         ProjectNativeComponentIdentifier id = new ProjectNativeComponentIdentifier(project.getPath(), name);
-        return getInstantiator().newInstance(DefaultNativeLibrary.class, id);
+        return instantiator.newInstance(DefaultNativeLibrary.class, id);
     }
 }

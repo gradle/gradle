@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries;
+package org.gradle.language.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectSet;
 
 /**
- * A container of native libraries.
+ * A library that can be linked into or depended on by another software element.
  */
 @Incubating
-public interface LibraryContainer extends NamedDomainObjectSet<NativeLibrary> {
+public interface Library {
 }

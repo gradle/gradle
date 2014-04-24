@@ -21,6 +21,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.language.base.internal.DefaultBinaryContainer;
+import org.gradle.language.base.internal.DefaultLibraryContainer;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.model.ModelRules;
 
@@ -46,6 +47,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     public void apply(final Project target) {
+        target.getExtensions().create("libraries", DefaultLibraryContainer.class, instantiator);
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
         final BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
 

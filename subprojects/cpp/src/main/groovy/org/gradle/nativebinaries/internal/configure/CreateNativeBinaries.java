@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
+import org.gradle.language.base.LibraryContainer;
 import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.model.ModelRule;
@@ -66,7 +67,7 @@ public class CreateNativeBinaries extends ModelRule {
         LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
 
         List<ProjectNativeComponent> components = new ArrayList<ProjectNativeComponent>();
-        for (NativeLibrary library : libraries) {
+        for (NativeLibrary library : libraries.withType(NativeLibrary.class)) {
             components.add(library);
         }
         for (NativeExecutable executable : executables) {
