@@ -198,7 +198,7 @@ class VisualCppToolChainTest extends Specification {
         expect:
         toolChain.getByName(toolConfigurationName)
         where:
-        toolConfigurationName << ["cCompiler", "cppCompiler", "linker", "rcCompiler", "staticLibArchiver"]
+        toolConfigurationName << ["assembler", "cCompiler", "cppCompiler", "linker", "rcCompiler", "staticLibArchiver"]
     }
 
     def "can configure args for commandlineTool"() {
@@ -225,7 +225,7 @@ class VisualCppToolChainTest extends Specification {
         commandLineArgs == ["given", "args", "custom", "args"]
 
         where:
-        toolConfigurationName << ["cCompiler", "cppCompiler", "linker", "rcCompiler", "staticLibArchiver"]
+        toolConfigurationName << ["cCompiler", "assembler", "cppCompiler", "linker", "rcCompiler", "staticLibArchiver"]
     }
 
     def file(String name) {

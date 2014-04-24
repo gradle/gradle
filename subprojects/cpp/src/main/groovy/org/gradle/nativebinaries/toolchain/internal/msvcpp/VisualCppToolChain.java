@@ -66,6 +66,7 @@ public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp
                               VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, Instantiator instantiator) {
         super(CommandLineToolConfigurationInternal.class, name, operatingSystem, fileResolver, instantiator);
 
+        add(new DefaultCommandLineToolConfiguration("assembler"));
         add(new DefaultCommandLineToolConfiguration("cCompiler"));
         add(new DefaultCommandLineToolConfiguration("cppCompiler"));
         add(new DefaultCommandLineToolConfiguration("rcCompiler"));
