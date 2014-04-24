@@ -18,6 +18,7 @@ package org.gradle.api.internal.externalresource.transport.http;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.DefaultCacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceUploader;
@@ -30,31 +31,30 @@ import org.gradle.util.BuildCommencedTimeProvider;
 
 public class HttpTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
+    private final DefaultCacheAwareExternalResourceAccessor resourceAccessor;
 
     public HttpTransport(String name, PasswordCredentials credentials, RepositoryArtifactCache repositoryCacheManager,
                          ProgressLoggerFactory progressLoggerFactory, TemporaryFileProvider temporaryFileProvider,
                          CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider) {
         super(name, repositoryCacheManager);
-        repository = createRepository(credentials, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
-    }
-
-    public ExternalResourceRepository getRepository() {
-        return repository;
-    }
-
-    private ExternalResourceRepository createRepository(PasswordCredentials credentials, ProgressLoggerFactory progressLoggerFactory,
-                                                        TemporaryFileProvider temporaryFileProvider, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider) {
         HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
         HttpResourceAccessor accessor = new HttpResourceAccessor(http);
         HttpResourceUploader uploader = new HttpResourceUploader(http);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory);
-        return new DefaultExternalResourceRepository(
+        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider);
+        repository = new DefaultExternalResourceRepository(
                 name,
                 accessor,
                 new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
                 new HttpResourceLister(accessor),
-                temporaryFileProvider,
-                new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider)
-        );
+                temporaryFileProvider);
+    }
+
+    public CacheAwareExternalResourceAccessor getResourceAccessor() {
+        return resourceAccessor;
+    }
+
+    public ExternalResourceRepository getRepository() {
+        return repository;
     }
 }

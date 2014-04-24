@@ -19,9 +19,7 @@ package org.gradle.api.internal.externalresource.transport;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
@@ -29,10 +27,10 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.GFileUtils;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,25 +47,17 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     private final ExternalResourceUploader uploader;
     private final ExternalResourceLister lister;
 
-    private final CacheAwareExternalResourceAccessor cacheAwareAccessor;
-
     public DefaultExternalResourceRepository(String name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader,
-                                             ExternalResourceLister lister, TemporaryFileProvider temporaryFileProvider,
-                                             CacheAwareExternalResourceAccessor cacheAwareAccessor) {
+                                             ExternalResourceLister lister, TemporaryFileProvider temporaryFileProvider) {
         this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
         this.temporaryFileProvider = temporaryFileProvider;
-        this.cacheAwareAccessor = cacheAwareAccessor;
     }
 
     public ExternalResource getResource(String source) throws IOException {
         return accessor.getResource(toUri(source));
-    }
-
-    public ExternalResource getResource(String source, LocallyAvailableResourceCandidates localCandidates) throws IOException {
-        return cacheAwareAccessor.getResource(toUri(source), localCandidates);
     }
 
     public ExternalResourceMetaData getResourceMetaData(String source) throws IOException {

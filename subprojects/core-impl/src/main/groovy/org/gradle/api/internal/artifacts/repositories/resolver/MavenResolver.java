@@ -56,10 +56,10 @@ public class MavenResolver extends ExternalResourceResolver {
                          LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
                          ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(),
+                transport.getResourceAccessor(),
+                transport.getCache(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
                 locallyAvailableResourceFinder, resolverStrategy);
-        transport.configureCacheManager(this);
-
         this.metaDataParser = new GradlePomModuleDescriptorParser();
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
         this.root = rootUri;

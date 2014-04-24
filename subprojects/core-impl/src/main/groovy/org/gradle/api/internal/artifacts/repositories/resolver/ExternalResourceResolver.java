@@ -44,6 +44,7 @@ import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
+import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.CollectionUtils;
@@ -66,24 +67,28 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private boolean allowMissingDescriptor = true;
     private boolean force;
     private String name;
-    private RepositoryArtifactCache repositoryCacheManager;
     private String changingMatcherName;
     private String changingPattern;
     private RepositoryChain repositoryChain;
 
+    private final RepositoryArtifactCache repositoryCacheManager;
     private final ExternalResourceRepository repository;
+    private final CacheAwareExternalResourceAccessor cachingResourceAccessor;
     private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
     private final ResolverStrategy resolverStrategy;
 
     protected VersionLister versionLister;
 
-
     public ExternalResourceResolver(String name,
                                     ExternalResourceRepository repository,
+                                    CacheAwareExternalResourceAccessor cachingResourceAccessor,
+                                    RepositoryArtifactCache repositoryCacheManager,
                                     VersionLister versionLister,
                                     LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
                                     ResolverStrategy resolverStrategy) {
         this.name = name;
+        this.cachingResourceAccessor = cachingResourceAccessor;
+        this.repositoryCacheManager = repositoryCacheManager;
         this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -309,7 +314,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver(List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns) {
-        return new DefaultExternalResourceArtifactResolver(getRepository(), locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, repositoryCacheManager);
+        return new DefaultExternalResourceArtifactResolver(repository, locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, repositoryCacheManager, cachingResourceAccessor);
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
@@ -417,10 +422,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     public void setChangingPattern(String changingPattern) {
         this.changingPattern = changingPattern;
-    }
-
-    public void setRepositoryCacheManager(RepositoryArtifactCache repositoryCacheManager) {
-        this.repositoryCacheManager = repositoryCacheManager;
     }
 
     private boolean isChanging(String version) {

@@ -19,6 +19,7 @@ package org.gradle.api.internal.externalresource.transport.sftp;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.DefaultCacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceUploader;
@@ -32,34 +33,30 @@ import org.gradle.util.BuildCommencedTimeProvider;
 public class SftpTransport extends AbstractRepositoryTransport {
 
     private final ExternalResourceRepository repository;
+    private final DefaultCacheAwareExternalResourceAccessor resourceAccessor;
 
     public SftpTransport(String name, PasswordCredentials credentials, RepositoryArtifactCache repositoryCacheManager,
                   ProgressLoggerFactory progressLoggerFactory, TemporaryFileProvider temporaryFileProvider,
                   CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, SftpClientFactory sftpClientFactory) {
 
         super(name, repositoryCacheManager);
-        repository = createRepository(credentials, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, sftpClientFactory);
+        SftpResourceAccessor accessor = new SftpResourceAccessor(sftpClientFactory, credentials);
+        SftpResourceUploader uploader = new SftpResourceUploader(sftpClientFactory, credentials);
+        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory);
+        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider);
+        repository = new DefaultExternalResourceRepository(
+                name,
+                accessor,
+                new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
+                new SftpResourceLister(sftpClientFactory, credentials),
+                temporaryFileProvider);
+    }
+
+    public CacheAwareExternalResourceAccessor getResourceAccessor() {
+        return resourceAccessor;
     }
 
     public ExternalResourceRepository getRepository() {
         return repository;
     }
-
-    private ExternalResourceRepository createRepository(PasswordCredentials credentials, ProgressLoggerFactory progressLoggerFactory,
-                                                        TemporaryFileProvider temporaryFileProvider, CachedExternalResourceIndex<String> cachedExternalResourceIndex,
-                                                        BuildCommencedTimeProvider timeProvider, SftpClientFactory sftpClientFactory) {
-
-        SftpResourceAccessor accessor = new SftpResourceAccessor(sftpClientFactory, credentials);
-        SftpResourceUploader uploader = new SftpResourceUploader(sftpClientFactory, credentials);
-        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory);
-        return new DefaultExternalResourceRepository(
-                name,
-                accessor,
-                new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
-                new SftpResourceLister(sftpClientFactory, credentials),
-                temporaryFileProvider,
-                new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider)
-        );
-    }
-
 }

@@ -39,9 +39,8 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
                        boolean dynamicResolve, ResolverStrategy resolverStrategy) {
-        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, resolverStrategy);
+        super(name, transport.getRepository(), transport.getResourceAccessor(), transport.getCache(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, resolverStrategy);
         this.metaDataParser = new DownloadedIvyModuleDescriptorParser(resolverStrategy);
-        transport.configureCacheManager(this);
         this.dynamicResolve = dynamicResolve;
     }
 

@@ -30,19 +30,21 @@ import java.net.URI;
 
 public class FileTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
+    private final NoOpCacheAwareExternalResourceAccessor resourceAccessor;
 
     public FileTransport(String name, RepositoryArtifactCache repositoryCacheManager, TemporaryFileProvider temporaryFileProvider) {
         super(name, repositoryCacheManager);
-        repository = createRepository(temporaryFileProvider);
+        FileResourceConnector connector = new FileResourceConnector();
+        resourceAccessor = new NoOpCacheAwareExternalResourceAccessor(connector);
+        repository = new DefaultExternalResourceRepository(name, connector, connector, connector, temporaryFileProvider);
     }
 
     public ExternalResourceRepository getRepository() {
         return repository;
     }
 
-    public ExternalResourceRepository createRepository(TemporaryFileProvider temporaryFileProvider) {
-        FileResourceConnector connector = new FileResourceConnector();
-        return new DefaultExternalResourceRepository(name, connector, connector, connector, temporaryFileProvider, new NoOpCacheAwareExternalResourceAccessor(connector));
+    public CacheAwareExternalResourceAccessor getResourceAccessor() {
+        return resourceAccessor;
     }
 
     private static class NoOpCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
