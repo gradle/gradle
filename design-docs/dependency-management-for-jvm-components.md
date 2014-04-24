@@ -21,7 +21,7 @@ known as a `component instance` or `variant`.
 
 For example:
 
-    apply plugin: 'new-java' // TBD - needs a better identifier
+    apply plugin: 'java-library'
 
     libraries {
         myLib {
@@ -44,9 +44,41 @@ It should be possible to declare multiple libraries for a given project.
 
 ### Story: Build author defines java library
 
+#### DSL
+
+    // Combining native and jvm libraries in single project
+    apply plugin: 'java-library'
+    apply plugin: 'cpp'
+
+    libraries {
+        myNativeLib(NativeLibrary) {
+
+        }
+
+        myJvmLib(JvmLibrary) {
+
+        }
+    }
+
+#### Implementation plan
+
+- Introduce `org.gradle.jvm.JvmLibrary`
+- Rename `org.gradle.nativebinaries.Library` to `org.gradle.nativebinaries.NativeLibrary`
+- Introduce a common superclass for `Library`.
+- Extract `org.gradle.nativebinaries.LibraryContainer` out of `nativebinaries` project into `language-base` project,
+  and make it an extensible polymorphic container.
+    - Different 'library' plugins will register a factory for library types.
+    - Update ExtensiblePolymorphicContainer so that if only one factory is registered, then it is the default factory.
+- Add a `jvm-library` plugin, that:
+    - Registers a factory for `JvmLibrary`.
+    - Adds a single `JvmLibraryBinary` instance to the `binaries` container for every `JvmLibrary`
+    - Creates a binary lifecycle task for generating this `JvmLibraryBinary`
+    - Wires the binary lifecycle task into the main `assemble` task.
+- Add a `java-library` plugin, which for now simply applies the `jvm-library` plugin.
+
 #### Test cases
 
-- Can apply plugin without defining library
+- Can apply `java-library` plugin without defining library
     - No binaries defined
     - No lifecycle task added
 - Define a java library component
@@ -54,6 +86,12 @@ It should be possible to declare multiple libraries for a given project.
     - Lifecycle task available to build binary
     - Can add dependent tasks to binary
 - Can combine native and Java components in the same project
+
+#### Open issues
+
+- Split the NativeBinariesPlugin into 'native-library' and 'native-application'. Maybe introduce 'cpp-library', etc for convenience.
+- Consistent plugin composition for java/native
+- Consider splitting jvm-runtime & jvm-lang support into separate projects. Similar for native-runtime and native-lang.
 
 ### Story: Build author builds jar for java library
 
@@ -65,7 +103,7 @@ It should be possible to declare multiple libraries for a given project.
     - With resources but no sources
     - With both sources and resources
 - Reports failure to compile library
-- Compiled sources and resources are separate
+- Compiled sources and resources are available in a common directory
 - All generated resources are removed when all resources source files are removed.
 - All compiled classes are removed when all java source files are removed.
 
@@ -85,7 +123,6 @@ It should be possible to declare multiple libraries for a given project.
 
 - JVM library with name 'main' is defined with any combination of `java`, `groovy` and `scala` plugins applied
 - Can build legacy jvm library jar using standard lifecycle task
-- When a library named 'main' is defined with the new plugin, conform to the naming conventions of the legacy plugin
 
 ### Open issues
 
