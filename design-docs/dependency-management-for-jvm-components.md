@@ -35,7 +35,7 @@ For example:
 
 This defines a Java library that:
 - Has a single Java source set hardcoded to `src/myLib/java`
-- Has a single resources source set hardocoded to `src/myLib/resources`
+- Has a single resources source set hardcoded to `src/myLib/resources`
 - Has no dependencies
 - Produces a jar binary as output from the source.
 - Has a lifecycle task to build the jar.
@@ -50,9 +50,10 @@ It should be possible to declare multiple libraries for a given project.
     - No binaries defined
     - No lifecycle task added
 - Define a java library component
-    - JvmLibraryBinary added to binaries container
+    - `JvmLibraryBinary` added to binaries container
     - Lifecycle task available to build binary
     - Can add dependent tasks to binary
+- Can combine native and Java components in the same project
 
 ### Story: Build author builds jar for java library
 
@@ -65,6 +66,8 @@ It should be possible to declare multiple libraries for a given project.
     - With both sources and resources
 - Reports failure to compile library
 - Compiled sources and resources are separate
+- All generated resources are removed when all resources source files are removed.
+- All compiled classes are removed when all java source files are removed.
 
 ### Story: Build author defines multiple java libraries in single project
 
@@ -73,6 +76,7 @@ It should be possible to declare multiple libraries for a given project.
 - Define and build multiple java libraries in the same project
   - Build library jars individually using binary lifecycle task
   - `gradle assemble` builds single jar for each library
+  - `gradle assemble` builds each native library
 - `gradle clean` removes compiled sources, copied resources and generated jar for each library
 
 ### Story: Legacy JVM language plugins declare a jvm library
@@ -162,9 +166,9 @@ When the project attribute refers to a project with a component plugin applied:
 
 - Allow `library` attribute?
 
-## Feature: Build user views the dependencies for the libraries of a project
+## Feature: Build user views the dependencies for the Java libraries of a project
 
-The dependency reports show the dependencies of the libraries of a project:
+The dependency reports show the dependencies of the Java libraries of a project:
 
 - `dependencies` task
 - `dependencyInsight` task
@@ -205,7 +209,7 @@ Also reuse the dependency DSL at the source set level:
         }
     }
 
-## Feature: Build author that the API of a Java library requires some Java library
+## Feature: Build author declares that the API of a Java library requires some Java library
 
 For example:
 
@@ -404,6 +408,9 @@ Change the sample plugin so that it allows Java and custom libraries to be used 
 Allow a plugin to resolve the dependencies for a custom library, via some API. Target library must produce exactly
 one binary of the target type.
 
+Move the hard-coded Java library model out of the dependency management engine and have the jvm plugins define the
+Java library type.
+
 Resolve dependencies with inline notation:
 
     def compileClasspath = dependencies.newDependencySet()
@@ -453,6 +460,11 @@ Resolve dependencies not added a configuration:
 - Component type declares usages.
 - Binary declares artifacts and dependencies for a given usage.
 
+## Feature: Build user views the dependencies for the custom libraries of a project
+
+Change the `dependencies`, `dependencyInsight` and HTML dependencies report so that it can report
+on the dependencies of a custom component, plus whatever binaries the component happens to produce.
+
 ## Feature: Build author declares target platform for custom library
 
 Change the sample plugin to allow a target JVM based platform to be declared:
@@ -486,6 +498,8 @@ Builds a binary for Java 6 and Java 8.
 Dependency resolution selects the best binary from each dependency for the target platform.
 
 ## Feature: Dependency resolution for native components
+
+## Feature: Build user views the dependencies for the native components of a project
 
 # Open issues and Later work
 

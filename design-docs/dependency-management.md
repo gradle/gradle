@@ -270,7 +270,7 @@ Get the pom files for all maven modules in a configuration:
 
 ## Story: Reliable mechanism for checking for success with new resolution result APIs
 
-- Perhaps add rethrowFailure() to `ArtifactResolutionResult` and `ResolutionResult`
+- Add `rethrowFailure()` to `ArtifactResolutionResult` and `ResolutionResult`
 - Update JvmLibraryArtifactResolveTestFixture to rethrow failures and verify the exception messages and causes directly in the tests
 
 ## Story: Directly access the source and javadoc artifacts for a configuration using the Artifact Query API
