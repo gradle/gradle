@@ -26,6 +26,7 @@ import org.gradle.api.internal.externalresource.transport.ExternalResourceReposi
 import org.gradle.api.internal.file.TemporaryFileProvider;
 
 import java.io.IOException;
+import java.net.URI;
 
 public class FileTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
@@ -51,7 +52,7 @@ public class FileTransport extends AbstractRepositoryTransport {
             this.connector = connector;
         }
 
-        public ExternalResource getResource(String source, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
+        public ExternalResource getResource(URI source, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
             return connector.getResource(source);
         }
     }

@@ -21,9 +21,10 @@ import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 
 import java.io.IOException;
+import java.net.URI;
 
 public interface CacheAwareExternalResourceAccessor {
 
-    ExternalResource getResource(String source, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException;
+    ExternalResource getResource(URI source, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException;
 
 }

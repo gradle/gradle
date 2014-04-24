@@ -21,6 +21,7 @@ import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccesso
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 
 /**
  * Creates an ExternalResource from something that has been cached locally.
@@ -29,11 +30,11 @@ public class CachedExternalResourceAdapter extends LocalFileStandInExternalResou
     private final CachedExternalResource cached;
     private final ExternalResourceAccessor accessor;
 
-    public CachedExternalResourceAdapter(String source, CachedExternalResource cached, ExternalResourceAccessor accessor) {
+    public CachedExternalResourceAdapter(URI source, CachedExternalResource cached, ExternalResourceAccessor accessor) {
         this(source, cached, accessor, null);
     }
 
-    public CachedExternalResourceAdapter(String source, CachedExternalResource cached, ExternalResourceAccessor accessor, ExternalResourceMetaData metaData) {
+    public CachedExternalResourceAdapter(URI source, CachedExternalResource cached, ExternalResourceAccessor accessor, ExternalResourceMetaData metaData) {
         super(source, cached.getCachedFile(), metaData);
         this.cached = cached;
         this.accessor = accessor;
@@ -69,7 +70,7 @@ public class CachedExternalResourceAdapter extends LocalFileStandInExternalResou
 
     private void downloadResourceDirect(File destination) throws IOException {
         // Perform a regular download, without considering external caches
-        accessor.getResource(getName()).writeTo(destination);
+        accessor.getResource(getURI()).writeTo(destination);
     }
 
 }

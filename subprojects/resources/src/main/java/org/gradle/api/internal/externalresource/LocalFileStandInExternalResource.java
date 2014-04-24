@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 /**
  * Used when we find a file locally that matches the checksum of some external resource.
@@ -32,19 +33,18 @@ import java.io.InputStream;
  * It saves us downloading the file, but we don't get any metadata for it.
  */
 public class LocalFileStandInExternalResource extends AbstractExternalResource {
-
     private final File localFile;
-    private final String source;
+    private final URI source;
     private HashValue sha1;
     private ExternalResourceMetaData metaData;
 
-    public LocalFileStandInExternalResource(String source, File localFile, ExternalResourceMetaData metaData) {
+    public LocalFileStandInExternalResource(URI source, File localFile, ExternalResourceMetaData metaData) {
         this.source = source;
         this.localFile = localFile;
         this.metaData = metaData;
     }
 
-    public String getName() {
+    public URI getURI() {
         return source;
     }
 
@@ -70,7 +70,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     public ExternalResourceMetaData getMetaData() {
         if (metaData == null) {
-            metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), null, getLocalFileSha1());
+            metaData = new DefaultExternalResourceMetaData(source.toString(), getLastModified(), getContentLength(), null, getLocalFileSha1());
         }
         return metaData;
     }

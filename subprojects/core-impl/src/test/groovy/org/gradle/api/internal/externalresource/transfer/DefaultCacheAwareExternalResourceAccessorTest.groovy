@@ -40,16 +40,17 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def cachedMetaData = Mock(ExternalResourceMetaData)
         def remoteMetaData = Mock(ExternalResourceMetaData)
         def localCandidate = Mock(LocallyAvailableResource)
+        def uri = new URI("scheme:thing")
 
         and:
-        index.lookup("location") >> cached
+        index.lookup("scheme:thing") >> cached
         cached.getExternalResourceMetaData() >> cachedMetaData
-        accessor.getMetaData("location") >> remoteMetaData
+        accessor.getMetaData(uri) >> remoteMetaData
         localCandidates.isNone() >> false
         remoteMetaData.sha1 >> sha1
         
         when:
-        def foundResource = cache.getResource("location", localCandidates)
+        def foundResource = cache.getResource(uri, localCandidates)
 
         then:
         1 * timeProvider.currentTime >> new Date().time

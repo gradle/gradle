@@ -21,10 +21,11 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.logging.ProgressLoggerFactory;
 
 import java.io.*;
+import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
     private final ExternalResourceAccessor delegate;
@@ -34,7 +35,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         this.delegate = delegate;
     }
 
-    public ExternalResource getResource(String location) throws IOException {
+    public ExternalResource getResource(URI location) throws IOException {
         ExternalResource resource = delegate.getResource(location);
         if (resource != null) {
             return new ProgressLoggingExternalResource(resource);
@@ -44,12 +45,12 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     }
 
     @Nullable
-    public HashValue getResourceSha1(String location) {
+    public HashValue getResourceSha1(URI location) {
         return delegate.getResourceSha1(location);
     }
 
     @Nullable
-    public ExternalResourceMetaData getMetaData(String location) throws IOException {
+    public ExternalResourceMetaData getMetaData(URI location) throws IOException {
         return delegate.getMetaData(location);
     }
 
@@ -97,6 +98,10 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         @Nullable
         public ExternalResourceMetaData getMetaData() {
             return resource.getMetaData();
+        }
+
+        public URI getURI() {
+            return resource.getURI();
         }
 
         public String getName() {

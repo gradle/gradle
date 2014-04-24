@@ -23,10 +23,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 
 public interface ExternalResource {
     /**
-     * Get the name of the resource.
+     * Get the URI of the resource.
+     */
+    public URI getURI();
+
+    /**
+     * Get the name of the resource. Use {@link #getURI()} instead.
      */
     public String getName();
 

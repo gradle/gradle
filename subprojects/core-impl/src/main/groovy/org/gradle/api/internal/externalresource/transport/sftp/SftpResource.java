@@ -50,8 +50,8 @@ public class SftpResource extends AbstractExternalResource {
         }
     }
 
-    public String getName() {
-        return uri.getPath();
+    public URI getURI() {
+        return uri;
     }
 
     public long getLastModified() {

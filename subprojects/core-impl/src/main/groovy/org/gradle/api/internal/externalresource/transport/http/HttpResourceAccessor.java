@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,12 +41,13 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         this.http = http;
     }
 
-    public HttpResponseResource getResource(String location) throws IOException {
+    public HttpResponseResource getResource(final URI uri) throws IOException {
         abortOpenResources();
+        String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
         HttpResponse response = http.performGet(location);
         if (response != null) {
-            HttpResponseResource resource = new HttpResponseResource("GET", location, response) {
+            HttpResponseResource resource = new HttpResponseResource("GET", uri, response) {
                 @Override
                 public void close() throws IOException {
                     super.close();
@@ -59,11 +61,12 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         }
     }
 
-    public ExternalResourceMetaData getMetaData(String location) {
+    public ExternalResourceMetaData getMetaData(URI uri) {
         abortOpenResources();
+        String location = uri.toString();
         LOGGER.debug("Constructing external resource metadata: {}", location);
         HttpResponse response = http.performHead(location);
-        return response == null ? null : new HttpResponseResource("HEAD", location, response).getMetaData();
+        return response == null ? null : new HttpResponseResource("HEAD", uri, response).getMetaData();
     }
 
     private HttpResponseResource recordOpenGetResource(HttpResponseResource httpResource) {
@@ -83,7 +86,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         openResources.clear();
     }
 
-    public HashValue getResourceSha1(String location) {
+    public HashValue getResourceSha1(URI location) {
         String checksumUrl = location + ".sha1";
         return downloadSha1(checksumUrl);
     }

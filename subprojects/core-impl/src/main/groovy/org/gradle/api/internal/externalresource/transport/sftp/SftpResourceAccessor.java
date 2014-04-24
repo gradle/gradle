@@ -23,12 +23,10 @@ import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
-import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.internal.hash.HashValue;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 public class SftpResourceAccessor implements ExternalResourceAccessor {
 
@@ -40,17 +38,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         this.credentials = credentials;
     }
 
-    private URI toUri(String location) {
-        URI uri;
-        try {
-            uri = new URI(location);
-        } catch (URISyntaxException e) {
-            throw new ResourceException(String.format("Unable to create URI from string '%s' ", location), e);
-        }
-        return uri;
-    }
-
-    private ExternalResourceMetaData getMetaData(URI uri) throws IOException {
+    public ExternalResourceMetaData getMetaData(URI uri) throws IOException {
         LockableSftpClient sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
         try {
             SftpATTRS attributes = sftpClient.getSftpClient().lstat(uri.getPath());
@@ -79,18 +67,12 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         return new DefaultExternalResourceMetaData(path, lastModified, contentLength, null, null);
     }
 
-    public ExternalResource getResource(String location) throws IOException {
-        URI uri = toUri(location);
-        ExternalResourceMetaData metaData = getMetaData(uri);
-
-        return metaData != null ? new SftpResource(sftpClientFactory, metaData, uri, credentials) : null;
+    public ExternalResource getResource(URI location) throws IOException {
+        ExternalResourceMetaData metaData = getMetaData(location);
+        return metaData != null ? new SftpResource(sftpClientFactory, metaData, location, credentials) : null;
     }
 
-    public HashValue getResourceSha1(String location) {
+    public HashValue getResourceSha1(URI location) {
         return null;
-    }
-
-    public ExternalResourceMetaData getMetaData(String location) throws IOException {
-        return getMetaData(toUri(location));
     }
 }

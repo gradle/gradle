@@ -33,27 +33,29 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
     @Unroll
     def "delegates #method to delegate resource accessor"() {
         when:
-        progressLoggerAccessor."$method"("location")
+        progressLoggerAccessor."$method"(new URI("location"))
+
         then:
-        1 * accessor."$method"("location")
+        1 * accessor."$method"(new URI("location"))
+
         where:
         method << ['getMetaData', 'getResource', 'getResourceSha1']
     }
 
     def "getResource returns null when delegate returns null"() {
         setup:
-        accessor.getResource("location") >> null
+        accessor.getResource(new URI("location")) >> null
         when:
-        def loadedResource = progressLoggerAccessor.getResource("location")
+        def loadedResource = progressLoggerAccessor.getResource(new URI("location"))
         then:
         loadedResource == null
     }
 
     def "getResource wraps loaded Resource from delegate in ProgressLoggingExternalResource"() {
         setup:
-        accessor.getResource("location") >> externalResource
+        accessor.getResource(new URI("location")) >> externalResource
         when:
-        def loadedResource = progressLoggerAccessor.getResource("location")
+        def loadedResource = progressLoggerAccessor.getResource(new URI("location"))
         then:
         loadedResource != null
         loadedResource instanceof ProgressLoggingExternalResourceAccessor.ProgressLoggingExternalResource
@@ -61,7 +63,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     def "ProgressLoggingExternalResource.writeTo wraps delegate call in progress logger"() {
         setup:
-        accessor.getResource("location") >> externalResource
+        accessor.getResource(new URI("location")) >> externalResource
         externalResource.getName() >> "test resource"
         externalResource.getContentLength() >> 2060
         externalResource.writeTo(_) >> { OutputStream stream ->
@@ -71,7 +73,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             stream.write(new byte[1024])
         }
         when:
-        progressLoggerAccessor.getResource("location").writeTo(new ByteArrayOutputStream())
+        progressLoggerAccessor.getResource(new URI("location")).writeTo(new ByteArrayOutputStream())
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
@@ -81,14 +83,14 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     def "no progress events logged for resources smaller 1024 bytes"() {
         setup:
-        accessor.getResource("location") >> externalResource
+        accessor.getResource(new URI("location")) >> externalResource
         externalResource.getName() >> "test resource"
         externalResource.getContentLength() >> 1023
         externalResource.writeTo(_) >> { OutputStream stream ->
             stream.write(new byte[1023])
         }
         when:
-        progressLoggerAccessor.getResource("location").writeTo(new ByteArrayOutputStream())
+        progressLoggerAccessor.getResource(new URI("location")).writeTo(new ByteArrayOutputStream())
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
@@ -99,8 +101,8 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
     @Unroll
     def "ProgressLoggingExternalResource delegates #method to delegate ExternalResource"() {
         when:
-        accessor.getResource("location") >> externalResource
-        def plExternalResource = progressLoggerAccessor.getResource("location")
+        accessor.getResource(new URI("location")) >> externalResource
+        def plExternalResource = progressLoggerAccessor.getResource(new URI("location"))
         and:
         plExternalResource."$method"()
         then:

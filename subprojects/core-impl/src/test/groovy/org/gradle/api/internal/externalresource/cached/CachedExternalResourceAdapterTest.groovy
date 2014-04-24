@@ -28,13 +28,14 @@ public class CachedExternalResourceAdapterTest extends Specification {
     ExternalResourceAccessor accessor = Mock()
     CachedExternalResource cachedExternalResource = Mock()
     CachedExternalResourceAdapter cachedResource
+    def uri = new URI("scheme:thing")
     def origin = tmpDir.file('origin')
     def destination = tmpDir.file('destination')
     def download = tmpDir.file('download')
 
     def setup() {
         cachedExternalResource.cachedFile >> origin
-        cachedResource = new CachedExternalResourceAdapter("resource-source", cachedExternalResource, accessor)
+        cachedResource = new CachedExternalResourceAdapter(uri, cachedExternalResource, accessor)
     }
 
     def "delegates to cached artifact"() {
@@ -72,7 +73,7 @@ public class CachedExternalResourceAdapterTest extends Specification {
         cachedExternalResource.cachedFile >> origin
 
         and:
-        accessor.getResource("resource-source") >> resource
+        accessor.getResource(uri) >> resource
         resource.writeTo(destination)
     }
 }

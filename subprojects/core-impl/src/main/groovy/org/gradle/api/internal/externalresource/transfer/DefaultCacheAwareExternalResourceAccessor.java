@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
 
@@ -51,9 +52,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         this.timeProvider = timeProvider;
     }
 
-    public ExternalResource getResource(final String location, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
+    public ExternalResource getResource(final URI location, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
         LOGGER.debug("Constructing external resource: {}", location);
-        CachedExternalResource cached = cachedExternalResourceIndex.lookup(location);
+        CachedExternalResource cached = cachedExternalResourceIndex.lookup(location.toString());
 
         // If we have no caching options, just get the thing directly
         if (cached == null && (localCandidates == null || localCandidates.isNone())) {

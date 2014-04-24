@@ -29,26 +29,27 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 class HttpResponseResource extends AbstractExternalResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseResource.class);
 
     private final String method;
-    private final String source;
+    private final URI source;
     private final HttpResponse response;
     private final ExternalResourceMetaData metaData;
     private boolean wasOpened;
 
-    public HttpResponseResource(String method, String source, HttpResponse response) {
+    public HttpResponseResource(String method, URI source, HttpResponse response) {
         this.method = method;
         this.source = source;
         this.response = response;
 
         String etag = getEtag(response);
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), etag, getSha1(response, etag));
+        this.metaData = new DefaultExternalResourceMetaData(source.toString(), getLastModified(), getContentLength(), etag, getSha1(response, etag));
     }
 
-    public String getName() {
+    public URI getURI() {
         return source;
     }
 

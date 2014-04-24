@@ -26,7 +26,7 @@ import org.apache.http.HttpEntity
 
 class HttpResponseResourceTest extends Specification {
 
-    def sourceUrl = "http://gradle.org"
+    def sourceUrl = new URI("http://gradle.org")
     def method = "GET"
     def response = Mock(HttpResponse)
 

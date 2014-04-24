@@ -22,6 +22,7 @@ import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDat
 import org.gradle.internal.hash.HashValue;
 
 import java.io.IOException;
+import java.net.URI;
 
 public interface ExternalResourceAccessor {
 
@@ -38,7 +39,7 @@ public interface ExternalResourceAccessor {
      * @throws IOException If the resource may exist, but not could be obtained for some reason
      */
     @Nullable
-    ExternalResource getResource(String location) throws IOException;
+    ExternalResource getResource(URI location) throws IOException;
 
     /**
      * Obtain the SHA-1 checksum for the resource at the given location.
@@ -50,7 +51,7 @@ public interface ExternalResourceAccessor {
      * @return The sha-1 if it can be cheaply obtained, otherwise null.
      */
     @Nullable
-    HashValue getResourceSha1(String location);
+    HashValue getResourceSha1(URI location);
 
     /**
      * Obtains only the metadata about the resource.
@@ -70,6 +71,6 @@ public interface ExternalResourceAccessor {
      * @throws IOException If the resource may exist, but not could be obtained for some reason
      */
     @Nullable
-    ExternalResourceMetaData getMetaData(String location) throws IOException;
+    ExternalResourceMetaData getMetaData(URI location) throws IOException;
     
 }

@@ -37,7 +37,7 @@ abstract class AbstractPomReaderTest extends Specification {
         pomFile = tmpDir.file('pom.xml')
         pomFile.createFile()
         LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
-        locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI().toURL().toString(), locallyAvailableResource)
+        locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource)
     }
 
     protected void assertResolvedPomDependency(MavenDependencyKey key, String version) {
@@ -65,7 +65,7 @@ abstract class AbstractPomReaderTest extends Specification {
         pomFile.createFile()
         pomFile << pomDefinition
         LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
-        LocallyAvailableExternalResource locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI().toURL().toString(), locallyAvailableResource)
+        LocallyAvailableExternalResource locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI(), locallyAvailableResource)
         return new PomReader(locallyAvailableExternalResource)
     }
 }

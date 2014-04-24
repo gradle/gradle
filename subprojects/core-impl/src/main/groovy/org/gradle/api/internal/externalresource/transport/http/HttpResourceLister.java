@@ -41,7 +41,7 @@ public class HttpResourceLister implements ExternalResourceLister {
         } catch (URISyntaxException ex) {
             throw new ResourceException(String.format("Unable to create URI from string '%s' ", parent), ex);
         }
-        final HttpResponseResource resource = accessor.getResource(baseURI.toString());
+        final HttpResponseResource resource = accessor.getResource(baseURI);
         if (resource == null) {
             return null;
         }

@@ -18,9 +18,12 @@ package org.gradle.api.internal.externalresource;
 
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -35,8 +38,12 @@ public class UrlExternalResource extends AbstractExternalResource {
         metaData = new DefaultExternalResourceMetaData(url.toString(), connection.getLastModified(), connection.getContentLength(), null, null);
     }
 
-    public String getName() {
-        return url.toExternalForm();
+    public URI getURI() {
+        try {
+            return url.toURI();
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public ExternalResourceMetaData getMetaData() {

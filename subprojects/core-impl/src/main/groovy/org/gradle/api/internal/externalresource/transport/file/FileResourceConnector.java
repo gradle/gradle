@@ -72,20 +72,20 @@ public class FileResourceConnector implements ExternalResourceLister, ExternalRe
         }
     }
 
-    public ExternalResource getResource(String location) throws IOException {
-        File localFile = getFile(location);
+    public ExternalResource getResource(URI uri) throws IOException {
+        File localFile = getFile(uri);
         if (!localFile.exists()) {
             return null;
         }
-        return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(localFile));
+        return new DefaultLocallyAvailableExternalResource(uri, new DefaultLocallyAvailableResource(localFile));
     }
 
-    public ExternalResourceMetaData getMetaData(String location) throws IOException {
+    public ExternalResourceMetaData getMetaData(URI location) throws IOException {
         ExternalResource resource = getResource(location);
         return resource == null ? null : resource.getMetaData();
     }
 
-    public HashValue getResourceSha1(String location) {
+    public HashValue getResourceSha1(URI location) {
         // TODO Read sha1 from published .sha1 file
         return null;
     }
@@ -102,5 +102,9 @@ public class FileResourceConnector implements ExternalResourceLister, ExternalRe
             throw new IllegalArgumentException("Filename must be absolute: " + absolutePath);
         }
         return f;
+    }
+
+    private static File getFile(URI uri) {
+        return new File(uri);
     }
 }

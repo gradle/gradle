@@ -25,6 +25,7 @@ import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccesso
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
@@ -34,6 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
@@ -58,15 +61,15 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     }
 
     public ExternalResource getResource(String source) throws IOException {
-        return accessor.getResource(source);
+        return accessor.getResource(toUri(source));
     }
 
     public ExternalResource getResource(String source, LocallyAvailableResourceCandidates localCandidates) throws IOException {
-        return cacheAwareAccessor.getResource(source, localCandidates);
+        return cacheAwareAccessor.getResource(toUri(source), localCandidates);
     }
 
     public ExternalResourceMetaData getResourceMetaData(String source) throws IOException {
-        return accessor.getMetaData(source);
+        return accessor.getMetaData(toUri(source));
     }
 
     public void put(File source, String destination) throws IOException {
@@ -121,5 +124,15 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     public String toString() {
         return name;
+    }
+
+    private URI toUri(String location) {
+        URI uri;
+        try {
+            uri = new URI(location);
+        } catch (URISyntaxException e) {
+            throw new ResourceException(String.format("Unable to create URI from string '%s' ", location), e);
+        }
+        return uri;
     }
 }

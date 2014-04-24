@@ -79,7 +79,7 @@ public class DownloadingRepositoryArtifactCache implements RepositoryArtifactCac
                     File fileInFileStore = cachedResource.getFile();
                     ExternalResourceMetaData metaData = resource.getMetaData();
                     artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
-                    return new DefaultLocallyAvailableExternalResource(resource.getName(), cachedResource, metaData);
+                    return new DefaultLocallyAvailableExternalResource(resource.getURI(), cachedResource, metaData);
                 }
             });
         } finally {
