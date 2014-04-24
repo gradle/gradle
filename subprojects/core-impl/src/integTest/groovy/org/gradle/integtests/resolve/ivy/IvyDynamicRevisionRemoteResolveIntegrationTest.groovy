@@ -316,7 +316,8 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile group: "org.test", name: "projectA", version: project.getProperty('dependencyVersion')
+    compile group: "org.test", name: "projectA", version: "1.+"
+    compile group: "org.test", name: "projectA", version: "latest.integration"
 }
 """
 
@@ -327,20 +328,34 @@ dependencies {
         and:
         expectGetDynamicRevision(projectA12)
 
-        and:
-        executer.withArgument("-PdependencyVersion=1.+")
-
         then:
-        checkResolve "org.test:projectA:1.+": "org.test:projectA:1.2"
+        succeeds "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge "org.test:projectA:1.+", "org.test:projectA:1.2"
+                edge "org.test:projectA:latest.integration", "org.test:projectA:1.2"
+            }
+        }
 
         when:
         server.resetExpectations()
 
         and:
-        executer.withArgument("-PdependencyVersion=[1.0,2.0)")
+        buildFile << """
+dependencies {
+    compile group: "org.test", name: "projectA", version: "[1.0,2.0)"
+}
+"""
 
         then:
-        checkResolve "org.test:projectA:[1.0,2.0)": "org.test:projectA:1.2"
+        succeeds "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge "org.test:projectA:1.+", "org.test:projectA:1.2"
+                edge "org.test:projectA:latest.integration", "org.test:projectA:1.2"
+                edge "org.test:projectA:[1.0,2.0)", "org.test:projectA:1.2"
+            }
+        }
     }
 
     def "caches resolved revisions until cache expiry"() {

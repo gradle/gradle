@@ -81,8 +81,8 @@ allprojects {
         def expectedFiles = graph.artifactNodes.collect { it.fileName }
         assert actualFiles == expectedFiles
 
-        def actualFirstLevel = configDetails.findAll { it.startsWith('first-level:') }.collect { it.substring(12) }
-        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:default]" }
+        def actualFirstLevel = configDetails.findAll { it.startsWith('first-level:') }.collect { it.substring(12) } as LinkedHashSet
+        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:default]" } as LinkedHashSet
         assert actualFirstLevel == expectedFirstLevel
 
         def actualRoot = configDetails.find { it.startsWith('root:') }.substring(5)
