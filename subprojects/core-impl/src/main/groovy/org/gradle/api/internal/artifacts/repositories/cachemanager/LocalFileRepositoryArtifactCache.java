@@ -32,7 +32,7 @@ public class LocalFileRepositoryArtifactCache implements RepositoryArtifactCache
         return true;
     }
 
-    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(ModuleVersionArtifactMetaData artifactId, ExternalResourceDownloader resourceDownloader, ExternalResource resource) {
+    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(ModuleVersionArtifactMetaData artifactId, ExternalResource resource) {
         // Does not download, copy or cache local files.
         assert resource.isLocal();
         File file = new File(resource.getName());

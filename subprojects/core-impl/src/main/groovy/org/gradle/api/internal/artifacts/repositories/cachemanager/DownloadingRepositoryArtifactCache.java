@@ -27,6 +27,9 @@ import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.filestore.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.util.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +38,7 @@ import java.io.IOException;
  * A cache manager for remote repositories, that downloads files and stores them in the FileStore provided.
  */
 public class DownloadingRepositoryArtifactCache implements RepositoryArtifactCache {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DownloadingRepositoryArtifactCache.class);
 
     private final FileStore<ModuleVersionArtifactMetaData> fileStore;
     private final CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex;
@@ -53,17 +57,25 @@ public class DownloadingRepositoryArtifactCache implements RepositoryArtifactCac
         return false;
     }
 
-    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(final ModuleVersionArtifactMetaData artifact, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) {
-        final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
+    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(final ModuleVersionArtifactMetaData artifact, final ExternalResource resource) {
+        final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             try {
-                resourceDownloader.download(resource, tmpFile);
+                try {
+                    LOGGER.debug("Downloading {} to {}", resource.getName(), destination);
+                    if (destination.getParentFile() != null) {
+                        GFileUtils.mkdirs(destination.getParentFile());
+                    }
+                    resource.writeTo(destination);
+                } finally {
+                    resource.close();
+                }
             } catch (IOException e) {
                 throw new ResourceException(String.format("Failed to download resource '%s'.", resource.getName()), e);
             }
             return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<LocallyAvailableExternalResource>() {
                 public LocallyAvailableExternalResource create() {
-                    LocallyAvailableResource cachedResource = fileStore.move(artifact, tmpFile);
+                    LocallyAvailableResource cachedResource = fileStore.move(artifact, destination);
                     File fileInFileStore = cachedResource.getFile();
                     ExternalResourceMetaData metaData = resource.getMetaData();
                     artifactUrlCachedResolutionIndex.store(metaData.getLocation(), fileInFileStore, metaData);
@@ -71,7 +83,7 @@ public class DownloadingRepositoryArtifactCache implements RepositoryArtifactCac
                 }
             });
         } finally {
-            tmpFile.delete();
+            destination.delete();
         }
     }
 

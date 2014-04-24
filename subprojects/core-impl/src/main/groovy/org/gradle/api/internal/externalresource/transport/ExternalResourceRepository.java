@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.List;
 
 public interface ExternalResourceRepository {
-
     /**
      * Attempts to fetch the given resource.
      *

@@ -243,14 +243,6 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
         }
     }
 
-    public String[] getChecksumAlgorithms() {
-        return resolver.getChecksumAlgorithms();
-    }
-
-    public void setChecksums(String checksums) {
-        resolver.setChecksums(checksums);
-    }
-
     public LatestStrategy getLatestStrategy() {
         throw new UnsupportedOperationException("getLatestStrategy");
     }

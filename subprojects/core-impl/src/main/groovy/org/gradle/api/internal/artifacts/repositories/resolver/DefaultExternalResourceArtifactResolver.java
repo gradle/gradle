@@ -38,17 +38,15 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     private final List<String> ivyPatterns;
     private final List<String> artifactPatterns;
     private final boolean m2compatible;
-    private final String[] checksumAlgorithms;
     private final RepositoryArtifactCache repositoryArtifactCache;
 
     public DefaultExternalResourceArtifactResolver(ExternalResourceRepository repository, LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                                   List<String> ivyPatterns, List<String> artifactPatterns, boolean m2compatible, String[] checksumAlgorithms, RepositoryArtifactCache repositoryArtifactCache) {
+                                                   List<String> ivyPatterns, List<String> artifactPatterns, boolean m2compatible, RepositoryArtifactCache repositoryArtifactCache) {
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.ivyPatterns = ivyPatterns;
         this.artifactPatterns = artifactPatterns;
         this.m2compatible = m2compatible;
-        this.checksumAlgorithms = checksumAlgorithms;
         this.repositoryArtifactCache = repositoryArtifactCache;
     }
 
@@ -100,8 +98,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
 
     private LocallyAvailableExternalResource downloadAndCacheResource(ModuleVersionArtifactMetaData artifact, ExternalResource resource) {
         try {
-            RepositoryArtifactCache.ExternalResourceDownloader resourceDownloader = new VerifyingExternalResourceDownloader(checksumAlgorithms, repository);
-            return repositoryArtifactCache.downloadAndCacheArtifactFile(artifact, resourceDownloader, resource);
+            return repositoryArtifactCache.downloadAndCacheArtifactFile(artifact, resource);
         } finally {
             try {
                 resource.close();

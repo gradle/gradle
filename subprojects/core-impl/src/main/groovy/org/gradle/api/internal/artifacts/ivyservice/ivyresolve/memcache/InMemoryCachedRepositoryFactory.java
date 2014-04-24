@@ -25,7 +25,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import java.util.Map;
 
 /**
- * Caches the dependency metadata (descriptors, artifact files) in memory. Uses soft maps to reduce heap pressure.
+ * Caches the dependency metadata (descriptors, artifact files) in memory.
  */
 public class InMemoryCachedRepositoryFactory implements Stoppable {
 

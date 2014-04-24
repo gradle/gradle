@@ -64,7 +64,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private boolean checkConsistency = true;
     private boolean allowMissingDescriptor = true;
     private boolean force;
-    private String checksums;
     private String name;
     private RepositoryArtifactCache repositoryCacheManager;
     private String changingMatcherName;
@@ -310,7 +309,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver(List<String> ivyPatterns, List<String> artifactPatterns) {
-        return new DefaultExternalResourceArtifactResolver(getRepository(), locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, isM2compatible(), getChecksumAlgorithms(), repositoryCacheManager);
+        return new DefaultExternalResourceArtifactResolver(getRepository(), locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, isM2compatible(), repositoryCacheManager);
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
@@ -342,12 +341,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     private void put(File src, String destination) throws IOException {
-        String[] checksums = getChecksumAlgorithms();
-        if (checksums.length != 0) {
-            // Should not be reachable for publishing
-            throw new UnsupportedOperationException();
-        }
-
         repository.put(src, destination);
     }
 
@@ -405,27 +398,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     public void setAllownomd(boolean allowMissingDescriptor) {
         this.allowMissingDescriptor = allowMissingDescriptor;
-    }
-
-    public String[] getChecksumAlgorithms() {
-        if (checksums == null) {
-            return new String[0];
-        }
-        // csDef is a comma separated list of checksum algorithms to use with this resolver
-        // we parse and return it as a String[]
-        String[] checksums = this.checksums.split(",");
-        List<String> algos = new ArrayList<String>();
-        for (int i = 0; i < checksums.length; i++) {
-            String cs = checksums[i].trim();
-            if (!"".equals(cs) && !"none".equals(cs)) {
-                algos.add(cs);
-            }
-        }
-        return algos.toArray(new String[algos.size()]);
-    }
-
-    public void setChecksums(String checksums) {
-        this.checksums = checksums;
     }
 
     public String getChangingMatcherName() {

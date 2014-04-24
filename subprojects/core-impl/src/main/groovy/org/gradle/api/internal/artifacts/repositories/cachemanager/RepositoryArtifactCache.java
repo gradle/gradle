@@ -20,9 +20,6 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
-import java.io.File;
-import java.io.IOException;
-
 /**
  * This is a transitional interface for moving away from the Ivy RepositoryCacheManager.
  */
@@ -33,13 +30,8 @@ public interface RepositoryArtifactCache {
      * Downloads the artifact file, moving it into the correct location in the cache.
      *
      * @param artifact The id of the artifact this resource represents
-     * @param resourceDownloader An action to use for downloading the resource
      * @param resource The artifact resource
      * @return The cached resource
      */
-    LocallyAvailableExternalResource downloadAndCacheArtifactFile(ModuleVersionArtifactMetaData artifact, ExternalResourceDownloader resourceDownloader, ExternalResource resource);
-
-    interface ExternalResourceDownloader {
-        public void download(ExternalResource resource, File dest) throws IOException;
-    }
+    LocallyAvailableExternalResource downloadAndCacheArtifactFile(ModuleVersionArtifactMetaData artifact, ExternalResource resource);
 }
