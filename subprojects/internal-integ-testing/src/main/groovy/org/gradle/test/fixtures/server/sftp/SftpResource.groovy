@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures
+package org.gradle.test.fixtures.server.sftp
 
 import org.apache.commons.io.FilenameUtils
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.gradle.test.fixtures.resource.RemoteResource
 import org.gradle.util.GFileUtils
 
-class SftpResource {
+class SftpResource implements RemoteResource {
 
     SFTPServer server
     TestFile file
@@ -33,6 +33,10 @@ class SftpResource {
 
     String getPathOnServer() {
         return "/${GFileUtils.relativePath(server.baseDir, file)}"
+    }
+
+    URI getUri() {
+        return new URI("${server.uri}${pathOnServer}")
     }
 
     void expectLstat() {
@@ -47,20 +51,12 @@ class SftpResource {
         server.expectOpen(pathOnServer)
     }
 
-    void allowRead() {
-        server.allowRead(pathOnServer)
-    }
-
     def allowWrite() {
         server.allowWrite(pathOnServer)
     }
 
     void expectClose() {
         server.expectClose(pathOnServer)
-    }
-
-    void expectMetadataRetrieve() {
-        server.expectMetadataRetrieve(pathOnServer)
     }
 
     void expectFileDownload() {
@@ -74,8 +70,12 @@ class SftpResource {
         server.expectFileUpload("${pathOnServer}.sha1")
     }
 
-    void expectMetadataRetrieveFailure() {
-        server.expectMetadataRetrieveFailure(pathOnServer)
+    void expectMetadataRetrieveBroken() {
+        server.expectMetadataRetrieveBroken(pathOnServer)
+    }
+
+    void expectMetadataRetrieveMissing() {
+        server.expectLstatMissing(pathOnServer)
     }
 
     void expectMkdirs() {
@@ -97,7 +97,24 @@ class SftpResource {
         }
     }
 
-    void expectWriteFailure() {
-        server.expectWriteFailure(pathOnServer)
+    void expectWriteBroken() {
+        server.expectWriteBroken(pathOnServer)
+    }
+
+    void expectDownload() {
+        expectMetadataRetrieve()
+        expectFileDownload()
+    }
+
+    void expectDownloadMissing() {
+        expectMetadataRetrieveMissing()
+    }
+
+    void expectMetadataRetrieve() {
+        expectLstat()
+    }
+
+    void expectDownloadBroken() {
+        expectMetadataRetrieveBroken()
     }
 }

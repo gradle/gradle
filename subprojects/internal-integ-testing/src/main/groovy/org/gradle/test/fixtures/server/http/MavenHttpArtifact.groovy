@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.maven
+package org.gradle.test.fixtures.server.http
 
-import org.gradle.test.fixtures.HttpArtifact
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.maven.MavenFileModule
 
-class MetaDataArtifact extends HttpArtifact implements MavenMetaData {
-    MavenFileModule backingModule
+class MavenHttpArtifact extends HttpArtifact {
+    private final MavenFileModule backingModule;
+    private final Map options
 
-    MetaDataArtifact(HttpServer httpServer, String path, MavenFileModule backingModule) {
-        super(httpServer, path)
-        this.backingModule = backingModule
+    public MavenHttpArtifact(HttpServer server, String modulePath, MavenFileModule backingModule, Map<String, ?> options = [:]) {
+        super(server, modulePath)
+        this.options = options
+        this.backingModule = backingModule;
     }
 
     @Override
@@ -38,12 +39,7 @@ class MetaDataArtifact extends HttpArtifact implements MavenMetaData {
         backingModule.getMd5File(file)
     }
 
-    @Override
     TestFile getFile() {
-        return backingModule.rootMetaDataFile
-    }
-
-    List<String> getVersions() {
-        backingModule.rootMetaData.versions
+        return backingModule.getArtifactFile(options)
     }
 }

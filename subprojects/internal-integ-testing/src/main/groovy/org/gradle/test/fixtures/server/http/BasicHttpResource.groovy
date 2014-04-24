@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures
+package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.HttpServer
 
 class BasicHttpResource extends HttpResource {
     private final String path

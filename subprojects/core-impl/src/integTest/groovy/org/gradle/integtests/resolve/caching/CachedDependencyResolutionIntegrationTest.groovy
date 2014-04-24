@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.ivy.IvyHttpModule
+import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.HttpServer
 import spock.lang.Issue
 

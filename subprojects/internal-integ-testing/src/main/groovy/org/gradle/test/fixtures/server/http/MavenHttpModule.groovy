@@ -16,14 +16,13 @@
 
 
 
-package org.gradle.test.fixtures.maven
+package org.gradle.test.fixtures.server.http
 
-import org.gradle.test.fixtures.BasicHttpResource
-import org.gradle.test.fixtures.HttpArtifact
 import org.gradle.test.fixtures.HttpModule
-import org.gradle.test.fixtures.HttpResource
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.maven.MavenFileModule
+import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.maven.MavenPom
 
 class MavenHttpModule implements MavenModule, HttpModule {
     private final HttpServer server

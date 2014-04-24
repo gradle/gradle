@@ -57,7 +57,6 @@ class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractSftpDependencyRe
         projectB1.publish()
 
         and:
-        server.expectInit()
         server.expectStat('/repo/group/projectA/')
         server.expectDirectoryList('/repo/group/projectA/')
 
@@ -92,7 +91,6 @@ class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractSftpDependencyRe
         projectB2.publish()
 
         and:
-        server.expectInit()
         server.expectStat('/repo/group/projectA/')
         server.expectDirectoryList('/repo/group/projectA/')
 

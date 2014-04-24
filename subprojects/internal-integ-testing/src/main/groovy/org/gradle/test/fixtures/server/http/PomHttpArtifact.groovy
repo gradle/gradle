@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.maven
+package org.gradle.test.fixtures.server.http
 
-import org.gradle.test.fixtures.HttpArtifact
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.maven.MavenFileModule
 
-class MavenHttpArtifact extends HttpArtifact {
-    private final MavenFileModule backingModule;
-    private final Map options
+class PomHttpArtifact extends HttpArtifact {
+    MavenFileModule backingModule
 
-    public MavenHttpArtifact(HttpServer server, String modulePath, MavenFileModule backingModule, Map<String, ?> options = [:]) {
-        super(server, modulePath)
-        this.options = options
-        this.backingModule = backingModule;
+    PomHttpArtifact(HttpServer httpServer, String path, MavenFileModule backingModule) {
+        super(httpServer, path)
+        this.backingModule = backingModule
+    }
+
+    @Override
+    void expectGetMissing() {
+        server.expectGetMissing(getPath() - getFile().name + getMissingPomName());
     }
 
     @Override
@@ -40,7 +42,16 @@ class MavenHttpArtifact extends HttpArtifact {
         backingModule.getMd5File(file)
     }
 
+    @Override
     TestFile getFile() {
-        return backingModule.getArtifactFile(options)
+        return backingModule.pomFile
+    }
+
+    private String getMissingPomName() {
+        if (backingModule.version.endsWith("-SNAPSHOT")) {
+            return "${backingModule.artifactId}-${backingModule.version}.pom"
+        } else {
+            return getFile().name
+        }
     }
 }

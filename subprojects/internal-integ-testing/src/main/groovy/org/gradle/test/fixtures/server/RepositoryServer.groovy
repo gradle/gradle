@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.ivy
+package org.gradle.test.fixtures.server
 
-import org.gradle.test.fixtures.server.sftp.SFTPServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.junit.Rule
+import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
-class IvySftpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
+public interface RepositoryServer {
 
-    @Rule
-    final SFTPServer server = new SFTPServer(this)
+    RemoteIvyRepository getRemoteIvyRepo()
+
+    RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible, String dirPattern)
+
+    RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible, String dirPattern, String ivyFilePattern, String artifactFilePattern)
+
+    RemoteIvyRepository getRemoteIvyRepo(String contextPath)
+
+    void resetExpectations()
+
+    String getValidCredentials()
 }
-

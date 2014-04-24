@@ -34,7 +34,9 @@ import org.apache.sshd.server.session.ServerSession
 import org.apache.sshd.server.sftp.SftpSubsystem
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 import org.gradle.test.fixtures.server.ExpectOne
+import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.ServerExpectation
 import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.util.AvailablePortFinder
@@ -43,11 +45,11 @@ import org.slf4j.LoggerFactory
 
 import java.security.PublicKey
 
-class SFTPServer extends ServerWithExpectations {
+class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
     private final static Logger logger = LoggerFactory.getLogger(SFTPServer)
-    private final String hostAddress
-    private int port
+    final String hostAddress
+    int port
 
     private final TestDirectoryProvider testDirectoryProvider
     private TestFile configDir
@@ -74,6 +76,7 @@ class SFTPServer extends ServerWithExpectations {
         } finally {
             handleCreatedByRequest.clear()
             openingRequestIdForPath.clear()
+            allowInit()
         }
     }
 
@@ -83,8 +86,9 @@ class SFTPServer extends ServerWithExpectations {
 
         def portFinder = AvailablePortFinder.createPrivate()
         port = portFinder.nextAvailable
-        sshd = setupConfiguredTestSshd();
-        sshd.start();
+        sshd = setupConfiguredTestSshd()
+        sshd.start()
+        allowInit()
     }
 
     public void stop() {
@@ -123,8 +127,12 @@ class SFTPServer extends ServerWithExpectations {
         new TestFile(new File(baseDir, expectedPath))
     }
 
-    void expectInit() {
-        expectations << new SftpExpectOne(SftpSubsystem.SSH_FXP_INIT, "INIT")
+    URI getUri() {
+        return new URI("sftp://${hostAddress}:${port}")
+    }
+
+    void allowInit() {
+        expectations << new SftpAllow(SftpSubsystem.SSH_FXP_INIT)
     }
 
     void expectLstat(String path) {
@@ -190,21 +198,41 @@ class SFTPServer extends ServerWithExpectations {
         expectClose(path)
     }
 
-    void expectLstatFailure(String path) {
+    void expectLstatBroken(String path) {
         expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_LSTAT, "LSTAT", path, true)
     }
 
-    void expectMkdirFailure(String path) {
+    void expectMkdirBroken(String path) {
         expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_MKDIR, "MKDIR", path, true)
     }
 
-    void expectMetadataRetrieveFailure(String path) {
-        expectInit()
-        expectLstatFailure(path)
+    void expectMetadataRetrieveBroken(String path) {
+        expectLstatBroken(path)
     }
 
-    void expectWriteFailure(String path) {
+    void expectWriteBroken(String path) {
         expectations << new SftpExpectOneHandle(SftpSubsystem.SSH_FXP_WRITE, "WRITE", path, true)
+    }
+
+    void expectLstatMissing(String path) {
+        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_LSTAT, "LSTAT", path, false, true)
+    }
+
+    RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
+        new IvySftpRepository(this, '/repo', m2Compatible, dirPattern, ivyFilePattern, artifactFilePattern)
+    }
+
+    RemoteIvyRepository getRemoteIvyRepo(String contextPath) {
+        new IvySftpRepository(this, contextPath, false, null)
+    }
+
+    String getValidCredentials() {
+        return """
+            credentials {
+                username 'sftp'
+                password 'sftp'
+            }
+        """
     }
 
     static class DummyPasswordAuthenticator implements PasswordAuthenticator {
@@ -241,6 +269,9 @@ class SFTPServer extends ServerWithExpectations {
             if (matched) {
                 if (matched.failing) {
                     sendStatus(id, SSH_FX_FAILURE, "Failure")
+                    buffer.rpos(originalBufferPosition + length)
+                } else if (matched.missing) {
+                    sendStatus(id, SSH_FX_NO_SUCH_FILE, "No such file")
                     buffer.rpos(originalBufferPosition + length)
                 } else {
                     buffer.rpos(originalBufferPosition)
@@ -292,20 +323,23 @@ class SFTPServer extends ServerWithExpectations {
         boolean matches(Buffer buffer, int type, int id)
 
         boolean isFailing()
+        boolean isMissing()
     }
 
     static class SftpExpectOne extends ExpectOne implements SftpExpectation {
 
-        int expectedType
-        String notMetMessage
-        Closure matcher
-        boolean failing
+        final int expectedType
+        final String notMetMessage
+        final Closure matcher
+        final boolean failing
+        final boolean missing
 
-        SftpExpectOne(int type, String notMetMessage, boolean failing = false) {
+        SftpExpectOne(int type, String notMetMessage, boolean failing = false, boolean missing = false) {
             this.expectedType = type
             this.notMetMessage = "Expected SFTP command not recieved: $notMetMessage"
             this.matcher = matcher
             this.failing = failing
+            this.missing = missing
         }
 
         boolean matches(Buffer buffer, int type, int id) {
@@ -326,10 +360,10 @@ class SFTPServer extends ServerWithExpectations {
 
     static class SftpExpectOnePath extends SftpExpectOne {
 
-        String path
+        final String path
 
-        SftpExpectOnePath(int type, String commandName, String path, boolean failing = false) {
-            super(type, "$commandName for $path", failing)
+        SftpExpectOnePath(int type, String commandName, String path, boolean failing = false, boolean missing = false) {
+            super(type, "$commandName for $path", failing, missing)
             this.path = path
         }
 
@@ -366,11 +400,31 @@ class SFTPServer extends ServerWithExpectations {
         }
     }
 
+    class SftpAllow implements SftpExpectation {
+
+        final boolean failing = false
+        final boolean missing = false
+        final int expectedType
+
+        SftpAllow(int expectedType) {
+            this.expectedType = expectedType
+        }
+
+        boolean matches(Buffer buffer, int type, int id) {
+            return type == expectedType
+        }
+
+        void assertMet() {
+            //can never be not met
+        }
+    }
+
     class SftpAllowHandle implements SftpExpectation {
 
-        int expectedType
-        boolean failing = false
-        String path
+        final int expectedType
+        final boolean failing = false
+        final boolean missing = false
+        final String path
 
         SftpAllowHandle(int type, String path) {
             this.expectedType = type
