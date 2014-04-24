@@ -19,8 +19,10 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import spock.lang.Ignore
 import spock.lang.Specification
 
+@Ignore
 class AbstractNamedDomainObjectContainerTest extends Specification {
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     AbstractNamedDomainObjectContainer container = instantiator.newInstance(TestContainer.class, instantiator)

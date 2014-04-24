@@ -84,7 +84,7 @@ public class ExtraPropertiesDynamicObjectAdapterTest extends Specification {
         thrown(groovy.lang.MissingMethodException)
     }
 
-    static class NamedExtraPropertiesExtension extends DefaultExtraPropertiesExtension {
+    class NamedExtraPropertiesExtension extends DefaultExtraPropertiesExtension {
         String name
     }
 

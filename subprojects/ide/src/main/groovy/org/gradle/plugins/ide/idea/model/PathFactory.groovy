@@ -43,12 +43,12 @@ class PathFactory {
         }
 
         if (match) {
-            return relativePath(match.dir, match.name, file)
+            return relativePath_(match.dir, match.name, file)
         }
 
         // IDEA doesn't like the result of file.toURI() so use the absolute path instead
         def relPath = file.absolutePath.replace(File.separator, '/')
-        def url = relativePathToURI(relPath)
+        def url = relativePathToURI_(relPath)
         return new FilePath(file, url, url, relPath)
     }
 
@@ -56,13 +56,13 @@ class PathFactory {
      * Creates a path relative to the given path variable.
      */
     FilePath relativePath(String pathVar, File file) {
-        return relativePath(varsByName[pathVar], "\$$pathVar\$", file)
+        return relativePath_(varsByName[pathVar], "\$$pathVar\$", file)
     }
 
-    private FilePath relativePath(File rootDir, String rootDirName, File file) {
+    private FilePath relativePath_(File rootDir, String rootDirName, File file) {
         def relPath = getRelativePath(rootDir, rootDirName, file)
-        def url = relativePathToURI(relPath)
-        def canonicalUrl = relativePathToURI(file.absolutePath.replace(File.separator, '/'))
+        def url = relativePathToURI_(relPath)
+        def canonicalUrl = relativePathToURI_(file.absolutePath.replace(File.separator, '/'))
         return new FilePath(file, url, canonicalUrl, relPath)
     }
     /**
@@ -100,7 +100,7 @@ class PathFactory {
         return relpath != null ? rootDirString + '/' + relpath : file.absolutePath.replace(File.separator, '/')
     }
 
-    private static String relativePathToURI(String relpath) {
+    private static String relativePathToURI_(String relpath) {
         if (relpath.endsWith('.jar')) {
             return 'jar://' + relpath + '!/';
         } else {

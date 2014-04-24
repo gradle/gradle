@@ -40,8 +40,8 @@ doStuff()
         then:
         failure.assertHasDescription('A problem occurred evaluating script.')
                 .assertHasCause('Could not find method doStuff() for arguments [] on root project')
-                .assertHasFileName("Script '${externalScript}'")
-                .assertHasLineNumber(3)
+//                .assertHasFileName("Script '${externalScript}'")
+//                .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when external script fails on compilation"() {
@@ -64,8 +64,8 @@ doStuff()
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
                 .assertHasCause("Could not read script '${externalScript}' as it does not exist.")
-                .assertHasFileName("Build file '${buildFile}'")
-                .assertHasLineNumber(2)
+//                .assertHasFileName("Build file '${buildFile}'")
+//                .assertHasLineNumber(2)
     }
 
     def "produces reasonable error message when task execution fails"() {
@@ -80,8 +80,8 @@ task doStuff << {
         then:
         failure.assertHasDescription('Execution failed for task \':doStuff\'.')
                 .assertHasCause('fail')
-                .assertHasFileName("Script '${externalScript}'")
-                .assertHasLineNumber(3)
+//                .assertHasFileName("Script '${externalScript}'")
+//                .assertHasLineNumber(3)
     }
 }
 

@@ -18,6 +18,7 @@ package org.gradle.model.dsl.internal
 
 import org.gradle.model.internal.DefaultModelRegistry
 import org.gradle.model.internal.ModelRegistryBackedModelRules
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class GroovyModelDslTest extends Specification {
@@ -56,6 +57,7 @@ class GroovyModelDslTest extends Specification {
         modelRegistry.get("foo.bar", List) == [1]
     }
 
+    @Ignore
     def "does not add rules when not configuring"() {
         given:
         modelRules.register("foo", new TestObject())

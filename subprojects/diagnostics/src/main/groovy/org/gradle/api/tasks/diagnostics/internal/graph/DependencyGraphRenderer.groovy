@@ -45,12 +45,12 @@ class DependencyGraphRenderer {
         def i = 0
         for (RenderableDependency child : children) {
             boolean last = i++ == children.size() - 1
-            render(child, last, visited)
+            render_(child, last, visited)
         }
         renderer.completeChildren()
     }
 
-    private void render(final RenderableDependency node, boolean last, Set<ComponentIdentifier> visited) {
+    private void render_(final RenderableDependency node, boolean last, Set<ComponentIdentifier> visited) {
         def children = node.getChildren()
         def alreadyRendered = !visited.add(node.getId())
         if (alreadyRendered) {
