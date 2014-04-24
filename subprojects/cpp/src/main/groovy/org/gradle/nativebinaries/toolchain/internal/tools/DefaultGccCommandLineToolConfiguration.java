@@ -17,6 +17,28 @@ package org.gradle.nativebinaries.toolchain.internal.tools;
 
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 
-public interface ToolRegistry {
-    GccCommandLineToolConfigurationInternal getTool(ToolType toolType);
+public class DefaultGccCommandLineToolConfiguration extends DefaultCommandLineToolConfiguration implements GccCommandLineToolConfigurationInternal {
+    private final ToolType toolType;
+    private String executable;
+
+
+    public DefaultGccCommandLineToolConfiguration(String name, ToolType toolType, String defaultExecutable) {
+        super(name);
+        this.toolType = toolType;
+        this.executable = defaultExecutable;
+    }
+
+    public ToolType getToolType() {
+        return toolType;
+    }
+
+    public String getExecutable() {
+        return executable;
+    }
+
+    public void setExecutable(String file) {
+        executable = file;
+    }
+
+
 }

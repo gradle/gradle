@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.nativebinaries.toolchain.internal.tools;
 
 import org.gradle.api.Action;
-import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration;
+import org.gradle.nativebinaries.toolchain.GccCommandLineToolConfiguration;
+import org.gradle.nativebinaries.toolchain.internal.ToolType;
 
 import java.util.List;
 
-public interface CommandLineToolConfigurationInternal extends CommandLineToolConfiguration{
+public interface GccCommandLineToolConfigurationInternal extends GccCommandLineToolConfiguration {
 
-    public Action<List<String>> getArgAction();
+    ToolType getToolType();
+
+    Action<List<String>> getArgAction();
 }

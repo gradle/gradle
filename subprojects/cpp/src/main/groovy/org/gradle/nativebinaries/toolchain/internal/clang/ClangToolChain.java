@@ -22,7 +22,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.toolchain.Clang;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.AbstractGccCompatibleToolChain;
-import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -31,10 +31,10 @@ public class ClangToolChain extends AbstractGccCompatibleToolChain implements Cl
 
     public ClangToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, Instantiator instantiator) {
         super(name, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem), instantiator);
-        add(new DefaultCommandLineToolConfiguration("linker", ToolType.LINKER, "clang++"));
-        add(new DefaultCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
-        add(new DefaultCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, "clang"));
-        add(new DefaultCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "clang++"));
+        add(new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, "clang++"));
+        add(new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
+        add(new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, "clang"));
+        add(new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "clang++"));
     }
 
     @Override

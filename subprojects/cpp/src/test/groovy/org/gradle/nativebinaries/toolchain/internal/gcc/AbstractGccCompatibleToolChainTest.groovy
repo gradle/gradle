@@ -23,7 +23,7 @@ import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativebinaries.toolchain.ConfigurableToolChain
 import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
-import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
 import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
@@ -54,8 +54,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def platform = Stub(Platform)
 
     def setup() {
-        instantiator.newInstance(DefaultConfigurableToolChain.class, _) >> { args ->
-            new DefaultConfigurableToolChain(args[1][0], args[1][1], args[1][2], args[1][3], args[1][4])
+        instantiator.newInstance(DefaultGccConfigurableToolChain.class, _) >> { args ->
+            new DefaultGccConfigurableToolChain(args[1][0], args[1][1], args[1][2], args[1][3], args[1][4])
         }
     }
 
@@ -287,12 +287,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     static class TestToolChain extends AbstractGccCompatibleToolChain {
         TestToolChain(String name, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, Instantiator instantiator) {
             super(name, OperatingSystem.current(), fileResolver, execActionFactory, tools, instantiator)
-            add(new DefaultCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "g++"));
-            add(new DefaultCommandLineToolConfiguration("objcCompiler", ToolType.OBJECTIVEC_COMPILER, "gcc"));
-            add(new DefaultCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "g++"));
-            add(new DefaultCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, "as"));
-            add(new DefaultCommandLineToolConfiguration("linker", ToolType.LINKER, "ld"));
-            add(new DefaultCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
+            add(new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "g++"));
+            add(new DefaultGccCommandLineToolConfiguration("objcCompiler", ToolType.OBJECTIVEC_COMPILER, "gcc"));
+            add(new DefaultGccCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "g++"));
+            add(new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, "as"));
+            add(new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, "ld"));
+            add(new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
         }
 
         @Override
@@ -304,15 +304,15 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     ConfigurableToolChain newConfigurableToolChain() {
         def tools = [:]
-        tools.put("assembler", new DefaultCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, ""))
-        tools.put("cCompiler", new DefaultCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, ""))
-        tools.put("cppCompiler", new DefaultCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, ""))
-        tools.put("objcCompiler", new DefaultCommandLineToolConfiguration("objcCompiler", ToolType.OBJECTIVEC_COMPILER, ""))
-        tools.put("objcppCompiler", new DefaultCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, ""))
-        tools.put("linker", new DefaultCommandLineToolConfiguration("linker", ToolType.LINKER, ""))
-        tools.put("staticLibArchiver", new DefaultCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, ""))
+        tools.put("assembler", new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, ""))
+        tools.put("cCompiler", new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, ""))
+        tools.put("cppCompiler", new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, ""))
+        tools.put("objcCompiler", new DefaultGccCommandLineToolConfiguration("objcCompiler", ToolType.OBJECTIVEC_COMPILER, ""))
+        tools.put("objcppCompiler", new DefaultGccCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, ""))
+        tools.put("linker", new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, ""))
+        tools.put("staticLibArchiver", new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, ""))
 
-        ConfigurableToolChain configurableToolChain = new DefaultConfigurableToolChain(CommandLineToolConfiguration.class,
+        ConfigurableToolChain configurableToolChain = new DefaultGccConfigurableToolChain(CommandLineToolConfiguration.class,
                 tools,
                 instantiator,
                 "PlatformTestToolChain",

@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain.internal.tools;
+package org.gradle.nativebinaries.toolchain;
 
-import org.gradle.api.Action;
-import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration;
 
-import java.util.List;
+import org.gradle.api.Incubating;
 
-public interface CommandLineToolConfigurationInternal extends CommandLineToolConfiguration{
+/**
+ * An executable tool used for GCC that allows customizing the executable.
+ */
+@Incubating
+public interface GccCommandLineToolConfiguration extends CommandLineToolConfiguration{
+    /**
+     * The name of the executable file for this tool.
+     */
+    String getExecutable();
 
-    public Action<List<String>> getArgAction();
+    /**
+     * Set the name of the executable file for this tool.
+     * The executable will be located in the tool chain path.
+     */
+    void setExecutable(String file);
+
 }

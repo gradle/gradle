@@ -49,7 +49,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath toolSearchPath,
                                           Instantiator instantiator) {
-        super(CommandLineToolConfigurationInternal.class, name, operatingSystem, fileResolver, instantiator);
+        super(GccCommandLineToolConfigurationInternal.class, name, operatingSystem, fileResolver, instantiator);
         this.execActionFactory = execActionFactory;
         this.toolSearchPath = toolSearchPath;
         this.instantiator = instantiator;
@@ -60,7 +60,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         configInsertLocation = 0;
     }
 
-    protected CommandLineToolSearchResult locate(CommandLineToolConfigurationInternal gccTool) {
+    protected CommandLineToolSearchResult locate(GccCommandLineToolConfigurationInternal gccTool) {
         return toolSearchPath.locate(gccTool.getToolType(), gccTool.getExecutable());
     }
 
@@ -78,11 +78,11 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         SortedMap allTools = getAsMap();
         boolean found = false;
         for (Object o : allTools.values()) {
-            CommandLineToolConfigurationInternal tool = (CommandLineToolConfigurationInternal) o;
+            GccCommandLineToolConfigurationInternal tool = (GccCommandLineToolConfigurationInternal) o;
             found |= toolSearchPath.locate(tool.getToolType(), tool.getExecutable()).isAvailable();
         }
         if (!found) {
-            CommandLineToolConfigurationInternal cCompiler = (CommandLineToolConfigurationInternal) findByName("cCompiler");
+            GccCommandLineToolConfigurationInternal cCompiler = (GccCommandLineToolConfigurationInternal) findByName("cCompiler");
             if(cCompiler==null){
                 availability.unavailable("c compiler not found");
             }else{
@@ -149,7 +149,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolChain(result);
         }
-        DefaultConfigurableToolChain configurableToolChain  = instantiator.newInstance(DefaultConfigurableToolChain.class, CommandLineToolConfiguration.class, getAsMap(), instantiator, getName(), getDisplayName());
+        DefaultGccConfigurableToolChain configurableToolChain  = instantiator.newInstance(DefaultGccConfigurableToolChain.class, CommandLineToolConfiguration.class, getAsMap(), instantiator, getName(), getDisplayName());
         // apply the platform configuration
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
         ToolRegistry platformTools = new ConfiguredToolRegistry(configurableToolChain);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,39 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativebinaries.toolchain.internal.tools;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Actions;
-import org.gradle.nativebinaries.toolchain.internal.ToolType;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultCommandLineToolConfiguration implements CommandLineToolConfigurationInternal {
-    private final ToolType toolType;
-    private String executable;
     private List<Action<? super List<String>>> argActions = new ArrayList<Action<? super List<String>>>();
     private String name;
 
-    public DefaultCommandLineToolConfiguration(String name, ToolType toolType, String defaultExecutable) {
+    public DefaultCommandLineToolConfiguration(String name) {
         this.name = name;
-        this.toolType = toolType;
-        this.executable = defaultExecutable;
-    }
-
-    public ToolType getToolType() {
-        return toolType;
-    }
-
-    public String getExecutable() {
-        return executable;
-    }
-
-    public void setExecutable(String file) {
-        executable = file;
     }
 
     public void withArguments(Closure arguments) {

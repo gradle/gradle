@@ -24,8 +24,8 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionResult;
-import org.gradle.nativebinaries.toolchain.internal.tools.CommandLineToolConfigurationInternal;
-import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
+import org.gradle.nativebinaries.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +50,10 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
         super(name, operatingSystem, fileResolver, execActionFactory, new GccToolSearchPath(operatingSystem), instantiator);
         this.versionDeterminer = new GccVersionDeterminer(execActionFactory);
 
-        add(new DefaultCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, "gcc"));
-        add(new DefaultCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "g++"));
-        add(new DefaultCommandLineToolConfiguration("linker", ToolType.LINKER, "g++"));
-        add(new DefaultCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
+        add(new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, "gcc"));
+        add(new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "g++"));
+        add(new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, "g++"));
+        add(new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
     }
 
     @Override
@@ -64,9 +64,9 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     @Override
     protected void initTools(ToolChainAvailability availability) {
         if (versionResult == null) {
-            CommandLineToolSearchResult compiler = locate((CommandLineToolConfigurationInternal) getByName("cCompiler"));
+            CommandLineToolSearchResult compiler = locate((GccCommandLineToolConfigurationInternal) getByName("cCompiler"));
             if (!compiler.isAvailable()) {
-                compiler = locate((CommandLineToolConfigurationInternal) getByName("cppCompiler"));
+                compiler = locate((GccCommandLineToolConfigurationInternal) getByName("cppCompiler"));
             }
             availability.mustBeAvailable(compiler);
             if (!compiler.isAvailable()) {

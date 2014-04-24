@@ -65,7 +65,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
         modelRules.rule(new ModelRule() {
             void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(VisualCpp, { String name ->
-                    return instantiator.newInstance(VisualCppToolChain, name, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator)
+                    return instantiator.newInstance(VisualCppToolChain, name, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
                 })
                 toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
             }

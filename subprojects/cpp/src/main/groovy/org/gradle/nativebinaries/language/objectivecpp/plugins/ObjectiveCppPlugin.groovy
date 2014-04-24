@@ -35,7 +35,7 @@ import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.toolchain.internal.ToolType
-import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 
 import javax.inject.Inject
 
@@ -64,13 +64,13 @@ class ObjectiveCppPlugin implements Plugin<ProjectInternal> {
             void addObjectiveCppCompiler(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.withType(Clang).all(new Action<Clang>(){
                     void execute(Clang toolchain) {
-                        toolchain.add(new DefaultCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "clang++"));
+                        toolchain.add(new DefaultGccCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "clang++"));
                     }
                 })
 
                 toolChainRegistry.withType(Gcc).all(new Action<Gcc>() {
                     void execute(Gcc toolchain) {
-                        toolchain.add(new DefaultCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "g++"));
+                        toolchain.add(new DefaultGccCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "g++"));
                     }
                 })
             }

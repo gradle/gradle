@@ -19,17 +19,17 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
-import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration;
+import org.gradle.nativebinaries.toolchain.GccCommandLineToolConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.tools.*;
 
 import java.util.List;
 import java.util.Map;
 
-public class DefaultConfigurableToolChain<T extends CommandLineToolConfiguration> extends DefaultNamedDomainObjectSet<T> implements ConfigurableToolChain<T> {
+public class DefaultGccConfigurableToolChain<T extends GccCommandLineToolConfiguration> extends DefaultNamedDomainObjectSet<T> implements ConfigurableToolChain<T> {
     private final String name;
     private final String displayName;
 
-    public DefaultConfigurableToolChain(Class<? extends T> type, Map<String, T> asMap, Instantiator instantiator, String name, String displayName) {
+    public DefaultGccConfigurableToolChain(Class<? extends T> type, Map<String, T> asMap, Instantiator instantiator, String name, String displayName) {
         super(type, instantiator);
         this.name = name;
         this.displayName = displayName;
@@ -39,8 +39,8 @@ public class DefaultConfigurableToolChain<T extends CommandLineToolConfiguration
     }
 
     private T newConfiguredGccTool(T defaultTool) {
-        CommandLineToolConfigurationInternal gccToolInternal = (CommandLineToolConfigurationInternal) defaultTool;
-        DefaultCommandLineToolConfiguration platformTool = new DefaultCommandLineToolConfiguration(defaultTool.getName(), gccToolInternal.getToolType(), defaultTool.getExecutable());
+        GccCommandLineToolConfigurationInternal gccToolInternal = (GccCommandLineToolConfigurationInternal) defaultTool;
+        DefaultGccCommandLineToolConfiguration platformTool = new DefaultGccCommandLineToolConfiguration(defaultTool.getName(), gccToolInternal.getToolType(), defaultTool.getExecutable());
         Action<List<String>> argAction = gccToolInternal.getArgAction();
         platformTool.withArguments(argAction);
         return (T) platformTool;

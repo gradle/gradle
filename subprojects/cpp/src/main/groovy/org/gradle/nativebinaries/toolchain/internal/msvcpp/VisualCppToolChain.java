@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
@@ -30,6 +31,8 @@ import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.*;
+import org.gradle.nativebinaries.toolchain.internal.tools.CommandLineToolConfigurationInternal;
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
 import org.slf4j.Logger;
@@ -38,8 +41,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
 
-public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
+public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp, ToolChainInternal {
 
     private final String name;
     protected final OperatingSystem operatingSystem;
@@ -59,7 +63,14 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
     private ToolChainAvailability availability;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
-                              VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
+                              VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, Instantiator instantiator) {
+        super(CommandLineToolConfigurationInternal.class, name, operatingSystem, fileResolver, instantiator);
+
+        add(new DefaultCommandLineToolConfiguration("cCompiler"));
+        add(new DefaultCommandLineToolConfiguration("cppCompiler"));
+        add(new DefaultCommandLineToolConfiguration("rcCompiler"));
+        add(new DefaultCommandLineToolConfiguration("linker"));
+        add(new DefaultCommandLineToolConfiguration("staticLibArchiver"));
 
         this.name = name;
         this.operatingSystem = operatingSystem;
@@ -98,7 +109,7 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolChain(result);
         }
-        return new VisualCppPlatformToolChain(visualCpp, windowsSdk, targetPlatform);
+        return new VisualCppPlatformToolChain(getAsMap(), visualCpp, windowsSdk, targetPlatform);
     }
 
     private ToolChainAvailability getAvailability() {
@@ -164,11 +175,13 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
     }
 
     private class VisualCppPlatformToolChain implements PlatformToolChain {
+        private SortedMap<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
         private final VisualCppInstall visualCpp;
         private final WindowsSdk sdk;
         private final Platform targetPlatform;
 
-        private VisualCppPlatformToolChain(VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
+        private VisualCppPlatformToolChain(SortedMap<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
+            this.commandLineToolConfigurations = commandLineToolConfigurations;
             this.visualCpp = visualCpp;
             this.sdk = sdk;
             this.targetPlatform = targetPlatform;
@@ -183,13 +196,13 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
             CommandLineTool commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-            CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(), addIncludePathAndDefinitions(CppCompileSpec.class));
+            CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("cppCompiler")), addIncludePathAndDefinitions(CppCompileSpec.class));
             return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
             CommandLineTool commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
-            CCompiler cCompiler = new CCompiler(commandLineTool, invocation(), addIncludePathAndDefinitions(CCompileSpec.class));
+            CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("cCompiler")), addIncludePathAndDefinitions(CCompileSpec.class));
             return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
         }
 
@@ -203,38 +216,39 @@ public class VisualCppToolChain implements VisualCpp, ToolChainInternal {
 
         public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
             CommandLineTool commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
-            return (Compiler<T>) new Assembler(commandLineTool, invocation());
+            return (Compiler<T>) new Assembler(commandLineTool, invocation(commandLineToolConfigurations.get("assembler")));
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
             CommandLineTool commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
-            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, invocation(), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
+            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("rcCompiler")), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
             return (Compiler<T>) new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
         }
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {
             CommandLineTool commandLineTool = tool("Linker", visualCpp.getLinker(targetPlatform));
-            return (Compiler<T>) new LinkExeLinker(commandLineTool, invocation(), addLibraryPath());
+            return (Compiler<T>) new LinkExeLinker(commandLineTool, invocation(commandLineToolConfigurations.get("linker")), addLibraryPath());
         }
 
         public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
             CommandLineTool commandLineTool = tool("Static library archiver", visualCpp.getArchiver(targetPlatform));
-            return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool, invocation());
+            return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool, invocation(commandLineToolConfigurations.get("staticLibArchiver")));
         }
 
         private CommandLineTool tool(String toolName, File exe) {
             return new CommandLineTool(toolName, exe, execActionFactory);
         }
 
-        private CommandLineToolInvocation invocation() {
+        private CommandLineToolInvocation invocation(CommandLineToolConfigurationInternal commandLineToolConfiguration) {
             MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
             // The visual C++ tools use the path to find other executables
             // TODO:ADAM - restrict this to the specific path for the target tool
             invocation.addPath(visualCpp.getPath(targetPlatform));
             invocation.addPath(sdk.getBinDir(targetPlatform));
-
             // Clear environment variables that might effect cl.exe & link.exe
             clearEnvironmentVars(invocation, "INCLUDE", "CL", "LIBPATH", "LINK", "LIB");
+
+            invocation.addPostArgsAction(commandLineToolConfiguration.getArgAction());
             return invocation;
         }
 

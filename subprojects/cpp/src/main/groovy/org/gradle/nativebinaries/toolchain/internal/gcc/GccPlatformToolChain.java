@@ -25,7 +25,7 @@ import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
 import org.gradle.nativebinaries.language.objectivecpp.internal.ObjectiveCppCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.*;
-import org.gradle.nativebinaries.toolchain.internal.tools.CommandLineToolConfigurationInternal;
+import org.gradle.nativebinaries.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativebinaries.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
@@ -52,35 +52,35 @@ class GccPlatformToolChain implements PlatformToolChain {
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-        CommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
+        GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
         CommandLineTool commandLineTool = commandLineTool(cppCompilerTool);
         CppCompiler cppCompiler = new CppCompiler(commandLineTool, commandLineToolInvocation(cppCompilerTool), useCommandFile);
         return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getOutputFileSuffix());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-        CommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
+        GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
         CommandLineTool commandLineTool = commandLineTool(cCompilerTool);
         CCompiler cCompiler = new CCompiler(commandLineTool, commandLineToolInvocation(cCompilerTool), useCommandFile);
         return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, getOutputFileSuffix());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler() {
-        CommandLineToolConfigurationInternal objectiveCppCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVECPP_COMPILER);
+        GccCommandLineToolConfigurationInternal objectiveCppCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVECPP_COMPILER);
         CommandLineTool commandLineTool = commandLineTool(objectiveCppCompilerTool);
         ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(commandLineTool, commandLineToolInvocation(objectiveCppCompilerTool), useCommandFile);
         return (Compiler<T>) new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, getOutputFileSuffix());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler() {
-        CommandLineToolConfigurationInternal objectiveCCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVEC_COMPILER);
+        GccCommandLineToolConfigurationInternal objectiveCCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVEC_COMPILER);
         CommandLineTool commandLineTool = commandLineTool(objectiveCCompilerTool);
         ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(commandLineTool, commandLineToolInvocation(objectiveCCompilerTool), useCommandFile);
         return (Compiler<T>) new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, getOutputFileSuffix());
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-        CommandLineToolConfigurationInternal assemblerTool = toolRegistry.getTool(ToolType.ASSEMBLER);
+        GccCommandLineToolConfigurationInternal assemblerTool = toolRegistry.getTool(ToolType.ASSEMBLER);
         CommandLineTool commandLineTool = commandLineTool(assemblerTool);
         return (Compiler<T>) new Assembler(commandLineTool, commandLineToolInvocation(assemblerTool), getOutputFileSuffix());
     }
@@ -90,13 +90,13 @@ class GccPlatformToolChain implements PlatformToolChain {
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {
-        CommandLineToolConfigurationInternal linkerTool = toolRegistry.getTool(ToolType.LINKER);
+        GccCommandLineToolConfigurationInternal linkerTool = toolRegistry.getTool(ToolType.LINKER);
         CommandLineTool commandLineTool = commandLineTool(linkerTool);
         return (Compiler<T>) new GccLinker(commandLineTool, commandLineToolInvocation(linkerTool), useCommandFile);
     }
 
     public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-        CommandLineToolConfigurationInternal staticLibArchiverTool = toolRegistry.getTool(ToolType.STATIC_LIB_ARCHIVER);
+        GccCommandLineToolConfigurationInternal staticLibArchiverTool = toolRegistry.getTool(ToolType.STATIC_LIB_ARCHIVER);
         return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool(staticLibArchiverTool), commandLineToolInvocation(staticLibArchiverTool));
     }
 
@@ -104,17 +104,18 @@ class GccPlatformToolChain implements PlatformToolChain {
         return OperatingSystem.current().isWindows() ? ".obj" : ".o";
     }
 
-    private CommandLineTool commandLineTool(CommandLineToolConfigurationInternal tool) {
+    private CommandLineTool commandLineTool(GccCommandLineToolConfigurationInternal tool) {
         ToolType key = tool.getToolType();
         String exeName = tool.getExecutable();
         return new CommandLineTool(key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
     }
 
-    private CommandLineToolInvocation commandLineToolInvocation(CommandLineToolConfigurationInternal staticLibArchiverTool) {
+    private CommandLineToolInvocation commandLineToolInvocation(GccCommandLineToolConfigurationInternal staticLibArchiverTool) {
         MutableCommandLineToolInvocation baseInvocation = new DefaultCommandLineToolInvocation();
         // MinGW requires the path to be set
         baseInvocation.addPath(toolSearchPath.getPath());
         baseInvocation.addEnvironmentVar("CYGWIN", "nodosfilewarning");
+
         baseInvocation.addPostArgsAction(staticLibArchiverTool.getArgAction());
         return baseInvocation;
     }

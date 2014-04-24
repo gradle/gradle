@@ -33,7 +33,7 @@ import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.toolchain.internal.ToolType
-import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 
 import javax.inject.Inject
 
@@ -62,13 +62,13 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
             void addAssembler(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.withType(Clang).all(new Action<Clang>(){
                     void execute(Clang toolchain) {
-                        toolchain.add(new DefaultCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, "as"));
+                        toolchain.add(new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, "as"));
                     }
                 })
 
                 toolChainRegistry.withType(Gcc).all(new Action<Gcc>(){
                     void execute(Gcc toolchain) {
-                        toolchain.add(new DefaultCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, "as"));
+                        toolchain.add(new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, "as"));
                     }
                 })
             }

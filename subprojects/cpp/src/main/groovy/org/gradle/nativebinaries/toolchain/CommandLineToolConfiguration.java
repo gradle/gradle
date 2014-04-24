@@ -28,16 +28,6 @@ import java.util.List;
  */
 @Incubating
 public interface CommandLineToolConfiguration extends Named {
-    /**
-     * The name of the executable file for this tool.
-     */
-    String getExecutable();
-
-    /**
-     * Set the name of the executable file for this tool.
-     * The executable will be located in the tool chain path.
-     */
-    void setExecutable(String file);
 
     /**
      * Adds an action that will be applied to the command-line arguments prior to execution.
