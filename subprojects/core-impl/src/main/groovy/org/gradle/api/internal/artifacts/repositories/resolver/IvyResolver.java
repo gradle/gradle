@@ -72,12 +72,16 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     public void addArtifactLocation(URI baseUri, String pattern) {
         String artifactPattern = transport.convertToPath(baseUri) + pattern;
-        addArtifactPattern(artifactPattern);
+        addArtifactPattern(toResourcePattern(artifactPattern));
     }
 
     public void addDescriptorLocation(URI baseUri, String pattern) {
         String descriptorPattern = transport.convertToPath(baseUri) + pattern;
-        addIvyPattern(descriptorPattern);
+        addIvyPattern(toResourcePattern(descriptorPattern));
+    }
+
+    protected ResourcePattern toResourcePattern(String pattern) {
+        return isM2compatible() ? new M2ResourcePattern(pattern) : new IvyResourcePattern(pattern);
     }
 
     public ModuleComponentRepositoryAccess getLocalAccess() {

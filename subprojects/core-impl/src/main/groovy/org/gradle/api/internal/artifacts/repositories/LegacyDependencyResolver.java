@@ -42,7 +42,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -169,22 +168,6 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
     public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
         // This is never used
         throw new UnsupportedOperationException();
-    }
-
-    public void addIvyPattern(String pattern) {
-        resolver.addIvyPattern(pattern);
-    }
-
-    public void addArtifactPattern(String pattern) {
-        resolver.addArtifactPattern(pattern);
-    }
-
-    public List<String> getIvyPatterns() {
-        return resolver.getIvyPatterns();
-    }
-
-    public List<String> getArtifactPatterns() {
-        return resolver.getArtifactPatterns();
     }
 
     public void dumpSettings() {

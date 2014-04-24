@@ -89,8 +89,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         IvyResolver resolver = new IvyResolver(getName(), transportFactory.createTransport("file", getName(), null),
                 locallyAvailableResourceFinder, false, resolverStrategy);
         for (File root : dirs) {
-            resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact]-[revision](-[classifier]).[ext]");
-            resolver.addArtifactPattern(root.getAbsolutePath() + "/[artifact](-[classifier]).[ext]");
+            resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
+            resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");
         }
         return resolver;
     }

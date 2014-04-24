@@ -131,15 +131,15 @@ public class MavenResolver extends ExternalResourceResolver {
 
     private void updatePatterns() {
         if (isUsepoms()) {
-            setIvyPatterns(Collections.singletonList(getWholePattern()));
+            setIvyPatterns(Collections.singletonList(new M2ResourcePattern(getWholePattern())));
         } else {
-            setIvyPatterns(Collections.<String>emptyList());
+            setIvyPatterns(Collections.<ResourcePattern>emptyList());
         }
 
-        List<String> artifactPatterns = new ArrayList<String>();
-        artifactPatterns.add(getWholePattern());
+        List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
+        artifactPatterns.add(new M2ResourcePattern(getWholePattern()));
         for (String artifactRoot : artifactRoots) {
-            artifactPatterns.add(artifactRoot + pattern);
+            artifactPatterns.add(new M2ResourcePattern(artifactRoot + pattern));
         }
         setArtifactPatterns(artifactPatterns);
     }
@@ -154,7 +154,7 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module) {
-        String metadataLocation = toResourcePattern(getWholePattern()).toModuleVersionPath(module) + "/maven-metadata.xml";
+        String metadataLocation = new M2ResourcePattern(getWholePattern()).toModuleVersionPath(module) + "/maven-metadata.xml";
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {

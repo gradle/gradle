@@ -44,6 +44,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         def dir2 = new File('b')
         _ * fileResolver.resolveFiles(['a', 'b']) >> new SimpleFileCollection(dir1, dir2)
         _ * repositoryTransport.repository >> resourceRepository
+        _ * repositoryTransport.convertToPath(_) >> { URI uri -> return new File(uri).toString() }
 
         and:
         repository.name = 'repo-name'

@@ -35,18 +35,16 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
 
     private final ExternalResourceRepository repository;
     private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
-    private final List<String> ivyPatterns;
-    private final List<String> artifactPatterns;
-    private final boolean m2compatible;
+    private final List<ResourcePattern> ivyPatterns;
+    private final List<ResourcePattern> artifactPatterns;
     private final RepositoryArtifactCache repositoryArtifactCache;
 
     public DefaultExternalResourceArtifactResolver(ExternalResourceRepository repository, LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                                   List<String> ivyPatterns, List<String> artifactPatterns, boolean m2compatible, RepositoryArtifactCache repositoryArtifactCache) {
+                                                   List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, RepositoryArtifactCache repositoryArtifactCache) {
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.ivyPatterns = ivyPatterns;
         this.artifactPatterns = artifactPatterns;
-        this.m2compatible = m2compatible;
         this.repositoryArtifactCache = repositoryArtifactCache;
     }
 
@@ -62,9 +60,8 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         return staticResourceExists(artifactPatterns, artifact);
     }
 
-    private boolean staticResourceExists(List<String> patternList, ModuleVersionArtifactMetaData artifact) {
-        for (String pattern : patternList) {
-            ResourcePattern resourcePattern = toResourcePattern(pattern);
+    private boolean staticResourceExists(List<ResourcePattern> patternList, ModuleVersionArtifactMetaData artifact) {
+        for (ResourcePattern resourcePattern : patternList) {
             String resourcePath = resourcePattern.toPath(artifact);
             LOGGER.debug("Loading {}", resourcePath);
             try {
@@ -78,9 +75,8 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         return false;
     }
 
-    private LocallyAvailableExternalResource downloadStaticResource(List<String> patternList, ModuleVersionArtifactMetaData artifact) {
-        for (String pattern : patternList) {
-            ResourcePattern resourcePattern = toResourcePattern(pattern);
+    private LocallyAvailableExternalResource downloadStaticResource(List<ResourcePattern> patternList, ModuleVersionArtifactMetaData artifact) {
+        for (ResourcePattern resourcePattern : patternList) {
             String resourcePath = resourcePattern.toPath(artifact);
             LOGGER.debug("Loading {}", resourcePath);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
@@ -106,9 +102,5 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                 throw new UncheckedIOException(e);
             }
         }
-    }
-
-    private ResourcePattern toResourcePattern(String pattern) {
-        return m2compatible ? new M2ResourcePattern(pattern) : new IvyResourcePattern(pattern);
     }
 }

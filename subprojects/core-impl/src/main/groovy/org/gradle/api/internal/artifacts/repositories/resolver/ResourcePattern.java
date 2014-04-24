@@ -23,6 +23,11 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 public interface ResourcePattern {
     /**
+     * Returns this pattern converted to a String.
+     */
+    String getPattern();
+
+    /**
      * Returns the path to the given artifact.
      */
     String toPath(ModuleVersionArtifactMetaData artifact);
