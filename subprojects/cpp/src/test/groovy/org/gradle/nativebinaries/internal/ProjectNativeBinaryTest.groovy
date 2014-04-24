@@ -122,7 +122,7 @@ class ProjectNativeBinaryTest extends Specification {
 
     def "order of libraries is maintained"() {
         def binary = testBinary(component)
-        def libraryBinary = Mock(LibraryBinary)
+        def libraryBinary = Mock(NativeLibraryBinary)
         def dependency1 = Stub(NativeDependencySet)
         def dependency2 = Stub(NativeDependencySet)
         def dependency3 = Stub(NativeDependencySet)

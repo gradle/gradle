@@ -29,7 +29,7 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def executable = Mock(ExecutableInternal)
     ExecutableBinaryInternal executableBinary
-    def library = Mock(LibraryInternal)
+    def library = Mock(NativeLibraryInternal)
     def namingScheme = Mock(BinaryNamingScheme)
 
     def flavorOne = Mock(Flavor)
@@ -124,7 +124,7 @@ class VisualStudioProjectMapperTest extends Specification {
         return ArchitectureNotationParser.parser().parseNotation(name)
     }
 
-    private libraryBinary(Class<? extends LibraryBinary> type) {
+    private libraryBinary(Class<? extends NativeLibraryBinary> type) {
         def binary = Mock(type)
         binary.component >> library
         binary.flavor >> flavorOne
@@ -135,7 +135,7 @@ class VisualStudioProjectMapperTest extends Specification {
     }
 
     interface ExecutableInternal extends Executable, ProjectNativeComponentInternal {}
-    interface LibraryInternal extends Library, ProjectNativeComponentInternal {}
+    interface NativeLibraryInternal extends NativeLibrary, ProjectNativeComponentInternal {}
     interface ExecutableBinaryInternal extends ExecutableBinary, ProjectNativeBinaryInternal {}
     interface SharedLibraryBinaryInternal extends SharedLibraryBinary, ProjectNativeBinaryInternal {}
     interface StaticLibraryBinaryInternal extends StaticLibraryBinary, ProjectNativeBinaryInternal {}

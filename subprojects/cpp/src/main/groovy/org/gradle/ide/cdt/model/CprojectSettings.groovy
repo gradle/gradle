@@ -77,7 +77,7 @@ class CprojectSettings {
 
         def extension = ""
         def type 
-        if (binary instanceof Library) {
+        if (binary instanceof NativeLibrary) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
         } else if (binary instanceof Executable) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.exe"

@@ -137,7 +137,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
         libs.add(notation);
     }
 
-    public Collection<LibraryBinary> getDependentBinaries() {
+    public Collection<NativeLibraryBinary> getDependentBinaries() {
         return resolve(source.withType(DependentSourceSet.class)).getAllLibraryBinaries();
     }
 

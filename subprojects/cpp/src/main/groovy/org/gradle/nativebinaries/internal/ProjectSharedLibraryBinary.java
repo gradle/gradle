@@ -22,7 +22,7 @@ import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.Library;
+import org.gradle.nativebinaries.NativeLibrary;
 import org.gradle.nativebinaries.SharedLibraryBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
@@ -32,11 +32,11 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary implements SharedLibraryBinary {
+public class ProjectSharedLibraryBinary extends AbstractProjectNativeLibraryBinary implements SharedLibraryBinary {
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
-    public ProjectSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public ProjectSharedLibraryBinary(NativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                       BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }

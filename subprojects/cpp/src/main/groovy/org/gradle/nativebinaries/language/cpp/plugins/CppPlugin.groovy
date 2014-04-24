@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.plugins.CppLangPlugin
 import org.gradle.nativebinaries.Executable
-import org.gradle.nativebinaries.Library
+import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
@@ -47,7 +47,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
                 binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
             }
         }
-        project.libraries.all { Library library ->
+        project.libraries.all { NativeLibrary library ->
             library.binaries.all { binary ->
                 binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
             }

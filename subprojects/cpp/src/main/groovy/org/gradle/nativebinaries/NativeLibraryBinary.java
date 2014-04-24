@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.api.Incubating;
 
-public interface LibraryBinaryInternal extends LibraryBinary {
-
-    FileCollection getHeaderDirs();
-
-    FileCollection getLinkFiles();
-
-    FileCollection getRuntimeFiles();
+/**
+ * A physical representation of a {@link NativeLibrary} component.
+ */
+@Incubating
+public interface NativeLibraryBinary extends NativeBinary {
 }

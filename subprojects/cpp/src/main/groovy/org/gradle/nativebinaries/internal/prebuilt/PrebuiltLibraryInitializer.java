@@ -22,7 +22,7 @@ import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.PrebuiltLibrary;
 import org.gradle.nativebinaries.platform.Platform;
 
@@ -59,13 +59,13 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
         createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, library, platform, buildType, flavor);
     }
 
-    public <T extends LibraryBinary> void createNativeBinary(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
+    public <T extends NativeLibraryBinary> void createNativeBinary(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
         String name = getName(type, library, platform, buildType, flavor);
         T nativeBinary = instantiator.newInstance(type, name, library, buildType, platform, flavor);
         library.getBinaries().add(nativeBinary);
     }
 
-    private <T extends LibraryBinary> String getName(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
+    private <T extends NativeLibraryBinary> String getName(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
         BinaryNamingSchemeBuilder namingScheme = new DefaultBinaryNamingSchemeBuilder()
                 .withComponentName(library.getName())
                 .withTypeString(type.getSimpleName())

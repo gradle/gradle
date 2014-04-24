@@ -44,7 +44,7 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().getByType(ExecutableContainer).all { Executable exe ->
             exe.source projectSourceSet.maybeCreate(exe.name)
         }
-        project.getExtensions().getByType(LibraryContainer).all { Library lib ->
+        project.getExtensions().getByType(LibraryContainer).all { NativeLibrary lib ->
             lib.source projectSourceSet.maybeCreate(lib.name)
         }
 

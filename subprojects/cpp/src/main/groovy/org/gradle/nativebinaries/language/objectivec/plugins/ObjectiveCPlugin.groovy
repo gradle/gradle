@@ -23,7 +23,7 @@ import org.gradle.language.objectivec.plugins.ObjectiveCLangPlugin
 import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
 import org.gradle.nativebinaries.Executable
-import org.gradle.nativebinaries.Library
+import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
@@ -80,7 +80,7 @@ class ObjectiveCPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        project.libraries.all { Library library ->
+        project.libraries.all { NativeLibrary library ->
             library.binaries.all { binary ->
                 binary.extensions.create("objcCompiler", DefaultPreprocessingTool)
             }

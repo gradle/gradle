@@ -21,7 +21,7 @@ import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.BuildType
-import org.gradle.nativebinaries.Library
+import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
@@ -35,7 +35,7 @@ class ProjectSharedLibraryBinaryTest extends Specification {
     final toolChain = Stub(ToolChainInternal)
     final platform = Stub(Platform)
     final buildType = Stub(BuildType)
-    final library = Stub(Library)
+    final library = Stub(NativeLibrary)
     final resolver = Stub(NativeDependencyResolver)
     def sharedLibraryFile = Mock(File)
     def sharedLibraryLinkFile = Mock(File)

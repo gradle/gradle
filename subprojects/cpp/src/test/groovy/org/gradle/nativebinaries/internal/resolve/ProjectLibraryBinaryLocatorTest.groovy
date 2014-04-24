@@ -19,7 +19,7 @@ import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.Library
+import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.LibraryContainer
 import org.gradle.nativebinaries.NativeLibraryRequirement
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement
@@ -29,7 +29,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     def project = Mock(ProjectInternal)
     def projectLocator = Mock(ProjectLocator)
     def requirement = Mock(NativeLibraryRequirement)
-    def library = Mock(Library)
+    def library = Mock(NativeLibrary)
     def binaries = Mock(DomainObjectSet)
     def locator = new ProjectLibraryBinaryLocator(projectLocator)
 

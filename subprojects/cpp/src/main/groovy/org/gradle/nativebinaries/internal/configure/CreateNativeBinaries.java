@@ -66,7 +66,7 @@ public class CreateNativeBinaries extends ModelRule {
         LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
 
         List<ProjectNativeComponent> components = new ArrayList<ProjectNativeComponent>();
-        for (Library library : libraries) {
+        for (NativeLibrary library : libraries) {
             components.add(library);
         }
         for (Executable executable : executables) {

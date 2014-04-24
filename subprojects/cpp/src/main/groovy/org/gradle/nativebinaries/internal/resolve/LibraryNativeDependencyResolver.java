@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
+import org.gradle.nativebinaries.internal.NativeLibraryBinaryInternal;
 
 public class LibraryNativeDependencyResolver implements NativeDependencyResolver {
     private final LibraryBinaryLocator libraryBinaryLocator;
@@ -28,7 +28,7 @@ public class LibraryNativeDependencyResolver implements NativeDependencyResolver
     public void resolve(NativeBinaryResolveResult resolution) {
         for (NativeBinaryRequirementResolveResult requirementResolution : resolution.getPendingResolutions()) {
             DefaultLibraryResolver libraryResolver = new DefaultLibraryResolver(libraryBinaryLocator, requirementResolution.getRequirement(), resolution.getTarget());
-            LibraryBinaryInternal libraryBinary = libraryResolver.resolveLibraryBinary();
+            NativeLibraryBinaryInternal libraryBinary = libraryResolver.resolveLibraryBinary();
             requirementResolution.setLibraryBinary(libraryBinary);
             requirementResolution.setNativeDependencySet(new DefaultNativeDependencySet(libraryBinary));
         }

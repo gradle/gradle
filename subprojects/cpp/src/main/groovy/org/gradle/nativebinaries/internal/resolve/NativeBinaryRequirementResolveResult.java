@@ -16,15 +16,15 @@
 
 package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
-import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
+import org.gradle.nativebinaries.internal.NativeLibraryBinaryInternal;
 
 public class NativeBinaryRequirementResolveResult {
     private Object input;
     private NativeLibraryRequirement requirement;
-    private LibraryBinaryInternal libraryBinary;
+    private NativeLibraryBinaryInternal libraryBinary;
     private NativeDependencySet nativeDependencySet;
 
     public NativeBinaryRequirementResolveResult(Object input) {
@@ -43,11 +43,11 @@ public class NativeBinaryRequirementResolveResult {
         return requirement;
     }
 
-    public LibraryBinary getLibraryBinary() {
+    public NativeLibraryBinary getLibraryBinary() {
         return libraryBinary;
     }
 
-    public void setLibraryBinary(LibraryBinaryInternal libraryBinary) {
+    public void setLibraryBinary(NativeLibraryBinaryInternal libraryBinary) {
         this.libraryBinary = libraryBinary;
     }
 

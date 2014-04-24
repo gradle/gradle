@@ -60,7 +60,7 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
         project.executables.all { Executable executable ->
             addLanguageExtensionsToComponent(executable)
         }
-        project.libraries.all { Library library ->
+        project.libraries.all { NativeLibrary library ->
             addLanguageExtensionsToComponent(library)
         }
 

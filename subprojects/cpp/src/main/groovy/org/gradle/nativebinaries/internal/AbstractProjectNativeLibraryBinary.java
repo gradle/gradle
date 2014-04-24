@@ -24,7 +24,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.Library;
+import org.gradle.nativebinaries.NativeLibrary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
@@ -34,10 +34,10 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class AbstractProjectLibraryBinary extends AbstractProjectNativeBinary implements LibraryBinaryInternal {
+public abstract class AbstractProjectNativeLibraryBinary extends AbstractProjectNativeBinary implements NativeLibraryBinaryInternal {
 
-    protected AbstractProjectLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
-                                           BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    protected AbstractProjectNativeLibraryBinary(NativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+                                                 BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
     }
 
@@ -87,12 +87,12 @@ public abstract class AbstractProjectLibraryBinary extends AbstractProjectNative
         }
 
         public final String getDisplayName() {
-            return AbstractProjectLibraryBinary.this.toString();
+            return AbstractProjectNativeLibraryBinary.this.toString();
         }
 
         public final TaskDependency getBuildDependencies() {
             if (hasOutputs()) {
-                return AbstractProjectLibraryBinary.this.getBuildDependencies();
+                return AbstractProjectNativeLibraryBinary.this.getBuildDependencies();
             }
             return new DefaultTaskDependency();
         }
