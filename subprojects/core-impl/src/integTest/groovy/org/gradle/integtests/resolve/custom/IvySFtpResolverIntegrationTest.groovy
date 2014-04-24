@@ -51,16 +51,12 @@ task listJars << {
         server.expectInit()
         server.expectRealpath('')
 
-        server.expectOpendir('/repo/group/projectA/1.2')
-        server.allowReaddir('/repo/group/projectA/1.2')
-        server.expectClose('/repo/group/projectA/1.2')
+        module.repository.expectDirectoryListing('group', 'projectA', '1.2')
 
         module.ivy.expectStat()
         module.ivy.expectFileDownload()
 
-        server.expectOpendir('/repo/group/projectA/1.2')
-        server.allowReaddir('/repo/group/projectA/1.2')
-        server.expectClose('/repo/group/projectA/1.2')
+        module.repository.expectDirectoryListing('group', 'projectA', '1.2')
 
         module.jar.expectStat()
         module.jar.expectFileDownload()

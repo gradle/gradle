@@ -21,11 +21,12 @@ import org.gradle.test.fixtures.maven.SftpResource
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 
 class IvySftpModule implements IvyModule {
+    public final IvySftpRepository repository
+    private final SFTPServer server
+    private final IvyFileModule backingModule
 
-    SFTPServer server
-    IvyFileModule backingModule
-
-    IvySftpModule(SFTPServer server, IvyFileModule backingModule) {
+    IvySftpModule(IvySftpRepository repository, SFTPServer server, IvyFileModule backingModule) {
+        this.repository = repository
         this.server = server
         this.backingModule = backingModule
     }

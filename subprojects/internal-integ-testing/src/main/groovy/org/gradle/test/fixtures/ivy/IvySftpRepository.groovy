@@ -62,7 +62,11 @@ class IvySftpRepository implements IvyRepository {
         return backingRepository.baseArtifactPattern
     }
 
+    void expectDirectoryListing(String organisation, String module, String revision) {
+        server.expectDirectoryList("$contextPath/$organisation/$module/$revision")
+    }
+
     IvySftpModule module(String organisation, String module, Object revision = "1.0") {
-        new IvySftpModule(server, backingRepository.module(organisation, module, revision))
+        new IvySftpModule(this, server, backingRepository.module(organisation, module, revision))
     }
 }
