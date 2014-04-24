@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
-import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
-import org.gradle.api.internal.externalresource.MissingExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
+import org.gradle.api.internal.resource.ResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,62 +53,61 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     }
 
     public LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleVersionArtifactMetaData artifact) {
-        return downloadAndCacheResource(artifact, findStaticResourceUsingPatterns(ivyPatterns, artifact, true));
+        return downloadStaticResource(ivyPatterns, artifact);
     }
 
     public LocallyAvailableExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact) {
-        return downloadAndCacheResource(artifact, findStaticResourceUsingPatterns(artifactPatterns, artifact, true));
+        return downloadStaticResource(artifactPatterns, artifact);
     }
 
     public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
-        return findStaticResourceUsingPatterns(artifactPatterns, artifact, false) != null;
+        return staticResourceExists(artifactPatterns, artifact);
     }
 
-    private ExternalResource findStaticResourceUsingPatterns(List<String> patternList, ModuleVersionArtifactMetaData artifact, boolean forDownload) {
+    private boolean staticResourceExists(List<String> patternList, ModuleVersionArtifactMetaData artifact) {
         for (String pattern : patternList) {
             ResourcePattern resourcePattern = toResourcePattern(pattern);
-            String resourceName = resourcePattern.toPath(artifact);
-            LOGGER.debug("Loading {}", resourceName);
-            ExternalResource resource = getResource(resourceName, artifact, forDownload);
-            if (resource.exists()) {
-                return resource;
-            } else {
-                LOGGER.debug("Resource not reachable for {}: res={}", artifact, resource);
-                discardResource(resource);
+            String resourcePath = resourcePattern.toPath(artifact);
+            LOGGER.debug("Loading {}", resourcePath);
+            try {
+                if (repository.getResourceMetaData(resourcePath) != null) {
+                    return true;
+                }
+            } catch (IOException e) {
+                throw new ResourceException(String.format("Could not get resource '%s'.", resourcePath), e);
+            }
+        }
+        return false;
+    }
+
+    private LocallyAvailableExternalResource downloadStaticResource(List<String> patternList, ModuleVersionArtifactMetaData artifact) {
+        for (String pattern : patternList) {
+            ResourcePattern resourcePattern = toResourcePattern(pattern);
+            String resourcePath = resourcePattern.toPath(artifact);
+            LOGGER.debug("Loading {}", resourcePath);
+            LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
+            try {
+                ExternalResource resource = repository.getResource(resourcePath, localCandidates);
+                if (resource != null) {
+                    return downloadAndCacheResource(artifact, resource);
+                }
+            } catch (IOException e) {
+                throw new ResourceException(String.format("Could not get resource '%s'.", resourcePath), e);
             }
         }
         return null;
     }
 
     private LocallyAvailableExternalResource downloadAndCacheResource(ModuleVersionArtifactMetaData artifact, ExternalResource resource) {
-        if (resource == null) {
-            return null;
-        }
-        final RepositoryArtifactCache.ExternalResourceDownloader resourceDownloader = new VerifyingExternalResourceDownloader(checksumAlgorithms, repository);
-        return repositoryArtifactCache.downloadAndCacheArtifactFile(artifact, resourceDownloader, resource);
-    }
-
-    private ExternalResource getResource(String source, ModuleVersionArtifactMetaData target, boolean forDownload) {
         try {
-            if (forDownload) {
-                LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(target);
-                ExternalResource resource = repository.getResource(source, localCandidates);
-                return resource == null ? new MissingExternalResource(source) : resource;
-            } else {
-                // TODO - there's a potential problem here in that we don't carry correct isLocal data in MetaDataOnlyExternalResource
-                ExternalResourceMetaData metaData = repository.getResourceMetaData(source);
-                return metaData == null ? new MissingExternalResource(source) : new MetaDataOnlyExternalResource(source, metaData);
+            RepositoryArtifactCache.ExternalResourceDownloader resourceDownloader = new VerifyingExternalResourceDownloader(checksumAlgorithms, repository);
+            return repositoryArtifactCache.downloadAndCacheArtifactFile(artifact, resourceDownloader, resource);
+        } finally {
+            try {
+                resource.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("Could not get resource '%s'.", source), e);
-        }
-    }
-
-    private void discardResource(ExternalResource resource) {
-        try {
-            resource.close();
-        } catch (IOException e) {
-            LOGGER.warn("Exception closing resource " + resource.getName(), e);
         }
     }
 
