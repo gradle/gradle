@@ -23,6 +23,7 @@ import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.filestore.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -52,10 +53,14 @@ public class DownloadingRepositoryArtifactCache implements RepositoryArtifactCac
         return false;
     }
 
-    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(final ModuleVersionArtifactMetaData artifact, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) throws IOException {
+    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(final ModuleVersionArtifactMetaData artifact, ExternalResourceDownloader resourceDownloader, final ExternalResource resource) {
         final File tmpFile = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
-            resourceDownloader.download(resource, tmpFile);
+            try {
+                resourceDownloader.download(resource, tmpFile);
+            } catch (IOException e) {
+                throw new ResourceException(String.format("Failed to download resource '%s'.", resource.getName()), e);
+            }
             return cacheLockingManager.useCache(String.format("Store %s", artifact), new Factory<LocallyAvailableExternalResource>() {
                 public LocallyAvailableExternalResource create() {
                     LocallyAvailableResource cachedResource = fileStore.move(artifact, tmpFile);

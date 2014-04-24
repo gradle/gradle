@@ -15,11 +15,12 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
+
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName
-import org.gradle.api.internal.externalresource.ExternalResource
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 import spock.lang.Specification
 
 class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specification {
@@ -50,8 +51,8 @@ class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specificat
         def originalIvyName = new DefaultIvyArtifactName("name", "type", "extension")
         def originalArtifact = new DefaultModuleVersionArtifactMetaData(originalComponentId, originalIvyName)
         def artifact = resolver.timestamp(originalArtifact)
-        def resource1 = Mock(ExternalResource)
-        def resource2 = Mock(ExternalResource)
+        def resource1 = Mock(LocallyAvailableExternalResource)
+        def resource2 = Mock(LocallyAvailableExternalResource)
 
         when:
         1 * delegate.resolveMetaDataArtifact({ it.id == artifact.id }) >> resource1

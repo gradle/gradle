@@ -16,7 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
 import org.gradle.api.internal.externalresource.MissingExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
@@ -37,29 +39,33 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     private final List<String> ivyPatterns;
     private final List<String> artifactPatterns;
     private final boolean m2compatible;
+    private final String[] checksumAlgorithms;
+    private final RepositoryArtifactCache repositoryArtifactCache;
 
     public DefaultExternalResourceArtifactResolver(ExternalResourceRepository repository, LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                                   List<String> ivyPatterns, List<String> artifactPatterns, boolean m2compatible) {
+                                                   List<String> ivyPatterns, List<String> artifactPatterns, boolean m2compatible, String[] checksumAlgorithms, RepositoryArtifactCache repositoryArtifactCache) {
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.ivyPatterns = ivyPatterns;
         this.artifactPatterns = artifactPatterns;
         this.m2compatible = m2compatible;
+        this.checksumAlgorithms = checksumAlgorithms;
+        this.repositoryArtifactCache = repositoryArtifactCache;
     }
 
-    public ExternalResource resolveMetaDataArtifact(ModuleVersionArtifactMetaData artifact) {
-        return findStaticResourceUsingPatterns(ivyPatterns, artifact, true);
+    public LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleVersionArtifactMetaData artifact) {
+        return downloadAndCacheResource(artifact, findStaticResourceUsingPatterns(ivyPatterns, artifact, true));
     }
 
-    public ExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact) {
-        return findStaticResourceUsingPatterns(artifactPatterns, artifact, true);
+    public LocallyAvailableExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact) {
+        return downloadAndCacheResource(artifact, findStaticResourceUsingPatterns(artifactPatterns, artifact, true));
     }
 
     public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
         return findStaticResourceUsingPatterns(artifactPatterns, artifact, false) != null;
     }
 
-    protected ExternalResource findStaticResourceUsingPatterns(List<String> patternList, ModuleVersionArtifactMetaData artifact, boolean forDownload) {
+    private ExternalResource findStaticResourceUsingPatterns(List<String> patternList, ModuleVersionArtifactMetaData artifact, boolean forDownload) {
         for (String pattern : patternList) {
             ResourcePattern resourcePattern = toResourcePattern(pattern);
             String resourceName = resourcePattern.toPath(artifact);
@@ -73,6 +79,14 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             }
         }
         return null;
+    }
+
+    private LocallyAvailableExternalResource downloadAndCacheResource(ModuleVersionArtifactMetaData artifact, ExternalResource resource) {
+        if (resource == null) {
+            return null;
+        }
+        final RepositoryArtifactCache.ExternalResourceDownloader resourceDownloader = new VerifyingExternalResourceDownloader(checksumAlgorithms, repository);
+        return repositoryArtifactCache.downloadAndCacheArtifactFile(artifact, resourceDownloader, resource);
     }
 
     private ExternalResource getResource(String source, ModuleVersionArtifactMetaData target, boolean forDownload) {

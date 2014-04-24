@@ -22,7 +22,6 @@ import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * A cache manager for local repositories. Doesn't cache anything, and uses artifacts from their origin.
@@ -33,7 +32,7 @@ public class LocalFileRepositoryArtifactCache implements RepositoryArtifactCache
         return true;
     }
 
-    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(ModuleVersionArtifactMetaData artifactId, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException {
+    public LocallyAvailableExternalResource downloadAndCacheArtifactFile(ModuleVersionArtifactMetaData artifactId, ExternalResourceDownloader resourceDownloader, ExternalResource resource) {
         // Does not download, copy or cache local files.
         assert resource.isLocal();
         File file = new File(resource.getName());

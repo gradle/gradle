@@ -37,7 +37,7 @@ public interface RepositoryArtifactCache {
      * @param resource The artifact resource
      * @return The cached resource
      */
-    LocallyAvailableExternalResource downloadAndCacheArtifactFile(ModuleVersionArtifactMetaData artifact, ExternalResourceDownloader resourceDownloader, ExternalResource resource) throws IOException;
+    LocallyAvailableExternalResource downloadAndCacheArtifactFile(ModuleVersionArtifactMetaData artifact, ExternalResourceDownloader resourceDownloader, ExternalResource resource);
 
     interface ExternalResourceDownloader {
         public void download(ExternalResource resource, File dest) throws IOException;
