@@ -20,8 +20,9 @@ import org.gradle.internal.Factory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 public interface ExternalResourceUploader {
 
-    void upload(Factory<InputStream> sourceFactory, Long contentLength, String destination) throws IOException;
+    void upload(Factory<InputStream> sourceFactory, Long contentLength, URI destination) throws IOException;
 }

@@ -29,7 +29,7 @@ class HttpResourceListerTest extends Specification {
         setup:
         accessorMock.getResource(new URI("http://testrepo/")) >> externalResource;
         when:
-        lister.list("http://testrepo/")
+        lister.list(new URI("http://testrepo/"))
         then:
         1 * externalResource.withContent(_) >> {Transformer action -> return action.transform(new ByteArrayInputStream("<a href='child'/>".bytes))}
         1 * externalResource.getContentType() >> "text/html"
@@ -40,6 +40,6 @@ class HttpResourceListerTest extends Specification {
         setup:
         accessorMock.getResource(new URI("http://testrepo/"))  >> null
         expect:
-        null == lister.list("http://testrepo")
+        null == lister.list(new URI("http://testrepo"))
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.externalresource.transport;
 
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -28,6 +29,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
@@ -110,7 +112,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
-            }, source.length(), destination);
+            }, source.length(), new URI(destination));
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {
@@ -119,7 +121,15 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     }
 
     public List<String> list(String parent) throws IOException {
-        return lister.list(parent);
+        List<URI> children = lister.list(toUri(parent));
+        if (children == null) {
+            return null;
+        }
+        return CollectionUtils.collect(children, new Transformer<String, URI>() {
+            public String transform(URI original) {
+                return original.toString();
+            }
+        });
     }
 
     public String toString() {

@@ -21,6 +21,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 public class ProgressLoggingExternalResourceUploader extends AbstractProgressLoggingHandler implements ExternalResourceUploader {
     private final ExternalResourceUploader delegate;
@@ -29,8 +30,8 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         super(progressLoggerFactory);
         this.delegate = delegate;
     }
-    public void upload(final Factory<InputStream> source, final Long contentLength, String destination) throws IOException {
-        final ResourceOperation uploadOperation = createResourceOperation(destination, ResourceOperation.Type.upload, getClass(), contentLength);
+    public void upload(final Factory<InputStream> source, final Long contentLength, URI destination) throws IOException {
+        final ResourceOperation uploadOperation = createResourceOperation(destination.toString(), ResourceOperation.Type.upload, getClass(), contentLength);
 
         try {
             delegate.upload(new Factory<InputStream>() {

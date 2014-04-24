@@ -48,46 +48,45 @@ public class SftpResourceUploader implements ExternalResourceUploader {
         return uri;
     }
 
-    public void upload(Factory<InputStream> sourceFactory, Long contentLength, String destination) throws IOException {
-        URI uri = toUri(destination);
-        LockableSftpClient client = sftpClientFactory.createSftpClient(uri, credentials);
+    public void upload(Factory<InputStream> sourceFactory, Long contentLength, URI destination) throws IOException {
+        LockableSftpClient client = sftpClientFactory.createSftpClient(destination, credentials);
 
         try {
-            String path = uri.getPath();
             ChannelSftp channel = client.getSftpClient();
-            ensureParentDirectoryExists(channel, path, uri);
+            ensureParentDirectoryExists(channel, destination);
             InputStream sourceStream = sourceFactory.create();
             try {
-                channel.put(sourceStream, uri.getPath());
+                channel.put(sourceStream, destination.getPath());
             } finally {
                 sourceStream.close();
             }
         } catch (com.jcraft.jsch.SftpException e) {
-            throw new SftpException(String.format("Could not write to resource '%s'.", uri), e);
+            throw new SftpException(String.format("Could not write to resource '%s'.", destination), e);
         } finally {
             sftpClientFactory.releaseSftpClient(client);
         }
     }
 
-    private void ensureParentDirectoryExists(ChannelSftp channel, String path, URI baseUri) {
-        String directory = FilenameUtils.getFullPathNoEndSeparator(path);
-        if (directory.equals("")) {
+    private void ensureParentDirectoryExists(ChannelSftp channel, URI uri) {
+        String parentPath = FilenameUtils.getFullPathNoEndSeparator(uri.getPath());
+        if (parentPath.equals("")) {
             return;
         }
+        URI parent = uri.resolve(parentPath);
 
         try {
-            channel.lstat(directory);
+            channel.lstat(parentPath);
             return;
         } catch (com.jcraft.jsch.SftpException e) {
             if (e.id != ChannelSftp.SSH_FX_NO_SUCH_FILE) {
-                throw new SftpException(String.format("Could not get resource '%s'.", baseUri.resolve(directory)), e);
+                throw new SftpException(String.format("Could not get resource '%s'.", parent), e);
             }
         }
-        ensureParentDirectoryExists(channel, directory, baseUri);
+        ensureParentDirectoryExists(channel, parent);
         try {
-            channel.mkdir(directory);
+            channel.mkdir(parentPath);
         } catch (com.jcraft.jsch.SftpException e) {
-            throw new SftpException(String.format("Could not create resource '%s'.", baseUri.resolve(directory)), e);
+            throw new SftpException(String.format("Could not create resource '%s'.", parent), e);
         }
     }
 }

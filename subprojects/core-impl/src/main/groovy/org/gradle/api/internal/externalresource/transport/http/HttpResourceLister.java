@@ -23,7 +23,6 @@ import org.gradle.api.internal.resource.ResourceException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,25 +33,18 @@ public class HttpResourceLister implements ExternalResourceLister {
         this.accessor = accessor;
     }
 
-    public List<String> list(String parent) throws IOException {
-        final URI baseURI;
-        try {
-            baseURI = new URI(parent);
-        } catch (URISyntaxException ex) {
-            throw new ResourceException(String.format("Unable to create URI from string '%s' ", parent), ex);
-        }
-        final HttpResponseResource resource = accessor.getResource(baseURI);
+    public List<URI> list(final URI parent) throws IOException {
+        final HttpResponseResource resource = accessor.getResource(parent);
         if (resource == null) {
             return null;
         }
         try {
-            return resource.withContent(new Transformer<List<String>, InputStream>() {
-                public List<String> transform(InputStream inputStream) {
+            return resource.withContent(new Transformer<List<URI>, InputStream>() {
+                public List<URI> transform(InputStream inputStream) {
                     String contentType = resource.getContentType();
                     ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
                     try {
-                        List<URI> uris = directoryListingParser.parse(baseURI, inputStream, contentType);
-                        return convertToStringList(uris);
+                        return directoryListingParser.parse(parent, inputStream, contentType);
                     } catch (Exception e) {
                         throw new ResourceException("Unable to parse Http directory listing", e);
                     }

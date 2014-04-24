@@ -23,7 +23,6 @@ import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccesso
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.util.GFileUtils;
@@ -33,19 +32,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileResourceConnector implements ExternalResourceLister, ExternalResourceAccessor, ExternalResourceUploader {
-    public List<String> list(String parent) throws IOException {
+    public List<URI> list(URI parent) throws IOException {
         File dir = getFile(parent);
         if (dir.exists() && dir.isDirectory()) {
             String[] names = dir.list();
             if (names != null) {
-                List<String> ret = new ArrayList<String>(names.length);
+                List<URI> ret = new ArrayList<URI>(names.length);
                 for (String name : names) {
-                    ret.add(parent + '/' + name);
+                    ret.add(parent.resolve(name));
                 }
                 return ret;
             }
@@ -53,7 +51,7 @@ public class FileResourceConnector implements ExternalResourceLister, ExternalRe
         return null;
     }
 
-    public void upload(Factory<InputStream> source, Long contentLength, String destination) throws IOException {
+    public void upload(Factory<InputStream> source, Long contentLength, URI destination) throws IOException {
         File target = getFile(destination);
         if (!target.canWrite()) {
             target.delete();
@@ -88,20 +86,6 @@ public class FileResourceConnector implements ExternalResourceLister, ExternalRe
     public HashValue getResourceSha1(URI location) {
         // TODO Read sha1 from published .sha1 file
         return null;
-    }
-
-    private static File getFile(String absolutePath) {
-        URI uri;
-        try {
-            uri = new URI(absolutePath);
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-        File f = new File(uri);
-        if (!f.isAbsolute()) {
-            throw new IllegalArgumentException("Filename must be absolute: " + absolutePath);
-        }
-        return f;
     }
 
     private static File getFile(URI uri) {

@@ -25,6 +25,7 @@ import org.gradle.internal.Factory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 public class HttpResourceUploader implements ExternalResourceUploader {
 
@@ -34,7 +35,7 @@ public class HttpResourceUploader implements ExternalResourceUploader {
         this.http = http;
     }
 
-    public void upload(Factory<InputStream> source, Long contentLength, String destination) throws IOException {
+    public void upload(Factory<InputStream> source, Long contentLength, URI destination) throws IOException {
         HttpPut method = new HttpPut(destination);
         final RepeatableInputStreamEntity entity = new RepeatableInputStreamEntity(source, contentLength, ContentType.APPLICATION_OCTET_STREAM);
         method.setEntity(entity);
