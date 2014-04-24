@@ -192,14 +192,6 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
         throw new UnsupportedOperationException();
     }
 
-    public boolean isM2compatible() {
-        return resolver.isM2compatible();
-    }
-
-    public void setM2compatible(boolean compatible) {
-        resolver.setM2compatible(compatible);
-    }
-
     public boolean isCheckconsistency() {
         return resolver.isCheckconsistency();
     }

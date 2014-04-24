@@ -35,6 +35,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     private final RepositoryTransport transport;
     private final boolean dynamicResolve;
     private final MetaDataParser metaDataParser;
+    private boolean m2Compatible;
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
@@ -58,6 +59,15 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     @Override
     protected IvyArtifactName getMetaDataArtifactName(String moduleName) {
         return new DefaultIvyArtifactName("ivy", "ivy", "xml");
+    }
+
+    @Override
+    public boolean isM2compatible() {
+        return m2Compatible;
+    }
+
+    public void setM2compatible(boolean m2compatible) {
+        this.m2Compatible = m2compatible;
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {

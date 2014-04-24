@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.*;
 
-public class MavenResolver extends ExternalResourceResolver implements PatternBasedResolver {
+public class MavenResolver extends ExternalResourceResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
     private final RepositoryTransport transport;
     private final String root;
@@ -66,13 +66,15 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         this.transport = transport;
         this.root = transport.convertToPath(rootUri);
 
-        super.setM2compatible(true);
-
         // SNAPSHOT revisions are changing revisions
         setChangingMatcher(PatternMatcher.REGEXP);
         setChangingPattern(".*-SNAPSHOT");
 
         updatePatterns();
+    }
+
+    public String getRoot() {
+        return root;
     }
 
     protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
@@ -123,10 +125,6 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         updatePatterns();
     }
 
-    public void addDescriptorLocation(URI baseUri, String pattern) {
-        throw new UnsupportedOperationException("Cannot have multiple descriptor urls for MavenResolver");
-    }
-
     private String getWholePattern() {
         return root + pattern;
     }
@@ -168,7 +166,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     }
 
     private MavenMetadata parseMavenMetadata(String metadataLocation) {
-        if (shouldUseMavenMetadata(pattern)) {
+        if (isUseMavenMetadata()) {
             try {
                 return mavenMetaDataLoader.load(metadataLocation);
             } catch (ResourceNotFoundException e) {
@@ -207,35 +205,9 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         }
     }
 
-    private boolean shouldUseMavenMetadata(String pattern) {
-        return isUseMavenMetadata() && pattern.endsWith(MavenPattern.M2_PATTERN);
-    }
-
-    public String getPattern() {
-        return pattern;
-    }
-
-    public void setPattern(String pattern) {
-        if (pattern == null) {
-            throw new NullPointerException("pattern must not be null");
-        }
-        this.pattern = pattern;
-        updatePatterns();
-    }
-
-    public String getRoot() {
-        return root;
-    }
-
-    public void setRoot(String root) {
-        throw new UnsupportedOperationException("Cannot configure root on mavenRepo. Use 'url' property instead.");
-    }
-
     @Override
-    public void setM2compatible(boolean compatible) {
-        if (!compatible) {
-            throw new IllegalArgumentException("Cannot set m2compatible = false on mavenRepo.");
-        }
+    public boolean isM2compatible() {
+        return true;
     }
 
     public ModuleComponentRepositoryAccess getLocalAccess() {

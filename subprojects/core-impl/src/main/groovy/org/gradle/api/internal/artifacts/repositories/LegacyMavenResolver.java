@@ -42,20 +42,4 @@ public class LegacyMavenResolver extends LegacyDependencyResolver {
     public void setUseMavenMetadata(boolean useMavenMetadata) {
         resolver.setUseMavenMetadata(useMavenMetadata);
     }
-
-    public String getPattern() {
-        return resolver.getPattern();
-    }
-
-    public void setPattern(String pattern) {
-        resolver.setPattern(pattern);
-    }
-
-    public String getRoot() {
-        return resolver.getRoot();
-    }
-
-    public void setRoot(String root) {
-        resolver.setRoot(root);
-    }
 }

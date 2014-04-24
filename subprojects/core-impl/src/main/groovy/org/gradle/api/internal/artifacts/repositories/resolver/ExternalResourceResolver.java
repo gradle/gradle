@@ -60,7 +60,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     private List<String> ivyPatterns = new ArrayList<String>();
     private List<String> artifactPatterns = new ArrayList<String>();
-    private boolean m2Compatible;
     private boolean checkConsistency = true;
     private boolean allowMissingDescriptor = true;
     private boolean force;
@@ -368,13 +367,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         artifactPatterns = patterns;
     }
 
-    public boolean isM2compatible() {
-        return m2Compatible;
-    }
-
-    public void setM2compatible(boolean compatible) {
-        m2Compatible = compatible;
-    }
+    public abstract boolean isM2compatible();
 
     public boolean isCheckconsistency() {
         return checkConsistency;
