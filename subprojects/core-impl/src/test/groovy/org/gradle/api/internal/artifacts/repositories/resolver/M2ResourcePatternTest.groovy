@@ -25,6 +25,19 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier.newId
 
 class M2ResourcePatternTest extends Specification {
+    def "can construct from URI and pattern"() {
+        expect:
+        new M2ResourcePattern(new URI(uri), pattern).pattern == expectedPattern
+
+        where:
+        uri            | pattern  | expectedPattern
+        "http://host/" | "a/b/c"  | "http://host/a/b/c"
+        "http://host"  | "a/b/c"  | "http://host/a/b/c"
+        "http://host/" | "/a/b/c" | "http://host/a/b/c"
+        "http://host/" | ""       | "http://host/"
+        "http://host"  | ""       | "http://host/"
+    }
+
     def "substitutes artifact attributes into pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
         final String group = "group"

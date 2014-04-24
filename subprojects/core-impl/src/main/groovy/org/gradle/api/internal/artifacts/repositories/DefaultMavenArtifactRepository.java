@@ -100,7 +100,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         MavenResolver resolver = createResolver(rootUri);
 
         for (URI repoUrl : getArtifactUrls()) {
-            resolver.addArtifactLocation(repoUrl, null);
+            resolver.addArtifactLocation(repoUrl);
         }
         return resolver;
     }

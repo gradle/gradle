@@ -25,6 +25,18 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import spock.lang.Specification
 
 class IvyResourcePatternTest extends Specification {
+    def "can construct from URI and pattern"() {
+        expect:
+        new IvyResourcePattern(new URI(uri), pattern).pattern == expectedPattern
+
+        where:
+        uri            | pattern  | expectedPattern
+        "http://host/" | "a/b/c"  | "http://host/a/b/c"
+        "http://host"  | "a/b/c"  | "http://host/a/b/c"
+        "http://host/" | "/a/b/c" | "http://host/a/b/c"
+        "http://host/" | ""       | "http://host/"
+        "http://host"  | ""       | "http://host/"
+    }
 
     def "substitutes artifact attributes into pattern"() {
         def pattern = new IvyResourcePattern("prefix/[organisation]-[module]/[revision]/[type]s/[revision]/[artifact].[ext]")

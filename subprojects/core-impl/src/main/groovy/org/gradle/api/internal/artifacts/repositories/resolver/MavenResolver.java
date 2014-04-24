@@ -44,9 +44,8 @@ import java.util.*;
 
 public class MavenResolver extends ExternalResourceResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
-    private final RepositoryTransport transport;
-    private final String root;
-    private final List<String> artifactRoots = new ArrayList<String>();
+    private final URI root;
+    private final List<URI> artifactRoots = new ArrayList<URI>();
     private String pattern = MavenPattern.M2_PATTERN;
     private boolean usepoms = true;
     private boolean useMavenMetadata = true;
@@ -63,8 +62,7 @@ public class MavenResolver extends ExternalResourceResolver {
 
         this.metaDataParser = new GradlePomModuleDescriptorParser();
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
-        this.transport = transport;
-        this.root = transport.convertToPath(rootUri);
+        this.root = rootUri;
 
         // SNAPSHOT revisions are changing revisions
         setChangingMatcher(PatternMatcher.REGEXP);
@@ -74,7 +72,7 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     public String getRoot() {
-        return root;
+        return root.toString();
     }
 
     protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
@@ -116,30 +114,26 @@ public class MavenResolver extends ExternalResourceResolver {
         return super.createArtifactResolver(moduleSource);
     }
 
-    public void addArtifactLocation(URI baseUri, String pattern) {
-        if (pattern != null && pattern.length() > 0) {
-            throw new IllegalArgumentException("Maven Resolver only supports a single pattern. It cannot be provided on a per-location basis.");
-        }
-        artifactRoots.add(transport.convertToPath(baseUri));
-
+    public void addArtifactLocation(URI baseUri) {
+        artifactRoots.add(baseUri);
         updatePatterns();
     }
 
-    private String getWholePattern() {
-        return root + pattern;
+    private M2ResourcePattern getWholePattern() {
+        return new M2ResourcePattern(root, pattern);
     }
 
     private void updatePatterns() {
         if (isUsepoms()) {
-            setIvyPatterns(Collections.singletonList(new M2ResourcePattern(getWholePattern())));
+            setIvyPatterns(Collections.singletonList(getWholePattern()));
         } else {
             setIvyPatterns(Collections.<ResourcePattern>emptyList());
         }
 
         List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
-        artifactPatterns.add(new M2ResourcePattern(getWholePattern()));
-        for (String artifactRoot : artifactRoots) {
-            artifactPatterns.add(new M2ResourcePattern(artifactRoot + pattern));
+        artifactPatterns.add(getWholePattern());
+        for (URI artifactRoot : artifactRoots) {
+            artifactPatterns.add(new M2ResourcePattern(artifactRoot, pattern));
         }
         setArtifactPatterns(artifactPatterns);
     }
@@ -154,7 +148,7 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module) {
-        String metadataLocation = new M2ResourcePattern(getWholePattern()).toModuleVersionPath(module) + "/maven-metadata.xml";
+        String metadataLocation = getWholePattern().toModuleVersionPath(module) + "/maven-metadata.xml";
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {

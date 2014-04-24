@@ -20,8 +20,6 @@ import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArt
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 
-import java.net.URI;
-
 public abstract class AbstractRepositoryTransport implements RepositoryTransport {
 
     private final RepositoryArtifactCache repositoryCacheManager;
@@ -34,16 +32,5 @@ public abstract class AbstractRepositoryTransport implements RepositoryTransport
 
     public void configureCacheManager(ExternalResourceResolver resolver) {
         resolver.setRepositoryCacheManager(repositoryCacheManager);
-    }
-
-    public String convertToPath(URI uri) {
-        return normalisePath(uri.toString());
-    }
-
-    protected String normalisePath(String path) {
-        if (path.endsWith("/")) {
-            return path;
-        }
-        return path + "/";
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +32,17 @@ abstract class AbstractResourcePattern implements ResourcePattern {
         this.pattern = pattern;
     }
 
+    public AbstractResourcePattern(URI baseUri, String pattern) {
+        String base = baseUri.toString();
+        if (!base.endsWith("/")) {
+            base = base + "/";
+        }
+        if (pattern.startsWith("/")) {
+            pattern = pattern.substring(1);
+        }
+        this.pattern = base + pattern;
+    }
+
     public String getPattern() {
         return pattern;
     }
@@ -38,7 +50,6 @@ abstract class AbstractResourcePattern implements ResourcePattern {
     protected String substituteTokens(String pattern, Map<String, String> attributes) {
         return IvyPatternHelper.substituteTokens(pattern, attributes);
     }
-
 
     protected Map<String, String> toAttributes(ModuleVersionArtifactMetaData artifact) {
         Map<String, String> attributes = toAttributes(artifact.getId().getComponentIdentifier());

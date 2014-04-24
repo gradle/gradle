@@ -21,12 +21,17 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
+import java.net.URI;
 import java.util.Map;
 
 public class IvyResourcePattern extends AbstractResourcePattern implements ResourcePattern {
 
     public IvyResourcePattern(String pattern) {
         super(pattern);
+    }
+
+    public IvyResourcePattern(URI baseUri, String pattern) {
+        super(baseUri, pattern);
     }
 
     @Override

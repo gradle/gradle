@@ -44,7 +44,6 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         def dir2 = new File('b')
         _ * fileResolver.resolveFiles(['a', 'b']) >> new SimpleFileCollection(dir1, dir2)
         _ * repositoryTransport.repository >> resourceRepository
-        _ * repositoryTransport.convertToPath(_) >> { URI uri -> return new File(uri).toString() }
 
         and:
         repository.name = 'repo-name'
@@ -59,10 +58,10 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         and:
         repo instanceof IvyResolver
         def expectedPatterns = [
-                "$dir1.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
-                "$dir1.absolutePath/[artifact](-[classifier]).[ext]",
-                "$dir2.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
-                "$dir2.absolutePath/[artifact](-[classifier]).[ext]"
+                "${dir1.toURI()}/[artifact]-[revision](-[classifier]).[ext]",
+                "${dir1.toURI()}/[artifact](-[classifier]).[ext]",
+                "${dir2.toURI()}/[artifact]-[revision](-[classifier]).[ext]",
+                "${dir2.toURI()}/[artifact](-[classifier]).[ext]"
         ]
         repo.ivyPatterns == []
         repo.artifactPatterns == expectedPatterns

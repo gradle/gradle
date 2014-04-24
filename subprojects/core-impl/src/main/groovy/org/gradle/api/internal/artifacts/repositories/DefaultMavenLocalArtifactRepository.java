@@ -43,7 +43,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
 
         MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, getTransport(rootUri.getScheme()), getLocallyAvailableResourceFinder(), getResolverStrategy());
         for (URI repoUrl : getArtifactUrls()) {
-            resolver.addArtifactLocation(repoUrl, null);
+            resolver.addArtifactLocation(repoUrl);
         }
         return resolver;
     }

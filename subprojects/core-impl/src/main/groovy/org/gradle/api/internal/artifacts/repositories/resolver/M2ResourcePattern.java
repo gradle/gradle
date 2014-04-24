@@ -22,11 +22,16 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
+import java.net.URI;
 import java.util.Map;
 
 public class M2ResourcePattern extends AbstractResourcePattern {
     public M2ResourcePattern(String pattern) {
         super(pattern);
+    }
+
+    public M2ResourcePattern(URI baseUri, String pattern) {
+        super(baseUri, pattern);
     }
 
     @Override

@@ -23,6 +23,7 @@ import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccesso
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.util.GFileUtils;
@@ -31,6 +32,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,7 +91,13 @@ public class FileResourceConnector implements ExternalResourceLister, ExternalRe
     }
 
     private static File getFile(String absolutePath) {
-        File f = new File(absolutePath);
+        URI uri;
+        try {
+            uri = new URI(absolutePath);
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        File f = new File(uri);
         if (!f.isAbsolute()) {
             throw new IllegalArgumentException("Filename must be absolute: " + absolutePath);
         }

@@ -25,9 +25,7 @@ import org.gradle.api.internal.externalresource.transport.DefaultExternalResourc
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 
 public class FileTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
@@ -44,10 +42,6 @@ public class FileTransport extends AbstractRepositoryTransport {
     public ExternalResourceRepository createRepository(TemporaryFileProvider temporaryFileProvider) {
         FileResourceConnector connector = new FileResourceConnector();
         return new DefaultExternalResourceRepository(name, connector, connector, connector, temporaryFileProvider, new NoOpCacheAwareExternalResourceAccessor(connector));
-    }
-
-    public String convertToPath(URI uri) {
-        return normalisePath(new File(uri).getAbsolutePath());
     }
 
     private static class NoOpCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {

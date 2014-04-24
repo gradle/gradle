@@ -302,10 +302,6 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     private RepositoryTransport transport() {
         return Mock(RepositoryTransport) {
             getRepository() >> resourceRepository
-            convertToPath(_) >> { URI uri ->
-                def result = uri.toString()
-                return result.endsWith('/') ? result : result + '/'
-            }
         }
     }
 }

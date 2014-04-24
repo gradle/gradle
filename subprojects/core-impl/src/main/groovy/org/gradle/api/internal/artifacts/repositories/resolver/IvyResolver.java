@@ -32,7 +32,6 @@ import java.net.URI;
 
 public class IvyResolver extends ExternalResourceResolver implements PatternBasedResolver {
 
-    private final RepositoryTransport transport;
     private final boolean dynamicResolve;
     private final MetaDataParser metaDataParser;
     private boolean m2Compatible;
@@ -42,8 +41,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
                        boolean dynamicResolve, ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, resolverStrategy);
         this.metaDataParser = new DownloadedIvyModuleDescriptorParser(resolverStrategy);
-        this.transport = transport;
-        this.transport.configureCacheManager(this);
+        transport.configureCacheManager(this);
         this.dynamicResolve = dynamicResolve;
     }
 
@@ -71,17 +69,15 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {
-        String artifactPattern = transport.convertToPath(baseUri) + pattern;
-        addArtifactPattern(toResourcePattern(artifactPattern));
+        addArtifactPattern(toResourcePattern(baseUri, pattern));
     }
 
     public void addDescriptorLocation(URI baseUri, String pattern) {
-        String descriptorPattern = transport.convertToPath(baseUri) + pattern;
-        addIvyPattern(toResourcePattern(descriptorPattern));
+        addIvyPattern(toResourcePattern(baseUri, pattern));
     }
 
-    protected ResourcePattern toResourcePattern(String pattern) {
-        return isM2compatible() ? new M2ResourcePattern(pattern) : new IvyResourcePattern(pattern);
+    protected ResourcePattern toResourcePattern(URI baseUri, String pattern) {
+        return isM2compatible() ? new M2ResourcePattern(baseUri, pattern) : new IvyResourcePattern(baseUri, pattern);
     }
 
     public ModuleComponentRepositoryAccess getLocalAccess() {

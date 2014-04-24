@@ -53,7 +53,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         repo instanceof MavenResolver
-        repo.root == "${uri}/"
+        repo.root == uri.toString()
     }
 
     def "creates http repository"() {
@@ -73,47 +73,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         repo instanceof MavenResolver
-        repo.root == "${uri}/"
-    }
-
-    def "creates https repository"() {
-        given:
-        def uri = new URI("https://localhost:9090/repo")
-        _ * resolver.resolveUri('repo-dir') >> uri
-        _ * credentials.getUsername() >> 'username'
-        _ * credentials.getPassword() >> 'password'
-        transportFactory.createTransport('https', 'repo', credentials) >> transport()
-
-        and:
-        repository.name = 'repo'
-        repository.url = 'repo-dir'
-
-        when:
-        def repo = repository.createRealResolver()
-
-        then:
-        repo instanceof MavenResolver
-        repo.root == "${uri}/"
-    }
-
-    def "creates sftp repository"() {
-        given:
-        def uri = new URI("sftp://localhost:22/repo")
-        _ * resolver.resolveUri('repo-dir') >> uri
-        _ * credentials.getUsername() >> 'username'
-        _ * credentials.getPassword() >> 'password'
-        transportFactory.createTransport('sftp', 'repo', credentials) >> transport()
-
-        and:
-        repository.name = 'repo'
-        repository.url = 'repo-dir'
-
-        when:
-        def repo = repository.createRealResolver()
-
-        then:
-        repo instanceof MavenResolver
-        repo.root == "${uri}/"
+        repo.root == uri.toString()
     }
 
     def "creates a DSL wrapper for the repository"() {
@@ -161,7 +121,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         repo instanceof MavenResolver
-        repo.root == "${uri}/"
+        repo.root == uri.toString()
         repo.artifactPatterns.size() == 3
         repo.artifactPatterns.any { it.startsWith uri.toString() }
         repo.artifactPatterns.any { it.startsWith uri1.toString() }
@@ -180,10 +140,6 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     private RepositoryTransport transport() {
         return Mock(RepositoryTransport) {
             getRepository() >> resourceRepository
-            convertToPath(_) >> { URI uri ->
-                def result = uri.toString()
-                return result.endsWith('/') ? result : result + '/'
-            }
         }
     }
 
