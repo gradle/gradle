@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.maven
+package org.gradle.test.fixtures
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.test.fixtures.file.TestFile

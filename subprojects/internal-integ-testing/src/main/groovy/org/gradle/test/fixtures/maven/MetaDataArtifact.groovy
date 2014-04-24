@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.gradle.test.fixtures.HttpArtifact
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 

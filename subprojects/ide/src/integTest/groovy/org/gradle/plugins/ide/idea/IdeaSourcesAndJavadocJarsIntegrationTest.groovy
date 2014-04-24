@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
-import org.gradle.test.fixtures.maven.HttpArtifact
+import org.gradle.test.fixtures.HttpArtifact
 
 class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
     @Override

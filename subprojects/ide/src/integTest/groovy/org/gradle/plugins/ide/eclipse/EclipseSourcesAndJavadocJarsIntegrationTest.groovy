@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
-import org.gradle.test.fixtures.maven.HttpArtifact
+import org.gradle.test.fixtures.HttpArtifact
 
 class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadocJarsIntegrationTest {
     @Override

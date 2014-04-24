@@ -16,8 +16,8 @@
 
 package org.gradle.test.fixtures.ivy
 
+import org.gradle.test.fixtures.SftpResource
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.SftpResource
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 
 class IvySftpModule implements IvyModule {

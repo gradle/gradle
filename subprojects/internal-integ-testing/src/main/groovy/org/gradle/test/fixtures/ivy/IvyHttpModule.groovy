@@ -16,9 +16,9 @@
 
 package org.gradle.test.fixtures.ivy
 
+import org.gradle.test.fixtures.HttpArtifact
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.HttpArtifact
 import org.gradle.test.fixtures.server.http.HttpServer
 
 class IvyHttpModule implements IvyModule, HttpModule {

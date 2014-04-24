@@ -15,9 +15,9 @@
  */
 package org.gradle.plugins.ide
 
+import org.gradle.test.fixtures.HttpArtifact
 import org.gradle.test.fixtures.ivy.IvyHttpModule
 import org.gradle.test.fixtures.ivy.IvyHttpRepository
-import org.gradle.test.fixtures.maven.HttpArtifact
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
