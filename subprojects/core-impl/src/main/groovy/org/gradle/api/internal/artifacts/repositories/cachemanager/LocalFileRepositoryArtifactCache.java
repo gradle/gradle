@@ -16,12 +16,8 @@
 package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
-
-import java.io.File;
 
 /**
  * A cache manager for local repositories. Doesn't cache anything, and uses artifacts from their origin.
@@ -35,8 +31,6 @@ public class LocalFileRepositoryArtifactCache implements RepositoryArtifactCache
     public LocallyAvailableExternalResource downloadAndCacheArtifactFile(ModuleVersionArtifactMetaData artifactId, ExternalResource resource) {
         // Does not download, copy or cache local files.
         assert resource.isLocal();
-        File file = new File(resource.getName());
-        assert file.isFile();
-        return new DefaultLocallyAvailableExternalResource(resource.getName(), new DefaultLocallyAvailableResource(file));
+        return (LocallyAvailableExternalResource) resource;
     }
 }
