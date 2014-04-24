@@ -82,8 +82,8 @@ public class ResolveIvyFactory {
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
-            if (baseRepository instanceof IvyAwareModuleVersionRepository) {
-                ivyContextualize((IvyAwareModuleVersionRepository) baseRepository, userResolverChain, configuration.getName());
+            if (baseRepository instanceof IvyAwareModuleComponentRepository) {
+                ivyContextualize((IvyAwareModuleComponentRepository) baseRepository, userResolverChain, configuration.getName());
             }
             if (baseRepository instanceof ExternalResourceResolver) {
                 ((ExternalResourceResolver) baseRepository).setRepositoryChain(parentLookupResolver);
@@ -112,7 +112,7 @@ public class ResolveIvyFactory {
         return userResolverChain;
     }
 
-    private void ivyContextualize(IvyAwareModuleVersionRepository ivyAwareRepository, RepositoryChain userResolverChain, String configurationName) {
+    private void ivyContextualize(IvyAwareModuleComponentRepository ivyAwareRepository, RepositoryChain userResolverChain, String configurationName) {
         Ivy ivy = IvyContext.getContext().getIvy();
         IvySettings ivySettings = ivy.getSettings();
         LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver("main", userResolverChain, cacheLockingManager);

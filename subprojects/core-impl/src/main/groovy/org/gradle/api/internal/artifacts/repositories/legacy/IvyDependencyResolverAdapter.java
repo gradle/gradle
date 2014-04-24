@@ -44,7 +44,7 @@ import java.util.Set;
 /**
  * A {@link org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository} wrapper around an Ivy {@link DependencyResolver}.
  */
-public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRepository, IvyAwareModuleVersionRepository {
+public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRepository, IvyAwareModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyDependencyResolverAdapter.class);
     private final DownloadOptions downloadOptions = new DownloadOptions();
     private final String identifier;

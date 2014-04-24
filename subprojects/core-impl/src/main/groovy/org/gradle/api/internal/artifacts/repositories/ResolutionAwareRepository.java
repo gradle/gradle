@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleC
 
 public interface ResolutionAwareRepository {
     /**
-     * Creates a resolver for this repository. Result may also implement {@link org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository}.
+     * Creates a resolver for this repository. Result may also implement {@link org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleComponentRepository}.
      */
     ConfiguredModuleComponentRepository createResolver();
 }
