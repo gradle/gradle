@@ -27,5 +27,5 @@ import java.util.Collection;
  * Used by {@code :diagnostics} and {@code :toolingApi}.
  */
 public interface ProjectTaskLister {
-    Collection<Task> listProjectTasks(Project project);
+    Collection<Task> listProjectTasks(Project project, boolean includeImplicit);
 }

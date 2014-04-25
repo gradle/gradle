@@ -71,7 +71,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
     // build tasks without project reference
     private List<LaunchableGradleTask> tasks(Project project) {
         List<LaunchableGradleTask> tasks = Lists.newArrayList();
-        for (Task task : taskLister.listProjectTasks(project)) {
+        for (Task task : taskLister.listProjectTasks(project, true)) {
             tasks.add(new LaunchableGradleTask()
                     .setPath(task.getPath())
                     .setName(task.getName())
