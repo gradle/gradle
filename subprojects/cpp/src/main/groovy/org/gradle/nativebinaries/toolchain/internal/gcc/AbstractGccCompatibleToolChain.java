@@ -74,8 +74,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    protected void initTools(ToolChainAvailability availability) {
-        SortedMap allTools = getAsMap();
+    protected void initTools(ConfigurableToolChain configurableToolChain, ToolChainAvailability availability) {
+        SortedMap allTools = configurableToolChain.getAsMap();
         boolean found = false;
         for (Object o : allTools.values()) {
             GccCommandLineToolConfigurationInternal tool = (GccCommandLineToolConfigurationInternal) o;
@@ -145,13 +145,15 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return new UnavailablePlatformToolChain(result);
         }
 
-        initTools(result);
-        if (!result.isAvailable()) {
-            return new UnavailablePlatformToolChain(result);
-        }
         DefaultGccConfigurableToolChain configurableToolChain  = instantiator.newInstance(DefaultGccConfigurableToolChain.class, CommandLineToolConfiguration.class, getAsMap(), instantiator, getName(), getDisplayName());
         // apply the platform configuration
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
+
+        initTools(configurableToolChain, result);
+        if (!result.isAvailable()) {
+            return new UnavailablePlatformToolChain(result);
+        }
+
         ToolRegistry platformTools = new ConfiguredToolRegistry(configurableToolChain);
         return new GccPlatformToolChain(toolSearchPath, platformTools, execActionFactory, canUseCommandFile());
     }

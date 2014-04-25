@@ -56,7 +56,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         helloWorldApp.library.writeSources(file("src/hello"))
     }
 
-    def "can configure platform with dsl"() {
+    def "can configure platform specific args"() {
         when:
         buildFile << """
             model {
@@ -158,6 +158,44 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
 
         then:
         executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+    }
+
+    def "can configure platform specific executables"() {
+        def binDir = testDirectory.createDir("bin")
+        wrapperTool(binDir, "c-compiler", toolChain.CCompiler, "-DFRENCH")
+        wrapperTool(binDir, "static-lib", toolChain.staticLibArchiver)
+        wrapperTool(binDir, "linker", toolChain.linker)
+
+        when:
+        buildFile << """
+            model {
+                toolChains {
+                    ${toolChain.id} {
+                        println path
+                        //path file('${binDir.toURI()}')
+                        println path
+                        target("arm"){
+                            cCompiler.executable = '${binDir.absolutePath}/c-compiler'
+                            staticLibArchiver.executable = '${binDir.absolutePath}/static-lib'
+                            linker.executable = '${binDir.absolutePath}/linker'
+                        }
+                    }
+                }
+                platforms {
+                    arm {
+                        architecture "arm"
+                    }
+                    i386 {
+                        architecture "i386"
+                    }
+                }
+            }
+"""
+        succeeds "armMainExecutable", "i386MainExecutable"
+
+        then:
+        executable("build/binaries/mainExecutable/arm/main").exec().out == helloWorldApp.frenchOutput
+        executable("build/binaries/mainExecutable/i386/main").exec().out == helloWorldApp.englishOutput
     }
 
     def wrapperTool(TestFile binDir, String wrapperName, String executable, String... additionalArgs) {

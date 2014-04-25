@@ -19,6 +19,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
@@ -62,11 +63,11 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     }
 
     @Override
-    protected void initTools(ToolChainAvailability availability) {
+    protected void initTools(ConfigurableToolChain configurableToolChain, ToolChainAvailability availability) {
         if (versionResult == null) {
-            CommandLineToolSearchResult compiler = locate((GccCommandLineToolConfigurationInternal) getByName("cCompiler"));
+            CommandLineToolSearchResult compiler = locate((GccCommandLineToolConfigurationInternal) configurableToolChain.getByName("cCompiler"));
             if (!compiler.isAvailable()) {
-                compiler = locate((GccCommandLineToolConfigurationInternal) getByName("cppCompiler"));
+                compiler = locate((GccCommandLineToolConfigurationInternal) configurableToolChain.getByName("cppCompiler"));
             }
             availability.mustBeAvailable(compiler);
             if (!compiler.isAvailable()) {
