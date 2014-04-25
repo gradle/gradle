@@ -81,13 +81,13 @@ public class MavenPomFileGenerator {
         mavenDependency.setType(type);
         mavenDependency.setScope(scope);
         mavenDependency.setClassifier(classifier);
-        if ( !CollectionUtils.isEmpty(dependency.getExcludeRules())){
-        	for( ExcludeRule excludeRule: dependency.getExcludeRules()){
-        		Exclusion exclusion = new Exclusion();
-        		exclusion.setGroupId(excludeRule.getGroup());
-        		exclusion.setArtifactId(excludeRule.getModule());
-        		mavenDependency.addExclusion(exclusion);
-        	}
+        if (!CollectionUtils.isEmpty(dependency.getExcludeRules())){
+            for(ExcludeRule excludeRule: dependency.getExcludeRules()){
+                Exclusion exclusion = new Exclusion();
+                exclusion.setGroupId(excludeRule.getGroup());
+                exclusion.setArtifactId(excludeRule.getModule());
+                mavenDependency.addExclusion(exclusion);
+            }
         }
 
         getModel().addDependency(mavenDependency);

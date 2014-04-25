@@ -43,8 +43,8 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
 
     public DefaultMavenDependency(String groupId, String artifactId, String version, Collection<DependencyArtifact> artifacts, Collection<ExcludeRule> excludeRules) {
         this(groupId, artifactId, version, artifacts);
-        if ( !CollectionUtils.isEmpty(excludeRules) ){
-        	this.excludeRules.addAll(excludeRules);
+        if (!CollectionUtils.isEmpty(excludeRules)){
+            this.excludeRules.addAll(excludeRules);
         }
     }
 
@@ -65,6 +65,6 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
     }
     
     public Collection<ExcludeRule> getExcludeRules() {
-    	return excludeRules;
+        return excludeRules;
     }
 }
