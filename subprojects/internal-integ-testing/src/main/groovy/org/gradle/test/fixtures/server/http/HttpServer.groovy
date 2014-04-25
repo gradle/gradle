@@ -50,7 +50,7 @@ class HttpServer extends ServerWithExpectations {
     private SslSocketConnector sslConnector
     AuthScheme authenticationScheme = AuthScheme.BASIC
 
-    private Matcher expectedUserAgent = null
+    protected Matcher expectedUserAgent = null
 
     List<ServerExpectation> expectations = []
 

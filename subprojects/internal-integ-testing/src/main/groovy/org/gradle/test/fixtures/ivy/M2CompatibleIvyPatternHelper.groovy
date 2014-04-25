@@ -32,8 +32,8 @@ class M2CompatibleIvyPatternHelper {
     }
 
     static String substitute(String pattern, String organisation, String module, String revision, String artifact, String type,
-                             String ext, boolean m2Compatible) {
+                             String ext, boolean m2Compatible, String conf = null, Map extraArtifactAttributes = null) {
         def organisationToken = organisationToken(m2Compatible, organisation)
-        IvyPatternHelper.substitute(pattern, new ModuleRevisionId(new ModuleId(organisationToken, module), revision), artifact, type, ext)
+        IvyPatternHelper.substitute(pattern, organisationToken, module, revision, artifact, type, ext, conf, null, extraArtifactAttributes)
     }
 }

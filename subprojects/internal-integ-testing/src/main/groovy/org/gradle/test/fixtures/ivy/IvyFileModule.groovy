@@ -134,14 +134,20 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    String getIvyFilePath() {
+        return M2CompatibleIvyPatternHelper.substitute(ivyPattern, organisation, module, revision, m2Compatible)
+    }
+
+    String getJarFilePath() {
+        return M2CompatibleIvyPatternHelper.substitute(artifactPattern, organisation, module, revision, null, "jar", "jar", m2Compatible)
+    }
+
     TestFile getIvyFile() {
-        def path = M2CompatibleIvyPatternHelper.substitute(ivyPattern, organisation, module, revision, m2Compatible)
-        return moduleDir.file(path)
+        return moduleDir.file(ivyFilePath)
     }
 
     TestFile getJarFile() {
-        def path = M2CompatibleIvyPatternHelper.substitute(artifactPattern, organisation, module, revision, null, "jar", "jar", m2Compatible)
-        return moduleDir.file(path)
+        return moduleDir.file(jarFilePath)
     }
 
     /**
@@ -168,6 +174,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
         artifacts.each { artifact ->
             def artifactFile = file(artifact)
+            artifactFile.parentFile.createDir()
             publish(artifactFile) { Writer writer ->
                 writer << "${artifactFile.name} : $artifactContent"
             }
@@ -176,6 +183,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             return this
         }
 
+        ivyFile.parentFile.createDir()
         publish(ivyFile) { Writer writer ->
             transformer.transform(writer, new Action<Writer>() {
                 void execute(Writer ivyFileWriter) {
@@ -252,7 +260,8 @@ ${ extraInfo ? 'xmlns:my="http://my.extra.info"' : ''}>
 
     TestFile file(Map<String, ?> options) {
         def artifact = toArtifact(options)
-        return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.ext}")
+        def path = M2CompatibleIvyPatternHelper.substitute(artifactPattern, organisation, artifact.name, revision, null, artifact.type, artifact.ext, m2Compatible, artifact.conf, [classifier: artifact.classifier])
+        return moduleDir.file(path)
     }
 
     @Override

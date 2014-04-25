@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.ivy
 
-import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.junit.Rule
+package org.gradle.test.fixtures.ivy
 
-class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
+interface RemoteIvyRepository extends IvyRepository {
 
-    @Rule
-    final RepositoryHttpServer server = new RepositoryHttpServer(this)
+    RemoteIvyModule module(String organisation, String module)
+
+    RemoteIvyModule module(String organisation, String module, Object revision)
+
+    String getBaseIvyPattern()
+
+    String getBaseArtifactPattern()
+
+    void expectDirectoryList(String organisation, String module)
 }

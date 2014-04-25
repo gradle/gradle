@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.maven
+package org.gradle.test.fixtures.server.sftp
 
-import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenRepository
 
 class MavenSftpRepository implements MavenRepository {
     private final SFTPServer server

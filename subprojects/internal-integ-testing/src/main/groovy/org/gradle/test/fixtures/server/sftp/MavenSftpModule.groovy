@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.maven
+package org.gradle.test.fixtures.server.sftp
 
-import org.gradle.test.fixtures.SftpResource
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.gradle.test.fixtures.maven.MavenFileModule
+import org.gradle.test.fixtures.maven.MavenMetaData
+import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.maven.MavenPom
 
 class MavenSftpModule implements MavenModule {
     MavenFileModule backingModule

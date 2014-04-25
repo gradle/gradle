@@ -42,7 +42,6 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
         def module = ivySftpRepo.module('org.group.name', 'projectA', '1.2')
 
         when:
-        server.expectInit()
         module.ivy.expectMetadataRetrieve()
         module.jar.expectMetadataRetrieve()
 
@@ -73,7 +72,6 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
         """
 
         when:
-        server.expectInit()
         server.expectStat('/repo/org.group.name/projectA/')
 
         then:
@@ -164,7 +162,7 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
         """
 
         when:
-        ivySftpRepo.module('org.group.name', 'projectA', '1.2').ivy.expectMetadataRetrieveFailure()
+        ivySftpRepo.module('org.group.name', 'projectA', '1.2').ivy.expectMetadataRetrieveBroken()
 
         and:
         failure = executer.withStackTraceChecksDisabled().withTasks('retrieve').runWithFailure()

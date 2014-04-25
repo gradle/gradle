@@ -16,8 +16,8 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.maven.MavenHttpModule
-import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import spock.lang.FailsWith
 import spock.lang.Issue
 

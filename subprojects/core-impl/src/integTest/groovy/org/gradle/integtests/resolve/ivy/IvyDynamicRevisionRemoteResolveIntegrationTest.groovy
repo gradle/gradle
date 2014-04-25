@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.Repository
-import org.gradle.test.fixtures.ivy.IvyHttpModule
+import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Unroll
 
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {

@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.custom
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
-import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.junit.Rule
 
 class IvyUrlResolverIntegrationTest extends AbstractHttpDependencyResolutionTest {

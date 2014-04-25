@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.test.fixtures.ivy.IvySftpRepository
+import org.gradle.test.fixtures.server.sftp.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -95,7 +95,6 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         """
 
         when:
-        server.expectInit()
         module.jar.expectMkdirs()
         module.jar.expectFileAndSha1Upload()
         module.ivy.expectFileAndSha1Upload()
@@ -149,7 +148,6 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         """
 
         when:
-        server.expectInit()
         module.jar.expectMkdirs()
         module.jar.expectFileAndSha1Upload()
         module.ivy.expectFileAndSha1Upload()
@@ -170,13 +168,12 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 
         when:
         def directory = '/repo/org.group.name/publish/2'
-        server.expectInit()
         directory.tokenize('/').findAll().inject('') { path, token ->
             def currentPath = "$path/$token"
             server.expectLstat(currentPath)
             currentPath
         }
-        server.expectMkdirFailure('/repo')
+        server.expectMkdirBroken('/repo')
 
         then:
         fails 'publish'
@@ -191,11 +188,10 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         def module = ivySftpRepo.module('org.group.name', 'publish', '2')
 
         when:
-        server.expectInit()
         server.expectLstat('/repo/org.group.name/publish/2')
         module.jar.expectMkdirs()
         module.jar.expectOpen()
-        module.jar.expectWriteFailure()
+        module.jar.expectWriteBroken()
         // TODO - should not need this request, should be CLOSE instead
         module.jar.expectStat()
 

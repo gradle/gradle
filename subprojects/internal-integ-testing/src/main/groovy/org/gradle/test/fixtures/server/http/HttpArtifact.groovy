@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures
+package org.gradle.test.fixtures.server.http
 
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.HttpServer
 
 abstract class HttpArtifact extends HttpResource {
 
