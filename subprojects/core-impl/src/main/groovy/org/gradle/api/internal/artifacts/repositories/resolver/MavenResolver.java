@@ -35,6 +35,7 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.filestore.FileStore;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,12 +55,14 @@ public class MavenResolver extends ExternalResourceResolver {
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                         ResolverStrategy resolverStrategy) {
-        super(name, transport.getRepository(),
+                         ResolverStrategy resolverStrategy, FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
+        super(name, transport.isLocal(),
+                transport.getRepository(),
                 transport.getResourceAccessor(),
-                transport.getCache(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
-                locallyAvailableResourceFinder, resolverStrategy);
+                locallyAvailableResourceFinder,
+                resolverStrategy,
+                artifactFileStore);
         this.metaDataParser = new GradlePomModuleDescriptorParser();
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
         this.root = rootUri;

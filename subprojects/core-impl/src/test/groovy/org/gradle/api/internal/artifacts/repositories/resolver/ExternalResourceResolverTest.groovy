@@ -15,16 +15,17 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
+
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
-import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
+import org.gradle.internal.filestore.FileStore
 import spock.lang.Specification
 
 class ExternalResourceResolverTest extends Specification {
@@ -42,11 +43,13 @@ class ExternalResourceResolverTest extends Specification {
     }
     MavenUniqueSnapshotModuleSource moduleSource = Mock()
     File downloadedFile = Mock(File)
+    CacheAwareExternalResourceAccessor resourceAccessor = Stub()
+    FileStore<ModuleVersionArtifactMetaData> fileStore = Stub()
     ExternalResourceResolver resolver
 
     def setup() {
         //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
-        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, Stub(CacheAwareExternalResourceAccessor), Stub(RepositoryArtifactCache), versionLister, locallyAvailableResourceFinder, resolverStrategy])
+        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, resolverStrategy, fileStore])
     }
 
     def reportsNotFoundArtifactResolveResult() {

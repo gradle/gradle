@@ -25,6 +25,7 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import spock.lang.Specification
 
 class DefaultFlatDirArtifactRepositoryTest extends Specification {
@@ -34,9 +35,9 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder = Mock()
     final ResolverStrategy resolverStrategy = Stub()
+    final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
 
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(
-            fileResolver, transportFactory, locallyAvailableResourceFinder, resolverStrategy)
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, resolverStrategy, artifactIdentifierFileStore)
 
     def "creates a repository with multiple root directories"() {
         given:

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 
@@ -24,5 +23,5 @@ public interface RepositoryTransport {
 
     CacheAwareExternalResourceAccessor getResourceAccessor();
 
-    RepositoryArtifactCache getCache();
+    boolean isLocal();
 }

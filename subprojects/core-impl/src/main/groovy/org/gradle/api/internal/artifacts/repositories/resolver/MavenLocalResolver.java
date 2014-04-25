@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.filestore.FileStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +33,8 @@ public class MavenLocalResolver extends MavenResolver {
 
     public MavenLocalResolver(String name, URI rootUri, RepositoryTransport transport,
                               LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                              ResolverStrategy resolverStrategy) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, resolverStrategy);
+                              ResolverStrategy resolverStrategy, FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, resolverStrategy, artifactFileStore);
     }
 
     @Override

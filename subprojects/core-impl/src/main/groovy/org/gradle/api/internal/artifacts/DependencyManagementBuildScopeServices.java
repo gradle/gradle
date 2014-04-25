@@ -44,8 +44,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDepende
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.*;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryArtifactCache;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.legacy.CustomIvyResolverRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.legacy.DownloadingRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
@@ -194,34 +192,23 @@ class DependencyManagementBuildScopeServices {
         return new LatestVersionStrategy(versionMatcher);
     }
 
-    LocalFileRepositoryArtifactCache createLocalRepositoryArtifactCache() {
-        return new LocalFileRepositoryArtifactCache();
-    }
-
     SftpClientFactory createSftpClientFactory() {
         return new SftpClientFactory();
     }
 
-    DownloadingRepositoryArtifactCache createDownloadingRepositoryArtifactCache(ArtifactIdentifierFileStore artifactIdentifierFileStore, ByUrlCachedExternalResourceIndex externalResourceIndex,
-                                                                                TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
-        return new DownloadingRepositoryArtifactCache(artifactIdentifierFileStore,
-                externalResourceIndex,
-                temporaryFileProvider,
-                cacheLockingManager);
-    }
-
-    RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory, LocalFileRepositoryArtifactCache localFileRepositoryArtifactCache,
-                                                                DownloadingRepositoryArtifactCache downloadingRepositoryArtifactCache, TemporaryFileProvider temporaryFileProvider,
-                                                                ByUrlCachedExternalResourceIndex externalResourceIndex, BuildCommencedTimeProvider buildCommencedTimeProvider,
-                                                                SftpClientFactory sftpClientFactory) {
+    RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
+                                                                TemporaryFileProvider temporaryFileProvider,
+                                                                ByUrlCachedExternalResourceIndex externalResourceIndex,
+                                                                BuildCommencedTimeProvider buildCommencedTimeProvider,
+                                                                SftpClientFactory sftpClientFactory,
+                                                                CacheLockingManager cacheLockingManager) {
         return new RepositoryTransportFactory(
                 progressLoggerFactory,
-                localFileRepositoryArtifactCache,
-                downloadingRepositoryArtifactCache,
                 temporaryFileProvider,
                 externalResourceIndex,
                 buildCommencedTimeProvider,
-                sftpClientFactory
+                sftpClientFactory,
+                cacheLockingManager
         );
     }
 

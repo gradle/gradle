@@ -16,8 +16,7 @@
 package org.gradle.api.internal.externalresource.transport.file;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
-import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transport.AbstractRepositoryTransport;
@@ -32,11 +31,15 @@ public class FileTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
     private final NoOpCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public FileTransport(String name, RepositoryArtifactCache repositoryCacheManager, TemporaryFileProvider temporaryFileProvider) {
-        super(name, repositoryCacheManager);
+    public FileTransport(String name, TemporaryFileProvider temporaryFileProvider) {
+        super(name);
         FileResourceConnector connector = new FileResourceConnector();
         resourceAccessor = new NoOpCacheAwareExternalResourceAccessor(connector);
         repository = new DefaultExternalResourceRepository(name, connector, connector, connector, temporaryFileProvider);
+    }
+
+    public boolean isLocal() {
+        return true;
     }
 
     public ExternalResourceRepository getRepository() {
@@ -54,7 +57,7 @@ public class FileTransport extends AbstractRepositoryTransport {
             this.connector = connector;
         }
 
-        public ExternalResource getResource(URI source, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
+        public LocallyAvailableExternalResource getResource(URI source, ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
             return connector.getResource(source);
         }
     }

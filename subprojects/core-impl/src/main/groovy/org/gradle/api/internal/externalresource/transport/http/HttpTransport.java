@@ -16,7 +16,7 @@
 package org.gradle.api.internal.externalresource.transport.http;
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.DefaultCacheAwareExternalResourceAccessor;
@@ -33,21 +33,28 @@ public class HttpTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
     private final DefaultCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public HttpTransport(String name, PasswordCredentials credentials, RepositoryArtifactCache repositoryCacheManager,
-                         ProgressLoggerFactory progressLoggerFactory, TemporaryFileProvider temporaryFileProvider,
-                         CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider) {
-        super(name, repositoryCacheManager);
+    public HttpTransport(String name, PasswordCredentials credentials,
+                         ProgressLoggerFactory progressLoggerFactory,
+                         TemporaryFileProvider temporaryFileProvider,
+                         CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+                         BuildCommencedTimeProvider timeProvider,
+                         CacheLockingManager cacheLockingManager) {
+        super(name);
         HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
         HttpResourceAccessor accessor = new HttpResourceAccessor(http);
         HttpResourceUploader uploader = new HttpResourceUploader(http);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory);
-        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider);
+        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheLockingManager);
         repository = new DefaultExternalResourceRepository(
                 name,
                 accessor,
                 new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
                 new HttpResourceLister(accessor),
                 temporaryFileProvider);
+    }
+
+    public boolean isLocal() {
+        return false;
     }
 
     public CacheAwareExternalResourceAccessor getResourceAccessor() {

@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.filestore.FileStore;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -43,15 +44,17 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private List<Object> additionalUrls = new ArrayList<Object>();
     private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
     private final ResolverStrategy resolverStrategy;
+    private final FileStore<ModuleVersionArtifactMetaData> artifactFileStore;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                          ResolverStrategy resolverStrategy) {
+                                          ResolverStrategy resolverStrategy, FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.resolverStrategy = resolverStrategy;
+        this.artifactFileStore = artifactFileStore;
     }
 
     public URI getUrl() {
@@ -107,7 +110,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private MavenResolver createResolver(URI rootUri) {
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, resolverStrategy);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, resolverStrategy, artifactFileStore);
+    }
+
+    protected FileStore<ModuleVersionArtifactMetaData> getArtifactFileStore() {
+        return artifactFileStore;
     }
 
     protected RepositoryTransport getTransport(String scheme) {

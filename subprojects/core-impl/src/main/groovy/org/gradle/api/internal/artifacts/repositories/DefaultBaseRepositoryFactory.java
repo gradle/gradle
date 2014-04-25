@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyRes
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.filestore.FileStore;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -44,6 +45,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
     private final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory;
     private final ResolverStrategy resolverStrategy;
+    private final FileStore<ModuleVersionArtifactMetaData> artifactFileStore;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -51,7 +53,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
                                         LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
-                                        ResolverStrategy resolverStrategy) {
+                                        ResolverStrategy resolverStrategy,
+                                        FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
@@ -59,6 +62,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.legacyDependencyResolverRepositoryFactory = legacyDependencyResolverRepositoryFactory;
         this.resolverStrategy = resolverStrategy;
+        this.artifactFileStore = artifactFileStore;
     }
 
     public ArtifactRepository createRepository(Object userDescription) {
@@ -85,12 +89,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
         return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, resolverStrategy);
+                locallyAvailableResourceFinder, resolverStrategy, artifactFileStore);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
         MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, resolverStrategy);
+                locallyAvailableResourceFinder, resolverStrategy, artifactFileStore);
         final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         mavenRepository.setUrl(localMavenRepository);
         return mavenRepository;
@@ -111,12 +115,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, instantiator, resolverStrategy);
+                locallyAvailableResourceFinder, instantiator, resolverStrategy, artifactFileStore);
     }
 
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, resolverStrategy
+                locallyAvailableResourceFinder, resolverStrategy, artifactFileStore
         );
     }
 

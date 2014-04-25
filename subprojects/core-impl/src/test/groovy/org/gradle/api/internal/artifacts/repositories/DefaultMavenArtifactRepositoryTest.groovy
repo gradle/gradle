@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import spock.lang.Specification
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
@@ -33,9 +34,10 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
     final ResolverStrategy resolverStrategy = Stub()
+    final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-            resolver, credentials, transportFactory, locallyAvailableResourceFinder, resolverStrategy)
+            resolver, credentials, transportFactory, locallyAvailableResourceFinder, resolverStrategy, artifactIdentifierFileStore)
 
     def "creates local repository"() {
         given:

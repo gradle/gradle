@@ -21,12 +21,14 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Resolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
+import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class MavenResolverTest extends Specification {
     def repositoryTransport = Mock(RepositoryTransport)
     def repository = Mock(ExternalResourceRepository)
+    def artifactIdentifierFileStore = Stub(ArtifactIdentifierFileStore)
 
     def rootUri = URI.create("localhost:8081:/testrepo/")
     def locallyAvailableResourceFinder = Mock(LocallyAvailableResourceFinder)
@@ -41,7 +43,7 @@ class MavenResolverTest extends Specification {
     def "setUseMavenMetaData '#value' adapts versionLister to #classname"() {
         setup:
         MavenResolver testresolver = new MavenResolver("test maven resolver", rootUri, repositoryTransport,
-                locallyAvailableResourceFinder, resolverStrategy)
+                locallyAvailableResourceFinder, resolverStrategy, artifactIdentifierFileStore)
         when:
         testresolver.setUseMavenMetadata(value)
         then:

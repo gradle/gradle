@@ -17,23 +17,29 @@
 package org.gradle.api.internal.externalresource.transfer;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDataCompare;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
@@ -44,12 +50,51 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final ExternalResourceAccessor delegate;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final BuildCommencedTimeProvider timeProvider;
+    private final TemporaryFileProvider temporaryFileProvider;
+    private final CacheLockingManager cacheLockingManager;
     private final ExternalResourceCachePolicy externalResourceCachePolicy = new DefaultExternalResourceCachePolicy();
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceAccessor delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceAccessor delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
+        this.temporaryFileProvider = temporaryFileProvider;
+        this.cacheLockingManager = cacheLockingManager;
+    }
+
+    public LocallyAvailableExternalResource getResource(URI source, final ResourceFileStore fileStore, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
+        final ExternalResource resource = getResource(source, localCandidates);
+        if (resource == null) {
+            return null;
+        }
+
+        final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
+        try {
+            try {
+                try {
+                    LOGGER.debug("Downloading {} to {}", resource.getName(), destination);
+                    if (destination.getParentFile() != null) {
+                        GFileUtils.mkdirs(destination.getParentFile());
+                    }
+                    resource.writeTo(destination);
+                } finally {
+                    resource.close();
+                }
+            } catch (IOException e) {
+                throw new ResourceException(String.format("Failed to download resource '%s'.", resource.getName()), e);
+            }
+            return cacheLockingManager.useCache(String.format("Store %s", resource.getName()), new Factory<LocallyAvailableExternalResource>() {
+                public LocallyAvailableExternalResource create() {
+                    LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
+                    File fileInFileStore = cachedResource.getFile();
+                    ExternalResourceMetaData metaData = resource.getMetaData();
+                    cachedExternalResourceIndex.store(metaData.getLocation(), fileInFileStore, metaData);
+                    return new DefaultLocallyAvailableExternalResource(resource.getURI(), cachedResource, metaData);
+                }
+            });
+        } finally {
+            destination.delete();
+        }
     }
 
     public ExternalResource getResource(final URI location, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
@@ -85,7 +130,6 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
             if (isUnchanged) {
                 LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]", cached.getExternalLastModified(), location);
-                // TODO - should we use the remote metadata? It may be “better”
                 return new CachedExternalResourceAdapter(location, cached, delegate, remoteMetaData);
             }
         }

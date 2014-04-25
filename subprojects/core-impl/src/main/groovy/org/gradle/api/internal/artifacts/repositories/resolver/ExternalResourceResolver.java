@@ -41,12 +41,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Descriptor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.filestore.FileStore;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,28 +71,31 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private String changingPattern;
     private RepositoryChain repositoryChain;
 
-    private final RepositoryArtifactCache repositoryCacheManager;
     private final ExternalResourceRepository repository;
+    private final boolean local;
     private final CacheAwareExternalResourceAccessor cachingResourceAccessor;
     private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
     private final ResolverStrategy resolverStrategy;
+    private final FileStore<ModuleVersionArtifactMetaData> artifactFileStore;
 
     protected VersionLister versionLister;
 
     public ExternalResourceResolver(String name,
+                                    boolean local,
                                     ExternalResourceRepository repository,
                                     CacheAwareExternalResourceAccessor cachingResourceAccessor,
-                                    RepositoryArtifactCache repositoryCacheManager,
                                     VersionLister versionLister,
                                     LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                    ResolverStrategy resolverStrategy) {
+                                    ResolverStrategy resolverStrategy,
+                                    FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
         this.name = name;
+        this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
-        this.repositoryCacheManager = repositoryCacheManager;
         this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.resolverStrategy = resolverStrategy;
+        this.artifactFileStore = artifactFileStore;
     }
 
     public String getId() {
@@ -128,7 +131,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     public boolean isLocal() {
-        return repositoryCacheManager.isLocal();
+        return local;
     }
 
     private void doListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
@@ -314,7 +317,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver(List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns) {
-        return new DefaultExternalResourceArtifactResolver(repository, locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, repositoryCacheManager, cachingResourceAccessor);
+        return new DefaultExternalResourceArtifactResolver(repository, locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, artifactFileStore, cachingResourceAccessor);
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSource moduleSource) {

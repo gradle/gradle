@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.filestore.FileStore;
 
 import java.net.URI;
 
@@ -38,8 +39,8 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                       boolean dynamicResolve, ResolverStrategy resolverStrategy) {
-        super(name, transport.getRepository(), transport.getResourceAccessor(), transport.getCache(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, resolverStrategy);
+                       boolean dynamicResolve, ResolverStrategy resolverStrategy, FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, resolverStrategy, artifactFileStore);
         this.metaDataParser = new DownloadedIvyModuleDescriptorParser(resolverStrategy);
         this.dynamicResolve = dynamicResolve;
     }

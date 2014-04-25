@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.externalresource.transfer
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates
@@ -30,7 +32,9 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
     final accessor = Mock(ExternalResourceAccessor)
     final index = Mock(CachedExternalResourceIndex)
     final timeProvider = Mock(BuildCommencedTimeProvider)
-    final cache = new DefaultCacheAwareExternalResourceAccessor(accessor, index, timeProvider)
+    final temporaryFileProvider = Mock(TemporaryFileProvider)
+    final cacheLockingManager = Mock(CacheLockingManager)
+    final cache = new DefaultCacheAwareExternalResourceAccessor(accessor, index, timeProvider, temporaryFileProvider, cacheLockingManager)
 
     def "will use sha1 from metadata for finding candidates if available"() {
         given:

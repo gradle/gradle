@@ -16,20 +16,12 @@
 
 package org.gradle.api.internal.externalresource.transport;
 
-import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 
 public abstract class AbstractRepositoryTransport implements RepositoryTransport {
-
-    private final RepositoryArtifactCache repositoryCacheManager;
     protected final String name;
 
-    protected AbstractRepositoryTransport(String name, RepositoryArtifactCache repositoryCacheManager) {
+    protected AbstractRepositoryTransport(String name) {
         this.name = name;
-        this.repositoryCacheManager = repositoryCacheManager;
-    }
-
-    public RepositoryArtifactCache getCache() {
-        return repositoryCacheManager;
     }
 }

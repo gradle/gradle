@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
@@ -36,10 +37,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ExternalResourceRepository resourceRepository = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ResolverStrategy resolverStrategy = Stub()
+    final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
             fileResolver, credentials, transportFactory, locallyAvailableResourceFinder,
-            new DirectInstantiator(), resolverStrategy
+            new DirectInstantiator(), resolverStrategy, artifactIdentifierFileStore
     )
 
     def "default values"() {

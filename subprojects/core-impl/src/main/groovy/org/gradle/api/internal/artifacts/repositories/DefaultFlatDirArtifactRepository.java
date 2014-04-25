@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.filestore.FileStore;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,15 +41,18 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
     private final ResolverStrategy resolverStrategy;
+    private final FileStore<ModuleVersionArtifactMetaData> artifactFileStore;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
                                             LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                            ResolverStrategy resolverStrategy) {
+                                            ResolverStrategy resolverStrategy,
+                                            FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.resolverStrategy = resolverStrategy;
+        this.artifactFileStore = artifactFileStore;
     }
 
     public Set<File> getDirs() {
@@ -86,8 +90,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
 
-        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createTransport("file", getName(), null),
-                locallyAvailableResourceFinder, false, resolverStrategy);
+        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createTransport("file", getName(), null), locallyAvailableResourceFinder, false, resolverStrategy, artifactFileStore);
         for (File root : dirs) {
             resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");
