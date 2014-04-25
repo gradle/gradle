@@ -160,6 +160,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can configure platform specific executables"() {
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "c-compiler", toolChain.CCompiler, "-DFRENCH")
