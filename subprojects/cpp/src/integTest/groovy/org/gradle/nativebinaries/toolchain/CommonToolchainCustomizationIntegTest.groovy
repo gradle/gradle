@@ -54,6 +54,6 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
         succeeds "mainExecutable"
         then:
         executable("build/binaries/mainExecutable/main").exec().out == """Bonjour, Monde!
-        12"""
+12"""
     }
 }
