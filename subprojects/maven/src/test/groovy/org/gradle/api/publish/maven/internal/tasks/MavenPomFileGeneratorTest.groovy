@@ -193,7 +193,7 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
-	def "applies withXml actions"() {
+    def "applies withXml actions"() {
         when:
         generator.withXml(new Action<XmlProvider>() {
             void execute(XmlProvider t) {
