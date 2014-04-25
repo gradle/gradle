@@ -172,9 +172,6 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
             model {
                 toolChains {
                     ${toolChain.id} {
-                        println path
-                        //path file('${binDir.toURI()}')
-                        println path
                         target("arm"){
                             cCompiler.executable = '${binDir.absolutePath}/c-compiler'
                             staticLibArchiver.executable = '${binDir.absolutePath}/static-lib'
