@@ -16,37 +16,21 @@
 
 package org.gradle.test.fixtures.maven
 
-import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TestUtil
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class MavenLocalModuleTest extends Specification {
-    Project project
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     TestFile testFile
     MavenModule mavenLocalModule
     MavenModule snapshotMavenLocalModule
 
     def setup() {
-        project = TestUtil.createRootProject()
-        testFile = new TestFile(project.projectDir, "build/test")
+        testFile = tmpDir.file("file")
         mavenLocalModule = new MavenLocalModule(testFile, "my-company", "my-artifact", "1.0")
         snapshotMavenLocalModule = new MavenLocalModule(testFile, "my-company", "my-artifact", "1.0-SNAPSHOT")
-    }
-
-    def "Get parent and its POM section"() {
-        when:
-        MavenLocalModule parent = mavenLocalModule.parent("my-company", "parent", "0.1")
-
-        then:
-        parent != null
-        """
-<parent>
-  <groupId>my-company</groupId>
-  <artifactId>parent</artifactId>
-  <version>0.1</version>
-</parent>
-""" == parent.parentPomSection
     }
 
     def "Add multiple dependencies without type"() {
@@ -119,10 +103,9 @@ class MavenLocalModuleTest extends Specification {
         mavenModule != null
     }
 
-    def "On publishing SHA1 and MD5 files are created"() {
+    def "On publishing SHA1 and MD5 files are not created"() {
         given:
-        TestFile pomTestFile = new TestFile(project.projectDir, "build/test/pom.xml")
-        pomTestFile.createFile()
+        def pomTestFile = tmpDir.createFile("build/test/pom.xml")
 
         when:
         mavenLocalModule.onPublish(pomTestFile)

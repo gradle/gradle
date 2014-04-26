@@ -374,13 +374,7 @@ project(':tool') {
         otherParent.publish()
 
         def module = mavenRepo.module("org", "someArtifact", '1.0')
-        module.parentPomSection = """
-<parent>
-  <groupId>org</groupId>
-  <artifactId>someParent</artifactId>
-  <version>1.0</version>
-</parent>
-"""
+        module.parent("org", "someParent", "1.0")
         module.publish()
 
         buildFile << """

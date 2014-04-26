@@ -28,7 +28,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     final String groupId
     final String artifactId
     final String version
-    String parentPomSection
+    Map<String, String> parentPom
     String type = 'jar'
     String packaging
     int publishCount = 1
@@ -45,13 +45,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     MavenModule parent(String group, String artifactId, String version) {
-        parentPomSection = """
-<parent>
-  <groupId>${group}</groupId>
-  <artifactId>${artifactId}</artifactId>
-  <version>${version}</version>
-</parent>
-"""
+        parentPom = [groupId: group, artifactId: artifactId, version: version]
         return this
     }
 
@@ -246,42 +240,36 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
         publish(pomFile) { Writer writer ->
             def pomPackaging = packaging ?: type;
-            writer << """
-<project xmlns="http://maven.apache.org/POM/4.0.0">
-  <!-- ${getArtifactContent()} -->
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>$groupId</groupId>
-  <artifactId>$artifactId</artifactId>
-  <packaging>$pomPackaging</packaging>
-  <version>$version</version>
-  <description>Published on $publishTimestamp</description>"""
-
-            if (parentPomSection) {
-                writer << "\n$parentPomSection\n"
+            new MarkupBuilder(writer).project {
+                mkp.comment(artifactContent)
+                modelVersion("4.0.0")
+                groupId(groupId)
+                artifactId(artifactId)
+                version(version)
+                packaging(pomPackaging)
+                description("Published on ${publishTimestamp}")
+                if (parentPom) {
+                    parent {
+                        groupId(parentPom.groupId)
+                        artifactId(parentPom.artifactId)
+                        version(parentPom.version)
+                    }
+                }
+                if (dependencies) {
+                    dependencies {
+                        dependencies.each { dep ->
+                            dependency {
+                                groupId(dep.groupId)
+                                artifactId(dep.artifactId)
+                                version(dep.version)
+                                if (dep.type) {
+                                    type(dep.type)
+                                }
+                            }
+                        }
+                    }
+                }
             }
-
-            if (!dependencies.empty) {
-                writer << """
-  <dependencies>"""
-            }
-
-            dependencies.each { dependency ->
-                def typeAttribute = dependency['type'] == null ? "" : "<type>$dependency.type</type>"
-                writer << """
-    <dependency>
-      <groupId>$dependency.groupId</groupId>
-      <artifactId>$dependency.artifactId</artifactId>
-      <version>$dependency.version</version>
-      $typeAttribute
-    </dependency>"""
-            }
-
-            if (!dependencies.empty) {
-                writer << """
-  </dependencies>"""
-            }
-
-            writer << "\n</project>"
         }
         return this
     }
