@@ -142,6 +142,10 @@ Adapt more existing test coverage to execute against an 'sftp' repository:
 - `org.gradle.api.publish.ivy.IvyPublishMultipleRepositoriesIntegTest`
 - `org.gradle.api.publish.maven.MavenPublishHttpIntegTest`
 
+## All repository transports support using `sha1` resources to avoid downloads
+
+Currently only the HTTP transports support using for a `.sha1` resource.
+
 ## Support 'scp' scheme for ivy and maven repository URL
 
 ## Use public key authentication when accessing sftp/scp/https repository
