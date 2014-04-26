@@ -334,7 +334,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 return;
             }
 
-            Annotation optional = annotationTarget.getAnnotation(Optional.class);
+            Annotation optional = annotationTarget.getAnnotation(org.gradle.api.tasks.Optional.class);
             if (optional == null) {
                 propertyInfo.setNotNullValidator(notNullValidator);
             }

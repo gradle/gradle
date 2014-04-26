@@ -21,7 +21,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.SourceTask;
+import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
 import java.io.Serializable;
@@ -159,7 +164,8 @@ public class Groovydoc extends SourceTask {
     /**
      * Returns the browser window title for the documentation. Set to {@code null} when there is no window title.
      */
-    @Input @Optional
+    @Input
+    @Optional
     public String getWindowTitle() {
         return windowTitle;
     }
