@@ -181,4 +181,54 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * index.store("scheme:thing", cachedFile, remoteMetaData)
         0 * _._
     }
+
+    def "downloads resource directly when local candidate cannot be copied"() {
+        given:
+        def localCandidates = Mock(LocallyAvailableResourceCandidates)
+        def cached = Mock(CachedExternalResource)
+        def candidate = tempDir.createFile("candidate-file")
+        def sha1 = HashUtil.createHash(candidate, "sha1")
+        candidate << "some extra stuff"
+        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
+        def cachedMetaData = Mock(ExternalResourceMetaData)
+        def remoteMetaData = Mock(ExternalResourceMetaData)
+        def localCandidate = Mock(LocallyAvailableResource)
+        def uri = new URI("scheme:thing")
+        def remoteResource = Mock(ExternalResource)
+        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+
+        when:
+        def result = cache.getResource(uri, fileStore, localCandidates)
+
+        then:
+        result.localResource.file == cachedFile
+        result.metaData == remoteMetaData
+
+        and:
+        1 * index.lookup("scheme:thing") >> cached
+        timeProvider.currentTime >> 24000L
+        cached.cachedAt >> 23999L
+        cached.externalResourceMetaData >> cachedMetaData
+        1 * accessor.getMetaData(uri) >> remoteMetaData
+        localCandidates.none >> false
+        remoteMetaData.sha1 >> sha1
+        remoteMetaData.etag >> null
+        remoteMetaData.lastModified >> null
+        cachedMetaData.etag >> null
+        cachedMetaData.lastModified >> null
+        1 * localCandidates.findByHashValue(sha1) >> localCandidate
+        localCandidate.file >> candidate
+        cached.cachedFile >> cachedFile
+        1 * accessor.getResource(uri) >> remoteResource
+        1 * remoteResource.writeTo(tempFile)
+        0 * _._
+
+        and:
+        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+            return factory.create()
+        }
+        1 * fileStore.moveIntoCache(tempFile) >> localResource
+        1 * index.store("scheme:thing", cachedFile, remoteMetaData)
+        0 * _._
+    }
 }

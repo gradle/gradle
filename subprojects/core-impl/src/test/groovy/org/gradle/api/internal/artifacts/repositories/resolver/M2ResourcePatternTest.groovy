@@ -40,15 +40,16 @@ class M2ResourcePatternTest extends Specification {
 
     def "substitutes artifact attributes into pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        final String group = "group"
-        final String name = "projectA"
-        final String version = "1.2"
-        def artifact1 = artifact(group, name, version)
-        def artifact2 = artifact("org.group", "projectA", "1.2")
+        def artifact = artifact(group, module, version)
 
         expect:
-        pattern.toPath(artifact1) == 'prefix/group/projectA/1.2/ivys/1.2/ivy.xml'
-        pattern.toPath(artifact2) == 'prefix/org/group/projectA/1.2/ivys/1.2/ivy.xml'
+        pattern.toPath(artifact) == expectPath
+
+        where:
+        group       | module     | version | expectPath
+        "group"     | "projectA" | "1.2"   | 'prefix/group/projectA/1.2/ivys/1.2/ivy.xml'
+        "org.group" | "projectA" | "1.2"   | 'prefix/org/group/projectA/1.2/ivys/1.2/ivy.xml'
+        "##??::"    | "projectA" | "1.2"   | 'prefix/##??::/projectA/1.2/ivys/1.2/ivy.xml'
     }
 
     def "substitutes snapshot artifact attributes into pattern"() {
@@ -59,6 +60,20 @@ class M2ResourcePatternTest extends Specification {
 
         expect:
         pattern.toPath(artifact1) == 'prefix/group/projectA/1.2-SNAPSHOT/projectA-1.2-2014-timestamp-3333.pom'
+    }
+
+    def "determines artifact location by substituting artifact attributes into pattern and resolving relative to base URI"() {
+        def pattern = new M2ResourcePattern(new URI("http://server/lookup"), "[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
+        def artifact = artifact(group, module, version)
+
+        expect:
+        pattern.getLocation(artifact) == new URI(expectPath)
+
+        where:
+        group       | module     | version | expectPath
+        "group"     | "projectA" | "1.2"   | 'http://server/lookup/group/projectA/1.2/ivys/1.2/ivy.xml'
+        "org.group" | "projectA" | "1.2"   | 'http://server/lookup/org/group/projectA/1.2/ivys/1.2/ivy.xml'
+        "#?:%12"    | "projectA" | "1.2"   | 'http://server/lookup/%23%3F:%2512/projectA/1.2/ivys/1.2/ivy.xml'
     }
 
     def "substitutes module attributes into pattern to determine module pattern"() {

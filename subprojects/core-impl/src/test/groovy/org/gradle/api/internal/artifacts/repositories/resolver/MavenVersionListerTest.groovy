@@ -39,7 +39,7 @@ class MavenVersionListerTest extends Specification {
 
     def repository = Mock(ExternalResourceRepository)
     def pattern = pattern("localhost:8081/testRepo/" + MavenPattern.M2_PATTERN)
-    String metaDataResource = 'localhost:8081/testRepo/org/acme/testproject/maven-metadata.xml'
+    def metaDataResource = new URI('localhost:8081/testRepo/org/acme/testproject/maven-metadata.xml')
 
     final MavenVersionLister lister = new MavenVersionLister(repository)
 
@@ -86,7 +86,7 @@ class MavenVersionListerTest extends Specification {
         sort(versionList).collect {it.pattern} == [pattern2, pattern1, pattern1]
 
         and:
-        1 * repository.getResource('prefix1/org/acme/testproject/maven-metadata.xml') >> resource1
+        1 * repository.getResource(new URI('prefix1/org/acme/testproject/maven-metadata.xml')) >> resource1
         1 * resource1.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -97,7 +97,7 @@ class MavenVersionListerTest extends Specification {
     </versioning>
 </metadata>""".bytes))
         }
-        1 * repository.getResource('prefix2/org/acme/testproject/maven-metadata.xml') >> resource2
+        1 * repository.getResource(new URI('prefix2/org/acme/testproject/maven-metadata.xml')) >> resource2
         1 * resource2.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>

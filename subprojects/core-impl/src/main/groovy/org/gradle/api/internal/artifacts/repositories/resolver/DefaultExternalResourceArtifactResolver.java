@@ -22,7 +22,6 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceException;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.filestore.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.slf4j.Logger;
@@ -31,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifactResolver {
@@ -68,14 +66,14 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
 
     private boolean staticResourceExists(List<ResourcePattern> patternList, ModuleVersionArtifactMetaData artifact) {
         for (ResourcePattern resourcePattern : patternList) {
-            String resourcePath = resourcePattern.toPath(artifact);
-            LOGGER.debug("Loading {}", resourcePath);
+            URI location = resourcePattern.getLocation(artifact);
+            LOGGER.debug("Loading {}", location);
             try {
-                if (repository.getResourceMetaData(resourcePath) != null) {
+                if (repository.getResourceMetaData(location) != null) {
                     return true;
                 }
             } catch (IOException e) {
-                throw new ResourceException(String.format("Could not get resource '%s'.", resourcePath), e);
+                throw new ResourceException(String.format("Could not get resource '%s'.", location), e);
             }
         }
         return false;
@@ -83,11 +81,11 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
 
     private LocallyAvailableExternalResource downloadStaticResource(List<ResourcePattern> patternList, final ModuleVersionArtifactMetaData artifact) {
         for (ResourcePattern resourcePattern : patternList) {
-            String resourcePath = resourcePattern.toPath(artifact);
-            LOGGER.debug("Loading {}", resourcePath);
+            URI location = resourcePattern.getLocation(artifact);
+            LOGGER.debug("Loading {}", location);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
             try {
-                LocallyAvailableExternalResource resource = resourceAccessor.getResource(new URI(resourcePath), new CacheAwareExternalResourceAccessor.ResourceFileStore() {
+                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                     public LocallyAvailableResource moveIntoCache(File downloadedResource) {
                         return fileStore.move(artifact, downloadedResource);
                     }
@@ -96,9 +94,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                     return resource;
                 }
             } catch (IOException e) {
-                throw new ResourceException(String.format("Could not get resource '%s'.", resourcePath), e);
-            } catch (URISyntaxException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+                throw new ResourceException(String.format("Could not get resource '%s'.", location), e);
             }
         }
         return null;

@@ -41,7 +41,7 @@ public class M2ResourcePattern extends AbstractResourcePattern {
 
     public String toPath(ModuleVersionArtifactMetaData artifact) {
         Map<String, String> attributes = toAttributes(artifact);
-        String pattern = maybeSubstituteTimestamp(artifact, getPattern());
+        String pattern = maybeSubstituteTimestamp(artifact, getPath());
         return substituteTokens(pattern, attributes);
     }
 
@@ -55,7 +55,7 @@ public class M2ResourcePattern extends AbstractResourcePattern {
 
     public String toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
         Map<String, String> attributes = toAttributes(module, artifact);
-        return substituteTokens(pattern, attributes);
+        return substituteTokens(getPattern(), attributes);
     }
 
     public String toModulePath(ModuleIdentifier module) {

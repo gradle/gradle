@@ -36,17 +36,17 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
 
     @Override
     public String toString() {
-        return String.format("Ivy pattern '%s'", pattern);
+        return String.format("Ivy pattern '%s'", getPattern());
     }
 
     public String toPath(ModuleVersionArtifactMetaData artifact) {
         Map<String, String> attributes = toAttributes(artifact);
-        return substituteTokens(pattern, attributes);
+        return substituteTokens(getPath(), attributes);
     }
 
     public String toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
         Map<String, String> attributes = toAttributes(module, artifact);
-        return substituteTokens(pattern, attributes);
+        return substituteTokens(getPattern(), attributes);
     }
 
     public String toModulePath(ModuleIdentifier module) {

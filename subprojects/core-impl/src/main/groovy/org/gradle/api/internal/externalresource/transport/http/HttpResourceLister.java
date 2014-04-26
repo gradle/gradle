@@ -46,7 +46,7 @@ public class HttpResourceLister implements ExternalResourceLister {
                     try {
                         return directoryListingParser.parse(parent, inputStream, contentType);
                     } catch (Exception e) {
-                        throw new ResourceException("Unable to parse Http directory listing", e);
+                        throw new ResourceException("Unable to parse HTTP directory listing.", e);
                     }
                 }
             });

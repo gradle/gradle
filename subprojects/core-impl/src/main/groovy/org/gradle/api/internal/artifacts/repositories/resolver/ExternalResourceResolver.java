@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -342,13 +343,13 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         } else {
             throw new IllegalStateException("impossible to publish " + artifact + " using " + this + ": no artifact pattern defined");
         }
-        String destination = destinationPattern.toPath(artifact);
+        URI destination = destinationPattern.getLocation(artifact);
 
         put(src, destination);
         LOGGER.info("Published {} to {}", artifact, destination);
     }
 
-    private void put(File src, String destination) throws IOException {
+    private void put(File src, URI destination) throws IOException {
         repository.put(src, destination);
     }
 

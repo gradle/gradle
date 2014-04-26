@@ -17,7 +17,9 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
+import org.gradle.test.fixtures.encoding.Identifier
 import org.junit.Rule
+import spock.lang.Unroll
 
 class MavenHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -73,6 +75,60 @@ task retrieve(type: Sync) {
 
         then:
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
+    }
+
+    @Unroll
+    def "can resolve with GAV containing #title characters"() {
+        def value = identifier.safeForFileName().decorate("name")
+
+        given:
+        def projectB = mavenHttpRepo.module(value, value, value).publish()
+        def projectA = mavenHttpRepo.module('group', 'projectA').dependsOn(value, value, value).publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
+dependencies {
+    compile 'group:projectA:1.0'
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+        projectB.pom.expectGet()
+        projectB.artifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.0.jar', "${value}-${value}.jar")
+
+        and:
+        progressLogging.downloadProgressLogged(projectA.pom.uri)
+        progressLogging.downloadProgressLogged(projectA.artifact.uri)
+        progressLogging.downloadProgressLogged(projectB.pom.uri)
+        progressLogging.downloadProgressLogged(projectB.artifact.uri)
+
+        where:
+        title        | identifier
+//        "punctuation"| Identifier.punctuation
+        "non-ascii"  | Identifier.nonAscii
+//        "whitespace" | Identifier.whiteSpace
+//        "filesystem" | Identifier.fileSystemReserved
+//        "xml markup" | Identifier.xmlMarkup
     }
 
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {

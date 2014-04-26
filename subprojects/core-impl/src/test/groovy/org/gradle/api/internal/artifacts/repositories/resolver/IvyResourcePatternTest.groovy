@@ -30,22 +30,44 @@ class IvyResourcePatternTest extends Specification {
         new IvyResourcePattern(new URI(uri), pattern).pattern == expectedPattern
 
         where:
-        uri            | pattern  | expectedPattern
-        "http://host/" | "a/b/c"  | "http://host/a/b/c"
-        "http://host"  | "a/b/c"  | "http://host/a/b/c"
-        "http://host/" | "/a/b/c" | "http://host/a/b/c"
-        "http://host/" | ""       | "http://host/"
-        "http://host"  | ""       | "http://host/"
+        uri                | pattern            | expectedPattern
+        "http://host/"     | "a/[revision]/c"   | "http://host/a/[revision]/c"
+        "http://host"      | "a/b/c"            | "http://host/a/b/c"
+        "http://host/"     | "/a/b/c"           | "http://host/a/b/c"
+        "http://host/"     | ""                 | "http://host/"
+        "http://host"      | ""                 | "http://host/"
+        "http://host/"     | "/"                | "http://host/"
+        "http://host/repo" | "query?[revision]" | "http://host/repo/query?[revision]"
+        "file:/some-thing" | "a/b/[revision]"   | "file:/some-thing/a/b/[revision]"
+        "scheme:thing"     | "a/b/[revision]"   | "scheme:thing/a/b/[revision]"
     }
 
     def "substitutes artifact attributes into pattern"() {
         def pattern = new IvyResourcePattern("prefix/[organisation]-[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def artifact1 = artifact("group", "projectA", "1.2")
-        def artifact2 = artifact("org.group", "projectA", "1.2")
+        def artifact = artifact(group, module, version)
 
         expect:
-        pattern.toPath(artifact1) == 'prefix/group-projectA/1.2/ivys/1.2/ivy.xml'
-        pattern.toPath(artifact2) == 'prefix/org.group-projectA/1.2/ivys/1.2/ivy.xml'
+        pattern.toPath(artifact) == expectPath
+
+        where:
+        group       | module     | version | expectPath
+        "group"     | "projectA" | "1.2"   | 'prefix/group-projectA/1.2/ivys/1.2/ivy.xml'
+        "org.group" | "projectA" | "1.2"   | 'prefix/org.group-projectA/1.2/ivys/1.2/ivy.xml'
+        "##??::"    | "projectA" | "1.2"   | 'prefix/##??::-projectA/1.2/ivys/1.2/ivy.xml'
+    }
+
+    def "determines artifact location by substituting artifact attributes into pattern and resolving relative to base URI"() {
+        def pattern = new IvyResourcePattern(new URI('http://server/repo'), "lookup/[organisation]-[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
+        def artifact = artifact(group, module, version)
+
+        expect:
+        pattern.getLocation(artifact) == new URI(expectPath)
+
+        where:
+        group       | module     | version | expectPath
+        "group"     | "projectA" | "1.2"   | 'http://server/repo/lookup/group-projectA/1.2/ivys/1.2/ivy.xml'
+        "org.group" | "projectA" | "1.2"   | 'http://server/repo/lookup/org.group-projectA/1.2/ivys/1.2/ivy.xml'
+        "#?: %12"   | "projectA" | "1.2"   | 'http://server/repo/lookup/%23%3F:%20%2512-projectA/1.2/ivys/1.2/ivy.xml'
     }
 
     def "substitutes artifact attributes without revision into pattern"() {

@@ -22,6 +22,7 @@ import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDat
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 public interface ExternalResourceRepository {
@@ -30,7 +31,7 @@ public interface ExternalResourceRepository {
      *
      * @return null if the resource is not found.
      */
-    ExternalResource getResource(String source) throws IOException;
+    ExternalResource getResource(URI source) throws IOException;
 
     /**
      * Transfer a resource to the repository
@@ -39,7 +40,7 @@ public interface ExternalResourceRepository {
      * @param destination Where to transfer the resource.
      * @throws IOException On publication failure.
      */
-    void put(File source, String destination) throws IOException;
+    void put(File source, URI destination) throws IOException;
 
     /**
      * Fetches only the metadata for the result.
@@ -48,7 +49,7 @@ public interface ExternalResourceRepository {
      * @return The resource metadata, or null if the resource does not exist
      */
     @Nullable
-    ExternalResourceMetaData getResourceMetaData(String source) throws IOException;
+    ExternalResourceMetaData getResourceMetaData(URI source) throws IOException;
 
     /**
      * Return a listing of resources names

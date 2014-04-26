@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
+import java.net.URI;
+
 public interface ResourcePattern {
     /**
      * Returns this pattern converted to a String.
@@ -31,6 +33,11 @@ public interface ResourcePattern {
      * Returns the path to the given artifact.
      */
     String toPath(ModuleVersionArtifactMetaData artifact);
+
+    /**
+     * Returns the URI for the given artifact.
+     */
+    URI getLocation(ModuleVersionArtifactMetaData artifact);
 
     /**
      * Returns the pattern which can be used to search for versions of the given artifact.

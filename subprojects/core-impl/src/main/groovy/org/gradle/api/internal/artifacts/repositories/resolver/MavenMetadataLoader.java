@@ -30,6 +30,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 class MavenMetadataLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenMetadataLoader.class);
@@ -53,7 +54,7 @@ class MavenMetadataLoader {
     }
 
     private void parseMavenMetadataInfo(final String metadataLocation, final MavenMetadata metadata) throws Exception {
-        final ExternalResource resource = repository.getResource(metadataLocation);
+        ExternalResource resource = repository.getResource(URI.create(metadataLocation));
         if (resource == null) {
             throw new ResourceNotFoundException(String.format("Maven meta-data not available: %s", metadataLocation));
         }

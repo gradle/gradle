@@ -56,22 +56,22 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         this.temporaryFileProvider = temporaryFileProvider;
     }
 
-    public ExternalResource getResource(String source) throws IOException {
-        return accessor.getResource(toUri(source));
+    public ExternalResource getResource(URI source) throws IOException {
+        return accessor.getResource(source);
     }
 
-    public ExternalResourceMetaData getResourceMetaData(String source) throws IOException {
-        return accessor.getMetaData(toUri(source));
+    public ExternalResourceMetaData getResourceMetaData(URI source) throws IOException {
+        return accessor.getMetaData(source);
     }
 
-    public void put(File source, String destination) throws IOException {
+    public void put(File source, URI destination) throws IOException {
         doPut(source, destination);
         putChecksum("SHA1", 40, source, destination);
     }
 
-    private void putChecksum(String algorithm, int checksumlength, File source, String destination) throws IOException {
+    private void putChecksum(String algorithm, int checksumlength, File source, URI destination) throws IOException {
         File checksumFile = createChecksumFile(source, algorithm, checksumlength);
-        String checksumDestination = destination + "." + algorithm.toLowerCase();
+        URI checksumDestination = URI.create(destination + "." + algorithm.toLowerCase());
         doPut(checksumFile, checksumDestination);
     }
 
@@ -90,7 +90,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return hashKey;
     }
 
-    protected void doPut(final File source, String destination) throws IOException {
+    protected void doPut(final File source, URI destination) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
         assert source.isFile();
         try {
@@ -102,11 +102,9 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
-            }, source.length(), new URI(destination));
+            }, source.length(), destination);
         } catch (IOException e) {
             throw e;
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
