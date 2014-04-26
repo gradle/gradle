@@ -17,52 +17,168 @@
 package org.gradle.api.internal.externalresource.transfer
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
-import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.util.BuildCommencedTimeProvider
-import spock.lang.Specification
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates
+import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
-import org.gradle.internal.hash.HashValue
+import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.internal.resource.local.LocallyAvailableResource
-import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.BuildCommencedTimeProvider
+import org.junit.Rule
+import spock.lang.Specification
 
 class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
+    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
     final accessor = Mock(ExternalResourceAccessor)
     final index = Mock(CachedExternalResourceIndex)
     final timeProvider = Mock(BuildCommencedTimeProvider)
-    final temporaryFileProvider = Mock(TemporaryFileProvider)
+    final tempFile = tempDir.file("temp-file")
+    final cachedFile = tempDir.file("cached-file")
+    final temporaryFileProvider = Stub(TemporaryFileProvider) {
+        createTemporaryFile(_, _, _) >> tempFile
+    }
     final cacheLockingManager = Mock(CacheLockingManager)
     final cache = new DefaultCacheAwareExternalResourceAccessor(accessor, index, timeProvider, temporaryFileProvider, cacheLockingManager)
+
+    def "returns null when the request resource is not cached and does not exist in the remote repository"() {
+        def uri = new URI("scheme:thing")
+        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
+        def localCandidates = Mock(LocallyAvailableResourceCandidates)
+
+        when:
+        def result = cache.getResource(uri, fileStore, localCandidates)
+
+        then:
+        result == null
+
+        and:
+        1 * index.lookup("scheme:thing") >> null
+        1 * localCandidates.isNone() >> true
+        1 * accessor.getResource(uri) >> null
+        0 * _._
+    }
+
+    def "returns null when the request resource is not cached and there are local candidates but the resource does not exist in the remote repository"() {
+        def uri = new URI("scheme:thing")
+        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
+        def localCandidates = Mock(LocallyAvailableResourceCandidates)
+
+        when:
+        def result = cache.getResource(uri, fileStore, localCandidates)
+
+        then:
+        result == null
+
+        and:
+        1 * index.lookup("scheme:thing") >> null
+        1 * localCandidates.isNone() >> false
+        1 * accessor.getMetaData(uri) >> null
+        0 * _._
+    }
+
+    def "downloads resource and moves it into the cache when it is not cached"() {
+        def uri = new URI("scheme:thing")
+        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
+        def localCandidates = Mock(LocallyAvailableResourceCandidates)
+        def remoteResource = Mock(ExternalResource)
+        def metaData = Mock(ExternalResourceMetaData)
+        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+
+        when:
+        def result = cache.getResource(uri, fileStore, localCandidates)
+
+        then:
+        result.localResource.file == cachedFile
+        result.metaData == metaData
+
+        and:
+        1 * index.lookup("scheme:thing") >> null
+        1 * localCandidates.isNone() >> true
+        1 * accessor.getResource(uri) >> remoteResource
+        _ * remoteResource.name >> "remoteResource"
+        1 * remoteResource.writeTo(tempFile)
+        1 * remoteResource.close()
+
+        and:
+        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+            return factory.create()
+        }
+        1 * fileStore.moveIntoCache(tempFile) >> localResource
+        1 * remoteResource.metaData >> metaData
+        1 * index.store("scheme:thing", cachedFile, metaData)
+        0 * _._
+    }
+
+    def "reuses cached resource if it has not expired"() {
+        def uri = new URI("scheme:thing")
+        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
+        def localCandidates = Mock(LocallyAvailableResourceCandidates)
+        def metaData = Mock(ExternalResourceMetaData)
+        def cachedResource = Stub(CachedExternalResource)
+
+        when:
+        def result = cache.getResource(uri, fileStore, localCandidates)
+
+        then:
+        result.localResource.file == cachedFile
+        result.metaData == metaData
+
+        and:
+        1 * index.lookup("scheme:thing") >> cachedResource
+        _ * timeProvider.currentTime >> 24000L
+        _ * cachedResource.cachedAt >> 24000L
+        _ * cachedResource.cachedFile >> cachedFile
+        _ * cachedResource.externalResourceMetaData >> metaData
+        0 * _._
+    }
 
     def "will use sha1 from metadata for finding candidates if available"() {
         given:
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
         def cached = Mock(CachedExternalResource)
-        def sha1 = HashValue.parse("abc")
+        def candidate = tempDir.createFile("candidate-file")
+        def sha1 = HashUtil.createHash(candidate, "sha1")
+        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
         def cachedMetaData = Mock(ExternalResourceMetaData)
         def remoteMetaData = Mock(ExternalResourceMetaData)
         def localCandidate = Mock(LocallyAvailableResource)
         def uri = new URI("scheme:thing")
+        def localResource = new DefaultLocallyAvailableResource(cachedFile)
 
-        and:
-        index.lookup("scheme:thing") >> cached
-        cached.getExternalResourceMetaData() >> cachedMetaData
-        accessor.getMetaData(uri) >> remoteMetaData
-        localCandidates.isNone() >> false
-        remoteMetaData.sha1 >> sha1
-        
         when:
-        def foundResource = cache.getResource(uri, localCandidates)
+        def result = cache.getResource(uri, fileStore, localCandidates)
 
         then:
-        1 * timeProvider.currentTime >> new Date().time
-        1 * cached.cachedAt >> new Date().time + 2
-        0 * accessor.getResourceSha1(_)
-        1 * localCandidates.findByHashValue(sha1) >> localCandidate
+        result.localResource.file == cachedFile
+        result.metaData == remoteMetaData
 
         and:
-        foundResource instanceof DefaultLocallyAvailableExternalResource
+        1 * index.lookup("scheme:thing") >> cached
+        timeProvider.currentTime >> 24000L
+        cached.cachedAt >> 23999L
+        cached.externalResourceMetaData >> cachedMetaData
+        1 * accessor.getMetaData(uri) >> remoteMetaData
+        localCandidates.none >> false
+        remoteMetaData.sha1 >> sha1
+        remoteMetaData.etag >> null
+        remoteMetaData.lastModified >> null
+        cachedMetaData.etag >> null
+        cachedMetaData.lastModified >> null
+        1 * localCandidates.findByHashValue(sha1) >> localCandidate
+        localCandidate.file >> candidate
+        cached.cachedFile >> cachedFile
+        0 * _._
+
+        and:
+        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+            return factory.create()
+        }
+        1 * fileStore.moveIntoCache(tempFile) >> localResource
+        1 * index.store("scheme:thing", cachedFile, remoteMetaData)
+        0 * _._
     }
 }

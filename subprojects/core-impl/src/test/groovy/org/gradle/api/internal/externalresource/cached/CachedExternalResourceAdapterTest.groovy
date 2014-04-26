@@ -16,8 +16,10 @@
 package org.gradle.api.internal.externalresource.cached
 
 import org.gradle.api.internal.externalresource.ExternalResource
-import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor
+import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.HashValue
+import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,27 +28,13 @@ public class CachedExternalResourceAdapterTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     ExternalResourceAccessor accessor = Mock()
-    CachedExternalResource cachedExternalResource = Mock()
-    CachedExternalResourceAdapter cachedResource
+    LocallyAvailableResource candidate = Mock()
     def uri = new URI("scheme:thing")
     def origin = tmpDir.file('origin')
     def destination = tmpDir.file('destination')
-    def download = tmpDir.file('download')
 
     def setup() {
-        cachedExternalResource.cachedFile >> origin
-        cachedResource = new CachedExternalResourceAdapter(uri, cachedExternalResource, accessor)
-    }
-
-    def "delegates to cached artifact"() {
-        given:
-        cachedExternalResource.contentLength >> 22
-        cachedExternalResource.externalResourceMetaData >> new DefaultExternalResourceMetaData("url")
-        cachedExternalResource.externalLastModifiedAsTimestamp >> 33
-
-        expect:
-        cachedResource.contentLength == 22
-        cachedResource.lastModified == 33
+        candidate.file >> origin
     }
 
     def "will copy cache file to destination"() {
@@ -54,6 +42,7 @@ public class CachedExternalResourceAdapterTest extends Specification {
         origin << "some content"
 
         when:
+        def cachedResource = new CachedExternalResourceAdapter(uri, candidate, accessor, null, HashUtil.createHash(origin, "sha1"))
         cachedResource.writeTo(destination)
 
         then:
@@ -63,16 +52,13 @@ public class CachedExternalResourceAdapterTest extends Specification {
     def "will copy download resource if destination does not match original sha1 after copy"() {
         given:
         origin << "some content"
-        download << "some other content"
         ExternalResource resource = Mock()
 
         when:
+        def cachedResource = new CachedExternalResourceAdapter(uri, candidate, accessor, null, new HashValue(123.toBigInteger().toByteArray()))
         cachedResource.writeTo(destination)
 
         then:
-        cachedExternalResource.cachedFile >> origin
-
-        and:
         accessor.getResource(uri) >> resource
         resource.writeTo(destination)
     }
