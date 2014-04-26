@@ -108,10 +108,6 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             return resource.getName();
         }
 
-        public long getLastModified() {
-            return resource.getLastModified();
-        }
-
         public long getContentLength() {
             return resource.getContentLength();
         }

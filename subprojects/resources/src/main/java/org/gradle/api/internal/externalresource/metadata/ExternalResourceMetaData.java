@@ -19,15 +19,19 @@ package org.gradle.api.internal.externalresource.metadata;
 import org.gradle.api.Nullable;
 import org.gradle.internal.hash.HashValue;
 
+import java.net.URI;
 import java.util.Date;
 
 public interface ExternalResourceMetaData {
 
-    String getLocation();
+    URI getLocation();
 
     @Nullable
     Date getLastModified();
 
+    /**
+     * Returns -1 when the content length is unknown.
+     */
     long getContentLength();
 
     /**

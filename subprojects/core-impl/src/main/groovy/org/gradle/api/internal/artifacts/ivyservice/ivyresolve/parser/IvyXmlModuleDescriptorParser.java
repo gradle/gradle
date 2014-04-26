@@ -144,7 +144,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         protected AbstractParser(ExternalResource resource) {
             this.res = resource; // used for log and date only
             md = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
-            md.setLastModified(res.getLastModified());
         }
 
         protected void checkErrors() throws ParseException {
@@ -395,10 +394,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return md;
         }
 
-        protected Date getDefaultPubDate() {
-            return new Date(md.getLastModified());
-        }
-
         private void replaceConfigurationWildcards(ModuleDescriptor md) {
             Configuration[] configs = md.getConfigurations();
             for (int i = 0; i < configs.length; i++) {
@@ -507,7 +502,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             checkErrors();
             checkConfigurations();
             replaceConfigurationWildcards();
-            getMd().setModuleArtifact(DefaultArtifact.newIvyArtifact(getMd().getResolvedModuleRevisionId(), getMd().getPublicationDate()));
             if (!artifactsDeclared) {
                 String[] configurationNames = getMd().getConfigurationsNames();
                 for (String configurationName : configurationNames) {
@@ -973,10 +967,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     getMd().setPublicationDate(ivyDateFormat.parse(pubDate));
                 } catch (ParseException e) {
                     addError("invalid publication date format: " + pubDate);
-                    getMd().setPublicationDate(getDefaultPubDate());
                 }
-            } else {
-                getMd().setPublicationDate(getDefaultPubDate());
             }
         }
 

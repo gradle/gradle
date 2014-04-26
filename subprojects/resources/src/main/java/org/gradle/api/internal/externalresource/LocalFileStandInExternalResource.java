@@ -35,7 +35,6 @@ import java.net.URI;
 public class LocalFileStandInExternalResource extends AbstractExternalResource {
     private final File localFile;
     private final URI source;
-    private HashValue sha1;
     private ExternalResourceMetaData metaData;
 
     public LocalFileStandInExternalResource(URI source, File localFile, ExternalResourceMetaData metaData) {
@@ -46,10 +45,6 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     public URI getURI() {
         return source;
-    }
-
-    public long getLastModified() {
-        return -1;
     }
 
     public long getContentLength() {
@@ -70,23 +65,12 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     public ExternalResourceMetaData getMetaData() {
         if (metaData == null) {
-            metaData = new DefaultExternalResourceMetaData(source.toString(), getLastModified(), getContentLength(), null, getLocalFileSha1());
+            metaData = new DefaultExternalResourceMetaData(source, -1, getContentLength(), null, null);
         }
         return metaData;
     }
 
-    protected File getLocalFile() {
-        return localFile;
-    }
-
     protected HashValue getSha1(File contentFile) {
         return HashUtil.createHash(contentFile, "SHA1");
-    }
-
-    protected HashValue getLocalFileSha1() {
-        if (sha1 == null) {
-            sha1 = getSha1(getLocalFile());
-        }
-        return sha1;
     }
 }

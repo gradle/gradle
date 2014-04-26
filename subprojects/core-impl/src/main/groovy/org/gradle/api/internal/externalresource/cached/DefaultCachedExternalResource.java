@@ -60,11 +60,6 @@ public class DefaultCachedExternalResource implements CachedExternalResource, Se
         return externalResourceMetaData != null ? externalResourceMetaData.getLastModified() : null;
     }
 
-    public long getExternalLastModifiedAsTimestamp() {
-        Date externalLastModified = getExternalLastModified();
-        return externalLastModified == null ? -1 : externalLastModified.getTime();
-    }
-
     public long getContentLength() {
         return isMissing() ? -1 : cachedFile.length();
     }

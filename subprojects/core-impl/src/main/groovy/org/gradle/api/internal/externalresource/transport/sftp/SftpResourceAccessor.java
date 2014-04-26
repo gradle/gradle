@@ -42,7 +42,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         LockableSftpClient sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
         try {
             SftpATTRS attributes = sftpClient.getSftpClient().lstat(uri.getPath());
-            return attributes != null ? toMetaData(uri.toString(), attributes) : null;
+            return attributes != null ? toMetaData(uri, attributes) : null;
         } catch (com.jcraft.jsch.SftpException e) {
             if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
                 return null;
@@ -53,7 +53,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         }
     }
 
-    private ExternalResourceMetaData toMetaData(String path, SftpATTRS attributes) {
+    private ExternalResourceMetaData toMetaData(URI uri, SftpATTRS attributes) {
         long lastModified = -1;
         long contentLength = -1;
 
@@ -64,7 +64,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
             contentLength = attributes.getSize();
         }
 
-        return new DefaultExternalResourceMetaData(path, lastModified, contentLength, null, null);
+        return new DefaultExternalResourceMetaData(uri, lastModified, contentLength, null, null);
     }
 
     public ExternalResource getResource(URI location) throws IOException {

@@ -35,7 +35,15 @@ public class UrlExternalResource extends AbstractExternalResource {
     public UrlExternalResource(URL url) throws IOException {
         this.url = url;
         connection = url.openConnection();
-        metaData = new DefaultExternalResourceMetaData(url.toString(), connection.getLastModified(), connection.getContentLength(), null, null);
+
+        URI uri;
+        try {
+            uri = url.toURI();
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
+        metaData = new DefaultExternalResourceMetaData(uri, connection.getLastModified(), connection.getContentLength(), null, null);
     }
 
     public URI getURI() {

@@ -58,7 +58,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
     protected MutableModuleVersionMetaData doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
         PomReader pomReader = new PomReader(resource);
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, parserSettings, pomReader);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader);
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
@@ -203,7 +203,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleVersionIdentifier parentId) throws IOException, SAXException {
         LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(parentId, MavenPomArtifact.class);
         PomReader pomReader = new PomReader(localResource);
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(localResource, parseContext, pomReader);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader);
         doParsePom(parseContext, mdBuilder, pomReader);
         return pomReader;
     }

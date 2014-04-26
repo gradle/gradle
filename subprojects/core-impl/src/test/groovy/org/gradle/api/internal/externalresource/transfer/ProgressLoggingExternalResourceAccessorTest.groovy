@@ -108,6 +108,6 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         then:
         1 * externalResource."$method"()
         where:
-        method << ['close', 'getMetaData', 'getName', 'getLastModified', 'getContentLength', 'isLocal']
+        method << ['close', 'getMetaData', 'getName', 'getContentLength', 'isLocal']
     }
 }

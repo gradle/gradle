@@ -18,7 +18,6 @@ package org.gradle.api.internal.externalresource;
 
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.internal.hash.HashValue;
 
 import java.net.URI;
 
@@ -48,8 +47,4 @@ public class DefaultLocallyAvailableExternalResource extends LocalFileStandInExt
         return locallyAvailableResource.getContentLength();
     }
 
-    @Override
-    protected HashValue getLocalFileSha1() {
-        return locallyAvailableResource.getSha1();
-    }
 }

@@ -37,15 +37,6 @@ public interface ExternalResource {
     public String getName();
 
     /**
-     * Get the date the resource was last modified
-     *
-     * @return A <code>long</code> value representing the time the file was last modified,
-     *         measured in milliseconds since the epoch (00:00:00 GMT, January 1, 1970), or
-     *         <code>0L</code> if the file does not exist or if an I/O error occurs.
-     */
-    public long getLastModified();
-
-    /**
      * Get the resource size
      *
      * @return a <code>long</code> value representing the size of the resource in bytes.
@@ -90,5 +81,8 @@ public interface ExternalResource {
 
     void close() throws IOException;
 
+    /**
+     * Returns the meta-data for this resource.
+     */
     ExternalResourceMetaData getMetaData();
 }

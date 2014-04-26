@@ -54,13 +54,13 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         index = new DefaultCachedExternalResourceIndex("index", String, timeProvider, cacheLockingManager)
     }
 
-    @Unroll "stores entry - lastModified = #lastModified, artifactUrl = #artifactUrl"() {
+    @Unroll "stores entry - lastModified = #lastModified"() {
         given:
         def key = "key"
         def artifactFile = tmp.createFile("artifact") << "content"
         
         when:
-        index.store(key, artifactFile, new DefaultExternalResourceMetaData(artifactUrl, lastModified, 100, null, null))
+        index.store(key, artifactFile, new DefaultExternalResourceMetaData(new URI("abc"), lastModified, 100, null, null))
         
         then:
         def cached = index.lookup(key)
@@ -70,15 +70,11 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         cached.cachedFile == artifactFile
         cached.externalResourceMetaData != null
         cached.externalResourceMetaData.lastModified == lastModified
-        cached.externalResourceMetaData.location == artifactUrl
+        cached.externalResourceMetaData.location == new URI("abc")
 
 
         where:
-        lastModified | artifactUrl
-        new Date()   | null
-        null         | "abc"
-        null         | null
-        new Date()   | "abc"
+        lastModified << [new Date(), null]
     }
 
 }

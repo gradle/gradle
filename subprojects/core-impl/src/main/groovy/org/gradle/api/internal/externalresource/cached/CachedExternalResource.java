@@ -46,11 +46,4 @@ public interface CachedExternalResource extends CachedItem {
      */
     Date getExternalLastModified();
 
-    /**
-     * Null safe shortcut for getExternalResourceMetaData().getLastModified() as a timestamp.
-     *
-     * @return The external last modified as a timestamp, or < 0 if unavailable.
-     */
-    long getExternalLastModifiedAsTimestamp();
-
 }

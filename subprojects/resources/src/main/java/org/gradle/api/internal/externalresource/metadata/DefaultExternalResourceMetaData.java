@@ -20,25 +20,25 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.hash.HashValue;
 
 import java.io.Serializable;
+import java.net.URI;
 import java.util.Date;
 
 public class DefaultExternalResourceMetaData implements ExternalResourceMetaData, Serializable {
-
-    private final String location;
+    private final URI location;
     private final Date lastModified;
     private final long contentLength;
     private final String etag;
     private final String sha1;
 
-    public DefaultExternalResourceMetaData(String location) {
+    public DefaultExternalResourceMetaData(URI location) {
         this(location, -1, -1, null, null);
     }
 
-    public DefaultExternalResourceMetaData(String location, long lastModified, long contentLength, @Nullable String etag, @Nullable HashValue sha1) {
+    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String etag, @Nullable HashValue sha1) {
         this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, etag, sha1);
     }
     
-    public DefaultExternalResourceMetaData(String location, @Nullable Date lastModified, long contentLength, @Nullable String etag, @Nullable HashValue sha1) {
+    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String etag, @Nullable HashValue sha1) {
         this.location = location;
         this.lastModified = lastModified;
         this.contentLength = contentLength;
@@ -46,7 +46,7 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
         this.sha1 = sha1 == null ? null : sha1.asHexString();
     }
 
-    public String getLocation() {
+    public URI getLocation() {
         return location;
     }
 

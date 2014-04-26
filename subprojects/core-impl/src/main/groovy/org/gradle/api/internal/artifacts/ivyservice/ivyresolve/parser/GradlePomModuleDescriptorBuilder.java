@@ -27,7 +27,6 @@ import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
-import org.gradle.api.internal.externalresource.ExternalResource;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -155,18 +154,16 @@ public class GradlePomModuleDescriptorBuilder {
 
     private ModuleRevisionId mrid;
 
-    private DescriptorParseContext parserSettings;
     private final PomReader pomReader;
 
-    public GradlePomModuleDescriptorBuilder(ExternalResource res, DescriptorParseContext ivySettings, PomReader pomReader) {
+    public GradlePomModuleDescriptorBuilder(PomReader pomReader) {
         ivyModuleDescriptor = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
-        ivyModuleDescriptor.setResolvedPublicationDate(new Date(res.getLastModified()));
+        ivyModuleDescriptor.setResolvedPublicationDate(new Date());
         for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
             ivyModuleDescriptor.addConfiguration(maven2Configuration);
         }
         ivyModuleDescriptor.setMappingOverride(true);
         ivyModuleDescriptor.addExtraAttributeNamespace("m", Ivy.getIvyHomeURL() + "maven");
-        parserSettings = ivySettings;
         this.pomReader = pomReader;
     }
 
