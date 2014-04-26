@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -40,7 +39,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         then: failure.assertHasCause("Unable to store task input properties. Property 'b' with value 'xxx")
     }
 
-    @Ignore
     def "deals gracefully with not serializable contents of GStrings"() {
         buildFile << """
             task foo {

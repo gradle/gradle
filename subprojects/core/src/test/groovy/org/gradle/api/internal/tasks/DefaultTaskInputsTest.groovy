@@ -105,6 +105,19 @@ class DefaultTaskInputsTest extends Specification {
         inputs.properties == [a: files]
     }
 
+    def "GString input property values are evaluated to avoid serialization issues"() {
+        when:
+        inputs.property('a', { "hey ${new NotSerializable()}" })
+
+        then:
+        inputs.properties == [a: "hey Joe"]
+        String.is inputs.properties.a.class
+    }
+
+    class NotSerializable {
+        String toString() { "Joe" }
+    }
+
     def canRegisterSourceFile() {
         when:
         inputs.source('file')

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
+import groovy.lang.GString;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -97,13 +98,13 @@ public class DefaultTaskInputs implements TaskInputs {
     public Map<String, Object> getProperties() {
         Map<String, Object> actualProperties = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
-            Object value = unwrap(entry.getValue());
+            Object value = prepareValue(entry.getValue());
             actualProperties.put(entry.getKey(), value);
         }
         return actualProperties;
     }
 
-    private Object unwrap(Object value) {
+    private Object prepareValue(Object value) {
         while (true) {
             if (value instanceof Callable) {
                 Callable callable = (Callable) value;
@@ -119,9 +120,13 @@ public class DefaultTaskInputs implements TaskInputs {
                 FileCollection fileCollection = (FileCollection) value;
                 return fileCollection.getFiles();
             } else {
-                return value;
+                return avoidGString(value);
             }
         }
+    }
+
+    private static Object avoidGString(Object value) {
+        return (value instanceof GString)? value.toString() : value;
     }
 
     public TaskInputs property(String name, Object value) {
