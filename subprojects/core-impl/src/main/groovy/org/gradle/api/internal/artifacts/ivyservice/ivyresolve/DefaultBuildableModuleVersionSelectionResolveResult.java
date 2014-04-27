@@ -37,10 +37,12 @@ public class DefaultBuildableModuleVersionSelectionResolveResult implements Buil
     }
 
     public ModuleVersionListing getVersions() throws ModuleVersionResolveException {
+        assertHasResult();
         return versions;
     }
 
     public ModuleVersionResolveException getFailure() {
+        assertHasResult();
         return failure;
     }
 
@@ -59,4 +61,9 @@ public class DefaultBuildableModuleVersionSelectionResolveResult implements Buil
         this.failure = failure;
     }
 
+    private void assertHasResult() {
+        if (!hasResult()) {
+            throw new IllegalStateException("No result has been specified.");
+        }
+    }
 }

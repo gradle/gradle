@@ -73,7 +73,7 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     }
 
     private void assertHasResult() {
-        if (state == State.Unknown) {
+        if (!hasResult()) {
             throw new IllegalStateException("No result has been specified.");
         }
     }
