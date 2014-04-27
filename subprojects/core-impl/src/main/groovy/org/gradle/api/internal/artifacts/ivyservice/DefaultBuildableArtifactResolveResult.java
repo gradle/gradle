@@ -48,6 +48,10 @@ public class DefaultBuildableArtifactResolveResult implements BuildableArtifactR
         return file;
     }
 
+    public boolean hasResult() {
+        return failure != null || file != null;
+    }
+
     private void assertResolved() {
         assertHasResult();
         if (failure != null) {
@@ -56,7 +60,7 @@ public class DefaultBuildableArtifactResolveResult implements BuildableArtifactR
     }
 
     private void assertHasResult() {
-        if (failure == null && file == null) {
+        if (!hasResult()) {
             throw new IllegalStateException("No result has been specified.");
         }
     }

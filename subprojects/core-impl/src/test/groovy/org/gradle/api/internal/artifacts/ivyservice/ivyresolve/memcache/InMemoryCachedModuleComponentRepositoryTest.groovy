@@ -31,10 +31,11 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class InMemoryCachedModuleComponentRepositoryTest extends Specification {
 
     def stats = new InMemoryCacheStats()
-    def artifactsCache = Mock(InMemoryArtifactsCache)
-    def localAccessCache = Mock(InMemoryMetaDataCache)
-    def remoteAccessCache = Mock(InMemoryMetaDataCache)
-    def caches = new InMemoryModuleComponentRepositoryCaches(artifactsCache, localAccessCache, remoteAccessCache, stats);
+    def localArtifactsCache = Mock(InMemoryArtifactsCache)
+    def remoteArtifactsCache = Mock(InMemoryArtifactsCache)
+    def localMetaDataCache = Mock(InMemoryMetaDataCache)
+    def remoteMetaDataCache = Mock(InMemoryMetaDataCache)
+    def caches = new InMemoryModuleComponentRepositoryCaches(localArtifactsCache, remoteArtifactsCache, localMetaDataCache, remoteMetaDataCache, stats);
     def localDelegate = Mock(ModuleComponentRepositoryAccess)
     def remoteDelegate = Mock(ModuleComponentRepositoryAccess)
     def delegate = Mock(ModuleComponentRepository) {
@@ -66,18 +67,18 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
         repo.localAccess.listModuleVersions(dep, listingResult)
 
         then:
-        1 * localAccessCache.supplyModuleVersions(selector, listingResult) >> false
+        1 * localMetaDataCache.supplyModuleVersions(selector, listingResult) >> false
         1 * localDelegate.listModuleVersions(dep, listingResult)
-        1 * localAccessCache.newModuleVersions(selector, listingResult)
+        1 * localMetaDataCache.newModuleVersions(selector, listingResult)
         0 * _
 
         when:
         repo.remoteAccess.listModuleVersions(dep, listingResult)
 
         then:
-        1 * remoteAccessCache.supplyModuleVersions(selector, listingResult) >> false
+        1 * remoteMetaDataCache.supplyModuleVersions(selector, listingResult) >> false
         1 * remoteDelegate.listModuleVersions(dep, listingResult)
-        1 * remoteAccessCache.newModuleVersions(selector, listingResult)
+        1 * remoteMetaDataCache.newModuleVersions(selector, listingResult)
         0 * _
     }
 
@@ -86,14 +87,14 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
         repo.localAccess.listModuleVersions(dep, listingResult)
 
         then:
-        1 * localAccessCache.supplyModuleVersions(selector, listingResult) >> true
+        1 * localMetaDataCache.supplyModuleVersions(selector, listingResult) >> true
         0 * _
 
         when:
         repo.remoteAccess.listModuleVersions(dep, listingResult)
 
         then:
-        1 * remoteAccessCache.supplyModuleVersions(selector, listingResult) >> true
+        1 * remoteMetaDataCache.supplyModuleVersions(selector, listingResult) >> true
         0 * _
     }
 
@@ -102,9 +103,9 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
         repo.localAccess.resolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
-        1 * localAccessCache.supplyMetaData(lib, metaDataResult) >> false
+        1 * localMetaDataCache.supplyMetaData(lib, metaDataResult) >> false
         1 * localDelegate.resolveComponentMetaData(dep, lib, metaDataResult)
-        1 * localAccessCache.newDependencyResult(lib, metaDataResult)
+        1 * localMetaDataCache.newDependencyResult(lib, metaDataResult)
         0 * _
     }
 
@@ -113,7 +114,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
         repo.localAccess.resolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
-        1 * localAccessCache.supplyMetaData(lib, metaDataResult) >> true
+        1 * localMetaDataCache.supplyMetaData(lib, metaDataResult) >> true
         0 * _
     }
 
@@ -122,9 +123,9 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
         repo.remoteAccess.resolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
-        1 * remoteAccessCache.supplyMetaData(lib, metaDataResult) >> false
+        1 * remoteMetaDataCache.supplyMetaData(lib, metaDataResult) >> false
         1 * remoteDelegate.resolveComponentMetaData(dep, lib, metaDataResult)
-        1 * remoteAccessCache.newDependencyResult(lib, metaDataResult)
+        1 * remoteMetaDataCache.newDependencyResult(lib, metaDataResult)
         0 * _
     }
 
@@ -133,7 +134,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
         repo.remoteAccess.resolveComponentMetaData(dep, lib, metaDataResult)
 
         then:
-        1 * remoteAccessCache.supplyMetaData(lib, metaDataResult) >> true
+        1 * remoteMetaDataCache.supplyMetaData(lib, metaDataResult) >> true
         0 * _
     }
 
@@ -186,12 +187,21 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
         def moduleSource = Mock(ModuleSource)
 
         when:
-        repo.resolveArtifact(artifact, moduleSource, result)
+        repo.localAccess.resolveArtifact(artifact, moduleSource, result)
 
         then:
-        1 * artifactsCache.supplyArtifact(artifactId, result) >> false
-        1 * delegate.resolveArtifact(artifact, moduleSource, result)
-        1 * artifactsCache.newArtifact(artifactId, result)
+        1 * localArtifactsCache.supplyArtifact(artifactId, result) >> false
+        1 * localDelegate.resolveArtifact(artifact, moduleSource, result)
+        1 * localArtifactsCache.newArtifact(artifactId, result)
+        0 * _
+
+        when:
+        repo.remoteAccess.resolveArtifact(artifact, moduleSource, result)
+
+        then:
+        1 * remoteArtifactsCache.supplyArtifact(artifactId, result) >> false
+        1 * remoteDelegate.resolveArtifact(artifact, moduleSource, result)
+        1 * remoteArtifactsCache.newArtifact(artifactId, result)
         0 * _
     }
 
@@ -204,10 +214,17 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
         def moduleSource = Mock(ModuleSource)
 
         when:
-        repo.resolveArtifact(artifact, moduleSource, result)
+        repo.localAccess.resolveArtifact(artifact, moduleSource, result)
 
         then:
-        1 * artifactsCache.supplyArtifact(artifactId, result) >> true
+        1 * localArtifactsCache.supplyArtifact(artifactId, result) >> true
+        0 * _
+
+        when:
+        repo.remoteAccess.resolveArtifact(artifact, moduleSource, result)
+
+        then:
+        1 * remoteArtifactsCache.supplyArtifact(artifactId, result) >> true
         0 * _
     }
 }

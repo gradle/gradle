@@ -91,10 +91,6 @@ public class StartParameterResolutionOverride {
         public ModuleComponentRepositoryAccess getRemoteAccess() {
             return failedRemoteAccess;
         }
-
-        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-            result.failed(new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
-        }
     }
 
     private static class FailedRemoteAccess implements ModuleComponentRepositoryAccess {
@@ -112,6 +108,10 @@ public class StartParameterResolutionOverride {
 
         public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
             result.failed(new ArtifactResolveException(component.getComponentId(), "No cached version available for offline mode"));
+        }
+
+        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            result.failed(new ArtifactResolveException(artifact.getId(), "No cached version available for offline mode"));
         }
     }
 }

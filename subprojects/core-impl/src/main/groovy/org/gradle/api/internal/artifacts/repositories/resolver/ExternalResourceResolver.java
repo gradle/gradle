@@ -282,7 +282,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     @Nullable
     protected abstract IvyArtifactName getMetaDataArtifactName(String moduleName);
 
-    public void resolveArtifact(ComponentArtifactMetaData componentArtifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+    protected void resolveArtifact(ComponentArtifactMetaData componentArtifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         ModuleVersionArtifactMetaData artifact = (ModuleVersionArtifactMetaData) componentArtifact;
 
         File localFile;
@@ -301,11 +301,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected File download(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource) {
-        return downloadArtifact(artifact, createArtifactResolver(moduleSource));
-    }
-
-    protected File downloadArtifact(ModuleVersionArtifactMetaData artifact, ExternalResourceArtifactResolver artifactResolver) {
-        LocallyAvailableExternalResource artifactResource = artifactResolver.resolveArtifact(artifact);
+        LocallyAvailableExternalResource artifactResource = createArtifactResolver(moduleSource).resolveArtifact(artifact);
         if (artifactResource == null) {
             return null;
         }
@@ -484,6 +480,10 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
                 result.resolved(Collections.<ComponentArtifactMetaData>emptySet());
             }
         }
+
+        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+
+        }
     }
 
     protected abstract class RemoteRepositoryAccess extends AbstractRepositoryAccess {
@@ -516,6 +516,10 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
         protected final void resolveMetaDataArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
             // Meta data  artifacts are determined locally
+        }
+
+        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            ExternalResourceResolver.this.resolveArtifact(artifact, moduleSource, result);
         }
     }
 }

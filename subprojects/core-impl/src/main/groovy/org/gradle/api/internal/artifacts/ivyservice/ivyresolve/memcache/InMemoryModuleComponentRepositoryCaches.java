@@ -16,22 +16,27 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 public class InMemoryModuleComponentRepositoryCaches {
-    public final InMemoryMetaDataCache localAccessCache;
-    public final InMemoryMetaDataCache remoteAccessCache;
-    public final InMemoryArtifactsCache artifactsCache;
+    public final InMemoryMetaDataCache localMetaDataCache;
+    public final InMemoryMetaDataCache remoteMetaDataCache;
+    public final InMemoryArtifactsCache localArtifactsCache;
+    public final InMemoryArtifactsCache remoteArtifactsCache;
     public final InMemoryCacheStats stats;
 
     public InMemoryModuleComponentRepositoryCaches(InMemoryCacheStats stats) {
         this(new InMemoryArtifactsCache(stats),
+                new InMemoryArtifactsCache(stats),
                 new InMemoryMetaDataCache(stats),
                 new InMemoryMetaDataCache(stats),
                 stats);
     }
 
-    protected InMemoryModuleComponentRepositoryCaches(InMemoryArtifactsCache artifactsCache, InMemoryMetaDataCache localAccessCache, InMemoryMetaDataCache remoteAccessCache, InMemoryCacheStats stats) {
-        this.artifactsCache = artifactsCache;
-        this.localAccessCache = localAccessCache;
-        this.remoteAccessCache = remoteAccessCache;
+    protected InMemoryModuleComponentRepositoryCaches(InMemoryArtifactsCache localArtifactsCache, InMemoryArtifactsCache remoteArtifactsCache,
+                                                      InMemoryMetaDataCache localMetaDataCache, InMemoryMetaDataCache remoteMetaDataCache,
+                                                      InMemoryCacheStats stats) {
+        this.localArtifactsCache = localArtifactsCache;
+        this.remoteArtifactsCache = remoteArtifactsCache;
+        this.localMetaDataCache = localMetaDataCache;
+        this.remoteMetaDataCache = remoteMetaDataCache;
         this.stats = stats;
     }
 }

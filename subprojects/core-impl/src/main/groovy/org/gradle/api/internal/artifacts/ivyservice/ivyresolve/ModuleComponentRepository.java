@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
-
 /**
  * A repository of module components.
  *
@@ -39,9 +36,4 @@ public interface ModuleComponentRepository {
     ModuleComponentRepositoryAccess getLocalAccess();
 
     ModuleComponentRepositoryAccess getRemoteAccess();
-
-    /**
-     * Resolves the given artifact. Any failures are packaged up in the result.
-     */
-    void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result);
 }

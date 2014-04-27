@@ -52,8 +52,13 @@ class InMemoryCachedRepositoryFactoryTest extends Specification {
         c2.delegate == repo2
         c3.delegate == repo3
 
-        c1.artifactsCache == c3.artifactsCache //same repo id, same cache
-        c2.artifactsCache != c1.artifactsCache
+        // Caches are shared for same repository id
+        c1.localAccess.artifactsCache == c3.localAccess.artifactsCache
+        c1.localAccess.metaDataCache == c3.localAccess.metaDataCache
+        c1.remoteAccess.artifactsCache == c3.remoteAccess.artifactsCache
+        c1.remoteAccess.metaDataCache == c3.remoteAccess.metaDataCache
+
+        c2.localAccess.artifactsCache != c1.localAccess.artifactsCache
 
         cache.stats.reposWrapped == 3
         cache.stats.cacheInstances == 2

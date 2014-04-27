@@ -22,8 +22,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
+// TODO:DAZ Should share local and remote caches, and use make in-memory caching a decorator over filesystem caching
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
-    final InMemoryArtifactsCache artifactsCache;
     final InMemoryCacheStats stats;
     private final ModuleComponentRepositoryAccess localAccess;
     private final ModuleComponentRepositoryAccess remoteAccess;
@@ -31,9 +31,8 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
     public InMemoryCachedModuleComponentRepository(InMemoryModuleComponentRepositoryCaches cache, ModuleComponentRepository delegate) {
         super(delegate);
         this.stats = cache.stats;
-        this.artifactsCache = cache.artifactsCache;
-        this.localAccess = new CachedAccess(delegate.getLocalAccess(), cache.localAccessCache);
-        this.remoteAccess = new CachedAccess(delegate.getRemoteAccess(), cache.remoteAccessCache);
+        this.localAccess = new CachedAccess(delegate.getLocalAccess(), cache.localArtifactsCache, cache.localMetaDataCache);
+        this.remoteAccess = new CachedAccess(delegate.getRemoteAccess(), cache.remoteArtifactsCache, cache.remoteMetaDataCache);
     }
 
     @Override
@@ -46,32 +45,34 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
         return remoteAccess;
     }
 
-    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        if (!artifactsCache.supplyArtifact(artifact.getId(), result)) {
-            super.resolveArtifact(artifact, moduleSource, result);
-            artifactsCache.newArtifact(artifact.getId(), result);
-        }
-    }
+    private class CachedAccess extends BaseModuleComponentRepositoryAccess {
+        private final InMemoryMetaDataCache metaDataCache;
+        private final InMemoryArtifactsCache artifactsCache;
 
-    private static class CachedAccess extends BaseModuleComponentRepositoryAccess {
-        private final InMemoryMetaDataCache cache;
-
-        public CachedAccess(ModuleComponentRepositoryAccess access, InMemoryMetaDataCache cache) {
+        public CachedAccess(ModuleComponentRepositoryAccess access, InMemoryArtifactsCache artifactsCache, InMemoryMetaDataCache metaDataCache) {
             super(access);
-            this.cache = cache;
+            this.artifactsCache = artifactsCache;
+            this.metaDataCache = metaDataCache;
         }
 
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-            if(!cache.supplyModuleVersions(dependency.getRequested(), result)) {
+            if(!metaDataCache.supplyModuleVersions(dependency.getRequested(), result)) {
                 super.listModuleVersions(dependency, result);
-                cache.newModuleVersions(dependency.getRequested(), result);
+                metaDataCache.newModuleVersions(dependency.getRequested(), result);
             }
         }
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
-            if(!cache.supplyMetaData(moduleComponentIdentifier, result)) {
+            if(!metaDataCache.supplyMetaData(moduleComponentIdentifier, result)) {
                 super.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
-                cache.newDependencyResult(moduleComponentIdentifier, result);
+                metaDataCache.newDependencyResult(moduleComponentIdentifier, result);
+            }
+        }
+
+        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            if (!artifactsCache.supplyArtifact(artifact.getId(), result)) {
+                super.resolveArtifact(artifact, moduleSource, result);
+                artifactsCache.newArtifact(artifact.getId(), result);
             }
         }
     }

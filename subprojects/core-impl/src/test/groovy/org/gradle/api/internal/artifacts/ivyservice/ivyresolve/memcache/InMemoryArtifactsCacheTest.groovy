@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import spock.lang.Specification
@@ -31,29 +32,31 @@ class InMemoryArtifactsCacheTest extends Specification {
     }
 
     def "caches and supplies artifacts"() {
-        def fooId = Stub(ModuleVersionArtifactIdentifier)
-        def fooFile = new File("foo")
-        def fooResult = Mock(BuildableArtifactResolveResult) { getFile() >> fooFile }
-        def anotherFooResult = Mock(BuildableArtifactResolveResult)
+        def artifactId = Stub(ModuleVersionArtifactIdentifier)
+        def artifactFile = new File("foo")
 
+        given:
+        def originalResult = new DefaultBuildableArtifactResolveResult()
+        originalResult.resolved(artifactFile)
+        cache.newArtifact(artifactId, originalResult)
+
+        def differentIdResult = Mock(BuildableArtifactResolveResult)
+        def sameIdResult = Mock(BuildableArtifactResolveResult)
+
+        when:
         def differentId = Stub(ModuleVersionArtifactIdentifier)
-        def differentResult = Mock(BuildableArtifactResolveResult)
-
-        cache.newArtifact(fooId, fooResult)
-
-        when:
-        def differentCached = cache.supplyArtifact(differentId, differentResult )
+        def differentIdFound = cache.supplyArtifact(differentId, differentIdResult)
 
         then:
-        !differentCached
-        0 * differentResult._
+        !differentIdFound
+        0 * differentIdResult._
 
         when:
-        def fooCached = cache.supplyArtifact(fooId, anotherFooResult )
+        def sameIdFound = cache.supplyArtifact(artifactId, sameIdResult)
 
         then:
-        fooCached
-        1 * anotherFooResult.resolved(fooFile)
+        sameIdFound
+        1 * sameIdResult.resolved(artifactFile)
     }
 
     def "does not cache failed artifact resolves"() {

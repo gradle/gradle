@@ -104,6 +104,9 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
                 String configurationName = componentUsage.getConfigurationName();
                 result.resolved(component.getConfiguration(configurationName).getArtifacts());
             }
+
+            public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            }
         };
     }
 
@@ -153,30 +156,31 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
                 String configurationName = componentUsage.getConfigurationName();
                 result.resolved(component.getConfiguration(configurationName).getArtifacts());
             }
+
+            public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+                org.apache.ivy.core.module.descriptor.Artifact ivyArtifact = ((ModuleVersionArtifactMetaData) artifact).toIvyArtifact();
+                ArtifactDownloadReport artifactDownloadReport = resolver.download(new org.apache.ivy.core.module.descriptor.Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
+                if (downloadFailed(artifactDownloadReport)) {
+                    if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
+                        EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;
+                        result.failed(new ArtifactResolveException(artifact.getId(), enhancedReport.getFailure()));
+                    } else {
+                        result.failed(new ArtifactResolveException(artifact.getId(), artifactDownloadReport.getDownloadDetails()));
+                    }
+                    return;
+                }
+
+                File localFile = artifactDownloadReport.getLocalFile();
+                if (localFile != null) {
+                    result.resolved(localFile);
+                } else {
+                    result.notFound(artifact.getId());
+                }
+            }
         };
     }
 
 
-    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        org.apache.ivy.core.module.descriptor.Artifact ivyArtifact = ((ModuleVersionArtifactMetaData) artifact).toIvyArtifact();
-        ArtifactDownloadReport artifactDownloadReport = resolver.download(new org.apache.ivy.core.module.descriptor.Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
-        if (downloadFailed(artifactDownloadReport)) {
-            if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
-                EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;
-                result.failed(new ArtifactResolveException(artifact.getId(), enhancedReport.getFailure()));
-            } else {
-                result.failed(new ArtifactResolveException(artifact.getId(), artifactDownloadReport.getDownloadDetails()));
-            }
-            return;
-        }
-
-        File localFile = artifactDownloadReport.getLocalFile();
-        if (localFile != null) {
-            result.resolved(localFile);
-        } else {
-            result.notFound(artifact.getId());
-        }
-    }
 
     private Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends Artifact> artifactType) {
         if (artifactType == IvyDescriptorArtifact.class) {

@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
-
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException

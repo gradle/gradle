@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage
+import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData
@@ -27,7 +27,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
     final artifact = Mock(ComponentArtifactMetaData)
     final component = Mock(ComponentMetaData)
     final originalSource = Mock(ModuleSource)
-    final result = Mock(BuildableArtifactResolveResult)
+    final result = new DefaultBuildableArtifactResolveResult()
     final artifactSetResult = new DefaultBuildableArtifactSetResolveResult()
 
     def repo1 = Stub(ModuleComponentRepository) {
@@ -47,21 +47,6 @@ class RepositoryChainArtifactResolverTest extends Specification {
     def setup() {
         resolver.add(repo1)
         resolver.add(repo2)
-    }
-
-    def "locates artifact in repository defined by module source"() {
-        given:
-        def artifactFile = Mock(File)
-
-        when:
-        resolver.resolveArtifact(artifact, repo2Source, result)
-
-        then:
-        1 * repo2.resolveArtifact(artifact, originalSource, result) >> {
-            it[2].resolved(artifactFile)
-        }
-        1 * result.resolved(artifactFile)
-        0 * _._
     }
 
     def "uses module artifacts from local access to repository defined by module source"() {
@@ -102,5 +87,41 @@ class RepositoryChainArtifactResolverTest extends Specification {
 
         and:
         artifactSetResult.artifacts == [artifact] as Set
+    }
+
+    def "locates artifact with local access in repository defined by module source"() {
+        def artifactFile = Mock(File)
+        def artifact = Mock(ComponentArtifactMetaData)
+        when:
+        resolver.resolveArtifact(artifact, repo2Source, result)
+
+        then:
+        1 * repo2.getLocalAccess() >> localAccess2
+        1 * localAccess2.resolveArtifact(artifact, originalSource, result) >> {
+            it[2].resolved(artifactFile)
+        }
+        0 * _._
+
+        and:
+        result.file == artifactFile
+    }
+
+    def "locates artifact with remote access in repository defined by module source"() {
+        def artifactFile = Mock(File)
+        def artifact = Mock(ComponentArtifactMetaData)
+        when:
+        resolver.resolveArtifact(artifact, repo2Source, result)
+
+        then:
+        1 * repo2.getLocalAccess() >> localAccess2
+        1 * localAccess2.resolveArtifact(artifact, originalSource, result)
+        1 * repo2.getRemoteAccess() >> remoteAccess2
+        1 * remoteAccess2.resolveArtifact(artifact, originalSource, result) >> {
+            it[2].resolved(artifactFile)
+        }
+        0 * _._
+
+        and:
+        result.file == artifactFile
     }
 }

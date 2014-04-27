@@ -42,7 +42,7 @@ class InMemoryArtifactsCache {
     }
 
     public void newArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {
-        if (result.getFailure() == null) {
+        if (result.hasResult() && result.getFailure() == null) {
             artifacts.put(id, result.getFile());
         }
     }

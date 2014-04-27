@@ -25,28 +25,16 @@ import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
  * A wrapper around a {@link ModuleComponentRepository} that handles releasing the cache lock before making remote calls.
  */
 public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComponentRepository {
-    private final ModuleComponentRepository repository;
-    private final CacheLockingManager cacheLockingManager;
     private final ModuleComponentRepositoryAccess remoteAccess;
 
     public CacheLockReleasingModuleComponentsRepository(ModuleComponentRepository repository, CacheLockingManager cacheLockingManager) {
         super(repository);
-        this.remoteAccess = new LockReleasingRepositoryAccess(repository.getId(), repository.getRemoteAccess(), cacheLockingManager);
-        this.repository = repository;
-        this.cacheLockingManager = cacheLockingManager;
+        this.remoteAccess = new LockReleasingRepositoryAccess(repository.getName(), repository.getRemoteAccess(), cacheLockingManager);
     }
 
     @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
-    }
-
-    public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-        cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, getId()), new Runnable() {
-            public void run() {
-                repository.resolveArtifact(artifact, moduleSource, result);
-            }
-        });
     }
 
     private static class LockReleasingRepositoryAccess implements ModuleComponentRepositoryAccess {
@@ -88,6 +76,15 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
             cacheLockingManager.longRunningOperation(String.format("Resolve %s for %s using repository %s", componentUsage, component, name), new Runnable() {
                 public void run() {
                     delegate.resolveModuleArtifacts(component, componentUsage, result);
+                }
+            });
+        }
+
+
+        public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
+            cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, name), new Runnable() {
+                public void run() {
+                    delegate.resolveArtifact(artifact, moduleSource, result);
                 }
             });
         }

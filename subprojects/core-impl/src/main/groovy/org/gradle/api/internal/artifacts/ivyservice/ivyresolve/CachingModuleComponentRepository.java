@@ -97,44 +97,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return delegate.canListModuleVersions();
     }
 
-    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        // TODO:ADAM - Don't assume this
-        ModuleVersionArtifactMetaData moduleVersionArtifactMetaData = (ModuleVersionArtifactMetaData) artifact;
-        ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate.getId(), moduleVersionArtifactMetaData.getId());
-        // Look in the cache for this resolver
-        CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
-        final CachingModuleSource cachedModuleSource = (CachingModuleSource) moduleSource;
-        final BigInteger descriptorHash = cachedModuleSource.getDescriptorHash();
-        if (cached != null) {
-            long age = timeProvider.getCurrentTime() - cached.getCachedAt();
-            final boolean isChangingModule = cachedModuleSource.isChangingModule();
-            ArtifactIdentifier artifactIdentifier = moduleVersionArtifactMetaData.toArtifactIdentifier();
-            if (cached.isMissing()) {
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
-                    LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
-                    result.notFound(artifact.getId());
-                    return;
-                }
-            } else {
-                File cachedArtifactFile = cached.getCachedFile();
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
-                    LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
-                    result.resolved(cachedArtifactFile);
-                    return;
-                }
-            }
-        }
-
-        delegate.resolveArtifact(artifact, cachedModuleSource.getDelegate(), result);
-        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact, delegate.getName());
-
-        if (result.getFailure() == null) {
-            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, result.getFile(), descriptorHash);
-        } else if (result.getFailure() instanceof ArtifactNotFoundException) {
-            artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey, descriptorHash);
-        }
-    }
-
     private DefaultModuleIdentifier getCacheKey(ModuleVersionSelector requested) {
         if (canListModuleVersions()) {
             return new DefaultModuleIdentifier(requested.getGroup(), requested.getName());
@@ -268,6 +230,40 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'", contextId, component.getId(), delegate.getName());
             }
         }
+
+        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            final CachingModuleSource cachedModuleSource = (CachingModuleSource) moduleSource;
+
+            // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
+            delegate.getLocalAccess().resolveArtifact(artifact, cachedModuleSource.getDelegate(), result);
+            if (result.hasResult()) {
+                return;
+            }
+
+            resolveArtifactFromCache(artifact, cachedModuleSource, result);
+        }
+
+        private void resolveArtifactFromCache(ComponentArtifactMetaData artifact, CachingModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(artifactCacheKey(artifact));
+            final BigInteger descriptorHash = moduleSource.getDescriptorHash();
+           if (cached != null) {
+               long age = timeProvider.getCurrentTime() - cached.getCachedAt();
+               final boolean isChangingModule = moduleSource.isChangingModule();
+               ArtifactIdentifier artifactIdentifier = ((ModuleVersionArtifactMetaData) artifact).toArtifactIdentifier();
+               if (cached.isMissing()) {
+                   if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
+                       LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
+                       result.notFound(artifact.getId());
+                   }
+               } else {
+                   File cachedArtifactFile = cached.getCachedFile();
+                   if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
+                       LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
+                       result.resolved(cachedArtifactFile);
+                   }
+               }
+           }
+       }
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
@@ -327,6 +323,20 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 moduleArtifactsCache.cacheArtifacts(delegate, component.getId(), contextId, moduleSource.getDescriptorHash(), artifactIdentifierSet);
             }
         }
+
+        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            final CachingModuleSource cachingModuleSource = (CachingModuleSource) moduleSource;
+
+            delegate.getRemoteAccess().resolveArtifact(artifact, cachingModuleSource.getDelegate(), result);
+            LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact, delegate.getName());
+
+            ArtifactResolveException failure = result.getFailure();
+            if (failure == null) {
+                artifactAtRepositoryCachedResolutionIndex.store(artifactCacheKey(artifact), result.getFile(), cachingModuleSource.getDescriptorHash());
+            } else if (failure instanceof ArtifactNotFoundException) {
+                artifactAtRepositoryCachedResolutionIndex.storeMissing(artifactCacheKey(artifact), cachingModuleSource.getDescriptorHash());
+            }
+        }
     }
 
     private String cacheKey(ArtifactType artifactType) {
@@ -335,6 +345,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     private String cacheKey(ComponentUsage context) {
         return "configuration:" + context.getConfigurationName();
+    }
+
+    private ArtifactAtRepositoryKey artifactCacheKey(ComponentArtifactMetaData artifact) {
+        // TODO:ADAM - Don't assume this
+        ModuleVersionArtifactMetaData moduleVersionArtifactMetaData = (ModuleVersionArtifactMetaData) artifact;
+        return new ArtifactAtRepositoryKey(delegate.getId(), moduleVersionArtifactMetaData.getId());
     }
 
     static class CachingModuleSource implements ModuleSource {

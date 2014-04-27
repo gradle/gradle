@@ -77,7 +77,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey("repo-id", artifactId)
 
         when:
-        repo.resolveArtifact(artifact, moduleSource, result)
+        repo.remoteAccess.resolveArtifact(artifact, moduleSource, result)
 
         then:
         1 * artifactAtRepositoryCache.store(atRepositoryKey, file, descriptorHash)
