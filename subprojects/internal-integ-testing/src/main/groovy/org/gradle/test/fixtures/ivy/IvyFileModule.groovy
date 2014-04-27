@@ -135,13 +135,29 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     TestFile getIvyFile() {
-        def path = M2CompatibleIvyPatternHelper.substitute(ivyPattern, organisation, module, revision, m2Compatible)
-        return moduleDir.file(path)
+        return moduleDir.file(ivyFilePath)
+    }
+
+    protected String getIvyFilePath() {
+        getArtifactFilePath(name: "ivy", type: "ivy", ext: "xml")
     }
 
     TestFile getJarFile() {
-        def path = M2CompatibleIvyPatternHelper.substitute(artifactPattern, organisation, module, revision, null, "jar", "jar", m2Compatible)
-        return moduleDir.file(path)
+        return moduleDir.file(jarFilePath)
+    }
+
+    protected String getJarFilePath() {
+        getArtifactFilePath(name: module, type: "jar", ext: "jar")
+    }
+
+    TestFile file(Map<String, ?> options) {
+        return moduleDir.file(getArtifactFilePath(options))
+    }
+
+    protected String getArtifactFilePath(Map<String, ?> options) {
+        def artifact = toArtifact(options)
+        def tokens = [organisation: organisation, module: module, revision: revision, artifact: artifact.name, type: artifact.type, ext: artifact.ext, classifier: artifact.classifier]
+        M2CompatibleIvyPatternHelper.substitute(artifactPattern, m2Compatible, tokens)
     }
 
     /**
@@ -248,11 +264,6 @@ ${ extraInfo ? 'xmlns:my="http://my.extra.info"' : ''}>
             })
         }
         return this
-    }
-
-    TestFile file(Map<String, ?> options) {
-        def artifact = toArtifact(options)
-        return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.ext}")
     }
 
     @Override

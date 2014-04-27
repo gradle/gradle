@@ -20,6 +20,8 @@ import org.gradle.test.fixtures.file.TestFile
 class IvyFileRepository implements IvyRepository {
     final TestFile rootDir
     final boolean m2Compatible
+    String ivyFilePattern = "ivy-[revision].xml"
+    String artifactFilePattern = "[artifact]-[revision](-[classifier])(.[ext])"
 
     IvyFileRepository(TestFile rootDir, boolean m2Compatible = false) {
         this.rootDir = rootDir
@@ -38,16 +40,8 @@ class IvyFileRepository implements IvyRepository {
         return "${uri}/${baseArtifactPattern}"
     }
 
-    String getIvyFilePattern() {
-        "ivy-[revision].xml"
-    }
-
     String getBaseIvyPattern() {
         "$dirPattern/$ivyFilePattern"
-    }
-
-    String getArtifactFilePattern() {
-        "[artifact]-[revision](.[ext])"
     }
 
     String getBaseArtifactPattern() {
@@ -56,6 +50,10 @@ class IvyFileRepository implements IvyRepository {
 
     String getDirPattern() {
         "[organisation]/[module]/[revision]"
+    }
+
+    protected String getDirPath(String organisation, String module, String revision) {
+        M2CompatibleIvyPatternHelper.substitute(dirPattern, organisation, module, revision, m2Compatible)
     }
 
     IvyFileModule module(String organisation, String module, Object revision = '1.0') {
@@ -68,8 +66,7 @@ class IvyFileRepository implements IvyRepository {
 
     private IvyFileModule createModule(String organisation, String module, String revision) {
         def revisionString = revision.toString()
-        def path = M2CompatibleIvyPatternHelper.substitute(dirPattern, organisation, module, revision, m2Compatible)
-        def moduleDir = rootDir.file(path)
+        def moduleDir = rootDir.file(getDirPath(organisation, module, revision))
         return new IvyFileModule(ivyFilePattern, artifactFilePattern, moduleDir, organisation, module, revisionString, m2Compatible)
     }
 }

@@ -31,9 +31,10 @@ class M2CompatibleIvyPatternHelper {
         m2Compatible ? organisation.replaceAll(/\./, '/') : organisation
     }
 
-    static String substitute(String pattern, String organisation, String module, String revision, String artifact, String type,
-                             String ext, boolean m2Compatible) {
-        def organisationToken = organisationToken(m2Compatible, organisation)
-        IvyPatternHelper.substitute(pattern, new ModuleRevisionId(new ModuleId(organisationToken, module), revision), artifact, type, ext)
+    static String substitute(String pattern, boolean m2Compatible, Map<String, String> tokens) {
+        if (tokens.containsKey('organisation')) {
+            tokens.put('organisation', organisationToken(m2Compatible, tokens.get('organisation')))
+        }
+        IvyPatternHelper.substituteTokens(pattern, tokens)
     }
 }

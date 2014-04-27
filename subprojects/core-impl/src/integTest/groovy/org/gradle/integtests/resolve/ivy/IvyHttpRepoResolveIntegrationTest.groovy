@@ -17,12 +17,15 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
+import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.ivy.IvyHttpRepository
 import org.junit.Rule
 import spock.lang.Unroll
 
 class IvyHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @Rule ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
+    @Rule
+    ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
 
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         given:
@@ -236,12 +239,17 @@ task show << { println configurations.compile.files }
     @Unroll
     public void "produces correct layout when using #layoutName layout"() {
         given:
-        def module = ivyRepo().module('org.name.here', 'projectA', '1.2').publish()
+        def fileRepo = new IvyFileRepository(file('ivy-repo'), m2compatible)
+        fileRepo.ivyFilePattern = ivyFilePattern
+        fileRepo.artifactFilePattern = artifactFilePattern
+
+        def httpRepo = new IvyHttpRepository(server, "/repo", fileRepo)
+        def module = httpRepo.module('org.name.here', 'projectA', '1.2').publish()
 
         buildFile << """
 repositories {
     ivy {
-        url "http://localhost:${server.port}"
+        url "${httpRepo.uri}"
         layout "${layoutName}"
     }
 }
@@ -257,8 +265,8 @@ task retrieve(type: Sync) {
 """
 
         when:
-        server.expectGet(ivyFilePath, module.ivyFile)
-        server.expectGet(jarFilePath, module.jarFile)
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         and:
         succeeds('retrieve')
@@ -267,10 +275,10 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar')
 
         where:
-        layoutName | ivyFilePath                                | jarFilePath
-        'ivy'      | '/org.name.here/projectA/1.2/ivys/ivy.xml' | '/org.name.here/projectA/1.2/jars/projectA.jar'
-        'maven'    | '/org/name/here/projectA/1.2/ivy-1.2.xml'  | '/org/name/here/projectA/1.2/projectA-1.2.jar'
-        'gradle'   | '/org.name.here/projectA/1.2/ivy-1.2.xml'  | '/org.name.here/projectA/1.2/projectA-1.2.jar'
+        layoutName | m2compatible | ivyFilePattern             | artifactFilePattern
+        'gradle'   | false        | 'ivy-[revision].xml'       | '[artifact]-[revision](.[ext])'
+        'maven'    | true         | 'ivy-[revision].xml'       | '[artifact]-[revision](.[ext])'
+        'ivy'      | false        | '[type]s/[artifact].[ext]' | '[type]s/[artifact].[ext]'
     }
 
     def "reuses cached details when switching ivy resolve mode"() {

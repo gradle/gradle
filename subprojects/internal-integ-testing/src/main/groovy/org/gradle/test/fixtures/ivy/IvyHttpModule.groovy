@@ -123,20 +123,21 @@ class IvyHttpModule implements IvyModule, HttpModule {
         return backingModule.jarFile
     }
 
-    IvyModuleHttpArtifact getArtifact(Map<String, ?> options) {
-        return new IvyModuleHttpArtifact(server, prefix, backingModule.file(options))
-    }
-
     void allowAll() {
         server.allowGetOrHead(prefix, backingModule.moduleDir)
     }
 
+    IvyModuleHttpArtifact getArtifact(Map<String, ?> options) {
+        def backingFile = backingModule.file(options)
+        return new IvyModuleHttpArtifact(server, prefix, backingModule.getArtifactFilePath(options), backingFile)
+    }
+
     HttpArtifact getIvy() {
-        return new IvyModuleHttpArtifact(server, prefix, ivyFile)
+        return new IvyModuleHttpArtifact(server, prefix, backingModule.ivyFilePath, ivyFile)
     }
 
     HttpArtifact getJar() {
-        return new IvyModuleHttpArtifact(server, prefix, jarFile)
+        return new IvyModuleHttpArtifact(server, prefix, backingModule.jarFilePath, jarFile)
     }
 
     void assertIvyAndJarFilePublished() {
@@ -144,10 +145,12 @@ class IvyHttpModule implements IvyModule, HttpModule {
     }
 
     private class IvyModuleHttpArtifact extends HttpArtifact {
+        final filePath
         final TestFile backingFile
 
-        IvyModuleHttpArtifact(HttpServer server, String modulePath, TestFile backingFile) {
+        IvyModuleHttpArtifact(HttpServer server, String modulePath, String filePath, TestFile backingFile) {
             super(server, modulePath)
+            this.filePath = filePath;
             this.backingFile = backingFile
         }
 
@@ -164,6 +167,11 @@ class IvyHttpModule implements IvyModule, HttpModule {
         @Override
         protected TestFile getMd5File() {
             return backingModule.getMd5File(backingFile)
+        }
+
+        @Override
+        protected String getPath() {
+            "${modulePath}/${filePath}"
         }
     }
 }

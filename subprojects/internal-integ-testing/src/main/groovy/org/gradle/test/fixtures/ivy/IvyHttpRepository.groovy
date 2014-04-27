@@ -62,6 +62,7 @@ class IvyHttpRepository implements IvyRepository, HttpRepository {
     }
 
     IvyHttpModule module(String organisation, String module, Object revision = "1.0") {
-        return new IvyHttpModule(this, server, "$contextPath/$organisation/$module/$revision", backingRepository.module(organisation, module, revision))
+        def path = backingRepository.getDirPath(organisation, module, revision.toString())
+        return new IvyHttpModule(this, server, "$contextPath/$path", backingRepository.module(organisation, module, revision))
     }
 }
