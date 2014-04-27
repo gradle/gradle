@@ -315,6 +315,7 @@ native integration to these platforms.
 - `Checkstyle.resultFile` replaced with `Checkstyle.reports.xml.destination`.
 - `CodeNarc.reportFormat` replaced with `CodeNarc.reports.<type>.enabled`.
 - `CodeNarc.reportFile` replaced with `CodeNarc.reports.<type>.destination`.
+- `ResolvedArtifact.resolvedDependency` with `ResolvedArtifact.moduleVersion` as a partial replacement.
 
 ### Task constructor changes
 
