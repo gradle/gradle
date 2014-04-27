@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,7 +45,7 @@ public class ResourceVersionLister implements VersionLister {
 
     public VersionList getVersionList(final ModuleIdentifier module) {
         return new DefaultVersionList() {
-            final Set<String> directories = new HashSet<String>();
+            final Set<URI> directories = new HashSet<URI>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
                 ExternalResourceName versionListPattern = pattern.toVersionListPattern(module, artifact);
@@ -71,16 +72,16 @@ public class ResourceVersionLister implements VersionLister {
                 String prefix = pattern.substring(0, pattern.indexOf(REVISION_TOKEN));
                 if (revisionMatchesDirectoryName(pattern)) {
                     ExternalResourceName parent = versionListPattern.getRoot().resolve(prefix);
-                    return listAll(parent.getUri().toString());
+                    return listAll(parent.getUri());
                 } else {
                     int parentFolderSlashIndex = prefix.lastIndexOf(fileSeparator);
                     String revisionParentFolder = parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex + 1);
                     ExternalResourceName parent = versionListPattern.getRoot().resolve(revisionParentFolder);
                     LOGGER.debug("using {} to list all in {} ", repository, revisionParentFolder);
-                    if (!directories.add(revisionParentFolder)) {
+                    if (!directories.add(parent.getUri())) {
                         return Collections.emptyList();
                     }
-                    List<String> all = repository.list(parent.getUri().toString());
+                    List<String> all = repository.list(parent.getUri());
                     if (all == null) {
                         return Collections.emptyList();
                     }
@@ -114,10 +115,7 @@ public class ResourceVersionLister implements VersionLister {
                 }
                 namePattern = namePattern.replaceAll("\\.", "\\\\.");
 
-                String acceptNamePattern = ".*?"
-                        + namePattern.replaceAll("\\[revision\\]", "([^" + fileSeparator + "]+)")
-                        + "($|" + fileSeparator + ".*)";
-
+                String acceptNamePattern = namePattern.replaceAll("\\[revision\\]", "(.+)");
                 return Pattern.compile(acceptNamePattern);
             }
 
@@ -135,29 +133,17 @@ public class ResourceVersionLister implements VersionLister {
                 return true;
             }
 
-            private List<String> listAll(String parent) throws IOException {
+            private List<String> listAll(URI parent) throws IOException {
                 if (!directories.add(parent)) {
                     return Collections.emptyList();
                 }
                 LOGGER.debug("using {} to list all in {}", repository, parent);
-                List<String> fullPaths = repository.list(parent);
-                if (fullPaths == null) {
+                List<String> paths = repository.list(parent);
+                if (paths == null) {
                     return Collections.emptyList();
                 }
-                LOGGER.debug("found {} resources", fullPaths.size());
-                return extractVersionInfoFromPaths(fullPaths);
-            }
-
-            private List<String> extractVersionInfoFromPaths(List<String> paths) {
-                List<String> ret = new ArrayList<String>(paths.size());
-                for (String fullpath : paths) {
-                    if (fullpath.endsWith(fileSeparator)) {
-                        fullpath = fullpath.substring(0, fullpath.length() - 1);
-                    }
-                    int slashIndex = fullpath.lastIndexOf(fileSeparator);
-                    ret.add(fullpath.substring(slashIndex + 1));
-                }
-                return ret;
+                LOGGER.debug("found {} resources", paths.size());
+                return paths;
             }
         };
     }

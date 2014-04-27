@@ -23,7 +23,6 @@ import org.gradle.api.internal.resource.ResourceException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 public class HttpResourceLister implements ExternalResourceLister {
@@ -33,14 +32,14 @@ public class HttpResourceLister implements ExternalResourceLister {
         this.accessor = accessor;
     }
 
-    public List<URI> list(final URI parent) throws IOException {
+    public List<String> list(final URI parent) throws IOException {
         final HttpResponseResource resource = accessor.getResource(parent);
         if (resource == null) {
             return null;
         }
         try {
-            return resource.withContent(new Transformer<List<URI>, InputStream>() {
-                public List<URI> transform(InputStream inputStream) {
+            return resource.withContent(new Transformer<List<String>, InputStream>() {
+                public List<String> transform(InputStream inputStream) {
                     String contentType = resource.getContentType();
                     ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
                     try {
@@ -53,13 +52,5 @@ public class HttpResourceLister implements ExternalResourceLister {
         } finally {
             resource.close();
         }
-    }
-
-    private List<String> convertToStringList(List<URI> uris) {
-        List<String> ret = new ArrayList<String>(uris.size());
-        for (URI url : uris) {
-            ret.add(url.toString());
-        }
-        return ret;
     }
 }

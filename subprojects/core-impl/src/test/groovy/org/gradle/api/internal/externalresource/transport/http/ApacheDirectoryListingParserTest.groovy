@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.externalresource.transport.http
 
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.api.internal.resource.ResourceException
 import org.gradle.util.Resources
 import org.junit.Rule
 import spock.lang.Specification
@@ -25,7 +25,8 @@ import spock.lang.Unroll
 import static org.junit.Assert.assertNotNull
 
 class ApacheDirectoryListingParserTest extends Specification {
-    @Rule public final Resources resources = new Resources();
+    @Rule
+    public final Resources resources = new Resources();
 
     private static final CONTENT_TYPE = "text/html;charset=utf-8";
     private URI baseUrl = URI.create("http://testrepo/")
@@ -57,7 +58,7 @@ class ApacheDirectoryListingParserTest extends Specification {
         expect:
         def uris = parser.parse(baseUrl, new ByteArrayInputStream(html.bytes), CONTENT_TYPE)
         assertNotNull(uris)
-        uris.collect {it.toString()} == ["http://testrepo/directory1", "http://testrepo/directory2", "http://testrepo/directory3", "http://testrepo/directory4"]
+        uris.collect { it.toString() } == ["directory1", "directory2", "directory3", "directory4"]
     }
 
     def "only text/html content type is supported"() {
@@ -81,7 +82,7 @@ class ApacheDirectoryListingParserTest extends Specification {
 
         expect:
         def uris = parser.parse(baseUrl, new ByteArrayInputStream(encodedHtml), 'text/html;charset=ISO-8859-1')
-        uris.collect {it.toString()} == ["http://testrepo/\u00c1\u00d2"]
+        uris.collect { it.toString() } == ["\u00c1\u00d2"]
     }
 
     def "defaults to utf-8 when no charset specified"() {
@@ -92,13 +93,14 @@ class ApacheDirectoryListingParserTest extends Specification {
 
         expect:
         def uris = parser.parse(baseUrl, new ByteArrayInputStream(encodedHtml), 'text/html')
-        uris.collect {it.toString()} == ["http://testrepo/\u0321\u0322"]
+        uris.collect { it.toString() } == ["\u0321\u0322"]
     }
 
     @Unroll
     def "parse ignores #descr"() {
         expect:
         parser.parse(baseUrl, new ByteArrayInputStream("<a href=\"${href}\">link</a>".toString().bytes), CONTENT_TYPE).isEmpty()
+
         where:
         href                                                | descr
         "http://anothertestrepo/"                           | "URLs which aren't children of base URL"
@@ -110,19 +112,20 @@ class ApacheDirectoryListingParserTest extends Specification {
         "<a name=\"anchorname\">headline</a>"               | "anchor definitions"
     }
 
-
     @Unroll
     def "parseLink handles #urlDescr"() {
         def listingParser = new ApacheDirectoryListingParser()
         expect:
         def foundURIs = listingParser.parse(URI.create(baseUri), new ByteArrayInputStream("<a href=\"${href}\">link</a>".toString().bytes), CONTENT_TYPE)
         !foundURIs.isEmpty()
-        foundURIs.collect {it.toString()} == ["${baseUri}/directory1"]
+        foundURIs.collect { it.toString() } == ["directory1"]
         where:
         baseUri                | href                         | urlDescr
         "http://testrepo"      | "directory1"                 | "relative URLS"
         "http://testrepo"      | "/directory1"                | "absolute URLS"
         "http://testrepo"      | "./directory1"               | "explicit relative URLS"
+        "http://testrepo"      | "directory1/"                | "trailing slash"
+        "http://testrepo"      | "./directory1/"              | "relative URL with trailing slash"
         "http://testrepo"      | "http://testrepo/directory1" | "complete URLS"
         "http://testrepo"      | "http://testrepo/directory1" | "hrefs with truncated text"
         "http://testrepo"      | "http://testrepo/directory1" | "hrefs with truncated text"
@@ -137,28 +140,28 @@ class ApacheDirectoryListingParserTest extends Specification {
         setup:
         def byte[] content = resources.getResource("${repoType}_dirlisting.html").bytes
         expect:
-        List<URI> urls = new ApacheDirectoryListingParser().parse(new URI(artifactRootURI), new ByteArrayInputStream(content), CONTENT_TYPE)
-        urls.collect {it.toString()} as Set == ["${artifactRootURI}3.7/",
-                "${artifactRootURI}3.8/",
-                "${artifactRootURI}3.8.1/",
-                "${artifactRootURI}3.8.2/",
-                "${artifactRootURI}4.0/",
-                "${artifactRootURI}4.1/",
-                "${artifactRootURI}4.10/",
-                "${artifactRootURI}4.2/",
-                "${artifactRootURI}4.3/",
-                "${artifactRootURI}4.3.1/",
-                "${artifactRootURI}4.4/",
-                "${artifactRootURI}4.5/",
-                "${artifactRootURI}4.6/",
-                "${artifactRootURI}4.7/",
-                "${artifactRootURI}4.8/",
-                "${artifactRootURI}4.8.1/",
-                "${artifactRootURI}4.8.2/",
-                "${artifactRootURI}4.9/",
-                "${artifactRootURI}maven-metadata.xml",
-                "${artifactRootURI}maven-metadata.xml.md5",
-                "${artifactRootURI}maven-metadata.xml.sha1"] as Set
+        List<String> urls = new ApacheDirectoryListingParser().parse(new URI(artifactRootURI), new ByteArrayInputStream(content), CONTENT_TYPE)
+        urls as Set == ["3.7",
+                        "3.8",
+                        "3.8.1",
+                        "3.8.2",
+                        "4.0",
+                        "4.1",
+                        "4.10",
+                        "4.2",
+                        "4.3",
+                        "4.3.1",
+                        "4.4",
+                        "4.5",
+                        "4.6",
+                        "4.7",
+                        "4.8",
+                        "4.8.1",
+                        "4.8.2",
+                        "4.9",
+                        "maven-metadata.xml",
+                        "maven-metadata.xml.md5",
+                        "maven-metadata.xml.sha1"] as Set
         where:
         artifactRootURI                                                         | repoType
         "http://localhost:8081/artifactory/repo1/junit/junit/"                  | "artifactory"

@@ -25,7 +25,10 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,10 +39,7 @@ public class ApacheDirectoryListingParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApacheDirectoryListingParser.class);
 
-    public ApacheDirectoryListingParser() {
-    }
-
-    public List<URI> parse(URI baseURI, InputStream content, String contentType) throws Exception {
+    public List<String> parse(URI baseURI, InputStream content, String contentType) throws Exception {
         baseURI = addTrailingSlashes(baseURI);
         if (contentType == null || !contentType.startsWith("text/html")) {
             throw new ResourceException(String.format("Unsupported ContentType %s for DirectoryListing", contentType));
@@ -67,12 +67,12 @@ public class ApacheDirectoryListingParser {
         return uri;
     }
 
-    private List<URI> filterNonDirectChilds(URI baseURI, List<URI> inputURIs) throws MalformedURLException {
+    private List<String> filterNonDirectChilds(URI baseURI, List<URI> inputURIs) throws MalformedURLException {
         final int baseURIPort = baseURI.getPort();
         final String baseURIHost = baseURI.getHost();
         final String baseURIScheme = baseURI.getScheme();
 
-        List<URI> uris = new ArrayList<URI>();
+        List<String> uris = new ArrayList<String>();
         final String prefixPath = baseURI.getPath();
         for (URI parsedURI : inputURIs) {
             if (parsedURI.getHost() != null && !parsedURI.getHost().equals(baseURIHost)) {
@@ -95,7 +95,20 @@ public class ApacheDirectoryListingParser {
                 continue;
             }
 
-            uris.add(parsedURI);
+            String path = parsedURI.getPath();
+            int pos = path.lastIndexOf('/');
+            if (pos < 0) {
+                uris.add(path);
+            } else if (pos == path.length() - 1) {
+                int start = path.lastIndexOf('/', pos - 1);
+                if (start < 0) {
+                    uris.add(path.substring(0, pos));
+                } else {
+                    uris.add(path.substring(start + 1, pos));
+                }
+            } else {
+                uris.add(path.substring(pos + 1));
+            }
         }
         return uris;
     }

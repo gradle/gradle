@@ -24,6 +24,6 @@ import java.util.List;
 
 public interface ExternalResourceLister {
     @Nullable
-    public List<URI> list(URI parent) throws IOException;
+    public List<String> list(URI parent) throws IOException;
 
 }

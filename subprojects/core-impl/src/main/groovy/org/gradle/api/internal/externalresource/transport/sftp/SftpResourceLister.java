@@ -35,14 +35,14 @@ public class SftpResourceLister implements ExternalResourceLister {
         this.credentials = credentials;
     }
 
-    public List<URI> list(URI parent) throws IOException {
+    public List<String> list(URI parent) throws IOException {
         LockableSftpClient client = sftpClientFactory.createSftpClient(parent, credentials);
 
         try {
             Vector<ChannelSftp.LsEntry> entries = client.getSftpClient().ls(parent.getPath());
-            List<URI> list = new ArrayList<URI>();
+            List<String> list = new ArrayList<String>();
             for (ChannelSftp.LsEntry entry : entries) {
-                list.add(parent.resolve(entry.getFilename()));
+                list.add(entry.getFilename());
             }
             return list;
         } catch (com.jcraft.jsch.SftpException e) {

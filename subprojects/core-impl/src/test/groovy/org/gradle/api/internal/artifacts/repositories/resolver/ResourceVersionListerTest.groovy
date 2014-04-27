@@ -93,28 +93,28 @@ class ResourceVersionListerTest extends Specification {
         sort(versionList).collect { it.version } == ["2.1", "1", "a-version"]
 
         and:
-        1 * repo.list(repoListingPath) >> repoResult
+        1 * repo.list(URI.create(repoListingPath)) >> repoResult
         0 * repo._
 
         where:
         testPattern                              | repoListingPath | repoResult
-        "[revision]"                             | ""              | ["1", "2.1/", "a-version"]
-        "[revision]/"                            | ""              | ["1", "2.1/", "a-version"]
-        "/[revision]"                            | "/"             | ["1", "2.1/", "a-version"]
-        "/[revision]/"                           | "/"             | ["1", "2.1/", "a-version"]
-        "/some/[revision]"                       | "/some/"        | ["/some/1", "/some/2.1/", "/some/a-version"]
-        "/some/[revision]/"                      | "/some/"        | ["/some/1", "/some/2.1/", "/some/a-version"]
-        "/some/[revision]/lib"                   | "/some/"        | ["/some/1/", "/some/2.1", "/some/a-version"]
-        "/some/version-[revision]"               | "/some/"        | ["/some/version-1", "/some/version-2.1", "/some/version-a-version", "/some/nonmatching"]
-        "/some/version-[revision]/lib"           | "/some/"        | ["/some/version-1", "/some/version-2.1", "/some/version-a-version", "/some/nonmatching"]
-        "/some/version-[revision]/lib/"          | "/some/"        | ["/some/version-1", "/some/version-2.1", "/some/version-a-version", "/some/nonmatching"]
-        "/some/[revision]-version"               | "/some/"        | ["/some/1-version", "/some/2.1-version", "/some/a-version-version", "/some/nonmatching"]
-        "/some/[revision]-version/lib"           | "/some/"        | ["/some/1-version", "/some/2.1-version", "/some/a-version-version", "/some/nonmatching"]
-        "/some/[revision]-lib.[ext]"             | "/some/"        | ["/some/1-lib.jar", "/some/1-lib.zip", "/some/2.1-lib.jar", "/some/a-version-lib.jar", "/some/nonmatching"]
-        "/some/any-[revision]-version/lib"       | "/some/"        | ["/some/any-1-version", "/some/any-2.1-version", "/some/any-a-version-version", "/some/nonmatching"]
-        "/some/any-[revision]-version/lib/"      | "/some/"        | ["/some/any-1-version", "/some/any-2.1-version", "/some/any-a-version-version", "/some/nonmatching"]
-        "/some/[revision]/lib/myjar-[revision]/" | "/some/"        | ["/some/1", "/some/2.1", "/some/a-version"]
-        "/some/proj-[revision]/[revision]/lib/"  | "/some/"        | ["/some/proj-1", "/some/proj-2.1", "/some/proj-a-version"]
+        "[revision]"                             | ""              | ["1", "2.1", "a-version"]
+        "[revision]/"                            | ""              | ["1", "2.1", "a-version"]
+        "/[revision]"                            | "/"             | ["1", "2.1", "a-version"]
+        "/[revision]/"                           | "/"             | ["1", "2.1", "a-version"]
+        "/some/[revision]"                       | "/some/"        | ["1", "2.1", "a-version"]
+        "/some/[revision]/"                      | "/some/"        | ["1", "2.1", "a-version"]
+        "/some/[revision]/lib"                   | "/some/"        | ["1", "2.1", "a-version"]
+        "/some/version-[revision]"               | "/some/"        | ["version-1", "version-2.1", "version-a-version", "nonmatching"]
+        "/some/version-[revision]/lib"           | "/some/"        | ["version-1", "version-2.1", "version-a-version", "nonmatching"]
+        "/some/version-[revision]/lib/"          | "/some/"        | ["version-1", "version-2.1", "version-a-version", "nonmatching"]
+        "/some/[revision]-version"               | "/some/"        | ["1-version", "2.1-version", "a-version-version", "nonmatching"]
+        "/some/[revision]-version/lib"           | "/some/"        | ["1-version", "2.1-version", "a-version-version", "nonmatching"]
+        "/some/[revision]-lib.[ext]"             | "/some/"        | ["1-lib.jar", "1-lib.zip", "2.1-lib.jar", "a-version-lib.jar", "nonmatching"]
+        "/some/any-[revision]-version/lib"       | "/some/"        | ["any-1-version", "any-2.1-version", "any-a-version-version", "nonmatching"]
+        "/some/any-[revision]-version/lib/"      | "/some/"        | ["any-1-version", "any-2.1-version", "any-a-version-version", "nonmatching"]
+        "/some/[revision]/lib/myjar-[revision]/" | "/some/"        | ["1", "2.1", "a-version"]
+        "/some/proj-[revision]/[revision]/lib/"  | "/some/"        | ["proj-1", "proj-2.1", "proj-a-version"]
     }
 
     def "visit builds union of versions"() {
@@ -130,8 +130,8 @@ class ResourceVersionListerTest extends Specification {
         sort(versionList).collect { it.pattern } == [pattern2, pattern1, pattern1]
 
         and:
-        1 * repo.list("/") >> ["1.2", "1.3"]
-        1 * repo.list("/org.acme/") >> ["1.3", "1.4"]
+        1 * repo.list(URI.create("/")) >> ["1.2", "1.3"]
+        1 * repo.list(URI.create("/org.acme/")) >> ["1.3", "1.4"]
         0 * repo._
     }
 
@@ -147,7 +147,7 @@ class ResourceVersionListerTest extends Specification {
         sort(versionList).collect { it.pattern } == [patternA, patternA]
 
         and:
-        1 * repo.list("/a/") >> ["1.2", "1.3"]
+        1 * repo.list(URI.create("/a/")) >> ["1.2", "1.3"]
         0 * repo._
     }
 
@@ -162,7 +162,7 @@ class ResourceVersionListerTest extends Specification {
         versionList.visit(pattern(inputPattern), artifact)
 
         then:
-        1 * repo.list(repoPath) >> ['1.2']
+        1 * repo.list(URI.create(repoPath)) >> ['1.2']
 
         where:
         inputPattern                                  | repoPath

@@ -52,12 +52,12 @@ public interface ExternalResourceRepository {
     ExternalResourceMetaData getResourceMetaData(URI source) throws IOException;
 
     /**
-     * Return a listing of resources names
+     * Return a listing of child resources names.
      *
      * @param parent The parent directory from which to generate the listing.
-     * @return A listing of the parent directory's file content, as a List of String. Returns null when the parent resource does not exist.
+     * @return A listing of the direct children of the given parent. Returns null when the parent resource does not exist.
      * @throws IOException On listing failure.
      */
     @Nullable
-    List<String> list(String parent) throws IOException;
+    List<String> list(URI parent) throws IOException;
 }

@@ -33,20 +33,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class FileResourceConnector implements ExternalResourceLister, ExternalResourceAccessor, ExternalResourceUploader {
-    public List<URI> list(URI parent) throws IOException {
+    public List<String> list(URI parent) throws IOException {
         File dir = getFile(parent);
         if (dir.exists() && dir.isDirectory()) {
             String[] names = dir.list();
             if (names != null) {
-                List<URI> ret = new ArrayList<URI>(names.length);
-                for (String name : names) {
-                    ret.add(parent.resolve(name));
-                }
-                return ret;
+                return Arrays.asList(names);
             }
         }
         return null;
