@@ -24,7 +24,7 @@ import java.net.URI;
  * A Repository Layout that applies the following patterns:
  * <ul>
  *     <li>Artifacts: $baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</li>
- *     <li>Ivy: $baseUri/{@value IvyArtifactRepository#IVY_IVY_PATTERN}</li>
+ *     <li>Ivy: $baseUri/{@value IvyArtifactRepository#IVY_ARTIFACT_PATTERN}</li>
  * </ul>
  */
 public class IvyRepositoryLayout extends RepositoryLayout {
@@ -35,6 +35,6 @@ public class IvyRepositoryLayout extends RepositoryLayout {
         }
 
         resolver.addArtifactLocation(baseUri, IvyArtifactRepository.IVY_ARTIFACT_PATTERN);
-        resolver.addDescriptorLocation(baseUri, IvyArtifactRepository.IVY_IVY_PATTERN);
+        resolver.addDescriptorLocation(baseUri, IvyArtifactRepository.IVY_ARTIFACT_PATTERN);
     }
 }

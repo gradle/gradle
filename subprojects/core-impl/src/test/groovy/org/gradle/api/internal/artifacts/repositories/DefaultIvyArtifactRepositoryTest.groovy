@@ -143,8 +143,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             it instanceof IvyResolver
             repository instanceof ExternalResourceRepository
             name == 'name'
-            artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[ext]s/[artifact](.[ext])']
-            ivyPatterns == ["http://host/[organisation]/[module]/[revision]/[artifact]s/[artifact](.[ext])"]
+            artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[type]s/[artifact](.[ext])']
+            ivyPatterns == ["http://host/[organisation]/[module]/[revision]/[type]s/[artifact](.[ext])"]
         }
     }
 
