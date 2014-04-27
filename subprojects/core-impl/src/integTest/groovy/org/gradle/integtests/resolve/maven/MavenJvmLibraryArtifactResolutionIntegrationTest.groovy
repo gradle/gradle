@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact
-import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
@@ -48,7 +48,7 @@ repositories {
     }
 
     def "resolves and caches source artifacts"() {
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectSourceArtifact("sources")
                 .prepare()
 
@@ -62,7 +62,7 @@ repositories {
     }
 
     def "resolve javadoc artifacts"() {
-        fixture.requestingTypes(JvmLibraryJavadocArtifact)
+        fixture.requestingTypes(JavadocArtifact)
                 .expectJavadocArtifact("javadoc")
                 .prepare()
 
@@ -106,7 +106,7 @@ if (project.hasProperty('nocache')) {
         snapshotModule.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.0-SNAPSHOT")
-                .requestingTypes(JvmLibrarySourcesArtifact)
+                .requestingTypes(SourcesArtifact)
                 .prepare()
 
         when:
@@ -157,7 +157,7 @@ if (project.hasProperty('nocache')) {
         snapshotModule.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.0-SNAPSHOT")
-                .requestingTypes(JvmLibrarySourcesArtifact)
+                .requestingTypes(SourcesArtifact)
                 .expectSourceArtifact("sources")
                 .prepare()
 
@@ -235,7 +235,7 @@ if (project.hasProperty('nocache')) {
     }
 
     def "reports on failure to list artifacts and recovers on subsequent resolve"() {
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectComponentResolutionFailure(new ArtifactResolveException("Could not determine artifacts for component 'some.group:some-artifact:1.0'"))
                 .prepare()
 
@@ -261,7 +261,7 @@ if (project.hasProperty('nocache')) {
     }
 
     def "resolves and recovers from broken artifacts"() {
-        fixture.requestingTypes(JvmLibraryJavadocArtifact)
+        fixture.requestingTypes(JavadocArtifact)
                 .expectJavadocArtifactFailure(new ArtifactResolveException(
                                                 "Could not download artifact 'some.group:some-artifact:1.0:some-artifact-javadoc.jar'",
                                                 new Throwable("Received status code 500 from server: broken")))
@@ -291,7 +291,7 @@ if (project.hasProperty('nocache')) {
     def "resolve and does not cache artifacts from local repository"() {
         initBuild(fileRepo)
 
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectSourceArtifact("sources")
                 .prepare()
 

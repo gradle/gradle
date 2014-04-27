@@ -25,8 +25,8 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
 import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
@@ -184,11 +184,11 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
             return ImmutableSet.of(module.artifact(metadataArtifact));
         }
 
-        if (artifactType == JvmLibraryJavadocArtifact.class) {
+        if (artifactType == JavadocArtifact.class) {
             return createArtifactMetaData(module, "javadoc", "javadoc");
         }
 
-        if (artifactType == JvmLibrarySourcesArtifact.class) {
+        if (artifactType == SourcesArtifact.class) {
             return createArtifactMetaData(module, "source", "sources");
         }
 

@@ -18,12 +18,12 @@ package org.gradle.api.internal.artifacts.result;
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.result.*;
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
 import org.gradle.api.artifacts.result.jvm.JvmLibrary;
-import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
+import org.gradle.api.internal.artifacts.result.jvm.DefaultJavadocArtifact;
 import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibrary;
-import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibraryJavadocArtifact;
-import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibrarySourcesArtifact;
+import org.gradle.api.internal.artifacts.result.jvm.DefaultSourcesArtifact;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.CollectionUtils;
@@ -54,8 +54,8 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
         Set<JvmLibrary> libraries = Sets.newLinkedHashSet();
         for (ComponentResult componentResult : componentResults) {
             if (componentResult instanceof ResolvedComponentArtifactsResult) {
-                Set<JvmLibrarySourcesArtifact> sourcesArtifacts = transform((ResolvedComponentArtifactsResult) componentResult, JvmLibrarySourcesArtifact.class, DefaultJvmLibrarySourcesArtifact.class);
-                Set<JvmLibraryJavadocArtifact> javadocArtifacts = transform((ResolvedComponentArtifactsResult) componentResult, JvmLibraryJavadocArtifact.class, DefaultJvmLibraryJavadocArtifact.class);
+                Set<SourcesArtifact> sourcesArtifacts = transform((ResolvedComponentArtifactsResult) componentResult, SourcesArtifact.class, DefaultSourcesArtifact.class);
+                Set<JavadocArtifact> javadocArtifacts = transform((ResolvedComponentArtifactsResult) componentResult, JavadocArtifact.class, DefaultJavadocArtifact.class);
                 libraries.add(new DefaultJvmLibrary(componentResult.getId(), sourcesArtifacts, javadocArtifacts));
             }
         }

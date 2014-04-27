@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.result.jvm;
+package org.gradle.api.artifacts.result.jvm;
 
-import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.result.Artifact;
 
-import java.io.File;
-
-public class DefaultJvmLibraryJavadocArtifact extends AbstractJvmLibraryArtifact implements JvmLibraryJavadocArtifact {
-    public DefaultJvmLibraryJavadocArtifact(File file) {
-        super(file);
-    }
-
-    public DefaultJvmLibraryJavadocArtifact(Throwable failure) {
-        super(failure);
-    }
+/**
+ * An artifact containing sources for a software component.
+ *
+ * @since 2.0
+ */
+@Incubating
+public interface SourcesArtifact extends Artifact {
 }

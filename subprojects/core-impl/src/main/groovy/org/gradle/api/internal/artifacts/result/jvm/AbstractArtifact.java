@@ -20,16 +20,16 @@ import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 
-public abstract class AbstractJvmLibraryArtifact implements Artifact {
+public abstract class AbstractArtifact implements Artifact {
     private final File file;
     private final Throwable failure;
 
-    protected AbstractJvmLibraryArtifact(File file) {
+    protected AbstractArtifact(File file) {
         this.file = file;
         failure = null;
     }
 
-    protected AbstractJvmLibraryArtifact(Throwable failure) {
+    protected AbstractArtifact(Throwable failure) {
         file = null;
         this.failure = failure;
     }

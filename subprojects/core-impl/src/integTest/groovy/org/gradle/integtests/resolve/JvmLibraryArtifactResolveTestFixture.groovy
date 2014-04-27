@@ -18,8 +18,8 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.Artifact
-import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact
-import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
@@ -161,7 +161,7 @@ task $taskName << {
     private static String checkComponentResultArtifacts(String componentResult, String type, def expectedFiles, def expectedFailure) {
         """
     def ${type}ArtifactResultFiles = []
-    ${componentResult}.getArtifacts(JvmLibrary${type.capitalize()}Artifact).each { artifactResult ->
+    ${componentResult}.getArtifacts(${type.capitalize()}Artifact).each { artifactResult ->
         if (artifactResult instanceof ResolvedArtifactResult) {
             ${type}ArtifactResultFiles << artifactResult.file.name
         } else {
@@ -176,7 +176,7 @@ task $taskName << {
         """
     def ${type}ArtifactFiles = []
     ${jvmLibrary}.${type}Artifacts.each { artifact ->
-        assert artifact instanceof JvmLibrary${type.capitalize()}Artifact
+        assert artifact instanceof ${type.capitalize()}Artifact
         if (artifact.failure != null) {
             ${checkException("artifact.failure", expectedFailure)}
         } else {
@@ -234,7 +234,7 @@ task verify << {
 
     private String getArtifactTypesString() {
         if (artifactTypes.empty) {
-            return [JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact].collect({it.simpleName}).join(',')
+            return [SourcesArtifact, JavadocArtifact].collect({it.simpleName}).join(',')
         }
         return artifactTypes.collect({ it.simpleName }).join(',')
     }

@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.result
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.Artifact
 import org.gradle.api.artifacts.result.ArtifactResult
-import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact
-import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact
 import spock.lang.Specification
 
 class DefaultResolvedComponentArtifactsResultTest extends Specification {
@@ -32,11 +32,11 @@ class DefaultResolvedComponentArtifactsResultTest extends Specification {
         result.addArtifact(artifact)
 
         when:
-        artifact.type >> JvmLibrarySourcesArtifact
+        artifact.type >> SourcesArtifact
 
         then:
         result.getArtifacts(Artifact) == [artifact] as Set
-        result.getArtifacts(JvmLibrarySourcesArtifact) == [artifact] as Set
-        result.getArtifacts(JvmLibraryJavadocArtifact) == [] as Set
+        result.getArtifacts(SourcesArtifact) == [artifact] as Set
+        result.getArtifacts(JavadocArtifact) == [] as Set
     }
 }

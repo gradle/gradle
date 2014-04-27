@@ -17,35 +17,35 @@ package org.gradle.api.internal.artifacts.result.jvm;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.Component;
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
 import org.gradle.api.artifacts.result.jvm.JvmLibrary;
-import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultJvmLibrary implements JvmLibrary, Component {
     private final ComponentIdentifier componentId;
-    private final Set<JvmLibrarySourcesArtifact> sourceArtifacts;
-    private final Set<JvmLibraryJavadocArtifact> javadocArtifacts;
+    private final Set<SourcesArtifact> sourceArtifacts;
+    private final Set<JavadocArtifact> javadocArtifacts;
 
     public DefaultJvmLibrary(ComponentIdentifier componentId,
-                             Set<? extends JvmLibrarySourcesArtifact> sourceArtifacts,
-                             Set<? extends JvmLibraryJavadocArtifact> javadocArtifacts) {
+                             Set<? extends SourcesArtifact> sourceArtifacts,
+                             Set<? extends JavadocArtifact> javadocArtifacts) {
         this.componentId = componentId;
-        this.sourceArtifacts = new LinkedHashSet<JvmLibrarySourcesArtifact>(sourceArtifacts);
-        this.javadocArtifacts = new LinkedHashSet<JvmLibraryJavadocArtifact>(javadocArtifacts);
+        this.sourceArtifacts = new LinkedHashSet<SourcesArtifact>(sourceArtifacts);
+        this.javadocArtifacts = new LinkedHashSet<JavadocArtifact>(javadocArtifacts);
     }
 
     public ComponentIdentifier getId() {
         return componentId;
     }
 
-    public Set<JvmLibrarySourcesArtifact> getSourcesArtifacts() {
+    public Set<SourcesArtifact> getSourcesArtifacts() {
         return sourceArtifacts;
     }
 
-    public Set<JvmLibraryJavadocArtifact> getJavadocArtifacts() {
+    public Set<JavadocArtifact> getJavadocArtifacts() {
         return javadocArtifacts;
     }
 }

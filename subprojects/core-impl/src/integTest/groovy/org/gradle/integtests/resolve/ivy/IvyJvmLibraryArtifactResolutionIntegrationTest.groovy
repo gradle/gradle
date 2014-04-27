@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact
-import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
@@ -46,7 +46,7 @@ repositories {
     }
 
     def "resolve sources artifacts"() {
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectSourceArtifact("my-sources")
                 .prepare()
 
@@ -59,7 +59,7 @@ repositories {
     }
 
     def "resolve javadoc artifacts"() {
-        fixture.requestingTypes(JvmLibraryJavadocArtifact)
+        fixture.requestingTypes(JavadocArtifact)
                 .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
@@ -129,7 +129,7 @@ repositories {
 
     @Unroll
     def "fetches missing artifacts for module #condition"() {
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectSourceArtifactNotFound("my-sources")
                 .prepare()
         buildFile << """
@@ -197,7 +197,7 @@ if (project.hasProperty('nocache')) {
 """
 
         final sourceArtifact = module.getArtifact(classifier: "my-sources")
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectSourceArtifact("my-sources")
                 .prepare()
 
@@ -340,7 +340,7 @@ if (project.hasProperty('nocache')) {
         moduleWithMavenScheme.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.1")
-                .requestingTypes(JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact)
+                .requestingTypes(SourcesArtifact, JavadocArtifact)
                 .expectSourceArtifact("sources")
                 .prepare()
 

@@ -27,6 +27,6 @@ import java.util.Set;
  */
 @Incubating
 public interface JvmLibrary extends Component {
-    Set<JvmLibrarySourcesArtifact> getSourcesArtifacts();
-    Set<JvmLibraryJavadocArtifact> getJavadocArtifacts();
+    Set<SourcesArtifact> getSourcesArtifacts();
+    Set<JavadocArtifact> getJavadocArtifacts();
 }

@@ -28,8 +28,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.Artifact;
-import org.gradle.api.artifacts.result.jvm.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.JvmLibrarySourcesArtifact;
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactType;
@@ -444,9 +444,9 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             ModuleVersionMetaData moduleMetaData = (ModuleVersionMetaData) component;
 
-            if (artifactType.getType() == JvmLibraryJavadocArtifact.class) {
+            if (artifactType.getType() == JavadocArtifact.class) {
                 resolveJavadocArtifacts(moduleMetaData, result);
-            } else if (artifactType.getType() == JvmLibrarySourcesArtifact.class) {
+            } else if (artifactType.getType() == SourcesArtifact.class) {
                 resolveSourceArtifacts(moduleMetaData, result);
             } else if (isMetaDataArtifact(artifactType.getType())) {
                 resolveMetaDataArtifacts(moduleMetaData, result);
