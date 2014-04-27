@@ -30,7 +30,7 @@ class HttpProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTe
         proxyServer.start()
 
         given:
-        def repo = ivyRepo()
+        def repo = ivyHttpRepo
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
 
@@ -50,8 +50,8 @@ task listJars << {
         executer.withArguments("-Dhttp.proxyHost=localhost", "-Dhttp.proxyPort=${proxyServer.port}")
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         then:
         succeeds('listJars')
@@ -64,7 +64,7 @@ task listJars << {
         proxyServer.start()
 
         given:
-        def repo = ivyRepo()
+        def repo = ivyHttpRepo
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
 
@@ -90,8 +90,8 @@ task listJars << {
         proxyServer.requireAuthentication('proxyUser', 'proxyPassword')
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         then:
         succeeds('listJars')
@@ -105,7 +105,7 @@ task listJars << {
         proxyServer.start()
 
         given:
-        def repo = ivyRepo()
+        def repo = ivyHttpRepo
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
 
@@ -135,8 +135,8 @@ task listJars << {
         proxyServer.requireAuthentication('proxyUser', 'proxyPassword')
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'targetUser', 'targetPassword', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'targetUser', 'targetPassword', module.jarFile)
+        module.ivy.expectGet('targetUser', 'targetPassword')
+        module.jar.expectGet('targetUser', 'targetPassword')
 
         then:
         succeeds('listJars')

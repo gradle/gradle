@@ -195,7 +195,7 @@ task listJars << {
 
     public void "uses all configured patterns to resolve artifacts and caches result"() {
         given:
-        def module = ivyRepo().module('group', 'projectA', '1.2').publish()
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
         buildFile << """
 repositories {
