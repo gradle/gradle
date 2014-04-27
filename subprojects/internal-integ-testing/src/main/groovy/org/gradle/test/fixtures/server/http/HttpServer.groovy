@@ -17,6 +17,7 @@ package org.gradle.test.fixtures.server.http
 
 import com.google.gson.Gson
 import com.google.gson.JsonElement
+import groovy.xml.MarkupBuilder
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.server.ExpectOne
@@ -434,14 +435,22 @@ class HttpServer extends ServerWithExpectations {
     }
 
     private sendDirectoryListing(HttpServletResponse response, File directory) {
-        def directoryListing = ""
-        for (String fileName : directory.list()) {
-            directoryListing += "<a href=\"$fileName\">$fileName</a>"
-        }
+        def writer = new StringWriter()
+        def markupBuilder = new MarkupBuilder(writer)
+        markupBuilder.doubleQuotes = true // for Ivy
+        markupBuilder.html {
+            for (String fileName : directory.list()) {
+                def uri = new URI(null, null, null, -1, fileName, null, null).toString()
+                a(href: uri, fileName)
+            }
 
-        response.setContentLength(directoryListing.length())
+        }
+        def directoryListing = writer.toString().getBytes("utf8")
+
+        response.setContentLength(directoryListing.length)
         response.setContentType("text/html")
-        response.outputStream.bytes = directoryListing.bytes
+        response.setCharacterEncoding("utf8")
+        response.outputStream.bytes = directoryListing
     }
 
     /**
