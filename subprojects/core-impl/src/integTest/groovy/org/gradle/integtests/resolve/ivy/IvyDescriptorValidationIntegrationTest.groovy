@@ -44,7 +44,7 @@ class IvyDescriptorValidationIntegrationTest extends AbstractDependencyResolutio
         succeeds 'resolve'
 
         when:
-        module.ivyFile.setText(module.ivyFile.text.replace('revision="1.4"', 'revision="1.6"'), "utf-8")
+        module.ivyFile.setText(module.ivyFile.text.replace("revision='1.4'", "revision='1.6'"), "utf-8")
 
         then:
         fails 'resolve'
