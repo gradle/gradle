@@ -146,6 +146,16 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
 
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+            // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
+            delegate.getLocalAccess().listModuleVersions(dependency, result);
+            if (result.hasResult()) {
+                return;
+            }
+
+            listModuleVersionsFromCache(dependency, result);
+        }
+
+        private void listModuleVersionsFromCache(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
             ModuleVersionSelector requested = dependency.getRequested();
             final ModuleIdentifier moduleId = getCacheKey(requested);
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
@@ -171,6 +181,16 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
+            // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
+            delegate.getLocalAccess().resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+            if (result.hasResult()) {
+                return;
+            }
+
+            resolveComponentMetaDataFromCache(dependency, moduleComponentIdentifier, result);
+        }
+
+        private void resolveComponentMetaDataFromCache(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
             ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.getCachedModuleDescriptor(delegate, moduleComponentIdentifier);
             if (cachedMetaData == null) {
                 return;
@@ -218,7 +238,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return;
             }
 
-            findInCache(cacheKey(artifactType), component, result, cachedModuleSource);
+            resolveModuleArtifactsFromCache(cacheKey(artifactType), component, result, cachedModuleSource);
         }
 
         public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
@@ -230,10 +250,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return;
             }
 
-            findInCache(cacheKey(componentUsage), component, result, cachedModuleSource);
+            resolveModuleArtifactsFromCache(cacheKey(componentUsage), component, result, cachedModuleSource);
         }
 
-        private void findInCache(String contextId, ComponentMetaData component, BuildableArtifactSetResolveResult result, CachingModuleSource cachedModuleSource) {
+        private void resolveModuleArtifactsFromCache(String contextId, ComponentMetaData component, BuildableArtifactSetResolveResult result, CachingModuleSource cachedModuleSource) {
             ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), contextId);
             BigInteger moduleDescriptorHash = cachedModuleSource.getDescriptorHash();
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactType
@@ -27,8 +28,10 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsC
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider
@@ -53,7 +56,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
             cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor)
 
     @Unroll
-    def "last modified date is cached - lastModified = #lastModified"() {
+    def "artifact last modified date is cached - lastModified = #lastModified"() {
         given:
         def artifactId = Stub(ModuleVersionArtifactIdentifier)
         def artifact = Stub(ModuleVersionArtifactMetaData) {
@@ -84,6 +87,34 @@ class CachingModuleComponentRepositoryTest extends Specification {
         lastModified << [new Date(), null]
     }
 
+    def "does not use cache when module version listing can be determined locally"() {
+        def dependency = Mock(DependencyMetaData)
+        def result = new DefaultBuildableModuleVersionSelectionResolveResult()
+
+        when:
+        repo.localAccess.listModuleVersions(dependency, result)
+
+        then:
+        realLocalAccess.listModuleVersions(dependency, result) >> {
+            result.listed(Mock(ModuleVersionListing))
+        }
+        0 * _
+    }
+
+    def "does not use cache when component metadata can be determined locally"() {
+        def dependency = Mock(DependencyMetaData)
+        def componentId = Mock(ModuleComponentIdentifier)
+        def result = new DefaultBuildableModuleVersionMetaDataResolveResult()
+
+        when:
+        repo.localAccess.resolveComponentMetaData(dependency, componentId, result)
+
+        then:
+        realLocalAccess.resolveComponentMetaData(dependency, componentId, result) >> {
+            result.resolved(Mock(MutableModuleVersionMetaData), Mock(ModuleSource))
+        }
+        0 * _
+    }
     def "does not use cache when artifacts for type can be determined locally"() {
         def component = Mock(ComponentMetaData)
         def source = Mock(ModuleSource)

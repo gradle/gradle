@@ -90,7 +90,7 @@ public class ResolveIvyFactory {
             }
 
             // TODO:DAZ In theory we could update this so that _all_ repositories are wrapped in a cache:
-            //     - the caching repository would check for local result on every call before using cache.
+            //     - would need to add local/remote pattern to artifact download
             //     - This might help later when we integrate in-memory caching with file-backed caching.
             ModuleComponentRepository moduleComponentRepository = baseRepository;
             if (baseRepository.isLocal()) {
