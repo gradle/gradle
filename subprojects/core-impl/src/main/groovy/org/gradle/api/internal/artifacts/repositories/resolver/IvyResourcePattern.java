@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.externalresource.ExternalResourceName;
 
 import java.net.URI;
 import java.util.Map;
@@ -39,21 +40,21 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
         return String.format("Ivy pattern '%s'", getPattern());
     }
 
-    public String toPath(ModuleVersionArtifactMetaData artifact) {
+    public ExternalResourceName getLocation(ModuleVersionArtifactMetaData artifact) {
         Map<String, String> attributes = toAttributes(artifact);
-        return substituteTokens(getPath(), attributes);
+        return getBase().getRoot().resolve(substituteTokens(getBase().getPath(), attributes));
     }
 
-    public String toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
+    public ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
         Map<String, String> attributes = toAttributes(module, artifact);
-        return substituteTokens(getPattern(), attributes);
+        return getBase().getRoot().resolve(substituteTokens(getBase().getPath(), attributes));
     }
 
-    public String toModulePath(ModuleIdentifier module) {
+    public ExternalResourceName toModulePath(ModuleIdentifier module) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    public String toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
+    public ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 }

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.externalresource.ExternalResourceName;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -29,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 
 class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifactResolver {
@@ -66,10 +66,10 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
 
     private boolean staticResourceExists(List<ResourcePattern> patternList, ModuleVersionArtifactMetaData artifact) {
         for (ResourcePattern resourcePattern : patternList) {
-            URI location = resourcePattern.getLocation(artifact);
+            ExternalResourceName location = resourcePattern.getLocation(artifact);
             LOGGER.debug("Loading {}", location);
             try {
-                if (repository.getResourceMetaData(location) != null) {
+                if (repository.getResourceMetaData(location.getUri()) != null) {
                     return true;
                 }
             } catch (IOException e) {
@@ -81,11 +81,11 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
 
     private LocallyAvailableExternalResource downloadStaticResource(List<ResourcePattern> patternList, final ModuleVersionArtifactMetaData artifact) {
         for (ResourcePattern resourcePattern : patternList) {
-            URI location = resourcePattern.getLocation(artifact);
+            ExternalResourceName location = resourcePattern.getLocation(artifact);
             LOGGER.debug("Loading {}", location);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
             try {
-                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
+                LocallyAvailableExternalResource resource = resourceAccessor.getResource(location.getUri(), new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                     public LocallyAvailableResource moveIntoCache(File downloadedResource) {
                         return fileStore.move(artifact, downloadedResource);
                     }

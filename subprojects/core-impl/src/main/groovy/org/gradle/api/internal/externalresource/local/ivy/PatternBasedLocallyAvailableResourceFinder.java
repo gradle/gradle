@@ -54,7 +54,7 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
             }
 
             private MinimalFileTree getMatchingFiles(ModuleVersionArtifactMetaData artifact) {
-                String patternString = pattern.toPath(artifact);
+                String patternString = pattern.getLocation(artifact).getPath();
                 return new SingleIncludePatternFileTree(baseDir, patternString);
             }
 

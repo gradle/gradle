@@ -20,8 +20,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-
-import java.net.URI;
+import org.gradle.api.internal.externalresource.ExternalResourceName;
 
 public interface ResourcePattern {
     /**
@@ -30,28 +29,23 @@ public interface ResourcePattern {
     String getPattern();
 
     /**
-     * Returns the path to the given artifact.
+     * Returns the path for the given artifact.
      */
-    String toPath(ModuleVersionArtifactMetaData artifact);
-
-    /**
-     * Returns the URI for the given artifact.
-     */
-    URI getLocation(ModuleVersionArtifactMetaData artifact);
+    ExternalResourceName getLocation(ModuleVersionArtifactMetaData artifact);
 
     /**
      * Returns the pattern which can be used to search for versions of the given artifact.
      * The returned pattern should include at least one [revision] placeholder.
      */
-    String toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact);
+    ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact);
 
     /**
-     * Returns the path to the given module.
+     * Returns the path for the given module.
      */
-    String toModulePath(ModuleIdentifier moduleIdentifier);
+    ExternalResourceName toModulePath(ModuleIdentifier moduleIdentifier);
 
     /**
-     * Returns the path to the module version for the given artifact.
+     * Returns the path for the given component.
      */
-    String toModuleVersionPath(ModuleComponentIdentifier artifact);
+    ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier);
 }

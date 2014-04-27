@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.externalresource.ExternalResourceName;
 
 import java.net.URI;
 import java.util.Map;
@@ -39,10 +40,10 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         return String.format("M2 pattern '%s'", getPattern());
     }
 
-    public String toPath(ModuleVersionArtifactMetaData artifact) {
+    public ExternalResourceName getLocation(ModuleVersionArtifactMetaData artifact) {
         Map<String, String> attributes = toAttributes(artifact);
-        String pattern = maybeSubstituteTimestamp(artifact, getPath());
-        return substituteTokens(pattern, attributes);
+        String pattern = maybeSubstituteTimestamp(artifact, getBase().getPath());
+        return getBase().getRoot().resolve(substituteTokens(pattern, attributes));
     }
 
     private String maybeSubstituteTimestamp(ModuleVersionArtifactMetaData artifact, String pattern) {
@@ -53,27 +54,27 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         return pattern;
     }
 
-    public String toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
+    public ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
         Map<String, String> attributes = toAttributes(module, artifact);
-        return substituteTokens(getPattern(), attributes);
+        return getBase().getRoot().resolve(substituteTokens(getBase().getPath(), attributes));
     }
 
-    public String toModulePath(ModuleIdentifier module) {
-        String pattern = getPattern();
+    public ExternalResourceName toModulePath(ModuleIdentifier module) {
+        String pattern = getBase().getPath();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
             throw new UnsupportedOperationException("Cannot locate module for non-maven layout.");
         }
         String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_PATTERN.length() - 1);
-        return substituteTokens(metaDataPattern, toAttributes(module));
+        return getBase().getRoot().resolve(substituteTokens(metaDataPattern, toAttributes(module)));
     }
 
-    public String toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
-        String pattern = getPattern();
+    public ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
+        String pattern = getBase().getPath();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
             throw new UnsupportedOperationException("Cannot locate module version for non-maven layout.");
         }
         String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_VERSION_PATTERN.length() - 1);
-        return substituteTokens(metaDataPattern, toAttributes(componentIdentifier));
+        return getBase().getRoot().resolve(substituteTokens(metaDataPattern, toAttributes(componentIdentifier)));
     }
 
     protected String substituteTokens(String pattern, Map<String, String> attributes) {

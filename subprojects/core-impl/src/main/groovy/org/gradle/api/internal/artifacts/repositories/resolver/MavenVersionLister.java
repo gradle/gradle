@@ -36,7 +36,7 @@ public class MavenVersionLister implements VersionLister {
             final Set<String> searched = new HashSet<String>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
-                String metadataLocation = pattern.toModulePath(module) + "/maven-metadata.xml";
+                String metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml").getUri().toString();
                 if (!searched.add(metadataLocation)) {
                     return;
                 }

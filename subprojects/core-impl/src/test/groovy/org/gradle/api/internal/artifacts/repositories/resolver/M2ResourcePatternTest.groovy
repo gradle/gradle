@@ -35,7 +35,7 @@ class M2ResourcePatternTest extends Specification {
         "http://host"  | "a/b/c"  | "http://host/a/b/c"
         "http://host/" | "/a/b/c" | "http://host/a/b/c"
         "http://host/" | ""       | "http://host/"
-        "http://host"  | ""       | "http://host/"
+        "http://host"  | ""       | "http://host"
     }
 
     def "substitutes artifact attributes into pattern"() {
@@ -43,7 +43,7 @@ class M2ResourcePatternTest extends Specification {
         def artifact = artifact(group, module, version)
 
         expect:
-        pattern.toPath(artifact) == expectPath
+        pattern.getLocation(artifact).path == expectPath
 
         where:
         group       | module     | version | expectPath
@@ -59,7 +59,7 @@ class M2ResourcePatternTest extends Specification {
         def artifact1 = new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(snapshotId, "projectA", "pom", "pom"))
 
         expect:
-        pattern.toPath(artifact1) == 'prefix/group/projectA/1.2-SNAPSHOT/projectA-1.2-2014-timestamp-3333.pom'
+        pattern.getLocation(artifact1).path == 'prefix/group/projectA/1.2-SNAPSHOT/projectA-1.2-2014-timestamp-3333.pom'
     }
 
     def "determines artifact location by substituting artifact attributes into pattern and resolving relative to base URI"() {
@@ -67,7 +67,7 @@ class M2ResourcePatternTest extends Specification {
         def artifact = artifact(group, module, version)
 
         expect:
-        pattern.getLocation(artifact) == new URI(expectPath)
+        pattern.getLocation(artifact).uri == new URI(expectPath)
 
         where:
         group       | module     | version | expectPath
@@ -76,15 +76,18 @@ class M2ResourcePatternTest extends Specification {
         "#?:%12"    | "projectA" | "1.2"   | 'http://server/lookup/%23%3F:%2512/projectA/1.2/ivys/1.2/ivy.xml'
     }
 
-    def "substitutes module attributes into pattern to determine module pattern"() {
+    def "substitutes attributes into pattern to determine version list pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
         def ivyName = new DefaultIvyArtifactName("projectA", "pom", "pom")
-        def module1 = new DefaultModuleIdentifier("group", "projectA")
-        def module2 = new DefaultModuleIdentifier("org.group", "projectA")
+        def moduleId = new DefaultModuleIdentifier(group, module)
 
         expect:
-        pattern.toVersionListPattern(module1, ivyName) == 'prefix/group/projectA/[revision]/poms/[revision]/projectA.pom'
-        pattern.toVersionListPattern(module2, ivyName) == 'prefix/org/group/projectA/[revision]/poms/[revision]/projectA.pom'
+        pattern.toVersionListPattern(moduleId, ivyName).path == expectedPath
+
+        where:
+        group       | module     | expectedPath
+        "group"     | "projectA" | 'prefix/group/projectA/[revision]/poms/[revision]/projectA.pom'
+        "org.group" | "projectA" | 'prefix/org/group/projectA/[revision]/poms/[revision]/projectA.pom'
     }
 
     def "can build module path"() {
@@ -93,8 +96,8 @@ class M2ResourcePatternTest extends Specification {
         def module2 = new DefaultModuleIdentifier("org.group", "projectA")
 
         expect:
-        pattern.toModulePath(module1) == 'prefix/group/projectA'
-        pattern.toModulePath(module2) == 'prefix/org/group/projectA'
+        pattern.toModulePath(module1).path == 'prefix/group/projectA'
+        pattern.toModulePath(module2).path == 'prefix/org/group/projectA'
     }
 
     def "can build module version path"() {
@@ -103,8 +106,8 @@ class M2ResourcePatternTest extends Specification {
         def component2 = newId("org.group", "projectA", "1.2")
 
         expect:
-        pattern.toModuleVersionPath(component1) == 'prefix/group/projectA/1.2'
-        pattern.toModuleVersionPath(component2) == 'prefix/org/group/projectA/1.2'
+        pattern.toModuleVersionPath(component1).path == 'prefix/group/projectA/1.2'
+        pattern.toModuleVersionPath(component2).path == 'prefix/org/group/projectA/1.2'
     }
 
     def "throws UnsupportedOperationException for non M2 compatible pattern"() {

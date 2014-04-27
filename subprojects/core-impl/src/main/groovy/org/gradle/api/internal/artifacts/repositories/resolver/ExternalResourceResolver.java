@@ -343,7 +343,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         } else {
             throw new IllegalStateException("impossible to publish " + artifact + " using " + this + ": no artifact pattern defined");
         }
-        URI destination = destinationPattern.getLocation(artifact);
+        URI destination = destinationPattern.getLocation(artifact).getUri();
 
         put(src, destination);
         LOGGER.info("Published {} to {}", artifact, destination);

@@ -151,7 +151,7 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module) {
-        String metadataLocation = getWholePattern().toModuleVersionPath(module) + "/maven-metadata.xml";
+        String metadataLocation = getWholePattern().toModuleVersionPath(module).resolve("maven-metadata.xml").getUri().toString();
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {

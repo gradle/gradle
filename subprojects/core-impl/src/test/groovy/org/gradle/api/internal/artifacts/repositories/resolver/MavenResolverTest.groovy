@@ -30,7 +30,7 @@ class MavenResolverTest extends Specification {
     def repository = Mock(ExternalResourceRepository)
     def artifactIdentifierFileStore = Stub(ArtifactIdentifierFileStore)
 
-    def rootUri = URI.create("localhost:8081:/testrepo/")
+    def rootUri = URI.create("thing:/localhost:8081:/testrepo/")
     def locallyAvailableResourceFinder = Mock(LocallyAvailableResourceFinder)
     def parser = Mock(MetaDataParser)
     def resolverStrategy = Stub(ResolverStrategy)

@@ -20,72 +20,29 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.internal.UncheckedException;
+import org.gradle.api.internal.externalresource.ExternalResourceName;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
 abstract class AbstractResourcePattern implements ResourcePattern {
-    private final String pattern;
-    private final String prefix;
-    private final String path;
+    private final ExternalResourceName pattern;
 
     public AbstractResourcePattern(String pattern) {
-        this.prefix = "";
-        this.pattern = pattern;
-        this.path = pattern;
+        this.pattern = new ExternalResourceName(pattern);
     }
 
     public AbstractResourcePattern(URI baseUri, String pattern) {
-        prefix = baseUri.toString();
-        String base = "";
-        if (!prefix.endsWith("/")) {
-            base = "/";
-        }
-        if (pattern.startsWith("/")) {
-            pattern = pattern.substring(1);
-        }
-        this.path = base + pattern;
-        this.pattern = prefix + path;
+        this.pattern = new ExternalResourceName(baseUri, pattern);
     }
 
     public String getPattern() {
+        return pattern.getDecoded();
+    }
+
+    protected ExternalResourceName getBase() {
         return pattern;
-    }
-
-    protected String getPath() {
-        return path;
-    }
-
-    public URI getLocation(ModuleVersionArtifactMetaData artifact) {
-        return URI.create(prefix + encode(toPath(artifact)));
-    }
-
-    private String encode(String path) {
-        StringBuilder result = new StringBuilder();
-        byte[] encoded;
-        try {
-            encoded = path.getBytes("utf8");
-        } catch (UnsupportedEncodingException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-        for (int i = 0; i < encoded.length; i++) {
-            byte ch = encoded[i];
-            if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9') {
-                result.append((char) ch);
-            } else if (ch == '/' || ch == '-' || ch == '.' || ch == '~' || ch == '_' || ch == '!' || ch == '$' || ch == '&'
-                    || ch == '\'' || ch == '(' || ch == ')' || ch == '*' || ch == '+' || ch == ',' || ch == ';' || ch == '='
-                    || ch == '@' || ch == ':') {
-                result.append((char) ch);
-            } else {
-                result.append('%');
-                result.append(Character.toUpperCase(Character.forDigit((ch >> 4) & 0xF, 16)));
-                result.append(Character.toUpperCase(Character.forDigit(ch & 0xF, 16)));
-            }
-        }
-        return result.toString();
     }
 
     protected String substituteTokens(String pattern, Map<String, String> attributes) {
