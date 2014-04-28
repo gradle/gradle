@@ -1309,6 +1309,56 @@ this consistent with the way that tool arguments are configured in a tool chain.
 * When no Platform architecture/os is defined, assume the current platform architecture/os, not the tool chain default.
     * This will require detecting the current platform, and supplying the correct tool chain arguments when building.
 
+
+## Story: Modify command line arguments for visualCpp toolchain prior execution
+
+provide a 'hook' allowing the build author to control the exact set of arguments passed to a visualcpp toolchain executable.
+This will allow a build author to work around any limitations in Gradle, or incorrect assumptions that Gradle makes.
+
+### Implementation
+
+* Change `VisualCppToolChain` to extend `ExtendableToolChain` and register `linker` and `staticLibArchiver` tools
+* Move registration of cpp, windows-rc and assembler tools in VisualCppToolChain to according plugins
+* Extract `CommandLineToolChain` interface out of `Gcc` and introduce similar functionality to VisualCpp and Clang tool chains.
+* Move setter/getter of executables in into GccCommandLineToolConfiguration
+* Add according documentation to userguide/DSL reference and update release notes
+
+### User visible changes
+    	
+		apply plugin:'cpp'    
+		
+		model {
+            toolChains {
+                visualCpp(VisualCpp) {
+                    cppCompiler.withArguments { args ->
+                            args << "-DFRENCH"
+                    }
+                }
+            }
+        }
+
+
+### Test coverage
+
+* Can tweak arguments for VisualCpp, Gcc and Clang
+
+## Story: Allow configuration of tool chain executables on a per-platform basis (Gcc based toolchains)
+
+### Implementation
+
+* In AbstractGccCompatibleToolChain change initTools method to configure configurableToolChain instead after targetPlatformConfigurationConfiguration is applied 
+
+### Test coverage
+
+* Can use g++ instead of gcc for compiling C sources
+* Can use custom executable
+
+### Open issues
+
+* path configuration is currently not possible on a per platform basis. full paths to executables must be used or executable must be on 
+system path.
+
+
 ## Story: Improved DSL for tool chain configuration
 
 This story improves the DSL for tweaking arguments for a command-line tool that is part of a tool chain, and extends this
@@ -1321,7 +1371,6 @@ ability to all command-line based tool chains. It also permits the configuration
 * Remove tool-specific getters from `Gcc`, and instead make `Gcc` serve as a NamedDomainObjectSet of `CommandLineTool` instances.
     * Continue to register a `CommandLineTool` for every supported language.
 * Allow the `withInvocation` method to override the default executable to use.
-* Extract `CommandLineToolChain` interface out of `Gcc` and introduce similar functionality to VisualCpp and Clang tool chains.
 * Add a sample, user-guide documentation and note the breaking change in the release notes.
 * Consolidate various `ArgsTransformer` implementations so that most/all simply set/modify args on a `CommandLineToolInvocation`.
 
