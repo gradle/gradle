@@ -238,6 +238,12 @@ idea {
 
         vmParameters.'@value' = defaultTestVmParams.collect { it.contains(" ") ? "\"$it\"" : it }.join(" ")
 
+        // Add int test environment variables
+        def lang = System.getenv('LANG') ?: 'en_US.UTF-8'
+        def envVars = runConfig.envs.first()
+        envVars.children.each { child -> envVars.remove(child) }
+        envVars.appendNode('env', [name: 'LANG', value: lang])
+
         // Add an application configuration
         runManagerConfig.'@selected' = 'Application.Gradle'
         def appConfig =
