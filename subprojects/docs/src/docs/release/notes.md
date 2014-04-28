@@ -167,7 +167,36 @@ corresponding system property is _not_ set. The following POM file demonstrates 
         </profiles>
     </project>
 
-### Support for adding target platform specific configurations in native binary projects
+### Allow control of the exact set of arguments passed to a toolchain executable
+
+Gradle now provides a 'hook' allowing the build author to control the exact set of arguments passed a toolchain executable.
+This will allow a build author to work around any limitations in Gradle, or incorrect assumptions that Gradle makes.
+
+    apply plugin:'cpp'
+
+    model {
+        toolChains {
+            visualCpp(VisualCpp) {
+                cppCompiler.withArguments { args ->
+                    args << "-DFRENCH"
+                }
+            }
+            clang(Clang){
+                cCompiler.withArguments { args ->
+                    Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
+                }
+                linker.withArguments { args ->
+                    args.remove "CUSTOM"
+                }
+                staticLibArchiver.withArguments { args ->
+                    args.remove "CUSTOM"
+                }
+            }
+
+        }
+    }
+
+### Support for adding target platform specific configurations in native binary projects (Gcc based toolchains)
 
 When declaring a toolchain, the targetted platforms can be configured directly in the toolChain model. Furthermore target platform specific configurations
 can be declared:
@@ -176,6 +205,7 @@ can be declared:
 	    toolChains {
 	        gcc(Gcc) {
 	            target("arm"){
+	                cppCompiler.executable = "custom-gcc"
 	                cppCompiler.withArguments { args ->
 	                    args << "-m32"
 	                }
