@@ -23,6 +23,7 @@ import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
+import org.gradle.nativebinaries.toolchain.ToolChainRegistry
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -169,6 +170,24 @@ class AssemblerPluginTest extends Specification {
         }
         def staticLibTask = staticLib.tasks.createStaticLib
         staticLibTask TaskDependencyMatchers.dependsOn("assembleTestStaticLibraryTestAnotherOne", "assembleTestStaticLibraryTestAsm")
+    }
+
+    def "registers assembler tool to toolchains"() {
+        when:
+        dsl {
+            apply plugin: AssemblerPlugin
+            executables {
+                exe {}
+            }
+            libraries {
+                lib {}
+            }
+        }
+        then:
+        ToolChainRegistry toolChains = project.modelRegistry.get("toolChains", ToolChainRegistry)
+        toolChains.each { def toolChain ->
+            toolChain.getByName("assembler")  != null
+        }
     }
 
     def touch(String filePath) {

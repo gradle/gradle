@@ -31,8 +31,10 @@ import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.Gcc
+import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.toolchain.internal.ToolType
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration
 import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 
 import javax.inject.Inject
@@ -69,6 +71,13 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
                 toolChainRegistry.withType(Gcc).all(new Action<Gcc>(){
                     void execute(Gcc toolchain) {
                         toolchain.add(new DefaultGccCommandLineToolConfiguration("assembler", ToolType.ASSEMBLER, "as"));
+                    }
+                })
+
+                toolChainRegistry.withType(VisualCpp).all(new Action<VisualCpp>(){
+                    void execute(VisualCpp toolchain) {
+                        toolchain.add(new DefaultCommandLineToolConfiguration("assembler"));
+
                     }
                 })
             }
