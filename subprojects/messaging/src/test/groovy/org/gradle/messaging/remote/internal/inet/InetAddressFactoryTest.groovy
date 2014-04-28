@@ -16,6 +16,8 @@
 
 package org.gradle.messaging.remote.internal.inet
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
 class InetAddressFactoryTest extends Specification {
@@ -43,6 +45,7 @@ class InetAddressFactoryTest extends Specification {
         }
     }
 
+    @Requires(TestPrecondition.ONLINE)
     def "no remote address is considered local"() {
         expect:
         factory.findRemoteAddresses().every {

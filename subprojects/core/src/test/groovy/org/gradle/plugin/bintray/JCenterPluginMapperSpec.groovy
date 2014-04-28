@@ -28,8 +28,11 @@ import org.gradle.plugin.resolve.internal.InvalidPluginRequestException
 import org.gradle.plugin.resolve.internal.JCenterPluginMapper
 import org.gradle.plugin.resolve.internal.PluginRequest
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
+@Requires(TestPrecondition.ONLINE)
 class JCenterPluginMapperSpec extends Specification {
 
     public static final String TEST_PLUGIN_MAVEN_GROUP_ID = 'com.bintray.gradle.test'
