@@ -20,6 +20,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
+import org.gradle.nativebinaries.toolchain.internal.gcc.TargetPlatformConfiguration
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -177,8 +178,15 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                             staticLibArchiver.executable = '${binDir.absolutePath}/static-lib'
                             linker.executable = '${binDir.absolutePath}/linker'
                         }
+
+                        target("i386"){
+                            if(cCompiler.executable.equals('gcc')){
+                                cCompiler.executable = 'g++'
+                            }
+                        }
                     }
                 }
+
                 platforms {
                     arm {
                         architecture "arm"
