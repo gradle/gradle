@@ -37,16 +37,16 @@ class ExternalResourceNameTest extends Specification {
         name.root == name.root.root
 
         where:
-        baseUri                      | path                                               | expectedRoot            | expectedPath
-        "http://host/"               | "a/b/c.html"                                       | "http://host/"          | "/a/b/c.html"
-        "http://host/"               | "/a/b/c"                                           | "http://host/"          | "/a/b/c"
-        "http://host:8008"           | "/a/b/c"                                           | "http://host:8008/"     | "/a/b/c"
-        "http://host/"               | "/"                                                | "http://host/"          | "/"
-        "http://host/a/b/c"          | ""                                                 | "http://host/"          | "/a/b/c"
-        "http://host/a/b/c"          | "[123]"                                            | "http://host/"          | "/a/b/c/[123]"
-        "http://host"                | "\u007b\u007f\u0080\u03b1\u07ff\u0800\u30b1\ufffe" | "http://host/"          | "/\u007b\u007f\u0080\u03b1\u07ff\u0800\u30b1\ufffe"
-        "http://host"                | ":?#-.~_@"                                         | "http://host/"          | "/:?#-.~_@"
-        this.base.toURI().toString() | "a/b/c"                                            | root.toURI().toString() | "/base/a/b/c"
+        baseUri                      | path                                               | expectedRoot        | expectedPath
+        "http://host/"               | "a/b/c.html"                                       | "http://host/"      | "/a/b/c.html"
+        "http://host/"               | "/a/b/c"                                           | "http://host/"      | "/a/b/c"
+        "http://host:8008"           | "/a/b/c"                                           | "http://host:8008/" | "/a/b/c"
+        "http://host/"               | "/"                                                | "http://host/"      | "/"
+        "http://host/a/b/c"          | ""                                                 | "http://host/"      | "/a/b/c"
+        "http://host/a/b/c"          | "[123]"                                            | "http://host/"      | "/a/b/c/[123]"
+        "http://host"                | "\u007b\u007f\u0080\u03b1\u07ff\u0800\u30b1\ufffe" | "http://host/"      | "/\u007b\u007f\u0080\u03b1\u07ff\u0800\u30b1\ufffe"
+        "http://host"                | ":?#-.~_@"                                         | "http://host/"      | "/:?#-.~_@"
+        this.base.toURI().toString() | "a/b/c"                                            | "file:/"            | this.base.toURI().path + "/a/b/c"
     }
 
     def "can construct a resource name from a path"() {
@@ -125,7 +125,7 @@ class ExternalResourceNameTest extends Specification {
         uri                      | path     | expectedUri
         "http://host/a/b/c"      | "/z"     | "http://host/z"
         "http://host:8080/a/b/c" | "/path"  | "http://host:8080/path"
-        base.toURI().toString()  | "/z"     | new File(root, "z").toURI().toString()
+        base.toURI().toString()  | "/z"     | "file:/z"
         "/a/b/c"                 | "/z"     | "/z"
         "a/b/c"                  | "/z"     | "/z"
         "a/b/c"                  | "/"      | "/"
