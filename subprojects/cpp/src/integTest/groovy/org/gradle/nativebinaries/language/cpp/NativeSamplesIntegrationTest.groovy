@@ -28,6 +28,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.GccCompatible
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -313,6 +314,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     }
 
 
+    @RequiresInstalledToolChain(GccCompatible)
     def "target platforms"() {
         given:
         sample targetPlatforms
