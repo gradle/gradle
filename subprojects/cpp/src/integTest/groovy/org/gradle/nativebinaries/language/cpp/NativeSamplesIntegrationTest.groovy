@@ -50,6 +50,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     @Rule public final Sample prebuilt = sample(testDirProvider, 'prebuilt')
     @Rule public final Sample idl = sample(testDirProvider, 'idl')
     @Rule public final Sample cunit = sample(testDirProvider, 'cunit')
+    @Rule public final Sample targetPlatforms = sample(testDirProvider, 'target-platforms')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
@@ -309,6 +310,21 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary(multiProject.dir.file("lib/build/binaries/mainSharedLibrary/main")).assertExists()
         executable(multiProject.dir.file("exe/build/binaries/mainExecutable/main")).assertExists()
         installation(multiProject.dir.file("exe/build/install/mainExecutable")).exec().out == "Hello, World!\n"
+    }
+
+
+    def "target platforms"() {
+        given:
+        sample targetPlatforms
+
+        when:
+        run "installArmMainExecutable", "installSparcMainExecutable"
+
+        then:
+        executable(targetPlatforms.dir.file("build/binaries/mainExecutable/arm/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
+        executable(targetPlatforms.dir.file("build/binaries/mainExecutable/arm/main")).binaryInfo.arch.isI386()
+
+        executable(targetPlatforms.dir.file("build/binaries/mainExecutable/sparc/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
     }
 
     def "visual studio"() {

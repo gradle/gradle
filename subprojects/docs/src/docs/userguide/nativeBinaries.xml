@@ -512,6 +512,7 @@
             <para>
                 Each tool chain implementation allows for a certain degree of configuration (see the API documentation for more details).
             </para>
+
         </section>
 
         <section>
@@ -561,9 +562,11 @@
             <para>
                 Cross-compiling is possible with the <apilink class="org.gradle.nativebinaries.toolchain.Gcc"/> and <apilink class="org.gradle.nativebinaries.toolchain.Clang"/> tool chains,
                 by adding support for additional target platforms.
-                This is done using the <apilink class="org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain"/> API.
-                By adding a support for a particular platform, additional tool arguments that are required to target this platform can be provided.
+                This is done by specifying a target platform for a toolchain. For each targetted platform a custom configuration can be specified.
             </para>
+            <sample id="toolChains" dir="native-binaries/target-platforms" title="Defining target platforms">
+                <sourcefile file="build.gradle" snippet="targetplatforms"/>
+            </sample>
         </section>
     </section>
     <section id="native_binaries:visual_studio">
