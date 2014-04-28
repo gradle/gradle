@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.Repository
+import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.ivy.IvyHttpModule
 import spock.lang.Unroll
 
@@ -71,6 +72,39 @@ dependencies {
         then:
         executer.withArgument("-PrefreshDynamicVersions")
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.integration": "group:projectB:2.2"
+    }
+
+    @Unroll
+    def "uses latest version from version range with #identifier characters"() {
+        given:
+        def name = identifier.safeForFileName().decorate("name")
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
+}
+
+dependencies {
+    compile group: /${name}/, name: /${name}/, version: "latest.integration"
+}
+"""
+        when:
+        def projectA1 = ivyHttpRepo.module(name, name, name).publish()
+
+        and:
+        expectGetDynamicRevision(projectA1)
+
+        then:
+        succeeds('checkDeps')
+        resolve.expectGraph {
+            root(":", ":test:") {
+                dependency(group: name, module: name, version: 'latest.integration').selects(group: name, module: name, version: name)
+            }
+        }
+
+        where:
+        identifier << Identifier.all
     }
 
     def "determines latest version with jar only"() {
