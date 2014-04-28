@@ -15,6 +15,7 @@
  */
 package org.gradle.test.fixtures.server.http
 
+import com.google.common.net.UrlEscapers
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import groovy.xml.MarkupBuilder
@@ -440,7 +441,7 @@ class HttpServer extends ServerWithExpectations {
         markupBuilder.doubleQuotes = true // for Ivy
         markupBuilder.html {
             for (String fileName : directory.list()) {
-                def uri = new URI(null, null, null, -1, fileName, null, null).toString()
+                def uri = UrlEscapers.urlPathSegmentEscaper().escape(fileName).replaceAll(':', '%3A')
                 a(href: uri, fileName)
             }
 
