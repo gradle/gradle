@@ -24,6 +24,7 @@ import java.util.List;
 public class Identifier {
     private static final String PUNCTUATION_CHARS = "-'!@#$%^&*()_+=,.?{}[]<>";
     private static final String NON_ASCII_CHARS = "-√æず∫ʙぴ₦ガき∆ç√∫";
+    private static final String NON_PRECOMPOSED_NON_ASCII = "-√æ∫ʙ₦∆√∫";
     private static final String FILESYSTEM_RESERVED_CHARS = "-./\\?%*:|\"<>";
     private static final String XML_MARKUP_CHARS = "-<with>some<xml-markup/></with>";
 
@@ -76,6 +77,10 @@ public class Identifier {
     }
 
     public static Identifier getNonAscii() {
+        if (OperatingSystem.current().isMacOsX()) {
+            // The hfs+ file system stores file names in decomposed form. Don't use precomposed characters on OS X, as way too few things normalise text correctly
+            return new Identifier(NON_PRECOMPOSED_NON_ASCII, "non-ascii");
+        }
         return new Identifier(NON_ASCII_CHARS, "non-ascii");
     }
 
