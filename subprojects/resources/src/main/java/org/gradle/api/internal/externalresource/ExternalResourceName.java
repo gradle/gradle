@@ -55,7 +55,7 @@ public class ExternalResourceName {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
-        if (path.isEmpty()) {
+        if (path.length() == 0) {
             newPath = parent.getPath();
         } else if (parent.getPath().endsWith("/")) {
             newPath = parent.getPath() + path;
@@ -169,7 +169,7 @@ public class ExternalResourceName {
         String newPath;
         if (path.startsWith("/")) {
             newPath = path;
-        } else if (this.path.endsWith("/") || this.path.isEmpty()) {
+        } else if (this.path.endsWith("/") || this.path.length() == 0) {
             newPath = this.path + path;
         } else {
             newPath = this.path + "/" + path;
