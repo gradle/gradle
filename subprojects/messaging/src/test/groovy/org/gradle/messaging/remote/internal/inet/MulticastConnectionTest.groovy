@@ -19,7 +19,9 @@ package org.gradle.messaging.remote.internal.inet
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.AvailablePortFinder
+import spock.lang.Timeout
 
+@Timeout(30)
 class MulticastConnectionTest extends ConcurrentSpec {
     def "can send multicast messages between peers"() {
         def address = new SocketInetAddress(InetAddress.getByName("233.253.17.122"), AvailablePortFinder.createPrivate().nextAvailable)
@@ -34,14 +36,10 @@ class MulticastConnectionTest extends ConcurrentSpec {
         connection1.dispatch("hi!")
 
         then:
-        connection1.receive() == "hi!"
         connection2.receive() == "hi!"
 
-        when:
-        connection2.dispatch("bye!")
-
-        then:
-        connection1.receive() == "bye!"
-        connection2.receive() == "bye!"
+        cleanup:
+        connection1?.stop()
+        connection2?.stop()
     }
 }
