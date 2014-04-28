@@ -78,7 +78,7 @@ task retrieve(type: Sync) {
     }
 
     @Unroll
-    def "can resolve with GAV containing #title characters"() {
+    def "can resolve with GAV containing #identifier characters"() {
         def value = identifier.safeForFileName().decorate("name")
 
         given:
@@ -123,12 +123,7 @@ task retrieve(type: Sync) {
         progressLogging.downloadProgressLogged(projectB.artifact.uri)
 
         where:
-        title        | identifier
-//        "punctuation"| Identifier.punctuation
-        "non-ascii"  | Identifier.nonAscii
-//        "whitespace" | Identifier.whiteSpace
-//        "filesystem" | Identifier.fileSystemReserved
-//        "xml markup" | Identifier.xmlMarkup
+        identifier << Identifier.all
     }
 
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {
