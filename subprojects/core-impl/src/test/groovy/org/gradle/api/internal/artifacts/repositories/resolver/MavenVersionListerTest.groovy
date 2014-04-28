@@ -38,8 +38,8 @@ class MavenVersionListerTest extends Specification {
     def artifact = new DefaultIvyArtifactName("testproject", "jar", "jar")
 
     def repository = Mock(ExternalResourceRepository)
-    def pattern = pattern("http://localhost:8081/testRepo/" + MavenPattern.M2_PATTERN)
-    def metaDataResource = new URI('http://localhost:8081/testRepo/org/acme/testproject/maven-metadata.xml')
+    def pattern = pattern("testRepo/" + MavenPattern.M2_PATTERN)
+    def metaDataResource = new URI('testRepo/org/acme/testproject/maven-metadata.xml')
 
     final MavenVersionLister lister = new MavenVersionLister(repository)
 

@@ -28,21 +28,42 @@ class ExternalResourceNameTest extends Specification {
 
     def "can construct a resource name from URI and path"() {
         expect:
-        def name = new ExternalResourceName(URI.create(baseUri), path)
-        name.uri == URI.create(expectedUri)
+        def base = URI.create(baseUri)
+        def name = new ExternalResourceName(base, path)
+        name.uri.toASCIIString() == new URI(base.scheme, null, base.host, base.port, expectedPath, null, null).toASCIIString()
+        name.path == expectedPath
+        name.uri.path == expectedPath
+        name.root.uri == URI.create(expectedRoot)
+        name.root == name.root.root
+
+        where:
+        baseUri                      | path                                               | expectedRoot            | expectedPath
+        "http://host/"               | "a/b/c.html"                                       | "http://host/"          | "/a/b/c.html"
+        "http://host/"               | "/a/b/c"                                           | "http://host/"          | "/a/b/c"
+        "http://host:8008"           | "/a/b/c"                                           | "http://host:8008/"     | "/a/b/c"
+        "http://host/"               | "/"                                                | "http://host/"          | "/"
+        "http://host/a/b/c"          | ""                                                 | "http://host/"          | "/a/b/c"
+        "http://host/a/b/c"          | "[123]"                                            | "http://host/"          | "/a/b/c/[123]"
+        "http://host"                | "\u007b\u007f\u0080\u03b1\u07ff\u0800\u30b1\ufffe" | "http://host/"          | "/\u007b\u007f\u0080\u03b1\u07ff\u0800\u30b1\ufffe"
+        "http://host"                | ":?#-.~_@"                                         | "http://host/"          | "/:?#-.~_@"
+        this.base.toURI().toString() | "a/b/c"                                            | root.toURI().toString() | "/base/a/b/c"
+    }
+
+    def "can construct a resource name from a path"() {
+        expect:
+        def name = new ExternalResourceName(path)
+        name.uri.toASCIIString() == URI.create(expectedUri).toASCIIString()
         name.path == expectedPath
         name.root.uri == URI.create(expectedRoot)
         name.root == name.root.root
 
         where:
-        baseUri                 | path     | expectedUri                                | expectedRoot            | expectedPath
-        "http://host/"          | "a/b/c"  | "http://host/a/b/c"                        | "http://host"           | "/a/b/c"
-        "http://host/"          | "/a/b/c" | "http://host/a/b/c"                        | "http://host"           | "/a/b/c"
-        "http://host:8008"      | "/a/b/c" | "http://host:8008/a/b/c"                   | "http://host:8008"      | "/a/b/c"
-        "http://host/"          | "/"      | "http://host/"                             | "http://host"           | "/"
-        "http://host/a/b/c"     | ""       | "http://host/a/b/c"                        | "http://host"           | "/a/b/c"
-        "http://host/a/b/c"     | "[123]"  | "http://host/a/b/c/%5B123%5D"              | "http://host"           | "/a/b/c/[123]"
-        base.toURI().toString() | "a/b/c"  | new File(base, "a/b/c").toURI().toString() | root.toURI().toString() | "/base/a/b/c"
+        path     | expectedUri | expectedRoot | expectedPath
+        "a/b/c"  | "a/b/c"     | ""           | "a/b/c"
+        "/a/b/c" | "/a/b/c"    | "/"          | "/a/b/c"
+        "/"      | "/"         | "/"          | "/"
+        "a:b"    | "a%3Ab"     | ""           | "a:b"
+        "a%:b"   | "a%25%3Ab"  | ""           | "a%:b"
     }
 
     def "can construct a resource name from a relative path"() {
@@ -83,12 +104,16 @@ class ExternalResourceNameTest extends Specification {
         def samePath = new ExternalResourceName(URI.create("http://host/a/b"), "c")
         def differentRoot = new ExternalResourceName(URI.create("http://other"), "a/b/c")
         def differentPath = new ExternalResourceName(URI.create("http://host"), "x/y/z")
+        def relative = new ExternalResourceName("a/b/c")
+        def sameRelative = new ExternalResourceName("a/b/c")
 
         expect:
         name Matchers.strictlyEqual(same)
         name Matchers.strictlyEqual(samePath)
+        relative Matchers.strictlyEqual(sameRelative)
         name != differentPath
         name != differentRoot
+        name != relative
     }
 
     def "can resolve an absolute path"() {
