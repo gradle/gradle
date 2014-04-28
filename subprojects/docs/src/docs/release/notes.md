@@ -167,6 +167,34 @@ corresponding system property is _not_ set. The following POM file demonstrates 
         </profiles>
     </project>
 
+### Support for adding target platform specific configurations in native binary projects
+
+When declaring a toolchain, the targetted platforms can be configured directly in the toolChain model. Furthermore target platform specific configurations
+can be declared:
+
+	model {
+	    toolChains {
+	        gcc(Gcc) {
+	            target("arm"){
+	                cppCompiler.withArguments { args ->
+	                    args << "-m32"
+	                }
+	                linker.withArguments { args ->
+	                    args << "-m32"
+	                }
+	            }
+	            target("sparc")
+	        }
+	    }
+		platforms {
+			arm {
+		    	architecture "arm"
+			}
+			sparc {
+		    	architecture "sparc"
+			}
+		}
+
 <!--
 ### Example new and noteworthy
 -->
