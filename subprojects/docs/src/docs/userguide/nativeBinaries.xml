@@ -555,6 +555,14 @@
                 This default platform does not specify any <literal>architecture</literal> or <literal>operatingSystem</literal> value,
                 hence using the default values of the first available tool chain.
             </para>
+            <para>
+                Gradle provides a <literal>hook</literal> that allows the build author to control the exact set of arguments passed to a tool chain executable.
+                This enables the build author to work around any limitations in Gradle, or assumptions that Gradle makes.
+                The arguments hook should be seen as a 'last-resort' mechanism, with preference given to truly modelling the underlying domain.
+            </para>
+            <sample id="withArguments" dir="native-binaries/tool-chains" title="Reconfigure tool arguments">
+                <sourcefile file="build.gradle" snippet="withArguments"/>
+            </sample>
         </section>
 
         <section>
@@ -564,7 +572,7 @@
                 by adding support for additional target platforms.
                 This is done by specifying a target platform for a toolchain. For each targetted platform a custom configuration can be specified.
             </para>
-            <sample id="toolChains" dir="native-binaries/target-platforms" title="Defining target platforms">
+            <sample id="targetPlatforms" dir="native-binaries/target-platforms" title="Defining target platforms">
                 <sourcefile file="build.gradle" snippet="targetplatforms"/>
             </sample>
         </section>
