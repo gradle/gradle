@@ -28,11 +28,39 @@ class MulticastConnectionTest extends ConcurrentSpec {
         def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
         def addressFactory = new InetAddressFactory()
 
-        given:
-        def connection1 = new MulticastConnection<String>(address, serializer, addressFactory)
-        def connection2 = new MulticastConnection<String>(address, serializer, addressFactory)
+        // Some sanity checking
+        // TODO - remove this
+        when:
+        def socket1 = new MulticastSocket(address.getPort());
+        addressFactory.findMulticastInterfaces().each { networkInterface ->
+            socket1.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
+        }
+        def socket2 = new MulticastSocket(address.getPort());
+        addressFactory.findMulticastInterfaces().each { networkInterface ->
+            socket2.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
+        }
+
+        def message = "hi".getBytes()
+        socket1.send(new DatagramPacket(message, message.length, address.address, address.port))
+
+        socket2.setSoTimeout(10000);
+
+        def packet = new DatagramPacket(new byte[1024], 1024)
+        try {
+            socket2.receive(packet)
+        } catch (SocketTimeoutException e) {
+            throw new RuntimeException("""Timeout waiting to receive message.
+network interfaces: ${NetworkInterface.networkInterfaces.collect { it.displayName }.join(', ')}
+selected: ${addressFactory.findMulticastInterfaces().collect { it.displayName }.join(', ')}
+""", e)
+        }
+
+        then:
+        new String(packet.data, packet.offset, packet.length) == "hi"
 
         when:
+        def connection1 = new MulticastConnection<String>(address, serializer, addressFactory)
+        def connection2 = new MulticastConnection<String>(address, serializer, addressFactory)
         connection1.dispatch("hi!")
 
         then:
