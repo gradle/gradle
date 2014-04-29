@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
 
@@ -48,6 +49,7 @@ class ClientModuleResolverTest extends Specification {
         def dep = Mock(ModuleDependency)
         def moduleDescriptor = Mock(ModuleDescriptor)
         def dependencyDescriptor = Mock(DependencyDescriptor)
+        def artifact = Mock(ModuleVersionArtifactMetaData)
 
         when:
         resolver.resolve(dependency, result)
@@ -66,6 +68,10 @@ class ClientModuleResolverTest extends Specification {
         1 * dependencyDescriptor.getDependencyRevisionId() >> ModuleRevisionId.newInstance("org", "mod", "1.0")
         1 * metaData.setDependencies({
             it.size() == 1 && it[0].descriptor == dependencyDescriptor
+        })
+        1 * metaData.artifact('jar', 'jar', null) >> artifact
+        1 * metaData.setArtifacts({
+            (it as List) == [artifact]
         })
         1 * result.setMetaData(metaData)
         0 * _

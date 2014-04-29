@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ClientModule;
@@ -25,10 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveRes
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
-import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
-import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.internal.Transformers;
 
 import java.util.List;
@@ -58,6 +56,8 @@ public class ClientModuleResolver implements DependencyToModuleVersionResolver {
                 MutableModuleVersionMetaData clientModuleMetaData = toModuleVersionMetaData.transform(result.getMetaData()).copy();
                 addClientModuleDependencies(clientModule, clientModuleMetaData);
 
+                setClientModuleArtifact(clientModuleMetaData);
+
                 // TODO:DAZ Replace the artifacts with a single jar artifact - write a failing test first...
                 result.setMetaData(clientModuleMetaData);
             }
@@ -71,5 +71,10 @@ public class ClientModuleResolver implements DependencyToModuleVersionResolver {
             dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
         }
         clientModuleMetaData.setDependencies(dependencies);
+    }
+
+    private void setClientModuleArtifact(MutableModuleVersionMetaData clientModuleMetaData) {
+        ModuleVersionArtifactMetaData artifact = clientModuleMetaData.artifact("jar", "jar", null);
+        clientModuleMetaData.setArtifacts(Sets.newHashSet(artifact));
     }
 }

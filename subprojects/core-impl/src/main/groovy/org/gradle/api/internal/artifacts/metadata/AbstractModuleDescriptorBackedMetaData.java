@@ -103,12 +103,16 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
 
     public List<DependencyMetaData> getDependencies() {
         if (dependencies == null) {
-            dependencies = new ArrayList<DependencyMetaData>();
-            for (final DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
-                dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
-            }
+            populateDependenciesFromDescriptor();
         }
         return dependencies;
+    }
+
+    private void populateDependenciesFromDescriptor() {
+        dependencies = new ArrayList<DependencyMetaData>();
+        for (final DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
+            dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
+        }
     }
 
     public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
@@ -121,18 +125,23 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
     public DefaultConfigurationMetaData getConfiguration(final String name) {
         DefaultConfigurationMetaData configuration = configurations.get(name);
         if (configuration == null) {
-            Configuration descriptor = moduleDescriptor.getConfiguration(name);
-            if (descriptor == null) {
-                return null;
-            }
-            Set<String> hierarchy = new LinkedHashSet<String>();
-            hierarchy.add(name);
-            for (String parent : descriptor.getExtends()) {
-                hierarchy.addAll(getConfiguration(parent).hierarchy);
-            }
-            configuration = new DefaultConfigurationMetaData(name, descriptor, hierarchy);
-            configurations.put(name, configuration);
+            configuration = populateConfigurationFromDescriptor(name);
         }
+        return configuration;
+    }
+
+    private DefaultConfigurationMetaData populateConfigurationFromDescriptor(String name) {
+        Configuration descriptorConfiguration = moduleDescriptor.getConfiguration(name);
+        if (descriptorConfiguration == null) {
+            return null;
+        }
+        Set<String> hierarchy = new LinkedHashSet<String>();
+        hierarchy.add(name);
+        for (String parent : descriptorConfiguration.getExtends()) {
+            hierarchy.addAll(getConfiguration(parent).hierarchy);
+        }
+        DefaultConfigurationMetaData configuration = new DefaultConfigurationMetaData(name, descriptorConfiguration, hierarchy);
+        configurations.put(name, configuration);
         return configuration;
     }
 
@@ -210,17 +219,21 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
 
         public Set<ExcludeRule> getExcludeRules() {
             if (excludeRules == null) {
-                excludeRules = new LinkedHashSet<ExcludeRule>();
-                for (ExcludeRule excludeRule : moduleDescriptor.getAllExcludeRules()) {
-                    for (String config : excludeRule.getConfigurations()) {
-                        if (hierarchy.contains(config)) {
-                            excludeRules.add(excludeRule);
-                            break;
-                        }
+                populateExcludeRulesFromDescriptor();
+            }
+            return excludeRules;
+        }
+
+        private void populateExcludeRulesFromDescriptor() {
+            excludeRules = new LinkedHashSet<ExcludeRule>();
+            for (ExcludeRule excludeRule : moduleDescriptor.getAllExcludeRules()) {
+                for (String config : excludeRule.getConfigurations()) {
+                    if (hierarchy.contains(config)) {
+                        excludeRules.add(excludeRule);
+                        break;
                     }
                 }
             }
-            return excludeRules;
         }
 
         public Set<ComponentArtifactMetaData> getArtifacts() {

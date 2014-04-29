@@ -136,7 +136,9 @@ abstract class AbstractModuleVersionMetaDataTest extends Specification {
         def artifact2 = artifact("two")
 
         given:
-        moduleDescriptor.getAllArtifacts() >> ([artifact1, artifact2] as Artifact[])
+        moduleDescriptor.allArtifacts >> ([artifact1, artifact2] as Artifact[])
+        moduleDescriptor.configurationsNames >> ["conf1"]
+        moduleDescriptor.getArtifacts("conf1") >> ([artifact1, artifact2] as Artifact[])
 
         when:
         def artifacts = metaData.artifacts
@@ -163,9 +165,10 @@ abstract class AbstractModuleVersionMetaDataTest extends Specification {
         def config = Stub(Configuration)
 
         given:
-        moduleDescriptor.getConfiguration("conf") >> config
         moduleDescriptor.allArtifacts >> ([artifact1, artifact2] as Artifact[])
+        moduleDescriptor.configurationsNames >> ["conf"]
         moduleDescriptor.getArtifacts("conf") >> ([artifact1, artifact2] as Artifact[])
+        moduleDescriptor.getConfiguration("conf") >> config
 
         when:
         def artifacts = metaData.getConfiguration("conf").artifacts
@@ -199,6 +202,7 @@ abstract class AbstractModuleVersionMetaDataTest extends Specification {
         def artifact3 = artifact("three")
 
         given:
+        moduleDescriptor.configurationsNames >> ["conf", "super"]
         moduleDescriptor.getConfiguration("conf") >> config
         moduleDescriptor.getConfiguration("super") >> parent
         config.extends >> ["super"]

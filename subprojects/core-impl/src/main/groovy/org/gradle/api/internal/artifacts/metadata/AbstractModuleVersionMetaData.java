@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -26,10 +30,14 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 abstract class AbstractModuleVersionMetaData extends AbstractModuleDescriptorBackedMetaData implements MutableModuleVersionMetaData {
     private Set<ModuleVersionArtifactMetaData> artifacts;
+    private Multimap<String, ModuleVersionArtifactMetaData> artifactsByConfig;
 
     public AbstractModuleVersionMetaData(ModuleDescriptor moduleDescriptor) {
         this(moduleVersionIdentifier(moduleDescriptor), moduleDescriptor, moduleComponentIdentifier(moduleDescriptor));
@@ -45,6 +53,12 @@ abstract class AbstractModuleVersionMetaData extends AbstractModuleDescriptorBac
 
     public AbstractModuleVersionMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
         super(moduleVersionIdentifier, moduleDescriptor, componentIdentifier);
+    }
+
+    protected void copyTo(AbstractModuleVersionMetaData copy) {
+        super.copyTo(copy);
+        copy.artifacts = artifacts;
+        copy.artifactsByConfig = artifactsByConfig;
     }
 
     public abstract AbstractModuleVersionMetaData copy();
@@ -72,25 +86,45 @@ abstract class AbstractModuleVersionMetaData extends AbstractModuleDescriptorBac
 
     public Set<ModuleVersionArtifactMetaData> getArtifacts() {
         if (artifacts == null) {
-            artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
-            for (Artifact artifact : getDescriptor().getAllArtifacts()) {
-                artifacts.add(artifact(artifact));
-            }
+            populateArtifactsFromDescriptor();
         }
         return artifacts;
     }
 
+    public void setArtifacts(Iterable<? extends ModuleVersionArtifactMetaData> artifacts) {
+        this.artifacts = Sets.newLinkedHashSet(artifacts);
+        this.artifactsByConfig = LinkedHashMultimap.create();
+        for (String config : getDescriptor().getConfigurationsNames()) {
+            artifactsByConfig.putAll(config, artifacts);
+        }
+    }
+
     protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-        Set<Artifact> artifacts = new HashSet<Artifact>();
+        if (artifactsByConfig == null) {
+            populateArtifactsFromDescriptor();
+        }
         Set<ComponentArtifactMetaData> artifactMetaData = new LinkedHashSet<ComponentArtifactMetaData>();
         for (String ancestor : configurationMetaData.getHierarchy()) {
-            for (Artifact artifact : getDescriptor().getArtifacts(ancestor)) {
-                if (artifacts.add(artifact)) {
-                    artifactMetaData.add(new DefaultModuleVersionArtifactMetaData(getComponentId(), artifact));
-                }
-            }
+            artifactMetaData.addAll(artifactsByConfig.get(ancestor));
         }
         return artifactMetaData;
     }
 
+    private void populateArtifactsFromDescriptor() {
+        Map<Artifact, ModuleVersionArtifactMetaData> artifactToMetaData = Maps.newLinkedHashMap();
+        for (Artifact descriptorArtifact : getDescriptor().getAllArtifacts()) {
+            ModuleVersionArtifactMetaData artifact = artifact(descriptorArtifact);
+            artifactToMetaData.put(descriptorArtifact, artifact);
+        }
+
+        artifacts = Sets.newLinkedHashSet(artifactToMetaData.values());
+
+        this.artifactsByConfig = LinkedHashMultimap.create();
+        for (String configuration : getDescriptor().getConfigurationsNames()) {
+            Artifact[] configArtifacts = getDescriptor().getArtifacts(configuration);
+            for (Artifact configArtifact : configArtifacts) {
+                artifactsByConfig.put(configuration, artifactToMetaData.get(configArtifact));
+            }
+        }
+    }
 }
