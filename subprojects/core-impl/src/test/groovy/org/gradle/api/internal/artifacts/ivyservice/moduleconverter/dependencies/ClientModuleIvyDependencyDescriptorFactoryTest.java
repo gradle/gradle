@@ -22,10 +22,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
-import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
-import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 
@@ -35,10 +32,8 @@ import static org.junit.Assert.*;
 public class ClientModuleIvyDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private ClientModuleMetaDataFactory clientModuleMetaDataFactory = context.mock(ClientModuleMetaDataFactory.class);
     private ClientModuleIvyDependencyDescriptorFactory clientModuleDependencyDescriptorFactory = new ClientModuleIvyDependencyDescriptorFactory(
-            excludeRuleConverterStub,
-            clientModuleMetaDataFactory
+            excludeRuleConverterStub
     );
 
     @Test
@@ -55,14 +50,6 @@ public class ClientModuleIvyDependencyDescriptorFactoryTest extends AbstractDepe
 
         setUpDependency(clientModule);
         clientModule.addDependency(dependencyDependency);
-        final MutableModuleVersionMetaData moduleVersionMetaData = context.mock(MutableModuleVersionMetaData.class);
-        context.checking(new Expectations() {{
-            allowing(clientModuleMetaDataFactory).createModuleMetaData(
-                    testModuleRevisionId,
-                    WrapUtil.toSet(dependencyDependency)
-            );
-            will(returnValue(moduleVersionMetaData));
-        }});
 
         DefaultDependencyDescriptor dependencyDescriptor = clientModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, clientModule, moduleDescriptor);
         assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);
@@ -74,14 +61,6 @@ public class ClientModuleIvyDependencyDescriptorFactoryTest extends AbstractDepe
     public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         final ClientModule clientModule = new DefaultClientModule(null, "gradle-core", null, TEST_DEP_CONF);
         final ModuleRevisionId testModuleRevisionId = IvyUtil.createModuleRevisionId(clientModule);
-        final MutableModuleVersionMetaData moduleVersionMetaData = context.mock(MutableModuleVersionMetaData.class);
-        context.checking(new Expectations() {{
-            allowing(clientModuleMetaDataFactory).createModuleMetaData(
-                    testModuleRevisionId,
-                    WrapUtil.<ModuleDependency>toSet()
-            );
-            will(returnValue(moduleVersionMetaData));
-        }});
 
         DefaultDependencyDescriptor dependencyDescriptor = clientModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, clientModule, moduleDescriptor);
         assertThat(dependencyDescriptor.getDependencyRevisionId(), equalTo(testModuleRevisionId));

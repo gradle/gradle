@@ -49,17 +49,13 @@ class DependencyManagementGlobalScopeServices {
     }
 
     DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
-        DefaultClientModuleMetaDataFactory clientModuleDescriptorFactory = new DefaultClientModuleMetaDataFactory();
-        DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
+        return new DefaultDependencyDescriptorFactory(
                 new ClientModuleIvyDependencyDescriptorFactory(
-                        excludeRuleConverter,
-                        clientModuleDescriptorFactory
+                        excludeRuleConverter
                 ),
                 new ProjectIvyDependencyDescriptorFactory(
                         excludeRuleConverter),
                 descriptorFactory);
-        clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactory);
-        return dependencyDescriptorFactory;
     }
 
     ResolveLocalComponentFactory createResolveModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,

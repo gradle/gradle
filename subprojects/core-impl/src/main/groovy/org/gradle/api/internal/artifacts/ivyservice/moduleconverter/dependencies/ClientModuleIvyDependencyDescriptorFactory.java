@@ -21,14 +21,12 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
+// TODO:DAZ Not sure if we still need a separate subtype for ClientModuleDependencyDescriptor...
 public class ClientModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
-    private ClientModuleMetaDataFactory clientModuleMetaDataFactory;
 
-    public ClientModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ClientModuleMetaDataFactory clientModuleMetaDataFactory) {
+    public ClientModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
-        this.clientModuleMetaDataFactory = clientModuleMetaDataFactory;
     }
 
     private ModuleRevisionId createModuleRevisionId(ModuleDependency dependency) {
@@ -38,13 +36,10 @@ public class ClientModuleIvyDependencyDescriptorFactory extends AbstractIvyDepen
     public EnhancedDependencyDescriptor createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
         ClientModule clientModule = getClientModule(dependency);
-        MutableModuleVersionMetaData moduleVersionMetaData = clientModuleMetaDataFactory.createModuleMetaData(
-                moduleRevisionId, clientModule.getDependencies());
 
-        EnhancedDependencyDescriptor dependencyDescriptor = new ClientModuleDependencyDescriptor(
+        EnhancedDependencyDescriptor dependencyDescriptor = new EnhancedDependencyDescriptor(
                 clientModule,
                 parent,
-                moduleVersionMetaData,
                 moduleRevisionId,
                 clientModule.isForce(),
                 false,
