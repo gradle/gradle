@@ -89,17 +89,12 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             package com.acme
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.*
+import org.junit.Test
 
-class BreakingTest extends Specification {
-  Project project
-
-  def setup() {
-    project = ProjectBuilder.builder().build()
-  }
-
-  def "can evaluate ProjectBuilder"() {
-    expect:
+class BreakingTest {
+  @Test
+  void "can evaluate ProjectBuilder"() {
+    def project = ProjectBuilder.builder().build()
     project.apply(plugin: 'groovy')
     project.evaluate()
   }
@@ -117,9 +112,6 @@ class BreakingTest extends Specification {
             dependencies {
                 compile gradleApi()
                 compile localGroovy()
-                testCompile "org.spockframework:spock-core:0.7-groovy-1.8", {
-                    exclude module: "groovy-all"
-                }
             }
         '''
 
