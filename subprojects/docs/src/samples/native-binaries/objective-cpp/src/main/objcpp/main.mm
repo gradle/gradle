@@ -1,3 +1,5 @@
+#define __STDC_LIMIT_MACROS
+#include <stdint.h>
 #import <Foundation/Foundation.h>
 #include <iostream>
 
