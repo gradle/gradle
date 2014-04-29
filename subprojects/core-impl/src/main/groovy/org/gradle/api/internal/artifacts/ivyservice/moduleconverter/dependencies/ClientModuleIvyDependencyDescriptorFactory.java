@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 
-// TODO:DAZ Not sure if we still need a separate subtype for ClientModuleDependencyDescriptor...
 public class ClientModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
 
     public ClientModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
