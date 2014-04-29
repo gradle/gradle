@@ -47,6 +47,10 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
         return source;
     }
 
+    public long getLastModifiedTime() {
+        return localFile.lastModified();
+    }
+
     public long getContentLength() {
         return localFile.length();
     }
@@ -65,7 +69,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     public ExternalResourceMetaData getMetaData() {
         if (metaData == null) {
-            metaData = new DefaultExternalResourceMetaData(source, -1, getContentLength(), null, null);
+            metaData = new DefaultExternalResourceMetaData(source, getLastModifiedTime(), getContentLength(), null, null);
         }
         return metaData;
     }
