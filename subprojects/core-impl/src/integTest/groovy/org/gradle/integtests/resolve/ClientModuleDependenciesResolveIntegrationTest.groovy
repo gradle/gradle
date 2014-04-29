@@ -60,4 +60,35 @@ task listJars << {
         then:
         succeeds('listJars')
     }
+
+    def "client module dependency ignores published artifact listing and resolves single jar file"() {
+        def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')
+                .artifact()
+                .artifact(classifier: "extra")
+                .publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    regular
+    clientModule
+}
+dependencies {
+    regular "group:projectA:1.2"
+    clientModule module("group:projectA:1.2")
+}
+task listJars << {
+    assert configurations.regular.collect { it.name } == ['projectA-1.2.jar', 'projectA-1.2-extra.jar']
+    assert configurations.clientModule.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
+
+        when:
+        projectA.allowAll()
+
+        then:
+        succeeds('listJars')
+    }
 }
