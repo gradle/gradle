@@ -47,29 +47,27 @@ public class IncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
     }
 
     public WorkResult execute(final NativeCompileSpec spec) {
-        return cacheAccess.useCache("incremental compile", new Factory<WorkResult>() {
-            public WorkResult create() {
+        IncrementalCompilation compilation = cacheAccess.useCache("process source files", new Factory<IncrementalCompilation>() {
+            public IncrementalCompilation create() {
                 IncrementalCompileProcessor processor = createProcessor(spec.getIncludeRoots());
-                if (spec.isIncrementalCompile()) {
-                    return doIncrementalCompile(processor, spec);
-                }
-                return doCleanIncrementalCompile(processor, spec);
+                // TODO - do not hold the lock while processing the source files - this prevents other tasks from executing concurrently
+                return processor.processSourceFiles(spec.getSourceFiles());
             }
         });
+        if (spec.isIncrementalCompile()) {
+            return doIncrementalCompile(compilation, spec);
+        }
+        return doCleanIncrementalCompile(spec);
     }
 
-    protected WorkResult doIncrementalCompile(IncrementalCompileProcessor processor, NativeCompileSpec spec) {
-        IncrementalCompilation compilation = processor.processSourceFiles(spec.getSourceFiles());
-
+    protected WorkResult doIncrementalCompile(IncrementalCompilation compilation, NativeCompileSpec spec) {
         // Determine the actual sources to clean/compile
         spec.setSourceFiles(compilation.getRecompile());
         spec.setRemovedSourceFiles(compilation.getRemoved());
         return delegateCompiler.execute(spec);
     }
 
-
-    protected WorkResult doCleanIncrementalCompile(IncrementalCompileProcessor processor, NativeCompileSpec spec) {
-        processor.processSourceFiles(spec.getSourceFiles());
+    protected WorkResult doCleanIncrementalCompile(NativeCompileSpec spec) {
         boolean deleted = cleanPreviousOutputs(spec);
         WorkResult compileResult = delegateCompiler.execute(spec);
         if (deleted && !compileResult.getDidWork()) {

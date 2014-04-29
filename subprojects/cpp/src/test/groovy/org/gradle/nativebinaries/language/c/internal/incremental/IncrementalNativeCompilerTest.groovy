@@ -28,7 +28,6 @@ class IncrementalNativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def delegateCompiler = Mock(org.gradle.api.internal.tasks.compile.Compiler)
-    def incrementalCompileProcessor = Mock(IncrementalCompileProcessor)
     def includesParser = Mock(SourceIncludesParser);
     def task = Mock(TaskInternal)
     def compiler = new IncrementalNativeCompiler(task, includesParser, null, null, delegateCompiler)
@@ -37,22 +36,17 @@ class IncrementalNativeCompilerTest extends Specification {
 
     def "updates spec for incremental compilation"() {
         def spec = Mock(NativeCompileSpec)
-        def existingSource = temporaryFolder.file("existing")
         def newSource = temporaryFolder.file("new")
         def removedSource = temporaryFolder.file("removed")
 
-        def sources = [existingSource, newSource]
         def compilation = Mock(IncrementalCompilation)
 
         when:
-        spec.incrementalCompile >> true
-        spec.getSourceFiles() >> sources
-        incrementalCompileProcessor.processSourceFiles(_) >> compilation
         compilation.getRecompile() >> [newSource]
         compilation.getRemoved() >> [removedSource]
 
         and:
-        compiler.doIncrementalCompile(incrementalCompileProcessor, spec)
+        compiler.doIncrementalCompile(compilation, spec)
 
         then:
         1 * spec.setSourceFiles([newSource])
@@ -67,7 +61,6 @@ class IncrementalNativeCompilerTest extends Specification {
         def outputFile = temporaryFolder.createFile("output", "previous")
 
         def sources = [existingSource, newSource]
-        def compilation = Mock(IncrementalCompilation)
 
         when:
         outputFile.assertExists()
@@ -76,11 +69,9 @@ class IncrementalNativeCompilerTest extends Specification {
         spec.incrementalCompile >> false
         task.outputs >> outputs
         spec.getSourceFiles() >> sources
-        incrementalCompileProcessor.processSourceFiles(_) >> compilation
-        0 * compilation._
 
         and:
-        def result = compiler.doCleanIncrementalCompile(incrementalCompileProcessor, spec)
+        def result = compiler.doCleanIncrementalCompile(spec)
 
         then:
         1 * spec.getObjectFileDir() >> outputFile.parentFile
