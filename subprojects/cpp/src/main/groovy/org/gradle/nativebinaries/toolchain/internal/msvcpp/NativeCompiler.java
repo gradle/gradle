@@ -19,13 +19,14 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.nativebinaries.toolchain.internal.gcc.ShortCircuitArgsTransformer;
 
 import java.io.File;
 
-abstract public class NativeCompiler<T extends NativeCompileSpec> implements org.gradle.api.internal.tasks.compile.Compiler<T> {
+abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
     private final CommandLineTool commandLineTool;
     private final ArgsTransformer<T> argsTransFormer;

@@ -53,7 +53,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
             String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
             SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
                     objectFileName,
-                    new ShortCircuitArgsTransformer(argsTransfomer),
+                    new ShortCircuitArgsTransformer<T>(argsTransfomer),
                     windowsPathLimitation,
                     false);
             invocation.setArgs(argTransformer.transform(spec));
