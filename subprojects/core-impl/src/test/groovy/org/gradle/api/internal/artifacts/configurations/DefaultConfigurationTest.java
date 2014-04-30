@@ -36,6 +36,7 @@ import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -257,7 +258,7 @@ public class DefaultConfigurationTest {
     public void filesWithSpec() {
         final Set<File> fileSet = toSet(new File("somePath"));
         prepareForFilesBySpec(fileSet);
-        assertThat(configuration.files(context.mock(Spec.class)), equalTo(fileSet));
+        Assert.<Set<File>>assertThat(configuration.files(context.mock(Spec.class)), equalTo(fileSet));
         assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
     }
 
