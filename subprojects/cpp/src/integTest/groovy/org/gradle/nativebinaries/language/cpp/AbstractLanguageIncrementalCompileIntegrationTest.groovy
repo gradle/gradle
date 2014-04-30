@@ -17,9 +17,7 @@
 package org.gradle.nativebinaries.language.cpp
 
 import groovy.io.FileType
-import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import org.gradle.internal.hash.HashUtil
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -330,7 +328,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         outputs.snapshot { run "mainExecutable" }
 
-        outputFile(extraSource).assertExists()
+        objectFileFor(extraSource).assertExists()
 
         when:
         sourceFile << """
@@ -355,7 +353,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         and:
         outputs.recompiledFiles allSources
-        outputFile(extraSource).assertDoesNotExist()
+        objectFileFor(extraSource).assertDoesNotExist()
     }
 
     def "recompiles all source files when generated object files are removed"() {
@@ -388,7 +386,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         then:
         outputs.recompiledFile newFile
-        outputFile(sourceFile).assertDoesNotExist()
+        objectFileFor(sourceFile).assertDoesNotExist()
     }
 
     def "removes output file when source file is removed"() {
@@ -399,7 +397,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         outputs.snapshot { run "mainExecutable" }
 
         and:
-        outputFile(extraSource).assertExists()
+        objectFileFor(extraSource).assertExists()
 
         when:
         extraSource.delete()
@@ -408,7 +406,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         run "mainExecutable"
 
         then:
-        outputFile(extraSource).assertDoesNotExist()
+        objectFileFor(extraSource).assertDoesNotExist()
         outputs.noneRecompiled()
     }
 
@@ -447,12 +445,12 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         then:
         executable.exec().out == "hello"
-        outputFile(newSource).assertExists()
+        objectFileFor(newSource).assertExists()
 
         and: "Previous object files are removed"
-        outputFile(sourceFile).assertDoesNotExist()
+        objectFileFor(sourceFile).assertDoesNotExist()
         otherSourceFiles.each {
-            outputFile(it).assertDoesNotExist()
+            objectFileFor(it).assertDoesNotExist()
         }
     }
 
@@ -488,11 +486,5 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
     List getAllSources() {
         return [sourceFile] + otherSourceFiles
-    }
-
-    def outputFile(TestFile sourceFile) {
-        final baseName = FilenameUtils.removeExtension(sourceFile.name)
-        String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
-        return objectFile("build/objectFiles/mainExecutable/main${sourceType}/$compactMD5/${baseName}")
     }
 }
