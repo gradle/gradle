@@ -570,6 +570,7 @@ The implementation will also remove stale object files.
 
 - Need to handle `#import` with Visual C++, which may reference a `.tld` file.
 - Should not parse headers that we deem to be unchanging: 'system' libraries, unchanging repository libraries, etc.
+- Implementation currently locks the task artifact cache while compiling
 
 ## Story: Modify command line arguments for binary tool prior to execution
 
@@ -1241,6 +1242,7 @@ This story moves definition and configuration of the source sets for a component
   built-in tools.
 - Fix `TargetPlatformConfiguration` and `PlatformToolChain` to make them extensible, so that not every configuration supports every tool.
 - Gcc and Clang tool chains need to provide the correct compile and link time arguments on OS X and Linux.
+- Add test coverage on Windows
 
 ### Story: Incremental compilation for Objective-C and Objective-C++
 
