@@ -25,6 +25,10 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.Factory;
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
+import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.CSourceParser;
+import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.RegexBackedCSourceParser;
+import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
+import org.gradle.nativebinaries.language.objectivecpp.internal.ObjectiveCppCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.util.CollectionUtils;
 
@@ -33,14 +37,13 @@ import java.io.File;
 public class IncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
     private final Compiler<NativeCompileSpec> delegateCompiler;
     private final TaskInternal task;
-    private final SourceIncludesParser sourceIncludesParser;
     private final TaskArtifactStateCacheAccess cacheAccess;
     private final FileSnapshotter fileSnapshotter;
 
-    public IncrementalNativeCompiler(TaskInternal task, SourceIncludesParser sourceIncludesParser,
-                                     TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, Compiler<NativeCompileSpec> delegateCompiler) {
+    private final CSourceParser sourceParser = new RegexBackedCSourceParser();
+
+    public IncrementalNativeCompiler(TaskInternal task, TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, Compiler<NativeCompileSpec> delegateCompiler) {
         this.task = task;
-        this.sourceIncludesParser = sourceIncludesParser;
         this.cacheAccess = cacheAccess;
         this.fileSnapshotter = fileSnapshotter;
         this.delegateCompiler = delegateCompiler;
@@ -49,7 +52,9 @@ public class IncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
     public WorkResult execute(final NativeCompileSpec spec) {
         IncrementalCompilation compilation = cacheAccess.useCache("process source files", new Factory<IncrementalCompilation>() {
             public IncrementalCompilation create() {
-                IncrementalCompileProcessor processor = createProcessor(spec.getIncludeRoots());
+                boolean importsAreIncludes = ObjectiveCCompileSpec.class.isAssignableFrom(spec.getClass()) || ObjectiveCppCompileSpec.class.isAssignableFrom(spec.getClass());
+                DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
+                IncrementalCompileProcessor processor = createProcessor(sourceIncludesParser, spec.getIncludeRoots());
                 // TODO - do not hold the lock while processing the source files - this prevents other tasks from executing concurrently
                 return processor.processSourceFiles(spec.getSourceFiles());
             }
@@ -87,7 +92,7 @@ public class IncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
         return task;
     }
 
-    private IncrementalCompileProcessor createProcessor(Iterable<File> includes) {
+    private IncrementalCompileProcessor createProcessor(SourceIncludesParser sourceIncludesParser, Iterable<File> includes) {
         PersistentStateCache<CompilationState> compileStateCache = createCompileStateCache(task.getPath());
 
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));

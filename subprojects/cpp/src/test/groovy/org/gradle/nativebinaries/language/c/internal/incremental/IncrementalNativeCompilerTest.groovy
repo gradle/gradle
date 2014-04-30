@@ -28,9 +28,8 @@ class IncrementalNativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def delegateCompiler = Mock(org.gradle.api.internal.tasks.compile.Compiler)
-    def includesParser = Mock(SourceIncludesParser);
     def task = Mock(TaskInternal)
-    def compiler = new IncrementalNativeCompiler(task, includesParser, null, null, delegateCompiler)
+    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler)
 
     def outputs = Mock(TaskOutputsInternal)
 
