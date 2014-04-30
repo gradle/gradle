@@ -16,67 +16,22 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 
-public class DefaultExternalModuleDependency extends AbstractExternalDependency implements ExternalModuleDependency {
-    private String group;
-    private String name;
-    private String version;
-
-    private boolean force;
-    private boolean changing;
+public class DefaultExternalModuleDependency extends AbstractExternalModuleDependency implements ExternalModuleDependency {
 
     public DefaultExternalModuleDependency(String group, String name, String version) {
         this(group, name, version, null);
     }
 
     public DefaultExternalModuleDependency(String group, String name, String version, String configuration) {
-        super(configuration);
-        if (name == null) {
-            throw new InvalidUserDataException("Name must not be null!");
-        }
-        this.group = group;
-        this.name = name;
-        this.version = version;
-    }
-
-    public String getGroup() {
-        return group;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public boolean isForce() {
-        return force;
-    }
-
-    public DefaultExternalModuleDependency setForce(boolean force) {
-        this.force = force;
-        return this;
-    }
-
-    public boolean isChanging() {
-        return changing;
-    }
-
-    public DefaultExternalModuleDependency setChanging(boolean changing) {
-        this.changing = changing;
-        return this;
+        super(group, name, version, configuration);
     }
 
     public DefaultExternalModuleDependency copy() {
-        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(),
-                getName(), getVersion(), getConfiguration());
+        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getConfiguration());
         copyTo(copiedModuleDependency);
-        copiedModuleDependency.setChanging(isChanging());
         return copiedModuleDependency;
     }
 
@@ -88,12 +43,9 @@ public class DefaultExternalModuleDependency extends AbstractExternalDependency 
             return false;
         }
 
-        DefaultExternalModuleDependency that = (DefaultExternalModuleDependency) dependency;
-        if (!isContentEqualsFor(that)) {
-            return false;
-        }
+        ExternalModuleDependency that = (ExternalModuleDependency) dependency;
+        return isContentEqualsFor(that);
 
-        return changing == that.isChanging();
     }
 
     @Override
@@ -116,7 +68,7 @@ public class DefaultExternalModuleDependency extends AbstractExternalDependency 
 
     @Override
     public String toString() {
-        return "DefaultExternalModuleDependency{" + "group='" + group + '\'' + ", name='" + name + '\'' + ", version='"
-                + version + '\'' + ", configuration='" + getConfiguration() + '\'' + '}';
+        return String.format("DefaultExternalModuleDependency{group='%s', name='%s', version='%s', configuration='%s'}",
+                getGroup(), getName(), getVersion(), getConfiguration());
     }
 }

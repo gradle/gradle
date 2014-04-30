@@ -50,9 +50,6 @@ class DependencyManagementGlobalScopeServices {
 
     DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
         return new DefaultDependencyDescriptorFactory(
-                new ClientModuleIvyDependencyDescriptorFactory(
-                        excludeRuleConverter
-                ),
                 new ProjectIvyDependencyDescriptorFactory(
                         excludeRuleConverter),
                 descriptorFactory);
