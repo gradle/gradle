@@ -45,7 +45,7 @@ std::string LoadStringFromResource(UINT stringID)
     return std::string(wide.begin(), wide.end());
 }
 
-void DLL_FUNC hello() {
+void hello() {
     std::string foo1 = LoadStringFromResource(IDS_FOO1);
     std::string foo2 = LoadStringFromResource(IDS_FOO2);
     std::cout << foo1;
