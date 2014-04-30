@@ -64,7 +64,7 @@ class Assembler implements Compiler<AssembleSpec> {
 
         public AssembleSpecToArgsList(File inputFile, File objectFileRootDir, String outputFileSuffix) {
             this.inputFile = inputFile;
-            String outputFileName = FilenameUtils.removeExtension(inputFile.getName())+ outputFileSuffix;
+            String outputFileName = FilenameUtils.removeExtension(inputFile.getName()) + outputFileSuffix;
             File currentObjectOutputDir = new File(objectFileRootDir, HashUtil.createCompactMD5(inputFile.getAbsolutePath()));
             this.outputFile = new File(currentObjectOutputDir, outputFileName);
         }
@@ -72,8 +72,8 @@ class Assembler implements Compiler<AssembleSpec> {
         public List<String> transform(AssembleSpec spec) {
             List<String> args = new ArrayList<String>();
             args.addAll(spec.getAllArgs());
-            if(!outputFile.getParentFile().exists()){
-                outputFile.getParentFile().mkdir();
+            if (!outputFile.getParentFile().exists()) {
+                outputFile.getParentFile().mkdirs();
             }
             Collections.addAll(args, "-o", outputFile.getAbsolutePath());
             args.add(inputFile.getAbsolutePath());

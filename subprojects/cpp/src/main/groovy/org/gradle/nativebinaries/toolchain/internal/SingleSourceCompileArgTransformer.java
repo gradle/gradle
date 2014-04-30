@@ -57,8 +57,8 @@ public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> impl
     protected File getOutputFileDir(File sourceFile, File objectFileDir) {
         String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
         File outputFileDir = new File(objectFileDir, compactMD5);
-        if(!outputFileDir.exists()){
-            outputFileDir.mkdir();
+        if (!outputFileDir.exists()) {
+            outputFileDir.mkdirs();
         }
         File outputFile = new File(outputFileDir, objectFileName);
         return windowsPathLengthLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
