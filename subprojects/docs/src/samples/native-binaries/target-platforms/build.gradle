@@ -1,5 +1,3 @@
-apply plugin: 'cpp'
-
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -15,6 +13,8 @@ apply plugin: 'cpp'
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+apply plugin: 'cpp'
 
 // START SNIPPET targetplatforms
 model {
@@ -41,15 +41,12 @@ model {
     }
 }
 // END SNIPPET targetplatforms
-
-//for integration tests also declare support clang
 model {
     toolChains {
-        clang(Clang) {
-            target("arm") {
+        all{
+            target("arm"){
                 cppCompiler.withArguments { args ->
                     args << "-m32"
-                    args << "-DFRENCH"
                 }
                 linker.withArguments { args ->
                     args << "-m32"
@@ -59,14 +56,7 @@ model {
         }
     }
 }
+
 executables {
     main {}
 }
-
-// START SNIPPET buildable
-task buildAllExecutables {
-    dependsOn binaries.withType(ExecutableBinary).matching {
-        it.buildable
-    }
-}
-// END SNIPPET buildable

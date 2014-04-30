@@ -27,7 +27,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.GccCompatible
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
@@ -314,9 +313,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         installation(multiProject.dir.file("exe/build/install/mainExecutable")).exec().out == "Hello, World!\n"
     }
 
-
     @RequiresInstalledToolChain(GccCompatible)
-    @IgnoreIf({OperatingSystem.current().isWindows()})
     def "target platforms"() {
         given:
         sample targetPlatforms
