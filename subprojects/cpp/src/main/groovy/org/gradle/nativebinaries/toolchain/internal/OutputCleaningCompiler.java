@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.nativebinaries.internal.ObjectFileNamingScheme;
 
 import java.io.File;
 
@@ -59,9 +59,9 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
     }
 
     private File getObjectFile(File objectFileRoot, File sourceFile) {
-        String objectFileName = sourceFile.getName().replaceFirst("\\.[^\\.]+$", outputFileSuffix);
-        String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
-        File objectFileDir = new File(objectFileRoot, compactMD5);
-        return new File(objectFileDir, objectFileName);
+        return new ObjectFileNamingScheme()
+                        .withObjectFileNameSuffix(outputFileSuffix)
+                        .withOutputBaseFolder(objectFileRoot)
+                        .map(sourceFile);
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
@@ -45,9 +44,9 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
 
         for (File sourceFile : spec.getSourceFiles()) {
-            String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + ".obj";
+            String objectFileNameSuffix = ".obj";
             SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
-                    objectFileName,
+                    objectFileNameSuffix,
                     new ShortCircuitArgsTransformer<T>(argsTransFormer),
                     true,
                     true);

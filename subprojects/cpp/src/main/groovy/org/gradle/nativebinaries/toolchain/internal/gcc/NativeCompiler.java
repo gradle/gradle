@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
@@ -49,9 +48,8 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
             invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
         }
         for (File sourceFile : spec.getSourceFiles()) {
-            String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
             SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
-                    objectFileName,
+                    objectFileExtension,
                     new ShortCircuitArgsTransformer<T>(argsTransfomer),
                     windowsPathLimitation,
                     false);
