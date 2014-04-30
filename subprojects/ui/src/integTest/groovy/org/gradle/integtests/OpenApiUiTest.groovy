@@ -835,7 +835,7 @@ class OpenApiUiTest {
  * A HierarchyListener is how Swing notifies you that a component's visibility has changed.
  * We'll use it to track if the component was shown and then hidden.
  */
-private class TestVisibilityHierarchyListener implements HierarchyListener {
+class TestVisibilityHierarchyListener implements HierarchyListener {
     private boolean componentWasShown = false;
     private boolean componentWasHidden = false;
 
@@ -895,7 +895,7 @@ class TestTab implements GradleTabVersion1 {
  * Class that tracks whether we were prompted to confirm close. It also returns a specific
  * value to that prompt.
  */
-private class TestCloseInteraction implements BasicGradleUIVersion1.CloseInteraction {
+class TestCloseInteraction implements BasicGradleUIVersion1.CloseInteraction {
     boolean wasPromptedToConfirmClose
     boolean promptResult
 
@@ -914,7 +914,7 @@ private class TestCloseInteraction implements BasicGradleUIVersion1.CloseInterac
 /**
  * This appends a specified string to the command line when executing a command.
  */
-private class TestCommandLineArgumentAlteringListenerVersion1 implements CommandLineArgumentAlteringListenerVersion1 {
+class TestCommandLineArgumentAlteringListenerVersion1 implements CommandLineArgumentAlteringListenerVersion1 {
     private final String additionalArguments;
 
     def TestCommandLineArgumentAlteringListenerVersion1(additionalArguments) {

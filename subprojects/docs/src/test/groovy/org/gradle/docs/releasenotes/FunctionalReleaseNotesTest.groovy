@@ -53,7 +53,6 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
         to ReleaseNotesPage
     }
 
-    @Override
     ReleaseNotesPage getPage() {
         browser.page as ReleaseNotesPage
     }
