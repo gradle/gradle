@@ -53,9 +53,7 @@ class GccCompilerPlugin implements Plugin<Project> {
         modelRules.rule(new ModelRule() {
             void addGccToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(Gcc, { String name ->
-                    GccToolChain gccToolChain = instantiator.newInstance(GccToolChain, instantiator, name, OperatingSystem.current(), fileResolver, execActionFactory)
-
-                    return gccToolChain
+                    return instantiator.newInstance(GccToolChain, instantiator, name, OperatingSystem.current(), fileResolver, execActionFactory)
                 })
                 toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc)
             }

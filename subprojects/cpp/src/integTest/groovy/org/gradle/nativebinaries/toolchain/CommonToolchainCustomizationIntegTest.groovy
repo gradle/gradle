@@ -42,7 +42,7 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
         apply plugin: 'cpp'
         model {
             toolChains {
-                ${AbstractInstalledToolChainIntegrationSpec.toolChain.id} {
+                ${toolChain.id} {
                     cppCompiler.withArguments { args ->
                             args << "-DFRENCH"
                     }

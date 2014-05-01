@@ -53,9 +53,7 @@ class ClangCompilerPlugin implements Plugin<Project> {
         modelRules.rule(new ModelRule() {
             void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(Clang, { String name ->
-                    ClangToolChain clangToolChain = instantiator.newInstance(ClangToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory, instantiator)
-
-                    return clangToolChain
+                    return instantiator.newInstance(ClangToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory, instantiator)
                 })
                 toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang)
             }
