@@ -1,13 +1,12 @@
-#import <Foundation/Foundation.h>
+#import "greeter.h"
 
 int main (int argc, const char * argv[])
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-    NSString *helloWorld = @"Hello world!\n";
-    NSFileHandle *stdout = [NSFileHandle fileHandleWithStandardOutput];
-    NSData *strData = [helloWorld dataUsingEncoding: NSASCIIStringEncoding];
-    [stdout writeData: strData];
+    Greeter *greeter = [Greeter new];
+    [greeter sayHello];
+    [greeter release];
 
     [pool drain];
 
