@@ -481,10 +481,10 @@
                 <td>org.gradle.nativebinaries.ProjectNativeComponent</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.Executable</td>
+                <td>org.gradle.nativebinaries.NativeExecutable</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.Library</td>
+                <td>org.gradle.nativebinaries.NativeLibrary</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.NativeBinary</td>
@@ -493,7 +493,7 @@
                 <td>org.gradle.nativebinaries.ProjectNativeBinary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ExecutableBinary</td>
+                <td>org.gradle.nativebinaries.NativeExecutableBinary</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.SharedLibraryBinary</td>
