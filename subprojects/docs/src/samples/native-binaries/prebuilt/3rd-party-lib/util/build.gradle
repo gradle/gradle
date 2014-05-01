@@ -21,5 +21,5 @@ libraries {
     }
 }
 task buildLibraries {
-    dependsOn binaries.withType(LibraryBinary)
+    dependsOn binaries.withType(NativeLibraryBinary)
 }

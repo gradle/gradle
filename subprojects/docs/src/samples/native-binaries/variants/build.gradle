@@ -60,17 +60,17 @@ binaries.all {
 
 // Tasks to build all binaries for a tool chain
 task gccExecutables {
-    dependsOn binaries.withType(ExecutableBinary).matching {
+    dependsOn binaries.withType(NativeExecutableBinary).matching {
         it.toolChain in Gcc
     }
 }
 task visualCppExecutables {
-    dependsOn binaries.withType(ExecutableBinary).matching {
+    dependsOn binaries.withType(NativeExecutableBinary).matching {
         it.toolChain in VisualCpp
     }
 }
 task buildExecutables {
-    dependsOn binaries.withType(ExecutableBinary).matching {
+    dependsOn binaries.withType(NativeExecutableBinary).matching {
         it.buildable
     }
 }

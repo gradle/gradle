@@ -13,7 +13,7 @@ executables {
     }
 }
 
-binaries.withType(ExecutableBinary) { binary ->
+binaries.withType(NativeExecutableBinary) { binary ->
     def linkTask = binary.tasks.link
     def stripTask = task("strip${binary.name.capitalize()}") {
         dependsOn linkTask

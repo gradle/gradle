@@ -23,7 +23,7 @@ libraries {
     operators {}
 }
 // START SNIPPET configure-test-binary
-binaries.withType(TestSuiteExecutableBinary) {
+binaries.withType(NativeTestSuiteBinary) {
     lib library: "cunit", linkage: "static"
 
     if (flavor == flavors.failing) {

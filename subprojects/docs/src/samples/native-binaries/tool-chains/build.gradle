@@ -47,7 +47,7 @@ executables {
 
 // START SNIPPET buildable
 task buildAllExecutables {
-    dependsOn binaries.withType(ExecutableBinary).matching {
+    dependsOn binaries.withType(NativeExecutableBinary).matching {
         it.buildable
     }
 }
