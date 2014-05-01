@@ -87,6 +87,7 @@ Combining native and jvm libraries in single project
 - Remove the need to declare the library type, rather than making it explicit: Possibly based on available types, possibly by naming the container?
 - Split the native binaries plugins into `native-component` and the various language support plugins
     - Consistent plugin composition for java/native
+- Move `Binary` and `ClassDirectoryBinary` to live with the runtime support classes (and not the language support classes)
 - Consider splitting jvm-runtime & jvm-lang support into separate projects. Similar for native-runtime and native-lang.
 
 ### Story: Build author creates JVM library jar from Java sources
