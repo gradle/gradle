@@ -165,9 +165,6 @@ artifacts as returned by `Configuration.getResolvedArtifacts()`. In doing so, th
 This story also adds convenience mechanisms for obtaining all artifacts for an `ArtifactResolutionResult`, in addition to the existing
 way to get artifacts per component and query for artifact download failures.
 
-As well as providing a more convenient API for querying artifacts, this feature should allow us to replace the current implementation
-of `Configuration.getFiles()` with one that is not dependent on `ResolvedConfiguration`.
-
 ### User visible changes
 
 Download all artifact files for a configuration, failing if the graph could not be resolved:
@@ -187,9 +184,7 @@ Report on failed artifact downloads for a configuration:
 
 ### Implementation
 
-- Add an `ArtifactResolutionResultBuilder`, and a new method on `DependencyGraphBuilder` which populates this new builder in addition to the existing builders
-    - Perhaps does not need to populate a `ResolvedConfiguration`?
-- Add `ConfigurationResolver.resolveArtifacts(Configuration)`, which adds an `ArtifactResolutionResult` to the `ResolverResults`
+- Add `ResolverResults.getArtifactQueryResult()`: the result should be constructed by combining the existing `ResolverResults` and `ResolvedConfiguration`.
     - Provides the same set of artifacts as `ResolvedConfiguration.getResolvedArtifacts()`
     - If resolution of the dependency graph fails, then `ResolverResults.getArtifactResolutionResult()` should throw a descriptive exception
     - If artifacts for a component cannot be determined or downloaded, then the `ArtifactResolutionResult` should encapsulate those failures.
@@ -200,7 +195,7 @@ Report on failed artifact downloads for a configuration:
 - Add convenience methods to `ArtifactResolutionResult`:
     - `getArtifacts()` returns the set of all `ArtifactResult` instances for all resolved components, failing if the result contains any
       `UnresolvedComponentResult` instances.
-    - `getArtifactFiles()` returns a `FileCollection` containing all files associated with `ArtifactResult` instances for all resolved components,
+    - `getFiles()` returns a `FileCollection` containing all files associated with `ArtifactResult` instances for all resolved components,
       throwing an exception on access for any `UnresolvedArtifactResult`
 
 ### Test cases
@@ -212,18 +207,14 @@ Report on failed artifact downloads for a configuration:
     - Can query artifacts for configuration with dependency on a configuration other than default
 - Caching of artifacts resolved from configuration
 - Reports failure to resolve dependency graph
-- Can report failures for all artifacts that could not be resolved or downloaded.
+- Reports failures for all artifacts that could not be resolved or downloaded.
 - Reports composite failure on attempt to get all artifacts where multiple artifacts could not be downloaded
-- Inspect resolution result after resolving artifacts: result is not regenerated
-- Inspect resolution result without requesting artifacts: artifacts are not downloaded
+- Use `Configuration.incoming.artifactResolutionResult` after first using `Configuration.incoming.resolutionResult`: artifact result is not regenerated
 
 ### Open issues
 
-- Replace current implementation of `ConfigurationFileCollection` with one backed by `ArtifactResolutionResult`
-- Write `ArtifactResolutionResult` to disk for later use.
-- Efficient creation of `ArtifactResolutionResult` based on previous `ResolutionResult`, or creation of `ArtifactResolutionResult` that
-  downloads the files on request.
 - Replacement for `ResolvedArtifact.name`, `ResolvedArtifact.extension` etc
+- Need a way to query Artifact model without downloading artifact files
 
 ## Story: Access the ivy and maven metadata artifacts via the Artifact Query API
 
