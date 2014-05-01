@@ -263,6 +263,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             }
 """
 
+        maybeWait()
         run "installMainExecutable"
 
         then:
