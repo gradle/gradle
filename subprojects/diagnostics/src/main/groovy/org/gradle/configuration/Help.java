@@ -88,7 +88,7 @@ public class Help extends DefaultTask {
         output.println();
     }
 
-    @Option(option = "task", description = "The task, detailed help is requested for.")
+    @Option(option = "task", description = "The task to show help for.")
     public void setTaskPath(String taskPath) {
         this.taskPath = taskPath;
     }
