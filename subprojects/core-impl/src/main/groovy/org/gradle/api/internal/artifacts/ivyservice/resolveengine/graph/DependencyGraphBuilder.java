@@ -275,7 +275,7 @@ public class DependencyGraphBuilder {
             return dependencyMetaData.getSelector();
         }
 
-        // TODO:DAZ This should be replaced by getRequested()
+        // TODO This should be replaced by getRequested()
         public ModuleVersionSelector getRequestedModuleVersion() {
             return dependencyMetaData.getRequested();
         }

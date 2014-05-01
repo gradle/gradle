@@ -58,7 +58,6 @@ public class ClientModuleResolver implements DependencyToModuleVersionResolver {
 
                 setClientModuleArtifact(clientModuleMetaData);
 
-                // TODO:DAZ Replace the artifacts with a single jar artifact - write a failing test first...
                 result.setMetaData(clientModuleMetaData);
             }
         }
