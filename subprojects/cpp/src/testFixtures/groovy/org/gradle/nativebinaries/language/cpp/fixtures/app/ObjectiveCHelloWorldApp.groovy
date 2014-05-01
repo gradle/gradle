@@ -22,12 +22,13 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     SourceFile getMainSource() {
         return sourceFile("objc", "main.m", """
             // Simple hello world app
-            #import <Foundation/Foundation.h>
             #include "hello.h"
 
-            int main (int argc, const char * argv[])
+            int main(int argc, const char * argv[])
             {
-                sayHello();
+                Greeter* greeter = [Greeter new];
+                [greeter sayHello];
+                [greeter release];
                 printf("%d", sum(7, 5));
                 return 0;
             }
@@ -37,12 +38,13 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     SourceFile getAlternateMainSource() {
         return sourceFile("objc", "main.m", """
-            #import <Foundation/Foundation.h>
             #import "hello.h"
 
             int main (int argc, const char * argv[])
             {
-                sayHello();
+                Greeter* greeter = [Greeter new];
+                [greeter sayHello];
+                [greeter release];
                 return 0;
             }
         """);
@@ -50,13 +52,16 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
 
     String alternateOutput = "$HELLO_WORLD\n"
 
-
     @Override
     SourceFile getLibraryHeader() {
         return sourceFile("headers", "hello.h", """
-            int main (int argc, const char * argv[]);
+            #import <Foundation/Foundation.h>
+
+            @interface Greeter : NSObject
+                - (void)sayHello;
+            @end
+
             int sum(int a, int b);
-            void sayHello();
         """);
     }
 
@@ -64,19 +69,17 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     List<SourceFile> getLibrarySources() {
         return [
                 sourceFile("objc", "hello.m", """
-            #import <Foundation/Foundation.h>
             #import "hello.h"
 
-            void sayHello()
-            {
-                NSString *helloWorld = @"${HELLO_WORLD}\\n";
+            @implementation Greeter
+            - (void) sayHello {
+                NSString *helloWorld = @"${HELLO_WORLD}";
                 #ifdef FRENCH
-                helloWorld = @"${HELLO_WORLD_FRENCH}\\n";
+                helloWorld = @"${HELLO_WORLD_FRENCH}";
                 #endif
-                NSFileHandle *stdout = [NSFileHandle fileHandleWithStandardOutput];
-                NSData *strData = [helloWorld dataUsingEncoding: NSASCIIStringEncoding];
-                [stdout writeData: strData];
+                fprintf(stdout, "%s\\n", [helloWorld UTF8String]);
             }
+            @end
         """),
                 sourceFile("objc", "sum.m", """
             #import "hello.h"
@@ -92,16 +95,14 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     List<SourceFile> getAlternateLibrarySources() {
         return [
                 sourceFile("objc", "hello.m", """
-            #import <Foundation/Foundation.h>
             #import "hello.h"
 
-            void sayHello()
-            {
-                NSString *helloWorld = @"${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\\n";
-                NSFileHandle *stdout = [NSFileHandle fileHandleWithStandardOutput];
-                NSData *strData = [helloWorld dataUsingEncoding: NSASCIIStringEncoding];
-                [stdout writeData: strData];
+            @implementation Greeter
+            - (void) sayHello {
+                NSString *helloWorld = @"${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}";
+                fprintf(stdout, "%s\\n", [helloWorld UTF8String]);
             }
+            @end
 
             // Extra function to ensure library has different size
             int anotherFunction() {
