@@ -19,7 +19,7 @@ import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.ProjectNativeComponent;
-import org.gradle.nativebinaries.test.TestSuiteExecutableBinary;
+import org.gradle.nativebinaries.test.NativeTestSuiteBinary;
 import org.gradle.nativebinaries.internal.AbstractProjectNativeBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
@@ -27,10 +27,10 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
 import java.io.File;
 
-public class DefaultTestSuiteExecutableBinary extends AbstractProjectNativeBinary implements TestSuiteExecutableBinary {
+public class DefaultNativeTestSuiteBinary extends AbstractProjectNativeBinary implements NativeTestSuiteBinary {
     private File executableFile;
 
-    public DefaultTestSuiteExecutableBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public DefaultNativeTestSuiteBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
     }
 

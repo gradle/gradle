@@ -24,7 +24,7 @@ import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.tasks.InstallExecutable
-import org.gradle.nativebinaries.test.TestSuiteExecutableBinary
+import org.gradle.nativebinaries.test.NativeTestSuiteBinary
 import org.gradle.nativebinaries.test.internal.DefaultTestSuiteContainer
 import org.gradle.nativebinaries.test.tasks.RunTestExecutable
 
@@ -57,7 +57,7 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
         );
 
         final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
-        binaries.withType(TestSuiteExecutableBinary).all { testBinary ->
+        binaries.withType(NativeTestSuiteBinary).all { testBinary ->
             def binary = testBinary as ProjectNativeBinaryInternal
             def namingScheme = binary.namingScheme
 

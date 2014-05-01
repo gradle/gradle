@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,11 @@
 package org.gradle.nativebinaries.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.ProjectNativeComponent;
+import org.gradle.nativebinaries.NativeExecutableBinary;
 
 /**
- * A suite of tests for a project component.
+ * An executable which runs a suite of tests.
  */
 @Incubating
-public interface ProjectComponentTestSuite extends TestSuite {
-
-    /**
-     * The tested component.
-     */
-    ProjectNativeComponent getTestedComponent();
+public interface NativeTestSuiteBinary extends NativeExecutableBinary {
 }

@@ -27,9 +27,9 @@ import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
-import org.gradle.nativebinaries.test.TestSuiteExecutableBinary;
+import org.gradle.nativebinaries.test.NativeTestSuiteBinary;
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuite;
-import org.gradle.nativebinaries.test.internal.DefaultTestSuiteExecutableBinary;
+import org.gradle.nativebinaries.test.internal.DefaultNativeTestSuiteBinary;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
 import java.io.File;
@@ -68,7 +68,7 @@ public class CreateCUnitBinaries {
                 .withComponentName(cUnitTestSuite.getBaseName())
                 .withTypeString("CUnitExe").build();
 
-        ProjectNativeBinary testBinary = instantiator.newInstance(DefaultTestSuiteExecutableBinary.class,
+        ProjectNativeBinary testBinary = instantiator.newInstance(DefaultNativeTestSuiteBinary.class,
                 cUnitTestSuite, testedBinary.getFlavor(), testedBinary.getToolChain(),
                 testedBinary.getTargetPlatform(), testedBinary.getBuildType(), namingScheme, resolver);
 
@@ -82,7 +82,7 @@ public class CreateCUnitBinaries {
         String baseName = nativeBinary.getComponent().getBaseName();
 
         ToolChainInternal tc = (ToolChainInternal) nativeBinary.getToolChain();
-        ((TestSuiteExecutableBinary) nativeBinary).setExecutableFile(new File(binaryOutputDir, tc.getExecutableName(baseName)));
+        ((NativeTestSuiteBinary) nativeBinary).setExecutableFile(new File(binaryOutputDir, tc.getExecutableName(baseName)));
     }
 
 }
