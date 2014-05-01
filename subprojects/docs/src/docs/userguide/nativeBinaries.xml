@@ -24,17 +24,32 @@
     </note>
 
     <para>
-        The various native binary plugins add support for building native software components from C++, C, Objective-C, Objective-C++ and Assembler sources.
+        The various native binary plugins add support for building native software components, such as executables or shared libraries, from C++, C and other languages.
         While many excellent build tools exist for this space of software development, Gradle offers developers it's trademark power and flexibility
         together with the dependency management practices more traditionally found in the JVM development space.
     </para>
+
+    <section>
+        <title>Supported languages</title>
+        <para>
+            The following source languages are currently supported:
+        </para>
+        <itemizedlist>
+            <listitem><para>C</para></listitem>
+            <listitem><para>C++</para></listitem>
+            <listitem><para>Objective-C</para></listitem>
+            <listitem><para>Objective-C++</para></listitem>
+            <listitem><para>Assembly</para></listitem>
+            <listitem><para>Windows resources</para></listitem>
+        </itemizedlist>
+    </section>
 
     <section id="native-binaries:tool-chain-support">
         <title>Tool chain support</title>
         <para>
             Gradle offers the ability to execute the same build using different tool chains. You can control which tool chain will be used to build
             by changing the operating system PATH to include the desired tool chain compiler. Alternatively, you can configure the tool chains directly,
-            as described in the `Native Binary Variants` section, below.
+            as described in <xref linkend="native_binaries:tool_chain"/>.
         </para>
         <para>
             The following tool chains are supported:
@@ -50,21 +65,27 @@
                 <td>Linux</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td></td>
             </tr>
             <tr>
-                <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Using GCC distributed with XCode.</td>
+                <td>Mac OS X</td><td>XCode</td><td>Uses the Clang tool chain bundled with XCode.</td>
             </tr>
             <tr>
-                <td>Mac OS X</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td>Using Clang distributed with XCode.</td>
+                <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td></td>
+            </tr>
+            <tr>
+                <td>Mac OS X</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td></td>
             </tr>
             <tr>
                 <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Windows XP and later, using GCC distributed with Cygwin.</td>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cywin 32</ulink></td><td>Windows XP and later. Cygwin 64 is currently not supported.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later.</td>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later. <ulink url="http://mingw-w64.sourceforge.net">Mingw-w64</ulink> is currently not supported.</td>
             </tr>
         </table>
+        <para>
+            The native plugins should generally work on other UNIX-like platforms, but are currently officially supported on the above platforms only.
+        </para>
     </section>
 
     <section>
@@ -133,12 +154,20 @@
     </section>
 
     <section id="native_binaries:languages">
-        <title>Core language support: C, C++, Assembler, Objective-C and Objective-C++ </title>
+        <title>Language support</title>
         <para>
-            Presently, Gradle supports building native binaries from any combination of C++, C, Assembler, Objective-C and Objective-C++ sources.
+            Presently, Gradle supports building native binaries from any combination of source languages listed below.
             A native binary project will contain one or more named <literal>FunctionalSourceSet</literal> instances (eg 'main', 'test', etc),
-            each of which can contain <literal>LanguageSourceSet</literal>s containing C++, C, Assembler, Objective-C or Objective-C++ source files.
+            each of which can contain <literal>LanguageSourceSet</literal>s containing source files, one for each language.
         </para>
+        <itemizedlist>
+            <listitem><para>C</para></listitem>
+            <listitem><para>C++</para></listitem>
+            <listitem><para>Objective-C</para></listitem>
+            <listitem><para>Objective-C++</para></listitem>
+            <listitem><para>Assembly</para></listitem>
+            <listitem><para>Windows resources</para></listitem>
+        </itemizedlist>
 
         <section>
             <title>C++ sources</title>
@@ -322,8 +351,8 @@
     <section>
         <title>Library Dependencies</title>
         <para>
-            Dependencies for C++ projects are binary libraries that export header files. The header files are used during compilation, with the compiled
-            binary dependency being used during the linking.
+            Dependencies for native components are binary libraries that export header files. The header files are used during compilation, with the compiled
+            binary dependency being used during linking and execution.
         </para>
         <section>
            <title>Dependencies within the same project</title>
@@ -548,7 +577,7 @@
             <para>
                 So for GCC running on linux, the supported target platforms are 'linux/x86' and 'linux/x86_64'.
                 For GCC running on Windows via Cygwin, platforms 'windows/x86' and 'windows/x86_64' are supported.
-                (The Cygwin runtime is not yet modelled as part of the Platform, but will be in the future.)
+                (The Cygwin POSIX runtime is not yet modelled as part of the platform, but will be in the future.)
             </para>
             <para>
                 If no target platforms are defined for a project, then all binaries are built to target a default platform named 'current'.
@@ -556,7 +585,7 @@
                 hence using the default values of the first available tool chain.
             </para>
             <para>
-                Gradle provides a <literal>hook</literal> that allows the build author to control the exact set of arguments passed to a tool chain executable.
+                Gradle provides a <firstterm>hook</firstterm> that allows the build author to control the exact set of arguments passed to a tool chain executable.
                 This enables the build author to work around any limitations in Gradle, or assumptions that Gradle makes.
                 The arguments hook should be seen as a 'last-resort' mechanism, with preference given to truly modelling the underlying domain.
             </para>
