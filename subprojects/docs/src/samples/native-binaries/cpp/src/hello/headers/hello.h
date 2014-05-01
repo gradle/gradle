@@ -4,4 +4,7 @@
 #define LIB_FUNC
 #endif
 
-void LIB_FUNC hello();
+class Greeter {
+    public:
+    void LIB_FUNC hello();
+};
