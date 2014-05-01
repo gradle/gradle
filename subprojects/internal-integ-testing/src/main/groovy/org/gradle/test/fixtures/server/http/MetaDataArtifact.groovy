@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.maven
+package org.gradle.test.fixtures.server.http
 
-import org.gradle.test.fixtures.HttpArtifact
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.maven.MavenFileModule
+import org.gradle.test.fixtures.maven.MavenMetaData
 
-class PomHttpArtifact extends HttpArtifact {
+class MetaDataArtifact extends HttpArtifact implements MavenMetaData {
     MavenFileModule backingModule
 
-    PomHttpArtifact(HttpServer httpServer, String path, MavenFileModule backingModule) {
+    MetaDataArtifact(HttpServer httpServer, String path, MavenFileModule backingModule) {
         super(httpServer, path)
         this.backingModule = backingModule
-    }
-
-    @Override
-    void expectGetMissing() {
-        server.expectGetMissing(getPath() - getFile().name + getMissingPomName());
     }
 
     @Override
@@ -45,14 +40,10 @@ class PomHttpArtifact extends HttpArtifact {
 
     @Override
     TestFile getFile() {
-        return backingModule.pomFile
+        return backingModule.rootMetaDataFile
     }
 
-    private String getMissingPomName() {
-        if (backingModule.version.endsWith("-SNAPSHOT")) {
-            return "${backingModule.artifactId}-${backingModule.version}.pom"
-        } else {
-            return getFile().name
-        }
+    List<String> getVersions() {
+        backingModule.rootMetaData.versions
     }
 }

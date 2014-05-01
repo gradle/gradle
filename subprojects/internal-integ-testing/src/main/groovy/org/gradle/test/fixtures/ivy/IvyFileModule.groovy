@@ -135,12 +135,12 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
-    TestFile getIvyFile() {
-        return moduleDir.file(ivyFilePath)
-    }
-
     protected String getIvyFilePath() {
         getArtifactFilePath(name: "ivy", type: "ivy", ext: "xml")
+    }
+
+    TestFile getIvyFile() {
+        return moduleDir.file(ivyFilePath)
     }
 
     TestFile getJarFile() {

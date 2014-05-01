@@ -20,12 +20,16 @@ import org.gradle.test.fixtures.file.TestFile
 class IvyFileRepository implements IvyRepository {
     final TestFile rootDir
     final boolean m2Compatible
-    String ivyFilePattern = "ivy-[revision].xml"
-    String artifactFilePattern = "[artifact]-[revision](-[classifier])(.[ext])"
+    final String dirPattern
+    final String ivyFilePattern
+    final String artifactFilePattern
 
-    IvyFileRepository(TestFile rootDir, boolean m2Compatible = false) {
+    IvyFileRepository(TestFile rootDir, boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
         this.rootDir = rootDir
         this.m2Compatible = m2Compatible
+        this.dirPattern = dirPattern ?: "[organisation]/[module]/[revision]"
+        this.ivyFilePattern = ivyFilePattern ?: "ivy-[revision].xml"
+        this.artifactFilePattern = artifactFilePattern ?: "[artifact]-[revision](-[classifier])(.[ext])"
     }
 
     URI getUri() {
@@ -48,11 +52,7 @@ class IvyFileRepository implements IvyRepository {
         "$dirPattern/$artifactFilePattern"
     }
 
-    String getDirPattern() {
-        "[organisation]/[module]/[revision]"
-    }
-
-    protected String getDirPath(String organisation, String module, String revision) {
+    String getDirPath(String organisation, String module, String revision) {
         M2CompatibleIvyPatternHelper.substitute(dirPattern, organisation, module, revision, m2Compatible)
     }
 

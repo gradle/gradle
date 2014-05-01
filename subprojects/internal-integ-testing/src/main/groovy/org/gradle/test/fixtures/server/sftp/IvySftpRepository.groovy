@@ -14,36 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.ivy
+package org.gradle.test.fixtures.server.sftp
 
-import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 
-class IvySftpRepository implements IvyRepository {
+class IvySftpRepository implements RemoteIvyRepository {
 
     private final SFTPServer server
     private final IvyFileRepository backingRepository
     private final String contextPath
 
-    IvySftpRepository(SFTPServer server, String contextPath, boolean m2Compatible = false, String dirPattern = null) {
+    IvySftpRepository(SFTPServer server, String contextPath, boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
         if (!contextPath.startsWith("/")) {
             throw new IllegalArgumentException("Context path must start with '/'")
         }
         this.contextPath = contextPath
         this.server = server
-        this.backingRepository = new IvyFileRepository(server.file(contextPath.substring(1)), m2Compatible) {
-
-            String getDirPattern() {
-                dirPattern ?: super.dirPattern
-            }
-        }
+        this.backingRepository = new IvyFileRepository(server.file(contextPath.substring(1)), m2Compatible, dirPattern, ivyFilePattern, artifactFilePattern)
     }
 
     URI getUri() {
-        return new URI("sftp://${server.hostAddress}:${server.port}${contextPath}")
+        return new URI("${serverUri}${contextPath}")
     }
 
     URI getServerUri() {
-        return new URI("sftp://${server.hostAddress}:${server.port}")
+        server.uri
     }
 
     String getIvyPattern() {
@@ -62,11 +58,17 @@ class IvySftpRepository implements IvyRepository {
         return backingRepository.baseArtifactPattern
     }
 
-    void expectDirectoryListing(String organisation, String module, String revision) {
+    void expectDirectoryList(String organisation, String module, String revision) {
         server.expectDirectoryList("$contextPath/$organisation/$module/$revision")
     }
 
+    void expectDirectoryList(String organisation, String module) {
+        def path = "$contextPath/$organisation/$module/"
+        server.expectStat(path)
+        server.expectDirectoryList(path)
+    }
+
     IvySftpModule module(String organisation, String module, Object revision = "1.0") {
-        new IvySftpModule(this, server, backingRepository.module(organisation, module, revision))
+        return new IvySftpModule(this, server, backingRepository.module(organisation, module, revision))
     }
 }

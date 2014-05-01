@@ -45,7 +45,6 @@ class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResoluti
         """
 
         when:
-        server.expectInit()
         module.pom.expectMetadataRetrieve()
         module.pom.expectFileDownload()
 

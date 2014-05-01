@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.ComponentMetadataRulesIntegrationTest
-import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
 
 import static org.gradle.util.Matchers.containsLine
 

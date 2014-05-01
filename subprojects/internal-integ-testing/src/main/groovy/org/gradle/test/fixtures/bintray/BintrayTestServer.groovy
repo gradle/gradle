@@ -21,8 +21,8 @@ import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.plugin.resolve.internal.JCenterPluginMapper
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.rules.ExternalResource
 
 class BintrayTestServer extends ExternalResource {

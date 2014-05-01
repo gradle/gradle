@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.ivy
+package org.gradle.test.fixtures.server.sftp
 
-import org.gradle.test.fixtures.SftpResource
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.gradle.test.fixtures.ivy.IvyDescriptor
+import org.gradle.test.fixtures.ivy.IvyFileModule
+import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.test.fixtures.ivy.RemoteIvyModule
 
-class IvySftpModule implements IvyModule {
+class IvySftpModule implements RemoteIvyModule {
+
     public final IvySftpRepository repository
-    private final SFTPServer server
-    private final IvyFileModule backingModule
-
+    private SFTPServer server
+    private IvyFileModule backingModule
+    
     IvySftpModule(IvySftpRepository repository, SFTPServer server, IvyFileModule backingModule) {
         this.repository = repository
         this.server = server

@@ -48,15 +48,14 @@ task listJars << {
 }
 """
         when:
-        server.expectInit()
         server.expectRealpath('')
 
-        module.repository.expectDirectoryListing('group', 'projectA', '1.2')
+        module.repository.expectDirectoryList('group', 'projectA', '1.2')
 
         module.ivy.expectStat()
         module.ivy.expectFileDownload()
 
-        module.repository.expectDirectoryListing('group', 'projectA', '1.2')
+        module.repository.expectDirectoryList('group', 'projectA', '1.2')
 
         module.jar.expectStat()
         module.jar.expectFileDownload()

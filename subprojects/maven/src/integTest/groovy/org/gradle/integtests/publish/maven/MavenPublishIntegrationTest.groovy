@@ -17,7 +17,7 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.M2Installation
-import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion

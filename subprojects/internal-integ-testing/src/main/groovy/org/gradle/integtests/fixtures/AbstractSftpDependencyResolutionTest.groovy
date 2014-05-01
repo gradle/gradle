@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.test.fixtures.ivy.IvySftpRepository
-import org.gradle.test.fixtures.maven.MavenSftpRepository
+import org.gradle.test.fixtures.server.sftp.IvySftpRepository
+import org.gradle.test.fixtures.server.sftp.MavenSftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

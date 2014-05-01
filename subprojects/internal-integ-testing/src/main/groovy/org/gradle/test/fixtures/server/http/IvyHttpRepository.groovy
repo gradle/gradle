@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.ivy
+package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.HttpRepository
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 
-class IvyHttpRepository implements IvyRepository, HttpRepository {
+class IvyHttpRepository implements RemoteIvyRepository, HttpRepository {
     private final HttpServer server
     private final IvyFileRepository backingRepository
     private final String contextPath
+    private final boolean m2Compatible
 
-    IvyHttpRepository(HttpServer server, String contextPath = "/repo", IvyFileRepository backingRepository) {
+    IvyHttpRepository(HttpServer server, String contextPath = "/repo", IvyFileRepository backingRepository, boolean m2Compatible = false) {
         if (!contextPath.startsWith("/")) {
             throw new IllegalArgumentException("Context path must start with '/'")
         }
-        this.contextPath = contextPath
         this.server = server
+        this.contextPath = contextPath
         this.backingRepository = backingRepository
+        this.m2Compatible = m2Compatible
     }
 
     URI getUri() {
@@ -53,6 +56,10 @@ class IvyHttpRepository implements IvyRepository, HttpRepository {
         server.expectGetDirectoryListing("$contextPath/$organisation/$module/", backingRepository.module(organisation, module, "1.0").moduleDir.parentFile)
     }
 
+    void expectDirectoryList(String organisation, String module) {
+        expectDirectoryListGet(organisation, module)
+    }
+
     void expectDirectoryListGetMissing(String organisation, String module) {
         server.expectGetMissing("$contextPath/$organisation/$module/")
     }
@@ -64,5 +71,13 @@ class IvyHttpRepository implements IvyRepository, HttpRepository {
     IvyHttpModule module(String organisation, String module, Object revision = "1.0") {
         def path = backingRepository.getDirPath(organisation, module, revision.toString())
         return new IvyHttpModule(this, server, "$contextPath/$path", backingRepository.module(organisation, module, revision))
+    }
+
+    String getBaseIvyPattern() {
+        backingRepository.baseIvyPattern
+    }
+
+    String getBaseArtifactPattern() {
+        backingRepository.baseArtifactPattern
     }
 }

@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.ivy
+package org.gradle.test.fixtures.server.http
 
-import org.gradle.test.fixtures.HttpArtifact
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.ivy.IvyDescriptor
+import org.gradle.test.fixtures.ivy.IvyFileModule
+import org.gradle.test.fixtures.ivy.RemoteIvyModule
+import org.gradle.test.fixtures.resource.RemoteResource
 
-class IvyHttpModule implements IvyModule, HttpModule {
+class IvyHttpModule implements RemoteIvyModule, HttpModule {
     public final IvyHttpRepository repository
     private final IvyFileModule backingModule
     private final HttpServer server
@@ -132,26 +134,34 @@ class IvyHttpModule implements IvyModule, HttpModule {
         return new IvyModuleHttpArtifact(server, prefix, backingModule.getArtifactFilePath(options), backingFile)
     }
 
-    HttpArtifact getIvy() {
+    IvyModuleHttpArtifact getIvy() {
         return new IvyModuleHttpArtifact(server, prefix, backingModule.ivyFilePath, ivyFile)
     }
 
-    HttpArtifact getJar() {
+    IvyModuleHttpArtifact getJar() {
         return new IvyModuleHttpArtifact(server, prefix, backingModule.jarFilePath, jarFile)
     }
+
 
     void assertIvyAndJarFilePublished() {
         backingModule.assertIvyAndJarFilePublished()
     }
 
-    private class IvyModuleHttpArtifact extends HttpArtifact {
-        final filePath
+    private class IvyModuleHttpArtifact extends HttpArtifact implements RemoteResource {
         final TestFile backingFile
+        final String filePath
 
         IvyModuleHttpArtifact(HttpServer server, String modulePath, String filePath, TestFile backingFile) {
             super(server, modulePath)
             this.filePath = filePath;
             this.backingFile = backingFile
+            this.filePath = filePath
+        }
+
+
+        @Override
+        protected String getPath() {
+            "${modulePath}/${filePath}"
         }
 
         @Override
@@ -169,9 +179,28 @@ class IvyHttpModule implements IvyModule, HttpModule {
             return backingModule.getMd5File(backingFile)
         }
 
-        @Override
-        protected String getPath() {
-            "${modulePath}/${filePath}"
+        void expectDownload() {
+            expectGet()
+        }
+
+        void expectDownloadMissing() {
+            expectGetMissing()
+        }
+
+        void expectMetadataRetrieve() {
+            expectHead()
+        }
+
+        void expectMetadataRetrieveMissing() {
+            expectHeadMissing()
+        }
+
+        void expectDownloadBroken() {
+            expectGetBroken()
+        }
+
+        void expectMetadataRetrieveBroken() {
+            expectHeadBroken()
         }
     }
 }

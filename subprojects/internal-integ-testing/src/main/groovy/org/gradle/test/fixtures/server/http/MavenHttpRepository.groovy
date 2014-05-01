@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.maven
+package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.HttpRepository
-import org.gradle.test.fixtures.HttpResource
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenRepository
 
 /**
  * A fixture for dealing with remote HTTP Maven repositories.
