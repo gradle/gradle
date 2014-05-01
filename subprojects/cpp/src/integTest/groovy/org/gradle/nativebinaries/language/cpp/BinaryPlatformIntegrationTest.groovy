@@ -80,7 +80,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
                 }
             }
             task buildExecutables {
-                dependsOn binaries.withType(ExecutableBinary).matching {
+                dependsOn binaries.withType(NativeExecutableBinary).matching {
                     it.buildable
                 }
             }
@@ -153,7 +153,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
                 }
             }
             task buildExecutables {
-                dependsOn binaries.withType(ExecutableBinary).matching {
+                dependsOn binaries.withType(NativeExecutableBinary).matching {
                     it.buildable
                 }
             }
@@ -214,7 +214,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
                 cppCompiler.define "FRENCH"
             }
             task buildExecutables {
-                dependsOn binaries.withType(ExecutableBinary).matching {
+                dependsOn binaries.withType(NativeExecutableBinary).matching {
                     it.buildable
                 }
             }

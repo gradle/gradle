@@ -299,7 +299,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
 
         then:
         failure.assertHasDescription("Could not locate library 'other'.")
-        failure.assertHasCause("Library with name 'other' not found.")
+        failure.assertHasCause("NativeLibrary with name 'other' not found.")
         failure.assertHasCause("Prebuilt library with name 'other' not found in repositories '[libs, libs2]'.")
     }
 
@@ -343,7 +343,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
 
         then:
         failure.assertHasDescription("Could not locate library 'hello' for project ':projectB'.")
-        failure.assertHasCause("Library with name 'hello' not found.")
+        failure.assertHasCause("NativeLibrary with name 'hello' not found.")
         failure.assertHasCause("Prebuilt library with name 'hello' not found in repositories '[libs, libs2]'.")
     }
 }
