@@ -69,7 +69,7 @@ public class CreateNativeBinaries extends ModelRule {
         for (NativeLibrary library : libraries) {
             components.add(library);
         }
-        for (Executable executable : executables) {
+        for (NativeExecutable executable : executables) {
             components.add(executable);
         }
         return components;

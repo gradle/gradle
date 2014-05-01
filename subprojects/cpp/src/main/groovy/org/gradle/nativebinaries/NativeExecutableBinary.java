@@ -20,10 +20,10 @@ import org.gradle.api.Incubating;
 import java.io.File;
 
 /**
- * A binary artifact that is built from of a {@link Executable}, targeted at a particular platform with specific configuration.
+ * A binary artifact that is built from of a {@link NativeExecutable}, targeted at a particular platform with specific configuration.
  */
 @Incubating
-public interface ExecutableBinary extends NativeBinary {
+public interface NativeExecutableBinary extends NativeBinary {
     /**
      * The executable file.
      */

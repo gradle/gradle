@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.language.assembler.plugins
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.nativebinaries.ExecutableBinary
+import org.gradle.nativebinaries.NativeExecutableBinary
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
@@ -109,7 +109,7 @@ class AssemblerPluginTest extends Specification {
         }
 
         then:
-        ExecutableBinary binary = project.binaries.testExecutable
+        NativeExecutableBinary binary = project.binaries.testExecutable
         binary.tasks.withType(Assemble)*.name == ["assembleTestExecutableTestAnotherOne", "assembleTestExecutableTestAsm"]
 
         and:

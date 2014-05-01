@@ -37,7 +37,7 @@ class CPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(CLangPlugin)
 
-        project.executables.all { Executable executable ->
+        project.executables.all { NativeExecutable executable ->
             addLanguageExtensionsToComponent(executable)
         }
         project.libraries.all { NativeLibrary library ->

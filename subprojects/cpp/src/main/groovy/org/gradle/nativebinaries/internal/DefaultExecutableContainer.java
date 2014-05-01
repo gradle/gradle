@@ -19,20 +19,20 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.api.Project;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.Executable;
+import org.gradle.nativebinaries.NativeExecutable;
 import org.gradle.nativebinaries.ExecutableContainer;
 
-public class DefaultExecutableContainer extends AbstractNamedDomainObjectContainer<Executable> implements ExecutableContainer {
+public class DefaultExecutableContainer extends AbstractNamedDomainObjectContainer<NativeExecutable> implements ExecutableContainer {
     private final Project project;
 
     public DefaultExecutableContainer(Instantiator instantiator, Project project) {
-        super(Executable.class, instantiator);
+        super(NativeExecutable.class, instantiator);
         this.project = project;
     }
 
     @Override
-    protected Executable doCreate(String name) {
+    protected NativeExecutable doCreate(String name) {
         ProjectNativeComponentIdentifier id = new ProjectNativeComponentIdentifier(project.getPath(), name);
-        return getInstantiator().newInstance(DefaultExecutable.class, id);
+        return getInstantiator().newInstance(DefaultNativeExecutable.class, id);
     }
 }

@@ -79,7 +79,7 @@ class CprojectSettings {
         def type 
         if (binary instanceof NativeLibrary) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
-        } else if (binary instanceof Executable) {
+        } else if (binary instanceof NativeExecutable) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.exe"
         } else {
             throw new IllegalStateException("The binary $binary is of a type that we don't know about")

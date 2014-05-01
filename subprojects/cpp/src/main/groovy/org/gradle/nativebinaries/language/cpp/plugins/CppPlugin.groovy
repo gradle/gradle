@@ -19,7 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.plugins.CppLangPlugin
-import org.gradle.nativebinaries.Executable
+import org.gradle.nativebinaries.NativeExecutable
 import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
@@ -42,7 +42,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         // TODO:DAZ It's ugly that we can't do this as project.binaries.all, but this is the way I could
         // add the cppCompiler in time to allow it to be configured within the component.binaries.all block.
-        project.executables.all { Executable executable ->
+        project.executables.all { NativeExecutable executable ->
             executable.binaries.all { binary ->
                 binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
             }

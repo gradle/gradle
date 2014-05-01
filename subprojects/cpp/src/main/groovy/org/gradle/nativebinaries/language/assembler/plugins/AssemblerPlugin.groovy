@@ -22,7 +22,7 @@ import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.plugins.AssemblerLangPlugin
 import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
-import org.gradle.nativebinaries.Executable
+import org.gradle.nativebinaries.NativeExecutable
 import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
@@ -83,7 +83,7 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        project.executables.all { Executable executable ->
+        project.executables.all { NativeExecutable executable ->
             addLanguageExtensionsToComponent(executable)
         }
         project.libraries.all { NativeLibrary library ->

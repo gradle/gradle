@@ -57,7 +57,7 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(WindowsResourceScriptPlugin)
 
-        project.executables.all { Executable executable ->
+        project.executables.all { NativeExecutable executable ->
             addLanguageExtensionsToComponent(executable)
         }
         project.libraries.all { NativeLibrary library ->

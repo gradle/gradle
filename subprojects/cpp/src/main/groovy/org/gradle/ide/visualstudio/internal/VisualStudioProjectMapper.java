@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.nativebinaries.ExecutableBinary;
+import org.gradle.nativebinaries.NativeExecutableBinary;
 import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.SharedLibraryBinary;
@@ -58,7 +58,7 @@ public class VisualStudioProjectMapper {
     private String projectSuffix(ProjectNativeBinary nativeBinary) {
         return nativeBinary instanceof SharedLibraryBinary ? "Dll"
                 : nativeBinary instanceof NativeLibraryBinary ? "Lib"
-                : nativeBinary instanceof ExecutableBinary ? "Exe"
+                : nativeBinary instanceof NativeExecutableBinary ? "Exe"
                 : "";
     }
 

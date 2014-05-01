@@ -51,7 +51,7 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
 
         TestSuiteContainer testSuites = project.getExtensions().getByType(TestSuiteContainer)
         BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer)
-        project.getExtensions().getByType(ExecutableContainer).all { Executable executable ->
+        project.getExtensions().getByType(ExecutableContainer).all { NativeExecutable executable ->
             testSuites.add createCUnitTestSuite(executable, binaries, project)
         }
         project.getExtensions().getByType(LibraryContainer).all { NativeLibrary library ->

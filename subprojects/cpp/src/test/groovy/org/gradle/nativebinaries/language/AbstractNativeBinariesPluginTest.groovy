@@ -22,7 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.ExecutableBinary
+import org.gradle.nativebinaries.NativeExecutableBinary
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
@@ -133,7 +133,7 @@ abstract class AbstractNativeBinariesPluginTest extends Specification {
         }
 
         then:
-        ExecutableBinary binary = project.binaries.testExecutable
+        NativeExecutableBinary binary = project.binaries.testExecutable
         binary.tasks.withType(compileTaskClass)*.name == ["compileTestExecutableTestAnotherOne", "compileTestExecutableTest${StringUtils.capitalize(pluginName)}"]
 
         and:

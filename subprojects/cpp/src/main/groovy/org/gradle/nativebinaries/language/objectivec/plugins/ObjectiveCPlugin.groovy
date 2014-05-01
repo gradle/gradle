@@ -22,7 +22,7 @@ import org.gradle.language.objectivec.ObjectiveCSourceSet
 import org.gradle.language.objectivec.plugins.ObjectiveCLangPlugin
 import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
-import org.gradle.nativebinaries.Executable
+import org.gradle.nativebinaries.NativeExecutable
 import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
@@ -74,7 +74,7 @@ class ObjectiveCPlugin implements Plugin<ProjectInternal> {
         });
 
 
-        project.executables.all { Executable executable ->
+        project.executables.all { NativeExecutable executable ->
             executable.binaries.all { binary ->
                 binary.extensions.create("objcCompiler", DefaultPreprocessingTool)
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries;
 
-package org.gradle.nativebinaries.internal
+import org.gradle.api.Incubating;
 
-import spock.lang.Specification
-
-class DefaultExecutableTest extends Specification {
-    def executable = new DefaultExecutable(new ProjectNativeComponentIdentifier("project-path", "someExe"))
-
-    def "has useful string representation"() {
-        expect:
-        executable.toString() == "executable 'someExe'"
-        executable.displayName == "executable 'someExe'"
-    }
+/**
+ * An executable native component that is built by Gradle.
+ */
+@Incubating
+public interface NativeExecutable extends ProjectNativeComponent, TargetedNativeComponent {
+    
 }

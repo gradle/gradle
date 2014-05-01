@@ -30,10 +30,10 @@ class VisualStudioProjectRegistryTest extends Specification {
     def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
     def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectMapper, new DirectInstantiator())
 
-    def executable = Mock(Executable)
+    def executable = Mock(NativeExecutable)
 
     def "creates a matching visual studio project configuration for NativeBinary"() {
-        def executableBinary = Mock(ExecutableInternal)
+        def executableBinary = Mock(NativeExecutableInternal)
         when:
         visualStudioProjectMapper.mapToConfiguration(executableBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
         executableBinary.component >> executable
@@ -52,8 +52,8 @@ class VisualStudioProjectRegistryTest extends Specification {
     }
 
     def "returns same visual studio project configuration for native binaries that share project name"() {
-        def executableBinary1 = Mock(ExecutableInternal)
-        def executableBinary2 = Mock(ExecutableInternal)
+        def executableBinary1 = Mock(NativeExecutableInternal)
+        def executableBinary2 = Mock(NativeExecutableInternal)
 
         when:
         visualStudioProjectMapper.mapToConfiguration(executableBinary1) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig1", "vsPlatform")
@@ -84,8 +84,8 @@ class VisualStudioProjectRegistryTest extends Specification {
     }
 
     def "visual studio project contains sources for native binaries for all configurations"() {
-        def executableBinary1 = Mock(ExecutableInternal)
-        def executableBinary2 = Mock(ExecutableInternal)
+        def executableBinary1 = Mock(NativeExecutableInternal)
+        def executableBinary2 = Mock(NativeExecutableInternal)
         def sourceCommon = Mock(LanguageSourceSet)
         def source1 = Mock(LanguageSourceSet)
         def source2 = Mock(LanguageSourceSet)
@@ -105,5 +105,5 @@ class VisualStudioProjectRegistryTest extends Specification {
         vsProject.sources as List == [sourceCommon, source1, source2]
     }
 
-    interface ExecutableInternal extends ExecutableBinary, ProjectNativeBinaryInternal {}
+    interface NativeExecutableInternal extends NativeExecutableBinary, ProjectNativeBinaryInternal {}
 }

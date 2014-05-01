@@ -41,7 +41,7 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         // Create a functionalSourceSet for each native component, with the same name
         ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
-        project.getExtensions().getByType(ExecutableContainer).all { Executable exe ->
+        project.getExtensions().getByType(ExecutableContainer).all { NativeExecutable exe ->
             exe.source projectSourceSet.maybeCreate(exe.name)
         }
         project.getExtensions().getByType(LibraryContainer).all { NativeLibrary lib ->
@@ -62,9 +62,9 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
 
     def createTasks(ProjectInternal project, ProjectNativeBinaryInternal binary) {
         def builderTask
-        if (binary instanceof ExecutableBinary) {
-            builderTask = createLinkExecutableTask(project, binary as ExecutableBinary)
-            binary.tasks.add createInstallTask(project, binary as ExecutableBinary);
+        if (binary instanceof NativeExecutableBinary) {
+            builderTask = createLinkExecutableTask(project, binary as NativeExecutableBinary)
+            binary.tasks.add createInstallTask(project, binary as NativeExecutableBinary);
         } else if (binary instanceof SharedLibraryBinary) {
             builderTask = createLinkSharedLibraryTask(project, binary)
         } else if (binary instanceof StaticLibraryBinary) {
@@ -76,7 +76,7 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
         binary.builtBy builderTask
     }
 
-    private LinkExecutable createLinkExecutableTask(ProjectInternal project, ExecutableBinary executable) {
+    private LinkExecutable createLinkExecutableTask(ProjectInternal project, NativeExecutableBinary executable) {
         def binary = executable as ProjectNativeBinaryInternal
         LinkExecutable linkTask = project.task(binary.namingScheme.getTaskName("link"), type: LinkExecutable) {
              description = "Links ${executable}"
@@ -122,7 +122,7 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
         return task
     }
 
-    def createInstallTask(ProjectInternal project, ExecutableBinary executable) {
+    def createInstallTask(ProjectInternal project, NativeExecutableBinary executable) {
         def binary = executable as ProjectNativeBinaryInternal
         InstallExecutable installTask = project.task(binary.namingScheme.getTaskName("install"), type: InstallExecutable) {
             description = "Installs a development image of $executable"

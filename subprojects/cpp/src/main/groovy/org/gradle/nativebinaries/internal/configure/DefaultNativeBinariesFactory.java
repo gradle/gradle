@@ -20,7 +20,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.ProjectExecutableBinary;
+import org.gradle.nativebinaries.internal.ProjectNativeExecutableBinary;
 import org.gradle.nativebinaries.internal.ProjectSharedLibraryBinary;
 import org.gradle.nativebinaries.internal.ProjectStaticLibraryBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
@@ -43,7 +43,7 @@ class DefaultNativeBinariesFactory implements NativeBinariesFactory {
             createNativeBinary(ProjectSharedLibraryBinary.class, component, namingScheme.withTypeString("SharedLibrary").build(), toolChain, platform, buildType, flavor);
             createNativeBinary(ProjectStaticLibraryBinary.class, component, namingScheme.withTypeString("StaticLibrary").build(), toolChain, platform, buildType, flavor);
         } else {
-            createNativeBinary(ProjectExecutableBinary.class, component, namingScheme.withTypeString("Executable").build(), toolChain, platform, buildType, flavor);
+            createNativeBinary(ProjectNativeExecutableBinary.class, component, namingScheme.withTypeString("Executable").build(), toolChain, platform, buildType, flavor);
         }
     }
 

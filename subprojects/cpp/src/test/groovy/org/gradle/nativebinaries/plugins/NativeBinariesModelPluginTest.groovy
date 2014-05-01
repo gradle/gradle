@@ -70,7 +70,7 @@ class NativeBinariesModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        one(project.binaries.withType(ExecutableBinary)).flavor.name == DefaultFlavor.DEFAULT
+        one(project.binaries.withType(NativeExecutableBinary)).flavor.name == DefaultFlavor.DEFAULT
         one(project.binaries.withType(SharedLibraryBinary)).flavor.name == DefaultFlavor.DEFAULT
     }
 
@@ -122,7 +122,7 @@ class NativeBinariesModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        ExecutableBinary executableBinary = one(project.binaries) as ExecutableBinary
+        NativeExecutableBinary executableBinary = one(project.binaries) as NativeExecutableBinary
         with (executableBinary) {
             name == 'testExecutable'
             component == executable
@@ -193,7 +193,7 @@ class NativeBinariesModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        ExecutableBinary executableBinary = project.binaries.exeExecutable as ExecutableBinary
+        NativeExecutableBinary executableBinary = project.binaries.exeExecutable as NativeExecutableBinary
         with (oneTask(executableBinary.buildDependencies)) {
             name == executableBinary.name
             group == BasePlugin.BUILD_GROUP

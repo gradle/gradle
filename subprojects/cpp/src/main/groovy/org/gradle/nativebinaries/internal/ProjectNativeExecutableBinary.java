@@ -18,8 +18,8 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.Executable;
-import org.gradle.nativebinaries.ExecutableBinary;
+import org.gradle.nativebinaries.NativeExecutable;
+import org.gradle.nativebinaries.NativeExecutableBinary;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
@@ -27,11 +27,11 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
 import java.io.File;
 
-public class ProjectExecutableBinary extends AbstractProjectNativeBinary implements ExecutableBinary {
+public class ProjectNativeExecutableBinary extends AbstractProjectNativeBinary implements NativeExecutableBinary {
     private File executableFile;
 
-    public ProjectExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                   BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public ProjectNativeExecutableBinary(NativeExecutable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                         BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(executable, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }
 

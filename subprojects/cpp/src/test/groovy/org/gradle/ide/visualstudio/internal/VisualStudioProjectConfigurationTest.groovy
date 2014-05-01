@@ -25,10 +25,10 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.Executable
-import org.gradle.nativebinaries.ExecutableBinary
 import org.gradle.nativebinaries.NativeBinaryTasks
 import org.gradle.nativebinaries.NativeDependencySet
+import org.gradle.nativebinaries.NativeExecutable
+import org.gradle.nativebinaries.NativeExecutableBinary
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
@@ -40,7 +40,7 @@ import spock.lang.Specification
 class VisualStudioProjectConfigurationTest extends Specification {
     final flavor = new DefaultFlavor("flavor1")
     def flavors = new DefaultFlavorContainer(new DirectInstantiator())
-    def exe = Mock(ExecutableInternal) {
+    def exe = Mock(NativeExecutableInternal) {
         getFlavors() >> flavors
     }
     def extensions = Mock(ExtensionContainer)
@@ -196,7 +196,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         return deps
     }
 
-    interface ExecutableInternal extends Executable, ProjectNativeComponentInternal {}
-    interface TestExecutableBinary extends ProjectNativeBinaryInternal, ExecutableBinary, ExtensionAware {}
+    interface NativeExecutableInternal extends NativeExecutable, ProjectNativeComponentInternal {}
+    interface TestExecutableBinary extends ProjectNativeBinaryInternal, NativeExecutableBinary, ExtensionAware {}
 
 }
