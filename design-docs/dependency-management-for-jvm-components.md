@@ -17,83 +17,110 @@ known as a `component instance` or `variant`.
 
 # Features
 
-## Feature: Build author declares a Java library
+## Feature: Build author creates a JVM library with Java sources
 
-For example:
-
-    apply plugin: 'java-library'
-
-    libraries {
-        myLib {
-            // Infer the type by the available set of library types
-        }
-    }
-
-    binaries {
-        // A Java library binary is visible here
-    }
-
-This defines a Java library that:
-- Has a single Java source set hardcoded to `src/myLib/java`
-- Has a single resources source set hardcoded to `src/myLib/resources`
-- Has no dependencies
-- Produces a jar binary as output from the source.
-- Has a lifecycle task to build the jar.
-
-It should be possible to declare multiple libraries for a given project.
-
-### Story: Build author defines java library
+### Story: Build author defines JVM library
 
 #### DSL
 
-    // Combining native and jvm libraries in single project
-    apply plugin: 'java-library'
-    apply plugin: 'cpp'
+Project defining single jvm libraries
+
+    apply plugin: 'jvm-component'
 
     libraries {
-        myNativeLib(NativeLibrary) {
+        main(JvmLibrary)
+    }
 
-        }
+Project defining multiple jvm libraries
 
-        myJvmLib(JvmLibrary) {
+    apply plugin: 'jvm-component'
 
-        }
+    libraries {
+        main(JvmLibrary)
+        extra(JvmLibrary)
+    }
+
+Combining native and jvm libraries in single project
+
+    apply plugin: 'jvm-component'
+    apply plugin: 'native-component'
+
+    libraries {
+        myNativeLib(NativeLibrary)
+        myJvmLib(JvmLibrary)
     }
 
 #### Implementation plan
 
 - Introduce `org.gradle.jvm.JvmLibrary`
 - Rename `org.gradle.nativebinaries.Library` to `org.gradle.nativebinaries.NativeLibrary`
+    - Similar renames for `Executable`, `TestSuite` and all related classes
 - Introduce a common superclass for `Library`.
 - Extract `org.gradle.nativebinaries.LibraryContainer` out of `nativebinaries` project into `language-base` project,
   and make it an extensible polymorphic container.
     - Different 'library' plugins will register a factory for library types.
-    - Update ExtensiblePolymorphicContainer so that if only one factory is registered, then it is the default factory.
-- Add a `jvm-library` plugin, that:
-    - Registers a factory for `JvmLibrary`.
+- Add a `jvm-component` plugin, that:
+    - Registers support for `JvmLibrary`.
     - Adds a single `JvmLibraryBinary` instance to the `binaries` container for every `JvmLibrary`
     - Creates a binary lifecycle task for generating this `JvmLibraryBinary`
     - Wires the binary lifecycle task into the main `assemble` task.
-- Add a `java-library` plugin, which for now simply applies the `jvm-library` plugin.
+- Rename `NativeBinariesPlugin` to `NativeComponentPlugin` with id `native-component`.
 
 #### Test cases
 
-- Can apply `java-library` plugin without defining library
+- Can apply `jvm-component` plugin without defining library
     - No binaries defined
     - No lifecycle task added
-- Define a java library component
+- Define a jvm library component
     - `JvmLibraryBinary` added to binaries container
-    - Lifecycle task available to build binary
-    - Can add dependent tasks to binary
-- Can combine native and Java components in the same project
+    - Lifecycle task available to build binary: builds an empty jar
+    - Binary is buildable: can add dependent tasks which are executed when building binary
+- `JvmLibraryBinary` has no dependencies
+- Define and build multiple java libraries in the same project
+  - Build library jars individually using binary lifecycle task
+  - `gradle assemble` builds single jar for each library
+  - `gradle assemble` builds each native library
+- Can combine native and JVM libraries in the same project
 
 #### Open issues
 
-- Split the NativeBinariesPlugin into 'native-library' and 'native-application'. Maybe introduce 'cpp-library', etc for convenience.
-- Consistent plugin composition for java/native
+- Remove the need to declare the library type, rather than making it explicit: Possibly based on available types, possibly by naming the container?
+- Split the native binaries plugins into `native-component` and the various language support plugins
+    - Consistent plugin composition for java/native
 - Consider splitting jvm-runtime & jvm-lang support into separate projects. Similar for native-runtime and native-lang.
 
-### Story: Build author builds jar for java library
+### Story: Build author creates JVM library jar from Java sources
+
+When a JVM library is defined with Java language support, then binary is built from conventional source set locations:
+
+- Has a single Java source set hardcoded to `src/myLib/java`
+- Has a single resources source set hardcoded to `src/myLib/resources`
+
+#### DSL
+
+Java library using conventional source locations
+
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    libraries {
+        myLib(JvmLibrary)
+    }
+
+
+Combining jvm-java and native (multi-lang) libraries in single project
+
+    apply plugin: 'jvm-component'
+    apply plugin: 'java-lang'
+
+    apply plugin: 'native-component'
+    apply plugin: 'cpp-lang'
+    apply plugin: 'c-lang'
+
+    libraries {
+        myNativeLib(NativeLibrary)
+        myJvmLib(JvmLibrary)
+    }
 
 #### Test cases
 
@@ -107,15 +134,16 @@ It should be possible to declare multiple libraries for a given project.
 - All generated resources are removed when all resources source files are removed.
 - All compiled classes are removed when all java source files are removed.
 
-### Story: Build author defines multiple java libraries in single project
+#### Open issues
 
-#### Test cases
-
-- Define and build multiple java libraries in the same project
-  - Build library jars individually using binary lifecycle task
-  - `gradle assemble` builds single jar for each library
-  - `gradle assemble` builds each native library
-- `gradle clean` removes compiled sources, copied resources and generated jar for each library
+- Need `groovy-lang` and `scala-lang` plugins
+- Need to decide where the 'compile java for jvm' functionality lives: should probably live with the language plugin, so that it's easier to
+  add support for a new JVM language without modifying the base `jvm-component` plugin.
+    - Possibly need a 'java-for-jvm' plugin that is auto-applied in the presence of the 'jvm-component' and 'java-lang' plugin?
+    - Could then have the equivalent 'java-for-native' plugin that uses GCJ to compile java for native runtime
+- Split the native binaries plugins into `native-component` and the various language support plugins
+    - Consistent plugin composition for java/native
+- Consider splitting jvm-runtime & jvm-lang support into separate projects. Similar for native-runtime and native-lang.
 
 ### Story: Legacy JVM language plugins declare a jvm library
 
@@ -124,12 +152,9 @@ It should be possible to declare multiple libraries for a given project.
 - JVM library with name 'main' is defined with any combination of `java`, `groovy` and `scala` plugins applied
 - Can build legacy jvm library jar using standard lifecycle task
 
-### Open issues
+#### Open issues
 
-- Need a better id for the plugin, to sync up with the native plugins.
-- Make the library type explicit, rather than infer it? Possibly with a type, possibly by naming the container.
 - The legacy application plugin should also declare a jvm application.
-- Move everything to the rules model.
 
 ## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
