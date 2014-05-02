@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc
 
-import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.internal.LinkerSpec
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec
@@ -64,7 +63,7 @@ class GccLinkerTest extends Specification {
         then:
         1 * invocation.copy() >> invocation
         1 * invocation.setArgs(expectedArgs)
-        1 * commandLineTool.execute(invocation) >> new SimpleWorkResult(true)
+        1 * commandLineTool.execute(invocation)
         0 * _
     }
 

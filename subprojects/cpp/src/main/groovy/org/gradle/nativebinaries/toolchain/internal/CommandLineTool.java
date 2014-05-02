@@ -18,9 +18,6 @@ package org.gradle.nativebinaries.toolchain.internal;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -29,7 +26,7 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
-public class CommandLineTool implements Compiler<CommandLineToolInvocation> {
+public class CommandLineTool {
     private final String action;
     private final File executable;
     private final ExecActionFactory execActionFactory;
@@ -40,7 +37,7 @@ public class CommandLineTool implements Compiler<CommandLineToolInvocation> {
         this.execActionFactory = execActionFactory;
     }
 
-    public WorkResult execute(CommandLineToolInvocation invocation) {
+    public void execute(CommandLineToolInvocation invocation) {
         ExecAction compiler = execActionFactory.newExecAction();
         compiler.executable(executable);
         if (invocation.getWorkDirectory() != null) {
@@ -64,6 +61,5 @@ public class CommandLineTool implements Compiler<CommandLineToolInvocation> {
         } catch (ExecException e) {
             throw new GradleException(String.format("%s failed; see the error output for details.", action), e);
         }
-        return new SimpleWorkResult(true);
     }
 }

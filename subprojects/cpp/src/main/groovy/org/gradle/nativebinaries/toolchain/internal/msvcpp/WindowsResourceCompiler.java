@@ -43,7 +43,6 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
     }
 
     public WorkResult execute(WindowsResourceCompileSpec spec) {
-        boolean didWork = false;
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         spec = specTransformer.transform(spec);
@@ -51,10 +50,9 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
             RcCompilerArgsTransformer argsTransformer = new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation);
             invocation.setArgs(argsTransformer.transform(spec));
             invocation.setWorkDirectory(spec.getObjectFileDir());
-            WorkResult result = commandLineTool.execute(invocation);
-            didWork |= result.getDidWork();
+            commandLineTool.execute(invocation);
         }
-        return new SimpleWorkResult(didWork);
+        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 
     private static class RcCompilerArgsTransformer implements ArgsTransformer<WindowsResourceCompileSpec> {

@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
@@ -42,7 +43,8 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
         invocation.setArgs(args.transform(spec));
-        return commandLineTool.execute(invocation);
+        commandLineTool.execute(invocation);
+        return new SimpleWorkResult(true);
     }
 
     private static class LibExeSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {

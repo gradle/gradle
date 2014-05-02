@@ -15,7 +15,7 @@
  */
 
 package org.gradle.nativebinaries.toolchain.internal.gcc
-import org.gradle.api.internal.tasks.SimpleWorkResult
+
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec
@@ -69,7 +69,7 @@ class CCompilerTest extends Specification {
                     "-I", testDir.file("include.h").absolutePath,
                     testDir.file(sourceFileName).absolutePath,
                     "-o", objectOutputPath])
-            1 * commandLineTool.execute(invocation) >> new SimpleWorkResult(true)
+            1 * commandLineTool.execute(invocation)
         }
         0 * _
     }

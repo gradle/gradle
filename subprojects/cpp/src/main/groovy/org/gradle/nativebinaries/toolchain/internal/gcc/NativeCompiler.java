@@ -40,7 +40,6 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     public WorkResult execute(T spec) {
-        boolean didWork = false;
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
 
         String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
@@ -57,9 +56,8 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
                     windowsPathLimitation,
                     false);
             invocation.setArgs(argTransformer.transform(spec));
-            WorkResult result = commandLineTool.execute(invocation);
-            didWork = didWork || result.getDidWork();
+            commandLineTool.execute(invocation);
         }
-        return new SimpleWorkResult(didWork);
+        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 }

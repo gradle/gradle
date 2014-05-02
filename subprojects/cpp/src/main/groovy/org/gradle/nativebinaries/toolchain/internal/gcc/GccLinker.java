@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
@@ -50,7 +51,8 @@ class GccLinker implements Compiler<LinkerSpec> {
             invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
         }
         invocation.setArgs(argsTransformer.transform(spec));
-        return commandLineTool.execute(invocation);
+        commandLineTool.execute(invocation);
+        return new SimpleWorkResult(true);
     }
 
     private static class GccLinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
@@ -71,7 +73,7 @@ class GccLinker implements Compiler<LinkerSpec> {
             for (File file : spec.getLibraries()) {
                 args.add(file.getAbsolutePath());
             }
-            for (File pathEntry : spec.getLibraryPath()) {
+            if (!spec.getLibraryPath().isEmpty()) {
                 throw new UnsupportedOperationException("Library Path not yet supported on GCC");
             }
 

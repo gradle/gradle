@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
@@ -47,7 +48,8 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
 
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.setArgs(arguments.transform(spec));
-        return commandLineTool.execute(invocation);
+        commandLineTool.execute(invocation);
+        return new SimpleWorkResult(true);
     }
 
     private void deletePreviousOutput(StaticLibraryArchiverSpec spec) {

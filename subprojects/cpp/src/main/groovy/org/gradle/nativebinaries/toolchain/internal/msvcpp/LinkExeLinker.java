@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.LinkerSpec;
@@ -47,7 +48,8 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
         invocation.setArgs(argsTransformer.transform(specTransformer.transform(spec)));
-        return commandLineTool.execute(invocation);
+        commandLineTool.execute(invocation);
+        return new SimpleWorkResult(true);
     }
 
     private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {

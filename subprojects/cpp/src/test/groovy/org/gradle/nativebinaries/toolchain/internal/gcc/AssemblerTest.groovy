@@ -15,7 +15,7 @@
  */
 
 package org.gradle.nativebinaries.toolchain.internal.gcc
-import org.gradle.api.internal.tasks.SimpleWorkResult
+
 import org.gradle.internal.hash.HashUtil
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
@@ -55,10 +55,10 @@ class AssemblerTest extends Specification {
         1 * baseInvocation.copy() >> invocation
         1 * invocation.setWorkDirectory(objectFileDir)
         1 * invocation.setArgs(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceOne), sourceOne.absolutePath])
-        1 * commandLineTool.execute(invocation) >> new SimpleWorkResult(true)
+        1 * commandLineTool.execute(invocation)
 
         1 * invocation.setArgs(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceTwo), sourceTwo.absolutePath])
-        1 * commandLineTool.execute(invocation) >> new SimpleWorkResult(true)
+        1 * commandLineTool.execute(invocation)
         0 * _
     }
 

@@ -44,15 +44,13 @@ class Assembler implements Compiler<AssembleSpec> {
     }
 
     public WorkResult execute(AssembleSpec spec) {
-        boolean didWork = false;
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.setWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
             invocation.setArgs(new AssemblerArgsTransformer(sourceFile).transform(spec));
-            WorkResult result = commandLineTool.execute(invocation);
-            didWork = didWork || result.getDidWork();
+            commandLineTool.execute(invocation);
         }
-        return new SimpleWorkResult(didWork);
+        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 
 

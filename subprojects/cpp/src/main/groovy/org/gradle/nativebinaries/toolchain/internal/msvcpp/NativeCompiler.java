@@ -41,7 +41,6 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     public WorkResult execute(T spec) {
-        boolean didWork = false;
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
 
@@ -54,9 +53,8 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
                     true);
             invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
             invocation.setWorkDirectory(spec.getObjectFileDir());
-            WorkResult result = commandLineTool.execute(invocation);
-            didWork = didWork || result.getDidWork();
+            commandLineTool.execute(invocation);
         }
-        return new SimpleWorkResult(didWork);
+        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 }
