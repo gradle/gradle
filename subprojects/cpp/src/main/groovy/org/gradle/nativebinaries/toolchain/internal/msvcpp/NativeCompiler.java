@@ -47,7 +47,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
         Transformer<List<String>, File> outputFileArgTransformer = new Transformer<List<String>, File>(){
             public List<String> transform(File outputFile) {
-                return Arrays.asList("-o", outputFile.getAbsolutePath());
+                return Arrays.asList("/Fo"+ outputFile.getAbsolutePath());
             }
         };
         for (File sourceFile : spec.getSourceFiles()) {
