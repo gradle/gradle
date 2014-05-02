@@ -54,36 +54,31 @@ class GccPlatformToolChain implements PlatformToolChain {
 
     public Compiler<CppCompileSpec> createCppCompiler() {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
-        CommandLineTool commandLineTool = commandLineTool(cppCompilerTool);
-        CppCompiler cppCompiler = new CppCompiler(commandLineTool, commandLineToolInvocation(cppCompilerTool), useCommandFile);
+        CppCompiler cppCompiler = new CppCompiler(commandLineTool(cppCompilerTool), commandLineToolInvocation(cppCompilerTool), useCommandFile);
         return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getOutputFileSuffix());
     }
 
     public Compiler<CCompileSpec> createCCompiler() {
         GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
-        CommandLineTool commandLineTool = commandLineTool(cCompilerTool);
-        CCompiler cCompiler = new CCompiler(commandLineTool, commandLineToolInvocation(cCompilerTool), useCommandFile);
+        CCompiler cCompiler = new CCompiler(commandLineTool(cCompilerTool), commandLineToolInvocation(cCompilerTool), useCommandFile);
         return new OutputCleaningCompiler<CCompileSpec>(cCompiler, getOutputFileSuffix());
     }
 
     public Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCppCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVECPP_COMPILER);
-        CommandLineTool commandLineTool = commandLineTool(objectiveCppCompilerTool);
-        ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(commandLineTool, commandLineToolInvocation(objectiveCppCompilerTool), useCommandFile);
+        ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(commandLineTool(objectiveCppCompilerTool), commandLineToolInvocation(objectiveCppCompilerTool), useCommandFile);
         return new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, getOutputFileSuffix());
     }
 
     public Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVEC_COMPILER);
-        CommandLineTool commandLineTool = commandLineTool(objectiveCCompilerTool);
-        ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(commandLineTool, commandLineToolInvocation(objectiveCCompilerTool), useCommandFile);
+        ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(commandLineTool(objectiveCCompilerTool), commandLineToolInvocation(objectiveCCompilerTool), useCommandFile);
         return new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, getOutputFileSuffix());
     }
 
     public Compiler<AssembleSpec> createAssembler() {
         GccCommandLineToolConfigurationInternal assemblerTool = toolRegistry.getTool(ToolType.ASSEMBLER);
-        CommandLineTool commandLineTool = commandLineTool(assemblerTool);
-        return new Assembler(commandLineTool, commandLineToolInvocation(assemblerTool), getOutputFileSuffix());
+        return new Assembler(commandLineTool(assemblerTool), commandLineToolInvocation(assemblerTool), getOutputFileSuffix());
     }
 
     public Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
@@ -92,8 +87,7 @@ class GccPlatformToolChain implements PlatformToolChain {
 
     public Compiler<LinkerSpec> createLinker() {
         GccCommandLineToolConfigurationInternal linkerTool = toolRegistry.getTool(ToolType.LINKER);
-        CommandLineTool commandLineTool = commandLineTool(linkerTool);
-        return new GccLinker(commandLineTool, commandLineToolInvocation(linkerTool), useCommandFile);
+        return new GccLinker(commandLineTool(linkerTool), commandLineToolInvocation(linkerTool), useCommandFile);
     }
 
     public Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
@@ -111,13 +105,13 @@ class GccPlatformToolChain implements PlatformToolChain {
         return new CommandLineTool(key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
     }
 
-    private CommandLineToolInvocation commandLineToolInvocation(GccCommandLineToolConfigurationInternal staticLibArchiverTool) {
+    private CommandLineToolInvocation commandLineToolInvocation(GccCommandLineToolConfigurationInternal toolConfiguration) {
         MutableCommandLineToolInvocation baseInvocation = new DefaultCommandLineToolInvocation();
         // MinGW requires the path to be set
         baseInvocation.addPath(toolSearchPath.getPath());
         baseInvocation.addEnvironmentVar("CYGWIN", "nodosfilewarning");
 
-        baseInvocation.addPostArgsAction(staticLibArchiverTool.getArgAction());
+        baseInvocation.addPostArgsAction(toolConfiguration.getArgAction());
         return baseInvocation;
     }
 }

@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.Actions;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.platform.Platform;
@@ -26,8 +27,14 @@ import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
 import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration;
 import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
-import org.gradle.nativebinaries.toolchain.internal.*;
-import org.gradle.nativebinaries.toolchain.internal.tools.*;
+import org.gradle.nativebinaries.toolchain.internal.ExtendableToolChain;
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
+import org.gradle.nativebinaries.toolchain.internal.UnavailablePlatformToolChain;
+import org.gradle.nativebinaries.toolchain.internal.tools.ConfiguredToolRegistry;
+import org.gradle.nativebinaries.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
+import org.gradle.nativebinaries.toolchain.internal.tools.ToolRegistry;
+import org.gradle.nativebinaries.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.CollectionUtils;
 
@@ -45,7 +52,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
     private final Instantiator instantiator;
     private int configInsertLocation;
-
 
     public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath toolSearchPath,
                                           Instantiator instantiator) {
@@ -91,24 +97,19 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
     public void target(Platform platform) {
-        target(platform, new NoConfigurationAction());
+        target(platform, Actions.<ConfigurableToolChain>doNothing());
     }
 
     public void target(DomainObjectSet<Platform> platforms) {
-        target(platforms, new NoConfigurationAction());
+        target(platforms, Actions.<ConfigurableToolChain>doNothing());
     }
 
     public void target(String platformName) {
-        target(platformName, new NoConfigurationAction());
+        target(platformName, Actions.<ConfigurableToolChain>doNothing());
     }
 
     public void target(List<String> platformNames) {
-        target(platformNames, new NoConfigurationAction());
-    }
-
-    private class NoConfigurationAction implements Action<ConfigurableToolChain> {
-        public void execute(ConfigurableToolChain configurableToolChain) {
-        }
+        target(platformNames, Actions.<ConfigurableToolChain>doNothing());
     }
 
     public void target(Platform platform, Action<ConfigurableToolChain> action) {
@@ -157,7 +158,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         ToolRegistry platformTools = new ConfiguredToolRegistry(configurableToolChain);
         return new GccPlatformToolChain(toolSearchPath, platformTools, execActionFactory, canUseCommandFile());
     }
-
 
     protected TargetPlatformConfiguration getPlatformConfiguration(Platform targetPlatform) {
         for (TargetPlatformConfiguration platformConfig : platformConfigs) {
@@ -302,7 +302,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    private class DefaultTargetPlatformConfiguration implements TargetPlatformConfiguration {
+    private static class DefaultTargetPlatformConfiguration implements TargetPlatformConfiguration {
 
         //TODO this should be a container of platforms
         private final Collection<String> platformNames;

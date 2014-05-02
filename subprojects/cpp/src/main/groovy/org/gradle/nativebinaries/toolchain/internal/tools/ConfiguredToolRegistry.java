@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.tools;
 
-import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
+import org.gradle.nativebinaries.toolchain.CommandLineToolConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 
 import java.util.HashMap;
@@ -24,17 +24,14 @@ import java.util.Map;
 public class ConfiguredToolRegistry implements ToolRegistry {
     private final Map<ToolType, GccCommandLineToolConfigurationInternal> gccTools = new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
 
-    public ConfiguredToolRegistry(ConfigurableToolChain configurableToolChain) {
-        Map registeredTools = configurableToolChain.getAsMap();
-        for (Object registeredTool : registeredTools.keySet()) {
-            register((GccCommandLineToolConfigurationInternal)registeredTools.get(registeredTool));
+    public ConfiguredToolRegistry(Iterable<? extends CommandLineToolConfiguration> toolConfigurations) {
+        for (CommandLineToolConfiguration registeredTool : toolConfigurations) {
+            register((GccCommandLineToolConfigurationInternal) registeredTool);
         }
     }
 
     private void register(GccCommandLineToolConfigurationInternal tool) {
-        if(tool!=null){
-            gccTools.put(tool.getToolType(), tool);
-        }
+        gccTools.put(tool.getToolType(), tool);
     }
 
     public GccCommandLineToolConfigurationInternal getTool(ToolType toolType) {
