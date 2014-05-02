@@ -16,11 +16,10 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
@@ -61,9 +60,10 @@ class Assembler implements Compiler<AssembleSpec> {
 
         public AssembleSpecToArgsList(File inputFile, File objectFileRootDir, String outputFileSuffix) {
             this.inputFile = inputFile;
-            String outputFileName = FilenameUtils.removeExtension(inputFile.getName()) + outputFileSuffix;
-            File currentObjectOutputDir = new File(objectFileRootDir, HashUtil.createCompactMD5(inputFile.getAbsolutePath()));
-            this.outputFile = new File(currentObjectOutputDir, outputFileName);
+            this.outputFile = new CompilerOutputFileNamingScheme()
+                                    .withOutputBaseFolder(objectFileRootDir)
+                                    .withObjectFileNameSuffix(outputFileSuffix)
+                                    .map(inputFile);
         }
 
         public List<String> transform(AssembleSpec spec) {
