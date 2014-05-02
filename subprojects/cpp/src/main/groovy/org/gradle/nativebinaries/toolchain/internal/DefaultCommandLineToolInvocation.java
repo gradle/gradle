@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.toolchain.internal;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 
 import java.io.File;
