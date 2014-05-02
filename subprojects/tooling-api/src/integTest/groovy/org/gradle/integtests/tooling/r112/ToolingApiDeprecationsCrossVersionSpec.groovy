@@ -53,7 +53,7 @@ task noop << {
 
     @ToolingApiVersion(">=1.12")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "model retrieving shows deprecation warning for pre 1.0m8 providers"() {
+    def "model retrieving fails for pre 1.0m8 providers"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->

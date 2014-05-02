@@ -18,17 +18,25 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.model.build.BuildEnvironment;
 
 /**
  * An adapter for unsupported connection using a {@code ConnectionVersion4} based provider.
  */
 public class ConnectionVersion4BackedConsumerConnection implements ConsumerConnection {
     private final Distribution distribution;
+    private final ProtocolToModelAdapter adapter;
+    private final String version;
 
-    public ConnectionVersion4BackedConsumerConnection(Distribution distribution) {
+    public ConnectionVersion4BackedConsumerConnection(Distribution distribution, ConnectionVersion4 delegate, ProtocolToModelAdapter adapter) {
         this.distribution = distribution;
+        this.adapter = adapter;
+        version = delegate.getMetaData().getVersion();
     }
 
     public void stop() {
@@ -39,7 +47,14 @@ public class ConnectionVersion4BackedConsumerConnection implements ConsumerConne
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        if (type.equals(BuildEnvironment.class)) {
+            return adapter.adapt(type, doGetBuildEnvironment());
+        }
         throw fail();
+    }
+
+    private Object doGetBuildEnvironment() {
+        return new VersionOnlyBuildEnvironment(version);
     }
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {

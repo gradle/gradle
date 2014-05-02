@@ -36,6 +36,16 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
         !model.java.jvmArguments.empty
     }
 
+    @TargetGradleVersion("<1.0-milestone-8")
+    def "partial BuildEnvironment model for pre 1.0m8 providers"() {
+        when:
+        BuildEnvironment buildEnv = withConnection { it.getModel(BuildEnvironment.class) }
+
+        then:
+        buildEnv != null
+        buildEnv.gradle.gradleVersion == targetDist.version.version
+    }
+
     def "informs about java args as in the build script"() {
         given:
         toolingApi.isEmbedded = false //cannot be run in embedded mode
