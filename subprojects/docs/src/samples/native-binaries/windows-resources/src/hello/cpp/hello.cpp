@@ -13,7 +13,7 @@ std::string LoadStringFromResource(UINT stringID)
     return std::string(wide.begin(), wide.end());
 }
 
-void DLL_FUNC hello() {
+void hello() {
     std::string hello = LoadStringFromResource(IDS_HELLO);
     std::cout << hello << std::endl;
 }
