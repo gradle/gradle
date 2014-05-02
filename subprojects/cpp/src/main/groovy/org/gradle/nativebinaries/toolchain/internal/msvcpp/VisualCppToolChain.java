@@ -22,11 +22,13 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
+import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
+import org.gradle.nativebinaries.language.objectivecpp.internal.ObjectiveCppCompileSpec;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
@@ -193,45 +195,45 @@ public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp
         public void explain(TreeVisitor<? super String> visitor) {
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
+        public Compiler<CppCompileSpec> createCppCompiler() {
             CommandLineTool commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
             CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("cppCompiler")), addIncludePathAndDefinitions(CppCompileSpec.class));
-            return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
+            return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
+        public Compiler<CCompileSpec> createCCompiler() {
             CommandLineTool commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
             CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("cCompiler")), addIncludePathAndDefinitions(CCompileSpec.class));
-            return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
+            return new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler() {
+        public Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler() {
             throw new RuntimeException("Objective-C++ is not available on the Visual C++ toolchain");
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler() {
+        public Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler() {
             throw new RuntimeException("Objective-C is not available on the Visual C++ toolchain");
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
+        public Compiler<AssembleSpec> createAssembler() {
             CommandLineTool commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
-            return (Compiler<T>) new Assembler(commandLineTool, invocation(commandLineToolConfigurations.get("assembler")));
+            return new Assembler(commandLineTool, invocation(commandLineToolConfigurations.get("assembler")));
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
+        public Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
             CommandLineTool commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
             WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("rcCompiler")), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
-            return (Compiler<T>) new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
+            return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
         }
 
-        public <T extends LinkerSpec> Compiler<T> createLinker() {
+        public Compiler<LinkerSpec> createLinker() {
             CommandLineTool commandLineTool = tool("Linker", visualCpp.getLinker(targetPlatform));
-            return (Compiler<T>) new LinkExeLinker(commandLineTool, invocation(commandLineToolConfigurations.get("linker")), addLibraryPath());
+            return new LinkExeLinker(commandLineTool, invocation(commandLineToolConfigurations.get("linker")), addLibraryPath());
         }
 
-        public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
+        public Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
             CommandLineTool commandLineTool = tool("Static library archiver", visualCpp.getArchiver(targetPlatform));
-            return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool, invocation(commandLineToolConfigurations.get("staticLibArchiver")));
+            return new LibExeStaticLibraryArchiver(commandLineTool, invocation(commandLineToolConfigurations.get("staticLibArchiver")));
         }
 
         private CommandLineTool tool(String toolName, File exe) {

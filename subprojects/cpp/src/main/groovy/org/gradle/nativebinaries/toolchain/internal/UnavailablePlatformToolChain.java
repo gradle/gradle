@@ -19,9 +19,14 @@ package org.gradle.nativebinaries.toolchain.internal;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.text.TreeFormatter;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
+import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
+import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
+import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
+import org.gradle.nativebinaries.language.objectivecpp.internal.ObjectiveCppCompileSpec;
+import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.util.TreeVisitor;
 
 public class UnavailablePlatformToolChain implements PlatformToolChain {
@@ -45,35 +50,35 @@ public class UnavailablePlatformToolChain implements PlatformToolChain {
         return new GradleException(formatter.toString());
     }
 
-    public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
+    public Compiler<CppCompileSpec> createCppCompiler() {
         throw failure();
     }
 
-    public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
+    public Compiler<CCompileSpec> createCCompiler() {
         throw failure();
     }
 
-    public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
+    public Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler() {
         throw failure();
     }
 
-    public <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler() {
+    public Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler() {
         throw failure();
     }
 
-    public <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler() {
+    public Compiler<AssembleSpec> createAssembler() {
         throw failure();
     }
 
-    public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
+    public Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
         throw failure();
     }
 
-    public <T extends LinkerSpec> Compiler<T> createLinker() {
+    public Compiler<LinkerSpec> createLinker() {
         throw failure();
     }
 
-    public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
+    public Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
         throw failure();
     }
 }

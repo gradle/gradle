@@ -17,24 +17,29 @@
 package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
+import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
+import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
+import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
+import org.gradle.nativebinaries.language.objectivecpp.internal.ObjectiveCppCompileSpec;
+import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 
 public interface PlatformToolChain extends ToolSearchResult {
-    <T extends BinaryToolSpec> Compiler<T> createCppCompiler();
+    Compiler<CppCompileSpec> createCppCompiler();
 
-    <T extends BinaryToolSpec> Compiler<T> createCCompiler();
+    Compiler<CCompileSpec> createCCompiler();
 
-    <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler();
+    Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler();
 
-    <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler();
+    Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler();
 
-    <T extends BinaryToolSpec> Compiler<T> createAssembler();
+    Compiler<AssembleSpec> createAssembler();
 
-    <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler();
+    Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler();
 
-    <T extends LinkerSpec> Compiler<T> createLinker();
+    Compiler<LinkerSpec> createLinker();
 
-    <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver();
+    Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver();
 }
