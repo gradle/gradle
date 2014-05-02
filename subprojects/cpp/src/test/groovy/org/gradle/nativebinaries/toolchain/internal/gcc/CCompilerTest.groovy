@@ -32,8 +32,8 @@ class CCompilerTest extends Specification {
     def executable = new File("executable")
     def invocation = Mock(MutableCommandLineToolInvocation)
     CommandLineTool commandLineTool = Mock(CommandLineTool)
-    CCompiler compiler = new CCompiler(commandLineTool, invocation, false);
     String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
+    CCompiler compiler = new CCompiler(commandLineTool, invocation, objectFileExtension, false);
 
     def "compiles all source files in separate executions"() {
         given:

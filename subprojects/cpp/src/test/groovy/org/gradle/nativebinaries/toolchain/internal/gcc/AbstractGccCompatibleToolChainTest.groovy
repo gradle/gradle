@@ -121,6 +121,9 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         Platform platform1 = Mock(Platform)
         Platform platform2 = Mock(Platform)
         platform1.getName() >> "platform1"
+
+        platform1.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform2.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform2.getName() >> "platform2"
         when:
         toolSearchPath.locate(_, _) >> tool
@@ -142,6 +145,33 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         selected.isAvailable()
         assert platformActionApplied == 2
     }
+
+
+    def "selected toolChain uses objectfile suffix based on targetplatform"() {
+        Platform platform1 = Mock(Platform)
+        Platform platform2 = Mock(Platform)
+        platform1.getName() >> "platform1"
+        def  platformOSWin = Mock(org.gradle.nativebinaries.platform.OperatingSystem)
+        platformOSWin.isWindows() >> true
+        def  platformOSNonWin = Mock(org.gradle.nativebinaries.platform.OperatingSystem)
+        platformOSNonWin.isWindows() >> false
+        platform1.getOperatingSystem() >> platformOSWin
+        platform2.getOperatingSystem() >> platformOSNonWin
+        platform2.getName() >> "platform2"
+        when:
+        toolSearchPath.locate(_, _) >> tool
+
+        toolChain.target([platform1.getName(), platform2.getName()])
+        PlatformToolChain selected = toolChain.select(platform1)
+        then:
+        selected.outputFileSuffix == ".obj"
+        when:
+
+        selected = toolChain.select(platform2)
+        then:
+        selected.outputFileSuffix == ".o"
+    }
+
 
     def "supplies no additional arguments to target native binary for tool chain default"() {
         when:
@@ -286,7 +316,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     static class TestToolChain extends AbstractGccCompatibleToolChain {
         TestToolChain(String name, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, Instantiator instantiator) {
-            super(name, OperatingSystem.current(), fileResolver, execActionFactory, tools, instantiator)
+            super(name, org.gradle.internal.os.OperatingSystem.current(), fileResolver, execActionFactory, tools, instantiator)
             add(new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "g++"));
             add(new DefaultGccCommandLineToolConfiguration("objcCompiler", ToolType.OBJECTIVEC_COMPILER, "gcc"));
             add(new DefaultGccCommandLineToolConfiguration("objcppCompiler", ToolType.OBJECTIVECPP_COMPILER, "g++"));

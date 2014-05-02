@@ -156,7 +156,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
 
         ToolRegistry platformTools = new ConfiguredToolRegistry(configurableToolChain);
-        return new GccPlatformToolChain(toolSearchPath, platformTools, execActionFactory, canUseCommandFile());
+        String objectFileSuffix = targetPlatform.getOperatingSystem().isWindows() ? ".obj" : ".o";
+        return new GccPlatformToolChain(toolSearchPath, platformTools, execActionFactory, objectFileSuffix, canUseCommandFile());
     }
 
     protected TargetPlatformConfiguration getPlatformConfiguration(Platform targetPlatform) {

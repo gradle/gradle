@@ -32,10 +32,12 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final CommandLineTool commandLineTool;
     private final ArgsTransformer<T> argsTransfomer;
     private final CommandLineToolInvocation baseInvocation;
+    private String objectFileSuffix;
     private final boolean useCommandFile;
 
-    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, boolean useCommandFile) {
+    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, String objectFileSuffix, boolean useCommandFile) {
         this.baseInvocation = baseInvocation;
+        this.objectFileSuffix = objectFileSuffix;
         this.useCommandFile = useCommandFile;
         this.argsTransfomer = argsTransformer;
         this.commandLineTool = commandLineTool;
@@ -44,7 +46,6 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     public WorkResult execute(T spec) {
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
 
-        String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.setWorkDirectory(spec.getObjectFileDir());
         if (useCommandFile) {
@@ -59,7 +60,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
         for (File sourceFile : spec.getSourceFiles()) {
             SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
-                    objectFileExtension,
+                    objectFileSuffix,
                     new ShortCircuitArgsTransformer<T>(argsTransfomer),
                     windowsPathLimitation,
                     outputFileArgTransformer);

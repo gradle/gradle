@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
@@ -37,12 +36,14 @@ class GccPlatformToolChain implements PlatformToolChain {
     private final ToolRegistry toolRegistry;
     private final ExecActionFactory execActionFactory;
     private final boolean useCommandFile;
+    private final String outputFileSuffix;
 
-    GccPlatformToolChain(ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, boolean useCommandFile) {
+    GccPlatformToolChain(ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, String outputFileSuffix, boolean useCommandFile) {
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
         this.execActionFactory = execActionFactory;
         this.useCommandFile = useCommandFile;
+        this.outputFileSuffix = outputFileSuffix;
     }
 
     public boolean isAvailable() {
@@ -54,31 +55,31 @@ class GccPlatformToolChain implements PlatformToolChain {
 
     public Compiler<CppCompileSpec> createCppCompiler() {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
-        CppCompiler cppCompiler = new CppCompiler(commandLineTool(cppCompilerTool), commandLineToolInvocation(cppCompilerTool), useCommandFile);
-        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getOutputFileSuffix());
+        CppCompiler cppCompiler = new CppCompiler(commandLineTool(cppCompilerTool), commandLineToolInvocation(cppCompilerTool), outputFileSuffix, useCommandFile);
+        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, outputFileSuffix);
     }
 
     public Compiler<CCompileSpec> createCCompiler() {
         GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
-        CCompiler cCompiler = new CCompiler(commandLineTool(cCompilerTool), commandLineToolInvocation(cCompilerTool), useCommandFile);
-        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, getOutputFileSuffix());
+        CCompiler cCompiler = new CCompiler(commandLineTool(cCompilerTool), commandLineToolInvocation(cCompilerTool), outputFileSuffix, useCommandFile);
+        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, outputFileSuffix);
     }
 
     public Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCppCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVECPP_COMPILER);
-        ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(commandLineTool(objectiveCppCompilerTool), commandLineToolInvocation(objectiveCppCompilerTool), useCommandFile);
-        return new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, getOutputFileSuffix());
+        ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(commandLineTool(objectiveCppCompilerTool), commandLineToolInvocation(objectiveCppCompilerTool), outputFileSuffix, useCommandFile);
+        return new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, outputFileSuffix);
     }
 
     public Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVEC_COMPILER);
-        ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(commandLineTool(objectiveCCompilerTool), commandLineToolInvocation(objectiveCCompilerTool), useCommandFile);
-        return new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, getOutputFileSuffix());
+        ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(commandLineTool(objectiveCCompilerTool), commandLineToolInvocation(objectiveCCompilerTool), outputFileSuffix, useCommandFile);
+        return new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, outputFileSuffix);
     }
 
     public Compiler<AssembleSpec> createAssembler() {
         GccCommandLineToolConfigurationInternal assemblerTool = toolRegistry.getTool(ToolType.ASSEMBLER);
-        return new Assembler(commandLineTool(assemblerTool), commandLineToolInvocation(assemblerTool), getOutputFileSuffix());
+        return new Assembler(commandLineTool(assemblerTool), commandLineToolInvocation(assemblerTool), outputFileSuffix);
     }
 
     public Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
@@ -93,10 +94,6 @@ class GccPlatformToolChain implements PlatformToolChain {
     public Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
         GccCommandLineToolConfigurationInternal staticLibArchiverTool = toolRegistry.getTool(ToolType.STATIC_LIB_ARCHIVER);
         return new ArStaticLibraryArchiver(commandLineTool(staticLibArchiverTool), commandLineToolInvocation(staticLibArchiverTool));
-    }
-
-    private String getOutputFileSuffix() {
-        return OperatingSystem.current().isWindows() ? ".obj" : ".o";
     }
 
     private CommandLineTool commandLineTool(GccCommandLineToolConfigurationInternal tool) {

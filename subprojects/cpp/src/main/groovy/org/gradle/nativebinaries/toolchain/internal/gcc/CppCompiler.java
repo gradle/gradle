@@ -22,9 +22,8 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 
 public class CppCompiler extends NativeCompiler<CppCompileSpec> {
 
-    public CppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, boolean useCommandFile) {
-        super(commandLineTool, baseInvocation, new CppCompileArgsTransformer(), useCommandFile);
-
+    public CppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
+        super(commandLineTool, baseInvocation, new CppCompileArgsTransformer(), objectFileSuffix, useCommandFile);
     }
 
     private static class CppCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {
