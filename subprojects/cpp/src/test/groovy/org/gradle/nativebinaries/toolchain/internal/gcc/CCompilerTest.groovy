@@ -16,8 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc
 
-import org.gradle.internal.hash.HashUtil
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
 import org.gradle.nativebinaries.toolchain.internal.MutableCommandLineToolInvocation
@@ -32,7 +31,7 @@ class CCompilerTest extends Specification {
     def executable = new File("executable")
     def invocation = Mock(MutableCommandLineToolInvocation)
     CommandLineTool commandLineTool = Mock(CommandLineTool)
-    String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
+    String objectFileExtension = ".o";
     CCompiler compiler = new CCompiler(commandLineTool, invocation, objectFileExtension, false);
 
     def "compiles all source files in separate executions"() {
@@ -59,7 +58,7 @@ class CCompilerTest extends Specification {
         ["one.c", "two.c"].each{ sourceFileName ->
 
             TestFile sourceFile = testDir.file(sourceFileName)
-            String objectOutputPath = outputFilePathFor(objectFileDir, sourceFile)
+            File outputFile = outputFile(objectFileDir, sourceFile)
 
             1 * invocation.setArgs([
                     "-x", "c",
@@ -68,15 +67,16 @@ class CCompilerTest extends Specification {
                     "-c",
                     "-I", testDir.file("include.h").absolutePath,
                     testDir.file(sourceFileName).absolutePath,
-                    "-o", objectOutputPath])
+                    "-o", outputFile.absolutePath])
             1 * commandLineTool.execute(invocation)
         }
         0 * _
     }
 
-    String outputFilePathFor(File objectFileRoot, TestFile testFile) {
-        String relativeObjectFilePath = "${HashUtil.createCompactMD5(testFile.absolutePath)}/${testFile.name - ".c"}$objectFileExtension"
-        String outputFilePath = new File(objectFileRoot, relativeObjectFilePath).absolutePath;
-        outputFilePath
+    File outputFile(File outputRoot, TestFile inputFile) {
+        return new CompilerOutputFileNamingScheme()
+                .withOutputBaseFolder(outputRoot)
+                .withObjectFileNameSuffix(objectFileExtension)
+                .map(inputFile)
     }
 }

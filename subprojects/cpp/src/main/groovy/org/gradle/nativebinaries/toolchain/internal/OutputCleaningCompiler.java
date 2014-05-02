@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.nativebinaries.internal.ObjectFileNamingScheme;
+import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme;
 
 import java.io.File;
 
@@ -59,7 +59,7 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
     }
 
     private File getObjectFile(File objectFileRoot, File sourceFile) {
-        return new ObjectFileNamingScheme()
+        return new CompilerOutputFileNamingScheme()
                         .withObjectFileNameSuffix(outputFileSuffix)
                         .withOutputBaseFolder(objectFileRoot)
                         .map(sourceFile);

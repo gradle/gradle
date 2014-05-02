@@ -15,14 +15,13 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.*;
 
@@ -82,13 +81,16 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
         }
 
         private File getOutputFile(WindowsResourceCompileSpec spec) {
-            String outputFileName = FilenameUtils.getBaseName(inputFile.getName()) + ".res";
-            String compactMD5 = HashUtil.createCompactMD5(inputFile.getAbsolutePath());
-            File outputDirectory = new File(spec.getObjectFileDir(), compactMD5);
+
+            File outputFile = new CompilerOutputFileNamingScheme()
+                    .withObjectFileNameSuffix(".res")
+                    .withOutputBaseFolder(spec.getObjectFileDir())
+                    .map(inputFile);
+
+            File outputDirectory = outputFile.getParentFile();
             if (!outputDirectory.exists()) {
                 outputDirectory.mkdirs();
             }
-            File outputFile = new File(outputDirectory, outputFileName);
             return windowsPathLengthLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
         }
     }

@@ -21,16 +21,16 @@ import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
 
-public class ObjectFileNamingScheme {
+public class CompilerOutputFileNamingScheme {
     private String objectFileNameSuffix;
     private File outputBaseFolder;
 
-    public ObjectFileNamingScheme withOutputBaseFolder(File outputBaseFolder) {
+    public CompilerOutputFileNamingScheme withOutputBaseFolder(File outputBaseFolder) {
         this.outputBaseFolder = outputBaseFolder;
         return this;
     }
 
-    public ObjectFileNamingScheme withObjectFileNameSuffix(String suffix){
+    public CompilerOutputFileNamingScheme withObjectFileNameSuffix(String suffix){
         this.objectFileNameSuffix = suffix;
         return this;
     }

@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.FileUtils;
-import org.gradle.nativebinaries.internal.ObjectFileNamingScheme;
+import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -52,7 +52,7 @@ public class SingleSourceCompileArgTransformer<T extends NativeCompileSpec> impl
     }
 
     protected File getOutputFileDir(File sourceFile, File objectFileDir) {
-        File outputFile = new ObjectFileNamingScheme()
+        File outputFile = new CompilerOutputFileNamingScheme()
                                 .withObjectFileNameSuffix(objectFileNameSuffix)
                                 .withOutputBaseFolder(objectFileDir)
                                 .map(sourceFile);
