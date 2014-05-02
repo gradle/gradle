@@ -1,7 +1,7 @@
-#ifdef DLL_EXPORT
-#define DLL_FUNC __declspec(dllexport)
+#ifdef defined(_WIN32) && defined(DLL_EXPORT)
+#define LIB_FUNC __declspec(dllexport)
 #else
-#define DLL_FUNC
+#define LIB_FUNC
 #endif
 
-void DLL_FUNC hello();
+void LIB_FUNC hello();
