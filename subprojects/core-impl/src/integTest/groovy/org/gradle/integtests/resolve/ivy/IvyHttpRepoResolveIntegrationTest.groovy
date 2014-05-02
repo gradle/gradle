@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
-
+import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
 
@@ -22,4 +22,9 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
 
     @Rule
     final RepositoryHttpServer server = new RepositoryHttpServer(this)
+
+    @Override
+    RepositoryServer getServer() {
+        return server
+    }
 }
