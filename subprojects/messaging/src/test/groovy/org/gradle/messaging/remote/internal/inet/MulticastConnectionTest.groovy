@@ -36,7 +36,7 @@ class MulticastConnectionTest extends ConcurrentSpec {
             try {
                 socket1.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
             } catch (SocketException e) {
-                // Ignore
+                e.printStackTrace()
             }
         }
         def socket2 = new MulticastSocket(address.getPort());
@@ -44,7 +44,7 @@ class MulticastConnectionTest extends ConcurrentSpec {
             try {
                 socket2.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
             } catch (SocketException e) {
-                // Ignore
+                e.printStackTrace()
             }
         }
 
