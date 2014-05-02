@@ -225,9 +225,22 @@ can be declared:
 			}
 		}
 
-<!--
-### Example new and noteworthy
--->
+### New 'ivy' layout support for Ivy repositories
+
+When defining an 'ivy' repository, you can provide a named layout to describe how artifacts are organised within that repository.
+
+In addition to the 'gradle' (default) and 'maven' layouts, you can now specify the 'ivy' layout which tells Gradle that your repository
+is configured with the default ivy artifact and metadata patterns.
+
+    repositories {
+        ivy {
+            url 'http://my.server/repo'
+            layout 'ivy'
+        }
+    }
+
+See the [User Guide](userguide/dependency_management.html#N150B8) and the <a href="dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout(java.lang.String, groovy.lang.Closure)">DSL Reference</a>
+for more detail on how to use named layouts.
 
 ## Promoted features
 
