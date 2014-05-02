@@ -7,7 +7,7 @@ project(":lib") {
     // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
     binaries.withType(SharedLibraryBinary) {
         if (toolChain in VisualCpp) {
-            cCompiler.define "DLL_EXPORT"
+            cppCompiler.define "DLL_EXPORT"
         }
     }
 }
