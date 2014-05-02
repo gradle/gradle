@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
@@ -23,6 +24,8 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
@@ -47,12 +50,19 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         if (useCommandFile) {
             invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
         }
+
+        Transformer<List<String>, File> outputFileArgTransformer = new Transformer<List<String>, File>() {
+            public List<String> transform(File outputFile) {
+                return Arrays.asList("-o", outputFile.getAbsolutePath());
+            }
+        };
+
         for (File sourceFile : spec.getSourceFiles()) {
             SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
                     objectFileExtension,
                     new ShortCircuitArgsTransformer<T>(argsTransfomer),
                     windowsPathLimitation,
-                    false);
+                    outputFileArgTransformer);
             invocation.setArgs(argTransformer.transform(spec));
             commandLineTool.execute(invocation);
         }

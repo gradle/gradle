@@ -24,6 +24,8 @@ import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.nativebinaries.toolchain.internal.gcc.ShortCircuitArgsTransformer;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
@@ -43,13 +45,18 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
 
+        Transformer<List<String>, File> outputFileArgTransformer = new Transformer<List<String>, File>(){
+            public List<String> transform(File outputFile) {
+                return Arrays.asList("-o", outputFile.getAbsolutePath());
+            }
+        };
         for (File sourceFile : spec.getSourceFiles()) {
             String objectFileNameSuffix = ".obj";
             SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
                     objectFileNameSuffix,
                     new ShortCircuitArgsTransformer<T>(argsTransFormer),
                     true,
-                    true);
+                    outputFileArgTransformer);
             invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
             invocation.setWorkDirectory(spec.getObjectFileDir());
             commandLineTool.execute(invocation);
