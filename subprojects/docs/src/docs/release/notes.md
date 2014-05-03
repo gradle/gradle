@@ -239,8 +239,9 @@ is configured with the default ivy artifact and metadata patterns.
         }
     }
 
-See the [User Guide](userguide/dependency_management.html#N150B8) and the <a href="dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout(java.lang.String, groovy.lang.Closure)">DSL Reference</a>
-for more detail on how to use named layouts.
+See the [User Guide](userguide/dependency_management.html#N150B8) and the
+<a href="dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout(java.lang.String, groovy.lang.Closure)">
+DSL Reference</a> for more detail on how to use named layouts.
 
 ## Promoted features
 
