@@ -69,6 +69,8 @@ approximately 2 years old as of the Gradle 2.0 release.
 ## All Gradle scripts use UTF-8 encoding
 
 * Change Gradle script parsing to assume UTF-8 encoding.
+* Prefer character encoding specified by the server, if any.
+* Update user guide to mention this.
 
 ## Upgrade to most recent Groovy 2.x
 
