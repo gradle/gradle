@@ -38,6 +38,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
+// TODO:DAZ Replace with JvmComponentPlugin, or make this extend JvmComponentPlugin
 /**
  * Base plugin for JVM language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
  * Registers the {@link org.gradle.language.jvm.ClassDirectoryBinary} element type for the {@link org.gradle.language.base.BinaryContainer}.

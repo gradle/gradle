@@ -30,12 +30,14 @@ import javax.inject.Inject;
 /**
  * Base plugin for language support.
  *
+ * Adds a {@link org.gradle.language.base.LibraryContainer} named {@code libraries} to the project.
  * Adds a {@link org.gradle.language.base.BinaryContainer} named {@code binaries} to the project.
  * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
+ *
+ * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
-    public static final String BUILD_GROUP = "build";
 
     private final Instantiator instantiator;
     private final ModelRules modelRules;
@@ -60,7 +62,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         binaries.withType(BinaryInternal.class).all(new Action<BinaryInternal>() {
             public void execute(BinaryInternal binary) {
                 Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
-                binaryLifecycleTask.setGroup(BUILD_GROUP);
+                binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                 binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
                 binary.setLifecycleTask(binaryLifecycleTask);
             }
