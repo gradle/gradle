@@ -157,6 +157,56 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 - The legacy application plugin should also declare a jvm application.
 
+## Feature: Custom plugin defines a custom library type
+
+### Story: plugin declares its own library type
+
+Add a sample plugin that declares a custom library type:
+
+    apply plugin: 'my-sample'
+
+    mySample {
+        // can use its own DSL
+        ...
+    }
+
+    // Library is also visible in libraries container
+    assert libraries.withType(SampleLibrary).size() == 1
+
+A custom library type:
+- Extends or implements some public base `Library` type.
+- Has no dependencies.
+- Produces no artifacts.
+
+### Story: Custom library produces custom binaries
+
+Change the sample plugin so that it declares its own binary type for the libraries it defines:
+
+    apply plugin: 'my-sample'
+
+    mySample {
+        // can use its own DSL
+        ...
+    }
+
+    // Binaries are also visible in the binaries container
+    assert binaries.withType(SampleBinary).size() == 2
+
+Allow a plugin to declare the binaries for a custom library.
+
+A custom binary:
+- Extends or implements some public base `LibraryBinary` type.
+- Has some lifecycle task to build its outputs.
+
+Running `gradle assemble` will build each library binary.
+
+### Story: Custom binary is build from Java sources
+
+Change the sample plugin so that it compiles Java source to produce its binaries
+
+- Uses same conventions as a Java library.
+- No dependencies.
+
 ## Feature: Build author declares that a Java library depends on a Java library produced by another project
 
 For example:
@@ -409,47 +459,6 @@ Will have to move source sets live with the library domain object.
 ### Open issues
 
 - Fail or skip if target platform is not applicable for the the component's platform?
-
-## Feature: Custom plugin defines a custom library type
-
-Add a sample plugin that declares its own library type:
-
-    apply plugin: 'my-sample'
-
-    libraries {
-        myCustomLib {
-            someProperty 17
-        }
-    }
-
-A custom library type:
-- Extends or implements some public base `Library` type.
-- Has no dependencies.
-- Produces no artifacts.
-
-## Feature: Custom library produces binaries
-
-Change the sample plugin so that it declares its own binary type for the libraries it defines:
-
-    apply plugin: 'my-sample'
-
-    libraries {
-        myCustomLib {
-            binaries {
-                // Custom binaries are visible here, however it is that the plugin decides which binaries are available
-            }
-        }
-    }
-
-    binaries {
-        // Custom binaries are visible here
-    }
-
-Allow a plugin to declare the binaries for a custom library.
-
-A custom binary:
-- Extends or implements some public base `LibraryBinary` type.
-- Has some lifecycle task to build its outputs.
 
 ## Feature: Build author declares dependencies for custom library
 
