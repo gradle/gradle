@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests
+package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
