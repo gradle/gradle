@@ -55,7 +55,7 @@ class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolCh
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    @RequiresInstalledToolChain(ToolChainRequirement.Gcc)
+    @RequiresInstalledToolChain(ToolChainRequirement.GccCompatible)
     def "reasonable error message when attempting to compile resource files with unsupported tool chain"() {
         given:
         buildFile << """
