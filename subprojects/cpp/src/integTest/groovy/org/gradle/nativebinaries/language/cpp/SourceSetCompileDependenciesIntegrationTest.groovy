@@ -33,25 +33,25 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
                 return 0;
             }
 """
-        file("src/main/cpp1/func1.cpp") << """
-            #include "one.h"
+        file("src/main/cpp/func1.cpp") << """
+            #include "lib.h"
 
             int func1() {
-                return ONE;
+                return LIB_ID;
             }
 """
         file("src/other/cpp/func2.cpp") << """
-            #include "two.h"
+            #include "lib.h"
 
             int func2() {
-                return TWO;
+                return LIB_ID;
             }
 """
-        file("src/lib1/headers/one.h") << """
-            #define ONE 1
+        file("src/lib1/headers/lib.h") << """
+            #define LIB_ID 1
 """
-        file("src/lib1/headers/two.h") << """
-            #define TWO 2
+        file("src/lib2/headers/lib.h") << """
+            #define LIB_ID 2
 """
 
         and:
@@ -59,11 +59,11 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
             apply plugin: "cpp"
             libraries {
                 lib1
+                lib2
             }
             sources {
                 main {
                     cpp(CppSourceSet)
-                    cpp1(CppSourceSet)
                 }
                 other {
                     cpp(CppSourceSet)
@@ -85,22 +85,15 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
                     source sources.other
                 }
             }
-            sources.other.cpp.lib library: 'lib1', linkage: 'api'
+            sources.main.cpp.lib library: 'lib1', linkage: 'api'
+            sources.other.cpp.lib library: 'lib2', linkage: 'api'
 """
 
         when:
-        fails "mainExecutable"
-
-        then:
-        failure.assertHasCause "C++ compiler failed"
-
-        when:
-        // Supply the library directly to the cpp1 source set
-        buildFile << """
-            sources.main.cpp1.lib library: 'lib1', linkage: 'api'
-"""
-        then:
         succeeds "mainExecutable"
+
+        then:
+        executable("build/binaries/mainExecutable/main").exec().out == "12\n"
     }
 
     def "dependencies of language source set added to binary are not shared when compiling"() {
@@ -113,22 +106,15 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
                     }
                 }
             }
-            sources.other.cpp.lib library: 'lib1', linkage: 'api'
+            sources.main.cpp.lib library: 'lib1', linkage: 'api'
+            sources.other.cpp.lib library: 'lib2', linkage: 'api'
 """
 
         when:
-        fails "mainExecutable"
-
-        then:
-        failure.assertHasCause "C++ compiler failed"
-
-        when:
-        // Supply the library directly to the cpp1 source set
-        buildFile << """
-            sources.main.cpp1.lib library: 'lib1', linkage: 'api'
-"""
-        then:
         succeeds "mainExecutable"
+
+        then:
+        executable("build/binaries/mainExecutable/main").exec().out == "12\n"
     }
 
     def "dependencies of binary are shared with all source sets when compiling"() {
@@ -144,7 +130,10 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
             }
 """
 
-        expect:
+        when:
         succeeds "mainExecutable"
+
+        then:
+        executable("build/binaries/mainExecutable/main").exec().out == "11\n"
     }
 }
