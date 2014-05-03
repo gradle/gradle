@@ -19,11 +19,20 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.LibraryContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmLibrary;
+import org.gradle.language.jvm.JvmLibraryBinary;
 import org.gradle.language.jvm.internal.DefaultJvmLibrary;
+import org.gradle.language.jvm.internal.DefaultJvmLibraryBinary;
+import org.gradle.language.jvm.internal.plugins.CreateJvmBinaries;
+import org.gradle.model.ModelRule;
+import org.gradle.model.ModelRules;
+
+import javax.inject.Inject;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
@@ -31,6 +40,12 @@ import org.gradle.language.jvm.internal.DefaultJvmLibrary;
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
+    private final ModelRules modelRules;
+
+    @Inject
+    public JvmComponentPlugin(ModelRules modelRules) {
+        this.modelRules = modelRules;
+    }
 
     public void apply(final Project project) {
         project.getPlugins().apply(LifecycleBasePlugin.class);
@@ -43,5 +58,18 @@ public class JvmComponentPlugin implements Plugin<Project> {
             }
         });
 
+        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
+        binaries.registerBinding(JvmLibraryBinary.class, DefaultJvmLibraryBinary.class);
+
+        modelRules.register("libraries", libraries);
+        modelRules.rule(new CreateJvmBinaries());
+        modelRules.rule(new CloseBinariesForTasks());
     }
+
+    private static class CloseBinariesForTasks extends ModelRule {
+        void closeBinariesForTasks(TaskContainer tasks, BinaryContainer binaries) {
+            // nothing needed here
+        }
+    }
+
 }
