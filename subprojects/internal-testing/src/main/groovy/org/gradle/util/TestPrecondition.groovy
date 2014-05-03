@@ -102,7 +102,7 @@ enum TestPrecondition {
     }),
     ONLINE({
         try {
-            new URL("http://google.com").openConnection().openStream()
+            new URL("http://google.com").openConnection().getInputStream().close()
             true
         } catch (IOException) {
             false
