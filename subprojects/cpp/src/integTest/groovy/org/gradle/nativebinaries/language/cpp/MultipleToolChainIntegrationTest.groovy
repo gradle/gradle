@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
@@ -23,7 +24,6 @@ import org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
 
 @RequiresInstalledToolChain
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
@@ -79,29 +79,6 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
         assert i386Exe.exec().out == helloWorld.expectedOutput(x86ToolChain)
         def sparcExe = sparcToolChain.executable(file("build/binaries/mainExecutable/sparc/main"))
         assert sparcExe.exec().out == helloWorld.expectedOutput(sparcToolChain)
-    }
-
-    def "exception when building with unavailable tool chain"() {
-        when:
-
-        buildFile << """
-            model {
-                toolChains {
-                    bad(Gcc) {
-                        cCompiler.executable = "does_not_exist"
-                        cppCompiler.executable = "does_not_exist"
-                    }
-                }
-            }
-"""
-
-        then:
-        fails "mainExecutable"
-
-        and:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause(TextUtil.toPlatformLineSeparators("""No tool chain is available to build for platform 'current':
-  - Tool chain 'bad' (GNU GCC): """))
     }
 
     def checkInstall(String path, AvailableToolChains.InstalledToolChain toolChain) {
