@@ -18,20 +18,20 @@ package org.gradle.api.internal.artifacts.result.jvm;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.Component;
 import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.JvmLibrary;
+import org.gradle.api.artifacts.result.jvm.JvmLibraryComponent;
 import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultJvmLibrary implements JvmLibrary, Component {
+public class DefaultJvmLibraryComponent implements JvmLibraryComponent, Component {
     private final ComponentIdentifier componentId;
     private final Set<SourcesArtifact> sourceArtifacts;
     private final Set<JavadocArtifact> javadocArtifacts;
 
-    public DefaultJvmLibrary(ComponentIdentifier componentId,
-                             Set<? extends SourcesArtifact> sourceArtifacts,
-                             Set<? extends JavadocArtifact> javadocArtifacts) {
+    public DefaultJvmLibraryComponent(ComponentIdentifier componentId,
+                                      Set<? extends SourcesArtifact> sourceArtifacts,
+                                      Set<? extends JavadocArtifact> javadocArtifacts) {
         this.componentId = componentId;
         this.sourceArtifacts = new LinkedHashSet<SourcesArtifact>(sourceArtifacts);
         this.javadocArtifacts = new LinkedHashSet<JavadocArtifact>(javadocArtifacts);

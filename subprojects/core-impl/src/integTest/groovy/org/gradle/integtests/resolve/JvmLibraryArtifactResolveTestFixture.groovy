@@ -133,7 +133,7 @@ task $taskName << {
 
     def result = dependencies.createArtifactResolutionQuery()
         .forComponents(deps[0].selected.id)
-        .withArtifacts(JvmLibrary, $artifactTypesString)
+        .withArtifacts(JvmLibraryComponent, $artifactTypesString)
         .execute()
 
     assert result.components.size() == 1
@@ -146,8 +146,8 @@ task $taskName << {
     ${checkComponentResultArtifacts("componentResult", "sources", expectedSources, expectedSourceFailure)}
     ${checkComponentResultArtifacts("componentResult", "javadoc", expectedJavadoc, expectedJavadocFailure)}
 
-    // Check JvmLibrary component type
-    def jvmLibraries = result.getResolvedComponents(JvmLibrary)
+    // Check JvmLibraryComponent component type
+    def jvmLibraries = result.getResolvedComponents(JvmLibraryComponent)
     assert jvmLibraries.size() == 1
     def jvmLibrary = jvmLibraries.iterator().next()
     assert componentResult.id == jvmLibrary.id
@@ -217,7 +217,7 @@ task verify << {
     def unknownComponentId = [getGroup: {'${id.group}'}, getModule: {'${id.module}'}, getVersion: {'${id.version}'}, getDisplayName: {'unknown'}] as ModuleComponentIdentifier
     def result = dependencies.createArtifactResolutionQuery()
         .forComponents(unknownComponentId)
-        .withArtifacts(JvmLibrary, $artifactTypesString)
+        .withArtifacts(JvmLibraryComponent, $artifactTypesString)
         .execute()
 
     assert result.components.size() == 1

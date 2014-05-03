@@ -19,10 +19,10 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.result.*;
 import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.JvmLibrary;
+import org.gradle.api.artifacts.result.jvm.JvmLibraryComponent;
 import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
 import org.gradle.api.internal.artifacts.result.jvm.DefaultJavadocArtifact;
-import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibrary;
+import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibraryComponent;
 import org.gradle.api.internal.artifacts.result.jvm.DefaultSourcesArtifact;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
@@ -43,20 +43,20 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
     }
 
     public <T extends Component> Set<T> getResolvedComponents(Class<T> type) {
-        if (type.isAssignableFrom(JvmLibrary.class)) {
+        if (type.isAssignableFrom(JvmLibraryComponent.class)) {
             return (Set<T>) getJvmLibraries();
         }
         throw new IllegalArgumentException("Not a known component type: " + type);
     }
 
     // TODO:DAZ This should live with the JVM model classes
-    private Set<JvmLibrary> getJvmLibraries() {
-        Set<JvmLibrary> libraries = Sets.newLinkedHashSet();
+    private Set<JvmLibraryComponent> getJvmLibraries() {
+        Set<JvmLibraryComponent> libraries = Sets.newLinkedHashSet();
         for (ComponentResult componentResult : componentResults) {
             if (componentResult instanceof ResolvedComponentArtifactsResult) {
                 Set<SourcesArtifact> sourcesArtifacts = transform((ResolvedComponentArtifactsResult) componentResult, SourcesArtifact.class, DefaultSourcesArtifact.class);
                 Set<JavadocArtifact> javadocArtifacts = transform((ResolvedComponentArtifactsResult) componentResult, JavadocArtifact.class, DefaultJavadocArtifact.class);
-                libraries.add(new DefaultJvmLibrary(componentResult.getId(), sourcesArtifacts, javadocArtifacts));
+                libraries.add(new DefaultJvmLibraryComponent(componentResult.getId(), sourcesArtifacts, javadocArtifacts));
             }
         }
         return libraries;
