@@ -40,23 +40,6 @@ allows us to implement new features and remove some internal complexity.
 * Remove Ivy version from the output of `gradle -v`.
 * Remove loopback resolver, ModuleVersionRepository -> Ivy adapter.
 
-## Remove support for the Gradle Open API implementation (DONE)
-
-Now that we have reasonable tooling support via the tooling API, remove the Open API.
-
-* Implement a stub to fail with a reasonable error message when attempting to use Gradle from the Open API.
-* Add integration test coverage that using the Open API fails with a reasonable error message.
-
-Note that the `openAPI` project must still remain, so that the stubs fail in the appropriate way when used by Open API clients.
-This will be removed in Gradle 3.0.
-
-## Remove the `GradleLauncher` API (DONE)
-
-The public API for launching Gradle is now the tooling API. The `GradleBuild` task can also be used.
-
-* Replace internal usages of the static `GradleLauncher` methods.
-* Move the `GradleLauncher` type from the public API to an internal package.
-
 ## Remove tooling API support for Gradle 1.1 clients and earlier
 
 Gradle 1.2 was released on 12th sept 2012. This change means that tooling more than roughly 18 months old as of the Gradle 2.0 release
@@ -78,11 +61,6 @@ approximately 2 years old as of the Gradle 2.0 release.
 * Change the test suite to default to target Gradle version >= 1.0-milestone-8
 * Add integration test coverage that running build with Gradle version < 1.0-milestone-8 fails with a reasonable error message, when running build or fetching model.
 * Add integration test coverage that can fetch a partial `BuildEnvironment` model for Gradle version < 1.0-milestone-8.
-
-## Misc API tidy-ups
-
-* Remove unused `IllegalOperationAtExecutionTimeException`.
-* Remove unused `AntJavadoc`.
 
 ## Reset deprecation warnings
 
@@ -108,14 +86,6 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 * Change the default result and report directory for the `Test` type to include the task's name, so that the default
   does not conflict with the default for any other `Test` task.
 * Change the default TestNG output directory.
-
-## Remove usages of JNA and JNA-Posix (DONE)
-
-Replace all usages of JNA and JNA-Posix with native-platform. Currently, this means that console support and
-UNIX file permissions with JVMs earlier than Java 7 will not be supported on the following platforms:
-
-* Linux-ia64
-* Solaris-x86, -amd64, -sparc, -sparcv9
 
 ## Rename this spec
 
