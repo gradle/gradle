@@ -29,6 +29,9 @@ import java.net.URLConnection;
 
 import static org.gradle.util.GFileUtils.canonicalise;
 
+/**
+ * A {@link Resource} implementation backed by a URI. Assumes content is encoded using UTF-8.
+ */
 public class UriResource implements Resource {
     private final File sourceFile;
     private final URI sourceUri;
@@ -57,7 +60,7 @@ public class UriResource implements Resource {
         try {
             InputStream inputStream = getInputStream(sourceUri);
             try {
-                return IOUtils.toString(inputStream);
+                return IOUtils.toString(inputStream, "UTF-8");
             } finally {
                 inputStream.close();
             }

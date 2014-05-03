@@ -82,6 +82,15 @@ class UriResourceTest {
     }
 
     @Test
+    public void assumesFileIsEncodedUsingUtf8() throws IOException {
+        file.setText('\u03b1', 'utf-8')
+
+        UriResource resource = new UriResource('<display-name>', file);
+        assertTrue(resource.exists)
+        assertThat(resource.text, equalTo('\u03b1'));
+    }
+
+    @Test
     public void hasNoContentWhenFileDoesNotExist() {
         UriResource resource = new UriResource('<display-name>', file);
         assertFalse(resource.exists)

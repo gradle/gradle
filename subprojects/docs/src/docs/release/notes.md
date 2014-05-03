@@ -293,6 +293,11 @@ Note that terminal integration is supported on Linux, OS X, Windows and FreeBSD 
 If you wish to have terminal integration on other platforms and architectures, please help us out with porting our
 native integration to these platforms.
 
+### Build scripts must be encoded using UTF-8
+
+Gradle now assumes that all Gradle scripts are encoded using UTF-8. Previously, Gradle assumes the system encoding. This change
+affects all build scripts, settings scripts and init scripts.
+
 ### Support for the Gradle Open API removed
 
 - `GradleRunnerFactory` removed.
@@ -310,6 +315,8 @@ native integration to these platforms.
 - `CodeQualityPlugin` replaced by the `checkstyle` and `codenarc` plugins.
 - `GroovyCodeQualityPluginConvention` with no replacement.
 - `JavaCodeQualityPluginConvention` with no replacement.
+- `IllegalOperationAtExecutionTimeException` with no replacement.
+- `AntJavadoc` with no replacement.
 
 ### Removed Deprecated Methods
 
