@@ -16,15 +16,22 @@
 
 package org.gradle.language.jvm.internal
 
+import org.gradle.language.base.internal.BinaryNamingScheme
 import spock.lang.Specification
 
 class DefaultJvmLibraryBinaryTest extends Specification {
-    def "binary has name"() {
+    def namingScheme = Mock(BinaryNamingScheme)
+
+    def "binary takes name and displayName from naming scheme"() {
         when:
-        def binary = new DefaultJvmLibraryBinary("jvm-lib-jar")
+        def binary = new DefaultJvmLibraryBinary(namingScheme)
+
+        and:
+        namingScheme.lifecycleTaskName >> "jvm-lib-jar"
+        namingScheme.description >> "the jar"
 
         then:
         binary.name == "jvm-lib-jar"
-        binary.displayName == binary.name
+        binary.displayName == "the jar"
     }
 }

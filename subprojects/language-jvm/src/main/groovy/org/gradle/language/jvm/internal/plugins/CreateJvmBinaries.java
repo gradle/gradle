@@ -18,16 +18,26 @@ package org.gradle.language.jvm.internal.plugins;
 
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.LibraryContainer;
+import org.gradle.language.base.internal.BinaryNamingScheme;
+import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.language.jvm.JvmLibrary;
-import org.gradle.language.jvm.JvmLibraryBinary;
+import org.gradle.language.jvm.internal.DefaultJvmLibraryBinary;
 import org.gradle.model.ModelRule;
 
 public class CreateJvmBinaries extends ModelRule {
+    private final BinaryNamingSchemeBuilder namingSchemeBuilder;
+
+    public CreateJvmBinaries(BinaryNamingSchemeBuilder namingSchemeBuilder) {
+        this.namingSchemeBuilder = namingSchemeBuilder;
+    }
+
     void createBinaries(BinaryContainer binaries, LibraryContainer libraries) {
         for (JvmLibrary jvmLibrary : libraries.withType(JvmLibrary.class)) {
-            // TODO:DAZ Better name
-            String binaryName = jvmLibrary.getName() + "Binary";
-            binaries.create(binaryName, JvmLibraryBinary.class);
+            BinaryNamingScheme namingScheme = namingSchemeBuilder
+                    .withComponentName(jvmLibrary.getName())
+                    .withTypeString("jar")
+                    .build();
+            binaries.add(new DefaultJvmLibraryBinary(namingScheme));
         }
     }
 }

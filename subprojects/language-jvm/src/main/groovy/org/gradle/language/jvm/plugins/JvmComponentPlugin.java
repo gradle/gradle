@@ -22,12 +22,11 @@ import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.LibraryContainer;
+import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmLibrary;
-import org.gradle.language.jvm.JvmLibraryBinary;
 import org.gradle.language.jvm.internal.DefaultJvmLibrary;
-import org.gradle.language.jvm.internal.DefaultJvmLibraryBinary;
 import org.gradle.language.jvm.internal.plugins.CreateJvmBinaries;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
@@ -58,11 +57,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
             }
         });
 
-        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
-        binaries.registerBinding(JvmLibraryBinary.class, DefaultJvmLibraryBinary.class);
-
         modelRules.register("libraries", libraries);
-        modelRules.rule(new CreateJvmBinaries());
+        modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder()));
         modelRules.rule(new CloseBinariesForTasks());
     }
 

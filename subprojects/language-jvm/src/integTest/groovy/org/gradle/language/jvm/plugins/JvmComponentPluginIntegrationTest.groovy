@@ -34,7 +34,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         !file("build").exists()
     }
 
-    def "creates jvm library and binary model objects for defined library"() {
+    def "creates jvm library and binary model objects and lifecycle task"() {
         when:
         buildFile << """
     apply plugin: 'jvm-component'
@@ -53,7 +53,13 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert binaries.size() == 1
         def myLibJar = (binaries as List)[0]
         assert myLibJar instanceof JvmLibraryBinary
-        assert myLibJar.name == 'myLibBinary'
+        assert myLibJar.name == 'myLibJar'
+        assert myLibJar.displayName == "jar 'myLib:jar'"
+
+        def binaryTask = tasks['myLibJar']
+        assert binaryTask.group == 'build'
+        assert binaryTask.description == "Assembles jar 'myLib:jar'."
+        assert myLibJar.lifecycleTask == binaryTask
     }
 """
         then:
