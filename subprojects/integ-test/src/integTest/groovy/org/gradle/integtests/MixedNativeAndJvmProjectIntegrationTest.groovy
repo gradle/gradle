@@ -38,4 +38,29 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         expect:
         succeeds "checkBinaries"
     }
+
+    def "can combine JvmLibrary and NativeLibrary components in the same project"() {
+        buildFile << """
+    apply plugin: 'native-component'
+    apply plugin: 'jvm-component'
+
+    libraries {
+        nativeLib(NativeLibrary)
+        jvmLib(JvmLibrary)
+    }
+
+    task check << {
+        assert libraries.size() == 2
+        assert libraries.nativeLib instanceof NativeLibrary
+        assert libraries.jvmLib instanceof JvmLibrary
+
+        assert binaries.size() == 3
+        binaries.jvmLibJar instanceof JvmLibraryBinary
+        binaries.nativeLibStaticLibrary instanceof StaticLibraryBinary
+        binaries.nativeLibSharedLibrary instanceof SharedLibraryBinary
+    }
+"""
+        expect:
+        succeeds "check"
+    }
 }

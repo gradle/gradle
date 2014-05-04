@@ -80,7 +80,7 @@ Combining native and jvm libraries in single project
   - Build library jars individually using binary lifecycle task
   - `gradle assemble` builds single jar for each library
 - Can combine native and JVM libraries in the same project
-  - `gradle assemble` builds each native library and each jvm library
+  - `gradle assemble` executes lifecycle tasks for each native library and each jvm library
 
 #### Open issues
 
@@ -132,6 +132,8 @@ Combining jvm-java and native (multi-lang) libraries in single project
 - Reports failure to compile source
 - Compiled sources and resources are available in a common directory
 - All generated resources are removed when all resources source files are removed.
+- Can build native and JVM libraries in the same project
+  - `gradle assemble` builds each native library and each jvm library
 
 #### Open issues
 

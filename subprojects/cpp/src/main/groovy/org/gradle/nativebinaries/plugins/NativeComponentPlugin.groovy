@@ -45,7 +45,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().getByType(ExecutableContainer).all { NativeExecutable exe ->
             exe.source projectSourceSet.maybeCreate(exe.name)
         }
-        project.getExtensions().getByType(LibraryContainer).all { NativeLibrary lib ->
+        project.getExtensions().getByType(LibraryContainer).withType(NativeLibrary).all { NativeLibrary lib ->
             lib.source projectSourceSet.maybeCreate(lib.name)
         }
 
