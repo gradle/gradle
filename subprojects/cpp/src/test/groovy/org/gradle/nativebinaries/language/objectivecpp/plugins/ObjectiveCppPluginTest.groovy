@@ -20,10 +20,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Task
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet
-import org.gradle.nativebinaries.language.AbstractNativeBinariesPluginTest
+import org.gradle.nativebinaries.language.AbstractNativeComponentPluginTest
 import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile
 
-class ObjectiveCppPluginTest extends AbstractNativeBinariesPluginTest {
+class ObjectiveCppPluginTest extends AbstractNativeComponentPluginTest {
     @Override
     Class<? extends Plugin> getPluginClass() {
         return ObjectiveCppPlugin

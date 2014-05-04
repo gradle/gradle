@@ -25,11 +25,11 @@ import org.gradle.nativebinaries.tasks.LinkSharedLibrary
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class NativeBinariesPluginTest extends Specification {
+class NativeComponentPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(NativeBinariesPlugin)
+        project.plugins.apply(NativeComponentPlugin)
     }
 
     def "creates link and install task for executable"() {

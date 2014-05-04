@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.language.cpp
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorldApp
 
-class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
 
     def "setup"() {

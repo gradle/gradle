@@ -28,7 +28,7 @@ import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-abstract class AbstractNativeBinariesPluginTest extends Specification {
+abstract class AbstractNativeComponentPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
     abstract Class<? extends Plugin> getPluginClass();

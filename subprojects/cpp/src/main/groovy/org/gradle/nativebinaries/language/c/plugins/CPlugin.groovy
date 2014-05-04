@@ -23,18 +23,19 @@ import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentPlugin
+
 /**
  * A plugin for projects wishing to build native binary components from C sources.
  *
- * <p>Automatically includes the {@link CLangPlugin} for core C++ support and the {@link NativeBinariesPlugin} for native binary support.</p>
+ * <p>Automatically includes the {@link CLangPlugin} for core C++ support and the {@link org.gradle.nativebinaries.plugins.NativeComponentPlugin} for native component support.</p>
  *
  * <li>Creates a {@link CCompile} task for each {@link CSourceSet} to compile the C sources.</li>
  */
 @Incubating
 class CPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
-        project.plugins.apply(NativeBinariesPlugin)
+        project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(CLangPlugin)
 
         project.executables.all { NativeExecutable executable ->

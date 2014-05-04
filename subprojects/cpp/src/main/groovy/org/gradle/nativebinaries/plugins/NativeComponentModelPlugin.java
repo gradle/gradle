@@ -53,7 +53,7 @@ import java.util.Arrays;
  * A plugin that sets up the infrastructure for defining native binaries.
  */
 @Incubating
-public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
+public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
     private final ProjectConfigurationActionContainer configurationActions;
@@ -62,8 +62,8 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
     private final FileResolver fileResolver;
 
     @Inject
-    public NativeBinariesModelPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, ModelRules modelRules,
-                                     NativeDependencyResolver resolver, FileResolver fileResolver) {
+    public NativeComponentModelPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, ModelRules modelRules,
+                                      NativeDependencyResolver resolver, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.configurationActions = configurationActions;
         this.modelRules = modelRules;

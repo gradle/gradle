@@ -30,7 +30,7 @@ import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
@@ -42,7 +42,7 @@ import javax.inject.Inject
 /**
  * A plugin for projects wishing to build native binary components from Objective-C++ sources.
  *
- * <p>Automatically includes the {@link ObjectiveCppLangPlugin} for core Objective-C++ support and the {@link NativeBinariesPlugin} for native binary support.</p>
+ * <p>Automatically includes the {@link ObjectiveCppLangPlugin} for core Objective-C++ support and the {@link NativeComponentPlugin} for native component support.</p>
  *
  * <li>Creates a {@link ObjectiveCppCompile} task for each {@link ObjectiveCppSourceSet} to compile the Objective-C++ sources.</li>
  */
@@ -57,7 +57,7 @@ class ObjectiveCppPlugin implements Plugin<ProjectInternal> {
     }
 
     void apply(ProjectInternal project) {
-        project.plugins.apply(NativeBinariesPlugin)
+        project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(ObjectiveCppLangPlugin)
 
         modelRules.rule(new ModelRule() {

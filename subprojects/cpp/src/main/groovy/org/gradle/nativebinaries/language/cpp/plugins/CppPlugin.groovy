@@ -26,18 +26,18 @@ import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 /**
  * A plugin for projects wishing to build native binary components from C++ sources.
  *
- * <p>Automatically includes the {@link CppLangPlugin} for core C++ support and the {@link NativeBinariesPlugin} for native binary support.</p>
+ * <p>Automatically includes the {@link CppLangPlugin} for core C++ support and the {@link NativeComponentPlugin} for native component support.</p>
  *
  * <li>Creates a {@link CppCompile} task for each {@link CppSourceSet} to compile the C++ sources.</li>
  */
 @Incubating
 class CppPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
-        project.plugins.apply(NativeBinariesPlugin)
+        project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(CppLangPlugin)
 
         // TODO:DAZ It's ugly that we can't do this as project.binaries.all, but this is the way I could

@@ -32,7 +32,7 @@ import org.gradle.ide.cdt.tasks.GenerateMetadataFileTask
 class CdtIdePlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply(plugin: "native-binaries")
+        project.apply(plugin: "native-component")
         def metadataFileTasks = [addCreateProjectDescriptor(project), addCreateCprojectDescriptor(project)]
 
         project.task("cleanCdt", type: Delete) {

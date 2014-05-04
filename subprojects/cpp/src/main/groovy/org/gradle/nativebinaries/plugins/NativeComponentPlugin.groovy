@@ -34,10 +34,10 @@ import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPl
  * A plugin that creates tasks used for constructing native binaries.
  */
 @Incubating
-public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
+public class NativeComponentPlugin implements Plugin<ProjectInternal> {
 
     public void apply(final ProjectInternal project) {
-        project.plugins.apply(NativeBinariesModelPlugin.class);
+        project.plugins.apply(NativeComponentModelPlugin.class);
         project.plugins.apply(StandardToolChainsPlugin)
 
         // Create a functionalSourceSet for each native component, with the same name

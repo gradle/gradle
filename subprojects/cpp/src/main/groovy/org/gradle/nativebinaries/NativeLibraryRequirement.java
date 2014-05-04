@@ -18,7 +18,7 @@ package org.gradle.nativebinaries;
 import org.gradle.api.Incubating;
 
 /**
- * A dependency on a native-binaries library within the build.
+ * A dependency on a native library within the build.
  */
 @Incubating
 public interface NativeLibraryRequirement {

@@ -28,7 +28,7 @@ import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.VisualCpp
@@ -42,7 +42,7 @@ import javax.inject.Inject
 /**
  * A plugin for projects wishing to build native binary components from Assembly language sources.
  *
- * <p>Automatically includes the {@link AssemblerLangPlugin} for core Assembler support and the {@link NativeBinariesPlugin} for native binary support.</p>
+ * <p>Automatically includes the {@link AssemblerLangPlugin} for core Assembler support and the {@link NativeComponentPlugin} for native component support.</p>
  *
  * <li>Creates a {@link Assemble} task for each {@link AssemblerSourceSet} to assemble the sources.</li>
  */
@@ -57,7 +57,7 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
     }
 
     void apply(ProjectInternal project) {
-        project.plugins.apply(NativeBinariesPlugin)
+        project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(AssemblerLangPlugin)
 
         modelRules.rule(new ModelRule() {

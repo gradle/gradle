@@ -25,7 +25,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
-import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
@@ -60,7 +60,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
     }
 
     void apply(Project project) {
-        project.plugins.apply(NativeBinariesModelPlugin);
+        project.plugins.apply(NativeComponentModelPlugin);
 
         modelRules.rule(new ModelRule() {
             void addToolChain(ToolChainRegistryInternal toolChainRegistry) {

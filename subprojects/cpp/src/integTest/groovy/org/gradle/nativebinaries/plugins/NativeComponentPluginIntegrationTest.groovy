@@ -18,9 +18,9 @@ package org.gradle.nativebinaries.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class NativeBinariesPluginIntegrationTest extends WellBehavedPluginTest {
+class NativeComponentPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getPluginId() {
-        "native-binaries"
+        "native-component"
     }
 }

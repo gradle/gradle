@@ -28,7 +28,7 @@ import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.StaticLibraryBinaryInternal
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration
@@ -39,7 +39,7 @@ import javax.inject.Inject
  * A plugin for projects wishing to build native binary components from Windows Resource sources.
  *
  * <p>Automatically includes the {@link WindowsResourceScriptPlugin} for core Windows Resource source support
- * and the {@link NativeBinariesPlugin} for native binary support.</p>
+ * and the {@link NativeComponentPlugin} for native component support.</p>
  *
  * <li>Creates a {@link WindowsResourceCompile} task for each {@link WindowsResourceSet} to compile the sources.</li>
  */
@@ -54,7 +54,7 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
     }
 
     void apply(ProjectInternal project) {
-        project.plugins.apply(NativeBinariesPlugin)
+        project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(WindowsResourceScriptPlugin)
 
         project.executables.all { NativeExecutable executable ->

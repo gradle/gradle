@@ -31,11 +31,11 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class NativeBinariesModelPluginTest extends Specification {
+class NativeComponentModelPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(NativeBinariesModelPlugin)
+        project.plugins.apply(NativeComponentModelPlugin)
     }
 
     def "adds model extensions"() {
@@ -103,7 +103,7 @@ class NativeBinariesModelPluginTest extends Specification {
 
     def "creates binaries for executable"() {
         when:
-        project.plugins.apply(NativeBinariesModelPlugin)
+        project.plugins.apply(NativeComponentModelPlugin)
         project.model {
             toolChains {
                 add toolChain("tc")
@@ -138,7 +138,7 @@ class NativeBinariesModelPluginTest extends Specification {
 
     def "creates binaries for library"() {
         when:
-        project.plugins.apply(NativeBinariesModelPlugin)
+        project.plugins.apply(NativeComponentModelPlugin)
         project.model {
             toolChains {
                 add toolChain("tc")
@@ -187,7 +187,7 @@ class NativeBinariesModelPluginTest extends Specification {
 
     def "creates lifecycle task for each binary"() {
         when:
-        project.plugins.apply(NativeBinariesModelPlugin)
+        project.plugins.apply(NativeComponentModelPlugin)
         def executable = project.executables.create "exe"
         def library = project.libraries.create "lib"
         project.evaluate()

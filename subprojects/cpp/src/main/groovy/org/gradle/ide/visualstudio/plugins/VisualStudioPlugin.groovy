@@ -27,7 +27,7 @@ import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioTasks
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.ModelRules
 import org.gradle.nativebinaries.internal.resolve.ProjectLocator
-import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin
 
 import javax.inject.Inject
 
@@ -47,7 +47,7 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
     }
 
     void apply(ProjectInternal project) {
-        project.plugins.apply(NativeBinariesModelPlugin)
+        project.plugins.apply(NativeComponentModelPlugin)
 
         modelRules.register("visualStudio", instantiator.newInstance(DefaultVisualStudioExtension, instantiator, projectLocator, fileResolver))
         modelRules.config("visualStudio", new IncludeBuildFileInProject(project))

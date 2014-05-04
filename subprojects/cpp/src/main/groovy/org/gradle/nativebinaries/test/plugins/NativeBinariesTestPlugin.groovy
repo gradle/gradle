@@ -22,7 +22,7 @@ import org.gradle.language.base.BinaryContainer
 import org.gradle.model.ModelRules
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.test.NativeTestSuiteBinary
 import org.gradle.nativebinaries.test.internal.DefaultTestSuiteContainer
@@ -48,7 +48,7 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(NativeBinariesPlugin.class)
+        project.getPlugins().apply(NativeComponentPlugin.class)
 
         project.getExtensions().create(
                 "testSuites",

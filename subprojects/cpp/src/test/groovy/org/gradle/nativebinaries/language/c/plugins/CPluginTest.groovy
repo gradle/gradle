@@ -20,11 +20,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.Task
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.c.CSourceSet
-import org.gradle.nativebinaries.language.AbstractNativeBinariesPluginTest
+import org.gradle.nativebinaries.language.AbstractNativeComponentPluginTest
 import org.gradle.nativebinaries.language.c.tasks.CCompile
 import org.gradle.util.TestUtil
 
-class CPluginTest extends AbstractNativeBinariesPluginTest{
+class CPluginTest extends AbstractNativeComponentPluginTest{
     final def project = TestUtil.createRootProject()
 
     @Override

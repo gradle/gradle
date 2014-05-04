@@ -298,6 +298,15 @@ native integration to these platforms.
 Gradle now assumes that all Gradle scripts are encoded using UTF-8. Previously, Gradle assumes the system encoding. This change
 affects all build scripts, settings scripts and init scripts.
 
+### Native binaries model changes
+
+A bunch of changes and renames have been made to the incubating 'native binaries' support.
+
+- `Library`, `Executable` and `TestSuite` renamed to `NativeLibrary`, `NativeExecutable` and `NativeTestSuite`
+    - Related binary types have also been renamed
+- `NativeBinariesPlugin` has been renamed to `NativeComponentPlugin` with id `'native-component'`
+- `NativeBinariesModelPlugin` renamed to `NativeComponentModelPlugin`
+
 ### Support for the Gradle Open API removed
 
 - `GradleRunnerFactory` removed.
