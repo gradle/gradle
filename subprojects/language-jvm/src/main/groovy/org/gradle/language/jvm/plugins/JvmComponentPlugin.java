@@ -62,7 +62,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         modelRules.rule(new AttachBinariesToLifecycle());
     }
 
-    // TODO:DAZ Should apply to all binaries
+    // TODO:DAZ Push this down to LanguageBasePlugin (but first need to deal with ClassDirectoryBinary)
     private static class AttachBinariesToLifecycle extends ModelRule {
         void attach(TaskContainer tasks, BinaryContainer binaries) {
             Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);

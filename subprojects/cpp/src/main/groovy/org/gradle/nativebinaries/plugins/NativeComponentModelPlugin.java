@@ -17,6 +17,7 @@ package org.gradle.nativebinaries.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
@@ -29,12 +30,11 @@ import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.LibraryContainer;
 import org.gradle.language.base.internal.DefaultLibraryContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
-import org.gradle.nativebinaries.BuildTypeContainer;
-import org.gradle.nativebinaries.FlavorContainer;
-import org.gradle.nativebinaries.NativeLibrary;
+import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
 import org.gradle.nativebinaries.internal.DefaultExecutableContainer;
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
@@ -87,7 +87,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         modelRules.rule(new CreateDefaultFlavors());
         modelRules.rule(new AddDefaultToolChainsIfRequired());
         modelRules.rule(new CreateNativeBinaries(instantiator, project, resolver));
-        modelRules.rule(new CloseBinariesForTasks());
+        // TODO:DAZ Push this down to LanguageBasePlugin (but first need to deal with ClassDirectoryBinary)
+        modelRules.rule(new AttachBinariesToLifecycle());
 
         DefaultLibraryContainer libraries = (DefaultLibraryContainer) project.getExtensions().getByType(LibraryContainer.class);
         libraries.registerFactory(NativeLibrary.class, new NativeLibraryFactory(instantiator, project));
@@ -107,18 +108,21 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         ));
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    private static class CloseBinariesForTasks extends ModelRule {
-        void closeBinariesForTasks(TaskContainer tasks, BinaryContainer binaries) {
-            // nothing needed here
-        }
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
     private static class AddDefaultToolChainsIfRequired extends ModelFinalizer {
+        @SuppressWarnings("UnusedDeclaration")
         void createDefaultToolChain(ToolChainRegistryInternal toolChains) {
             if (toolChains.isEmpty()) {
                 toolChains.addDefaultToolChains();
+            }
+        }
+    }
+
+    private static class AttachBinariesToLifecycle extends ModelRule {
+        @SuppressWarnings("UnusedDeclaration")
+        void attach(TaskContainer tasks, BinaryContainer binaries) {
+            Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
+            for (NativeBinary jvmLibraryBinary : binaries.withType(NativeBinary.class)) {
+                assembleTask.dependsOn(jvmLibraryBinary);
             }
         }
     }

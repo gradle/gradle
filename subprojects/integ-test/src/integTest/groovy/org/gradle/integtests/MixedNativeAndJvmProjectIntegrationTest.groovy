@@ -39,28 +39,77 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         succeeds "checkBinaries"
     }
 
-    def "can combine JvmLibrary and NativeLibrary components in the same project"() {
+    def "can combine jvm and native components in the same project"() {
         buildFile << """
     apply plugin: 'native-component'
     apply plugin: 'jvm-component'
 
+    executables {
+        nativeExe
+    }
     libraries {
         nativeLib(NativeLibrary)
         jvmLib(JvmLibrary)
     }
 
     task check << {
+        assert executables.size() == 1
+        assert executables.nativeExe instanceof NativeExecutable
+
         assert libraries.size() == 2
         assert libraries.nativeLib instanceof NativeLibrary
         assert libraries.jvmLib instanceof JvmLibrary
 
-        assert binaries.size() == 3
+        assert binaries.size() == 4
         binaries.jvmLibJar instanceof JvmLibraryBinary
+        binaries.nativeExeExecutable instanceof NativeExecutableBinary
         binaries.nativeLibStaticLibrary instanceof StaticLibraryBinary
         binaries.nativeLibSharedLibrary instanceof SharedLibraryBinary
     }
 """
         expect:
         succeeds "check"
+    }
+
+    // TODO:DAZ Need to add some sources and actually build the binary outputs
+    def "can build jvm and native components in the same project"() {
+        buildFile << """
+    apply plugin: 'native-component'
+    apply plugin: 'jvm-component'
+
+    executables {
+        nativeApp
+    }
+    libraries {
+        nativeLib(NativeLibrary)
+        jvmLib(JvmLibrary)
+    }
+"""
+        when:
+        succeeds "jvmLibJar"
+
+        then:
+        executed ":createJvmLibJar", ":jvmLibJar"
+        notExecuted  ":nativeAppExecutable", ":nativeLibStaticLibrary", ":nativeLibSharedLibrary"
+
+        when:
+        succeeds "nativeLibStaticLibrary"
+
+        then:
+        executed ":createNativeLibStaticLibrary", ":nativeLibStaticLibrary"
+        notExecuted ":jvmLibJar", ":nativeAppExecutable", ":nativeLibSharedLibrary"
+
+        when:
+        succeeds  "nativeAppExecutable"
+
+        then:
+        executed ":linkNativeAppExecutable", ":nativeAppExecutable"
+        notExecuted ":jvmLibJar", ":nativeLibStaticLibrary", ":nativeLibSharedLibrary"
+
+        when:
+        succeeds "assemble"
+
+        then:
+        executed ":jvmLibJar", ":nativeAppExecutable", ":nativeLibSharedLibrary", ":nativeLibStaticLibrary"
     }
 }
