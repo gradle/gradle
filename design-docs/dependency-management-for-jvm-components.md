@@ -74,14 +74,13 @@ Combining native and jvm libraries in single project
     - No lifecycle task added
 - Define a jvm library component
     - `JvmLibraryBinary` added to binaries container
-    - Lifecycle task available to build binary: builds an empty jar
+    - Lifecycle task available to build binary: skipped when no sources for binary
     - Binary is buildable: can add dependent tasks which are executed when building binary
-- `JvmLibraryBinary` has no dependencies
 - Define and build multiple java libraries in the same project
   - Build library jars individually using binary lifecycle task
   - `gradle assemble` builds single jar for each library
-  - `gradle assemble` builds each native library
 - Can combine native and JVM libraries in the same project
+  - `gradle assemble` builds each native library and each jvm library
 
 #### Open issues
 

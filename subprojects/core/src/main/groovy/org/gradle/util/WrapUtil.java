@@ -16,7 +16,11 @@
 package org.gradle.util;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.util.*;
 
@@ -39,6 +43,15 @@ public class WrapUtil {
      */
     public static <T> DomainObjectSet<T> toDomainObjectSet(Class<T> type, T... items) {
         return new DefaultDomainObjectSet<T>(type, toSet(items));
+    }
+
+    /**
+     * Wraps the given items in a named domain object set.
+     */
+    public static <T extends Named> NamedDomainObjectSet<T> toNamedDomainObjectSet(Class<T> type, T... items) {
+        DefaultNamedDomainObjectSet<T> domainObjectSet = new DefaultNamedDomainObjectSet<T>(type, new DirectInstantiator());
+        CollectionUtils.addAll(domainObjectSet, items);
+        return domainObjectSet;
     }
 
     /**

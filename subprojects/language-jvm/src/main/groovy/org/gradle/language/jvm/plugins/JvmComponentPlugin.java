@@ -15,10 +15,7 @@
  */
 package org.gradle.language.jvm.plugins;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.LibraryContainer;
@@ -27,7 +24,9 @@ import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmLibrary;
 import org.gradle.language.jvm.internal.DefaultJvmLibrary;
+import org.gradle.language.jvm.internal.JvmLibraryBinaryInternal;
 import org.gradle.language.jvm.internal.plugins.CreateJvmBinaries;
+import org.gradle.language.jvm.internal.plugins.CreateTasksForJvmBinaries;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 
@@ -59,13 +58,17 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         modelRules.register("libraries", libraries);
         modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder()));
-        modelRules.rule(new CloseBinariesForTasks());
+        modelRules.rule(new CreateTasksForJvmBinaries());
+        modelRules.rule(new AttachBinariesToLifecycle());
     }
 
-    private static class CloseBinariesForTasks extends ModelRule {
-        void closeBinariesForTasks(TaskContainer tasks, BinaryContainer binaries) {
-            // nothing needed here
+    // TODO:DAZ Should apply to all binaries
+    private static class AttachBinariesToLifecycle extends ModelRule {
+        void attach(TaskContainer tasks, BinaryContainer binaries) {
+            Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
+            for (JvmLibraryBinaryInternal jvmLibraryBinary : binaries.withType(JvmLibraryBinaryInternal.class)) {
+                assembleTask.dependsOn(jvmLibraryBinary);
+            }
         }
     }
-
 }

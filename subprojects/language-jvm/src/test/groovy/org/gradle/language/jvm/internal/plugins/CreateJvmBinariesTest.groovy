@@ -17,14 +17,14 @@
 package org.gradle.language.jvm.internal.plugins
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.Binary
 import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.Library
-import org.gradle.language.base.internal.BinaryInternal
 import org.gradle.language.base.internal.BinaryNamingScheme
 import org.gradle.language.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.language.base.internal.DefaultLibraryContainer
-import org.gradle.language.jvm.JvmLibraryBinary
 import org.gradle.language.jvm.internal.DefaultJvmLibrary
+import org.gradle.language.jvm.internal.JvmLibraryBinaryInternal
 import spock.lang.Specification
 
 class CreateJvmBinariesTest extends Specification {
@@ -34,9 +34,11 @@ class CreateJvmBinariesTest extends Specification {
     def libraries = new DefaultLibraryContainer(new DirectInstantiator())
 
     def "adds a binary for each jvm library"() {
+        def library = new DefaultJvmLibrary("jvmLibOne")
         def namingScheme = Mock(BinaryNamingScheme)
+
         when:
-        libraries.add(new DefaultJvmLibrary("jvmLibOne"))
+        libraries.add(library)
 
         and:
         rule.createBinaries(binaries, libraries)
@@ -45,10 +47,10 @@ class CreateJvmBinariesTest extends Specification {
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder
         1 * namingSchemeBuilder.build() >> namingScheme
-        1 * binaries.add({BinaryInternal binary ->
+        1 * binaries.add({ JvmLibraryBinaryInternal binary ->
             binary.namingScheme == namingScheme
-            binary instanceof JvmLibraryBinary
-        })
+            binary.library == library
+        } as Binary)
         0 * _
     }
 

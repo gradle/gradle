@@ -60,6 +60,11 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert binaryTask.group == 'build'
         assert binaryTask.description == "Assembles jar 'myLib:jar'."
         assert myLibJar.lifecycleTask == binaryTask
+
+        def jarTask = tasks['createMyLibJar']
+        assert jarTask instanceof Zip
+        assert jarTask.group == null
+        assert jarTask.description == "Creates the binary file for jar 'myLib:jar'."
     }
 """
         then:
@@ -67,5 +72,97 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         !file("build").exists()
+    }
+
+    def "skips creating binary when binary has no sources"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+
+    libraries {
+        myJvmLib(JvmLibrary)
+    }
+"""
+        when:
+        succeeds "myJvmLibJar"
+
+        then:
+        executed ":createMyJvmLibJar", ":myJvmLibJar"
+
+        and:
+        !file("build").exists()
+    }
+
+    def "can specify additional builder tasks for binary"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+
+    libraries {
+        myJvmLib(JvmLibrary)
+    }
+    binaries.all { binary ->
+        def logTask = project.tasks.create(binary.namingScheme.getTaskName("log")) {
+            println "Constructing binary: \${binary.displayName}"
+        }
+        binary.builtBy(logTask)
+    }
+"""
+        when:
+        succeeds "myJvmLibJar"
+
+        then:
+        executed ":createMyJvmLibJar", ":logMyJvmLibJar", ":myJvmLibJar"
+
+        and:
+        output.contains("Constructing binary: jar 'myJvmLib:jar'")
+    }
+
+    def "can define multiple jvm libraries in single project"() {
+        when:
+        buildFile << """
+    apply plugin: 'jvm-component'
+
+    libraries {
+        myLibOne(JvmLibrary)
+        myLibTwo(JvmLibrary)
+    }
+
+    task check << {
+        assert libraries.size() == 2
+        assert libraries.myLibOne instanceof JvmLibrary
+        assert libraries.myLibTwo instanceof JvmLibrary
+
+        assert binaries.size() == 2
+        assert binaries.myLibOneJar.library == libraries.myLibOne
+        assert binaries.myLibTwoJar.library == libraries.myLibTwo
+    }
+"""
+        then:
+        succeeds "check"
+    }
+
+    def "can build multiple jvm libraries in single project"() {
+        given:
+        buildFile << """
+    apply plugin: 'jvm-component'
+
+    libraries {
+        myLibOne(JvmLibrary)
+        myLibTwo(JvmLibrary)
+    }
+"""
+        when:
+        succeeds "myLibOneJar"
+
+        then:
+        executed ":createMyLibOneJar", ":myLibOneJar"
+        notExecuted ":myLibTwoJar"
+
+        when:
+        succeeds "assemble"
+
+        then:
+        executed ":createMyLibOneJar", ":myLibOneJar", ":createMyLibTwoJar", ":myLibTwoJar"
     }
 }

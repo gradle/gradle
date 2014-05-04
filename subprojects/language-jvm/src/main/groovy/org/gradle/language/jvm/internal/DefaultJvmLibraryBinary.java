@@ -17,14 +17,15 @@
 package org.gradle.language.jvm.internal;
 
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
-import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.language.base.internal.BinaryNamingScheme;
-import org.gradle.language.jvm.JvmLibraryBinary;
+import org.gradle.language.jvm.JvmLibrary;
 
-public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement implements JvmLibraryBinary, BinaryInternal {
+public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement implements JvmLibraryBinaryInternal {
+    private final JvmLibrary library;
     private final BinaryNamingScheme namingScheme;
 
-    public DefaultJvmLibraryBinary(BinaryNamingScheme namingScheme) {
+    public DefaultJvmLibraryBinary(JvmLibrary library, BinaryNamingScheme namingScheme) {
+        this.library = library;
         this.namingScheme = namingScheme;
     }
 
@@ -39,6 +40,10 @@ public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement imple
 
     public String getName() {
         return namingScheme.getLifecycleTaskName();
+    }
+
+    public JvmLibrary getLibrary() {
+        return library;
     }
 
     public BinaryNamingScheme getNamingScheme() {
