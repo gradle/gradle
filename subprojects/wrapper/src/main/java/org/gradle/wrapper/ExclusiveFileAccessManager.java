@@ -35,7 +35,7 @@ public class ExclusiveFileAccessManager {
         this.pollIntervalMs = pollIntervalMs;
     }
 
-    public <T> T access(File exclusiveFile, Callable<T> task) {
+    public <T> T access(File exclusiveFile, Callable<T> task) throws Exception {
         final File lockFile = new File(exclusiveFile.getParentFile(), exclusiveFile.getName() + LOCK_FILE_SUFFIX);
         lockFile.getParentFile().mkdirs();
         RandomAccessFile randomAccessFile = null;
@@ -70,12 +70,6 @@ public class ExclusiveFileAccessManager {
                 channel = null;
                 maybeCloseQuietly(randomAccessFile);
                 randomAccessFile = null;
-            }
-        } catch (Exception e) {
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            } else {
-                throw new RuntimeException(e);
             }
         } finally {
             maybeCloseQuietly(channel);
