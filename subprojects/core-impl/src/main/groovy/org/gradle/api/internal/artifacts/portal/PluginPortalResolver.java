@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.portal;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -73,22 +74,18 @@ public class PluginPortalResolver implements PluginResolver {
     public PluginPortalResolver(ArtifactDependencyResolver resolver, BaseRepositoryFactory repositoryFactory, DependencyHandler dependencyHandler, ConfigurationContainer configurationHandler,
                                 RepositoryTransportFactory transportFactory, Instantiator instantiator) {
         this.resolver = resolver;
-
-        this.dependencyHandler = dependencyHandler;
         this.repositoryFactory = repositoryFactory;
+        this.dependencyHandler = dependencyHandler;
         this.configurationContainer = configurationHandler;
         this.transportFactory = transportFactory;
         this.instantiator = instantiator;
     }
 
     public PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException {
-        RepositoryTransport transport = transportFactory.createTransport(ImmutableSet.of("http"), "Plugin Portal", new DefaultPasswordCredentials());
         pluginRequest = applyTestSettings(pluginRequest);
-        String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
-        URI requestUri = toUri(requestUrl);
 
-        PluginUseMetaData metaData = queryPluginMetadata(transport, pluginRequest, requestUri);
-        ClassPath classPath = resolvePluginClassPath(metaData);
+        PluginUseMetaData metaData = queryPluginMetadata(pluginRequest);
+        ClassPath classPath = resolvePluginDependencies(metaData);
         return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), Factories.constant(classPath));
     }
 
@@ -102,7 +99,12 @@ public class PluginPortalResolver implements PluginResolver {
         return pluginRequest;
     }
 
-    private PluginUseMetaData queryPluginMetadata(RepositoryTransport transport, PluginRequest pluginRequest, URI requestUri) {
+    private PluginUseMetaData queryPluginMetadata(PluginRequest pluginRequest) {
+        URI portalUri = toUri(portalUrl, "plugin portal");
+        RepositoryTransport transport = transportFactory.createTransport(ImmutableSet.of(portalUri.getScheme()), "Plugin Portal", new DefaultPasswordCredentials());
+        String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
+        URI requestUri = toUri(requestUrl, "plugin request");
+
         ExternalResource resource = null;
         try {
             resource = transport.getRepository().getResource(requestUri);
@@ -135,7 +137,7 @@ public class PluginPortalResolver implements PluginResolver {
         }
     }
 
-    private ClassPath resolvePluginClassPath(PluginUseMetaData metadata) {
+    private ClassPath resolvePluginDependencies(PluginUseMetaData metadata) {
         if (!metadata.implementationType.equals("M2_JAR")) {
             throw new RuntimeException("Cannot resolve plugins with implementation type " + metadata.implementationType);
         }
@@ -151,11 +153,11 @@ public class PluginPortalResolver implements PluginResolver {
         return new DefaultClassPath(files);
     }
 
-    private URI toUri(String requestUrl) {
+    private URI toUri(String requestUrl, String kind) {
         try {
             return new URI(requestUrl);
         } catch (URISyntaxException e) {
-            throw new RuntimeException("Invalid request URL: " + requestUrl, e);
+            throw new InvalidUserDataException(String.format("Invalid %s URL: %s", kind, requestUrl, e));
         }
     }
 
