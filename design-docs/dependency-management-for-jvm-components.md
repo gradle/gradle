@@ -88,6 +88,12 @@ Combining native and jvm libraries in single project
 - Split the native binaries plugins into `native-component` and the various language support plugins
     - Consistent plugin composition for java/native
 - Consider splitting jvm-runtime & jvm-lang support into separate projects. Similar for native-runtime and native-lang.
+- Consider splitting up `assemble` into various lifecycle tasks. There are several use cases:
+    - As a developer, build me a binary I can play with or test in some way.
+    - As part of some workflow, build all binaries that should be possible to build in this specific environment. Fail if a certain binary cannot be built.
+      For example, if I'm on Windows build all the Windows variants and fail if the Windows SDK (with 64bit support) is not installed.
+      Or, if I'm building for Android, fail if the SDK is not installed.
+    - Build everything. Fail if a certain binary cannot be built.
 
 ### Story: Build author creates JVM library jar from Java sources
 
