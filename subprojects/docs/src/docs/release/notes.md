@@ -302,6 +302,7 @@ affects all build scripts, settings scripts and init scripts.
 
 A bunch of changes and renames have been made to the incubating 'native binaries' support.
 
+- Package structure has changed, with many public classes being moved.
 - `Library`, `Executable` and `TestSuite` renamed to `NativeLibrary`, `NativeExecutable` and `NativeTestSuite`
     - Related binary types have also been renamed
 - `NativeBinariesPlugin` has been renamed to `NativeComponentPlugin` with id `'native-component'`

@@ -20,7 +20,7 @@ import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.language.base.LibraryContainer
+import org.gradle.runtime.base.LibraryContainer
 import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.NativeLibraryRequirement
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement

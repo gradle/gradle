@@ -17,8 +17,8 @@
 package org.gradle.language.jvm.internal.plugins
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.language.base.BinaryContainer
-import org.gradle.language.base.internal.BinaryNamingScheme
+import org.gradle.runtime.base.BinaryContainer
+import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.language.jvm.JvmLibraryBinary
 import org.gradle.language.jvm.internal.JvmLibraryBinaryInternal
 import spock.lang.Specification

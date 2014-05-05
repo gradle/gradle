@@ -16,7 +16,7 @@
 
 package org.gradle.language.jvm.internal;
 
-import org.gradle.language.base.internal.BinaryInternal;
+import org.gradle.runtime.base.internal.BinaryInternal;
 import org.gradle.language.jvm.JvmLibrary;
 import org.gradle.language.jvm.JvmLibraryBinary;
 

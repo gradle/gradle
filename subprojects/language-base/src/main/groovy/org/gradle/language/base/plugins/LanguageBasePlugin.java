@@ -18,10 +18,10 @@ package org.gradle.language.base.plugins;
 import org.gradle.api.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinaryContainer;
-import org.gradle.language.base.internal.BinaryInternal;
-import org.gradle.language.base.internal.DefaultBinaryContainer;
-import org.gradle.language.base.internal.DefaultLibraryContainer;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.internal.BinaryInternal;
+import org.gradle.runtime.base.internal.DefaultBinaryContainer;
+import org.gradle.runtime.base.internal.DefaultLibraryContainer;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.model.ModelRules;
 
@@ -30,8 +30,8 @@ import javax.inject.Inject;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.language.base.LibraryContainer} named {@code libraries} to the project.
- * Adds a {@link org.gradle.language.base.BinaryContainer} named {@code binaries} to the project.
+ * Adds a {@link org.gradle.runtime.base.LibraryContainer} named {@code libraries} to the project.
+ * Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the project.
  * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.

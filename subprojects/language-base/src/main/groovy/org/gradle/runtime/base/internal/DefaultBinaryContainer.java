@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base;
+package org.gradle.runtime.base.internal;
 
-import org.gradle.api.*;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.Binary;
 
-/**
- * A container for project binaries, which represent physical artifacts that can run on a particular platform or runtime.
- * Added to a project by the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- */
-@Incubating
-public interface BinaryContainer extends ExtensiblePolymorphicDomainObjectContainer<Binary> {}
+public class DefaultBinaryContainer extends DefaultPolymorphicDomainObjectContainer<Binary> implements BinaryContainer {
+    public DefaultBinaryContainer(Instantiator instantiator) {
+        super(Binary.class, instantiator);
+    }
+}

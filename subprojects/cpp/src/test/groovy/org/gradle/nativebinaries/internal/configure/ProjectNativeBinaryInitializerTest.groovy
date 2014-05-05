@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.internal.configure
 
 import org.gradle.api.Project
-import org.gradle.language.base.internal.BinaryNamingScheme
+import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
+package org.gradle.runtime.base.internal;
 
 import org.gradle.api.Named;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.Library;
-import org.gradle.language.base.LibraryContainer;
+import org.gradle.runtime.base.Library;
+import org.gradle.runtime.base.LibraryContainer;
 
 public class DefaultLibraryContainer extends DefaultPolymorphicDomainObjectContainer<Library> implements LibraryContainer {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
+package org.gradle.runtime.base.internal;
 
 import java.util.ArrayList;
 import java.util.List;

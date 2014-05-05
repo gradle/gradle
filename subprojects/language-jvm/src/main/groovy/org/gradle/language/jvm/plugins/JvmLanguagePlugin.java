@@ -22,11 +22,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinaryContainer;
+import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.BinaryInternal;
-import org.gradle.language.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.BinaryInternal;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.jvm.ClassDirectoryBinary;
 import org.gradle.language.jvm.ResourceSet;
@@ -41,7 +41,7 @@ import java.util.concurrent.Callable;
 // TODO:DAZ Replace with JvmComponentPlugin, or make this extend JvmComponentPlugin
 /**
  * Base plugin for JVM language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.language.jvm.ClassDirectoryBinary} element type for the {@link org.gradle.language.base.BinaryContainer}.
+ * Registers the {@link org.gradle.language.jvm.ClassDirectoryBinary} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
  * Adds a lifecycle task named {@code classes} for each {@link org.gradle.language.jvm.ClassDirectoryBinary}.
  * Registers the {@link org.gradle.language.jvm.ResourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
  * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.language.jvm.ClassDirectoryBinary}.

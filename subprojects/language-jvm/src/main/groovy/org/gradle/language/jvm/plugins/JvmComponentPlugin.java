@@ -17,9 +17,9 @@ package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.BinaryContainer;
-import org.gradle.language.base.LibraryContainer;
-import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.LibraryContainer;
+import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmLibrary;
@@ -34,7 +34,7 @@ import javax.inject.Inject;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.language.jvm.JvmLibrary} library type for the {@link org.gradle.language.base.LibraryContainer}.
+ * Registers the {@link org.gradle.language.jvm.JvmLibrary} library type for the {@link org.gradle.runtime.base.LibraryContainer}.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {

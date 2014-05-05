@@ -13,35 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base;
 
-import org.gradle.api.Action;
+package org.gradle.runtime.base;
+
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.Task;
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.runtime.base.BuildableModelElement;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A set of sources for a programming language.
+ * A physical binary artifact, which can run on a particular platform or runtime.
  */
 @Incubating
 @HasInternalProtocol
-public interface LanguageSourceSet extends Named, BuildableModelElement {
-    // TODO: do we want to keep using SourceDirectorySet in the new API?
-    // would feel more natural if dirs could be added directly to LanguageSourceSet
-    // could also think about extending SourceDirectorySet
-
+public interface Binary extends BuildableModelElement, Named {
     /**
-     * The source files.
+     * Returns a human-consumable display name for this binary.
      */
-    SourceDirectorySet getSource();
-
-    /**
-     * Configure the sources
-     */
-    void source(Action<? super SourceDirectorySet> config);
-
-    void generatedBy(Task generatorTask);
+    String getDisplayName();
 }

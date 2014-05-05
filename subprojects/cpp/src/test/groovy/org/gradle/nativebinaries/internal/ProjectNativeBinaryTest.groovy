@@ -18,8 +18,8 @@ package org.gradle.nativebinaries.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.DependentSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.BinaryNamingScheme
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme
+import org.gradle.runtime.base.internal.BinaryNamingScheme
+import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.resolve.NativeBinaryResolveResult

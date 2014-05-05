@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base;
+package org.gradle.runtime.base.internal;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
-/**
- * A container of libraries.
- */
-@Incubating
-public interface LibraryContainer extends ExtensiblePolymorphicDomainObjectContainer<Library> {
+import java.util.List;
+
+public interface BinaryNamingScheme {
+    String getLifecycleTaskName();
+
+    String getTaskName(@Nullable String verb);
+
+    String getTaskName(@Nullable String verb, @Nullable String target);
+
+    String getOutputDirectoryBase();
+
+    String getDescription();
+
+    List<String> getVariantDimensions();
 }

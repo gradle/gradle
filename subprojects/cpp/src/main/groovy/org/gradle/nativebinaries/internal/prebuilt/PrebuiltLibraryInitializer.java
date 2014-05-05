@@ -18,8 +18,8 @@ package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.NativeLibraryBinary;

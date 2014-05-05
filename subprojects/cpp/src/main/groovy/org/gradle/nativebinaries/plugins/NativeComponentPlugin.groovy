@@ -18,8 +18,8 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
-import org.gradle.language.base.BinaryContainer
-import org.gradle.language.base.LibraryContainer
+import org.gradle.runtime.base.BinaryContainer
+import org.gradle.runtime.base.LibraryContainer
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal

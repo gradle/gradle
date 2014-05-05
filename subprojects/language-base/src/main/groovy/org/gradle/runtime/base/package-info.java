@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
+/**
+ * General purpose types for runtime support.
+ */
+@Incubating
+package org.gradle.runtime.base;
 
-import org.gradle.api.Nullable;
-
-import java.util.List;
-
-public interface BinaryNamingScheme {
-    String getLifecycleTaskName();
-
-    String getTaskName(@Nullable String verb);
-
-    String getTaskName(@Nullable String verb, @Nullable String target);
-
-    String getOutputDirectoryBase();
-
-    String getDescription();
-
-    List<String> getVariantDimensions();
-}
+import org.gradle.api.Incubating;

@@ -16,7 +16,7 @@
 
 package org.gradle.language.jvm;
 
-import org.gradle.language.base.Binary;
+import org.gradle.runtime.base.Binary;
 
 /**
  * A JVM library binary.

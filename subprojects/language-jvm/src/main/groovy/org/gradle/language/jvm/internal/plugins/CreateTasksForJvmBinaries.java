@@ -19,7 +19,7 @@ package org.gradle.language.jvm.internal.plugins;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Zip;
-import org.gradle.language.base.BinaryContainer;
+import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.language.jvm.internal.JvmLibraryBinaryInternal;
 import org.gradle.model.ModelRule;
 

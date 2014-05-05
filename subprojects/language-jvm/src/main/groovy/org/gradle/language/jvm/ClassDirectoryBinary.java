@@ -17,7 +17,7 @@ package org.gradle.language.jvm;
 
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Incubating;
-import org.gradle.language.base.Binary;
+import org.gradle.runtime.base.Binary;
 import org.gradle.language.base.LanguageSourceSet;
 
 import java.io.File;

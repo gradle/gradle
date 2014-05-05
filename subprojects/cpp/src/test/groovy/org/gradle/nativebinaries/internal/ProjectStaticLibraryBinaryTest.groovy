@@ -19,7 +19,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.HeaderExportingSourceSet
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme
+import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver

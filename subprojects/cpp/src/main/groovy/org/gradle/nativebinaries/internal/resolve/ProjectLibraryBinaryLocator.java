@@ -17,7 +17,7 @@ package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Project;
-import org.gradle.language.base.LibraryContainer;
+import org.gradle.runtime.base.LibraryContainer;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeLibrary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;

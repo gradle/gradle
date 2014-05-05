@@ -18,7 +18,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.BinaryContainer
+import org.gradle.runtime.base.BinaryContainer
 import org.gradle.model.ModelRules
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver

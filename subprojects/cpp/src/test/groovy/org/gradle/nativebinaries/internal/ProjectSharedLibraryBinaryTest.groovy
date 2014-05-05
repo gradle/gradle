@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.internal
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.HeaderExportingSourceSet
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme
+import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.NativeLibrary

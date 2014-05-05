@@ -15,7 +15,7 @@
  */
 
 package org.gradle.nativebinaries.internal
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme
+import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.NativeExecutable
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver

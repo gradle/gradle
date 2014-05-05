@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal;
+package org.gradle.runtime.base;
 
-import org.gradle.language.base.Binary;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
 
-public interface BinaryInternal extends Binary {
-    BinaryNamingScheme getNamingScheme();
+/**
+ * A container of libraries.
+ */
+@Incubating
+public interface LibraryContainer extends ExtensiblePolymorphicDomainObjectContainer<Library> {
 }

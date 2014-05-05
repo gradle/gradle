@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.language.DependentSourceSet;
-import org.gradle.language.base.internal.BinaryInternal;
+import org.gradle.runtime.base.internal.BinaryInternal;
 import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
 import org.gradle.nativebinaries.ProjectNativeBinary;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base;
+package org.gradle.runtime.base;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;

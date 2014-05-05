@@ -15,7 +15,7 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-import org.gradle.language.base.internal.BinaryNamingScheme
+import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal

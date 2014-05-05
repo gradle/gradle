@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;

@@ -16,10 +16,10 @@
 
 package org.gradle.language.jvm.internal.plugins;
 
-import org.gradle.language.base.BinaryContainer;
-import org.gradle.language.base.LibraryContainer;
-import org.gradle.language.base.internal.BinaryNamingScheme;
-import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.LibraryContainer;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.language.jvm.JvmLibrary;
 import org.gradle.language.jvm.internal.DefaultJvmLibraryBinary;
 import org.gradle.model.ModelRule;

@@ -16,8 +16,8 @@
 
 package org.gradle.language.jvm.internal;
 
-import org.gradle.language.base.internal.AbstractBuildableModelElement;
-import org.gradle.language.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.AbstractBuildableModelElement;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.language.jvm.JvmLibrary;
 
 public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement implements JvmLibraryBinaryInternal {

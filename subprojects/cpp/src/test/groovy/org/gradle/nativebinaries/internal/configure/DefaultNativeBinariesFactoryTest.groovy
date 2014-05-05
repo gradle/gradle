@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.internal.configure
 import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder
+import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Flavor
 import org.gradle.nativebinaries.ProjectNativeBinary

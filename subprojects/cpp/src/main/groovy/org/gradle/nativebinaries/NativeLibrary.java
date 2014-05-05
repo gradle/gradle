@@ -16,7 +16,7 @@
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
-import org.gradle.language.base.Library;
+import org.gradle.runtime.base.Library;
 
 /**
  * A library component that is built by a gradle project.

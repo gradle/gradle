@@ -18,7 +18,7 @@ package org.gradle.language.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.language.base.Library;
+import org.gradle.runtime.base.Library;
 
 /**
  * A Library component that runs on the Java Virtual Machine.
