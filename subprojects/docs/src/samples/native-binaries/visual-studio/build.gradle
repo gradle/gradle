@@ -53,10 +53,10 @@ model {
 }
 // END SNIPPET customize-solution-files
 
-executables {
+nativeExecutables {
     main {}
 }
-libraries {
+nativeLibraries {
     hello {}
 }
 sources.main.cpp.lib libraries.hello

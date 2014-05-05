@@ -3,7 +3,7 @@ apply plugin: 'objective-c'
 // END SNIPPET apply-plugin
 
 // START SNIPPET executables
-executables {
+nativeExecutables {
     main {}
 }
 // END SNIPPET executables

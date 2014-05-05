@@ -26,7 +26,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
             apply plugin: "java"
             apply plugin: "cpp"
 
-            executables { main {} }
+            nativeExecutables { main {} }
             nativeLibraries { main {} }
 
             task checkBinaries << {
@@ -44,7 +44,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     apply plugin: 'native-component'
     apply plugin: 'jvm-component'
 
-    executables {
+    nativeExecutables {
         nativeExe
     }
     libraries {

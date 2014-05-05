@@ -19,7 +19,7 @@ model {
     }
 }
 
-libraries {
+nativeLibraries {
     operators {}
 }
 // START SNIPPET configure-test-binary

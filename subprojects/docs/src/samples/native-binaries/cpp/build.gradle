@@ -3,13 +3,13 @@ apply plugin: 'cpp'
 // END SNIPPET apply-plugin
 
 // START SNIPPET libraries
-libraries {
+nativeLibraries {
     hello {}
 }
 // END SNIPPET libraries
 
 // START SNIPPET executables
-executables {
+nativeExecutables {
     main {}
 }
 // END SNIPPET executables

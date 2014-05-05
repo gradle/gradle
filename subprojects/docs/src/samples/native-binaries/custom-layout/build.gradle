@@ -17,12 +17,12 @@
 apply plugin: 'cpp'
 apply plugin: 'c'
 
-libraries {
+nativeLibraries {
     hello {}
 }
 
 // START SNIPPET binary-library
-executables {
+nativeExecutables {
     main {
         binaries.all {
             // Each executable binary produced uses the 'hello' static library binary

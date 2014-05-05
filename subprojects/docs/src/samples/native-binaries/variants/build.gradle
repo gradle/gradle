@@ -26,13 +26,13 @@ model {
 // END SNIPPET build-types
 
 // START SNIPPET target-platforms
-executables {
+nativeExecutables {
     main {
         targetPlatforms "x86", "x64"
     }
 }
 // END SNIPPET target-platforms
-libraries {
+nativeLibraries {
     hello {}
 }
 sources.main.cpp.lib libraries.hello.static

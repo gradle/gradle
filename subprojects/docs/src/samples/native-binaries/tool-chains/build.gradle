@@ -41,7 +41,7 @@ model {
 }
 // END SNIPPET withArguments
 
-executables {
+nativeExecutables {
     main {}
 }
 

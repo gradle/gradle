@@ -3,7 +3,7 @@ apply plugin: "cpp"
 // END SNIPPET use-plugin
 
 // START SNIPPET args
-libraries {
+nativeLibraries {
     main {
         binaries.withType(SharedLibraryBinary) {
             // Define a preprocessor macro that only applies to shared libraries

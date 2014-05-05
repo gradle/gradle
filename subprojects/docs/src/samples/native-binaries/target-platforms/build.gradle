@@ -57,6 +57,6 @@ model {
     }
 }
 
-executables {
+nativeExecutables {
     main {}
 }
