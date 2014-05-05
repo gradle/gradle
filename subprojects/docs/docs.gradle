@@ -332,6 +332,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/nativebinaries/**'
     include 'org/gradle/process/**'
     include 'org/gradle/plugins/**'
+    include 'org/gradle/runtime/**'
     include 'org/gradle/testfixtures/**'
     include 'org/gradle/tooling/**'
     include 'org/gradle/testing/jacoco/**'
