@@ -19,13 +19,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 
-public interface ExternalResource {
+public interface ExternalResource extends Closeable {
     /**
      * Get the URI of the resource.
      */
