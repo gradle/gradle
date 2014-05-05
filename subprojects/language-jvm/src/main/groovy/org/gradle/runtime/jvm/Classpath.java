@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
+package org.gradle.runtime.jvm;
 
+import org.gradle.api.Buildable;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.*;
-import org.gradle.runtime.jvm.Classpath;
 
-public class SourceSetCompileClasspath implements Classpath {
-    private final SourceSet sourceSet;
-
-    public SourceSetCompileClasspath(SourceSet sourceSet) {
-        this.sourceSet = sourceSet;
-    }
-
-    public FileCollection getFiles() {
-        return sourceSet.getCompileClasspath();
-    }
-
-    public TaskDependency getBuildDependencies() {
-        return sourceSet.getCompileClasspath().getBuildDependencies();
-    }
+/**
+ * A collection of files to be used as a class path.
+ */
+@Incubating
+public interface Classpath extends Buildable {
+    FileCollection getFiles();
 }

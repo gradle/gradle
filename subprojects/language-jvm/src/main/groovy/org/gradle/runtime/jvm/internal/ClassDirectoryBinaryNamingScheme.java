@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm.internal;
+package org.gradle.runtime.jvm.internal;
 
 import org.gradle.api.Nullable;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;

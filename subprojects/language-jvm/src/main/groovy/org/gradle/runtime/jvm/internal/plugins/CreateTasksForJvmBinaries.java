@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm.internal.plugins;
+package org.gradle.runtime.jvm.internal.plugins;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.language.jvm.internal.JvmLibraryBinaryInternal;
+import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
 import org.gradle.model.ModelRule;
 
 public class CreateTasksForJvmBinaries extends ModelRule {

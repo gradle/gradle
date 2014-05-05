@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-import org.gradle.language.jvm.ClassDirectoryBinary
+import org.gradle.runtime.jvm.ClassDirectoryBinary
 import org.gradle.language.jvm.ResourceSet
-import org.gradle.language.jvm.internal.DefaultClassDirectoryBinary
+import org.gradle.runtime.jvm.internal.DefaultClassDirectoryBinary
 import org.gradle.language.jvm.plugins.JvmLanguagePlugin
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.util.TestUtil

@@ -308,6 +308,12 @@ A bunch of changes and renames have been made to the incubating 'native binaries
 - `NativeBinariesPlugin` has been renamed to `NativeComponentPlugin` with id `'native-component'`
 - `NativeBinariesModelPlugin` renamed to `NativeComponentModelPlugin`
 
+### New java component model changes
+
+A bunch of changes and renames have been made to the new, incubating 'java component' support.
+
+- Package structure has changed, with many public classes being moved.
+
 ### Support for the Gradle Open API removed
 
 - `GradleRunnerFactory` removed.

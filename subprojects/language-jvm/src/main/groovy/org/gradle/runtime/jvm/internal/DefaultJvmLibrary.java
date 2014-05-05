@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm.internal
+package org.gradle.runtime.jvm.internal;
 
-import spock.lang.Specification
 
-class DefaultJvmLibraryTest extends Specification {
-    def "library has name"() {
-        when:
-        def library = new DefaultJvmLibrary("jvm-lib")
+import org.gradle.runtime.jvm.JvmLibrary;
 
-        then:
-        library.name == "jvm-lib"
+public class DefaultJvmLibrary implements JvmLibrary {
+    private final String name;
+
+    public DefaultJvmLibrary(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 }

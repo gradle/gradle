@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.jvm.internal;
+package org.gradle.runtime.jvm.internal;
 
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -21,7 +21,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.runtime.base.internal.AbstractBuildableModelElement;
 import org.gradle.runtime.base.internal.BinaryInternal;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.language.jvm.ClassDirectoryBinary;
+import org.gradle.runtime.jvm.ClassDirectoryBinary;
 
 import java.io.File;
 

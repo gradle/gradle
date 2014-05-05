@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm.internal;
+package org.gradle.runtime.jvm;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
+import org.gradle.runtime.base.Library;
 
-import org.gradle.language.jvm.JvmLibrary;
-
-public class DefaultJvmLibrary implements JvmLibrary {
-    private final String name;
-
-    public DefaultJvmLibrary(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
+/**
+ * A Library component that runs on the Java Virtual Machine.
+ */
+@Incubating
+public interface JvmLibrary extends Library, Named {
 }

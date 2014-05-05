@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.jvm.plugins;
+package org.gradle.runtime.jvm.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
@@ -22,11 +22,11 @@ import org.gradle.runtime.base.LibraryContainer;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.jvm.JvmLibrary;
-import org.gradle.language.jvm.internal.DefaultJvmLibrary;
-import org.gradle.language.jvm.internal.JvmLibraryBinaryInternal;
-import org.gradle.language.jvm.internal.plugins.CreateJvmBinaries;
-import org.gradle.language.jvm.internal.plugins.CreateTasksForJvmBinaries;
+import org.gradle.runtime.jvm.JvmLibrary;
+import org.gradle.runtime.jvm.internal.DefaultJvmLibrary;
+import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
+import org.gradle.runtime.jvm.internal.plugins.CreateJvmBinaries;
+import org.gradle.runtime.jvm.internal.plugins.CreateTasksForJvmBinaries;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 
@@ -34,7 +34,7 @@ import javax.inject.Inject;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.language.jvm.JvmLibrary} library type for the {@link org.gradle.runtime.base.LibraryContainer}.
+ * Registers the {@link org.gradle.runtime.jvm.JvmLibrary} library type for the {@link org.gradle.runtime.base.LibraryContainer}.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {

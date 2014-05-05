@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.java;
 
-import org.gradle.api.Incubating;
-import org.gradle.runtime.jvm.Classpath;
-import org.gradle.language.base.LanguageSourceSet;
+package org.gradle.runtime.jvm;
+
+import org.gradle.runtime.base.Binary;
 
 /**
- * A set of sources passed to the Java compiler.
+ * A JVM library binary.
+ *
+ * TODO:DAZ Is this a JvmJarFile? JvmLibraryJar? JvmLibraryBinary?
+ * How is this different from a ClassDirectoryBinary: 2 different packagings (linkages?) of the same target variant.
  */
-@Incubating
-public interface JavaSourceSet extends LanguageSourceSet {
-    Classpath getCompileClasspath();
+public interface JvmLibraryBinary extends Binary {
 }

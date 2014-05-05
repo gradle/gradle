@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm;
+package org.gradle.runtime.jvm.internal;
 
-import org.gradle.runtime.base.Binary;
+import org.gradle.runtime.base.internal.BinaryInternal;
+import org.gradle.runtime.jvm.JvmLibrary;
+import org.gradle.runtime.jvm.JvmLibraryBinary;
 
-/**
- * A JVM library binary.
- *
- * TODO:DAZ Is this a JvmJarFile? JvmLibraryJar? JvmLibraryBinary?
- * How is this different from a ClassDirectoryBinary: 2 different packagings (linkages?) of the same target variant.
- */
-public interface JvmLibraryBinary extends Binary {
+public interface JvmLibraryBinaryInternal extends JvmLibraryBinary, BinaryInternal {
+    JvmLibrary getLibrary();
 }

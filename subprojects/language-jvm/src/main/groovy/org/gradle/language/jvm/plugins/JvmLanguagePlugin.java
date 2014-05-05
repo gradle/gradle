@@ -28,9 +28,9 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.runtime.base.internal.BinaryInternal;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.language.jvm.ClassDirectoryBinary;
+import org.gradle.runtime.jvm.ClassDirectoryBinary;
 import org.gradle.language.jvm.ResourceSet;
-import org.gradle.language.jvm.internal.DefaultClassDirectoryBinary;
+import org.gradle.runtime.jvm.internal.DefaultClassDirectoryBinary;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -41,10 +41,10 @@ import java.util.concurrent.Callable;
 // TODO:DAZ Replace with JvmComponentPlugin, or make this extend JvmComponentPlugin
 /**
  * Base plugin for JVM language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.language.jvm.ClassDirectoryBinary} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
- * Adds a lifecycle task named {@code classes} for each {@link org.gradle.language.jvm.ClassDirectoryBinary}.
+ * Registers the {@link org.gradle.runtime.jvm.ClassDirectoryBinary} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
+ * Adds a lifecycle task named {@code classes} for each {@link org.gradle.runtime.jvm.ClassDirectoryBinary}.
  * Registers the {@link org.gradle.language.jvm.ResourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
- * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.language.jvm.ClassDirectoryBinary}.
+ * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.runtime.jvm.ClassDirectoryBinary}.
  */
 @Incubating
 public class JvmLanguagePlugin implements Plugin<Project> {

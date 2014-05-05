@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.runtime.base.Library;
-
 /**
- * A Library component that runs on the Java Virtual Machine.
+ * Base plugins that add support for JVM runtime.
  */
 @Incubating
-public interface JvmLibrary extends Library, Named {
-}
+package org.gradle.runtime.jvm.plugins;
+
+import org.gradle.api.Incubating;

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm.internal;
+package org.gradle.runtime.jvm.internal
 
-import spock.lang.Specification;
+import spock.lang.Specification
 
 public class DefaultClassDirectoryBinaryTest extends Specification {
     def "uses short task names for binary with name 'mainClasses'"() {

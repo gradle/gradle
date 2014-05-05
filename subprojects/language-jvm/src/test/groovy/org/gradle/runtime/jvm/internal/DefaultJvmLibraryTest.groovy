@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm.internal;
+package org.gradle.runtime.jvm.internal
 
-import org.gradle.runtime.base.internal.BinaryInternal;
-import org.gradle.language.jvm.JvmLibrary;
-import org.gradle.language.jvm.JvmLibraryBinary;
+import spock.lang.Specification
 
-public interface JvmLibraryBinaryInternal extends JvmLibraryBinary, BinaryInternal {
-    JvmLibrary getLibrary();
+class DefaultJvmLibraryTest extends Specification {
+    def "library has name"() {
+        when:
+        def library = new DefaultJvmLibrary("jvm-lib")
+
+        then:
+        library.name == "jvm-lib"
+    }
 }

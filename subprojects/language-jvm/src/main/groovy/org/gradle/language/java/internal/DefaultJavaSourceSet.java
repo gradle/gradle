@@ -21,7 +21,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
-import org.gradle.language.jvm.Classpath;
+import org.gradle.runtime.jvm.Classpath;
 
 import java.util.HashSet;
 import java.util.Set;

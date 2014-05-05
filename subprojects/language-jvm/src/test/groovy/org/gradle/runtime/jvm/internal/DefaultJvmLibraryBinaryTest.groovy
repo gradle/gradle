@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.language.jvm.internal
-
+package org.gradle.runtime.jvm.internal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
-import org.gradle.language.jvm.JvmLibrary
+import org.gradle.runtime.jvm.JvmLibrary
 import spock.lang.Specification
 
 class DefaultJvmLibraryBinaryTest extends Specification {

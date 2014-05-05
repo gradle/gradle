@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.jvm.internal;
+package org.gradle.runtime.jvm.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.language.jvm.Classpath;
+import org.gradle.runtime.jvm.Classpath;
 import org.gradle.api.tasks.TaskDependency;
 
 public class DefaultClasspath implements Classpath {
