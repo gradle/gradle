@@ -244,12 +244,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected PluginResolverFactory createPluginResolverFactory() {
         return new PluginResolverFactory(
                 get(PluginRegistry.class),
-                get(Instantiator.class),
                 get(DependencyManagementServices.class),
                 get(FileResolver.class),
                 new DependencyMetaDataProviderImpl(),
-                get(DocumentationRegistry.class),
-                get(CacheRepository.class)
+                get(DocumentationRegistry.class)
         );
     }
 

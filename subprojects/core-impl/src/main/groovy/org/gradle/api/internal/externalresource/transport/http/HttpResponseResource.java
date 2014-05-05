@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-class HttpResponseResource extends AbstractExternalResource {
+public class HttpResponseResource extends AbstractExternalResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseResource.class);
 
     private final String method;
@@ -60,6 +60,10 @@ class HttpResponseResource extends AbstractExternalResource {
 
     public ExternalResourceMetaData getMetaData() {
         return metaData;
+    }
+
+    public int getStatusCode() {
+        return response.getStatusLine().getStatusCode();
     }
 
     public long getLastModified() {

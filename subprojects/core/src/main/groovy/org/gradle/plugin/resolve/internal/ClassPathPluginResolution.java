@@ -24,7 +24,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
 
-class ClassPathPluginResolution implements PluginResolution {
+public class ClassPathPluginResolution implements PluginResolution {
 
     private final String pluginId;
     private final Instantiator instantiator;

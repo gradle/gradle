@@ -1,0 +1,3 @@
+apply plugin: "java"
+
+version = 1.0

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -38,6 +40,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Resolver
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishLocalComponentFactory;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.portal.PluginPortalResolver;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
@@ -51,6 +54,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ListenerManager;
+import org.gradle.plugin.resolve.internal.PluginResolver;
 
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 
@@ -143,6 +147,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoryHandler, ivyFactory, metadataProcessor, cacheLockingManager);
 
         }
+
+        PluginResolver createPluginPortalResolver(ArtifactDependencyResolver dependencyResolver, BaseRepositoryFactory repositoryFactory, DependencyHandler dependencyHandler,
+                                                  ConfigurationContainer configurationContainer, RepositoryTransportFactory transportFactory, Instantiator instantiator) {
+            return new PluginPortalResolver(dependencyResolver, repositoryFactory, dependencyHandler, configurationContainer, transportFactory, instantiator);
+        }
+    }
+
+    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
+        public ModuleInternal getModule() {
+            return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
+        }
     }
 
     private static class DefaultDependencyResolutionServices implements DependencyResolutionServices {
@@ -162,6 +177,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         public DependencyHandler getDependencyHandler() {
             return services.get(DependencyHandler.class);
+        }
+
+        public PluginResolver getPluginPortalResolver() {
+            return services.get(PluginResolver.class);
         }
     }
 
