@@ -66,6 +66,14 @@ Combining native and jvm libraries in single project
     - Wires the binary lifecycle task into the main `assemble` task.
 - Rename `NativeBinariesPlugin` to `NativeComponentPlugin` with id `native-component`.
 - Move `Binary` and `ClassDirectoryBinary` to live with the runtime support classes (and not the language support classes)
+- Extract a common supertype `Application` for NativeExecutable, and a common supertype `Component` for `Library` and `Application`
+- Introduce a 'filtered' view of the ExtensiblePolymorphicDomainObjectContainer, such that only elements of a particular type are returned
+  and any element created is given that type.
+    - Add a backing 'components' container that contains all Library and Application elements
+    - Replace 'libraries' with 'nativeLibraries' and 'jvmLibraries':  filtered views on 'components'
+        - Remove support for creating a library element without a type
+    - Replace current 'executables' container with a filtered view over 'components', named 'nativeExecutables'
+    - Use the 'components' container in native code where currently must iterate separately over 'libraries' and 'executables'
 
 #### Test cases
 
@@ -84,9 +92,8 @@ Combining native and jvm libraries in single project
 
 #### Open issues
 
+- Come up with a better name for JvmLibraryBinary, or perhaps add a `JarBinary` subtype
 - Remove the need to declare the library type, rather than making it explicit: Possibly based on available types, possibly by naming the container?
-- Split the native binaries plugins into `native-component` and the various language support plugins
-    - Consistent plugin composition for java/native
 - Consider splitting jvm-runtime & jvm-lang support into separate projects. Similar for native-runtime and native-lang.
 - Consider splitting up `assemble` into various lifecycle tasks. There are several use cases:
     - As a developer, build me a binary I can play with or test in some way.
@@ -128,6 +135,22 @@ Combining jvm-java and native (multi-lang) libraries in single project
         myJvmLib(JvmLibrary)
     }
 
+#### Implementation plan
+
+- Replace the current 'java-lang' plugin with a simpler one that does not know about legacy conventions
+- For each JvmLibrary:
+    - Adds a single ResourceSet for 'src/${component}/resources'
+    - Adds a single JavaSourceSet for 'src/${component}/java'
+- Each created JvmLibraryBinary has the source sets of it's JvmLibrary
+- Create a ProcessResources task for each ResourceSet for a JvmLibraryBinary
+    - copy resources to `build/classes/${binaryName}`
+- Create a CompileJava task for each JavaSourceSet for a JvmLibraryBinary
+    - compile classes to `build/classes/${binaryName}`
+- Create a Jar task for each JvmLibraryBinary
+    - produce jar file at `build/binaries/${binaryName}/${componentName}.jar
+- Rejig the native language plugins so that '*-lang' + 'native-components' is sufficient to apply language support
+    - Existing 'cpp', 'c', etc plugins will simply apply '*-lang' and 'native-components'
+
 #### Test cases
 
 - Define and build the jar for a java library (assert jar contents for each case)
@@ -144,13 +167,6 @@ Combining jvm-java and native (multi-lang) libraries in single project
 #### Open issues
 
 - Need `groovy-lang` and `scala-lang` plugins
-- Need to decide where the 'compile java for jvm' functionality lives: should probably live with the language plugin, so that it's easier to
-  add support for a new JVM language without modifying the base `jvm-component` plugin.
-    - Possibly need a 'java-for-jvm' plugin that is auto-applied in the presence of the 'jvm-component' and 'java-lang' plugin?
-    - Could then have the equivalent 'java-for-native' plugin that uses GCJ to compile java for native runtime
-- Split the native binaries plugins into `native-component` and the various language support plugins
-    - Consistent plugin composition for java/native
-- Consider splitting jvm-runtime & jvm-lang support into separate projects. Similar for native-runtime and native-lang.
 - All compiled classes are removed when all java source files are removed.
 
 ### Story: Legacy JVM language plugins declare a jvm library
