@@ -34,7 +34,7 @@ class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolCh
             apply plugin: 'cpp'
             apply plugin: 'windows-resources'
 
-            executables {
+            nativeExecutables {
                 main {}
             }
          """
@@ -62,7 +62,7 @@ class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolCh
             apply plugin: 'cpp'
             apply plugin: 'windows-resources'
 
-            executables {
+            nativeExecutables {
                 main {}
             }
          """

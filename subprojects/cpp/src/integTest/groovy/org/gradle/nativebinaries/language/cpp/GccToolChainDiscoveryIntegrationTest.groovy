@@ -37,7 +37,7 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
                 }
             }
 
-            executables {
+            nativeExecutables {
                 main {
                     binaries.all {
                         lib libraries.hello.static

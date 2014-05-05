@@ -40,7 +40,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         when:
         dsl {
             apply plugin: pluginClass
-            executables {
+            nativeExecutables {
                 exe {}
             }
             nativeLibraries {
@@ -58,14 +58,14 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         sourceSetClass.isInstance(sourceSets.exe."$pluginName")
         sourceSets.exe."$pluginName".source.srcDirs == [project.file("src/exe/$pluginName")] as Set
         sourceSets.exe."$pluginName".exportedHeaders.srcDirs == [project.file("src/exe/headers")] as Set
-        project.executables.exe.source == [sourceSets.exe."$pluginName"] as Set
+        project.nativeExecutables.exe.source == [sourceSets.exe."$pluginName"] as Set
 
         and:
         sourceSets.lib instanceof FunctionalSourceSet
         sourceSetClass.isInstance(sourceSets.lib."$pluginName")
         sourceSets.lib."$pluginName".source.srcDirs == [project.file("src/lib/$pluginName")] as Set
         sourceSets.lib."$pluginName".exportedHeaders.srcDirs == [project.file("src/lib/headers")] as Set
-        project.libraries.lib.source == [sourceSets.lib."$pluginName"] as Set
+        project.nativeLibraries.lib.source == [sourceSets.lib."$pluginName"] as Set
     }
 
     def "can configure source set locations"() {
@@ -121,7 +121,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
                     emptyOne(sourceSetClass) {}
                 }
             }
-            executables {
+            nativeExecutables {
                 test {
                     binaries.all { NativeBinary binary ->
                         binary."${pluginName}Compiler".define "NDEBUG"

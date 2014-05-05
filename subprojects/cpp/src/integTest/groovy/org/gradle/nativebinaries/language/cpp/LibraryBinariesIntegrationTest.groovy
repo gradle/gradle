@@ -30,7 +30,7 @@ class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrati
         given:
         buildFile << """
             apply plugin: "cpp"
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -114,7 +114,7 @@ include 'exe', 'lib'
             project('exe') {
                 evaluationDependsOn(":lib")
                 apply plugin: "cpp"
-                executables {
+                nativeExecutables {
                     main {}
                 }
                 nativeLibraries {
@@ -197,7 +197,7 @@ include 'exe', 'lib'
         buildFile << """
             apply plugin: "cpp"
             apply plugin: "c"
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -272,7 +272,7 @@ include 'exe', 'lib'
             sources {
                 helloLib {}
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {

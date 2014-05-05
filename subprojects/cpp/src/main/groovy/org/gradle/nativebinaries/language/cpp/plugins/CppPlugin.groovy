@@ -42,12 +42,12 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         // TODO:DAZ It's ugly that we can't do this as project.binaries.all, but this is the way I could
         // add the cppCompiler in time to allow it to be configured within the component.binaries.all block.
-        project.executables.all { NativeExecutable executable ->
+        project.nativeExecutables.all { NativeExecutable executable ->
             executable.binaries.all { binary ->
                 binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
             }
         }
-        project.libraries.all { NativeLibrary library ->
+        project.nativeLibraries.all { NativeLibrary library ->
             library.binaries.all { binary ->
                 binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
             }

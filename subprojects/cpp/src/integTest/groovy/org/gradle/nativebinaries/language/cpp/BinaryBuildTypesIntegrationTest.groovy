@@ -58,7 +58,7 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
                     cppCompiler.define "FRENCH"
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
         """
@@ -94,7 +94,7 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
                     release
                 }
             }
-            executables {
+            nativeExecutables {
                 main {
                     targetBuildTypes "release"
                 }
@@ -135,7 +135,7 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
                     cppCompiler.define "FRENCH" // Equate 'debug' to 'french' for this test
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -160,7 +160,7 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
                     debug
                 }
             }
-            executables {
+            nativeExecutables {
                 main {
                     targetBuildTypes "unknown"
                 }
@@ -186,7 +186,7 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
                     release
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {

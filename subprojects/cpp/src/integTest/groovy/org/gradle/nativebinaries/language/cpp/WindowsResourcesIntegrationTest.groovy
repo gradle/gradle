@@ -32,7 +32,7 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
     def "user receives a reasonable error message when resource compilation fails"() {
         given:
         buildFile << """
-             executables {
+             nativeExecutables {
                  main {}
              }
          """
@@ -53,7 +53,7 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
     def "can create resources-only shared library"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -127,7 +127,7 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
         buildFile << helloWorldApp.pluginScript
         buildFile << helloWorldApp.extraConfiguration
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
         """

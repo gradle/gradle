@@ -51,7 +51,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         settingsFile.text = "include ':exe', ':other'"
         buildFile << """
         project(":exe") {
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -89,7 +89,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -119,7 +119,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     binaries.all { binary ->
                         binary.lib ${notation}
@@ -151,7 +151,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
             sources.main.cpp.lib library: 'hello', linkage: 'static'
@@ -179,7 +179,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         buildFile << """
         project(":exe") {
             ${explicitEvaluation}
-            executables {
+            nativeExecutables {
                 main {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
@@ -221,7 +221,7 @@ project.afterEvaluate {
         settingsFile.text = "include ':exe', ':lib', ':greet'"
         buildFile << """
         project(":exe") {
-            executables {
+            nativeExecutables {
                 main {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
@@ -256,7 +256,7 @@ project.afterEvaluate {
         buildFile << """
         project(":exe") {
             apply plugin: "cpp"
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -288,7 +288,7 @@ project.afterEvaluate {
         and:
         buildFile << """
             apply plugin: "cpp"
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -319,7 +319,7 @@ project.afterEvaluate {
         and:
         buildFile << """
             apply plugin: "cpp"
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {

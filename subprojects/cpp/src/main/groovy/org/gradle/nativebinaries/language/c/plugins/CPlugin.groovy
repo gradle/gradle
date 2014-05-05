@@ -38,10 +38,10 @@ class CPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(CLangPlugin)
 
-        project.executables.all { NativeExecutable executable ->
+        project.nativeExecutables.all { NativeExecutable executable ->
             addLanguageExtensionsToComponent(executable)
         }
-        project.libraries.all { NativeLibrary library ->
+        project.nativeLibraries.all { NativeLibrary library ->
             addLanguageExtensionsToComponent(library)
         }
 

@@ -44,7 +44,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
             release
         }
     }
-    executables {
+    nativeExecutables {
         main {}
     }
 """
@@ -175,7 +175,7 @@ EndGlobal
     def "can configure gradle command line"() {
         when:
         buildFile << """
-    executables {
+    nativeExecutables {
         main {}
     }
     tasks.withType(GenerateProjectFileTask) {

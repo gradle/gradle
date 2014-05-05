@@ -39,7 +39,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
             nativeLibraries {
                 hello {}
             }
-            executables {
+            nativeExecutables {
                 main {
                     binaries.all {
                         lib libraries.hello

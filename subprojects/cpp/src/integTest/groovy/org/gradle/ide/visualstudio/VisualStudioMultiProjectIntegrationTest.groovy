@@ -55,7 +55,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
         settingsFile.text = "include ':exe', ':lib'"
         file("exe", "build.gradle") << """
-    executables {
+    nativeExecutables {
         main {}
     }
     sources.main.cpp.lib project: ':lib', library: 'hello', linkage: 'static'
@@ -103,7 +103,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         buildFile << """
         project(":exe") {
             apply plugin: "cpp"
-            executables {
+            nativeExecutables {
                 main {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
@@ -154,7 +154,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         buildFile << """
         project(":exe") {
             apply plugin: "cpp"
-            executables {
+            nativeExecutables {
                 main {}
             }
             sources.main.cpp.lib project: ':lib', library: 'main'
@@ -205,7 +205,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         buildFile << """
         project(":exe") {
             apply plugin: "cpp"
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -250,7 +250,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         settingsFile.text = "include ':exe'"
         buildFile << """
     project(':exe') {
-        executables {
+        nativeExecutables {
             main {}
         }
     }
@@ -270,7 +270,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         settingsFile.text = "include ':exe', ':lib'"
         buildFile << """
     project(':exe') {
-        executables {
+        nativeExecutables {
             main {}
         }
         sources.main.cpp.lib project: ':lib', library: 'main', linkage: 'static'

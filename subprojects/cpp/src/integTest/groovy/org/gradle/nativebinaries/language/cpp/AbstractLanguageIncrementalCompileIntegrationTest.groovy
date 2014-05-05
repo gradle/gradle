@@ -47,7 +47,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         buildFile << app.pluginScript
         buildFile << app.extraConfiguration
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
         """
@@ -335,7 +335,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
             // Changed source file
 """
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     binaries.all {
                         ${helloWorldApp.compilerDefine("MY_DEF")}
@@ -457,7 +457,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
     def "incremental compile is not effected by other compile tasks"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 other
             }
 """

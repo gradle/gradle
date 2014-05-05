@@ -37,7 +37,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "compile and link executable"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
         """
@@ -57,7 +57,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build executable with custom compiler arg"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     binaries.all {
                         ${helloWorldApp.compilerArgs("-DFRENCH")}
@@ -81,7 +81,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build executable with macro defined"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     binaries.all {
                         ${helloWorldApp.compilerDefine("FRENCH")}
@@ -106,7 +106,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build shared library and link into executable"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -136,7 +136,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build static library and link into executable"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -180,7 +180,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         buildFile << helloWorldApp.pluginScript
         buildFile << helloWorldApp.extraConfiguration
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
         """

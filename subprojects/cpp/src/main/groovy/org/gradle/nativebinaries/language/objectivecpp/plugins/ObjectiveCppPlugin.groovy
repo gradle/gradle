@@ -77,13 +77,13 @@ class ObjectiveCppPlugin implements Plugin<ProjectInternal> {
         });
 
 
-        project.executables.all { NativeExecutable executable ->
+        project.nativeExecutables.all { NativeExecutable executable ->
             executable.binaries.all { binary ->
                 binary.extensions.create("objcppCompiler", DefaultPreprocessingTool)
             }
         }
 
-        project.libraries.all { NativeLibrary library ->
+        project.nativeLibraries.all { NativeLibrary library ->
             library.binaries.all { binary ->
                 binary.extensions.create("objcppCompiler", DefaultPreprocessingTool)
             }

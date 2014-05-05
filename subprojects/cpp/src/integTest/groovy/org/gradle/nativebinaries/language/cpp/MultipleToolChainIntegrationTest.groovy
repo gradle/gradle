@@ -33,7 +33,7 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'cpp'
 
-            executables {
+            nativeExecutables {
                 main {}
             }
         """

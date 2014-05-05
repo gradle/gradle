@@ -40,7 +40,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                 }
             }
 
-            executables {
+            nativeExecutables {
                 main {
                     binaries.all {
                         lib libraries.hello.static

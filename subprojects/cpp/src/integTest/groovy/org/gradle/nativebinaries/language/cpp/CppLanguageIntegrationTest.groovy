@@ -27,7 +27,7 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-             executables {
+             nativeExecutables {
                  main {}
              }
          """
@@ -53,7 +53,7 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         and:
         buildFile << """
-             executables {
+             nativeExecutables {
                  main {}
              }
          """
@@ -96,7 +96,7 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
 """

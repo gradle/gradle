@@ -35,7 +35,7 @@ class AssemblerPluginTest extends Specification {
         when:
         dsl {
             apply plugin: AssemblerPlugin
-            executables {
+            nativeExecutables {
                 exe {}
             }
             nativeLibraries {
@@ -51,13 +51,13 @@ class AssemblerPluginTest extends Specification {
         and:
         sourceSets.exe.asm instanceof AssemblerSourceSet
         sourceSets.exe.asm.source.srcDirs == [project.file("src/exe/asm")] as Set
-        project.executables.exe.source == [sourceSets.exe.asm] as Set
+        project.nativeExecutables.exe.source == [sourceSets.exe.asm] as Set
 
         and:
         sourceSets.lib instanceof FunctionalSourceSet
         sourceSets.lib.asm instanceof AssemblerSourceSet
         sourceSets.lib.asm.source.srcDirs == [project.file("src/lib/asm")] as Set
-        project.libraries.lib.source == [sourceSets.lib.asm] as Set
+        project.nativeLibraries.lib.source == [sourceSets.lib.asm] as Set
     }
 
     def "can configure source set locations"() {
@@ -99,7 +99,7 @@ class AssemblerPluginTest extends Specification {
                     emptyOne(AssemblerSourceSet) {}
                 }
             }
-            executables {
+            nativeExecutables {
                 test {
                     binaries.all { NativeBinary binary ->
                         binary.assembler.args "ARG1", "ARG2"
@@ -176,7 +176,7 @@ class AssemblerPluginTest extends Specification {
         when:
         dsl {
             apply plugin: AssemblerPlugin
-            executables {
+            nativeExecutables {
                 exe {}
             }
             nativeLibraries {

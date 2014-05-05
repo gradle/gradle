@@ -67,7 +67,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
             sources.main.cpp.lib library: 'hello', linkage: 'api'
@@ -115,7 +115,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
                 mainStatic {}
             }
@@ -163,7 +163,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
             sources.main.cpp.lib library: 'hello', linkage: 'static'
@@ -187,7 +187,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         buildFile << """
             project(':projectA') {
                 apply plugin: 'cpp'
-                executables {
+                nativeExecutables {
                     main {}
                 }
                 sources.main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
@@ -226,7 +226,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
             sources.main.cpp.lib library: 'hello', linkage: 'static'
@@ -255,7 +255,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
             sources.main.cpp.lib library: 'hello', linkage: 'static'
@@ -283,7 +283,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
             sources.main.cpp.lib library: 'other'
@@ -313,7 +313,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                         }
                     }
                 }
-                executables {
+                nativeExecutables {
                     main {}
                 }
                 sources.main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'

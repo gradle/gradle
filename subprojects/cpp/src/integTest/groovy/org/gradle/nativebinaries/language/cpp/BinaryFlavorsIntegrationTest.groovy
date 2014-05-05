@@ -55,7 +55,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 main {
                     binaries.all {
                         lib libraries.hello
@@ -99,7 +99,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "executable with flavors depends on library with matching flavors"() {
         when:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     targetFlavors "english", "french"
                     binaries.all {
@@ -132,7 +132,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "executable with flavors depends on library with no defined flavor"() {
         when:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     targetFlavors "english", "french"
                     binaries.all {
@@ -157,7 +157,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "executable with flavors depends on a library with a single flavor which depends on a library with flavors"() {
         when:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     targetFlavors "english", "french"
                     binaries.all {
@@ -196,7 +196,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     targetFlavors "english", "french"
                 }
             }
-            executables {
+            nativeExecutables {
                 main {
                     targetFlavors "english", "german"
                     binaries.all {

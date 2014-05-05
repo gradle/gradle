@@ -83,10 +83,10 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        project.executables.all { NativeExecutable executable ->
+        project.nativeExecutables.all { NativeExecutable executable ->
             addLanguageExtensionsToComponent(executable)
         }
-        project.libraries.all { NativeLibrary library ->
+        project.nativeLibraries.all { NativeLibrary library ->
             addLanguageExtensionsToComponent(library)
         }
 

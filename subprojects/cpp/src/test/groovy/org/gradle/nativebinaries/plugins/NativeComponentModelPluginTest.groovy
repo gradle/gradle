@@ -40,7 +40,7 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "adds model extensions"() {
         expect:
-        project.executables instanceof NamedDomainObjectContainer
+        project.nativeExecutables instanceof NamedDomainObjectContainer
         project.nativeLibraries instanceof NamedDomainObjectContainer
         project.modelRegistry.get("toolChains", ToolChainRegistry) != null
         project.modelRegistry.get("platforms", PlatformContainer) != null
@@ -65,7 +65,7 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "adds default flavor to every binary"() {
         when:
-        project.executables.create "exe"
+        project.nativeExecutables.create "exe"
         project.nativeLibraries.create "lib"
         project.evaluate()
 
@@ -118,7 +118,7 @@ class NativeComponentModelPluginTest extends Specification {
                 add named(Flavor, "flavor1")
             }
         }
-        def executable = project.executables.create "test"
+        def executable = project.nativeExecutables.create "test"
         project.evaluate()
 
         then:
@@ -188,7 +188,7 @@ class NativeComponentModelPluginTest extends Specification {
     def "creates lifecycle task for each binary"() {
         when:
         project.plugins.apply(NativeComponentModelPlugin)
-        def executable = project.executables.create "exe"
+        def executable = project.nativeExecutables.create "exe"
         def library = project.nativeLibraries.create "lib"
         project.evaluate()
 

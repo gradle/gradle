@@ -98,7 +98,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().add("nativeLibraries", nativeLibraries);
 
         project.getExtensions().create(
-                "executables",
+                "nativeExecutables",
                 DefaultExecutableContainer.class,
                 instantiator,
                 project

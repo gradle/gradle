@@ -52,7 +52,7 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
         """
@@ -96,7 +96,7 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
         """

@@ -30,7 +30,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         given:
         buildFile << """
             apply plugin: "cpp"
-            executables {
+            nativeExecutables {
                 main {}
             }
         """
@@ -57,7 +57,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             release
         }
     }
-    executables {
+    nativeExecutables {
         main
     }
     binaries.all { binary ->
@@ -90,7 +90,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             sources {
                 test {}
             }
-            executables {
+            nativeExecutables {
                 main {
                     source sources.test.cpp
                     source sources.test.c
@@ -116,7 +116,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             sources {
                 test {}
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
             binaries.all {
@@ -143,7 +143,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             sources {
                 test {}
             }
-            executables {
+            nativeExecutables {
                 main {}
             }
             binaries.all {
@@ -171,7 +171,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             apply plugin: "cpp"
             apply plugin: "java"
 
-            executables {
+            nativeExecutables {
                 main {
                     source sources.test.cpp
                     source sources.test.c
@@ -195,7 +195,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         given:
         buildFile << """
             apply plugin: "cpp"
-            executables {
+            nativeExecutables {
                 main {}
             }
         """

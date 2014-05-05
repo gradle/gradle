@@ -75,7 +75,7 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
                     cpp(CppSourceSet)
                 }
             }
-            executables {
+            nativeExecutables {
                 main {
                     source sources.main
                 }
@@ -86,7 +86,7 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
     def "library dependency of binary is available when linking all source sets"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     source sources.other
                     binaries.all {
@@ -106,7 +106,7 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
     def "library dependency of 1 language source set is available to another when linking"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     source sources.other
                 }
@@ -124,7 +124,7 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
     def "dependencies of language source set added to binary are available when linking"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     binaries.all {
                         source sources.other

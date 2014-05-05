@@ -47,7 +47,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -86,7 +86,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             }
 """
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
       nativeLibraries {ries {
@@ -125,7 +125,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
                     release
                 }
             }
-            executables {
+            nativeExecutables {
                 main
             }
             nativeLibraries {
@@ -163,7 +163,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -192,7 +192,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {}
             }
             nativeLibraries {
@@ -219,7 +219,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main
             }
             nativeLibraries {

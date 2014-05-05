@@ -39,7 +39,7 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         library {}
     }
     sources.main.c.lib sources.library.c
-    executables {
+    nativeExecutables {
         main {
             source sources.library
         }
@@ -61,7 +61,7 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
     apply plugin: 'c'
     // library not required in executable: only headers are used
-    executables {
+    nativeExecutables {
         main {}
     }
     sources {
@@ -89,7 +89,7 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
         library {}
     }
     sources.main.cpp.lib sources.library.c
-    executables {
+    nativeExecutables {
         main {
             source sources.library
         }
@@ -113,7 +113,7 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
 
         buildFile << """
     apply plugin: 'cpp'
-    executables {
+    nativeExecutables {
         main {}
     }
     sources {
@@ -139,7 +139,7 @@ class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainInt
     sources {
         extra {}
     }
-    executables {
+    nativeExecutables {
         main {
             binaries.all {
                 lib sources.extra.cpp

@@ -40,7 +40,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             apply plugin: 'cpp'
 
-            executables {
+            nativeExecutables {
                 main {}
             }
         """
@@ -108,7 +108,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
                     }
                 }
             }
-            executables {
+            nativeExecutables {
                 exe {}
             }
             nativeLibraries {

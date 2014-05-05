@@ -69,7 +69,7 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
                     cpp(CppSourceSet)
                 }
             }
-            executables {
+            nativeExecutables {
                 main {
                     source sources.main
                 }
@@ -80,7 +80,7 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
     def "dependencies of 2 language source sets are not shared when compiling"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     source sources.other
                 }
@@ -99,7 +99,7 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
     def "dependencies of language source set added to binary are not shared when compiling"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     binaries.all {
                         source sources.other
@@ -120,7 +120,7 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
     def "dependencies of binary are shared with all source sets when compiling"() {
         given:
         buildFile << """
-            executables {
+            nativeExecutables {
                 main {
                     source sources.other
                     binaries.all {

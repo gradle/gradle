@@ -34,7 +34,7 @@ class NativeComponentPluginTest extends Specification {
 
     def "creates link and install task for executable"() {
         when:
-        project.executables.create "test"
+        project.nativeExecutables.create "test"
         project.evaluate()
 
         then:
@@ -58,7 +58,7 @@ class NativeComponentPluginTest extends Specification {
 
     def "creates link task and static archive task for library"() {
         when:
-        project.libraries.create "test"
+        project.nativeLibraries.create "test"
         project.evaluate()
 
         then:
@@ -101,10 +101,10 @@ class NativeComponentPluginTest extends Specification {
         project.sources.create "testExe"
         project.sources.testExe.add languageSourceSet
 
-        project.executables.create "testExe"
+        project.nativeExecutables.create "testExe"
 
         then:
-        project.executables.testExe.source == [languageSourceSet] as Set
+        project.nativeExecutables.testExe.source == [languageSourceSet] as Set
     }
 
     def "creates and attaches functional source set with same name to component"() {
@@ -118,9 +118,9 @@ class NativeComponentPluginTest extends Specification {
             functionalSourceSet.add languageSourceSet
         }
 
-        project.executables.create "testExe"
+        project.nativeExecutables.create "testExe"
 
         then:
-        project.executables.testExe.source == [languageSourceSet] as Set
+        project.nativeExecutables.testExe.source == [languageSourceSet] as Set
     }
 }
