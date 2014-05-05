@@ -138,7 +138,7 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             sources.main.cpp.lib libraries.hello.static
@@ -189,7 +189,7 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {
                     targetBuildTypes "debug"
                 }

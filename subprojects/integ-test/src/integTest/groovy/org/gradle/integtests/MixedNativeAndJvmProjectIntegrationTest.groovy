@@ -27,7 +27,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
             apply plugin: "cpp"
 
             executables { main {} }
-            libraries { main {} }
+            nativeLibraries { main {} }
 
             task checkBinaries << {
                 assert binaries.mainClasses instanceof ClassDirectoryBinary

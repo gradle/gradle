@@ -63,7 +63,7 @@ class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChai
         and:
         buildFile << """
             apply plugin: "cpp"
-            libraries {
+            nativeLibraries {
                 lib1
             }
             sources {

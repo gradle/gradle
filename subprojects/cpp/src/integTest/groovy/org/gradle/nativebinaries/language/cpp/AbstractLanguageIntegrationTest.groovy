@@ -109,7 +109,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             sources.main.${helloWorldApp.sourceType}.lib libraries.hello
@@ -139,7 +139,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {
                     binaries.withType(StaticLibraryBinary) {
                         ${helloWorldApp.compilerDefine("FRENCH")}

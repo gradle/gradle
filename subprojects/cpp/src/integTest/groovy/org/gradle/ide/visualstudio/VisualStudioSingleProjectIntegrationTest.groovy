@@ -92,7 +92,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    libraries {
+    nativeLibraries {
         main {}
     }
 """
@@ -122,7 +122,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    libraries {
+    nativeLibraries {
         main {
         }
     }
@@ -149,7 +149,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    libraries {
+    nativeLibraries {
         both {}
         staticOnly {
             binaries.withType(SharedLibraryBinary) {
@@ -173,7 +173,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    libraries {
+    nativeLibraries {
         main {
             binaries.withType(SharedLibraryBinary) {
                 buildable = false
@@ -204,7 +204,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    libraries {
+    nativeLibraries {
         hello {}
     }
     executables {
@@ -239,7 +239,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    libraries {
+    nativeLibraries {
         hello {}
     }
     executables {
@@ -276,7 +276,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         buildFile << """
             apply plugin: "cpp"
-            libraries {
+            nativeLibraries {
                 greetings {}
                 hello {}
             }
@@ -322,7 +322,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    libraries {
+    nativeLibraries {
         hello {}
     }
     executables {
@@ -359,7 +359,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    libraries {
+    nativeLibraries {
         hello {}
     }
     executables {
@@ -428,7 +428,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
                 greetings {}
             }
@@ -468,7 +468,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
                 greetings {}
             }
@@ -634,7 +634,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 helloApi {}
                 hello {}
             }
@@ -749,7 +749,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
                 greetings {}
             }
@@ -789,7 +789,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    libraries {
+    nativeLibraries {
         hello {}
     }
     executables {

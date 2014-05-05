@@ -41,7 +41,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     german
                 }
             }
-            libraries {
+            nativeLibraries {
                 greetings {
                     binaries.all {
                         if (!org.gradle.internal.os.OperatingSystem.current().isWindows()) {
@@ -167,7 +167,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     }
                 }
             }
-            libraries {
+            nativeLibraries {
                 greetings {
                     targetFlavors "english", "french"
                     binaries.all {
@@ -191,7 +191,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         when:
         buildFile << """
             apply plugin: "cpp"
-            libraries {
+            nativeLibraries {
                 hello {
                     targetFlavors "english", "french"
                 }

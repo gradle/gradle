@@ -61,7 +61,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
     sources.main.cpp.lib project: ':lib', library: 'hello', linkage: 'static'
 """
         file("lib", "build.gradle") << """
-    libraries {
+    nativeLibraries {
         hello {}
     }
 """
@@ -110,14 +110,14 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         }
         project(":lib") {
             apply plugin: "cpp"
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             sources.hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
         }
         project(":greet") {
             apply plugin: "cpp"
-            libraries {
+            nativeLibraries {
                 greetings {}
             }
         }
@@ -161,14 +161,14 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         }
         project(":lib") {
             apply plugin: "cpp"
-            libraries {
+            nativeLibraries {
                 main {}
             }
             sources.main.cpp.lib project: ':greet', library: 'main', linkage: 'static'
         }
         project(":greet") {
             apply plugin: "cpp"
-            libraries {
+            nativeLibraries {
                 main {}
             }
         }
@@ -208,14 +208,14 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 greetings {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
         project(":lib") {
             apply plugin: "cpp"
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             sources.hello.cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
@@ -276,7 +276,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         sources.main.cpp.lib project: ':lib', library: 'main', linkage: 'static'
     }
     project(':lib') {
-        libraries {
+        nativeLibraries {
             main {}
         }
     }

@@ -47,7 +47,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
                     }
                 }
             }
-            libraries {
+            nativeLibraries {
                 hello {}
             }
 """

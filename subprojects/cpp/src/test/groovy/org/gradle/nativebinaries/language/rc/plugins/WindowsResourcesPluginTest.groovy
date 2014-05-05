@@ -37,7 +37,7 @@ class WindowsResourcesPluginTest extends Specification {
             executables {
                 exe {}
             }
-            libraries {
+            nativeLibraries {
                 lib {}
             }
         }

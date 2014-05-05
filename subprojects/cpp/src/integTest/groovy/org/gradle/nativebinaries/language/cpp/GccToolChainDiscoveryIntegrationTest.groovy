@@ -44,7 +44,7 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
                     }
                 }
             }
-            libraries {
+            nativeLibraries {
                 hello {}
             }
 """

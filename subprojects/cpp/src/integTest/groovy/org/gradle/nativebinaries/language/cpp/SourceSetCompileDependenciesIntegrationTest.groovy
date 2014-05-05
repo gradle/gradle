@@ -57,7 +57,7 @@ class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolC
         and:
         buildFile << """
             apply plugin: "cpp"
-            libraries {
+            nativeLibraries {
                 lib1
                 lib2
             }

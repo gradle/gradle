@@ -154,7 +154,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     executables {
         main {}
     }
-    libraries {
+    nativeLibraries {
         hello {}
     }
     sources {

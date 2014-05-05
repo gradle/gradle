@@ -41,7 +41,7 @@ class NativeComponentModelPluginTest extends Specification {
     def "adds model extensions"() {
         expect:
         project.executables instanceof NamedDomainObjectContainer
-        project.libraries instanceof NamedDomainObjectContainer
+        project.nativeLibraries instanceof NamedDomainObjectContainer
         project.modelRegistry.get("toolChains", ToolChainRegistry) != null
         project.modelRegistry.get("platforms", PlatformContainer) != null
         project.modelRegistry.get("buildTypes", BuildTypeContainer) != null
@@ -66,7 +66,7 @@ class NativeComponentModelPluginTest extends Specification {
     def "adds default flavor to every binary"() {
         when:
         project.executables.create "exe"
-        project.libraries.create "lib"
+        project.nativeLibraries.create "lib"
         project.evaluate()
 
         then:
@@ -153,7 +153,7 @@ class NativeComponentModelPluginTest extends Specification {
                 add named(Flavor, "flavor1")
             }
         }
-        def library = project.libraries.create "test"
+        def library = project.nativeLibraries.create "test"
         project.evaluate()
 
         then:
@@ -189,7 +189,7 @@ class NativeComponentModelPluginTest extends Specification {
         when:
         project.plugins.apply(NativeComponentModelPlugin)
         def executable = project.executables.create "exe"
-        def library = project.libraries.create "lib"
+        def library = project.nativeLibraries.create "lib"
         project.evaluate()
 
         then:

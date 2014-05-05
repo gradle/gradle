@@ -54,13 +54,13 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             sources.main.cpp.lib ${dependencyNotation}
         }
         project(":other") {
-            libraries {
+            nativeLibraries {
                 hello {}
             }
         }
@@ -92,7 +92,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             sources.main.cpp.lib ${notation}
@@ -126,7 +126,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
                     }
                 }
             }
-            libraries {
+            nativeLibraries {
                 hello {}
             }
         """
@@ -155,7 +155,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
                 main {}
             }
             sources.main.cpp.lib library: 'hello', linkage: 'static'
-            libraries {
+            nativeLibraries {
                 hello {}
             }
         """
@@ -185,7 +185,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
         project(":lib") {
-            libraries {
+            nativeLibraries {
                 hello {}
             }
         }
@@ -227,13 +227,13 @@ project.afterEvaluate {
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
         project(":lib") {
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             sources.hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
         }
         project(":greet") {
-            libraries {
+            nativeLibraries {
                 greetings {}
             }
         }
@@ -259,14 +259,14 @@ project.afterEvaluate {
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 greetings {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
         project(":lib") {
             apply plugin: "cpp"
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             sources.hello.cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
@@ -291,7 +291,7 @@ project.afterEvaluate {
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
                 greetings {}
             }
@@ -322,7 +322,7 @@ project.afterEvaluate {
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
                 greetings {}
             }

@@ -215,7 +215,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         given:
         buildFile << """
             apply plugin: "cpp"
-            libraries { main {} }
+            nativeLibraries { main {} }
         """
 
         and:
@@ -242,7 +242,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         given:
         buildFile << """
             apply plugin: "cpp"
-            libraries { main {} }
+            nativeLibraries { main {} }
             binaries.withType(StaticLibraryBinary) {
                 staticLibArchiver.args "not_a_file"
             }

@@ -56,7 +56,7 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 resources {
                     binaries.all {
                         linker.args "/noentry", "/machine:x86"

@@ -36,7 +36,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
 
             $app.extraConfiguration
 
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             executables {
@@ -70,7 +70,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     def "reassembles binary with assembler option change"() {
         when:
         buildFile << """
-            libraries {
+            nativeLibraries {
                 hello {
                     binaries.all {
                         if (toolChain in VisualCpp) {

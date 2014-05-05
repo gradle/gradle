@@ -50,7 +50,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 helloApi {}
                 hello {}
             }
@@ -89,7 +89,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             executables {
                 main {}
             }
-            libraries {
+      nativeLibraries {ries {
                 util {}
             }
             sources.main.cpp.lib library: 'util'
@@ -128,7 +128,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             executables {
                 main
             }
-            libraries {
+            nativeLibraries {
                 util {
                     binaries.all { binary ->
                         binary.source sources[binary.buildType.name]
@@ -166,7 +166,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
                 hello2 {}
             }
@@ -195,7 +195,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
                 greetings {}
             }
@@ -220,9 +220,9 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
         and:
         buildFile << """
             executables {
-                main {}
+                main
             }
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             sources.main.cpp.lib library: 'hello', linkage: 'api'

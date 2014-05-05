@@ -38,7 +38,7 @@ class AssemblerPluginTest extends Specification {
             executables {
                 exe {}
             }
-            libraries {
+            nativeLibraries {
                 lib {}
             }
         }
@@ -136,7 +136,7 @@ class AssemblerPluginTest extends Specification {
                     emptyOne(AssemblerSourceSet) {}
                 }
             }
-            libraries {
+            nativeLibraries {
                 test {
                     binaries.all {
                         assembler.args "ARG1", "ARG2"
@@ -179,7 +179,7 @@ class AssemblerPluginTest extends Specification {
             executables {
                 exe {}
             }
-            libraries {
+            nativeLibraries {
                 lib {}
             }
         }

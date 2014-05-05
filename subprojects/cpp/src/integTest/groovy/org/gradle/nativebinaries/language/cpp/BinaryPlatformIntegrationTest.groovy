@@ -111,7 +111,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             executables {
                 exe {}
             }
-            libraries {
+            nativeLibraries {
                 hello {}
             }
             sources.exe.cpp.lib libraries.hello.static
@@ -305,7 +305,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
                     two
                 }
             }
-            libraries {
+            nativeLibraries {
                 hello {
                     targetPlatforms "two"
                 }

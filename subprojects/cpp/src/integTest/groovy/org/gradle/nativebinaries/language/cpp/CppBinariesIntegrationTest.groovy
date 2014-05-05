@@ -105,7 +105,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         buildFile << """
             apply plugin: "cpp"
 
-            libraries {
+            nativeLibraries {
                 hello {
                     binaries.all {
                         cppCompiler.define 'ENABLE_GREETING'
@@ -299,7 +299,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                     }
                 }
             }
-            libraries {
+            nativeLibraries {
                 hello {
                     binaries.withType(SharedLibraryBinary) {
                         sharedLibraryFile = modPath(sharedLibraryFile)
@@ -341,7 +341,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
             executables {
                 main {}
             }
-            libraries {
+            nativeLibraries {
                 hello {
                     binaries.withType(SharedLibraryBinary) {
                         sharedLibraryFile = modPath(sharedLibraryFile)

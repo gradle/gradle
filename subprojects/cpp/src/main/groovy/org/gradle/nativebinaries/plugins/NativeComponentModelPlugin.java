@@ -16,6 +16,7 @@
 package org.gradle.nativebinaries.plugins;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
@@ -92,8 +93,9 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         DefaultLibraryContainer libraries = (DefaultLibraryContainer) project.getExtensions().getByType(LibraryContainer.class);
         libraries.registerFactory(NativeLibrary.class, new NativeLibraryFactory(instantiator, project));
-        // TODO:DAZ Decide if we want implicit library types or not, and implement properly
-        libraries.registerDefaultFactory(new NativeLibraryFactory(instantiator, project));
+
+        NamedDomainObjectContainer<NativeLibrary> nativeLibraries = libraries.containerWithType(NativeLibrary.class);
+        project.getExtensions().add("nativeLibraries", nativeLibraries);
 
         project.getExtensions().create(
                 "executables",

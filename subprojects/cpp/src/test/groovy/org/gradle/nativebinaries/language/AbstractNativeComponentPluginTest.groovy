@@ -43,7 +43,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
             executables {
                 exe {}
             }
-            libraries {
+            nativeLibraries {
                 lib {}
             }
         }

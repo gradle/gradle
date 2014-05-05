@@ -67,7 +67,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
                     }
                 }
             }
-            libraries {
+            nativeLibraries {
                 hello {
                     binaries.withType(SharedLibraryBinary) {
                         ${app.compilerDefine("DLL_EXPORT")}
@@ -254,7 +254,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         buildFile << """
-            libraries {
+            nativeLibraries {
                 hello {
                     binaries.all {
                         ${helloWorldApp.compilerArgs("-DFRENCH")}

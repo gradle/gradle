@@ -78,8 +78,7 @@
         <extends targetClass="org.gradle.api.Project" id="sources" extensionClass="org.gradle.language.base.ProjectSourceSet"/>
     </plugin>
     <plugin id="native-component" description="Native Component Model Plugin">
-        <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.runtime.base.BinaryContainer"/>
-        <extends targetClass="org.gradle.api.Project" id="libraries" extensionClass="org.gradle.runtime.base.LibraryContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="nativeLibraries" extensionClass="org.gradle.api.NamedDomainObjectContainer"/>
         <extends targetClass="org.gradle.api.Project" id="executables" extensionClass="org.gradle.nativebinaries.ExecutableContainer"/>
         <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativebinaries.toolchain.ToolChainRegistry"/>
         <extends targetClass="org.gradle.api.Project" id="buildTypes" extensionClass="org.gradle.nativebinaries.BuildTypeContainer"/>

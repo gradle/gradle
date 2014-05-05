@@ -36,7 +36,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     french
                 }
             }
-            libraries {
+            nativeLibraries {
                 hello {
                     binaries.all {
                         if (flavor == flavors.french) {
