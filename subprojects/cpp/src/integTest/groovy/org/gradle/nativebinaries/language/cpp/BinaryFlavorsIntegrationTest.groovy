@@ -75,9 +75,9 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             cppCompiler.define "FRENCH"
         }
     }
-    executables.main.targetFlavors "french"
-    libraries.hello.targetFlavors "french"
-    libraries.greetings.targetFlavors "french"
+    nativeExecutables.main.targetFlavors "french"
+    nativeLibraries.hello.targetFlavors "french"
+    nativeLibraries.greetings.targetFlavors "french"
 """
         when:
         succeeds "installMainExecutable"
@@ -109,7 +109,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     }
                 }
             }
-            libraries.all {
+            nativeLibraries.all {
                 targetFlavors "english", "french"
                 binaries.all {
                     if (flavor == flavors.french) {
@@ -214,7 +214,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "fails with reasonable error message when trying to target an unknown flavor"() {
         when:
         buildFile << """
-            executables.main.targetFlavors "unknown"
+            nativeExecutables.main.targetFlavors "unknown"
 """
 
         and:

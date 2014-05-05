@@ -133,7 +133,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         }
     }
     sources.main.c.lib sources.generated.c
-    executables.main.source sources.generated.c
+    nativeExecutables.main.source sources.generated.c
 """
 
         then:

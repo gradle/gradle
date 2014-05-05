@@ -53,8 +53,8 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     }
 
     task check << {
-        assert executables.size() == 1
-        assert executables.nativeExe instanceof NativeExecutable
+        assert nativeExecutables.size() == 1
+        assert nativeExecutables.nativeExe instanceof NativeExecutable
 
         assert libraries.size() == 2
         assert libraries.nativeLib instanceof NativeLibrary
@@ -77,7 +77,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     apply plugin: 'native-component'
     apply plugin: 'jvm-component'
 
-    executables {
+    nativeExecutables {
         nativeApp
     }
     libraries {

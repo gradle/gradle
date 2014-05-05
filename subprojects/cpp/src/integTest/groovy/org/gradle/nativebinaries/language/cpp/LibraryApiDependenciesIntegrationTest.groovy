@@ -89,7 +89,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             nativeExecutables {
                 main {}
             }
-      nativeLibraries {ries {
+            nativeLibraries {
                 util {}
             }
             sources.main.cpp.lib library: 'util'
