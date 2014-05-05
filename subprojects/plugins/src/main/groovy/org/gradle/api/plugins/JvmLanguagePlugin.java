@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.jvm.plugins;
+package org.gradle.api.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.jvm.DefaultClassDirectoryBinary;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.jvm.ClassDirectoryBinary;
 import org.gradle.api.tasks.Copy;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.runtime.base.internal.BinaryInternal;
-import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.runtime.jvm.ClassDirectoryBinary;
 import org.gradle.language.jvm.ResourceSet;
-import org.gradle.runtime.jvm.internal.DefaultClassDirectoryBinary;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.internal.BinaryInternal;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -41,10 +41,10 @@ import java.util.concurrent.Callable;
 // TODO:DAZ Replace with JvmComponentPlugin, or make this extend JvmComponentPlugin
 /**
  * Base plugin for JVM language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.runtime.jvm.ClassDirectoryBinary} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
- * Adds a lifecycle task named {@code classes} for each {@link org.gradle.runtime.jvm.ClassDirectoryBinary}.
+ * Registers the {@link org.gradle.api.jvm.ClassDirectoryBinary} element type for the {@link org.gradle.runtime.base.BinaryContainer}.
+ * Adds a lifecycle task named {@code classes} for each {@link org.gradle.api.jvm.ClassDirectoryBinary}.
  * Registers the {@link org.gradle.language.jvm.ResourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
- * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.runtime.jvm.ClassDirectoryBinary}.
+ * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinary}.
  */
 @Incubating
 public class JvmLanguagePlugin implements Plugin<Project> {

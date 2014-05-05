@@ -36,7 +36,7 @@ import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
-import org.gradle.runtime.jvm.ClassDirectoryBinary;
+import org.gradle.api.jvm.ClassDirectoryBinary;
 import org.gradle.runtime.jvm.Classpath;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.internal.DefaultResourceSet;

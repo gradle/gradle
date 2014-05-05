@@ -18,8 +18,7 @@ package org.gradle.api.plugins
 import org.gradle.api.Project
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.runtime.jvm.ClassDirectoryBinary
-import org.gradle.language.jvm.plugins.JvmLanguagePlugin
+import org.gradle.api.jvm.ClassDirectoryBinary
 import org.gradle.util.TestUtil
 
 import spock.lang.Specification

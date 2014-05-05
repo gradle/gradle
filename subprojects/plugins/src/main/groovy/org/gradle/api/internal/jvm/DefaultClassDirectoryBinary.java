@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.runtime.jvm.internal;
+package org.gradle.api.internal.jvm;
 
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.jvm.ClassDirectoryBinary;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.runtime.base.internal.AbstractBuildableModelElement;
 import org.gradle.runtime.base.internal.BinaryInternal;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.runtime.jvm.ClassDirectoryBinary;
 
 import java.io.File;
 

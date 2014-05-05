@@ -31,15 +31,14 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.runtime.jvm.internal.DefaultClasspath;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.runtime.jvm.ClassDirectoryBinary;
-import org.gradle.language.jvm.plugins.JvmLanguagePlugin;
+import org.gradle.api.jvm.ClassDirectoryBinary;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
- * Plugin for compiling Java code. Applies the {@link org.gradle.language.jvm.plugins.JvmLanguagePlugin}.
- * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.runtime.jvm.ClassDirectoryBinary}.
+ * Plugin for compiling Java code. Applies the {@link JvmLanguagePlugin}.
+ * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinary}.
  * Registers the {@link JavaSourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
  */
 @Incubating
