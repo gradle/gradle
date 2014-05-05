@@ -33,7 +33,7 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin declared in plugins {} block gets resolved from portal and applied"() {
-        // communicates test portal hostname/port to PluginPortalClient
+        // communicates test portal hostname/port to PluginPortalResolver
         def pluginVersion = "test_localhost_${server.port}_1.0"
 
         TestFile metadataFile = generatePortalResponse(pluginVersion)
