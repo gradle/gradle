@@ -16,6 +16,7 @@
 package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorldApp
 
 class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -39,6 +40,43 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         executable("build/binaries/mainExecutable/main").assertDoesNotExist()
+    }
+
+    def "assemble task constructs all buildable binaries"() {
+        given:
+        new CHelloWorldApp().writeSources(file("src/main"))
+
+        and:
+        buildFile << """
+    apply plugin: 'c'
+
+    model {
+        buildTypes {
+            debug
+            optimised
+            release
+        }
+    }
+    executables {
+        main
+    }
+    binaries.all { binary ->
+        if (binary.buildType == buildTypes.optimised) {
+            binary.buildable = false
+        }
+    }
+"""
+        when:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped ":debugMainExecutable", ":releaseMainExecutable"
+        notExecuted ":optimisedMainExecutable"
+
+        and:
+        executable("build/binaries/mainExecutable/debug/main").assertExists()
+        executable("build/binaries/mainExecutable/optimised/main").assertDoesNotExist()
+        executable("build/binaries/mainExecutable/release/main").assertExists()
     }
 
     def "assemble executable from component with multiple language source sets"() {

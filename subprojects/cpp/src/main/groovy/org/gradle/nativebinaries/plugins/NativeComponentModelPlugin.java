@@ -121,8 +121,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @SuppressWarnings("UnusedDeclaration")
         void attach(TaskContainer tasks, BinaryContainer binaries) {
             Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
-            for (NativeBinary jvmLibraryBinary : binaries.withType(NativeBinary.class)) {
-                assembleTask.dependsOn(jvmLibraryBinary);
+            for (ProjectNativeBinary nativeBinary : binaries.withType(ProjectNativeBinary.class)) {
+                if (nativeBinary.isBuildable()) {
+                    assembleTask.dependsOn(nativeBinary);
+                }
             }
         }
     }
