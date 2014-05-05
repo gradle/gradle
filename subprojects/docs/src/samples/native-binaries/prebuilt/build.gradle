@@ -39,7 +39,4 @@ executables {
 }
 sources.main.cpp.lib library: 'boost', linkage: 'api'
 sources.main.cpp.lib library: 'util', linkage: 'static'
-task buildExecutables {
-    dependsOn binaries.withType(NativeExecutableBinary)
-}
 

@@ -253,7 +253,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     def variants() {
         when:
         sample variants
-        run "buildExecutables"
+        run "assemble"
 
         then:
         final debugX86 = executable(variants.dir.file("build/binaries/mainExecutable/x86Debug/main"))
@@ -348,13 +348,13 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     def prebuilt() {
         given:
         inDirectory(prebuilt.dir.file("3rd-party-lib/util"))
-        run "buildLibraries"
+        run "assemble"
 
         and:
         sample prebuilt
 
         when:
-        succeeds "buildExecutables"
+        succeeds "assemble"
 
         then:
 

@@ -45,17 +45,12 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     }
                 }
             }
-            task buildAll {
-                dependsOn binaries.matching {
-                    it.buildable
-                }
-            }
 """
     }
 
     private void preBuildLibrary() {
         executer.inDirectory(file("libs"))
-        run "buildAll"
+        run "assemble"
     }
 
     def "can link to a prebuilt header-only library with api linkage"() {

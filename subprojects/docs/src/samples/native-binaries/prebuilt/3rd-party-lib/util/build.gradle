@@ -20,6 +20,3 @@ libraries {
         }
     }
 }
-task buildLibraries {
-    dependsOn binaries.withType(NativeLibraryBinary)
-}
