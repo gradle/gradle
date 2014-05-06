@@ -19,19 +19,18 @@ package org.gradle.nativebinaries.internal.configure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.ModelRule;
+import org.gradle.nativebinaries.BuildTypeContainer;
+import org.gradle.nativebinaries.FlavorContainer;
+import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.nativebinaries.ProjectNativeComponent;
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
+import org.gradle.nativebinaries.platform.PlatformContainer;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.SoftwareComponentContainer;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.model.ModelRule;
-import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativebinaries.platform.PlatformContainer;
-import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class CreateNativeBinaries extends ModelRule {
     private final Instantiator instantiator;
@@ -56,24 +55,10 @@ public class CreateNativeBinaries extends ModelRule {
         Action<ProjectNativeComponent> createBinariesAction =
                 new ProjectNativeComponentInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
 
-        for (ProjectNativeComponent component : allComponents()) {
+        SoftwareComponentContainer softwareComponents = project.getExtensions().getByType(SoftwareComponentContainer.class);
+        for (ProjectNativeComponent component : softwareComponents.withType(ProjectNativeComponent.class)) {
             createBinariesAction.execute(component);
             binaries.addAll(component.getBinaries());
         }
     }
-
-    private Collection<ProjectNativeComponent> allComponents() {
-        SoftwareComponentContainer softwareComponents = project.getExtensions().getByType(SoftwareComponentContainer.class);
-
-        List<ProjectNativeComponent> components = new ArrayList<ProjectNativeComponent>();
-        // TODO:DAZ merge
-        for (NativeLibrary library : softwareComponents.withType(NativeLibrary.class)) {
-            components.add(library);
-        }
-        for (NativeExecutable executable : softwareComponents.withType(NativeExecutable.class)) {
-            components.add(executable);
-        }
-        return components;
-    }
-
 }

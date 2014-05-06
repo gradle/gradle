@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.c.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.c.CSourceSet
 import org.gradle.language.c.plugins.CLangPlugin
-import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
@@ -38,11 +40,10 @@ class CPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(CLangPlugin)
 
-        project.nativeExecutables.all { NativeExecutable executable ->
-            addLanguageExtensionsToComponent(executable)
-        }
-        project.nativeLibraries.all { NativeLibrary library ->
-            addLanguageExtensionsToComponent(library)
+        project.nativeComponents.all { component ->
+            component.binaries.all { binary ->
+                binary.extensions.create("cCompiler", DefaultPreprocessingTool)
+            }
         }
 
         project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
@@ -54,12 +55,6 @@ class CPlugin implements Plugin<ProjectInternal> {
                     binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
                 }
             }
-        }
-    }
-
-    private def addLanguageExtensionsToComponent(ProjectNativeComponent component) {
-        component.binaries.all { binary ->
-            binary.extensions.create("cCompiler", DefaultPreprocessingTool)
         }
     }
 

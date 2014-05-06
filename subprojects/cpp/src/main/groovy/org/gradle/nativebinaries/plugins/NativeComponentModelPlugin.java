@@ -32,7 +32,10 @@ import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.*;
+import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
+import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
+import org.gradle.nativebinaries.internal.NativeExecutableFactory;
+import org.gradle.nativebinaries.internal.NativeLibraryFactory;
 import org.gradle.nativebinaries.internal.configure.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
@@ -92,6 +95,9 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         components.registerFactory(NativeExecutable.class, new NativeExecutableFactory(instantiator, project));
         project.getExtensions().add("nativeExecutables", components.containerWithType(NativeExecutable.class));
+
+        // TODO:DAZ Not sure if we should keep this
+        project.getExtensions().add("nativeComponents", components.withType(ProjectNativeComponent.class));
 
         configurationActions.add(Actions.composite(
                 new ConfigureGeneratedSourceSets(),

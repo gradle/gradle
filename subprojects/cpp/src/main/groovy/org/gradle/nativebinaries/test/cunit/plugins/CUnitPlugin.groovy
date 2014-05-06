@@ -18,8 +18,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.runtime.base.BinaryContainer
-import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.ProjectNativeComponentIdentifier
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
@@ -29,7 +28,7 @@ import org.gradle.nativebinaries.test.cunit.internal.ConfigureCUnitTestSources
 import org.gradle.nativebinaries.test.cunit.internal.CreateCUnitBinaries
 import org.gradle.nativebinaries.test.cunit.internal.DefaultCUnitTestSuite
 import org.gradle.nativebinaries.test.plugins.NativeBinariesTestPlugin
-import org.gradle.runtime.base.SoftwareComponentContainer
+import org.gradle.runtime.base.BinaryContainer
 
 import javax.inject.Inject
 /**
@@ -52,12 +51,8 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
 
         TestSuiteContainer testSuites = project.getExtensions().getByType(TestSuiteContainer)
         BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer)
-        // TODO:DAZ merge
-        project.getExtensions().getByType(SoftwareComponentContainer).withType(NativeExecutable).all { NativeExecutable executable ->
-            testSuites.add createCUnitTestSuite(executable, binaries, project)
-        }
-        project.getExtensions().getByType(SoftwareComponentContainer).withType(NativeLibrary).all { NativeLibrary library ->
-            testSuites.add createCUnitTestSuite(library, binaries, project)
+        project.nativeComponents.all { ProjectNativeComponent component ->
+            testSuites.add createCUnitTestSuite(component, binaries, project)
         }
     }
 

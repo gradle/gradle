@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.plugins.CppLangPlugin
-import org.gradle.nativebinaries.NativeExecutable
-import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.plugins.NativeComponentPlugin
+
 /**
  * A plugin for projects wishing to build native binary components from C++ sources.
  *
@@ -40,15 +41,8 @@ class CppPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(CppLangPlugin)
 
-        // TODO:DAZ It's ugly that we can't do this as project.binaries.all, but this is the way I could
-        // add the cppCompiler in time to allow it to be configured within the component.binaries.all block.
-        project.nativeExecutables.all { NativeExecutable executable ->
-            executable.binaries.all { binary ->
-                binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
-            }
-        }
-        project.nativeLibraries.all { NativeLibrary library ->
-            library.binaries.all { binary ->
+        project.nativeComponents.all { ProjectNativeComponent component ->
+            component.binaries.all { binary ->
                 binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
             }
         }

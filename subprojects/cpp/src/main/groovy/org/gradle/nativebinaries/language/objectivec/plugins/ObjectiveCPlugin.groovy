@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.objectivec.plugins
+
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -22,9 +23,8 @@ import org.gradle.language.objectivec.ObjectiveCSourceSet
 import org.gradle.language.objectivec.plugins.ObjectiveCLangPlugin
 import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
-import org.gradle.nativebinaries.NativeExecutable
-import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
@@ -37,6 +37,7 @@ import org.gradle.nativebinaries.toolchain.internal.ToolType
 import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
 
 import javax.inject.Inject
+
 /**
  * A plugin for projects wishing to build native binary components from Objective-C sources.
  *
@@ -74,14 +75,8 @@ class ObjectiveCPlugin implements Plugin<ProjectInternal> {
         });
 
 
-        project.nativeExecutables.all { NativeExecutable executable ->
-            executable.binaries.all { binary ->
-                binary.extensions.create("objcCompiler", DefaultPreprocessingTool)
-            }
-        }
-
-        project.nativeLibraries.all { NativeLibrary library ->
-            library.binaries.all { binary ->
+        project.nativeComponents.all { ProjectNativeComponent component ->
+            component.binaries.all { binary ->
                 binary.extensions.create("objcCompiler", DefaultPreprocessingTool)
             }
         }

@@ -18,7 +18,6 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.BasePlugin
-import org.gradle.runtime.base.BinaryContainer
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
@@ -28,6 +27,7 @@ import org.gradle.nativebinaries.tasks.LinkExecutable
 import org.gradle.nativebinaries.tasks.LinkSharedLibrary
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
+import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.SoftwareComponentContainer
 
 /**
@@ -40,13 +40,12 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeComponentModelPlugin.class);
         project.plugins.apply(StandardToolChainsPlugin)
 
+
         // Create a functionalSourceSet for each native component, with the same name
         ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
-        project.getExtensions().getByType(SoftwareComponentContainer).withType(NativeExecutable).all { NativeExecutable exe ->
-            exe.source projectSourceSet.maybeCreate(exe.name)
-        }
-        project.getExtensions().getByType(SoftwareComponentContainer).withType(NativeLibrary).all { NativeLibrary lib ->
-            lib.source projectSourceSet.maybeCreate(lib.name)
+        final SoftwareComponentContainer components = project.getExtensions().getByType(SoftwareComponentContainer)
+        components.withType(ProjectNativeComponent).all { ProjectNativeComponent component ->
+            component.source projectSourceSet.maybeCreate(component.name)
         }
 
         final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);

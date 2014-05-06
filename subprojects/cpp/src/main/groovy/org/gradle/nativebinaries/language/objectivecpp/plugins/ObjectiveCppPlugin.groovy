@@ -23,9 +23,8 @@ import org.gradle.language.objectivecpp.ObjectiveCppSourceSet
 import org.gradle.language.objectivecpp.plugins.ObjectiveCppLangPlugin
 import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
-import org.gradle.nativebinaries.NativeExecutable
-import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.NativeBinary
+import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
@@ -77,14 +76,8 @@ class ObjectiveCppPlugin implements Plugin<ProjectInternal> {
         });
 
 
-        project.nativeExecutables.all { NativeExecutable executable ->
-            executable.binaries.all { binary ->
-                binary.extensions.create("objcppCompiler", DefaultPreprocessingTool)
-            }
-        }
-
-        project.nativeLibraries.all { NativeLibrary library ->
-            library.binaries.all { binary ->
+        project.nativeComponents.all { ProjectNativeComponent component ->
+            component.binaries.all { binary ->
                 binary.extensions.create("objcppCompiler", DefaultPreprocessingTool)
             }
         }

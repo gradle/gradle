@@ -57,11 +57,12 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeComponentPlugin)
         project.plugins.apply(WindowsResourceScriptPlugin)
 
-        project.nativeExecutables.all { NativeExecutable executable ->
-            addLanguageExtensionsToComponent(executable)
-        }
-        project.nativeLibraries.all { NativeLibrary library ->
-            addLanguageExtensionsToComponent(library)
+        project.nativeComponents.all { ProjectNativeComponent component ->
+            component.binaries.all { NativeBinary binary ->
+                if (shouldProcessResources(binary)) {
+                    binary.extensions.create("rcCompiler", DefaultPreprocessingTool)
+                }
+            }
         }
 
         modelRules.rule(new ModelRule() {
@@ -88,14 +89,6 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private def addLanguageExtensionsToComponent(ProjectNativeComponent component) {
-        component.binaries.all { NativeBinary binary ->
-            if (shouldProcessResources(binary)) {
-                binary.extensions.create("rcCompiler", DefaultPreprocessingTool)
             }
         }
     }
