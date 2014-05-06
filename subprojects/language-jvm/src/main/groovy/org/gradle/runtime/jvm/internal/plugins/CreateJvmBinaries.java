@@ -16,13 +16,14 @@
 
 package org.gradle.runtime.jvm.internal.plugins;
 
+import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.model.ModelRule;
+import org.gradle.model.Path;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.SoftwareComponentContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.jvm.JvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultJvmLibraryBinary;
-import org.gradle.model.ModelRule;
 
 public class CreateJvmBinaries extends ModelRule {
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
@@ -31,8 +32,8 @@ public class CreateJvmBinaries extends ModelRule {
         this.namingSchemeBuilder = namingSchemeBuilder;
     }
 
-    void createBinaries(BinaryContainer binaries, SoftwareComponentContainer libraries) {
-        for (JvmLibrary jvmLibrary : libraries.withType(JvmLibrary.class)) {
+    void createBinaries(BinaryContainer binaries, @Path("jvmLibraries") NamedDomainObjectCollection<JvmLibrary> libraries) {
+        for (JvmLibrary jvmLibrary : libraries) {
             BinaryNamingScheme namingScheme = namingSchemeBuilder
                     .withComponentName(jvmLibrary.getName())
                     .withTypeString("jar")

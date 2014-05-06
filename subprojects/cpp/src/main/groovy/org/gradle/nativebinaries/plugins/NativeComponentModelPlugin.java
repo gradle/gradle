@@ -96,8 +96,9 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         components.registerFactory(NativeExecutable.class, new NativeExecutableFactory(instantiator, project));
         project.getExtensions().add("nativeExecutables", components.containerWithType(NativeExecutable.class));
 
-        // TODO:DAZ Not sure if we should keep this
+        // TODO:DAZ Not sure if we should keep these
         project.getExtensions().add("nativeComponents", components.withType(ProjectNativeComponent.class));
+        project.getExtensions().add("libraries", project.getExtensions().getByName("nativeLibraries"));
 
         configurationActions.add(Actions.composite(
                 new ConfigureGeneratedSourceSets(),

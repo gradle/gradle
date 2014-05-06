@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.jvm.plugins
+
+package org.gradle.runtime.jvm.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class JvmComponentPluginGoodBehaviourTest extends WellBehavedPluginTest {

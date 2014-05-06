@@ -26,13 +26,13 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
             apply plugin: "java"
             apply plugin: "cpp"
 
-            nativeExecutables { main {} }
-            nativeLibraries { main {} }
+            nativeExecutables { mainExe {} }
+            nativeLibraries { mainLib {} }
 
             task checkBinaries << {
                 assert binaries.mainClasses instanceof ClassDirectoryBinary
-                assert binaries.mainExecutable instanceof NativeExecutableBinary
-                assert binaries.mainSharedLibrary instanceof SharedLibraryBinary
+                assert binaries.mainExeExecutable instanceof NativeExecutableBinary
+                assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinary
             }
 """
         expect:
@@ -47,18 +47,22 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     nativeExecutables {
         nativeExe
     }
-    libraries {
-        nativeLib(NativeLibrary)
-        jvmLib(JvmLibrary)
+    nativeLibraries {
+        nativeLib
+    }
+    jvmLibraries {
+        jvmLib
     }
 
     task check << {
-        assert nativeExecutables.size() == 1
-        assert nativeExecutables.nativeExe instanceof NativeExecutable
+        assert softwareComponents.size() == 3
+        assert softwareComponents.nativeExe instanceof NativeExecutable
+        assert softwareComponents.nativeLib instanceof NativeLibrary
+        assert softwareComponents.jvmLib instanceof JvmLibrary
 
-        assert libraries.size() == 2
-        assert libraries.nativeLib instanceof NativeLibrary
-        assert libraries.jvmLib instanceof JvmLibrary
+        assert nativeExecutables as List == [softwareComponents.nativeExe]
+        assert nativeLibraries as List == [softwareComponents.nativeLib]
+        assert jvmLibraries as List == [softwareComponents.jvmLib]
 
         assert binaries.size() == 4
         binaries.jvmLibJar instanceof JvmLibraryBinary
@@ -80,9 +84,11 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     nativeExecutables {
         nativeApp
     }
-    libraries {
-        nativeLib(NativeLibrary)
-        jvmLib(JvmLibrary)
+    nativeLibraries {
+        nativeLib
+    }
+    jvmLibraries {
+        jvmLib
     }
 """
         when:

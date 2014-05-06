@@ -30,7 +30,7 @@ import javax.inject.Inject;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.runtime.base.SoftwareComponentContainer} named {@code components} to the project.
+ * Adds a {@link org.gradle.runtime.base.SoftwareComponentContainer} named {@code softwareComponents} to the project.
  * Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the project.
  * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  *
@@ -49,8 +49,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     public void apply(final Project target) {
-        // TODO:DAZ Rename to components and introduce 'jvmLibraries'
-        target.getExtensions().create("libraries", DefaultSoftwareComponentContainer.class, instantiator);
+        // TODO:DAZ Rename to 'components' and merge with Project.components
+        target.getExtensions().create("softwareComponents", DefaultSoftwareComponentContainer.class, instantiator);
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
         final BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
 

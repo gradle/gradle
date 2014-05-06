@@ -49,15 +49,16 @@ public class JvmComponentPlugin implements Plugin<Project> {
         project.getPlugins().apply(LifecycleBasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
 
-        // TODO:DAZ Introduce jvmLibraries typed container
-        SoftwareComponentContainer libraries = project.getExtensions().getByType(SoftwareComponentContainer.class);
-        libraries.registerFactory(JvmLibrary.class, new NamedDomainObjectFactory<JvmLibrary>() {
+        SoftwareComponentContainer softwareComponents = project.getExtensions().getByType(SoftwareComponentContainer.class);
+        softwareComponents.registerFactory(JvmLibrary.class, new NamedDomainObjectFactory<JvmLibrary>() {
             public JvmLibrary create(String name) {
                 return new DefaultJvmLibrary(name);
             }
         });
+        NamedDomainObjectContainer<JvmLibrary> jvmLibraries = softwareComponents.containerWithType(JvmLibrary.class);
+        project.getExtensions().add("jvmLibraries", jvmLibraries);
 
-        modelRules.register("libraries", libraries);
+        modelRules.register("jvmLibraries", jvmLibraries);
         modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder()));
         modelRules.rule(new CreateTasksForJvmBinaries());
         modelRules.rule(new AttachBinariesToLifecycle());
