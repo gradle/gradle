@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts.portal;
 
 import java.util.Map;
 
+/**
+ * Defines the JSON protocol for the plugin portal response to a plugin metadata query.
+ */
 class PluginUseMetaData {
     String id;
     String version;
