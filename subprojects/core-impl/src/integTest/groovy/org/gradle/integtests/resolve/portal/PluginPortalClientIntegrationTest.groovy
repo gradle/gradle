@@ -36,9 +36,9 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         // communicates test portal hostname/port to PluginPortalResolver
         def pluginVersion = "test_localhost_${server.port}_1.0"
 
-        TestFile metaDataFile = generatePluginMetaData(pluginVersion)
-        File pluginFile = generatePluginJar()
-        TestFile pomFile = generatePluginPom()
+        def metaDataFile = generatePluginMetaData(pluginVersion)
+        def pluginFile = generatePluginJar()
+        def pomFile = generatePluginPom()
 
         server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/myplugin/1.0", metaDataFile)
         server.allowHead("/my/plugin/1.0/plugin-1.0.pom", pomFile)
