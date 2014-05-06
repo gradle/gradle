@@ -66,7 +66,7 @@ public interface ConnectionVersion4 {
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-3 to 1.0-milestone-7. It is also used by later consumers when the provider
      * does not implement {@link InternalConnection} or {@link BuildActionRunner}
      * </p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3.</p>
+     * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3. Versions 2.0 and later fail with a 'no longer supported' exception.</p>
      *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
@@ -82,7 +82,7 @@ public interface ConnectionVersion4 {
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-3 to 1.1. It is also used by later consumers when the provider
      * does not implement {@link BuildActionRunner}
      * </p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3.</p>
+     * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3. Versions 2.0 and later fail with a 'no longer supported' exception.</p>
      *
      * @param buildParameters The parameters for the build.
      * @throws IllegalStateException When this connection has been stopped.
