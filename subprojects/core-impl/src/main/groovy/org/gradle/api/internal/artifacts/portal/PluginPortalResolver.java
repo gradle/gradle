@@ -16,11 +16,6 @@
 
 package org.gradle.api.internal.artifacts.portal;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -33,40 +28,27 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.transport.http.HttpResponseResource;
 import org.gradle.internal.Factories;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.resolve.internal.*;
-import org.gradle.util.GradleVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PluginPortalResolver implements PluginResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PluginPortalResolver.class);
-    private static final String REQUEST_URL = "/api/gradle/%s/plugin/use/%s/%s";
     private static final Pattern TEST_PLUGIN_ID_PATTERN = Pattern.compile("test_(\\w+)_([0-9]+)_(.+)");
 
     private final ArtifactDependencyResolver resolver;
     private final BaseRepositoryFactory repositoryFactory;
     private final DependencyHandler dependencyHandler;
     private final ConfigurationContainer configurationContainer;
-    private final RepositoryTransportFactory transportFactory;
+    private final PluginPortalClient portalClient;
     private final Instantiator instantiator;
 
     private String portalUrl = "http://plugins.gradle.org"; // will eventually be provided by plugin mappings
@@ -77,14 +59,15 @@ public class PluginPortalResolver implements PluginResolver {
         this.repositoryFactory = repositoryFactory;
         this.dependencyHandler = dependencyHandler;
         this.configurationContainer = configurationHandler;
-        this.transportFactory = transportFactory;
         this.instantiator = instantiator;
+
+        portalClient = new PluginPortalClient(transportFactory);
     }
 
     public PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException {
         pluginRequest = applyTestSettings(pluginRequest);
 
-        PluginUseMetaData metaData = queryPluginMetadata(pluginRequest);
+        PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, portalUrl);
         ClassPath classPath = resolvePluginDependencies(metaData);
         return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), Factories.constant(classPath));
     }
@@ -97,44 +80,6 @@ public class PluginPortalResolver implements PluginResolver {
             return new DefaultPluginRequest(pluginRequest.getId(), matcher.group(3), pluginRequest.getLineNumber(), pluginRequest.getScriptSource());
         }
         return pluginRequest;
-    }
-
-    private PluginUseMetaData queryPluginMetadata(PluginRequest pluginRequest) {
-        URI portalUri = toUri(portalUrl, "plugin portal");
-        RepositoryTransport transport = transportFactory.createTransport(ImmutableSet.of(portalUri.getScheme()), "Plugin Portal", new DefaultPasswordCredentials());
-        String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
-        URI requestUri = toUri(requestUrl, "plugin request");
-
-        ExternalResource resource = null;
-        try {
-            resource = transport.getRepository().getResource(requestUri);
-            HttpResponseResource response = (HttpResponseResource) resource;
-            if (response.getStatusCode() != 200) {
-                throw new UncheckedIOException(String.format("Failed to resolve plugin %s:%s from portal %s. HTTP status code: %d",
-                        pluginRequest.getId(), pluginRequest.getVersion(), portalUrl, response.getStatusCode()));
-            }
-            return resource.withContent(new Transformer<PluginUseMetaData, InputStream>() {
-                public PluginUseMetaData transform(InputStream inputStream) {
-                    Reader reader;
-                    try {
-                        reader = new InputStreamReader(inputStream, "utf-8");
-                    } catch (UnsupportedEncodingException e) {
-                        throw new AssertionError(e);
-                    }
-                    return new Gson().fromJson(reader, PluginUseMetaData.class);
-                }
-            });
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            try {
-                if (resource != null) {
-                    resource.close();
-                }
-            } catch (IOException e) {
-                LOGGER.warn("Error closing HTTP resource", e);
-            }
-        }
     }
 
     private ClassPath resolvePluginDependencies(PluginUseMetaData metadata) {
@@ -153,14 +98,6 @@ public class PluginPortalResolver implements PluginResolver {
         return new DefaultClassPath(files);
     }
 
-    private URI toUri(String requestUrl, String kind) {
-        try {
-            return new URI(requestUrl);
-        } catch (URISyntaxException e) {
-            throw new InvalidUserDataException(String.format("Invalid %s URL: %s", kind, requestUrl, e));
-        }
-    }
-
     public String getDescriptionForNotFoundMessage() {
         return "Plugin Portal " + portalUrl;
     }
@@ -169,12 +106,5 @@ public class PluginPortalResolver implements PluginResolver {
         public void process(ModuleVersionMetaData metadata) {
             // do nothing
         }
-    }
-
-    private static class PluginUseMetaData {
-        String id;
-        String version;
-        Map<String, String> implementation;
-        String implementationType;
     }
 }
