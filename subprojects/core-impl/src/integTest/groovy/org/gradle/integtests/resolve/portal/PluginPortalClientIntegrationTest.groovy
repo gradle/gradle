@@ -112,6 +112,7 @@ task verify
     private Throwable getCause(Throwable throwable, Class<? extends Throwable> type) {
         while (throwable != null) {
             if (type.isInstance(throwable)) { return throwable }
+            println throwable
             throwable = throwable.cause
         }
         assert false, "No cause of type $type.name found for exception: $throwable"
