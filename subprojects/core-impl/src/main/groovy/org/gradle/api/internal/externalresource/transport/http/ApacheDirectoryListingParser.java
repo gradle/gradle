@@ -18,6 +18,7 @@ package org.gradle.api.internal.externalresource.transport.http;
 
 import org.cyberneko.html.parsers.SAXParser;
 import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.api.internal.resource.UriResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -44,7 +45,7 @@ public class ApacheDirectoryListingParser {
         if (contentType == null || !contentType.startsWith("text/html")) {
             throw new ResourceException(String.format("Unsupported ContentType %s for DirectoryListing", contentType));
         }
-        String contentEncoding = contentType.contains("charset=") ? contentType.substring(contentType.indexOf('=') + 1) : "utf-8";
+        String contentEncoding = UriResource.extractCharacterEncoding(contentType, "utf-8");
         final Reader htmlText = new InputStreamReader(content, contentEncoding);
         final InputSource inputSource = new InputSource(htmlText);
         final SAXParser htmlParser = new SAXParser();

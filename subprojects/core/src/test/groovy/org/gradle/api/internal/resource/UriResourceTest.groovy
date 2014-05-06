@@ -189,4 +189,19 @@ class UriResourceTest {
         UriResource resource = new UriResource("<file-type>", new URI("http://www.gradle.org/unknown.txt"));
         assertThat(resource.displayName, equalTo('<file-type> \'http://www.gradle.org/unknown.txt\''))
     }
+
+    @Test
+    public void extractsCharacterEncodingFromContentType() {
+        assertThat(UriResource.extractCharacterEncoding('content/unknown', null), nullValue())
+        assertThat(UriResource.extractCharacterEncoding('content/unknown', 'default'), equalTo('default'))
+        assertThat(UriResource.extractCharacterEncoding(null, 'default'), equalTo('default'))
+        assertThat(UriResource.extractCharacterEncoding('text/html', null), nullValue())
+        assertThat(UriResource.extractCharacterEncoding('text/html; charset=UTF-8', null), equalTo('UTF-8'))
+        assertThat(UriResource.extractCharacterEncoding('text/html; other=value; other="value"; charset=US-ASCII', null), equalTo('US-ASCII'))
+        assertThat(UriResource.extractCharacterEncoding('text/plain; other=value;', null), equalTo(null))
+        assertThat(UriResource.extractCharacterEncoding('text/plain; charset="charset"', null), equalTo('charset'))
+        assertThat(UriResource.extractCharacterEncoding('text/plain; charset="\\";\\="', null), equalTo('";\\='))
+        assertThat(UriResource.extractCharacterEncoding('text/plain; charset=', null), equalTo(null))
+        assertThat(UriResource.extractCharacterEncoding('text/plain; charset; charset=;charset="missing-quote', null), equalTo("missing-quote"))
+    }
 }
