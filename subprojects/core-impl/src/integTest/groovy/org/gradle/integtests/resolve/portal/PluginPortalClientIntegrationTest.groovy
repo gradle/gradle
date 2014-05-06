@@ -37,17 +37,7 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         // communicates test portal hostname/port to PluginPortalResolver
         def pluginVersion = "test_localhost_${server.port}_1.0"
 
-        def metaDataFile = generatePluginMetaData(pluginVersion)
-        def pluginFile = generatePluginJar()
-        def pomFile = generatePluginPom()
-
-        server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/myplugin/1.0", metaDataFile)
-        server.allowHead("/my/plugin/1.0/plugin-1.0.pom", pomFile)
-        server.allowGetMissing("/my/plugin/1.0/plugin-1.0.pom.sha1")
-        server.expectGet("/my/plugin/1.0/plugin-1.0.pom", pomFile)
-        server.allowHead("/my/plugin/1.0/plugin-1.0.jar", pluginFile)
-        server.allowGetMissing("/my/plugin/1.0/plugin-1.0.jar.sha1")
-        server.expectGet("/my/plugin/1.0/plugin-1.0.jar", pluginFile)
+        servePlugin("myplugin", "1.0", "my", "plugin", "1.0")
 
         buildScript """
 plugins {
@@ -124,6 +114,21 @@ task verify
             if (type.isInstance(throwable)) { return throwable }
             throwable = throwable.cause
         }
-        assert false, "no cause of type $type.name found"
+        assert false, "No cause of type $type.name found for exception: $throwable"
+    }
+
+    private void servePlugin(String pluginId, String pluginVersion, String group, String artifact, String version) {
+        def metaDataFile = generatePluginMetaData(pluginVersion)
+        def pluginFile = generatePluginJar()
+        def pomFile = generatePluginPom()
+
+        server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", metaDataFile)
+        def modulePath = "/$group/$artifact/$version/$artifact-$version"
+        server.allowHead("${modulePath}.pom", pomFile)
+        server.allowGetMissing("${modulePath}.pom.sha1")
+        server.expectGet("${modulePath}.pom", pomFile)
+        server.allowHead("${modulePath}.jar", pluginFile)
+        server.allowGetMissing("${modulePath}.jar.sha1")
+        server.expectGet("${modulePath}.jar", pluginFile)
     }
 }
