@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.portal;
 
 import com.google.gson.Gson;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials;
@@ -25,7 +24,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.transport.http.HttpResponseResource;
-import org.gradle.internal.UncheckedException;
+import org.gradle.plugin.resolve.internal.InvalidPluginRequestException;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -46,10 +45,10 @@ class PluginPortalClient {
     }
 
     PluginUseMetaData queryPluginMetadata(PluginRequest pluginRequest, String portalUrl) {
-        URI portalUri = toUri(portalUrl, "plugin portal");
+        URI portalUri = toUri(portalUrl, "plugin portal", pluginRequest);
         RepositoryTransport transport = transportFactory.createTransport(portalUri.getScheme(), "Plugin Portal", new DefaultPasswordCredentials());
         String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
-        URI requestUri = toUri(requestUrl, "plugin request");
+        URI requestUri = toUri(requestUrl, "plugin request", pluginRequest);
 
         ExternalResource resource = null;
         try {
@@ -71,7 +70,7 @@ class PluginPortalClient {
                 }
             });
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw new UncheckedIOException(e);
         } finally {
             try {
                 if (resource != null) {
@@ -83,11 +82,11 @@ class PluginPortalClient {
         }
     }
 
-    private URI toUri(String requestUrl, String kind) {
+    private URI toUri(String url, String kind, PluginRequest pluginRequest) {
         try {
-            return new URI(requestUrl);
+            return new URI(url);
         } catch (URISyntaxException e) {
-            throw new InvalidUserDataException(String.format("Invalid %s URL: %s", kind, requestUrl, e));
+            throw new InvalidPluginRequestException(pluginRequest, String.format("Invalid %s URL: %s", kind, url, e));
         }
     }
 }

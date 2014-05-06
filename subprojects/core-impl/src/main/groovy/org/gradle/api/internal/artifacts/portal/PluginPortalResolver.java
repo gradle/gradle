@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.portal;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -84,7 +85,7 @@ public class PluginPortalResolver implements PluginResolver {
 
     private ClassPath resolvePluginDependencies(PluginUseMetaData metadata) {
         if (!metadata.implementationType.equals("M2_JAR")) {
-            throw new RuntimeException("Cannot resolve plugins with implementation type " + metadata.implementationType);
+            throw new GradleException("Unsupported plugin implementation type: " + metadata.implementationType);
         }
 
         ResolverResults results = new ResolverResults();
