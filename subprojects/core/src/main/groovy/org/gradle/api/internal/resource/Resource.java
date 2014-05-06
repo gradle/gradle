@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.resource;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 import java.io.Serializable;
 import java.net.URI;
@@ -24,8 +26,10 @@ import java.net.URI;
  * A {@code Resource} represents some binary artifact.
  *
  * <p>Implementations are not required to be thread-safe.</p>
+ *
+ * <p>This type will be merged with {@link org.gradle.api.internal.externalresource.ExternalResource} and friends.</p>
  */
-public interface Resource extends Serializable {
+public interface Resource {
     /**
      * Returns a display name for this resource. This can be used in log and error messages.
      *
@@ -38,6 +42,7 @@ public interface Resource extends Serializable {
      *
      * @return A file representing this resource. Returns null if this resource is not available as a file.
      */
+    @Nullable
     File getFile();
 
     /**
@@ -45,6 +50,7 @@ public interface Resource extends Serializable {
      *
      * @return The URI for this resource. Returns null if this resource does not have a URI.
      */
+    @Nullable
     URI getURI();
 
     /**
