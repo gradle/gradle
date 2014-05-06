@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.portal;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
@@ -48,7 +47,7 @@ class PluginPortalClient {
 
     PluginUseMetaData queryPluginMetadata(PluginRequest pluginRequest, String portalUrl) {
         URI portalUri = toUri(portalUrl, "plugin portal");
-        RepositoryTransport transport = transportFactory.createTransport(ImmutableSet.of(portalUri.getScheme()), "Plugin Portal", new DefaultPasswordCredentials());
+        RepositoryTransport transport = transportFactory.createTransport(portalUri.getScheme(), "Plugin Portal", new DefaultPasswordCredentials());
         String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
         URI requestUri = toUri(requestUrl, "plugin request");
 
