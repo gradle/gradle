@@ -36,17 +36,17 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         // communicates test portal hostname/port to PluginPortalResolver
         def pluginVersion = "test_localhost_${server.port}_1.0"
 
-        TestFile metadataFile = generatePortalResponse(pluginVersion)
+        TestFile metaDataFile = generatePluginMetaData(pluginVersion)
         File pluginFile = generatePluginJar()
         TestFile pomFile = generatePluginPom()
 
-        server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/myplugin/1.0", metadataFile)
+        server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/myplugin/1.0", metaDataFile)
         server.expectHead("/my/plugin/1.0/plugin-1.0.pom", pomFile)
-        server.expectGet("/my/plugin/1.0/plugin-1.0.pom", pomFile)
         server.expectGetMissing("/my/plugin/1.0/plugin-1.0.pom.sha1")
+        server.expectGet("/my/plugin/1.0/plugin-1.0.pom", pomFile)
         server.expectHead("/my/plugin/1.0/plugin-1.0.jar", pluginFile)
-        server.expectGet("/my/plugin/1.0/plugin-1.0.jar", pluginFile)
         server.expectGetMissing("/my/plugin/1.0/plugin-1.0.jar.sha1")
+        server.expectGet("/my/plugin/1.0/plugin-1.0.jar", pluginFile)
 
         buildScript """
 plugins {
@@ -62,7 +62,7 @@ task verify << {
         succeeds("verify")
     }
 
-    private TestFile generatePortalResponse(String pluginVersion) {
+    private TestFile generatePluginMetaData(String pluginVersion) {
         def metadataFile = file("metadata.json")
         metadataFile.text = """
 {
