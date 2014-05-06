@@ -29,9 +29,9 @@ import java.util.List;
 public class DefaultEclipseProject implements EclipseProjectVersion3, Serializable, GradleProjectIdentity {
     private final String name;
     private final String path;
-    private EclipseProjectVersion3 parent;
+    private DefaultEclipseProject parent;
     private List<ExternalDependencyVersion1> classpath;
-    private final List<EclipseProjectVersion3> children;
+    private final List<DefaultEclipseProject> children;
     private List<EclipseSourceDirectoryVersion1> sourceDirectories;
     private List<EclipseProjectDependencyVersion2> projectDependencies;
     private final String description;
@@ -40,7 +40,7 @@ public class DefaultEclipseProject implements EclipseProjectVersion3, Serializab
     private Iterable<? extends EclipseLinkedResourceVersion1> linkedResources;
     private DefaultGradleProject gradleProject;
 
-    public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends EclipseProjectVersion3> children) {
+    public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children) {
         this.name = name;
         this.path = path;
         this.description = description;
@@ -69,7 +69,7 @@ public class DefaultEclipseProject implements EclipseProjectVersion3, Serializab
         return description;
     }
 
-    public EclipseProjectVersion3 getParent() {
+    public DefaultEclipseProject getParent() {
         return parent;
     }
 
@@ -77,11 +77,11 @@ public class DefaultEclipseProject implements EclipseProjectVersion3, Serializab
         return projectDirectory;
     }
 
-    public void setParent(EclipseProjectVersion3 parent) {
+    public void setParent(DefaultEclipseProject parent) {
         this.parent = parent;
     }
 
-    public List<EclipseProjectVersion3> getChildren() {
+    public List<DefaultEclipseProject> getChildren() {
         return children;
     }
 

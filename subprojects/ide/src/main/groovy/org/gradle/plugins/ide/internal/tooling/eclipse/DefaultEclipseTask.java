@@ -15,18 +15,17 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 
 import java.io.Serializable;
 
 public class DefaultEclipseTask implements EclipseTaskVersion1, Serializable {
-    private final EclipseProjectVersion3 project;
+    private final DefaultEclipseProject project;
     private final String path;
     private final String name;
     private final String description;
 
-    public DefaultEclipseTask(EclipseProjectVersion3 project, String path, String name, String description) {
+    public DefaultEclipseTask(DefaultEclipseProject project, String path, String name, String description) {
         this.project = project;
         this.path = path;
         this.name = name;
@@ -38,7 +37,7 @@ public class DefaultEclipseTask implements EclipseTaskVersion1, Serializable {
         return String.format("task '%s'", path);
     }
 
-    public EclipseProjectVersion3 getProject() {
+    public DefaultEclipseProject getProject() {
         return project;
     }
 
