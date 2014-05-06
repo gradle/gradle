@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
