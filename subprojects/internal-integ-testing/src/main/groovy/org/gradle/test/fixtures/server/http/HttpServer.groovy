@@ -195,6 +195,13 @@ class HttpServer extends ServerWithExpectations {
         allow(path, true, ['GET', 'HEAD'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
     }
 
+    /**
+     * Allows one GET request for the given URL, which return 404 status code
+     */
+    void allowGetMissing(String path) {
+        allow(path, false, ['GET'], notFound())
+    }
+
     private Action fileHandler(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
         return new Action() {
             String getDisplayName() {

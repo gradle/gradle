@@ -42,10 +42,10 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
 
         server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/myplugin/1.0", metaDataFile)
         server.allowHead("/my/plugin/1.0/plugin-1.0.pom", pomFile)
-        server.expectGetMissing("/my/plugin/1.0/plugin-1.0.pom.sha1")
+        server.allowGetMissing("/my/plugin/1.0/plugin-1.0.pom.sha1")
         server.expectGet("/my/plugin/1.0/plugin-1.0.pom", pomFile)
         server.allowHead("/my/plugin/1.0/plugin-1.0.jar", pluginFile)
-        server.expectGetMissing("/my/plugin/1.0/plugin-1.0.jar.sha1")
+        server.allowGetMissing("/my/plugin/1.0/plugin-1.0.jar.sha1")
         server.expectGet("/my/plugin/1.0/plugin-1.0.jar", pluginFile)
 
         buildScript """
