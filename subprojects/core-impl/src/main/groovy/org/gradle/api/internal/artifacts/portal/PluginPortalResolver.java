@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.portal;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -65,10 +66,12 @@ public class PluginPortalResolver implements PluginResolver {
         portalClient = new PluginPortalClient(transportFactory);
     }
 
+    @Nullable
     public PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException {
         pluginRequest = applyTestSettings(pluginRequest);
 
         PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, portalUrl);
+        if (metaData == null) { return null; }
         ClassPath classPath = resolvePluginDependencies(metaData);
         return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), Factories.constant(classPath));
     }

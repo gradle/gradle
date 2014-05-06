@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.portal;
 
 import com.google.gson.Gson;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials;
@@ -44,6 +45,7 @@ class PluginPortalClient {
         this.transportFactory = transportFactory;
     }
 
+    @Nullable
     PluginUseMetaData queryPluginMetadata(PluginRequest pluginRequest, String portalUrl) {
         URI portalUri = toUri(portalUrl, "plugin portal", pluginRequest);
         RepositoryTransport transport = transportFactory.createTransport(portalUri.getScheme(), "Plugin Portal", new DefaultPasswordCredentials());
@@ -54,6 +56,9 @@ class PluginPortalClient {
         try {
             resource = transport.getRepository().getResource(requestUri);
             HttpResponseResource response = (HttpResponseResource) resource;
+            if (response == null) { // resource not found
+                return null;
+            }
             if (response.getStatusCode() != 200) {
                 throw new UncheckedIOException(String.format("Failed to resolve plugin %s:%s from portal %s. HTTP status code: %d",
                         pluginRequest.getId(), pluginRequest.getVersion(), portalUrl, response.getStatusCode()));

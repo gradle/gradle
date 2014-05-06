@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.portal
 
+import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
@@ -50,16 +51,37 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
 
         buildScript """
 plugins {
-  id "myplugin" version "$pluginVersion"
+    id "myplugin" version "$pluginVersion"
 }
 
 task verify << {
-  assert pluginApplied
+    assert pluginApplied
 }
 """
 
         expect:
         succeeds("verify")
+    }
+
+    def "404 response from plugin portal fails resolution"() {
+        def pluginVersion = "test_localhost_${server.port}_1.0"
+        server.expectGetMissing("/api/gradle/${GradleVersion.current().version}/plugin/use/myplugin/1.0")
+
+        buildScript """
+plugins {
+    id "myplugin" version "$pluginVersion"
+}
+
+task verify
+"""
+
+        when:
+        run("verify")
+
+        then:
+        def e = thrown(Exception)
+        def cause = getCause(e, UnknownPluginException)
+        cause.message.contains "[plugin: 'myplugin', version: '$pluginVersion']"
     }
 
     private TestFile generatePluginMetaData(String pluginVersion) {
@@ -95,5 +117,13 @@ task verify << {
 </project>
 """
         pomFile
+    }
+
+    private Throwable getCause(Throwable throwable, Class<? extends Throwable> type) {
+        while (throwable != null) {
+            if (type.isInstance(throwable)) { return throwable }
+            throwable = throwable.cause
+        }
+        assert false, "no cause of type $type.name found"
     }
 }
