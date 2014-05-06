@@ -103,7 +103,7 @@ public class PluginPortalResolver implements PluginResolver {
     }
 
     public String getDescriptionForNotFoundMessage() {
-        return "Plugin Portal " + portalUrl;
+        return "Plugin Portal (" + portalUrl + ")";
     }
 
     private static class NoopMetadataProcessor implements ModuleMetadataProcessor {
