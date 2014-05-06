@@ -21,6 +21,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * A partial implementation of {@link org.gradle.tooling.model.GradleProject}.
+ */
 public class PartialGradleProject implements Serializable {
     private String name;
     private String description;
