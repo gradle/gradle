@@ -19,7 +19,6 @@ package org.gradle.api.internal.resource;
 import org.gradle.api.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
 import java.net.URI;
 
 /**
