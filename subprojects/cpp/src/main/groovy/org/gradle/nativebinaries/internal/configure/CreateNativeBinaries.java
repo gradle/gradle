@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.LibraryContainer;
+import org.gradle.runtime.base.SoftwareComponentContainer;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.model.ModelRule;
@@ -63,14 +63,14 @@ public class CreateNativeBinaries extends ModelRule {
     }
 
     private Collection<ProjectNativeComponent> allComponents() {
-        ExecutableContainer executables = project.getExtensions().getByType(ExecutableContainer.class);
-        LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
+        SoftwareComponentContainer softwareComponents = project.getExtensions().getByType(SoftwareComponentContainer.class);
 
         List<ProjectNativeComponent> components = new ArrayList<ProjectNativeComponent>();
-        for (NativeLibrary library : libraries.withType(NativeLibrary.class)) {
+        // TODO:DAZ merge
+        for (NativeLibrary library : softwareComponents.withType(NativeLibrary.class)) {
             components.add(library);
         }
-        for (NativeExecutable executable : executables) {
+        for (NativeExecutable executable : softwareComponents.withType(NativeExecutable.class)) {
             components.add(executable);
         }
         return components;

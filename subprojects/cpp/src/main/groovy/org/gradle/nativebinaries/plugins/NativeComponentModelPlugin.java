@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
@@ -27,25 +26,21 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.LibraryContainer;
-import org.gradle.runtime.base.internal.DefaultLibraryContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
-import org.gradle.nativebinaries.internal.DefaultExecutableContainer;
-import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
-import org.gradle.nativebinaries.internal.NativeLibraryFactory;
+import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.configure.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.SoftwareComponentContainer;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -91,18 +86,12 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         // TODO:DAZ Push this down to LanguageBasePlugin (but first need to deal with ClassDirectoryBinary)
         modelRules.rule(new AttachBinariesToLifecycle());
 
-        DefaultLibraryContainer libraries = (DefaultLibraryContainer) project.getExtensions().getByType(LibraryContainer.class);
-        libraries.registerFactory(NativeLibrary.class, new NativeLibraryFactory(instantiator, project));
+        SoftwareComponentContainer components = project.getExtensions().getByType(SoftwareComponentContainer.class);
+        components.registerFactory(NativeLibrary.class, new NativeLibraryFactory(instantiator, project));
+        project.getExtensions().add("nativeLibraries", components.containerWithType(NativeLibrary.class));
 
-        NamedDomainObjectContainer<NativeLibrary> nativeLibraries = libraries.containerWithType(NativeLibrary.class);
-        project.getExtensions().add("nativeLibraries", nativeLibraries);
-
-        project.getExtensions().create(
-                "nativeExecutables",
-                DefaultExecutableContainer.class,
-                instantiator,
-                project
-        );
+        components.registerFactory(NativeExecutable.class, new NativeExecutableFactory(instantiator, project));
+        project.getExtensions().add("nativeExecutables", components.containerWithType(NativeExecutable.class));
 
         configurationActions.add(Actions.composite(
                 new ConfigureGeneratedSourceSets(),

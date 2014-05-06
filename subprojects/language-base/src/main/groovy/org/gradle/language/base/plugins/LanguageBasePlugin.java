@@ -21,7 +21,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.internal.BinaryInternal;
 import org.gradle.runtime.base.internal.DefaultBinaryContainer;
-import org.gradle.runtime.base.internal.DefaultLibraryContainer;
+import org.gradle.runtime.base.internal.DefaultSoftwareComponentContainer;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.model.ModelRules;
 
@@ -30,7 +30,7 @@ import javax.inject.Inject;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.runtime.base.LibraryContainer} named {@code libraries} to the project.
+ * Adds a {@link org.gradle.runtime.base.SoftwareComponentContainer} named {@code components} to the project.
  * Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the project.
  * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  *
@@ -49,7 +49,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     public void apply(final Project target) {
-        target.getExtensions().create("libraries", DefaultLibraryContainer.class, instantiator);
+        // TODO:DAZ Rename to components and introduce 'jvmLibraries'
+        target.getExtensions().create("libraries", DefaultSoftwareComponentContainer.class, instantiator);
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
         final BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
 

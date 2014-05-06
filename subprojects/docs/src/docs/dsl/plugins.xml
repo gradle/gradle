@@ -79,8 +79,10 @@
     </plugin>
     <plugin id="native-component" description="Native Component Model Plugin">
         <!--TODO:DAZ Work out how to make this work-->
-        <!--<extends targetClass="org.gradle.api.Project" id="nativeLibraries" extensionClass="org.gradle.api.NamedDomainObjectContainer"/>-->
-        <extends targetClass="org.gradle.api.Project" id="executables" extensionClass="org.gradle.nativebinaries.ExecutableContainer"/>
+        <!--
+        <extends targetClass="org.gradle.api.Project" id="nativeLibraries" extensionClass="org.gradle.api.NamedDomainObjectContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="nativeExecutables" extensionClass="org.gradle.api.NamedDomainObjectContainer"/>
+        -->
         <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativebinaries.toolchain.ToolChainRegistry"/>
         <extends targetClass="org.gradle.api.Project" id="buildTypes" extensionClass="org.gradle.nativebinaries.BuildTypeContainer"/>
         <extends targetClass="org.gradle.api.Project" id="platforms" extensionClass="org.gradle.nativebinaries.platform.PlatformContainer"/>

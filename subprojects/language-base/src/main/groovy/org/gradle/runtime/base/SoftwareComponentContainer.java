@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries;
 
+package org.gradle.runtime.base;
+
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.runtime.base.Application;
 
 /**
- * An executable native component that is built by Gradle.
+ * A container of software components.
+ * TODO:DAZ Merge with org.gradle.api.component.SoftwareComponentContainer
  */
 @Incubating
-public interface NativeExecutable extends Application, ProjectNativeComponent, TargetedNativeComponent {
-    
+public interface SoftwareComponentContainer extends ExtensiblePolymorphicDomainObjectContainer<SoftwareComponent> {
 }

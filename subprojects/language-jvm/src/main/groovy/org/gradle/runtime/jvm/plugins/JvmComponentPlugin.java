@@ -18,7 +18,7 @@ package org.gradle.runtime.jvm.plugins;
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.LibraryContainer;
+import org.gradle.runtime.base.SoftwareComponentContainer;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -34,7 +34,7 @@ import javax.inject.Inject;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
- * Registers the {@link org.gradle.runtime.jvm.JvmLibrary} library type for the {@link org.gradle.runtime.base.LibraryContainer}.
+ * Registers the {@link org.gradle.runtime.jvm.JvmLibrary} library type for the {@link org.gradle.runtime.base.SoftwareComponentContainer}.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
@@ -49,7 +49,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         project.getPlugins().apply(LifecycleBasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
 
-        LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
+        // TODO:DAZ Introduce jvmLibraries typed container
+        SoftwareComponentContainer libraries = project.getExtensions().getByType(SoftwareComponentContainer.class);
         libraries.registerFactory(JvmLibrary.class, new NamedDomainObjectFactory<JvmLibrary>() {
             public JvmLibrary create(String name) {
                 return new DefaultJvmLibrary(name);

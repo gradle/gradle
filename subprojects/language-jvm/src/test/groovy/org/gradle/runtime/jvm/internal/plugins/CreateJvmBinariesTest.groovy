@@ -22,7 +22,7 @@ import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.Library
 import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder
-import org.gradle.runtime.base.internal.DefaultLibraryContainer
+import org.gradle.runtime.base.internal.DefaultSoftwareComponentContainer
 import org.gradle.runtime.jvm.internal.DefaultJvmLibrary
 import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal
 import spock.lang.Specification
@@ -31,7 +31,7 @@ class CreateJvmBinariesTest extends Specification {
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def rule = new CreateJvmBinaries(namingSchemeBuilder)
     def binaries = Mock(BinaryContainer)
-    def libraries = new DefaultLibraryContainer(new DirectInstantiator())
+    def libraries = new DefaultSoftwareComponentContainer(new DirectInstantiator())
 
     def "adds a binary for each jvm library"() {
         def library = new DefaultJvmLibrary("jvmLibOne")

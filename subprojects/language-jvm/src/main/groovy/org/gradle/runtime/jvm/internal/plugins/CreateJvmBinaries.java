@@ -17,7 +17,7 @@
 package org.gradle.runtime.jvm.internal.plugins;
 
 import org.gradle.runtime.base.BinaryContainer;
-import org.gradle.runtime.base.LibraryContainer;
+import org.gradle.runtime.base.SoftwareComponentContainer;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.runtime.jvm.JvmLibrary;
@@ -31,7 +31,7 @@ public class CreateJvmBinaries extends ModelRule {
         this.namingSchemeBuilder = namingSchemeBuilder;
     }
 
-    void createBinaries(BinaryContainer binaries, LibraryContainer libraries) {
+    void createBinaries(BinaryContainer binaries, SoftwareComponentContainer libraries) {
         for (JvmLibrary jvmLibrary : libraries.withType(JvmLibrary.class)) {
             BinaryNamingScheme namingScheme = namingSchemeBuilder
                     .withComponentName(jvmLibrary.getName())

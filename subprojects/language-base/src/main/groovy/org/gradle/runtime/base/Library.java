@@ -22,5 +22,5 @@ import org.gradle.api.Incubating;
  * A library that can be linked into or depended on by another software element.
  */
 @Incubating
-public interface Library {
+public interface Library extends SoftwareComponent {
 }
