@@ -228,28 +228,28 @@ class HttpServer extends ServerWithExpectations {
     }
 
     /**
-     * Allows one GET request, which fails with a 500 status code
+     * Expects one GET request, which fails with a 500 status code
      */
     void expectGetBroken(String path) {
         expect(path, false, ['GET'], broken())
     }
 
     /**
-     * Allows one GET request for the given URL, which return 404 status code
+     * Expects one GET request for the given URL, which return 404 status code
      */
     void expectGetMissing(String path, PasswordCredentials passwordCredentials = null) {
         expect(path, false, ['GET'], notFound(), passwordCredentials)
     }
 
     /**
-     * Allows one HEAD request for the given URL, which return 404 status code
+     * Expects one HEAD request for the given URL, which return 404 status code
      */
     void expectHeadMissing(String path) {
         expect(path, false, ['HEAD'], notFound())
     }
 
     /**
-     * Allows one HEAD request for the given URL, which returns a 500 status code
+     * Expects one HEAD request for the given URL, which returns a 500 status code
      */
     void expectHeadBroken(String path) {
         expect(path, false, ['HEAD'], broken())
@@ -280,35 +280,35 @@ class HttpServer extends ServerWithExpectations {
     }
 
     /**
-     * Allows one HEAD request for the given URL.
+     * Expects one HEAD request for the given URL.
      */
     void expectHead(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
         expect(path, false, ['HEAD'], fileHandler(path, srcFile, lastModified, contentLength))
     }
 
     /**
-     * Allows one HEAD request for the given URL with http authentication.
+     * Expects one HEAD request for the given URL with http authentication.
      */
     void expectHead(String path, String username, String password, File srcFile, Long lastModified = null, Long contentLength = null) {
         expect(path, false, ['HEAD'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
     }
 
     /**
-     * Allows one GET request for the given URL. Reads the request content from the given file.
+     * Expects one GET request for the given URL. Reads the request content from the given file.
      */
     void expectGet(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
         expect(path, false, ['GET'], fileHandler(path, srcFile, lastModified, contentLength))
     }
 
     /**
-     * Allows one GET request for the given URL, with the given credentials. Reads the request content from the given file.
+     * Expects one GET request for the given URL, with the given credentials. Reads the request content from the given file.
      */
     void expectGet(String path, String username, String password, File srcFile) {
         expect(path, false, ['GET'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
     }
 
     /**
-     * Allows one GET request for the given URL, with the response being GZip encoded.
+     * Expects one GET request for the given URL, with the response being GZip encoded.
      */
     void expectGetGZipped(String path, File srcFile) {
         expect(path, false, ['GET'], new Action() {
@@ -332,14 +332,14 @@ class HttpServer extends ServerWithExpectations {
     }
 
     /**
-     * Allow one GET request for the given URL, responding with a redirect.
+     * Expects one GET request for the given URL, responding with a redirect.
      */
     void expectGetRedirected(String path, String location) {
         expectRedirected('GET', path, location)
     }
 
     /**
-     * Allow one HEAD request for the given URL, responding with a redirect.
+     * Expects one HEAD request for the given URL, responding with a redirect.
      */
     void expectHeadRedirected(String path, String location) {
         expectRedirected('HEAD', path, location)
@@ -388,7 +388,7 @@ class HttpServer extends ServerWithExpectations {
     }
 
     /**
-     * Allows one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
+     * Expects one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
      */
     void expectGetDirectoryListing(String path, String username, String password, File directory) {
         expect(path, false, ['GET'], withAuthentication(path, username, password, new Action() {
@@ -455,7 +455,7 @@ class HttpServer extends ServerWithExpectations {
     }
 
     /**
-     * Allows one PUT request for the given URL. Writes the request content to the given file.
+     * Expects one PUT request for the given URL. Writes the request content to the given file.
      */
     void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK, PasswordCredentials credentials = null) {
         def action = new Action() {
@@ -481,7 +481,7 @@ class HttpServer extends ServerWithExpectations {
     }
 
     /**
-     * Allows one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
+     * Expects one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
      */
     void expectPut(String path, String username, String password, File destFile) {
         expect(path, false, ['PUT'], withAuthentication(path, username, password, new Action() {
