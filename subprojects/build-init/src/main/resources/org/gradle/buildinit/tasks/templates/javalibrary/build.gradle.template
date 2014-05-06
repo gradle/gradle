@@ -10,6 +10,15 @@
 // Apply the java plugin to add support for Java
 apply plugin: 'java'
 
+buildscript {
+    repositories {
+        mavenCentral() 
+    }
+
+    dependencies {
+    }
+}
+
 // In this section you declare where to find the dependencies of your project
 repositories {
     // Use 'maven central' for resolving your dependencies.
