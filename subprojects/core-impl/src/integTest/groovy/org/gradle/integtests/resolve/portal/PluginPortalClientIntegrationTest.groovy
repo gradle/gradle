@@ -20,14 +20,18 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
+
     @Rule
-    HttpServer server
+    HttpServer server = new HttpServer()
+
+    MavenHttpRepository mavenHttpRepo = new MavenHttpRepository(server, mavenRepo)
 
     def setup() {
         server.start()
@@ -70,13 +74,13 @@ task verify
         failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '$pluginVersion'] from plugin repositories")
     }
 
-    private TestFile generatePluginMetaData(String pluginVersion) {
+    private TestFile generatePluginMetaData(String pluginVersion, String version) {
         def metadataFile = file("metadata.json")
         metadataFile.text = """
 {
     "id": "myplugin",
     "version": "$pluginVersion",
-    "implementation": {"gav": "my:plugin:1.0", "repo": "$server.address"},
+    "implementation": {"gav": "my:plugin:$version", "repo": "$server.address/repo"},
     "implementationType": "M2_JAR"
 }
 """
@@ -90,34 +94,15 @@ task verify
         pluginFile
     }
 
-    private TestFile generatePluginPom() {
-        def pomFile = file("pom.xml")
-        pomFile.text = """
-<project xmlns="http://maven.apache.org/POM/4.0.0">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>my</groupId>
-  <artifactId>plugin</artifactId>
-  <packaging>jar</packaging>
-  <version>1.0</version>
-  <name>My Plugin</name>
-</project>
-"""
-        pomFile
-    }
-
-
-    private void servePlugin(String pluginId, String pluginVersion, String group, String artifact, String version) {
-        def metaDataFile = generatePluginMetaData(pluginVersion)
-        def pluginFile = generatePluginJar()
-        def pomFile = generatePluginPom()
-
+    private void servePlugin(String pluginId, String pluginVersion, String group,
+                             String artifact, String version, String resolvedVersion = version) {
+        def metaDataFile = generatePluginMetaData(pluginVersion, version)
         server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", metaDataFile)
-        def modulePath = "/$group/$artifact/$version/$artifact-$version"
-        server.allowHead("${modulePath}.pom", pomFile)
-        server.allowGetMissing("${modulePath}.pom.sha1")
-        server.expectGet("${modulePath}.pom", pomFile)
-        server.allowHead("${modulePath}.jar", pluginFile)
-        server.allowGetMissing("${modulePath}.jar.sha1")
-        server.expectGet("${modulePath}.jar", pluginFile)
+
+        def module = mavenHttpRepo.module(group, artifact, resolvedVersion).publish()
+        generatePluginJar().copyTo(module.artifactFile)
+
+        module.allowAll()
+        mavenHttpRepo.getModuleMetaData(group,artifact).allowGetOrHead()
     }
 }
