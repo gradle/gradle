@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.cli;
 
+import groovy.lang.GroovySystem;
+import org.apache.ivy.Ivy;
+import org.apache.tools.ant.Main;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
 import org.gradle.cli.CommandLineArgumentException;
@@ -25,7 +28,9 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.internal.Actions;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
@@ -136,7 +141,30 @@ public class CommandLineActionFactory {
 
     private static class ShowVersionAction implements Runnable {
         public void run() {
-            System.out.println(GradleVersion.current().prettyPrint());
+            GradleVersion currentVersion = GradleVersion.current();
+
+            final StringBuilder sb = new StringBuilder();
+            sb.append("\n------------------------------------------------------------\nGradle ");
+            sb.append(currentVersion.getVersion());
+            sb.append("\n------------------------------------------------------------\n\nBuild time:   ");
+            sb.append(currentVersion.getBuildTime());
+            sb.append("\nBuild number: ");
+            sb.append(currentVersion.getBuildNumber());
+            sb.append("\nRevision:     ");
+            sb.append(currentVersion.getRevision());
+            sb.append("\n\nGroovy:       ");
+            sb.append(GroovySystem.getVersion());
+            sb.append("\nAnt:          ");
+            sb.append(Main.getAntVersion());
+            sb.append("\nIvy:          ");
+            sb.append(Ivy.getIvyVersion());
+            sb.append("\nJVM:          ");
+            sb.append(Jvm.current());
+            sb.append("\nOS:           ");
+            sb.append(OperatingSystem.current());
+            sb.append("\n");
+
+            System.out.println(sb.toString());
         }
     }
 

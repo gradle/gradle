@@ -16,11 +16,6 @@
 
 package org.gradle.util
 
-import org.apache.ivy.Ivy
-import org.apache.tools.ant.Main
-import org.codehaus.groovy.runtime.InvokerHelper
-import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.os.OperatingSystem
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -252,25 +247,5 @@ class GradleVersionTest extends Specification {
         '1.0-milestone-3'                     | "1.0"
         '1.0-milestone-3-20121012100000+1000' | "1.0"
         '2.0-milestone-3'                     | "2.0" // not that we're planning to do this
-    }
-
-    def prettyPrint() {
-        String expectedText = """
-------------------------------------------------------------
-Gradle $version.version
-------------------------------------------------------------
-
-Build time:   $version.buildTime
-Build number: $version.buildNumber
-Revision:     $version.commitId
-
-Groovy:       $InvokerHelper.version
-Ant:          $Main.antVersion
-Ivy:          ${Ivy.ivyVersion}
-JVM:          ${Jvm.current()}
-OS:           ${OperatingSystem.current()}
-"""
-        expect:
-        version.prettyPrint() == expectedText
     }
 }

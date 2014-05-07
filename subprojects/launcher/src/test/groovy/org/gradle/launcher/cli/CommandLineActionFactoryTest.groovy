@@ -15,10 +15,15 @@
  */
 package org.gradle.launcher.cli
 
+import org.apache.ivy.Ivy
+import org.apache.tools.ant.Main
+import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.Action
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Factory
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.logging.LoggingManagerInternal
@@ -212,12 +217,29 @@ class CommandLineActionFactoryTest extends Specification {
     }
 
     def "displays version message"() {
+        def version = GradleVersion.current()
+        def expectedText = """
+------------------------------------------------------------
+Gradle ${version.version}
+------------------------------------------------------------
+
+Build time:   $version.buildTime
+Build number: $version.buildNumber
+Revision:     $version.revision
+
+Groovy:       $InvokerHelper.version
+Ant:          $Main.antVersion
+Ivy:          ${Ivy.ivyVersion}
+JVM:          ${Jvm.current()}
+OS:           ${OperatingSystem.current()}
+"""
+
         when:
         def action = factory.convert([option])
         action.execute(executionListener)
 
         then:
-        outputs.stdOut.contains(GradleVersion.current().prettyPrint())
+        outputs.stdOut.contains(expectedText)
 
         and:
         1 * loggingManager.start()

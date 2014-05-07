@@ -16,14 +16,9 @@
 
 package org.gradle.util;
 
-import groovy.lang.GroovySystem;
-import org.apache.ivy.Ivy;
-import org.apache.tools.ant.Main;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.os.OperatingSystem;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,7 +50,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     public static final String RESOURCE_NAME = "/org/gradle/build-receipt.properties";
 
-    // TODO - get rid of this static initialiser nonsense
     static {
         URL resource = GradleVersion.class.getResource(RESOURCE_NAME);
 
@@ -86,6 +80,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
         }
     }
 
+    private String revision;
 
     public static GradleVersion current() {
         return CURRENT;
@@ -164,6 +159,14 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     public String getBuildTime() {
         return buildTime;
+    }
+
+    public String getBuildNumber() {
+        return buildNumber;
+    }
+
+    public String getRevision() {
+        return revision;
     }
 
     public boolean isSnapshot() {
@@ -257,30 +260,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
     @Override
     public int hashCode() {
         return version.hashCode();
-    }
-
-    public String prettyPrint() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("\n------------------------------------------------------------\nGradle ");
-        sb.append(getVersion());
-        sb.append("\n------------------------------------------------------------\n\nBuild time:   ");
-        sb.append(getBuildTime());
-        sb.append("\nBuild number: ");
-        sb.append(buildNumber);
-        sb.append("\nRevision:     ");
-        sb.append(commitId);
-        sb.append("\n\nGroovy:       ");
-        sb.append(GroovySystem.getVersion());
-        sb.append("\nAnt:          ");
-        sb.append(Main.getAntVersion());
-        sb.append("\nIvy:          ");
-        sb.append(Ivy.getIvyVersion());
-        sb.append("\nJVM:          ");
-        sb.append(Jvm.current());
-        sb.append("\nOS:           ");
-        sb.append(OperatingSystem.current());
-        sb.append("\n");
-        return sb.toString();
     }
 
     public boolean isValid() {
