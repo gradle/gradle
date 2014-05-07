@@ -28,7 +28,7 @@ import spock.lang.Shared
 /**
  * These tests actually open the release notes in a browser and test the JS.
  */
-@IgnoreIf({ !canReachServices() })
+@IgnoreIf({ !FunctionalReleaseNotesTest.canReachServices() })
 class FunctionalReleaseNotesTest extends GebReportingSpec {
 
     static private final String FIXED_ISSUES_URL = "http://services.gradle.org/fixed-issues/${GradleVersion.current().baseVersion.version}"

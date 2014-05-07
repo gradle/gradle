@@ -119,18 +119,19 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                 it.@name == "artifact1"
                 it.@type == "type1"
                 it.@ext == "ext1"
-                it.@classifier == "classy"
+                it."@m:classifier" == "classy"
                 it.@conf.isEmpty()
             }
             with (publications[0].artifact[1]) {
                 it.@name.isEmpty()
                 it.@type.isEmpty()
                 it.@ext == ""
-                it.@classifier.isEmpty()
+                it."@m:classifier".isEmpty()
                 it.@conf == "runtime"
             }
         }
     }
+
     def "writes supplied dependencies"() {
         when:
         generator.addDependency(new DefaultIvyDependency('dep-group', 'dep-name-1', 'dep-version', "confMappingProject"))
@@ -187,13 +188,13 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                     it.@name == "artifact-1"
                     it.@type == "type-1"
                     it.@ext == "ext-1"
-                    it.@classifier.isEmpty()
+                    it."@m:classifier".isEmpty()
                 }
                 with (artifact[1]) {
                     it.@name == "artifact-2"
                     it.@type.isEmpty()
                     it.@ext.isEmpty()
-                    it.@classifier == "classy"
+                    it."@m:classifier" == "classy"
                 }
             }
         }
