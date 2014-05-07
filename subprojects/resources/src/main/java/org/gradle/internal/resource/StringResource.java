@@ -14,34 +14,37 @@
  * limitations under the License.
  */
 
+package org.gradle.internal.resource;
 
-package org.gradle.api.internal.resource
+import java.io.File;
+import java.net.URI;
 
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+public class StringResource implements Resource {
+    private final String displayName;
+    private final CharSequence contents;
 
-import org.junit.Test
-
-class StringResourceTest {
-    private final StringResource resource = new StringResource('displayname', 'text')
-
-    @Test
-    public void hasTextContent() {
-         assertThat(resource.text, equalTo('text'))
+    public StringResource(String displayName, CharSequence contents) {
+        this.displayName = displayName;
+        this.contents = contents;
     }
 
-    @Test
-    public void exists() {
-         assertTrue(resource.exists)
+    public String getDisplayName() {
+        return displayName;
     }
 
-    @Test
-    public void hasNoFile() {
-         assertThat(resource.file, nullValue())
+    public String getText() {
+        return contents.toString();
     }
 
-    @Test
-    public void hasNoURI() {
-        assertThat(resource.URI, nullValue())
+    public File getFile() {
+        return null;
+    }
+
+    public URI getURI() {
+        return null;
+    }
+
+    public boolean getExists() {
+        return true;
     }
 }

@@ -24,8 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVe
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
 import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
-import org.gradle.api.internal.resource.ResourceException
-import org.gradle.api.internal.resource.ResourceNotFoundException
+import org.gradle.internal.resource.ResourceException
+import org.gradle.internal.resource.ResourceNotFoundException
 import org.gradle.internal.UncheckedException
 import org.xml.sax.SAXParseException
 import spock.lang.Specification

@@ -18,6 +18,9 @@ package org.gradle.api.internal.resource;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.resource.Resource;
+import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.util.GradleVersion;
 
 import java.io.*;

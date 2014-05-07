@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resource;
+package org.gradle.internal.resource;
 
 import org.gradle.api.Nullable;
 

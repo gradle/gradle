@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceException;
 
 import java.util.HashSet;
 import java.util.Set;

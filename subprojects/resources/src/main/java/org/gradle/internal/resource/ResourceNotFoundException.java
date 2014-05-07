@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resource;
+package org.gradle.internal.resource;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
-
-@Contextual
-public class ResourceException extends GradleException {
-    public ResourceException(String message) {
+/**
+ * An exception thrown when attempting to access the content of a {@link Resource} which does not exist.
+ */
+public class ResourceNotFoundException extends ResourceException {
+    public ResourceNotFoundException(String message) {
         super(message);
     }
 
-    public ResourceException(String message, Throwable cause) {
-        super(message, cause);
+    public ResourceNotFoundException(String message, Throwable t) {
+        super(message, t);
     }
 }

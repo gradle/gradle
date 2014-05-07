@@ -18,7 +18,7 @@ package org.gradle.api.internal.externalresource.transport.http;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceException;
 
 import java.io.IOException;
 import java.io.InputStream;

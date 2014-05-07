@@ -22,7 +22,7 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCa
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.filestore.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.slf4j.Logger;

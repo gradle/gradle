@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceException;
 
 import java.util.List;
 import java.util.Set;

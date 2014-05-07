@@ -14,32 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resource;
+package org.gradle.internal.resource;
 
-public class CachingResource extends DelegatingResource {
-    private String content;
-    private boolean fetched;
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 
-    public CachingResource(Resource resource) {
-        super(resource);
+@Contextual
+public class ResourceException extends GradleException {
+    public ResourceException(String message) {
+        super(message);
     }
 
-    @Override
-    public boolean getExists() {
-        maybeFetch();
-        return content != null;
-    }
-
-    @Override
-    public String getText() {
-        maybeFetch();
-        return content;
-    }
-
-    private void maybeFetch() {
-        if (!fetched) {
-            content = getResource().getText();
-            fetched = true;
-        }
+    public ResourceException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

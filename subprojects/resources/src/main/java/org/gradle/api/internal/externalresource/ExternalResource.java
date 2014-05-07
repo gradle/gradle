@@ -22,6 +22,9 @@ import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDat
 import java.io.*;
 import java.net.URI;
 
+/**
+ * This will be merged with {@link Resource}.
+ */
 public interface ExternalResource extends Closeable {
     /**
      * Get the URI of the resource.

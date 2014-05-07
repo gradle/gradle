@@ -14,17 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resource;
+package org.gradle.internal.resource;
 
-/**
- * An exception thrown when attempting to access the content of a {@link Resource} which does not exist.
- */
-public class ResourceNotFoundException extends ResourceException {
-    public ResourceNotFoundException(String message) {
-        super(message);
+public class CachingResource extends DelegatingResource {
+    private String content;
+    private boolean fetched;
+
+    public CachingResource(Resource resource) {
+        super(resource);
     }
 
-    public ResourceNotFoundException(String message, Throwable t) {
-        super(message, t);
+    @Override
+    public boolean getExists() {
+        maybeFetch();
+        return content != null;
+    }
+
+    @Override
+    public String getText() {
+        maybeFetch();
+        return content;
+    }
+
+    private void maybeFetch() {
+        if (!fetched) {
+            content = getResource().getText();
+            fetched = true;
+        }
     }
 }

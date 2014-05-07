@@ -30,7 +30,7 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCa
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;

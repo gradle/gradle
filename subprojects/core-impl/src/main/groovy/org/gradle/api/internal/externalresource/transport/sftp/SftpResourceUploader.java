@@ -20,7 +20,7 @@ import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
 
 import java.io.IOException;

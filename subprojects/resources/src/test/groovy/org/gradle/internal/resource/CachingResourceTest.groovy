@@ -15,13 +15,15 @@
  */
 
 
-package org.gradle.api.internal.resource
+package org.gradle.internal.resource
 
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.*
+
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.nullValue
 import static org.junit.Assert.*
 
 @RunWith(JMock.class)

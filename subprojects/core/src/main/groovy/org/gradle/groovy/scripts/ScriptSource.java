@@ -15,7 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.internal.resource.Resource;
+import org.gradle.internal.resource.Resource;
 
 import java.io.Serializable;
 

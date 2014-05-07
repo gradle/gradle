@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.result.metadata.MavenPomArtifact;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
-import org.gradle.api.internal.resource.ResourceNotFoundException;
+import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.filestore.FileStore;
