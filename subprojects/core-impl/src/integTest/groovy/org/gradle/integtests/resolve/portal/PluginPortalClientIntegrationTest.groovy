@@ -65,10 +65,8 @@ plugins {
 task verify
 """
 
-        when:
+        expect:
         fails("verify")
-
-        then:
         failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '$pluginVersion'] from plugin repositories")
     }
 
