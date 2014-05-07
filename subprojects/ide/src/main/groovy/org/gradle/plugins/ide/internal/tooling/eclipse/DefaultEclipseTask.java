@@ -15,11 +15,9 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
-
 import java.io.Serializable;
 
-public class DefaultEclipseTask implements EclipseTaskVersion1, Serializable {
+public class DefaultEclipseTask implements Serializable {
     private final DefaultEclipseProject project;
     private final String path;
     private final String name;

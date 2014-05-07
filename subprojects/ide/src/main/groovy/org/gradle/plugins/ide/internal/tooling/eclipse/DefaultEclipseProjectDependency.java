@@ -15,21 +15,18 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
-import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
-
 import java.io.Serializable;
 
-public class DefaultEclipseProjectDependency implements EclipseProjectDependencyVersion2, Serializable {
+public class DefaultEclipseProjectDependency implements Serializable {
     private final String path;
-    private final HierarchicalEclipseProjectVersion1 target;
+    private final DefaultEclipseProject target;
 
-    public DefaultEclipseProjectDependency(String path, HierarchicalEclipseProjectVersion1 target) {
+    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject target) {
         this.target = target;
         this.path = path;
     }
 
-    public HierarchicalEclipseProjectVersion1 getTargetProject() {
+    public DefaultEclipseProject getTargetProject() {
         return target;
     }
 
