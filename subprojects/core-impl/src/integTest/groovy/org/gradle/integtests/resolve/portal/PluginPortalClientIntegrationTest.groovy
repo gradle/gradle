@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.portal
 
-import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
@@ -67,12 +66,10 @@ task verify
 """
 
         when:
-        run("verify")
+        fails("verify")
 
         then:
-        def e = thrown(Exception)
-        def cause = getCause(e, UnknownPluginException)
-        cause.message.contains "[plugin: 'myplugin', version: '$pluginVersion']"
+        failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '$pluginVersion'] from plugin repositories")
     }
 
     private TestFile generatePluginMetaData(String pluginVersion) {
@@ -110,16 +107,6 @@ task verify
         pomFile
     }
 
-    private Throwable getCause(Throwable throwable, Class<? extends Throwable> type) {
-        while (throwable != null) {
-            if (type.isInstance(throwable)) {
-                return throwable
-            }
-            println throwable
-            throwable = throwable.cause
-        }
-        assert false, "No cause of type $type.name found for exception: $throwable"
-    }
 
     private void servePlugin(String pluginId, String pluginVersion, String group, String artifact, String version) {
         def metaDataFile = generatePluginMetaData(pluginVersion)
