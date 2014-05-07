@@ -17,6 +17,7 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
 
@@ -26,6 +27,7 @@ import java.util.Map;
  * <p>You can obtain a {@code TaskContainer} instance by calling {@link org.gradle.api.Project#getTasks()}, or using the
  * {@code tasks} property in your build script.</p>
  */
+@HasInternalProtocol
 public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainObjectContainer<Task> {
     /**
      * <p>Locates a task by path. You can supply a task name, a relative path, or an absolute path. Relative paths are
