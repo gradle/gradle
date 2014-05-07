@@ -504,7 +504,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         }
     }
 
-    private static boolean rename(TestFile sourceFile) {
+    static boolean rename(TestFile sourceFile) {
         final newFile = new File(sourceFile.getParentFile(), "changed_${sourceFile.name}")
         newFile << sourceFile.text
         sourceFile.delete()
