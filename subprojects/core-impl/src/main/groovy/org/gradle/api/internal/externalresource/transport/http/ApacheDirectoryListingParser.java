@@ -17,7 +17,7 @@
 package org.gradle.api.internal.externalresource.transport.http;
 
 import org.cyberneko.html.parsers.SAXParser;
-import org.gradle.api.internal.resource.UriResource;
+import org.gradle.internal.resource.UriResource;
 import org.gradle.internal.resource.ResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

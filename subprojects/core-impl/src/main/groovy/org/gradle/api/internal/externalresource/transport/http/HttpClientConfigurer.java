@@ -34,7 +34,7 @@ import org.apache.http.protocol.HttpContext;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.externalresource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.api.internal.externalresource.transport.http.ntlm.NTLMSchemeFactory;
-import org.gradle.api.internal.resource.UriResource;
+import org.gradle.internal.resource.UriResource;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

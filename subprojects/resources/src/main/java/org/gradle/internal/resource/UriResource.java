@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resource;
+package org.gradle.internal.resource;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.resource.Resource;
-import org.gradle.internal.resource.ResourceException;
-import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.util.GradleVersion;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URLConnection;
-
-import static org.gradle.util.GFileUtils.canonicalise;
 
 /**
  * A {@link Resource} implementation backed by a URI. Assumes content is encoded using UTF-8.
@@ -41,6 +36,14 @@ public class UriResource implements Resource {
         this.description = description;
         this.sourceFile = canonicalise(sourceFile);
         this.sourceUri = sourceFile.toURI();
+    }
+
+    private File canonicalise(File file) {
+        try {
+            return file.getCanonicalFile();
+        } catch (IOException e) {
+            return file.getAbsoluteFile();
+        }
     }
 
     public UriResource(String description, URI sourceUri) {

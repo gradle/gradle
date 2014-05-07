@@ -15,10 +15,8 @@
  */
 
 
-package org.gradle.api.internal.resource
+package org.gradle.internal.resource
 
-import org.gradle.internal.resource.ResourceNotFoundException
-import org.gradle.internal.resource.ResourceException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestPrecondition
