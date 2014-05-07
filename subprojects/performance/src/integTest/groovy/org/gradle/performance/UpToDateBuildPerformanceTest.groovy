@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis

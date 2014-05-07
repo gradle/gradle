@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture
+package org.gradle.performance
 
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.performance.fixture.CompositeDataReporter
+import org.gradle.performance.fixture.PerformanceTestRunner
+import org.gradle.performance.fixture.TextFileDataReporter
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.ResultsStore
