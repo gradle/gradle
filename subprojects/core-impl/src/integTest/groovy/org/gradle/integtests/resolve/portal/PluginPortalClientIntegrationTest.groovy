@@ -22,12 +22,13 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
-
-import org.junit.Rule;
+import org.junit.Rule
 
 public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources = new TestResources(temporaryFolder)
-    @Rule HttpServer server
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    HttpServer server
 
     def setup() {
         server.start()
@@ -111,7 +112,9 @@ task verify
 
     private Throwable getCause(Throwable throwable, Class<? extends Throwable> type) {
         while (throwable != null) {
-            if (type.isInstance(throwable)) { return throwable }
+            if (type.isInstance(throwable)) {
+                return throwable
+            }
             println throwable
             throwable = throwable.cause
         }
