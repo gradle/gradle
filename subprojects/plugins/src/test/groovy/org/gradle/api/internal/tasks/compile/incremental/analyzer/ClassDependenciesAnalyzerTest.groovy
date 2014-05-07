@@ -19,6 +19,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer
 
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.*
+import org.gradle.api.internal.tasks.compile.incremental.test.*
 import spock.lang.Specification
 import spock.lang.Subject
 

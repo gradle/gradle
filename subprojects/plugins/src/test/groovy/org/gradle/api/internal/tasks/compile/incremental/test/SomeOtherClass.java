@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.analyzer;
+package org.gradle.api.internal.tasks.compile.incremental.test;
 
-public class HasPublicConstants {
-    public final static int X = 1;
+public class SomeOtherClass extends SomeClass {
+
+    void foo() {
+        System.out.println(new YetAnotherClass());
+    }
 }

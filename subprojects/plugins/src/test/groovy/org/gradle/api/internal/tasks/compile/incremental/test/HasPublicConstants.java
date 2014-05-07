@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.analyzer;
+package org.gradle.api.internal.tasks.compile.incremental.test;
 
-public class HasPrivateConstants {
-    private final static int X = 1;
-    private final static HasNonPrivateConstants C = new HasNonPrivateConstants();
+public class HasPublicConstants {
+    public final static int X = 1;
 }

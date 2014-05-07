@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.analyzer;
+package org.gradle.api.internal.tasks.compile.incremental.test;
 
 import java.util.*;
 

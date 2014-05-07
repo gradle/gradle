@@ -20,16 +20,18 @@ package org.gradle.api.internal.tasks.compile.incremental.deps
 
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.tasks.compile.incremental.analyzer.*
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
+import org.gradle.api.internal.tasks.compile.incremental.test.*
+import org.gradle.internal.classloader.ClasspathUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ClassDependencyInfoExtractorTest extends Specification {
 
-    @Subject extractor = new ClassDependencyInfoExtractor(new ClassDependenciesAnalyzer(), "org.gradle.api.internal.tasks.compile.incremental")
+    @Subject extractor = new ClassDependencyInfoExtractor(new ClassDependenciesAnalyzer(), "org.gradle.api.internal.tasks.compile.incremental.test")
 
     def "knows relevant dependents"() {
-        def classesDir = new File(ClassDependencyInfoExtractorTest.classLoader.getResource("").toURI())
+        def classesDir = ClasspathUtil.getClasspathForClass(ClassDependencyInfoExtractorTest)
         def tree = new FileTreeAdapter(new DirectoryFileTree(classesDir))
 
         when:

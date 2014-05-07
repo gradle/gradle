@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.analyzer;
+package org.gradle.api.internal.tasks.compile.incremental.test;
 
-public class UsedByNonPrivateConstantsClass {
+public class AccessedFromPrivateClass {
+
+    public String toString() {
+        return "foo";
+    }
 }
