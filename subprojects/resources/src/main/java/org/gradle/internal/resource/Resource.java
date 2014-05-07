@@ -53,14 +53,14 @@ public interface Resource {
     URI getURI();
 
     /**
-     * Returns true if this resource exists, false if it does not exist.
+     * Returns true if this resource exists, false if it does not exist. Note that this method may be expensive, depending on the implementation.
      *
      * @return true if this resource exists.
      */
     boolean getExists();
 
     /**
-     * Returns the content of this resource, as a String.
+     * Returns the content of this resource, as a String. Note that this method may be expensive, depending on the implementation.
      *
      * @return the content. Never returns null.
      * @throws ResourceNotFoundException When this resource does not exist.
