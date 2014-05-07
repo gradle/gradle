@@ -62,8 +62,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This method was used by consumers 1.0-rc-1 through to 1.1. Later consumers use {@link #configure(org.gradle.tooling.internal.protocol.ConnectionParameters)} instead.
      */
     public void configureLogging(final boolean verboseLogging) {
-        ProviderConnectionParameters providerConnectionParameters = adapter.adapt(ProviderConnectionParameters.class, new VerboseLoggingOnlyConnectionParameters(verboseLogging));
-        connection.configure(providerConnectionParameters);
+        // Ignore - we don't support these consumer versions any more
     }
 
     /**
