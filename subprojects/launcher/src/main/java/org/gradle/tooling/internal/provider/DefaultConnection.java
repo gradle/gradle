@@ -152,16 +152,4 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     private ProviderOperationParameters toProviderParameters(BuildParameters buildParameters) {
         return adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
     }
-
-    private static class VerboseLoggingOnlyConnectionParameters {
-        private final boolean verboseLogging;
-
-        public VerboseLoggingOnlyConnectionParameters(boolean verboseLogging) {
-            this.verboseLogging = verboseLogging;
-        }
-
-        public boolean getVerboseLogging() {
-            return verboseLogging;
-        }
-    }
 }
