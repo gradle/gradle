@@ -17,7 +17,6 @@ package org.gradle.launcher.cli
 
 import org.apache.ivy.Ivy
 import org.apache.tools.ant.Main
-import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.Action
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.cli.CommandLineParser
