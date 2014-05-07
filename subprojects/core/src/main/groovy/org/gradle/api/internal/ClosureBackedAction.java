@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal;
 
+import com.google.common.base.Objects;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
 import org.gradle.util.Configurable;
-
-import java.util.Objects;
 
 public class ClosureBackedAction<T> implements Action<T> {
     private final Closure closure;
@@ -61,7 +60,7 @@ public class ClosureBackedAction<T> implements Action<T> {
                 }
             }
         } catch (groovy.lang.MissingMethodException e) {
-            if (Objects.equals(e.getType(), closure.getClass()) && Objects.equals(e.getMethod(), "doCall")) {
+            if (Objects.equal(e.getType(), closure.getClass()) && Objects.equal(e.getMethod(), "doCall")) {
                 throw new InvalidActionClosureException(closure, delegate);
             }
             throw e;
