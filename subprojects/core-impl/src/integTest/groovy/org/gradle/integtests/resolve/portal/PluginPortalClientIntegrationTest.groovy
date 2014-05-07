@@ -74,6 +74,25 @@ task verify
         failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '$pluginVersion'] from plugin repositories")
     }
 
+    def "plugin can have dynamic module version"() {
+        def pluginVersion = "test_localhost_${server.port}_1.0"
+
+        servePlugin("myplugin", "1.0", "my", "plugin", "2.+", "2.2")
+
+        buildScript """
+plugins {
+    id "myplugin" version "$pluginVersion"
+}
+
+task verify << {
+    assert pluginApplied
+}
+"""
+
+        expect:
+        succeeds("verify")
+    }
+
     private TestFile generatePluginMetaData(String pluginVersion, String version) {
         def metadataFile = file("metadata.json")
         metadataFile.text = """
