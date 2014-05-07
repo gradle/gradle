@@ -227,7 +227,7 @@ Build time:   $version.buildTime
 Build number: $version.buildNumber
 Revision:     $version.revision
 
-Groovy:       $InvokerHelper.version
+Groovy:       $GroovySystem.version
 Ant:          $Main.antVersion
 Ivy:          ${Ivy.ivyVersion}
 JVM:          ${Jvm.current()}
