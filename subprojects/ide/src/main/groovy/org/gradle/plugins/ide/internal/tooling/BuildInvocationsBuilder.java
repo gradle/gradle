@@ -47,7 +47,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             throw new GradleException("Unknown model name " + modelName);
         }
         List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
-        Set<String> aggregatedTasks = Sets.newHashSet();
+        Set<String> aggregatedTasks = Sets.newLinkedHashSet();
         findTasks(project, aggregatedTasks);
         for (String selectorName : aggregatedTasks) {
             selectors.add(new LaunchableGradleTaskSelector().
