@@ -80,8 +80,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
         }
     }
 
-    private String revision;
-
     public static GradleVersion current() {
         return CURRENT;
     }
@@ -166,7 +164,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
     }
 
     public String getRevision() {
-        return revision;
+        return commitId;
     }
 
     public boolean isSnapshot() {
