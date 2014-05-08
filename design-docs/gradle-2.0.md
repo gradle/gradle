@@ -89,6 +89,7 @@ approximately 2 years old as of the Gradle 2.0 release.
 * Change the version of Groovy exposed via the Gradle API to most recent Groovy 2.3.x version.
 * Remove source exclusions for jdk6.
 * Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
+* Remove the special case logging from `LogbackLoggingConfigurer`.
 * Replace usages of `guava-jdk5`.
 
 ## Archive tasks + base plugin

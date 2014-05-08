@@ -71,6 +71,7 @@ public class LogbackLoggingConfigurer implements LoggingConfigurer {
             context.reset();
             context.addTurboFilter(new GradleFilter());
             context.getLogger("org.apache.http.wire").setLevel(Level.OFF);
+            context.getLogger("org.codehaus.groovy.runtime.m12n.SimpleExtensionModule").setLevel(Level.ERROR);
             GradleAppender appender = new GradleAppender();
             appender.setContext(context);
             appender.start();
