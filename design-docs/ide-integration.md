@@ -264,12 +264,6 @@ Expose Scala language level and other details about a Scala component.
 
 Expose the corresponding Eclipse and IDEA model.
 
-### Story - Expose the publications of a project
-
-See [tooling-api-improvements.md](tooling-api-improvements.md#story-expose-the-publications-of-a-project):
-
-Expose the publications of a project so that the IDE can wire together Gradle and Maven builds.
-
 ### Story - Expose Web components to the IDE
 
 Expose Web content, servlet API version, web.xml descriptor, runtime and container classpaths, and other details about a web application.

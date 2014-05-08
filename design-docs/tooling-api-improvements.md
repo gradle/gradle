@@ -42,30 +42,6 @@ to use this same mechanism is one step in this direction.
 
 # Implementation plan
 
-## Story: Expose the build script of a project
-
-This story exposes via the tooling API some basic information about the build script of a project.
-
-1. Add a `GradleScript` type with the following properties:
-    1. A `file` property with type `File`.
-2. Add a `buildScript` property to `GradleProject` with type `GradleScript`.
-3. Include an `@since` javadoc tag and an `@Incubating` annotation on the new types and methods.
-4. Change `GradleProjectBuilder` to populate the model.
-
-An example usage:
-
-    GradleProject project = connection.getModel(GradleProject.class);
-    System.out.println("project " + project.getPath() + " uses script " + project.getBuildScript().getFile());
-
-### Test coverage
-
-- Add a new `ToolingApiSpecification` integration test class that covers:
-    - A project with standard build script location
-    - A project with customized build script location
-- Verify that a decent error message is received when using a Gradle version that does not expose the build scripts.
-    - Request `GradleProject` directly.
-    - Using `GradleProject` via an `EclipseProject` or `IdeaModule`.
-
 ## Story: Expose the compile details of a build script
 
 This story exposes some information about how a build script will be compiled. This information can be used by an
@@ -234,56 +210,6 @@ This story adds support for conditionally requesting a model, if it is available
 ## Story: Tooling API client changes implementation of a build action
 
 Fix the `ClassLoader` caching in the tooling API so that it can deal with changing implementations.
-
-## Story: GRADLE-2434 - Expose the aggregate tasks for a project
-
-This story allows an IDE to implement a way to select the tasks to execute based on their name, similar to the Gradle command-line.
-
-1. Add an `EntryPoint` model interface, which represents some arbitrary entry point to the build.
-2. Add a `TaskSelector` model interface, which represents an entry point that uses a task name to select the tasks to execute.
-3. Change `GradleTask` to extend `EntryPoint`, so that each task can be used as an entry point.
-4. Add a method to `GradleProject` to expose the task selectors for the project.
-    - For new target Gradle versions, delegate to the provider.
-    - For older target Gradle versions, use a client-side mix-in that assembles the task selectors using the information available in `GradleProject`.
-5. Add methods to `BuildLauncher` to allow a sequence of entry points to be used to specify what the build should execute.
-6. Add `@since` and `@Incubating` to the new types and methods.
-
-Here are the above types:
-
-    interface EntryPoint {
-    }
-
-    interface TaskSelector extends EntryPoint {
-        String getName(); // A display name
-    }
-
-    interface GradleTask extends EntryPoint {
-        ...
-    }
-
-    interface GradleProject {
-        DomainObjectSet<? extends TaskSelector> getTaskSelectors();
-        ...
-    }
-
-    interface BuildLauncher {
-        BuildLauncher forTasks(Iterable<? extends EntryPoint> tasks);
-        BuildLauncher forTasks(EntryPoint... tasks);
-        ...
-    }
-
-TBD - maybe don't change `forTasks()` but instead add an `execute(Iterable<? extends EntryPoint> tasks)` method.
-
-### Test cases
-
-- Can request the entry points for a given project hierarchy
-    - Task is present in some subprojects but not the target project
-    - Task is present in target project but no subprojects
-    - Task is present in target project and some subprojects
-- Executing a task selector when task is also present in subprojects runs all the matching tasks, for the above cases.
-- Can execute a task selector from a child project. Verify the tasks from the child project are executed.
-- Executing a task (as an `EntryPoint`) when task is also present in subprojects run the specified task only and nothing from subprojects.
-- Can request the entry points for all target Gradle versions.
 
 ## Story: Tooling API client launches a build using task selectors from different projects
 
