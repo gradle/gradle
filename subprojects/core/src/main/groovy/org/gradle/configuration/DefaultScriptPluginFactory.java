@@ -35,7 +35,10 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.plugin.internal.*;
+import org.gradle.plugin.internal.PluginDependenciesService;
+import org.gradle.plugin.internal.PluginRequestApplicator;
+import org.gradle.plugin.internal.PluginResolutionApplicator;
+import org.gradle.plugin.internal.PluginResolverFactory;
 import org.gradle.plugin.resolve.internal.InvalidPluginRequestException;
 import org.gradle.plugin.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.resolve.internal.PluginRequest;
@@ -72,8 +75,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.fileLookup = fileLookup;
     }
 
-    public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptClass) {
-        return new ScriptPluginImpl(scriptSource, scriptHandler, classLoaderScope, classpathClosureName, scriptClass);
+    public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptClass, boolean ownerScript) {
+        return new ScriptPluginImpl(scriptSource, scriptHandler, classLoaderScope, classpathClosureName, scriptClass, ownerScript);
     }
 
     private class ScriptPluginImpl implements ScriptPlugin {
@@ -82,13 +85,15 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         private final String classpathClosureName;
         private final Class<? extends BasicScript> scriptType;
         private final ScriptHandler scriptHandler;
+        private final boolean ownerScript;
 
-        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptType) {
+        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptType, boolean ownerScript) {
             this.scriptSource = scriptSource;
             this.classLoaderScope = classLoaderScope;
             this.classpathClosureName = classpathClosureName;
             this.scriptHandler = scriptHandler;
             this.scriptType = scriptType;
+            this.ownerScript = ownerScript;
         }
 
 
@@ -173,7 +178,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             BasicScript script = runner.getScript();
             script.init(target, services);
-            if (target instanceof ScriptAware) {
+            if (ownerScript && target instanceof ScriptAware) {
                 ((ScriptAware) target).setScript(script);
             }
             runner.run();

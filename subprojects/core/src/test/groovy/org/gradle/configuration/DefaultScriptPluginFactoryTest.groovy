@@ -88,7 +88,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptRunner.run()
 
         then:
-        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", DefaultScript)
+        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", DefaultScript, false)
         configurer.apply(target)
     }
 
@@ -113,7 +113,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptRunner.run()
 
         then:
-        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", DefaultScript)
+        ScriptPlugin configurer = factory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", DefaultScript, false)
         configurer.apply(target)
     }
 }

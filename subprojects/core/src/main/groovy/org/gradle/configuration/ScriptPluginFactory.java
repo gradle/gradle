@@ -21,5 +21,5 @@ import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public interface ScriptPluginFactory {
-    ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptClass);
+    ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptClass, boolean canonicalScript);
 }

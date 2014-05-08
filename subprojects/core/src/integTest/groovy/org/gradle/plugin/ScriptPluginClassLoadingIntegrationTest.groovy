@@ -51,4 +51,24 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "sayMessageFrom1", "sayMessageFrom2", "sayMessageFrom3"
         output.contains "hello"
     }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-3079")
+    def "methods defined in script are available to used script plugins"() {
+        given:
+        buildScript """
+          def addTask(project) {
+            project.tasks.create("hello").doLast { println "hello from method" }
+          }
+
+          apply from: "script.gradle"
+        """
+
+        file("script.gradle") << "addTask(project)"
+
+        when:
+        succeeds "hello"
+
+        then:
+        output.contains "hello from method"
+    }
 }

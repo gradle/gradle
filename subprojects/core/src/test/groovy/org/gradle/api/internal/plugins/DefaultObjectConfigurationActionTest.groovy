@@ -49,7 +49,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         given:
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript) >> configurer
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript, false) >> configurer
 
         when:
         action.from('script')
@@ -65,7 +65,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         Object target2 = new Object()
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript) >> configurer
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript, false) >> configurer
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
 
@@ -83,7 +83,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         Object target2 = new Object()
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript) >> configurer
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript, false) >> configurer
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
 

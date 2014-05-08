@@ -967,13 +967,15 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         throw new UnsupportedOperationException();
     }
 
-    @Override @Inject
+    @Override
+    @Inject
     protected ScriptPluginFactory getScriptPluginFactory() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
 
-    @Override @Inject
+    @Override
+    @Inject
     protected ScriptHandlerFactory getScriptHandlerFactory() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
@@ -1015,6 +1017,5 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     public void model(Closure action) {
         new GroovyModelDsl(modelRules).configure(action);
     }
-
 
 }

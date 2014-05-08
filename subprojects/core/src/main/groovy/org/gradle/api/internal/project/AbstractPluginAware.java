@@ -30,15 +30,19 @@ import java.util.Map;
 abstract public class AbstractPluginAware implements PluginAware {
 
     public void apply(Closure closure) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope().getBase().createChild(), this);
+        DefaultObjectConfigurationAction action = createObjectConfigurationAction();
         ConfigureUtil.configure(closure, action);
         action.execute();
     }
 
     public void apply(Map<String, ?> options) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope().getBase().createChild(), this);
+        DefaultObjectConfigurationAction action = createObjectConfigurationAction();
         ConfigureUtil.configureByMap(options, action);
         action.execute();
+    }
+
+    private DefaultObjectConfigurationAction createObjectConfigurationAction() {
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope().getBase().createChild(), this);
     }
 
     protected abstract FileResolver getFileResolver();

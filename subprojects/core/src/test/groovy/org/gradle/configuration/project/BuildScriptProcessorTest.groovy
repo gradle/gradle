@@ -45,7 +45,7 @@ public class BuildScriptProcessorTest extends Specification {
         buildScriptProcessor.execute(project)
 
         then:
-        1 * configurerFactory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", ProjectScript) >> scriptPlugin
+        1 * configurerFactory.create(scriptSource, scriptHandler, classLoaderScope, "buildscript", ProjectScript, true) >> scriptPlugin
         1 * scriptPlugin.apply(project)
     }
 }
