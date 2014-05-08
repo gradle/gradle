@@ -21,8 +21,9 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.pluginportal.PluginPortalTestServer
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.Ignore
 
-public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
+public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
@@ -33,19 +34,11 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         portal.start()
     }
 
-    def "plugin declared in plugins {} block gets resolved from portal and applied"() {
+    def "plugin declared in plugins {} block gets resolved and applied"() {
         portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
         publishTestPlugin("myplugin", "my", "plugin", "1.0")
 
-        buildScript """
-            plugins {
-                id "myplugin" version "1.0"
-            }
-
-            task verify << {
-                assert pluginApplied
-            }
-        """
+        buildScript applyAndVerify("myplugin", "1.0")
 
         expect:
         succeeds("verify")
@@ -101,7 +94,7 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Failed to parse plugin portal JSON response.")
     }
 
-    def "Gradle client tolerates (and neglects) extra information in portal JSON response"() {
+    def "extra information in portal JSON response is tolerated (and neglected)"() {
         publishTestPlugin("myplugin", "my", "plugin", "1.0")
 
         portal.expectPluginQuery("myplugin", "1.0") {
@@ -128,6 +121,24 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         succeeds("verify")
     }
 
+    // may need to inject StartParameterResolutionOverride
+    // or reuse whatever enforces resolution control
+    @Ignore("TODO")
+    def "resolution fails if Gradle is in offline mode"() {
+        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
+        publishTestPlugin("myplugin", "my", "plugin", "1.0")
+
+        buildScript applyAndVerify("myplugin", "1.0")
+
+        expect:
+        args("--offline")
+        fails("verify")
+    }
+
+    def "portal redirects are being followed"() {
+        // TODO
+    }
+
     private void publishTestPlugin(String pluginId, String group, String artifact, String version) {
         def module = portal.m2repo.module(group, artifact, version) // don't know why tests are failing if this module is publish()'ed
         module.allowAll()
@@ -135,10 +146,10 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         pluginBuilder.publishTo(executer, module.artifactFile)
     }
 
-    private String applyAndVerify(String plugin, String version) {
+    private String applyAndVerify(String id, String version) {
         """
             plugins {
-                id "$plugin" version "$version"
+                id "$id" version "$version"
             }
 
             task verify << {
