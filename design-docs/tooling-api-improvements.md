@@ -287,20 +287,21 @@ Represent the execution of a long running operation using a `Future`. This `Futu
     }
 
     interface ModelBuilder<T> {
-        BuildInvocation<T> fetch(); // starts building the model, does not block
+        BuildFuture<T> fetch(); // starts building the model, does not block
         ...
     }
 
     interface BuildLauncher {
-        BuildInvocation<Void> start(); // starts running the build, does not block
+        BuildFuture<Void> start(); // starts running the build, does not block
         ...
     }
 
     interface BuildActionExecuter<T> {
-        BuildInvocation<T> start(); // starts running the build, does not block
+        BuildFuture<T> start(); // starts running the build, does not block
         ...
     }
 
+    // TBD - fetch() should be called start() as well?
     BuildFuture<GradleProject> model = connection.model(GradleProject.class).fetch();
     model.cancel(true);
 
@@ -317,7 +318,7 @@ to the build:
 
 Use futures to represent the existing asynchronous behaviour:
 
-1. Change internal class `BlockingResultHandler` to implement `BuildInvocation` and reuse this type to implement the futures.
+1. Change internal class `BlockingResultHandler` to implement `BuildFuture` and reuse this type to implement the futures.
 2. Implementation should discard handlers once they have been notified, so they can be garbage collected.
 
 Push asynchronous execution down to the provider:
@@ -345,10 +346,12 @@ For target versions that do not support cancellation, `Future.cancel()` always r
 - Client receives failure when using `get()` and operation fails
 - Client receives timeout exception when blocking with timeout
 - Client can cancel operation
-    - Stops the operation for all target versions that support cancellation
-    - Returns `false` for all older target versions
-- Client is notified when result is available
-- Client is notified when operation fails
+    - Stops the operation for all target versions that support cancellation. Does not block.
+    - Returns `false` for all older target versions.
+    - Client listener added to future is notified that operation failed due to cancellation.
+    - When a thread is blocked on `get()`, a call to `cancel()` will unblock the thread and the call to `get()` will fail with an exception.
+- Client listener added to future is notified when result is available.
+- Client listener added to future is notified when operation fails.
 
 ## Story: Expose the IDE output directories
 
