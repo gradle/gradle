@@ -76,6 +76,7 @@ approximately 2 years old as of the Gradle 2.0 release.
 * Change the version of Groovy exposed via the Gradle API to most recent Groovy 2.2.x version.
 * Change to use `groovy` instead of `groovy-all`.
     * Change Groovy runtime detector to deal with this change.
+* Add int test coverage for building and groovydoc for permutations of Groovy versions and (`groovy` or `groovy-all`)
 
 ## Add support for Java 8
 
@@ -88,6 +89,7 @@ approximately 2 years old as of the Gradle 2.0 release.
 * Change the version of Groovy exposed via the Gradle API to most recent Groovy 2.3.x version.
 * Remove source exclusions for jdk6.
 * Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
+* Replace usages of `guava-jdk5`.
 
 ## Archive tasks + base plugin
 
@@ -196,6 +198,12 @@ Extension objects have been available for over 2 years and are now an establishe
 
 * Migrate core plugins to use extensions.
 * Remove `Convention` type.
+
+## Project no longer inherits from its parent project
+
+* Project should not delegate to its build script for missing properties or methods.
+* Project should not delegate to its parent for missing properties or methods.
+* Project build script classpath should not inherit anything from parent project.
 
 ## Container API tidy-ups
 

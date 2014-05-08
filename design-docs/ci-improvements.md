@@ -1,4 +1,3 @@
-
 Some ideas to improve feedback from the CI pipeline:
 
 # Background
@@ -17,15 +16,23 @@ Here is a rough overview of the current structure of the CI pipeline
 
 This pipeline is replicated for the release and master branches.
 
-# Reduce memory consumption of the full tooling API test suite
+# Reduce memory consumption of the full tooling API test suite (DONE)
 
 Currently, the full cross version integration test suite for the tooling API starts daemons for every Gradle version, and starts
 multiple daemons for each version.
 
 - Verify that many daemon processes are running while the test suite is executing.
-- Verify that daemon processes are started with relatively small heap and permgen limits, rather than the defaults for the daemon, and fix if not.
 - Change test execution for the tooling API test suite so that the tests for a single Gradle version (or small set of versions) are completed before starting
   tests on another Gradle version. One potential implementation is to introduce a test task per Gradle version.
+
+# Reduce memory consumption of daemon processes started by test suite
+
+- Verify that daemon processes are started with relatively small heap and permgen limits, rather than the defaults for the daemon, and fix if not.
+- Kill daemons at the end of the build.
+
+# Compile source against baseline Java version early in the pipeline
+
+To fail early when later Java APIs are used.
 
 # Automate installation of TeamCity agents on Windows build VM
 
