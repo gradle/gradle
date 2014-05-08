@@ -69,8 +69,8 @@ eclipse {
 
       sourceDirs += file('someExtraSourceDir')
 
-      plusConfigurations += configurations.configOne
-      minusConfigurations += configurations.configTwo
+      plusConfigurations << configurations.configOne
+      minusConfigurations << configurations.configTwo
 
       deployName = 'someBetterDeployName'
 
@@ -272,8 +272,8 @@ dependencies {
 eclipse {
   wtp {
     component {
-        plusConfigurations += configurations.configOne
-        minusConfigurations += configurations.configTwo
+        plusConfigurations << configurations.configOne
+        minusConfigurations << configurations.configTwo
     }
   }
 }

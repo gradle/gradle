@@ -122,7 +122,7 @@ dependencies {
 
 idea {
     module {
-        scopes.COMPILE.plus += configurations.foo
+        scopes.COMPILE.plus << configurations.foo
         scopes.COMPILE.minus += [configurations.bar, configurations.baz]
     }
 }
@@ -417,7 +417,7 @@ dependencies {
 
 idea {
   module {
-    scopes.PROVIDED.plus += configurations.compile
+    scopes.PROVIDED.plus << configurations.compile
   }
 }
 """
@@ -454,8 +454,8 @@ dependencies {
 
 idea {
   module {
-    scopes.PROVIDED.plus += configurations.myCustom
-    scopes.COMPILE.plus += configurations.myCustom
+    scopes.PROVIDED.plus << configurations.myCustom
+    scopes.COMPILE.plus << configurations.myCustom
   }
 }
 """
