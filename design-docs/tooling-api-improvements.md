@@ -222,17 +222,34 @@ TBD
 
 ## Story: Tooling API exposes project's implicit tasks as launchable
 
-TBD
+Change the building of the `BuildInvocations` model so that:
+
+- `getTasks()` includes the implicit tasks of the project.
+- `getTaskSelectors()` includes the implicit tasks of the project and all its subprojects.
 
 ### Test cases
 
-- `BuildInvocations.getTasks()` includes the `help` and other implicit tasks. Running the task instance runs the appropriate task.
-- `BuildInvocations.getTaskSelectors()` includes the `help` and other implicit tasks. Running the selector instance runs the appropriate task only (e.g. `help` at the
-root of a multi-project build runs `help` in the root project only.
+- `BuildInvocations.getTasks()` includes `help` and other implicit tasks.
+    - Launching a build using one of these task instances runs the appropriate task.
+- `BuildInvocations.getTaskSelectors()` includes the `help` and other implicit tasks.
+    - Launching a build using the `dependencies` selector runs the task in the default project only (this is the behaviour on the command-line).
+- A project defines a task placeholder. This should be visible in the `BuildInvocations` model for the project and for the parent of the project.
+    - Launching a build using the selector runs the task.
 
 ## Story: Expose information about the visibility of a task
 
 This story allows the IDE to hide those tasks that are part of the implementation details of a build.
+
+- Add a `visibility` property to `Launchable`.
+- A task is considered `public` when it has a non-empty `group` property, otherwise it is considered `private`.
+- A task selector is considered `public` when any task it selects is `public`, otherwise it is considered `private`.
+
+### Test cases
+
+- A project defines a public and private task.
+    - The `BuildInvocations` model for the project includes task instances with the correct visibility.
+    - The `BuildInvocations` model for the project includes task selectors with the correct visibility.
+    - The `BuildInvocations` model for the parent project includes task selectors with the correct visibility.
 
 ## Story: Allow options to be specified for tasks
 
