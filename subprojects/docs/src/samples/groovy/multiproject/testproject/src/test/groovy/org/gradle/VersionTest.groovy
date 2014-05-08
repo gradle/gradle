@@ -7,7 +7,7 @@ class GroovycVersionTest {
   def groovycVersion
 
   @Test
-  void versionShouldBe2_2_0() {
-    assertEquals("2.2.0", groovycVersion)
+  void versionShouldBe2_2_2() {
+    assertEquals("2.2.2", groovycVersion)
   }
 }
