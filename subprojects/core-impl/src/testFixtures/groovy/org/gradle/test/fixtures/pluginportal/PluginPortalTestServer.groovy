@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.portal.PluginPortalResolver
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GradleVersion
@@ -82,7 +81,7 @@ class PluginPortalTestServer extends ExternalResource {
         }
     }
 
-    public MavenHttpModule expectPluginQuery(String pluginId, String pluginVersion, String group, String artifact, String version,
+    public void expectPluginQuery(String pluginId, String pluginVersion, String group, String artifact, String version,
                                               @DelegatesTo(value = PluginUseResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer = null) {
         def useResponse = new PluginUseResponse(pluginId, pluginVersion, new PluginUseResponse.Implementation("$group:$artifact:$version", m2repo.uri.toString()), "M2_JAR")
 
@@ -95,8 +94,6 @@ class PluginPortalTestServer extends ExternalResource {
                 json(response, useResponse)
             }
         })
-
-        m2repo.module(group, artifact, version).publish()
     }
 
     public void expectPluginQuery(String pluginId, String pluginVersion, @DelegatesTo(value = HttpServletResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {

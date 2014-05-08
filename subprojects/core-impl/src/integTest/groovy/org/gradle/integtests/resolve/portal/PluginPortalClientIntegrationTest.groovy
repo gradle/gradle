@@ -34,10 +34,8 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin declared in plugins {} block gets resolved from portal and applied"() {
-        def module = portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        pluginBuilder.addPlugin("project.ext.pluginApplied = true", "myplugin")
-        pluginBuilder.publishTo(executer, module.artifactFile)
-        module.allowAll()
+        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
+        publishTestPlugin("myplugin", "my", "plugin", "1.0")
 
         buildScript """
             plugins {
@@ -53,34 +51,22 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         succeeds("verify")
     }
 
-    def "404 response from plugin portal fails resolution"() {
+    def "404 response from plugin portal fails plugin resolution"() {
         portal.expectMissing("myplugin", "1.0")
 
-        buildScript """
-            plugins {
-                id "myplugin" version "1.0"
-            }
-
-            task verify
-        """
+        buildScript applyAndVerify("myplugin", "1.0")
 
         expect:
         fails("verify")
         failure.assertThatDescription(Matchers.startsWith("Plugin 'myplugin:1.0' not found in plugin repositories:"))
     }
 
-    def "portal JSON response with unknown implementation type"() {
+    def "portal JSON response with unknown implementation type fails plugin resolution"() {
         portal.expectPluginQuery("myplugin", "1.0", "foo", "foo", "foo") {
             implementationType = "SUPER_GREAT"
         }
 
-        buildScript """
-            plugins {
-                id "myplugin" version "1.0"
-            }
-
-            task verify
-        """
+        buildScript applyAndVerify("myplugin", "1.0")
 
         expect:
         fails("verify")
@@ -88,18 +74,12 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Invalid plugin metadata: Unsupported implementation type: SUPER_GREAT.")
     }
 
-    def "portal JSON response with missing repo"() {
+    def "portal JSON response with missing repo fails plugin resolution"() {
         portal.expectPluginQuery("myplugin", "1.0", "foo", "bar", "1.0") {
             implementation.repo = null
         }
 
-        buildScript """
-            plugins {
-                id "myplugin" version "1.0"
-            }
-
-            task verify
-        """
+        buildScript applyAndVerify("myplugin", "1.0")
 
         expect:
         fails("verify")
@@ -107,19 +87,13 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Invalid plugin metadata: No module repository specified.")
     }
 
-    def "portal JSON response with invalid JSON syntax"() {
+    def "portal JSON response with invalid JSON syntax fails plugin resolution"() {
         portal.expectPluginQuery("myplugin", "1.0") {
             contentType = "application/json"
             writer.withWriter { it << "[}" }
         }
 
-        buildScript """
-            plugins {
-                id "myplugin" version "1.0"
-            }
-
-            task verify
-        """
+        buildScript applyAndVerify("myplugin", "1.0")
 
         expect:
         fails("verify")
@@ -127,4 +101,49 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Failed to parse plugin portal JSON response.")
     }
 
+    def "Gradle client tolerates (and neglects) extra information in portal JSON response"() {
+        publishTestPlugin("myplugin", "my", "plugin", "1.0")
+
+        portal.expectPluginQuery("myplugin", "1.0") {
+            contentType = "application/json"
+            writer.withWriter { it << """
+                {
+                    "id": "myplugin",
+                    "version": "1.0",
+                    "implementation": {
+                        "gav": "my:plugin:1.0",
+                        "repo": "$portal.m2repo.uri",
+                        "extra1": "info1"
+                    },
+                    "implementationType": "M2_JAR",
+                    "extra2": "info2"
+                }
+                """
+            }
+        }
+
+        buildScript applyAndVerify("myplugin", "1.0")
+
+        expect:
+        succeeds("verify")
+    }
+
+    private void publishTestPlugin(String pluginId, String group, String artifact, String version) {
+        def module = portal.m2repo.module(group, artifact, version) // don't know why tests are failing if this module is publish()'ed
+        module.allowAll()
+        pluginBuilder.addPlugin("project.ext.pluginApplied = true", pluginId)
+        pluginBuilder.publishTo(executer, module.artifactFile)
+    }
+
+    private String applyAndVerify(String plugin, String version) {
+        """
+            plugins {
+                id "$plugin" version "$version"
+            }
+
+            task verify << {
+                assert pluginApplied
+            }
+        """
+    }
 }
