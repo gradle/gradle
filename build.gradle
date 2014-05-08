@@ -18,6 +18,7 @@ import org.gradle.build.Install
 import org.gradle.build.BuildTypes
 import org.gradle.build.TestReportAggregator
 
+
 defaultTasks 'assemble'
 apply plugin: 'java-base'
 archivesBaseName = 'gradle'
@@ -110,6 +111,7 @@ apply from: "gradle/classycle.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/testGroupings.gradle"
+apply from: "gradle/analytics.gradle"
 
 allprojects {
     group = 'org.gradle'
