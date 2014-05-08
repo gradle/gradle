@@ -23,29 +23,29 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.specs.Specs;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
-import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factories;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.resolve.internal.*;
 
-import java.io.*;
+import java.io.File;
 import java.util.Collections;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class PluginPortalResolver implements PluginResolver {
-    private static final Pattern TEST_PLUGIN_ID_PATTERN = Pattern.compile("test_(\\w+)_([0-9]+)_(.+)");
+
+    public static final String OVERRIDE_URL_PROPERTY = PluginPortalResolver.class.getName() + ".repo.override";
+    private static final String DEFAULT_API_URL = "http://plugins.gradle.org";
 
     private final ArtifactDependencyResolver resolver;
     private final BaseRepositoryFactory repositoryFactory;
@@ -53,8 +53,6 @@ public class PluginPortalResolver implements PluginResolver {
     private final ConfigurationContainer configurationContainer;
     private final PluginPortalClient portalClient;
     private final Instantiator instantiator;
-
-    private String portalUrl = "http://plugins.gradle.org"; // will eventually be provided by plugin mappings
 
     public PluginPortalResolver(ArtifactDependencyResolver resolver, BaseRepositoryFactory repositoryFactory, DependencyHandler dependencyHandler, ConfigurationContainer configurationHandler,
                                 RepositoryTransportFactory transportFactory, Instantiator instantiator) {
@@ -64,27 +62,21 @@ public class PluginPortalResolver implements PluginResolver {
         this.configurationContainer = configurationHandler;
         this.instantiator = instantiator;
 
-        portalClient = new PluginPortalClient(transportFactory);
+        this.portalClient = new PluginPortalClient(transportFactory);
+    }
+
+    private static String getUrl() {
+        return System.getProperty(OVERRIDE_URL_PROPERTY, DEFAULT_API_URL);
     }
 
     @Nullable
     public PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException {
-        pluginRequest = applyTestSettings(pluginRequest);
-
-        PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, portalUrl);
-        if (metaData == null) { return null; }
+        PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, getUrl());
+        if (metaData == null) {
+            return null;
+        }
         ClassPath classPath = resolvePluginDependencies(pluginRequest, metaData);
         return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), Factories.constant(classPath));
-    }
-
-    // that's how desperate I am
-    private PluginRequest applyTestSettings(PluginRequest pluginRequest) {
-        Matcher matcher = TEST_PLUGIN_ID_PATTERN.matcher(pluginRequest.getVersion());
-        if (matcher.matches()) {
-            portalUrl = "http://" + matcher.group(1) + ":" + matcher.group(2);
-            return new DefaultPluginRequest(pluginRequest.getId(), matcher.group(3), pluginRequest.getLineNumber(), pluginRequest.getScriptSource());
-        }
-        return pluginRequest;
     }
 
     private ClassPath resolvePluginDependencies(PluginRequest pluginRequest, PluginUseMetaData metadata) {
@@ -108,7 +100,7 @@ public class PluginPortalResolver implements PluginResolver {
     }
 
     public String getDescriptionForNotFoundMessage() {
-        return "Plugin Portal (" + portalUrl + ")";
+        return "Plugin Portal (" + getUrl() + ")";
     }
 
     private static class NoopMetadataProcessor implements ModuleMetadataProcessor {
