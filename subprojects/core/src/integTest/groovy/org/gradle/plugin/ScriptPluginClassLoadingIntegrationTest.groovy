@@ -71,4 +71,25 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains "hello from method"
     }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-3082")
+    def "can use apply block syntax to apply multiple scripts"() {
+        given:
+        buildScript """
+          apply {
+            from "script1.gradle"
+            from "script2.gradle"
+          }
+        """
+
+        file("script1.gradle") << "task hello1 << { println 'hello from script1' }"
+        file("script2.gradle") << "task hello2 << { println 'hello from script2' }"
+
+        when:
+        succeeds "hello1", "hello2"
+
+        then:
+        output.contains "hello from script1"
+        output.contains "hello from script2"
+    }
 }

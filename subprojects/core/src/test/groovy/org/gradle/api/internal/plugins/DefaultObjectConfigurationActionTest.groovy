@@ -35,9 +35,10 @@ class DefaultObjectConfigurationActionTest extends Specification {
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
     def scriptHandler = Mock(ScriptHandler)
     def scriptCompileScope = Mock(ClassLoaderScope)
+    def parentCompileScope = Mock(ClassLoaderScope)
     def configurer = Mock(ScriptPlugin)
 
-    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, scriptCompileScope, target)
+    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, target)
 
     void doesNothingWhenNothingSpecified() {
         expect:
@@ -48,7 +49,8 @@ class DefaultObjectConfigurationActionTest extends Specification {
     public void appliesScriptsToDefaultTargetObject() {
         given:
         1 * resolver.resolveUri('script') >> file
-        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
+        1 * parentCompileScope.createChild() >> scriptCompileScope
+        1 * scriptHandlerFactory.create(_, parentCompileScope) >> scriptHandler
         1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript, false) >> configurer
 
         when:
@@ -64,10 +66,12 @@ class DefaultObjectConfigurationActionTest extends Specification {
         Object target1 = new Object()
         Object target2 = new Object()
         1 * resolver.resolveUri('script') >> file
-        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
+        1 * scriptHandlerFactory.create(_, parentCompileScope) >> scriptHandler
         1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript, false) >> configurer
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
+        1 * parentCompileScope.createChild() >> scriptCompileScope
+
 
         then:
         action.from('script')
@@ -82,10 +86,12 @@ class DefaultObjectConfigurationActionTest extends Specification {
         Object target1 = new Object()
         Object target2 = new Object()
         1 * resolver.resolveUri('script') >> file
-        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
+        1 * scriptHandlerFactory.create(_, parentCompileScope) >> scriptHandler
         1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript, false) >> configurer
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
+        1 * parentCompileScope.createChild() >> scriptCompileScope
+
 
         then:
         action.from('script')

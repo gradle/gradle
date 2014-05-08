@@ -42,7 +42,7 @@ abstract public class AbstractPluginAware implements PluginAware {
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope().getBase().createChild(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope().getBase(), this);
     }
 
     protected abstract FileResolver getFileResolver();
