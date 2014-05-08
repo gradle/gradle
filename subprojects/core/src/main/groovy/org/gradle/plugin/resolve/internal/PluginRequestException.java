@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,22 @@
 
 package org.gradle.plugin.resolve.internal;
 
-public class InvalidPluginRequestException extends PluginRequestException {
-    public InvalidPluginRequestException(PluginRequest pluginRequest, String message) {
-        super(pluginRequest, message);
+import org.gradle.api.GradleException;
+
+public class PluginRequestException extends GradleException {
+    private final PluginRequest pluginRequest;
+
+    public PluginRequestException(PluginRequest pluginRequest, String message) {
+        super(message);
+        this.pluginRequest = pluginRequest;
+    }
+
+    public PluginRequestException(PluginRequest pluginRequest, String message, Throwable cause) {
+        super(message, cause);
+        this.pluginRequest = pluginRequest;
+    }
+
+    public PluginRequest getPluginRequest() {
+        return pluginRequest;
     }
 }

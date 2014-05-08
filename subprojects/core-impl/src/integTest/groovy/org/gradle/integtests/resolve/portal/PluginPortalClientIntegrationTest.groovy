@@ -93,17 +93,95 @@ task verify << {
         succeeds("verify")
     }
 
-    private TestFile generatePluginMetaData(String pluginVersion, String version) {
-        def metadataFile = file("metadata.json")
-        metadataFile.text = """
+    def "portal JSON response with unknown implementation type"() {
+        def pluginVersion = "test_localhost_${server.port}_1.0"
+
+        def metaDataFile = generateCustomPluginMetaData """
 {
     "id": "myplugin",
-    "version": "$pluginVersion",
+    "version": "1.0",
+    "implementation": {"gav": "my:plugin:1.0", "repo": "$server.address/repo"},
+    "implementationType": "SUPER_GREAT"
+}
+"""
+        server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/myplugin/1.0", metaDataFile)
+
+        buildScript """
+plugins {
+    id "myplugin" version "$pluginVersion"
+}
+
+task verify
+"""
+
+        expect:
+        fails("verify")
+        //failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '$pluginVersion'] from plugin repositories")
+    }
+
+    def "portal JSON response with missing repo"() {
+        def pluginVersion = "test_localhost_${server.port}_1.0"
+
+        def metaDataFile = generateCustomPluginMetaData """
+{
+    "id": "myplugin",
+    "version": "1.0",
+    "implementation": {"gav": "my:plugin:1.0"},
+    "implementationType": "M2_JAR"
+}
+"""
+        server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/myplugin/1.0", metaDataFile)
+
+        buildScript """
+plugins {
+    id "myplugin" version "$pluginVersion"
+}
+
+task verify
+"""
+
+        expect:
+        fails("verify")
+        //failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '$pluginVersion'] from plugin repositories")
+    }
+
+    def "portal JSON response with invalid JSON syntax"() {
+        def pluginVersion = "test_localhost_${server.port}_1.0"
+
+        def metaDataFile = generateCustomPluginMetaData "{[}]"
+
+        server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/myplugin/1.0", metaDataFile)
+
+        buildScript """
+plugins {
+    id "myplugin" version "$pluginVersion"
+}
+
+task verify
+"""
+
+        expect:
+        fails("verify")
+        //failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '$pluginVersion'] from plugin repositories")
+    }
+
+    private TestFile generateCustomPluginMetaData(String metaData) {
+        def metaDataFile = file("metadata.json")
+        metaDataFile.text = metaData
+        metaDataFile
+    }
+
+    private TestFile generatePluginMetaData(String version) {
+        def metaDataFile = file("metadata.json")
+        metaDataFile.text = """
+{
+    "id": "myplugin",
+    "version": "1.0",
     "implementation": {"gav": "my:plugin:$version", "repo": "$server.address/repo"},
     "implementationType": "M2_JAR"
 }
 """
-        metadataFile
+        metaDataFile
     }
 
     private TestFile generatePluginJar() {
@@ -115,7 +193,7 @@ task verify << {
 
     private void servePlugin(String pluginId, String pluginVersion, String group,
                              String artifact, String version, String resolvedVersion = version) {
-        def metaDataFile = generatePluginMetaData(pluginVersion, version)
+        def metaDataFile = generatePluginMetaData(version)
         server.expectGet("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", metaDataFile)
 
         def module = mavenHttpRepo.module(group, artifact, resolvedVersion).publish()

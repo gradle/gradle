@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
@@ -72,7 +73,7 @@ public class PluginPortalResolver implements PluginResolver {
 
         PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, portalUrl);
         if (metaData == null) { return null; }
-        ClassPath classPath = resolvePluginDependencies(metaData);
+        ClassPath classPath = resolvePluginDependencies(pluginRequest, metaData);
         return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), Factories.constant(classPath));
     }
 
@@ -86,7 +87,7 @@ public class PluginPortalResolver implements PluginResolver {
         return pluginRequest;
     }
 
-    private ClassPath resolvePluginDependencies(PluginUseMetaData metadata) {
+    private ClassPath resolvePluginDependencies(PluginRequest pluginRequest, PluginUseMetaData metadata) {
         if (!metadata.implementationType.equals("M2_JAR")) {
             throw new GradleException("Unsupported plugin implementation type: " + metadata.implementationType);
         }
@@ -97,9 +98,13 @@ public class PluginPortalResolver implements PluginResolver {
         Dependency dependency = dependencyHandler.create(metadata.implementation.get("gav"));
         ConfigurationInternal configuration = (ConfigurationInternal) configurationContainer.detachedConfiguration(dependency);
 
-        resolver.resolve(configuration, Collections.singletonList((ResolutionAwareRepository) repository), new NoopMetadataProcessor(), results);
-        Set<File> files = results.getResolvedConfiguration().getFiles(Specs.satisfyAll());
-        return new DefaultClassPath(files);
+        try {
+            resolver.resolve(configuration, Collections.singletonList((ResolutionAwareRepository) repository), new NoopMetadataProcessor(), results);
+            Set<File> files = results.getResolvedConfiguration().getFiles(Specs.satisfyAll());
+            return new DefaultClassPath(files);
+        } catch (ResolveException e) {
+            throw new FailedPluginRequestException(pluginRequest, "Failed to resolve plugin module dependencies.", e);
+        }
     }
 
     public String getDescriptionForNotFoundMessage() {
