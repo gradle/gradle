@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.portal
 
+import org.gradle.api.GradleException
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.externalresource.transport.http.HttpResponseResource
-import org.gradle.plugin.resolve.internal.FailedPluginRequestException
 import org.gradle.plugin.resolve.internal.PluginRequest
 import spock.lang.Specification
 
@@ -49,7 +49,8 @@ class PluginPortalClientTest extends Specification {
 
         then:
         1 * transportFactory.createTransport(*_) >> stubTransport(404)
-        def e = thrown(FailedPluginRequestException)
+        def e = thrown(GradleException)
+        e.message == "Plugin portal returned HTTP status code: 404"
     }
 
     private stubTransport(int statusCode) {

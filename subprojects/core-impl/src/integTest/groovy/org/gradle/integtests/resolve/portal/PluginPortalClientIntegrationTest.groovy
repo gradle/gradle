@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.portal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.pluginportal.PluginPortalTestServer
+import org.hamcrest.Matchers
 import org.junit.Rule
 
 public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
@@ -65,7 +66,7 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("verify")
-        failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '1.0'] from plugin repositories")
+        failure.assertThatDescription(Matchers.startsWith("Plugin 'myplugin:1.0' not found in plugin repositories:"))
     }
 
     def "portal JSON response with unknown implementation type"() {
@@ -83,11 +84,14 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("verify")
-        //failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '$pluginVersion'] from plugin repositories")
+        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
+        failure.assertHasCause("Invalid plugin metadata: Unsupported implementation type: SUPER_GREAT.")
     }
 
     def "portal JSON response with missing repo"() {
-        portal.expectPluginQuery("myplugin", "1.0", "foo", "bar", "1.0") // note: not publishing to returned module
+        portal.expectPluginQuery("myplugin", "1.0", "foo", "bar", "1.0") {
+            implementation.repo = null
+        }
 
         buildScript """
             plugins {
@@ -99,7 +103,8 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("verify")
-        //failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '$pluginVersion'] from plugin repositories")
+        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
+        failure.assertHasCause("Invalid plugin metadata: No module repository specified.")
     }
 
     def "portal JSON response with invalid JSON syntax"() {
@@ -118,7 +123,8 @@ public class PluginPortalClientIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("verify")
-        //failure.assertHasCause("Cannot resolve plugin request [plugin: 'myplugin', version: '$pluginVersion'] from plugin repositories")
+        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
+        failure.assertHasCause("Failed to parse plugin portal JSON response.")
     }
 
 }

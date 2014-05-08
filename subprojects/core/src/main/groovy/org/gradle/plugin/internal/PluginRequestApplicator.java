@@ -17,12 +17,10 @@
 package org.gradle.plugin.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.resolve.internal.InvalidPluginRequestException;
-import org.gradle.plugin.resolve.internal.PluginRequest;
-import org.gradle.plugin.resolve.internal.PluginResolution;
-import org.gradle.plugin.resolve.internal.PluginResolver;
+import org.gradle.plugin.resolve.internal.*;
 
 public class PluginRequestApplicator {
 
@@ -44,14 +42,19 @@ public class PluginRequestApplicator {
         PluginResolution resolution;
         try {
             resolution = pluginResolver.resolve(request);
-        } catch (InvalidPluginRequestException e) {
-            throw new LocationAwareException(e, e.getPluginRequest().getScriptSource(), e.getPluginRequest().getLineNumber());
+        } catch (Exception e) {
+            throw new LocationAwareException(
+                    new GradleException(String.format("Error resolving plugin '%s:%s'.", request.getId(), request.getVersion()), e),
+                    request.getScriptSource(), request.getLineNumber());
         }
         if (resolution == null) {
-            throw new UnknownPluginException("Cannot resolve plugin request " + request + " from " + pluginResolver.getDescriptionForNotFoundMessage());
+            throw new LocationAwareException(
+                    new UnknownPluginException(String.format("Plugin '%s:%s' not found in %s", request.getId(),
+                            request.getVersion(), pluginResolver.getDescriptionForNotFoundMessage())),
+                    request.getScriptSource(),
+                    request.getLineNumber());
         }
 
         pluginResolutionHandler.execute(resolution);
     }
-
 }

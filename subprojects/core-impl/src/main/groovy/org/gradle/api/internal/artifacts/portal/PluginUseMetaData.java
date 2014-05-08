@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.portal;
 
+import org.gradle.api.GradleException;
+
 import java.util.Map;
 
 /**
@@ -26,4 +28,22 @@ class PluginUseMetaData {
     String version;
     Map<String, String> implementation;
     String implementationType;
+
+    public void verify() {
+        if (implementationType == null) {
+            throw new GradleException("Invalid plugin metadata: No implementation type specified.");
+        }
+        if (!implementationType.equals("M2_JAR")) {
+            throw new GradleException(String.format("Invalid plugin metadata: Unsupported implementation type: %s.", implementationType));
+        }
+        if (implementation == null) {
+            throw new GradleException("Invalid plugin metadata: No implementation specified.");
+        }
+        if (implementation.get("gav") == null) {
+            throw new GradleException("Invalid plugin metadata: No module coordinates specified.");
+        }
+        if (implementation.get("repo") == null) {
+            throw new GradleException("Invalid plugin metadata: No module repository specified.");
+        }
+    }
 }

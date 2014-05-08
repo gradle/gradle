@@ -19,15 +19,15 @@ package org.gradle.api.internal.artifacts.portal;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.transport.http.HttpResponseResource;
-import org.gradle.plugin.resolve.internal.FailedPluginRequestException;
-import org.gradle.plugin.resolve.internal.InvalidPluginRequestException;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -49,10 +49,10 @@ class PluginPortalClient {
 
     @Nullable
     PluginUseMetaData queryPluginMetadata(final PluginRequest pluginRequest, String portalUrl) {
-        URI portalUri = toUri(portalUrl, "plugin portal", pluginRequest);
+        URI portalUri = toUri(portalUrl, "plugin portal");
         RepositoryTransport transport = transportFactory.createTransport(portalUri.getScheme(), "Plugin Portal", new DefaultPasswordCredentials());
         String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
-        URI requestUri = toUri(requestUrl, "plugin request", pluginRequest);
+        URI requestUri = toUri(requestUrl, "plugin request");
 
         ExternalResource resource = null;
         try {
@@ -62,7 +62,7 @@ class PluginPortalClient {
                 return null;
             }
             if (response.getStatusCode() != 200) {
-                throw new FailedPluginRequestException(pluginRequest, "Received HTTP status code: " + response.getStatusCode());
+                throw new GradleException("Plugin portal returned HTTP status code: " + response.getStatusCode());
             }
             return resource.withContent(new Transformer<PluginUseMetaData, InputStream>() {
                 public PluginUseMetaData transform(InputStream inputStream) {
@@ -73,18 +73,18 @@ class PluginPortalClient {
                         throw new AssertionError(e);
                     }
                     try {
-                        return new Gson().fromJson(reader, PluginUseMetaData.class);
+                        PluginUseMetaData metadata = new Gson().fromJson(reader, PluginUseMetaData.class);
+                        metadata.verify();
+                        return metadata;
                     } catch (JsonSyntaxException e) {
-                        throw new FailedPluginRequestException(pluginRequest, "Failed to parse plugin portal JSON response.", e);
+                        throw new GradleException("Failed to parse plugin portal JSON response.", e);
                     } catch (JsonIOException e) {
-                        throw new FailedPluginRequestException(pluginRequest, "Failed to read plugin portal JSON response.", e);
+                        throw new GradleException("Failed to read plugin portal JSON response.", e);
                     }
                 }
             });
         } catch (IOException e) {
-            throw new FailedPluginRequestException(pluginRequest, "IO error.", e);
-        } catch (Exception e) {
-            throw new FailedPluginRequestException(pluginRequest, "Unexpected error.", e);
+            throw new UncheckedIOException(e);
         } finally {
             try {
                 if (resource != null) {
@@ -96,11 +96,11 @@ class PluginPortalClient {
         }
     }
 
-    private URI toUri(String url, String kind, PluginRequest pluginRequest) {
+    private URI toUri(String url, String kind) {
         try {
             return new URI(url);
         } catch (URISyntaxException e) {
-            throw new InvalidPluginRequestException(pluginRequest, String.format("Invalid %s URL: %s", kind, url, e));
+            throw new GradleException(String.format("Invalid %s URL: %s", kind, url, e));
         }
     }
 }
