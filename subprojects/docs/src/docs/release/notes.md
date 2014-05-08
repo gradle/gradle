@@ -2,6 +2,10 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Groovy 2.2.2
+
+Upgraded to Groovy 2.2.2 for running build scripts and plugins.
+
 ### New API for artifact resolution (i)
 
 Gradle 2.0 introduces a new, incubating API for resolving component artifacts. With this addition, Gradle now offers separate dedicated APIs for resolving
@@ -269,19 +273,27 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Upgraded to Groovy 2.2.2
+
+Gradle now uses Groovy 2.2.2 to compile and run scripts and plugins. Generally, this should be backwards compatible. However, this change may require
+that you recompile some plugins and may also require some source changes.
+
 ### Custom TestNG listeners are applied before Gradle's listeners
 
 This way the custom listeners are more robust because they can affect the test status.
 There should be no impact of this change because majority of users do not employ custom listeners
 and even if they do healthy listeners will work correctly regardless of the listeners' order.
 
-### Support for reading or setting file permissions on certain platforms with Java 5 or 6
+### Support for reading or changing file permissions on certain platforms with Java 5 or 6
 
 Gradle previously supported file permissions on Solaris and Linux ia-64 using Java 5 and Java 6. This support has
 been removed. You will receive a warning when attempting to use file permissions on these platforms.
 
 Note that file permissions are supported on these platforms when you use Java 7 and later, and is supported for all Java
 versions on Linux, OS X, Windows and FreeBSD for x86 and amd64 architectures.
+
+If you wish to have support for file permissions on other platforms and architectures, please help us out with porting our
+native integration to these platforms.
 
 ### Support for terminal integration on certain platforms
 
@@ -295,7 +307,7 @@ native integration to these platforms.
 
 ### Build scripts must be encoded using UTF-8
 
-Gradle now assumes that all Gradle scripts are encoded using UTF-8. Previously, Gradle assumes the system encoding. This change
+Gradle now assumes that all Gradle scripts are encoded using UTF-8. Previously, Gradle assumed the system encoding. This change
 affects all build scripts, settings scripts and init scripts.
 
 ### Native binaries model changes
@@ -308,7 +320,7 @@ A bunch of changes and renames have been made to the incubating 'native binaries
 - `NativeBinariesPlugin` has been renamed to `NativeComponentPlugin` with id `'native-component'`
 - `NativeBinariesModelPlugin` renamed to `NativeComponentModelPlugin`
 
-### New java component model changes
+### New Java component model changes
 
 A bunch of changes and renames have been made to the new, incubating 'java component' support.
 
