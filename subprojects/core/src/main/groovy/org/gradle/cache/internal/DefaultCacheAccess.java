@@ -40,7 +40,7 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
 
 @ThreadSafe
-public class DefaultCacheAccess implements CacheCoordinator {
+public class    DefaultCacheAccess implements CacheCoordinator {
 
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
 
