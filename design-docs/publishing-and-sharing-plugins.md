@@ -487,10 +487,6 @@ The detail of the error response differentiates the response from a generic 404.
 
 - What to use to unmarshall JSON responses? Jackson? Should the API couple to a marshaller at this level?
 
-## Story: User is notified that Gradle version is no longer supported by plugin portal
-
-## Story: User is notified of use of 'deprecated' plugin 
-
 ## Story: Gradle is routinely tested against real plugins.gradle.org codebase
 
 This story covers setting up continuous testing of Gradle against the real plugin portal code, but not the real instance.
@@ -510,6 +506,10 @@ Plugin authors should be able to write their plugin in such a way that it works 
 Plugin authors should be able to write their plugin in such a way that it works with the new mechanism and the old project.apply() mechanism (as long as it has no dependency a non core plugin).
 
 # Milestone 2 - “announceable”
+
+## Story: User is notified that Gradle version is no longer supported by plugin portal
+
+## Story: User is notified of use of 'deprecated' plugin
 
 ## Story: Plugin resolution is cached across the entire build
 
