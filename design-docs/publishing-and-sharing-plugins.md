@@ -511,11 +511,6 @@ Plugin authors should be able to write their plugin in such a way that it works 
 
 # Milestone 2 - “announceable”
 
-## Story: Plugins are able to depend on other non core plugins
-
-Plugin dependencies can not be dynamic.
-Plugin dependencies can not be cyclic.
-
 ## Story: Plugin resolution is cached across the entire build
 
 Don't make the same request to plugins.gradle.org in a single build, reuse implementation classloaders.
@@ -525,6 +520,11 @@ Don't make the same request to plugins.gradle.org in a single build, reuse imple
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
 ## Story: Build author searches for plugins using central Web UI
+
+## Story: Plugins are able to depend on other non core plugins
+
+Plugin dependencies can not be dynamic.
+Plugin dependencies can not be cyclic.
 
 ## Story: Make new plugin resolution mechanism public
 
@@ -539,10 +539,6 @@ Story is predicated on plugins.gradle.org providing a searchable interface for p
 
 Note: Plugin authors cannot really contribution to plugins.gradle.org at this point. The content will be “hand curated”.
 
-## Story: Plugin author reasonably tests realistic use of plugin with dependencies
-
-Plugin authors need to be able to verify that their plugin works with the classloader structure it would have in a real build
-
 ## Story: Plugin author submits plugin for inclusion in plugins.gradle.org
 
 Includes:
@@ -554,12 +550,13 @@ Includes:
 
 # Milestone 3 - “parkable”
 
-## Story: Pathological comms errors while resolving plugins produce reasonable error messages
+## Story: Plugin author reasonably tests realistic use of plugin with dependencies
 
-1. Non responsive server (accepts request but never responds)
-1. Server responds extremely slowly (data is transferred frequently enough to avoid idle/response timeout, but is really too slow to let continue)
-1. Server responds with inaccurate content length (lots of HTTP clients get badly confused by this)
-1. Server responds with extremely large document (protect against blowing out memory trying to read the response)
+Plugin authors need to be able to verify that their plugin works with the classloader structure it would have in a real build
+
+## Story: Build author searches for plugins using Gradle command-line
+
+Introduce a plugin and implicit task that allows a build author to search for plugins from the central plugin repository, using the Gradle command-line.
 
 ## Story: User specifies centrally that a plugin should be applied to multiple projects
 
@@ -569,6 +566,8 @@ Includes:
 
 ## Story: Plugin declares minimum Gradle version requirement
 
+## Story: User specifies non static plugin version constraint (i.e. dynamic plugin dependencies)
+
 ## Story: Local script is used to provide implementation of plugin
 
 ### Open questions
@@ -577,11 +576,12 @@ Includes:
 
 # Future work
 
-## Story: Build author searches for plugins using Gradle command-line
+## Story: Pathological comms errors while resolving plugins produce reasonable error messages
 
-Introduce a plugin and implicit task that allows a build author to search for plugins from the central plugin repository, using the Gradle command-line.
-
-## Story: User specifies non static plugin version constraint (i.e. dynamic plugin dependencies)
+1. Non responsive server (accepts request but never responds)
+1. Server responds extremely slowly (data is transferred frequently enough to avoid idle/response timeout, but is really too slow to let continue)
+1. Server responds with inaccurate content length (lots of HTTP clients get badly confused by this)
+1. Server responds with extremely large document (protect against blowing out memory trying to read the response)
 
 --- 
 
