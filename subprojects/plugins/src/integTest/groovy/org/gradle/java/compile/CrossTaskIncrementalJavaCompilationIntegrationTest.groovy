@@ -285,6 +285,10 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         impl.recompiledClasses("SomeIntegTest")
     }
 
+    def "handles new jar on classpath that has duplicate class as an existing jar"() {
+        //TODO
+    }
+
     def "class in source dir wins over a duplicate found in some jar on classpath"() {
         //TODO
     }

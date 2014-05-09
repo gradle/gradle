@@ -267,9 +267,8 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         then: outputs.recompiledClasses('A', 'B')
     }
 
-    def "each compile task uses separate local cache"() {
+    def "handles multiple compile tasks within a single project"() {
         //TODO
-        //ensure that local class dependency info cache does not 'leak' to other compile tasks in this project
     }
 
     def "detects changes in classes that live in directories on the classpath"() {
