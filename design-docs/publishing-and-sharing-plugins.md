@@ -495,13 +495,27 @@ This provides some verification that the test double that is used in the Gradle 
 
 This does not replace the double based tests in the Gradle codebase.
 
+## Story: Plugin author uses plugin development plugin to build a plugin
+
+This story adds a plugin development plugin to help plugin authors build a plugin. Later stories will add the ability to test and publish the plugin.
+
+## Story: Plugin author uses plugin development plugin to publish a plugin
+
+This story extends the plugin development plugin to generate the meta-data and publish a plugin.
+
 ## Story: Plugins are able to declare exported classes
 
 This is the first story where we require changes to how plugins are published and/or implemented (i.e. exported class information is needed). 
 
+The plugin development plugin should provide some mechanism to declare the exported classes of a plugin (possibly a DSL, possibly annotations in code, or something else).
+This should end up in the generated meta-data.
+
 Plugin authors should be able to write their plugin in such a way that it works with the new mechanism and the old project.apply() mechanism (as long as it has no dependency on any other, even core, plugin).
 
 ## Story: Plugins are able to declare dependency on core plugin
+
+The plugin development plugin should provide some mechanism to declare a dependency on a core plugin (possibly a DSL, possibly annotations in code, or something else).
+This should end up in the generated meta-data.
 
 Plugin authors should be able to write their plugin in such a way that it works with the new mechanism and the old project.apply() mechanism (as long as it has no dependency a non core plugin).
 
