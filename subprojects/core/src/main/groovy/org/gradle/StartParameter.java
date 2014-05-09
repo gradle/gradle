@@ -253,6 +253,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * @return the tasks to execute in this build. Never returns null.
      */
+    @Incubating
     public List<TaskParameter> getTaskParameters() {
         return taskParameters;
     }
@@ -263,6 +264,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * @param taskParameters the tasks to execute in this build.
      */
+    @Incubating
     public void setTaskParameters(Iterable<TaskParameter> taskParameters) {
         this.taskParameters = Lists.newArrayList(taskParameters);
     }

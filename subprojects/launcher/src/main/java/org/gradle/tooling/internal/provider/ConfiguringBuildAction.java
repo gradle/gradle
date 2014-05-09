@@ -24,6 +24,7 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.internal.DefaultTaskParameter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
@@ -92,7 +93,10 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
                     new Function<InternalLaunchable, TaskParameter>() {
                         public TaskParameter apply(InternalLaunchable launchable) {
                             if (launchable instanceof TaskParameter) {
-                                TaskParameter launchableImpl = (TaskParameter) launchable;
+                                // make sure we don't send object graph with whole project structure back
+                                TaskParameter originalLaunchable = (TaskParameter) launchable;
+                                TaskParameter launchableImpl = new DefaultTaskParameter(
+                                        originalLaunchable.getTaskName(), originalLaunchable.getProjectPath());
                                 return launchableImpl;
                             }
                             throw new InternalUnsupportedBuildArgumentException(

@@ -14,20 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle;
+package org.gradle.internal;
 
 import com.google.common.base.Preconditions;
+import org.gradle.TaskParameter;
 
 import java.io.Serializable;
 
 /**
  * Adapter to create TaskParameter for a simple task name.
  */
-class DefaultTaskParameter implements TaskParameter, Serializable {
+public class DefaultTaskParameter implements TaskParameter, Serializable {
     private final String taskName;
+    private final String projectPath;
 
     public DefaultTaskParameter(String taskName) {
+        this(taskName, null);
+    }
+
+    public DefaultTaskParameter(String taskName, String projectPath) {
         this.taskName = Preconditions.checkNotNull(taskName);
+        this.projectPath = projectPath;
     }
 
     public String getTaskName() {
@@ -35,13 +42,14 @@ class DefaultTaskParameter implements TaskParameter, Serializable {
     }
 
     public String getProjectPath() {
-        return null;
+        return projectPath;
     }
 
     @Override
     public String toString() {
         return "DefaultTaskParameter{"
                 + "taskName='" + taskName + '\''
+                + ",projectPath='" + projectPath + '\''
                 + '}';
     }
 }
