@@ -229,7 +229,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         when:
         java api: ["class A { String change; }"]
         run "api:compileJava"
-        run "impl:compileJava"
+        run "impl:compileJava" //different build invocation
 
         then: impl.recompiledClasses("ImplA")
 
@@ -242,7 +242,15 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
     }
 
     def "changes to resources in jar do not incur recompilation"() {
-        //TODO
+        java impl: ["class A {}"]
+        impl.snapshot { run "impl:compileJava" }
+
+        when:
+        file("api/src/main/resources/some-resource.txt") << "xxx"
+        java api: ["class A { String change; }"]
+        run "impl:compileJava"
+
+        then: impl.noneRecompiled()
     }
 
     def "each compile task uses separate local cache"() {
