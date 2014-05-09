@@ -24,7 +24,7 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
     CompilationOutputsFixture outputs
 
     def setup() {
-        outputs = new CompilationOutputsFixture(file("build/classes/main"))
+        outputs = new CompilationOutputsFixture(file("build/classes"))
 
         buildFile << """
             apply plugin: 'java'
@@ -268,7 +268,31 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
     }
 
     def "handles multiple compile tasks within a single project"() {
-        //TODO
+        java "class A {}", "class B extends A {}"
+        file("src/integTest/java/X.java") << "class X {}"
+        file("src/integTest/java/Y.java") << "class Y extends X {}"
+
+        //new separate compile task (integTestCompile)
+        file("build.gradle") << """
+            sourceSets { integTest.java.srcDir 'src/integTest/java' }
+        """
+
+        outputs.snapshot { run "compileIntegTestJava", "compileJava" }
+
+        when: //when A class is changed
+        java "class A { String change; }"
+        run "compileIntegTestJava", "compileJava", "-i"
+
+        then: //only B and A are recompiled
+        outputs.recompiledClasses("A", "B")
+
+        when: //when X class is changed
+        outputs.snapshot()
+        file("src/integTest/java/X.java").text = "class X { String change;}"
+        run "compileIntegTestJava", "compileJava", "-i"
+
+        then: //only X and Y are recompiled
+        outputs.recompiledClasses("X", "Y")
     }
 
     def "detects changes in classes that live in directories on the classpath"() {
