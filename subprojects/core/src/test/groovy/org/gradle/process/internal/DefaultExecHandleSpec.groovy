@@ -308,13 +308,6 @@ class DefaultExecHandleSpec extends Specification {
         GUtil.flattenElements("-cp", System.getProperty("java.class.path"), mainClass.getName(), args);
     }
 
-    public static class TestApp {
-        public static void main(String[] args) {
-            System.out.print("output args: " + Arrays.asList(args));
-            System.err.print("error args: " + Arrays.asList(args));
-        }
-    }
-
     public static class BrokenApp {
         public static void main(String[] args) {
             System.exit(72);
