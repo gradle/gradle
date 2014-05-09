@@ -8,14 +8,13 @@ configurations {
 
 dependencies {
     compile project(":core")
+    compile project(":resourcesHttp")
 
-    compile libraries.commons_httpclient
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ivy
     compile libraries.slf4j_api
     compile libraries.maven_ant_tasks
-    compile libraries.nekohtml
     compile libraries.jsch
     compile libraries.gson
     runtime libraries.xbean //maven3 classes dependency
