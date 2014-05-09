@@ -48,21 +48,21 @@ public class ClassDependencyInfo implements Serializable {
             return new DependencyToAll();
         }
         Set<String> result = new HashSet<String>();
-        recurseDependents(result, deps.getDependentClasses());
+        recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
         result.remove(className);
         return new DefaultDependentsSet(result);
     }
 
-    private void recurseDependents(Set<String> result, Set<String> dependentClasses) {
+    private void recurseDependents(Set<String> visited, Set<String> result, Set<String> dependentClasses) {
         for (String d : dependentClasses) {
-            if (result.contains(d)) {
+            if (!visited.add(d)) {
                 continue;
             }
             if (!d.contains("$")) { //filter out the inner classes
                 result.add(d);
             }
             DependentsSet currentDependents = dependents.get(d);
-            recurseDependents(result, currentDependents.getDependentClasses());
+            recurseDependents(visited, result, currentDependents.getDependentClasses());
         }
     }
 }

@@ -117,7 +117,7 @@ class ClassDependencyInfoTest extends Specification {
     def "handles cycles with inner classes"() {
         def info = new ClassDependencyInfo([
                 "a":   dependents('a$b'),
-                'a$b': dependents('a', 'c'),
+                'a$b': dependents('a$b', 'c'),
                 "c": dependents()
         ])
         def deps = info.getRelevantDependents("a")
