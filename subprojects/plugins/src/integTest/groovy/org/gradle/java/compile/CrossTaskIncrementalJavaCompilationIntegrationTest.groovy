@@ -26,13 +26,16 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
     CompilationOutputsFixture impl
 
     def setup() {
-        impl = new CompilationOutputsFixture(file("impl/build/classes/main"))
+        impl = new CompilationOutputsFixture(file("impl/build/classes"))
 
         buildFile << """
             subprojects {
                 apply plugin: 'java'
-                compileJava.options.incremental = true
-                compileJava.options.fork = true
+                tasks.withType(JavaCompile) {
+                    options.incremental = true
+                    options.fork = true
+                }
+                repositories { mavenCentral() }
             }
             project(':impl') {
                 dependencies { compile project(':api') }
@@ -253,9 +256,33 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         then: impl.noneRecompiled()
     }
 
-    def "each compile task uses separate local cache"() {
-        //TODO
-        //ensure that local jar snapshots cache does not 'leak' to other compile tasks in this project
+    def "handles multiple compile tasks in the same project"() {
+        settingsFile << "\n include 'other'" //add an extra project
+        java impl: ["class ImplA extends A {}"], api: ["class A {}"], other: ["class Other {}"]
+
+        //new separate compile task (integTestCompile) depends on class from the extra project
+        file("impl/build.gradle") << """
+            sourceSets { integTest.java.srcDir 'src/integTest/java' }
+            dependencies { integTestCompile project(":other") }
+        """
+        file("impl/src/integTest/java/SomeIntegTest.java") << "class SomeIntegTest extends Other {}"
+
+        impl.snapshot { run "compileIntegTestJava", "compileJava" }
+
+        when: //when api class is changed
+        java api: ["class A { String change; }"]
+        run "compileIntegTestJava", "compileJava", "-i"
+
+        then: //only impl class is recompiled
+        impl.recompiledClasses("ImplA")
+
+        when: //when other class is changed
+        impl.snapshot()
+        java other: ["class Other { String change; }"]
+        run "compileIntegTestJava", "compileJava", "-i"
+
+        then: //only integTest class is recompiled
+        impl.recompiledClasses("SomeIntegTest")
     }
 
     def "class in source dir wins over a duplicate found in some jar on classpath"() {
