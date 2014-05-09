@@ -605,5 +605,6 @@ Dependency resolution selects the best binary from each dependency for the targe
     - Source and javadoc artifacts.
 - Legacy war and ear plugins define binaries.
 - Java component plugins support variants.
+- Gradle runtime defines Gradle plugin as a type of jvm component, and Gradle as a container that runs-on the JVM.
 - Deprecate and remove support for resolution via configurations.
 - Add a report that shows the details for the components and binaries produced by a project.
