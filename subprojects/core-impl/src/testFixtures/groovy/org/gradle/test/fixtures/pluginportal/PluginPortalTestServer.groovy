@@ -44,7 +44,7 @@ class PluginPortalTestServer extends ExternalResource {
         executer.beforeExecute(new Action<GradleExecuter>() {
             void execute(GradleExecuter e) {
                 if (http.running) {
-                    e.withArguments(
+                    e.withArgument(
                             "-D$PluginPortalResolver.OVERRIDE_URL_PROPERTY=$http.address",
                     )
                 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -149,8 +150,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         PluginResolver createPluginPortalResolver(ArtifactDependencyResolver dependencyResolver, BaseRepositoryFactory repositoryFactory, DependencyHandler dependencyHandler,
-                                                  ConfigurationContainer configurationContainer, RepositoryTransportFactory transportFactory, Instantiator instantiator) {
-            return new PluginPortalResolver(dependencyResolver, repositoryFactory, dependencyHandler, configurationContainer, transportFactory, instantiator);
+                                                  ConfigurationContainer configurationContainer, RepositoryTransportFactory transportFactory, Instantiator instantiator,
+                                                  StartParameter startParameter) {
+            return new PluginPortalResolver(dependencyResolver, repositoryFactory, dependencyHandler, configurationContainer, transportFactory, instantiator, startParameter);
         }
     }
 

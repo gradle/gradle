@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.pluginportal.PluginPortalTestServer
 import org.hamcrest.Matchers
 import org.junit.Rule
-import spock.lang.Ignore
 
 public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -121,18 +120,17 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         succeeds("verify")
     }
 
-    // may need to inject StartParameterResolutionOverride
-    // or reuse whatever enforces resolution control
-    @Ignore("TODO")
     def "resolution fails if Gradle is in offline mode"() {
         portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
         publishTestPlugin("myplugin", "my", "plugin", "1.0")
 
         buildScript applyAndVerify("myplugin", "1.0")
+        args("--offline")
 
         expect:
-        args("--offline")
         fails("verify")
+        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
+        failure.assertHasCause("Plugin was not found locally, and cannot be resolved from plugin portal because Gradle is running in offline mode.")
     }
 
     def "portal redirects are being followed"() {
