@@ -51,6 +51,6 @@ class LanguageBasePluginTest extends Specification {
         _ * binary.name >> "binaryName"
         1 * binary.namingScheme >> namingScheme
         1 * namingScheme.lifecycleTaskName >> "lifecycle"
-        1 * binary.setLifecycleTask({it == project.tasks.findByName("lifecycle")})
+        1 * binary.setBuildTask({it == project.tasks.findByName("lifecycle")})
     }
 }

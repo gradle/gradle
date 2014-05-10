@@ -64,7 +64,7 @@ class ProjectSharedLibraryBinaryTest extends Specification {
         binary.sharedLibraryFile = sharedLibraryFile
         binary.sharedLibraryLinkFile = sharedLibraryLinkFile
         def lifecycleTask = Stub(Task)
-        binary.setLifecycleTask(lifecycleTask)
+        binary.setBuildTask(lifecycleTask)
         binary.builtBy(Stub(Task))
 
         and: "has at least one header exporting source set"

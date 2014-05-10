@@ -37,7 +37,7 @@ public class BuildableModelElementTest extends Specification {
     def "has intervening lifecycle task as dependency when set"() {
         when:
         element.builtBy(dependedOn1)
-        element.setLifecycleTask(lifecycleTask)
+        element.setBuildTask(lifecycleTask)
         element.builtBy(dependedOn2)
 
         then:

@@ -83,7 +83,7 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
                         resourceCompileTask.dependsOn resources
                         binary.tasks.add resourceCompileTask
                         final resourceOutputs = resourceCompileTask.outputs.files.asFileTree.matching { include '**/*.res' }
-                        binary.tasks.builder.source resourceOutputs
+                        binary.tasks.createOrLink.source resourceOutputs
                         if (binary instanceof StaticLibraryBinaryInternal) {
                             binary.additionalLinkFiles resourceOutputs
                         }

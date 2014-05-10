@@ -65,7 +65,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
                 binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                 binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
-                binary.setLifecycleTask(binaryLifecycleTask);
+                binary.setBuildTask(binaryLifecycleTask);
             }
         });
     }

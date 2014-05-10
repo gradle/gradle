@@ -31,12 +31,12 @@ public interface BuildableModelElement extends Buildable {
      * Returns the 'lifecycle' task associated with the construction of this element.
      */
     @Nullable
-    Task getLifecycleTask();
+    Task getBuildTask();
 
     /**
      * Associates a 'lifecycle' task with the construction of this element.
      */
-    void setLifecycleTask(Task lifecycleTask);
+    void setBuildTask(Task lifecycleTask);
 
     /**
      * Adds a task that is required for the construction of this element.

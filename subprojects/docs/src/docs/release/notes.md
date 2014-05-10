@@ -321,6 +321,10 @@ For certain common usages, a backward-compatible api has been maintained.
     - Kept `StaticLibraryBinary`, `SharedLibraryBinary`, `ExecutableBinary` and `TestSuiteExecutableBinary` for compatibility
 - `NativeBinariesPlugin` has been renamed to `NativeComponentPlugin` with id `'native-component'`
 - `NativeBinariesModelPlugin` renamed to `NativeComponentModelPlugin`
+- `BuildableModelElement.lifecycleTask` renamed to `buildTask`
+- `NativeBinaryTasks.getBuilder()` renamed to `getCreateOrLink()`
+- `NativeBinaryTasks.getLifecycle()` renamed to `getBuild()`
+- `BuildBinaryTask` renamed to `ObjectFilesToBinary`
 
 ### New Java component model changes
 

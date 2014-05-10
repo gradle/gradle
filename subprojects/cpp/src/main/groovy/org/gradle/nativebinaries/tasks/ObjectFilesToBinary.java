@@ -17,12 +17,13 @@
 package org.gradle.nativebinaries.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 
 /**
  * A task that combines a set of object files into a single binary.
  */
 @Incubating
-public interface BuildBinaryTask {
+public interface ObjectFilesToBinary extends Task {
     /**
      * Adds a set of object files to be combined into the file binary.
      * The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.

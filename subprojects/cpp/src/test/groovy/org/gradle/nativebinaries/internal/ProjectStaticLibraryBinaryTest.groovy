@@ -65,7 +65,7 @@ class ProjectStaticLibraryBinaryTest extends Specification {
         final binary = staticLibrary
         given:
         def lifecycleTask = Stub(Task)
-        binary.lifecycleTask = lifecycleTask
+        binary.buildTask = lifecycleTask
         binary.builtBy(Stub(Task))
 
         and:

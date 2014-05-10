@@ -28,11 +28,11 @@ public class AbstractBuildableModelElement implements BuildableModelElement {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private Task lifecycleTask;
 
-    public Task getLifecycleTask() {
+    public Task getBuildTask() {
         return lifecycleTask;
     }
 
-    public void setLifecycleTask(Task lifecycleTask) {
+    public void setBuildTask(Task lifecycleTask) {
         this.lifecycleTask = lifecycleTask;
         lifecycleTask.dependsOn(buildDependencies);
     }

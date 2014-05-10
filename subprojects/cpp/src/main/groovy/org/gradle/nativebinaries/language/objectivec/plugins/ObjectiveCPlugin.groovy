@@ -86,7 +86,7 @@ class ObjectiveCPlugin implements Plugin<ProjectInternal> {
                 if (sourceSet.mayHaveSources) {
                     def compileTask = createCompileTask(project, binary, sourceSet)
                     binary.tasks.add compileTask
-                    binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                    binary.tasks.createOrLink.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
                 }
             }
         }

@@ -50,7 +50,7 @@ class VisualStudioProjectConfiguration {
     }
 
     String getBuildTask() {
-        return binary.tasks.lifecycle.path
+        return binary.tasks.build.path
     }
 
     String getCleanTask() {

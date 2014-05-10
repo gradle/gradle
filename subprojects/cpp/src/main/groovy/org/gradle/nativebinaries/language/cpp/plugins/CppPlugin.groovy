@@ -53,7 +53,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
                     def compileTask = createCompileTask(project, binary, sourceSet)
                     compileTask.dependsOn sourceSet
                     binary.tasks.add compileTask
-                    binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                    binary.tasks.createOrLink.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
                 }
             }
         }

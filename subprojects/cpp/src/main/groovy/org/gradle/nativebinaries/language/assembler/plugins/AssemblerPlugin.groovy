@@ -93,7 +93,7 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
                     def assembleTask = createAssembleTask(project, binary, sourceSet)
                     assembleTask.dependsOn sourceSet
                     binary.tasks.add assembleTask
-                    binary.tasks.builder.source assembleTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                    binary.tasks.createOrLink.source assembleTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
                 }
             }
         }

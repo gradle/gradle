@@ -73,7 +73,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         def lifecycleTask = Mock(Task)
         when:
         exeBinary.tasks >> tasks
-        tasks.lifecycle >> lifecycleTask
+        tasks.build >> lifecycleTask
         lifecycleTask.path >> "lifecycle-task-path"
         exe.projectPath >> ":project-path"
 

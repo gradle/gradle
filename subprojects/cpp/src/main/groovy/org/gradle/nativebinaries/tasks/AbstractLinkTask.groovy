@@ -28,7 +28,7 @@ import org.gradle.nativebinaries.internal.LinkerSpec
 import javax.inject.Inject
 
 @Incubating
-abstract class AbstractLinkTask extends DefaultTask implements BuildBinaryTask {
+abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
     @Inject
     AbstractLinkTask() {
         libs = project.files()
