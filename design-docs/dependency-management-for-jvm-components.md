@@ -27,17 +27,21 @@ Project defining single jvm libraries
 
     apply plugin: 'jvm-component'
 
-    libraries {
-        main(JvmLibrary)
+    jvm {
+        libraries {
+            main
+        }
     }
 
 Project defining multiple jvm libraries
 
     apply plugin: 'jvm-component'
 
-    libraries {
-        main(JvmLibrary)
-        extra(JvmLibrary)
+    jvm {
+        libraries {
+            main
+            extra
+        }
     }
 
 Combining native and jvm libraries in single project
@@ -45,9 +49,15 @@ Combining native and jvm libraries in single project
     apply plugin: 'jvm-component'
     apply plugin: 'native-component'
 
-    libraries {
-        myNativeLib(NativeLibrary)
-        myJvmLib(JvmLibrary)
+    jvm {
+        libraries {
+            myJvmLib
+        }
+    }
+    native
+        libraries {
+            myNativeLib
+        }
     }
 
 #### Implementation plan
@@ -70,9 +80,9 @@ Combining native and jvm libraries in single project
 - Introduce a 'filtered' view of the ExtensiblePolymorphicDomainObjectContainer, such that only elements of a particular type are returned
   and any element created is given that type.
     - Add a backing 'components' container that contains all Library and Application elements
-    - Replace 'libraries' with 'nativeLibraries' and 'jvmLibraries':  filtered views on 'components'
-        - Remove support for creating a library element without a type
-    - Replace current 'executables' container with a filtered view over 'components', named 'nativeExecutables'
+    - Add 'jvm' and 'native' extensions for namespacing different library containers
+    - Add 'native.libraries' and 'jvm.libraries' as filtered containers on 'components', with appropriate library type
+    - Add 'native.executables' as filtered view on 'components
     - Use the 'components' container in native code where currently must iterate separately over 'libraries' and 'executables'
 
 #### Test cases
@@ -116,8 +126,10 @@ Java library using conventional source locations
     apply plugin: 'jvm-component'
     apply plugin: 'java-lang'
 
-    libraries {
-        myLib(JvmLibrary)
+    jvm {
+        libraries {
+            myLib(JvmLibrary)
+        }
     }
 
 
@@ -130,9 +142,15 @@ Combining jvm-java and native (multi-lang) libraries in single project
     apply plugin: 'cpp-lang'
     apply plugin: 'c-lang'
 
-    libraries {
-        myNativeLib(NativeLibrary)
-        myJvmLib(JvmLibrary)
+    jvm {
+        libraries {
+            myJvmLib
+        }
+    }
+    native {
+        libraries {
+            myNativeLib
+        }
     }
 
 #### Implementation plan
@@ -236,11 +254,13 @@ For example:
 
     apply plugin: 'new-java'
 
-    libraries {
-        myLib {
-            dependencies {
-                project 'other-project' // Infer the target library
-                project 'other-project' library 'my-lib'
+    jvm {
+        libraries {
+            myLib {
+                dependencies {
+                    project 'other-project' // Infer the target library
+                    project 'other-project' library 'my-lib'
+                }
             }
         }
     }
@@ -265,12 +285,14 @@ When the project attribute refers to a project without a component plugin applie
 
 For example:
 
-    apply plugin: 'new-java'
+    apply plugin: 'java-components'
 
-    libraries {
-        myLib {
-            dependencies {
-                library "myorg:mylib:2.3"
+    jvm {
+        libraries {
+            myLib {
+                dependencies {
+                    library "myorg:mylib:2.3"
+                }
             }
         }
     }
