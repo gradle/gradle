@@ -70,7 +70,7 @@ public class PluginPortalResolver implements PluginResolver {
     public PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException {
         if (startParameter.isOffline()) {
             // not yet caching plugin portal responses; let's blow up with a custom message for now
-            throw new GradleException(String.format("Plugin was not found locally, and cannot be resolved from plugin portal because Gradle is running in offline mode."));
+            throw new GradleException(String.format("Plugin cannot be resolved from plugin portal because Gradle is running in offline mode."));
         }
 
         PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, getUrl());

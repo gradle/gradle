@@ -130,7 +130,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         expect:
         fails("verify")
         failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
-        failure.assertHasCause("Plugin was not found locally, and cannot be resolved from plugin portal because Gradle is running in offline mode.")
+        failure.assertHasCause("Plugin cannot be resolved from plugin portal because Gradle is running in offline mode.")
     }
 
     def "portal redirects are being followed"() {
