@@ -16,6 +16,7 @@
 package org.gradle.nativebinaries.plugins;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
@@ -90,16 +91,18 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         modelRules.rule(new AttachBinariesToLifecycle());
 
         SoftwareComponentContainer components = project.getExtensions().getByType(SoftwareComponentContainer.class);
-        components.registerFactory(NativeLibrary.class, new NativeLibraryFactory(instantiator, project));
-        project.getExtensions().add("nativeLibraries", components.containerWithType(NativeLibrary.class));
-
         components.registerFactory(NativeExecutable.class, new NativeExecutableFactory(instantiator, project));
-        project.getExtensions().add("nativeExecutables", components.containerWithType(NativeExecutable.class));
+        NamedDomainObjectContainer<NativeExecutable> nativeExecutables = components.containerWithType(NativeExecutable.class);
+
+        components.registerFactory(NativeLibrary.class, new NativeLibraryFactory(instantiator, project));
+        NamedDomainObjectContainer<NativeLibrary> nativeLibraries = components.containerWithType(NativeLibrary.class);
+
+        project.getExtensions().create("nativeCode", DefaultNativeComponentExtension.class, nativeExecutables, nativeLibraries);
 
         // TODO:DAZ Not sure if we should keep these
         project.getExtensions().add("nativeComponents", components.withType(ProjectNativeComponent.class));
-        project.getExtensions().add("libraries", project.getExtensions().getByName("nativeLibraries"));
-        project.getExtensions().add("executables", project.getExtensions().getByName("nativeExecutables"));
+        project.getExtensions().add("executables", nativeExecutables);
+        project.getExtensions().add("libraries", nativeLibraries);
 
         configurationActions.add(Actions.composite(
                 new ConfigureGeneratedSourceSets(),

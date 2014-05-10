@@ -131,10 +131,10 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     private findLibraryContainer(ProjectInternal project) {
         def extensions = Mock(ExtensionContainerInternal)
         def components = Mock(SoftwareComponentContainer)
-        def nativeLibraries = Mock(NamedDomainObjectSet)
+        def libraryContainer = Mock(NamedDomainObjectSet)
         project.getExtensions() >> extensions
         extensions.findByType(SoftwareComponentContainer) >> components
-        components.withType(NativeLibrary) >> nativeLibraries
-        return nativeLibraries
+        components.withType(NativeLibrary) >> libraryContainer
+        return libraryContainer
     }
 }

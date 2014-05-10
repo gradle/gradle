@@ -51,13 +51,13 @@ class AssemblerPluginTest extends Specification {
         and:
         sourceSets.exe.asm instanceof AssemblerSourceSet
         sourceSets.exe.asm.source.srcDirs == [project.file("src/exe/asm")] as Set
-        project.nativeExecutables.exe.source == [sourceSets.exe.asm] as Set
+        project.nativeCode.executables.exe.source == [sourceSets.exe.asm] as Set
 
         and:
         sourceSets.lib instanceof FunctionalSourceSet
         sourceSets.lib.asm instanceof AssemblerSourceSet
         sourceSets.lib.asm.source.srcDirs == [project.file("src/lib/asm")] as Set
-        project.nativeLibraries.lib.source == [sourceSets.lib.asm] as Set
+        project.nativeCode.libraries.lib.source == [sourceSets.lib.asm] as Set
     }
 
     def "can configure source set locations"() {

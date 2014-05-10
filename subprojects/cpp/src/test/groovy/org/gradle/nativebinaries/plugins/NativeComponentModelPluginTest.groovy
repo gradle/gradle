@@ -40,8 +40,8 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "adds model extensions"() {
         expect:
-        project.nativeExecutables instanceof NamedDomainObjectContainer
-        project.nativeLibraries instanceof NamedDomainObjectContainer
+        project.nativeCode.executables instanceof NamedDomainObjectContainer
+        project.nativeCode.libraries instanceof NamedDomainObjectContainer
         project.modelRegistry.get("toolChains", ToolChainRegistry) != null
         project.modelRegistry.get("platforms", PlatformContainer) != null
         project.modelRegistry.get("buildTypes", BuildTypeContainer) != null
@@ -65,8 +65,8 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "adds default flavor to every binary"() {
         when:
-        project.nativeExecutables.create "exe"
-        project.nativeLibraries.create "lib"
+        project.nativeCode.executables.create "exe"
+        project.nativeCode.libraries.create "lib"
         project.evaluate()
 
         then:
@@ -118,7 +118,7 @@ class NativeComponentModelPluginTest extends Specification {
                 add named(Flavor, "flavor1")
             }
         }
-        def executable = project.nativeExecutables.create "test"
+        def executable = project.nativeCode.executables.create "test"
         project.evaluate()
 
         then:
@@ -153,7 +153,7 @@ class NativeComponentModelPluginTest extends Specification {
                 add named(Flavor, "flavor1")
             }
         }
-        def library = project.nativeLibraries.create "test"
+        def library = project.nativeCode.libraries.create "test"
         project.evaluate()
 
         then:
@@ -188,8 +188,8 @@ class NativeComponentModelPluginTest extends Specification {
     def "creates lifecycle task for each binary"() {
         when:
         project.plugins.apply(NativeComponentModelPlugin)
-        def executable = project.nativeExecutables.create "exe"
-        def library = project.nativeLibraries.create "lib"
+        def executable = project.nativeCode.executables.create "exe"
+        def library = project.nativeCode.libraries.create "lib"
         project.evaluate()
 
         then:

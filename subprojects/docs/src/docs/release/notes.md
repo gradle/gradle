@@ -319,8 +319,6 @@ For certain common usages, a backward-compatible api has been maintained.
 - `Library`, `Executable` and `TestSuite` renamed to `NativeLibrary`, `NativeExecutable` and `NativeTestSuite`
     - Related binary types have also been renamed
     - Kept `StaticLibraryBinary`, `SharedLibraryBinary`, `ExecutableBinary` and `TestSuiteExecutableBinary` for compatibility
-- 'libraries' and 'executables' containers have been renamed to 'nativeLibraries' and 'nativeExecutables'
-    - Backward-compatible aliases have been maintained and will be removed in a later release
 - `NativeBinariesPlugin` has been renamed to `NativeComponentPlugin` with id `'native-component'`
 - `NativeBinariesModelPlugin` renamed to `NativeComponentModelPlugin`
 

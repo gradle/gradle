@@ -26,8 +26,14 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
             apply plugin: "java"
             apply plugin: "cpp"
 
-            nativeExecutables { mainExe {} }
-            nativeLibraries { mainLib {} }
+            nativeCode {
+                executables {
+                    mainExe
+                }
+                libraries {
+                    mainLib
+                }
+            }
 
             task checkBinaries << {
                 assert binaries.mainClasses instanceof ClassDirectoryBinary
@@ -44,12 +50,15 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     apply plugin: 'native-component'
     apply plugin: 'jvm-component'
 
-    nativeExecutables {
-        nativeExe
+    nativeCode {
+        executables {
+            nativeExe
+        }
+        libraries {
+            nativeLib
+        }
     }
-    nativeLibraries {
-        nativeLib
-    }
+
     jvm {
         libraries {
             jvmLib
@@ -62,8 +71,8 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         assert softwareComponents.nativeLib instanceof NativeLibrary
         assert softwareComponents.jvmLib instanceof JvmLibrary
 
-        assert nativeExecutables as List == [softwareComponents.nativeExe]
-        assert nativeLibraries as List == [softwareComponents.nativeLib]
+        assert nativeCode.executables as List == [softwareComponents.nativeExe]
+        assert nativeCode.libraries as List == [softwareComponents.nativeLib]
         assert jvm.libraries as List == [softwareComponents.jvmLib]
 
         assert binaries.size() == 4
@@ -83,11 +92,13 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     apply plugin: 'native-component'
     apply plugin: 'jvm-component'
 
-    nativeExecutables {
-        nativeApp
-    }
-    nativeLibraries {
-        nativeLib
+    nativeCode {
+        executables {
+            nativeApp
+        }
+        libraries {
+            nativeLib
+        }
     }
     jvm {
         libraries {

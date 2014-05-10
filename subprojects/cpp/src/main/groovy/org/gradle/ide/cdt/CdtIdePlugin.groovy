@@ -54,7 +54,7 @@ class CdtIdePlugin implements Plugin<Project> {
     private addCreateCprojectDescriptor(Project project) {
         project.task("cdtCproject", type: GenerateMetadataFileTask) { task ->
             
-            [project.nativeExecutables, project.nativeLibraries]*.all { binary ->
+            [project.nativeCode.executables, project.nativeCode.libraries]*.all { binary ->
                 if (binary.name == "main") {
                     task.settings = new CprojectSettings(binary, project)
                 }
