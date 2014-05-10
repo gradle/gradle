@@ -31,7 +31,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         buildFile << """
             apply plugin: "cpp"
 
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         cppCompiler.define 'ENABLE_GREETING'
@@ -65,7 +65,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         buildFile << """
             apply plugin: "cpp"
 
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         if (toolChain in VisualCpp) {
@@ -105,14 +105,14 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         buildFile << """
             apply plugin: "cpp"
 
-            nativeLibraries {
+            libraries {
                 hello {
                     binaries.all {
                         cppCompiler.define 'ENABLE_GREETING'
                     }
                 }
             }
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         lib libraries.hello.static
@@ -173,7 +173,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                     }
                 }
             }
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         source sources.util.cpp
@@ -219,7 +219,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         given:
         buildFile << """
             apply plugin: 'cpp'
-            nativeExecutables {
+            executables {
                 main {}
             }
 
@@ -264,7 +264,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         buildFile << """
             subprojects {
                 apply plugin: 'cpp'
-                nativeExecutables {
+                executables {
                     main {}
                 }
             }
@@ -292,14 +292,14 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         and:
         buildFile << """
             apply plugin: 'cpp'
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         executableFile = modPath(executableFile)
                     }
                 }
             }
-            nativeLibraries {
+            libraries {
                 hello {
                     binaries.withType(SharedLibraryBinary) {
                         sharedLibraryFile = modPath(sharedLibraryFile)
@@ -338,10 +338,10 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         and:
         buildFile << """
             apply plugin: 'cpp'
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {
                     binaries.withType(SharedLibraryBinary) {
                         sharedLibraryFile = modPath(sharedLibraryFile)

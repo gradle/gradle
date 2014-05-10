@@ -34,10 +34,10 @@ class WindowsResourcesPluginTest extends Specification {
         when:
         project.configure(project){
             apply plugin: WindowsResourcesPlugin
-            nativeExecutables {
+            executables {
                 exe {}
             }
-            nativeLibraries {
+            libraries {
                 lib {}
             }
         }

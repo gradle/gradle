@@ -57,7 +57,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.writeSources(file("src/main"))
         buildFile << """
-    nativeExecutables {
+    executables {
         main {}
     }
     binaries.all {
@@ -92,7 +92,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    nativeLibraries {
+    libraries {
         main {}
     }
 """
@@ -122,7 +122,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    nativeLibraries {
+    libraries {
         main {
         }
     }
@@ -149,7 +149,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    nativeLibraries {
+    libraries {
         both {}
         staticOnly {
             binaries.withType(SharedLibraryBinary) {
@@ -173,7 +173,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
-    nativeLibraries {
+    libraries {
         main {
             binaries.withType(SharedLibraryBinary) {
                 buildable = false
@@ -204,10 +204,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    nativeLibraries {
+    libraries {
         hello {}
     }
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.cpp.lib libraries.hello.static
@@ -239,10 +239,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    nativeLibraries {
+    libraries {
         hello {}
     }
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.cpp.lib libraries.hello
@@ -276,11 +276,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         buildFile << """
             apply plugin: "cpp"
-            nativeLibraries {
+            libraries {
                 greetings {}
                 hello {}
             }
-            nativeExecutables {
+            executables {
                 main {}
             }
             sources {
@@ -322,10 +322,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    nativeLibraries {
+    libraries {
         hello {}
     }
-    nativeExecutables {
+    executables {
         main {}
         mainStatic {}
     }
@@ -359,10 +359,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    nativeLibraries {
+    libraries {
         hello {}
     }
-    nativeExecutables {
+    executables {
         main {}
         mainRelease {
             targetBuildTypes "release"
@@ -406,7 +406,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             }
         }
     }
-    nativeExecutables {
+    executables {
         main {
             targetPlatforms "win32", "otherWin32"
         }
@@ -425,10 +425,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         testApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
 
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {}
                 greetings {}
             }
@@ -465,10 +465,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {}
                 greetings {}
             }
@@ -514,7 +514,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
             apply plugin: 'c'
             apply plugin: 'assembler'
-            nativeExecutables {
+            executables {
                 main {}
             }
         """
@@ -543,7 +543,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         and:
         buildFile << """
             apply plugin: 'windows-resources'
-            nativeExecutables {
+            executables {
                 main {}
             }
             binaries.all {
@@ -576,7 +576,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     def "builds solution for component with no source"() {
         given:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
         """
@@ -604,7 +604,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             it.writeToFile(file("src/main/cpp/${it.name}"))
         }
         buildFile << """
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.cpp.source.include "**/*.cpp"
@@ -631,10 +631,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 helloApi {}
                 hello {}
             }
@@ -678,7 +678,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         win32 {}
         x64 {}
     }
-    nativeExecutables {
+    executables {
         main {}
     }
     binaries.all {
@@ -712,7 +712,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             }
         }
     }
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.cpp.lib library: 'test', linkage: 'api'
@@ -746,10 +746,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {}
                 greetings {}
             }
@@ -789,10 +789,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("src/hello"))
         buildFile << """
-    nativeLibraries {
+    libraries {
         hello {}
     }
-    nativeExecutables {
+    executables {
         main {
             targetPlatforms "win32"
             targetBuildTypes "release"

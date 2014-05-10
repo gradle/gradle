@@ -71,7 +71,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << """
     apply plugin: 'c'
 
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.c.generatedBy tasks.generateCSources
@@ -94,7 +94,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << """
     apply plugin: 'c'
 
-    nativeExecutables {
+    executables {
         main {}
     }
     sources {
@@ -122,7 +122,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << """
     apply plugin: 'c'
 
-    nativeExecutables {
+    executables {
         main {}
     }
     sources {
@@ -133,7 +133,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         }
     }
     sources.main.c.lib sources.generated.c
-    nativeExecutables.main.source sources.generated.c
+    executables.main.source sources.generated.c
 """
 
         then:
@@ -151,10 +151,10 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << """
     apply plugin: 'c'
 
-    nativeExecutables {
+    executables {
         main {}
     }
-    nativeLibraries {
+    libraries {
         hello {}
     }
     sources {
@@ -187,7 +187,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         sourceDir project.file("build/src/generated/cpp")
     }
 
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.cpp.generatedBy tasks.generateCppSources
@@ -215,7 +215,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         sourceDir project.file("build/src/generated/asm")
     }
 
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.asm.generatedBy tasks.generateAsmSources
@@ -244,7 +244,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         sourceDir project.file("build/src/generated/rc")
     }
 
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.rc.generatedBy tasks.generateRcSources
@@ -262,7 +262,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     task generateSources {
     }
 
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.c.generatedBy tasks.generateSources
@@ -286,7 +286,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << """
     apply plugin: 'c'
 
-    nativeExecutables {
+    executables {
         main {}
     }
     sources {
@@ -320,7 +320,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
     task lateConfiguredGenerator(type: GenerateSources)
 
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.c.generatedBy tasks.lateConfiguredGenerator
@@ -347,7 +347,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     apply plugin: 'visual-studio'
     apply plugin: 'c'
 
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.c.generatedBy tasks.generateCSources

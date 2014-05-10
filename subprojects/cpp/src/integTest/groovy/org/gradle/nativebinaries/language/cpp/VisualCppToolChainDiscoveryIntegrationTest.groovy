@@ -36,7 +36,7 @@ class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolCh
                 }
             }
 
-            nativeExecutables {
+            executables {
                 main {
                 }
             }

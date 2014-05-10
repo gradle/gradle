@@ -41,7 +41,7 @@ class ToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegr
                     tc(${toolChain.implementationClass})
                 }
             }
-            nativeExecutables {
+            executables {
                 main {}
             }
         """
@@ -72,7 +72,7 @@ class ToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegr
                 }
             }
 
-            nativeExecutables {
+            executables {
                 main {}
             }
         """

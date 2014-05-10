@@ -41,7 +41,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     german
                 }
             }
-            nativeLibraries {
+            libraries {
                 greetings {
                     binaries.all {
                         if (!org.gradle.internal.os.OperatingSystem.current().isWindows()) {
@@ -55,7 +55,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     }
                 }
             }
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         lib libraries.hello
@@ -75,9 +75,9 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             cppCompiler.define "FRENCH"
         }
     }
-    nativeExecutables.main.targetFlavors "french"
-    nativeLibraries.hello.targetFlavors "french"
-    nativeLibraries.greetings.targetFlavors "french"
+    executables.main.targetFlavors "french"
+    libraries.hello.targetFlavors "french"
+    libraries.greetings.targetFlavors "french"
 """
         when:
         succeeds "installMainExecutable"
@@ -99,7 +99,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "executable with flavors depends on library with matching flavors"() {
         when:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {
                     targetFlavors "english", "french"
                     binaries.all {
@@ -109,7 +109,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     }
                 }
             }
-            nativeLibraries.all {
+            libraries.all {
                 targetFlavors "english", "french"
                 binaries.all {
                     if (flavor == flavors.french) {
@@ -132,7 +132,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "executable with flavors depends on library with no defined flavor"() {
         when:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {
                     targetFlavors "english", "french"
                     binaries.all {
@@ -157,7 +157,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "executable with flavors depends on a library with a single flavor which depends on a library with flavors"() {
         when:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {
                     targetFlavors "english", "french"
                     binaries.all {
@@ -167,7 +167,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                     }
                 }
             }
-            nativeLibraries {
+            libraries {
                 greetings {
                     targetFlavors "english", "french"
                     binaries.all {
@@ -191,12 +191,12 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         when:
         buildFile << """
             apply plugin: "cpp"
-            nativeLibraries {
+            libraries {
                 hello {
                     targetFlavors "english", "french"
                 }
             }
-            nativeExecutables {
+            executables {
                 main {
                     targetFlavors "english", "german"
                     binaries.all {
@@ -214,7 +214,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     def "fails with reasonable error message when trying to target an unknown flavor"() {
         when:
         buildFile << """
-            nativeExecutables.main.targetFlavors "unknown"
+            executables.main.targetFlavors "unknown"
 """
 
         and:

@@ -47,10 +47,10 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 helloApi {}
                 hello {}
             }
@@ -86,10 +86,10 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             }
 """
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 util {}
             }
             sources.main.cpp.lib library: 'util'
@@ -125,10 +125,10 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
                     release
                 }
             }
-            nativeExecutables {
+            executables {
                 main
             }
-            nativeLibraries {
+            libraries {
                 util {
                     binaries.all { binary ->
                         binary.source sources[binary.buildType.name]
@@ -163,10 +163,10 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {}
                 hello2 {}
             }
@@ -192,10 +192,10 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {}
                 greetings {}
             }
@@ -219,10 +219,10 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main
             }
-            nativeLibraries {
+            libraries {
                 hello {}
             }
             sources.main.cpp.lib library: 'hello', linkage: 'api'

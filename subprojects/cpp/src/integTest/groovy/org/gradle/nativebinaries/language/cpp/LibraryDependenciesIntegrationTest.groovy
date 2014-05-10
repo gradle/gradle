@@ -51,16 +51,16 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         settingsFile.text = "include ':exe', ':other'"
         buildFile << """
         project(":exe") {
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {}
             }
             sources.main.cpp.lib ${dependencyNotation}
         }
         project(":other") {
-            nativeLibraries {
+            libraries {
                 hello {}
             }
         }
@@ -89,10 +89,10 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {}
             }
             sources.main.cpp.lib ${notation}
@@ -119,14 +119,14 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all { binary ->
                         binary.lib ${notation}
                     }
                 }
             }
-            nativeLibraries {
+            libraries {
                 hello {}
             }
         """
@@ -151,11 +151,11 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
             sources.main.cpp.lib library: 'hello', linkage: 'static'
-            nativeLibraries {
+            libraries {
                 hello {}
             }
         """
@@ -179,13 +179,13 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         buildFile << """
         project(":exe") {
             ${explicitEvaluation}
-            nativeExecutables {
+            executables {
                 main {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
         project(":lib") {
-            nativeLibraries {
+            libraries {
                 hello {}
             }
         }
@@ -221,19 +221,19 @@ project.afterEvaluate {
         settingsFile.text = "include ':exe', ':lib', ':greet'"
         buildFile << """
         project(":exe") {
-            nativeExecutables {
+            executables {
                 main {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
         project(":lib") {
-            nativeLibraries {
+            libraries {
                 hello {}
             }
             sources.hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
         }
         project(":greet") {
-            nativeLibraries {
+            libraries {
                 greetings {}
             }
         }
@@ -256,17 +256,17 @@ project.afterEvaluate {
         buildFile << """
         project(":exe") {
             apply plugin: "cpp"
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 greetings {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
         project(":lib") {
             apply plugin: "cpp"
-            nativeLibraries {
+            libraries {
                 hello {}
             }
             sources.hello.cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
@@ -288,10 +288,10 @@ project.afterEvaluate {
         and:
         buildFile << """
             apply plugin: "cpp"
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {}
                 greetings {}
             }
@@ -319,10 +319,10 @@ project.afterEvaluate {
         and:
         buildFile << """
             apply plugin: "cpp"
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {}
                 greetings {}
             }

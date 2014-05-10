@@ -35,10 +35,10 @@ class AssemblerPluginTest extends Specification {
         when:
         dsl {
             apply plugin: AssemblerPlugin
-            nativeExecutables {
+            executables {
                 exe {}
             }
-            nativeLibraries {
+            libraries {
                 lib {}
             }
         }
@@ -99,7 +99,7 @@ class AssemblerPluginTest extends Specification {
                     emptyOne(AssemblerSourceSet) {}
                 }
             }
-            nativeExecutables {
+            executables {
                 test {
                     binaries.all { NativeBinary binary ->
                         binary.assembler.args "ARG1", "ARG2"
@@ -136,7 +136,7 @@ class AssemblerPluginTest extends Specification {
                     emptyOne(AssemblerSourceSet) {}
                 }
             }
-            nativeLibraries {
+            libraries {
                 test {
                     binaries.all {
                         assembler.args "ARG1", "ARG2"
@@ -176,10 +176,10 @@ class AssemblerPluginTest extends Specification {
         when:
         dsl {
             apply plugin: AssemblerPlugin
-            nativeExecutables {
+            executables {
                 exe {}
             }
-            nativeLibraries {
+            libraries {
                 lib {}
             }
         }

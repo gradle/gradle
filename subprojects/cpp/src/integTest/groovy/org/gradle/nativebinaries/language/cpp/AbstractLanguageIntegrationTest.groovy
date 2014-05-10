@@ -37,7 +37,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "compile and link executable"() {
         given:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
         """
@@ -57,7 +57,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build executable with custom compiler arg"() {
         given:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         ${helloWorldApp.compilerArgs("-DFRENCH")}
@@ -81,7 +81,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build executable with macro defined"() {
         given:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         ${helloWorldApp.compilerDefine("FRENCH")}
@@ -106,10 +106,10 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build shared library and link into executable"() {
         given:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {}
             }
             sources.main.${helloWorldApp.sourceType}.lib libraries.hello
@@ -136,10 +136,10 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     def "build static library and link into executable"() {
         given:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
-            nativeLibraries {
+            libraries {
                 hello {
                     binaries.withType(StaticLibraryBinary) {
                         ${helloWorldApp.compilerDefine("FRENCH")}
@@ -180,7 +180,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         buildFile << helloWorldApp.pluginScript
         buildFile << helloWorldApp.extraConfiguration
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
         """

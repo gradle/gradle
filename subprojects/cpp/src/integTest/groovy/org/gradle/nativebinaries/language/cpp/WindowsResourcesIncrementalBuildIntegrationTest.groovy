@@ -36,7 +36,7 @@ class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledT
         buildFile << helloWorldApp.pluginScript
         buildFile << helloWorldApp.extraConfiguration
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
         """
@@ -98,7 +98,7 @@ STRINGTABLE
     def "compiles and links when resource compiler arg changes"() {
         when:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         // Use a compiler arg that will change the generated .res file

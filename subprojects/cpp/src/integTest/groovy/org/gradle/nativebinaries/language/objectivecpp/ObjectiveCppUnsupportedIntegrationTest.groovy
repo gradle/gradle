@@ -37,7 +37,7 @@ class ObjectiveCppUnsupportedIntegrationTest extends AbstractInstalledToolChainI
     def "fails with decent error message with visual studio toolchain"() {
         given:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
         """

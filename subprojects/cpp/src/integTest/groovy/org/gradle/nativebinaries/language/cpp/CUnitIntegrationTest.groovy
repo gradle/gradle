@@ -57,7 +57,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     private void useStandardConfig() {
         buildFile << """
-            nativeLibraries {
+            libraries {
                 hello {}
             }
             binaries.withType(NativeTestSuiteBinary) {
@@ -121,7 +121,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         useConventionalSourceLocations()
 
         buildFile << """
-            nativeLibraries {
+            libraries {
                 hello {}
             }
             testSuites {

@@ -29,7 +29,7 @@ class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build fails when assemble fails"() {
         given:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
         """
@@ -67,7 +67,7 @@ pushl
                     }
                 }
             }
-            nativeExecutables {
+            executables {
                 main {}
             }
 """

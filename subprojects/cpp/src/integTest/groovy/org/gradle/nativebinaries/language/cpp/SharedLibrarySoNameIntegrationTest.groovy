@@ -31,7 +31,7 @@ class SharedLibrarySoNameIntegrationTest extends AbstractInstalledToolChainInteg
 
         buildFile << """
             apply plugin: 'cpp'
-            nativeLibraries {
+            libraries {
                 hello {}
             }
         """

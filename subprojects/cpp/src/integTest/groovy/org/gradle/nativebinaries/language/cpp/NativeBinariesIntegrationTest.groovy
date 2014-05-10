@@ -30,7 +30,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         given:
         buildFile << """
             apply plugin: "cpp"
-            nativeExecutables {
+            executables {
                 main {}
             }
         """
@@ -57,7 +57,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             release
         }
     }
-    nativeExecutables {
+    executables {
         main
     }
     binaries.all { binary ->
@@ -127,7 +127,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             sources {
                 test {}
             }
-            nativeExecutables {
+            executables {
                 main {
                     source sources.test.cpp
                     source sources.test.c
@@ -153,7 +153,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             sources {
                 test {}
             }
-            nativeExecutables {
+            executables {
                 main {}
             }
             binaries.all {
@@ -180,7 +180,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             sources {
                 test {}
             }
-            nativeExecutables {
+            executables {
                 main {}
             }
             binaries.all {
@@ -208,7 +208,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             apply plugin: "cpp"
             apply plugin: "java"
 
-            nativeExecutables {
+            executables {
                 main {
                     source sources.test.cpp
                     source sources.test.c
@@ -232,7 +232,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         given:
         buildFile << """
             apply plugin: "cpp"
-            nativeExecutables {
+            executables {
                 main {}
             }
         """
@@ -252,7 +252,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         given:
         buildFile << """
             apply plugin: "cpp"
-            nativeLibraries { main {} }
+            libraries { main {} }
         """
 
         and:
@@ -279,7 +279,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         given:
         buildFile << """
             apply plugin: "cpp"
-            nativeLibraries { main {} }
+            libraries { main {} }
             binaries.withType(StaticLibraryBinary) {
                 staticLibArchiver.args "not_a_file"
             }

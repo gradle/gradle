@@ -27,7 +27,7 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
         buildFile << """
         apply plugin: 'cpp'
 
-        nativeExecutables {
+        executables {
             main {}
         }
         """

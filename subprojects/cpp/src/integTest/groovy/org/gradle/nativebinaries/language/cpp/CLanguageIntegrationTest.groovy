@@ -34,7 +34,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         and:
         buildFile << """
-             nativeExecutables {
+             executables {
                  main {}
              }
          """
@@ -77,7 +77,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                     }
                 }
             }
-            nativeExecutables {
+            executables {
                 main {}
             }
 """
@@ -98,7 +98,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
             it.writeToFile(file("src/main/c/${it.name}"))
         }
         buildFile << """
-    nativeExecutables {
+    executables {
         main {}
     }
     sources.main.c.source.include "**/*.c"
@@ -118,7 +118,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "can define macro #output"() {
         given:
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         ${helloWorldApp.compilerDefine('CUSTOM', inString)}
@@ -149,7 +149,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "compiler and linker args can contain quotes and spaces"() {
         given:
         buildFile << '''
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         // These are just some dummy arguments to test we don't blow up. Their effects are not verified.
@@ -180,7 +180,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-             nativeExecutables {
+             executables {
                  main {}
              }
          """

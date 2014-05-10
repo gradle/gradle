@@ -60,14 +60,14 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         buildFile << app.extraConfiguration
 
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         lib libraries.hello
                     }
                 }
             }
-            nativeLibraries {
+            libraries {
                 hello {
                     binaries.withType(SharedLibraryBinary) {
                         ${app.compilerDefine("DLL_EXPORT")}
@@ -254,7 +254,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         buildFile << """
-            nativeLibraries {
+            libraries {
                 hello {
                     binaries.all {
                         ${helloWorldApp.compilerArgs("-DFRENCH")}
@@ -339,7 +339,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'";
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {
                     binaries.all {
                         linker.args ${escapeString(linkerArgs)}
@@ -457,7 +457,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         when:
         buildFile << """
             apply plugin: 'cpp'
-            nativeExecutables {
+            executables {
                 main {}
             }
 """

@@ -40,10 +40,10 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         when:
         dsl {
             apply plugin: pluginClass
-            nativeExecutables {
+            executables {
                 exe {}
             }
-            nativeLibraries {
+            libraries {
                 lib {}
             }
         }
@@ -121,7 +121,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
                     emptyOne(sourceSetClass) {}
                 }
             }
-            nativeExecutables {
+            executables {
                 test {
                     binaries.all { NativeBinary binary ->
                         binary."${pluginName}Compiler".define "NDEBUG"

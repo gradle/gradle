@@ -55,7 +55,7 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
                     }
                 }
             }
-            nativeExecutables {
+            executables {
                 main {}
             }
 
@@ -122,7 +122,7 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
                 }
             }
         }
-        nativeExecutables {
+        executables {
             main {}
         }
 
@@ -144,7 +144,7 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         buildFile << testApp.extraConfiguration
 
         buildFile << """
-            nativeExecutables {
+            executables {
                 main {}
             }
 
@@ -169,7 +169,7 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
             binaries.all {
                 linker.args "user32.lib"
             }
-            nativeExecutables {
+            executables {
                 main {}
             }
             """
