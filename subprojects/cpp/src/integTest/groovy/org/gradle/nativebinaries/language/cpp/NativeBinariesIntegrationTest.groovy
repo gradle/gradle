@@ -79,6 +79,34 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         executable("build/binaries/mainExecutable/release/main").assertExists()
     }
 
+    // TODO:DAZ Once use of the extension has been rolled into the rest of the integration tests, this test won't be necessary
+    def "can define native binaries using nativeCode extension"() {
+        given:
+        helloWorldApp.library.writeSources(file("src/hello"))
+        helloWorldApp.executable.writeSources(file("src/main"))
+
+        and:
+        buildFile << """
+    apply plugin: 'cpp'
+    apply plugin: 'c'
+
+    nativeCode {
+        executables {
+            main
+        }
+        libraries {
+            hello
+        }
+        sources.main.cpp.lib libraries.hello
+    }
+"""
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == helloWorldApp.englishOutput
+    }
+
     // Test for temporary backward-compatibility layer for native binaries. Plan is to deprecate in 2.1 and remove in 2.2.
     def "can define native binaries using 1.12 compatible api"() {
         given:
