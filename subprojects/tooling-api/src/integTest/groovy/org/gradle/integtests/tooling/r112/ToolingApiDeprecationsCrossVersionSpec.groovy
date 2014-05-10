@@ -25,7 +25,12 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 
+import java.util.regex.Pattern
+
 class ToolingApiDeprecationsCrossVersionSpec extends ToolingApiSpecification {
+    private static final Pattern REGEXP_UNSUPPORTED_CONNECTION = Pattern.compile(
+            'Connection to the specified Gradle installation \'.*\' is not supported in this version of tooling API. Update your tooling API provider to version newer than 1.0-milestone-8.')
+
     def setup() {
         file("build.gradle") << """
 task noop << {
@@ -48,7 +53,7 @@ task noop << {
 
         then:
         UnsupportedVersionException e = thrown()
-        e != null
+        REGEXP_UNSUPPORTED_CONNECTION.matcher(e.message).matches()
     }
 
     @ToolingApiVersion(">=1.12")
@@ -64,7 +69,7 @@ task noop << {
 
         then:
         UnsupportedVersionException e = thrown()
-        e != null
+        REGEXP_UNSUPPORTED_CONNECTION.matcher(e.message).matches()
     }
 
     @ToolingApiVersion(">=1.12")
@@ -116,7 +121,7 @@ task noop << {
 
         then:
         GradleConnectionException e = thrown()
-        e != null
+        e.cause.message.contains('Consumers using version older than 1.2 are not supported.')
     }
 
     @ToolingApiVersion(">=1.2")
@@ -148,7 +153,7 @@ task noop << {
 
         then:
         GradleConnectionException e = thrown()
-        e != null
+        e.cause.message.contains('Consumers using version older than 1.2 are not supported.')
         // TODO cause is UnsupportedVersionException?
     }
 
