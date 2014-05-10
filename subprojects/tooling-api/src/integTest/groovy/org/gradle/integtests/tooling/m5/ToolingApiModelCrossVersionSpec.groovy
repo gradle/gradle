@@ -15,14 +15,10 @@
  */
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.GradleProject
 
-@ToolingApiVersion('>=1.2')
-@TargetGradleVersion('>=1.0-milestone-8')
 class ToolingApiModelCrossVersionSpec extends ToolingApiSpecification {
     def "receives progress while the model is building"() {
         file('build.gradle') << '''

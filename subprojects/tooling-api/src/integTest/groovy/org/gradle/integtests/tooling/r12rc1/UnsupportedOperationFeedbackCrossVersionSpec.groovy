@@ -18,12 +18,10 @@ package org.gradle.integtests.tooling.r12rc1
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion(">=1.2")
 @TargetGradleVersion(">=1.0-milestone-8 <=1.1")
 class UnsupportedOperationFeedbackCrossVersionSpec extends ToolingApiSpecification {
     def "fails when attempting to run tasks when building a model"() {

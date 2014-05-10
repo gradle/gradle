@@ -20,12 +20,10 @@ package org.gradle.integtests.tooling.r10rc1
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.model.GradleProject
 
-@ToolingApiVersion(">=1.2")
 @TargetGradleVersion(">=1.0")
 class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecification {
 

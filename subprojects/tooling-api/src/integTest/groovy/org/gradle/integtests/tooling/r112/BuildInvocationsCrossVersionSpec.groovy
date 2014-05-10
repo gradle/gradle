@@ -25,7 +25,6 @@ import org.gradle.tooling.model.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 @ToolingApiVersion(">=1.12")
-@TargetGradleVersion(">=1.0-milestone-8")
 class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
     def implicitTaskNames = ['dependencies', 'dependencyInsight', 'help', 'init', 'projects', 'properties', 'tasks', 'wrapper']
     def nonRootImplicitTaskNames = ['dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks']

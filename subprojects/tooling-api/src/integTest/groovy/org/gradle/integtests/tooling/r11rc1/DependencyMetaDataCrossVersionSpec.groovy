@@ -17,13 +17,11 @@ package org.gradle.integtests.tooling.r11rc1
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion('>=1.2')
 @TargetGradleVersion('>=1.1')
 class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
 

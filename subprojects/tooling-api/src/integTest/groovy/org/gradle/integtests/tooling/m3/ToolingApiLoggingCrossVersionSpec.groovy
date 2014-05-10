@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.tooling.m3
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
@@ -27,8 +25,6 @@ import org.gradle.tooling.ResultHandler
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-@ToolingApiVersion(">=1.2")
-@TargetGradleVersion(">=1.0-milestone-8")
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         toolingApi.isEmbedded = false

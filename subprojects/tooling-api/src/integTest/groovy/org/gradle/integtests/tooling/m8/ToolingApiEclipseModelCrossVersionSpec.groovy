@@ -15,13 +15,9 @@
  */
 package org.gradle.integtests.tooling.m8
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=1.2')
-@TargetGradleVersion('>=1.0-milestone-8')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "can customize model late in the configuration phase"() {
         projectDir.file('build.gradle').text = """
