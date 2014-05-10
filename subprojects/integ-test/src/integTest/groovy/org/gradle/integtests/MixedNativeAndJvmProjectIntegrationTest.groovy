@@ -50,8 +50,10 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     nativeLibraries {
         nativeLib
     }
-    jvmLibraries {
-        jvmLib
+    jvm {
+        libraries {
+            jvmLib
+        }
     }
 
     task check << {
@@ -62,7 +64,7 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
 
         assert nativeExecutables as List == [softwareComponents.nativeExe]
         assert nativeLibraries as List == [softwareComponents.nativeLib]
-        assert jvmLibraries as List == [softwareComponents.jvmLib]
+        assert jvm.libraries as List == [softwareComponents.jvmLib]
 
         assert binaries.size() == 4
         binaries.jvmLibJar instanceof JvmLibraryBinary
@@ -87,8 +89,10 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
     nativeLibraries {
         nativeLib
     }
-    jvmLibraries {
-        jvmLib
+    jvm {
+        libraries {
+            jvmLib
+        }
     }
 """
         when:

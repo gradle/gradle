@@ -17,18 +17,19 @@ package org.gradle.runtime.jvm.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.model.ModelRule;
+import org.gradle.model.ModelRules;
 import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.SoftwareComponentContainer;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.runtime.jvm.JvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultJvmLibrary;
 import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
 import org.gradle.runtime.jvm.internal.plugins.CreateJvmBinaries;
 import org.gradle.runtime.jvm.internal.plugins.CreateTasksForJvmBinaries;
-import org.gradle.model.ModelRule;
-import org.gradle.model.ModelRules;
+import org.gradle.runtime.jvm.internal.plugins.DefaultJvmComponentExtension;
 
 import javax.inject.Inject;
 
@@ -55,10 +56,12 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 return new DefaultJvmLibrary(name);
             }
         });
-        NamedDomainObjectContainer<JvmLibrary> jvmLibraries = softwareComponents.containerWithType(JvmLibrary.class);
-        project.getExtensions().add("jvmLibraries", jvmLibraries);
 
-        modelRules.register("jvmLibraries", jvmLibraries);
+        NamedDomainObjectContainer<JvmLibrary> jvmLibraries = softwareComponents.containerWithType(JvmLibrary.class);
+        project.getExtensions().create("jvm", DefaultJvmComponentExtension.class, jvmLibraries);
+
+        modelRules.register("jvm.libraries", jvmLibraries);
+
         modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder()));
         modelRules.rule(new CreateTasksForJvmBinaries());
         modelRules.rule(new AttachBinariesToLifecycle());

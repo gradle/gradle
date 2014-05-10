@@ -23,7 +23,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
         apply plugin: 'jvm-component'
         task check << {
-            assert jvmLibraries.empty
+            assert jvm.libraries.empty
             assert binaries.empty
         }
 """
@@ -39,15 +39,17 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
     apply plugin: 'jvm-component'
 
-    jvmLibraries {
-        myLib
+    jvm {
+        libraries {
+            myLib
+        }
     }
 
     task check << {
-        assert jvmLibraries.size() == 1
-        def myLib = jvmLibraries.myLib
+        assert jvm.libraries.size() == 1
+        def myLib = jvm.libraries.myLib
         assert myLib.name == 'myLib'
-        assert myLib == jvmLibraries['myLib']
+        assert myLib == jvm.libraries['myLib']
         assert myLib instanceof JvmLibrary
 
         assert binaries.size() == 1
@@ -79,8 +81,10 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
     apply plugin: 'jvm-component'
 
-    jvmLibraries {
-        myJvmLib
+    jvm {
+        libraries {
+            myJvmLib
+        }
     }
 """
         when:
@@ -98,8 +102,10 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
     apply plugin: 'jvm-component'
 
-    jvmLibraries {
-        myJvmLib
+    jvm {
+        libraries {
+            myJvmLib
+        }
     }
     binaries.all { binary ->
         def logTask = project.tasks.create(binary.namingScheme.getTaskName("log")) {
@@ -123,19 +129,21 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
     apply plugin: 'jvm-component'
 
-    jvmLibraries {
-        myLibOne
-        myLibTwo
+    jvm {
+        libraries {
+            myLibOne
+            myLibTwo
+        }
     }
 
     task check << {
-        assert jvmLibraries.size() == 2
-        assert jvmLibraries.myLibOne instanceof JvmLibrary
-        assert jvmLibraries.myLibTwo instanceof JvmLibrary
+        assert jvm.libraries.size() == 2
+        assert jvm.libraries.myLibOne instanceof JvmLibrary
+        assert jvm.libraries.myLibTwo instanceof JvmLibrary
 
         assert binaries.size() == 2
-        assert binaries.myLibOneJar.library == jvmLibraries.myLibOne
-        assert binaries.myLibTwoJar.library == jvmLibraries.myLibTwo
+        assert binaries.myLibOneJar.library == jvm.libraries.myLibOne
+        assert binaries.myLibTwoJar.library == jvm.libraries.myLibTwo
     }
 """
         then:
@@ -147,9 +155,11 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
     apply plugin: 'jvm-component'
 
-    jvmLibraries {
-        myLibOne
-        myLibTwo
+    jvm {
+        libraries {
+            myLibOne
+            myLibTwo
+        }
     }
 """
         when:

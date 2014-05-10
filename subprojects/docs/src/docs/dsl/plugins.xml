@@ -78,6 +78,9 @@
         <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.runtime.base.BinaryContainer"/>
         <extends targetClass="org.gradle.api.Project" id="sources" extensionClass="org.gradle.language.base.ProjectSourceSet"/>
     </plugin>
+    <plugin id="jvm-component" description="JVM Component Model Plugin">
+        <extends targetClass="org.gradle.api.Project" id="jvm" extensionClass="org.gradle.runtime.jvm.JvmComponentExtension"/>
+    </plugin>
     <plugin id="native-component" description="Native Component Model Plugin">
         <!--TODO:DAZ Include type of collection elements in the DSL reference -->
         <extends targetClass="org.gradle.api.Project" id="nativeLibraries" extensionClass="org.gradle.api.NamedDomainObjectContainer"/>

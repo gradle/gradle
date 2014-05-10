@@ -32,7 +32,7 @@ public class CreateJvmBinaries extends ModelRule {
         this.namingSchemeBuilder = namingSchemeBuilder;
     }
 
-    void createBinaries(BinaryContainer binaries, @Path("jvmLibraries") NamedDomainObjectCollection<JvmLibrary> libraries) {
+    void createBinaries(BinaryContainer binaries, @Path("jvm.libraries") NamedDomainObjectCollection<JvmLibrary> libraries) {
         for (JvmLibrary jvmLibrary : libraries) {
             BinaryNamingScheme namingScheme = namingSchemeBuilder
                     .withComponentName(jvmLibrary.getName())
