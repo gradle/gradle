@@ -5,7 +5,7 @@ model {
         release
     }
 }
-nativeLibraries {
+libraries {
     util {
         binaries.all {
             if (buildType == buildTypes.debug) {

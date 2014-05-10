@@ -133,7 +133,7 @@
                 <tr><td>Component Type</td><td>Native Binary Type</td><td>Lifecycle task</td><td>Location of created binary</td></tr>
             </thread>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.NativeExecutable"/></td><td><apilink class="org.gradle.nativebinaries.NativeExecutableBinary"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeExecutable"/></td><td><apilink class="org.gradle.nativebinaries.ExecutableBinary"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
             </tr>
             <tr>
                 <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
@@ -367,7 +367,7 @@
                <sourcefile file="build.gradle" snippet="source-library"/>
            </sample>
            <para>
-               Alternatively, a library dependency can be provided directly to the <literal>NativeExecutableBinary</literal> for the <literal>executable</literal>.
+               Alternatively, a library dependency can be provided directly to the <literal>ExecutableBinary</literal> for the <literal>executable</literal>.
            </para>
            <sample id="cppBinaryLibrary" dir="native-binaries/custom-layout" title="Providing a library dependency to the binary">
                <sourcefile file="build.gradle" snippet="binary-library"/>
@@ -658,7 +658,7 @@
                 A <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuite"/> component has an associated
                 <apilink class="org.gradle.nativebinaries.NativeExecutable"/> or <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component.
                 For each <apilink class="org.gradle.nativebinaries.ProjectNativeBinary"/> configured for the main component, a matching
-                <apilink class="org.gradle.nativebinaries.test.NativeTestSuiteBinary"/> will be configured on the test suite component.
+                <apilink class="org.gradle.nativebinaries.test.TestSuiteExecutableBinary"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:
             </para>
             <sample id="cunitSources" dir="native-binaries/cunit" title="Registering CUnit tests">
@@ -666,14 +666,14 @@
             </sample>
             <note>
                 Both the CUnit sources provided by your project and the generated launcher require the core CUnit headers and libraries.
-                Presently, this library dependency must be provided by your project for each <apilink class="org.gradle.nativebinaries.test.NativeTestSuiteBinary"/>.
+                Presently, this library dependency must be provided by your project for each <apilink class="org.gradle.nativebinaries.test.TestSuiteExecutableBinary"/>.
             </note>
         </section>
 
         <section>
             <title>Running CUnit tests</title>
             <para>
-                For each <apilink class="org.gradle.nativebinaries.test.NativeTestSuiteBinary"/>, Gradle will create a task to execute this binary,
+                For each <apilink class="org.gradle.nativebinaries.test.TestSuiteExecutableBinary"/>, Gradle will create a task to execute this binary,
                 which will run all of the registered CUnit tests.
                 The generated test results will be located in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
             </para>

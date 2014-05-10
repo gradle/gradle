@@ -3,7 +3,7 @@ apply plugin: 'objective-cpp'
 // END SNIPPET apply-plugin
 
 // START SNIPPET executables
-nativeExecutables {
+executables {
     main {}
 }
 // END SNIPPET executables

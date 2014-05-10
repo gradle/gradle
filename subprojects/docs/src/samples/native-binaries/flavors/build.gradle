@@ -12,7 +12,7 @@ model {
     }
 }
 
-nativeLibraries {
+libraries {
     hello {
         binaries.all {
             if (flavor == flavors.french) {
@@ -27,7 +27,7 @@ binaries.withType(SharedLibraryBinary) {
     cppCompiler.define "DLL_EXPORT"
 }
 
-nativeExecutables {
+executables {
     main {
         source sources.exe
         binaries.all {

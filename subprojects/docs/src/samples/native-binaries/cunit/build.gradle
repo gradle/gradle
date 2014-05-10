@@ -19,11 +19,11 @@ model {
     }
 }
 
-nativeLibraries {
+libraries {
     operators {}
 }
 // START SNIPPET configure-test-binary
-binaries.withType(NativeTestSuiteBinary) {
+binaries.withType(TestSuiteExecutableBinary) {
     lib library: "cunit", linkage: "static"
 
     if (flavor == flavors.failing) {

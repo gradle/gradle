@@ -41,7 +41,7 @@ sources {
 }
 
 // START SNIPPET assembler-args
-nativeExecutables {
+executables {
     main {
         binaries.all {
             if (toolChain in VisualCpp) {

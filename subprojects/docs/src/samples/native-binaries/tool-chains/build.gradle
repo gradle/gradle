@@ -41,13 +41,13 @@ model {
 }
 // END SNIPPET withArguments
 
-nativeExecutables {
+executables {
     main {}
 }
 
 // START SNIPPET buildable
 task buildAllExecutables {
-    dependsOn binaries.withType(NativeExecutableBinary).matching {
+    dependsOn binaries.withType(ExecutableBinary).matching {
         it.buildable
     }
 }

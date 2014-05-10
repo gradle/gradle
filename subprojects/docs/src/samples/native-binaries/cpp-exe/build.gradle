@@ -1,6 +1,6 @@
 apply plugin: "cpp"
 
-nativeExecutables {
+executables {
     main {
         binaries.all {
             // Define a preprocessor macro
@@ -13,7 +13,7 @@ nativeExecutables {
     }
 }
 
-binaries.withType(NativeExecutableBinary) { binary ->
+binaries.withType(ExecutableBinary) { binary ->
     def linkTask = binary.tasks.link
     def stripTask = task("strip${binary.name.capitalize()}") {
         dependsOn linkTask

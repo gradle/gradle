@@ -15,7 +15,7 @@ sources {
 }
 sources.main.c.lib sources.main.idlOutput
 
-nativeExecutables {
+executables {
     main {}
 }
 

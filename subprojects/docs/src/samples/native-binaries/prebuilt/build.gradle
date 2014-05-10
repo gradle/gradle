@@ -34,7 +34,7 @@ model {
         }
     }
 }
-nativeExecutables {
+executables {
     main {}
 }
 sources.main.cpp.lib library: 'boost', linkage: 'api'

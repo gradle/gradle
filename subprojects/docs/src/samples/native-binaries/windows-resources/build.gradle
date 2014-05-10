@@ -3,11 +3,11 @@ apply plugin: 'cpp'
 apply plugin: 'windows-resources'
 // END SNIPPET apply-plugin
 
-nativeLibraries {
+libraries {
     hello {}
 }
 
-nativeExecutables {
+executables {
     main {}
 }
 

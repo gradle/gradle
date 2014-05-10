@@ -26,13 +26,13 @@ model {
 // END SNIPPET build-types
 
 // START SNIPPET target-platforms
-nativeExecutables {
+executables {
     main {
         targetPlatforms "x86", "x64"
     }
 }
 // END SNIPPET target-platforms
-nativeLibraries {
+libraries {
     hello {}
 }
 sources.main.cpp.lib libraries.hello.static
@@ -60,12 +60,12 @@ binaries.all {
 
 // Tasks to build all binaries for a tool chain
 task gccExecutables {
-    dependsOn binaries.withType(NativeExecutableBinary).matching {
+    dependsOn binaries.withType(ExecutableBinary).matching {
         it.toolChain in Gcc
     }
 }
 task visualCppExecutables {
-    dependsOn binaries.withType(NativeExecutableBinary).matching {
+    dependsOn binaries.withType(ExecutableBinary).matching {
         it.toolChain in VisualCpp
     }
 }

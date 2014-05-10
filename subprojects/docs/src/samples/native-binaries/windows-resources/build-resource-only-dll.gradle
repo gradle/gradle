@@ -1,7 +1,7 @@
 apply plugin: 'windows-resources'
 
 // START SNIPPET resource-only-library
-nativeLibraries {
+libraries {
     helloRes {
         binaries.all {
             rcCompiler.args "/v"
