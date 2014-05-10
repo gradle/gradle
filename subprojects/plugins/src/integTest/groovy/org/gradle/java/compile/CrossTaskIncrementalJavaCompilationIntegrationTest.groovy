@@ -285,15 +285,40 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         impl.recompiledClasses("SomeIntegTest")
     }
 
-    def "handles new jar on classpath that has duplicate class as an existing jar"() {
-        //TODO
-    }
-
-    def "class in source dir wins over a duplicate found in some jar on classpath"() {
-        //TODO
-    }
-
     def "the order of classpath items is unchanged"() {
-        //TODO
+        java api: ["class A {}"], impl: ["class B {}"]
+        file("impl/build.gradle") << """
+            dependencies { compile "org.mockito:mockito-core:1.9.5", "junit:junit:4.10" }
+            compileJava.doFirst {
+                file("classpath.txt").createNewFile(); file("classpath.txt").text = classpath.files*.name.join(', ')
+            }
+        """
+
+        when: run("impl:compileJava") //initial run
+        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.10.jar, hamcrest-core-1.1.jar, objenesis-1.0.jar"
+
+        when: //project dependency changes
+        java api: ["class A { String change; }"]
+        run("impl:compileJava")
+
+        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.10.jar, hamcrest-core-1.1.jar, objenesis-1.0.jar"
+
+        when: //transitive dependency is excluded
+        file("impl/build.gradle") << "configurations.compile.exclude module: 'hamcrest-core' \n"
+        run("impl:compileJava")
+
+        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.10.jar, objenesis-1.0.jar"
+
+        when: //direct dependency is excluded
+        file("impl/build.gradle") << "configurations.compile.exclude module: 'junit' \n"
+        run("impl:compileJava")
+
+        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, objenesis-1.0.jar"
+
+        when: //new dependency is added
+        file("impl/build.gradle") << "dependencies { compile 'org.testng:testng:6.8.7' } \n"
+        run("impl:compileJava")
+
+        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, testng-6.8.7.jar, objenesis-1.0.jar, bsh-2.0b4.jar, jcommander-1.27.jar, snakeyaml-1.12.jar"
     }
 }
