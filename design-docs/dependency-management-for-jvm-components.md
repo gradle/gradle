@@ -54,7 +54,7 @@ Combining native and jvm libraries in single project
             myJvmLib
         }
     }
-    native
+    nativeCode
         libraries {
             myNativeLib
         }
@@ -147,7 +147,7 @@ Combining jvm-java and native (multi-lang) libraries in single project
             myJvmLib
         }
     }
-    native {
+    nativeCode {
         libraries {
             myNativeLib
         }
