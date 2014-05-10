@@ -99,6 +99,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         // TODO:DAZ Not sure if we should keep these
         project.getExtensions().add("nativeComponents", components.withType(ProjectNativeComponent.class));
         project.getExtensions().add("libraries", project.getExtensions().getByName("nativeLibraries"));
+        project.getExtensions().add("executables", project.getExtensions().getByName("nativeExecutables"));
 
         configurationActions.add(Actions.composite(
                 new ConfigureGeneratedSourceSets(),

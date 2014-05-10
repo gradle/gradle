@@ -16,18 +16,15 @@
 
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.nativebinaries.*;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
-import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.NativeExecutable;
-import org.gradle.nativebinaries.NativeExecutableBinary;
-import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
 import java.io.File;
 
-public class ProjectNativeExecutableBinary extends AbstractProjectNativeBinary implements NativeExecutableBinary {
+public class ProjectNativeExecutableBinary extends AbstractProjectNativeBinary implements NativeExecutableBinary, ExecutableBinary {
     private File executableFile;
 
     public ProjectNativeExecutableBinary(NativeExecutable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,

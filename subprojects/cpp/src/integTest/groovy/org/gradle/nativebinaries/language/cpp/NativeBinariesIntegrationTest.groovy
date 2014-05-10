@@ -79,6 +79,43 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         executable("build/binaries/mainExecutable/release/main").assertExists()
     }
 
+    // Test for temporary backward-compatibility layer for native binaries. Plan is to deprecate in 2.1 and remove in 2.2.
+    def "can define native binaries using 1.12 compatible api"() {
+        given:
+        helloWorldApp.library.writeSources(file("src/hello"))
+        helloWorldApp.executable.writeSources(file("src/main"))
+
+        and:
+        buildFile << """
+    apply plugin: 'cpp'
+    apply plugin: 'c'
+
+    executables {
+        main
+    }
+    libraries {
+        hello
+    }
+    sources.main.cpp.lib libraries.hello
+    task buildAllExecutables {
+        dependsOn binaries.withType(ExecutableBinary).matching {
+            it.buildable
+        }
+    }
+"""
+        when:
+        succeeds "buildAllExecutables"
+
+        then:
+        executable("build/binaries/mainExecutable/main").assertExists()
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == helloWorldApp.englishOutput
+    }
+
     def "assemble executable from component with multiple language source sets"() {
         given:
         useMixedSources()
