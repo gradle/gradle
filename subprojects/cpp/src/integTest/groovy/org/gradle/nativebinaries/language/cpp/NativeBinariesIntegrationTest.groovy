@@ -18,6 +18,8 @@ package org.gradle.nativebinaries.language.cpp
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
@@ -80,6 +82,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     // TODO:DAZ Once use of the extension has been rolled into the rest of the integration tests, this test won't be necessary
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can define native binaries using nativeCode extension"() {
         given:
         helloWorldApp.library.writeSources(file("src/hello"))
@@ -108,6 +111,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     // Test for temporary backward-compatibility layer for native binaries. Plan is to deprecate in 2.1 and remove in 2.2.
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can define native binaries using 1.12 compatible api"() {
         given:
         helloWorldApp.library.writeSources(file("src/hello"))
