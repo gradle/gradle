@@ -16,14 +16,20 @@
 
 package org.gradle.util
 
-import spock.lang.*
+import spock.lang.Specification
 
 class VersionNumberTest extends Specification {
+    def "construction"() {
+        expect:
+        VersionNumber.version(5) == new VersionNumber(5, 0, 0, null)
+    }
+
     def "parsing"() {
         expect:
         VersionNumber.parse("1") == new VersionNumber(1, 0, 0, null)
         VersionNumber.parse("1.0") == new VersionNumber(1, 0, 0, null)
         VersionNumber.parse("1.0.0") == new VersionNumber(1, 0, 0, null)
+        VersionNumber.parse("1.0.0.0") == new VersionNumber(1, 0, 0, 0, null)
 
         VersionNumber.parse("1.2") == new VersionNumber(1, 2, 0, null)
         VersionNumber.parse("1.2.3") == new VersionNumber(1, 2, 3, null)
@@ -31,49 +37,70 @@ class VersionNumberTest extends Specification {
         VersionNumber.parse("1-rc1-SNAPSHOT") == new VersionNumber(1, 0, 0, "rc1-SNAPSHOT")
         VersionNumber.parse("1.2-rc1-SNAPSHOT") == new VersionNumber(1, 2, 0, "rc1-SNAPSHOT")
         VersionNumber.parse("1.2.3-rc1-SNAPSHOT") == new VersionNumber(1, 2, 3, "rc1-SNAPSHOT")
+        VersionNumber.parse("1.2.3.4-rc1-SNAPSHOT") == new VersionNumber(1, 2, 3, 4, "rc1-SNAPSHOT")
 
         VersionNumber.parse("1.rc1-SNAPSHOT") == new VersionNumber(1, 0, 0, "rc1-SNAPSHOT")
         VersionNumber.parse("1.2.rc1-SNAPSHOT") == new VersionNumber(1, 2, 0, "rc1-SNAPSHOT")
         VersionNumber.parse("1.2.3.rc1-SNAPSHOT") == new VersionNumber(1, 2, 3, "rc1-SNAPSHOT")
+        VersionNumber.parse("1.2.3.4.rc1-SNAPSHOT") == new VersionNumber(1, 2, 3, 4, "rc1-SNAPSHOT")
 
-        VersionNumber.parse("11.22.33.44") == new VersionNumber(11, 22, 33, "44")
+        VersionNumber.parse("11.22.33.44") == new VersionNumber(11, 22, 33, 44, null)
         VersionNumber.parse("11.44") == new VersionNumber(11, 44, 0, null)
+        VersionNumber.parse("11.22.33_44") == new VersionNumber(11, 22, 33, 44, null)
+        VersionNumber.parse("11.22.33_44-eap") == new VersionNumber(11, 22, 33, 44, "eap")
+        VersionNumber.parse("11.22_44") == new VersionNumber(11, 22, 0, 44, null)
+
         VersionNumber.parse("11.fortyfour") == new VersionNumber(11, 0, 0, "fortyfour")
     }
 
-    def "unparseable version number is represented as UNKNOWN (0.0.0)"() {
+    def "unparseable version number is represented as UNKNOWN (0.0.0.0)"() {
         expect:
         VersionNumber.parse(null) == VersionNumber.UNKNOWN
         VersionNumber.parse("") == VersionNumber.UNKNOWN
         VersionNumber.parse("foo") == VersionNumber.UNKNOWN
         VersionNumber.parse("1.") == VersionNumber.UNKNOWN
         VersionNumber.parse("1.2.3-") == VersionNumber.UNKNOWN
+        VersionNumber.parse(".") == VersionNumber.UNKNOWN
+        VersionNumber.parse("_") == VersionNumber.UNKNOWN
+        VersionNumber.parse("-") == VersionNumber.UNKNOWN
+        VersionNumber.parse(".1") == VersionNumber.UNKNOWN
+        VersionNumber.parse("a.1") == VersionNumber.UNKNOWN
+        VersionNumber.parse("1_2_2") == VersionNumber.UNKNOWN
     }
 
     def "accessors"() {
         when:
-        def version = new VersionNumber(1, 2, 3, "foo")
+        def version = new VersionNumber(1, 2, 3, 4, "foo")
 
         then:
         version.major == 1
         version.minor == 2
         version.micro == 3
+        version.patch == 4
         version.qualifier == "foo"
     }
 
     def "string representation"() {
         expect:
-        new VersionNumber(1, 0, 0, null).toString() == "1.0.0"
-        new VersionNumber(1, 2, 3, "foo").toString() == "1.2.3-foo"
+        new VersionNumber(1, 0, 0, null).toString() == "1.0.0.0"
+        new VersionNumber(1, 0, 0, 0, null).toString() == "1.0.0.0"
+        new VersionNumber(1, 2, 3, "foo").toString() == "1.2.3.0-foo"
+        new VersionNumber(1, 2, 3, 4, "foo").toString() == "1.2.3.4-foo"
     }
 
     def "equality"() {
+        def version = new VersionNumber(1, 1, 1, 1, null)
+        def qualified = new VersionNumber(1, 1, 1, 1, "beta-2")
+
         expect:
-        new VersionNumber(1, 1, 1, null) == new VersionNumber(1, 1, 1, null)
-        new VersionNumber(2, 1, 1, null) != new VersionNumber(1, 1, 1, null)
-        new VersionNumber(1, 2, 1, null) != new VersionNumber(1, 1, 1, null)
-        new VersionNumber(1, 1, 2, null) != new VersionNumber(1, 1, 1, null)
-        new VersionNumber(1, 1, 1, "rc") != new VersionNumber(1, 1, 1, null)
+        new VersionNumber(1, 1, 1, 1, null) Matchers.strictlyEqual(version)
+        new VersionNumber(2, 1, 1, 1, null) != version
+        new VersionNumber(1, 2, 1, 1, null) != version
+        new VersionNumber(1, 1, 2, 1, null) != version
+        new VersionNumber(1, 1, 1, 2, null) != version
+        new VersionNumber(1, 1, 1, 1, "rc") != version
+        new VersionNumber(1, 1, 1, 1, "beta-2") Matchers.strictlyEqual(qualified)
+        new VersionNumber(1, 1, 1, 1, "beta-3") != qualified
     }
 
     def "comparison"() {
@@ -83,6 +110,7 @@ class VersionNumberTest extends Specification {
         new VersionNumber(2, 1, 1, null) > new VersionNumber(1, 1, 1, null)
         new VersionNumber(1, 2, 1, null) > new VersionNumber(1, 1, 1, null)
         new VersionNumber(1, 1, 2, null) > new VersionNumber(1, 1, 1, null)
+        new VersionNumber(1, 1, 1, 2, null) > new VersionNumber(1, 1, 1, null)
         new VersionNumber(1, 1, 1, "rc") < new VersionNumber(1, 1, 1, null)
         new VersionNumber(1, 1, 1, "beta") > new VersionNumber(1, 1, 1, "alpha")
         new VersionNumber(1, 1, 1, "RELEASE") > new VersionNumber(1, 1, 1, "beta")

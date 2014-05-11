@@ -15,21 +15,19 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
+import org.gradle.integtests.fixtures.jvm.JvmInstallation;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
 abstract public class AvailableJavaHomes {
-
     private static File getJavaHome(String label) {
         String value = System.getenv().get(String.format("JDK_%s", label));
         return value == null ? null : GFileUtils.canonicalise(new File(value));
@@ -41,6 +39,13 @@ abstract public class AvailableJavaHomes {
     public static File getBestAlternative() {
         Jvm jvm = Jvm.current();
 
+        List<JvmInstallation> jvms = new InstalledJvmLocator().findJvms();
+        for (JvmInstallation candidate : jvms) {
+            if (!candidate.getJavaHome().equals(jvm.getJavaHome())) {
+                return candidate.getJavaHome();
+            }
+        }
+
         // Use environment variables
         File javaHome = null;
         if (jvm.getJavaVersion().isJava6Compatible()) {
@@ -50,54 +55,6 @@ abstract public class AvailableJavaHomes {
         }
         if (javaHome != null) {
             return javaHome;
-        }
-
-        if (OperatingSystem.current().isMacOsX()) {
-            // Search in the install dir used by the Apple jvms, followed by the install dir used by the OpenJDK jvms
-            List<File> installDirs = Arrays.asList(new File("/System/Library/Java/JavaVirtualMachines"), new File("/Library/Java/JavaVirtualMachines"));
-            for (File installDir : installDirs) {
-                if (installDir.isDirectory()) {
-                    for (File candidate : installDir.listFiles()) {
-                        javaHome = GFileUtils.canonicalise(new File(candidate, "Contents/Home"));
-                        if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java").isFile()) {
-                            return javaHome;
-                        }
-                    }
-                }
-            }
-        } else if (OperatingSystem.current().isLinux()) {
-            // Ubuntu specific
-            File installedJvms = new File("/usr/lib/jvm");
-            if (installedJvms.isDirectory()) {
-                for (File candidate : installedJvms.listFiles()) {
-                    javaHome = GFileUtils.canonicalise(candidate);
-                    if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java").isFile()) {
-                        return javaHome;
-                    }
-                }
-            }
-        } else if (OperatingSystem.current().isWindows()) {
-            //very simple algorithm trying to find java on windows
-            List<File> installDirs = new ArrayList<File>();
-            File candidate = new File("c:/Program Files/Java");
-            if (candidate.isDirectory()) {
-                installDirs.add(candidate);
-            }
-            // Attempt to look for 32-bit version under 64-bit OS
-            candidate = new File("c:/Program Files (x86)/Java");
-            if (candidate.isDirectory()) {
-                installDirs.add(candidate);
-            }
-            for (File installDir : installDirs) {
-                for (File file : installDir.listFiles()) {
-                    if (file.getName().startsWith("jdk")) {
-                        javaHome = GFileUtils.canonicalise(file);
-                        if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java.exe").isFile()) {
-                            return javaHome;
-                        }
-                    }
-                }
-            }
         }
 
         return null;

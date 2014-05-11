@@ -18,7 +18,6 @@ package org.gradle.util;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
-
 import org.gradle.api.Nullable;
 
 import java.util.regex.Matcher;
@@ -35,20 +34,30 @@ import java.util.regex.Pattern;
  * {@code version.getBaseVersion().compareTo(VersionNumber.parse("1.2.3")) >= 0}.
  */
 public class VersionNumber implements Comparable<VersionNumber> {
-    public static final VersionNumber UNKNOWN = new VersionNumber(0, 0, 0, null);
+    public static final VersionNumber UNKNOWN = new VersionNumber(0, 0, 0, 0, null);
 
-    private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)(?:\\.(\\d+))?+(?:\\.(\\d+))?+(?:[-\\.](.+))?");
-    private static final String VERSION_TEMPLATE = "%d.%d.%d%s";
+    private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)(?:\\.(\\d+))?+(?:\\.(\\d+))?+(?:[_\\.](\\d+))?+(?:[-\\.](.+))?");
+    private static final String VERSION_TEMPLATE = "%d.%d.%d.%d%s";
 
     private final int major;
     private final int minor;
     private final int micro;
+    private final int patch;
     private final String qualifier;
 
     public VersionNumber(int major, int minor, int micro, @Nullable String qualifier) {
         this.major = major;
         this.minor = minor;
         this.micro = micro;
+        this.patch = 0;
+        this.qualifier = qualifier;
+    }
+
+    public VersionNumber(int major, int minor, int micro, int patch, @Nullable String qualifier) {
+        this.major = major;
+        this.minor = minor;
+        this.micro = micro;
+        this.patch = patch;
         this.qualifier = qualifier;
     }
 
@@ -64,18 +73,23 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return micro;
     }
 
+    public int getPatch() {
+        return patch;
+    }
+
     public String getQualifier() {
         return qualifier;
     }
 
     public VersionNumber getBaseVersion() {
-        return new VersionNumber(major, minor, micro, null);
+        return new VersionNumber(major, minor, micro, patch, null);
     }
 
     public int compareTo(VersionNumber other) {
         if (major != other.major) { return major - other.major; }
         if (minor != other.minor) { return minor - other.minor; }
         if (micro != other.micro) { return micro - other.micro; }
+        if (patch != other.patch) { return patch - other.patch; }
         return Ordering.natural().nullsLast().compare(toLowerCase(qualifier), toLowerCase(other.qualifier));
     }
 
@@ -87,12 +101,17 @@ public class VersionNumber implements Comparable<VersionNumber> {
         int result = major;
         result = 31 * result + minor;
         result = 31 * result + micro;
+        result = 31 * result + patch;
         result = 31 * result + Objects.hashCode(qualifier);
         return result;
     }
 
     public String toString() {
-        return String.format(VERSION_TEMPLATE, major, minor, micro, qualifier == null ? "" : "-" + qualifier);
+        return String.format(VERSION_TEMPLATE, major, minor, micro, patch, qualifier == null ? "" : "-" + qualifier);
+    }
+
+    public static VersionNumber version(int major) {
+        return new VersionNumber(major, 0, 0, 0, null);
     }
 
     public static VersionNumber parse(String versionString) {
@@ -105,9 +124,11 @@ public class VersionNumber implements Comparable<VersionNumber> {
         int minor = minorString == null ? 0 : Integer.valueOf(minorString);
         String microString = m.group(3);
         int micro = microString == null ? 0 : Integer.valueOf(microString);
-        String qualifier = m.group(4);
+        String patchString = m.group(4);
+        int patch = patchString == null ? 0 : Integer.valueOf(patchString);
+        String qualifier = m.group(5);
 
-        return new VersionNumber(major, minor, micro, qualifier);
+        return new VersionNumber(major, minor, micro, patch, qualifier);
     }
 
     private String toLowerCase(@Nullable String string) {
