@@ -34,17 +34,19 @@ class MulticastConnectionTest extends ConcurrentSpec {
         def socket1 = new MulticastSocket(address.getPort());
         addressFactory.findMulticastInterfaces().each { networkInterface ->
             try {
+                println "Joining group ${address.address}:${address.port} on ${networkInterface}"
                 socket1.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
             } catch (SocketException e) {
-                e.printStackTrace()
+                e.printStackTrace(System.out)
             }
         }
         def socket2 = new MulticastSocket(address.getPort());
         addressFactory.findMulticastInterfaces().each { networkInterface ->
             try {
+                println "Joining group ${address.address}:${address.port} on ${networkInterface}"
                 socket2.joinGroup(new InetSocketAddress(address.getAddress(), address.getPort()), networkInterface);
             } catch (SocketException e) {
-                e.printStackTrace()
+                e.printStackTrace(System.out)
             }
         }
 
