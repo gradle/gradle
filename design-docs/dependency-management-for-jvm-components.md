@@ -103,8 +103,6 @@ Combining native and jvm libraries in single project
 #### Open issues
 
 - Come up with a better name for JvmLibraryBinary, or perhaps add a `JarBinary` subtype
-- Remove the need to declare the library type, rather than making it explicit: Possibly based on available types, possibly by naming the container?
-- Consider splitting jvm-runtime & jvm-lang support into separate projects. Similar for native-runtime and native-lang.
 - Consider splitting up `assemble` into various lifecycle tasks. There are several use cases:
     - As a developer, build me a binary I can play with or test in some way.
     - As part of some workflow, build all binaries that should be possible to build in this specific environment. Fail if a certain binary cannot be built.
