@@ -61,7 +61,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         def binaryTask = tasks['myLibJar']
         assert binaryTask.group == 'build'
         assert binaryTask.description == "Assembles jar 'myLib:jar'."
-        assert myLibJar.lifecycleTask == binaryTask
+        assert myLibJar.buildTask == binaryTask
 
         def jarTask = tasks['createMyLibJar']
         assert jarTask instanceof Zip
