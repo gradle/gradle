@@ -18,19 +18,15 @@ package org.gradle.nativebinaries.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.ModelFinalizer;
-import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
@@ -43,7 +39,6 @@ import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
-import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.SoftwareComponentContainer;
 
 import javax.inject.Inject;
@@ -87,8 +82,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         modelRules.rule(new CreateDefaultFlavors());
         modelRules.rule(new AddDefaultToolChainsIfRequired());
         modelRules.rule(new CreateNativeBinaries(instantiator, project, resolver));
-        // TODO:DAZ Push this down to LanguageBasePlugin (but first need to deal with ClassDirectoryBinary)
-        modelRules.rule(new AttachBinariesToLifecycle());
 
         SoftwareComponentContainer components = project.getExtensions().getByType(SoftwareComponentContainer.class);
         components.registerFactory(NativeExecutable.class, new NativeExecutableFactory(instantiator, project));
@@ -115,18 +108,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         void createDefaultToolChain(ToolChainRegistryInternal toolChains) {
             if (toolChains.isEmpty()) {
                 toolChains.addDefaultToolChains();
-            }
-        }
-    }
-
-    private static class AttachBinariesToLifecycle extends ModelRule {
-        @SuppressWarnings("UnusedDeclaration")
-        void attach(TaskContainer tasks, BinaryContainer binaries) {
-            Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
-            for (ProjectNativeBinary nativeBinary : binaries.withType(ProjectNativeBinary.class)) {
-                if (nativeBinary.isBuildable()) {
-                    assembleTask.dependsOn(nativeBinary);
-                }
             }
         }
     }

@@ -16,17 +16,22 @@
 
 package org.gradle.runtime.jvm.internal;
 
+import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.base.internal.AbstractBuildableModelElement;
 import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.runtime.jvm.JvmLibrary;
 
-public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement implements JvmLibraryBinaryInternal {
+public class DefaultJvmLibraryBinary extends AbstractBuildableModelElement implements ProjectBinary, JvmLibraryBinaryInternal {
     private final JvmLibrary library;
     private final BinaryNamingScheme namingScheme;
 
     public DefaultJvmLibraryBinary(JvmLibrary library, BinaryNamingScheme namingScheme) {
         this.library = library;
         this.namingScheme = namingScheme;
+    }
+
+    public boolean isBuildable() {
+        return true;
     }
 
     public String getDisplayName() {

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2013 the original author or authors.
+  ~ Copyright 2014 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,25 +24,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>component</td>
-            </tr>
-            <tr>
-                <td>toolChain</td>
-            </tr>
-            <tr>
-                <td>source</td>
-            </tr>
-            <tr>
-                <td>libs</td>
-            </tr>
-            <tr>
-                <td>linker</td>
-            </tr>
-            <tr>
-                <td>staticLibArchiver</td>
-            </tr>
-            <tr>
-                <td>tasks</td>
+                <td>buildable</td>
             </tr>
         </table>
     </section>
@@ -54,12 +36,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>source</td>
-            </tr>
-            <tr>
-                <td>lib</td>
-            </tr>
         </table>
     </section>
 </section>

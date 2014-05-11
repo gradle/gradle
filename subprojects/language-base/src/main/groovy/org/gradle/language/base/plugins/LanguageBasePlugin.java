@@ -16,14 +16,17 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.internal.DefaultProjectSourceSet;
+import org.gradle.model.ModelRule;
+import org.gradle.model.ModelRules;
 import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.base.internal.BinaryInternal;
 import org.gradle.runtime.base.internal.DefaultBinaryContainer;
 import org.gradle.runtime.base.internal.DefaultSoftwareComponentContainer;
-import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.model.ModelRules;
 
 import javax.inject.Inject;
 
@@ -59,6 +62,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 return binaries;
             }
         });
+        modelRules.rule(new AttachBinariesToLifecycle());
 
         binaries.withType(BinaryInternal.class).all(new Action<BinaryInternal>() {
             public void execute(BinaryInternal binary) {
@@ -68,5 +72,17 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 binary.setBuildTask(binaryLifecycleTask);
             }
         });
+    }
+
+    private static class AttachBinariesToLifecycle extends ModelRule {
+        @SuppressWarnings("UnusedDeclaration")
+        void attach(TaskContainer tasks, BinaryContainer binaries) {
+            Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
+            for (ProjectBinary binary : binaries.withType(ProjectBinary.class)) {
+                if (binary.isBuildable()) {
+                    assembleTask.dependsOn(binary);
+                }
+            }
+        }
     }
 }

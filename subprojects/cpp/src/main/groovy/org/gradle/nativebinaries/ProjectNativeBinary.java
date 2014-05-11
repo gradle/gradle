@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.toolchain.ToolChain;
+import org.gradle.runtime.base.ProjectBinary;
 
 import java.util.Collection;
 
@@ -28,16 +29,11 @@ import java.util.Collection;
  * Represents a particular binary artifact that is the result of building a native component.
  */
 @Incubating @HasInternalProtocol
-public interface ProjectNativeBinary extends NativeBinary {
+public interface ProjectNativeBinary extends ProjectBinary, NativeBinary {
     /**
      * The component that this binary was built from.
      */
     ProjectNativeComponent getComponent();
-
-    /**
-     * Can this binary be built in the current environment?
-     */
-    boolean isBuildable();
 
     /**
      * The source sets used to compile this binary.

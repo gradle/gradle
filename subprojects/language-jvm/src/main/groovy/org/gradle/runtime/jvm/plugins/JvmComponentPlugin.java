@@ -16,17 +16,13 @@
 package org.gradle.runtime.jvm.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
-import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.SoftwareComponentContainer;
 import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.runtime.jvm.JvmLibrary;
 import org.gradle.runtime.jvm.internal.DefaultJvmLibrary;
-import org.gradle.runtime.jvm.internal.JvmLibraryBinaryInternal;
 import org.gradle.runtime.jvm.internal.plugins.CreateJvmBinaries;
 import org.gradle.runtime.jvm.internal.plugins.CreateTasksForJvmBinaries;
 import org.gradle.runtime.jvm.internal.plugins.DefaultJvmComponentExtension;
@@ -64,16 +60,5 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         modelRules.rule(new CreateJvmBinaries(new DefaultBinaryNamingSchemeBuilder()));
         modelRules.rule(new CreateTasksForJvmBinaries());
-        modelRules.rule(new AttachBinariesToLifecycle());
-    }
-
-    // TODO:DAZ Push this down to LanguageBasePlugin (but first need to deal with ClassDirectoryBinary)
-    private static class AttachBinariesToLifecycle extends ModelRule {
-        void attach(TaskContainer tasks, BinaryContainer binaries) {
-            Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
-            for (JvmLibraryBinaryInternal jvmLibraryBinary : binaries.withType(JvmLibraryBinaryInternal.class)) {
-                assembleTask.dependsOn(jvmLibraryBinary);
-            }
-        }
     }
 }
