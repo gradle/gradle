@@ -48,20 +48,6 @@ import java.util.List;
 
 public class AvailableToolChains {
     /**
-     * @return A list of all tool chains installed on the system, with the default tool chain listed first (if installed).
-     */
-    public static List<InstalledToolChain> getAvailableToolChains() {
-        List<ToolChainCandidate> allToolChains = getToolChains();
-        List<InstalledToolChain> installedToolChains = new ArrayList<InstalledToolChain>();
-        for (ToolChainCandidate candidate : allToolChains) {
-            if (candidate.isAvailable()) {
-                installedToolChains.add((InstalledToolChain) candidate);
-            }
-        }
-        return installedToolChains;
-    }
-
-    /**
      * @return The tool chain with the given name.
      */
     public static ToolChainCandidate getToolChain(ToolChainRequirement requirement) {
@@ -87,7 +73,6 @@ public class AvailableToolChains {
             compilers.add(findGcc("4", null));
 
             // Clang must be on the path
-            // TODO:ADAM Also check on windows
             compilers.add(findClang());
         }
         return compilers;

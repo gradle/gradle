@@ -31,11 +31,23 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
     protected void createExecutions() {
         boolean enableAllToolChains = "all".equals(System.getProperty(TOOLCHAINS_SYSPROP_NAME, "default"));
         List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
-        boolean someToolChainAvailable = false;
-        for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-            boolean enabled = enableAllToolChains || (toolChain.isAvailable() && !someToolChainAvailable);
-            someToolChainAvailable |= enabled;
-            add(new ToolChainExecution(toolChain, enabled));
+        if (enableAllToolChains) {
+            for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
+                if (!toolChain.isAvailable()) {
+                    throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
+                }
+                add(new ToolChainExecution(toolChain, true));
+            }
+        } else {
+            boolean hasEnabled = false;
+            for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
+                if (!hasEnabled && toolChain.isAvailable()) {
+                    add(new ToolChainExecution(toolChain, true));
+                    hasEnabled = true;
+                } else {
+                    add(new ToolChainExecution(toolChain, false));
+                }
+            }
         }
     }
 
