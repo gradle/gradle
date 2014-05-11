@@ -26,6 +26,9 @@
             <tr>
                 <td>buildable</td>
             </tr>
+            <tr>
+                <td>source</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -36,6 +39,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>source</td>
+            </tr>
         </table>
     </section>
 </section>

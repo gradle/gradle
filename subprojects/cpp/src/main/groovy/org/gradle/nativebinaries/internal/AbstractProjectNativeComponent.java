@@ -19,6 +19,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.SourceSetNotationParser;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.util.GUtil;
 

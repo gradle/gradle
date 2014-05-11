@@ -17,16 +17,34 @@
 package org.gradle.runtime.jvm.internal;
 
 
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.SourceSetNotationParser;
 import org.gradle.runtime.jvm.JvmLibrary;
 
+import java.util.Set;
+
 public class DefaultJvmLibrary implements JvmLibrary {
+    private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
+    private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final String name;
 
     public DefaultJvmLibrary(String name) {
         this.name = name;
+        this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     }
 
     public String getName() {
         return name;
+    }
+
+    public DomainObjectSet<LanguageSourceSet> getSource() {
+        return sourceSets;
+    }
+
+    public void source(Object sources) {
+        sourceSets.addAll(sourcesNotationParser.parseNotation(sources));
     }
 }

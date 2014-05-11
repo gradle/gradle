@@ -30,9 +30,6 @@
                 <td>toolChain</td>
             </tr>
             <tr>
-                <td>source</td>
-            </tr>
-            <tr>
                 <td>libs</td>
             </tr>
             <tr>
@@ -54,9 +51,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>source</td>
-            </tr>
             <tr>
                 <td>lib</td>
             </tr>

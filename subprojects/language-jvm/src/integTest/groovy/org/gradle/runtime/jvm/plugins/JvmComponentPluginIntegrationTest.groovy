@@ -52,6 +52,9 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         assert myLib == jvm.libraries['myLib']
         assert myLib instanceof JvmLibrary
 
+        assert sources.size() == 1
+        assert sources.myLib instanceof FunctionalSourceSet
+
         assert binaries.size() == 1
         def myLibJar = (binaries as List)[0]
         assert myLibJar instanceof JvmLibraryBinary

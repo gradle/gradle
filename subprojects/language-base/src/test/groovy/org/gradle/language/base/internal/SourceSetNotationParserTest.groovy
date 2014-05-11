@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal
+package org.gradle.language.base.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import spock.lang.Specification
 
 class SourceSetNotationParserTest extends Specification {

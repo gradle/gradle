@@ -16,8 +16,10 @@
 
 package org.gradle.runtime.base;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A logical software component that is built by a Gradle project.
@@ -27,4 +29,21 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface ProjectComponent extends Named {
+    /**
+     * The source sets that are used to build this component.
+     */
+    DomainObjectSet<LanguageSourceSet> getSource();
+
+    /**
+     * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary.
+     * <p/>
+     * This method accepts the following types:
+     *
+     * <ul>
+     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
+     *     <li>A {@link org.gradle.language.base.LanguageSourceSet}</li>
+     *     <li>A Collection of {@link org.gradle.language.base.LanguageSourceSet}s</li>
+     * </ul>
+     */
+    void source(Object source);
 }

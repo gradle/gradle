@@ -16,10 +16,8 @@
 
 package org.gradle.nativebinaries;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 import org.gradle.runtime.base.ProjectBinary;
 
@@ -34,24 +32,6 @@ public interface ProjectNativeBinary extends ProjectBinary, NativeBinary {
      * The component that this binary was built from.
      */
     ProjectNativeComponent getComponent();
-
-    /**
-     * The source sets used to compile this binary.
-     */
-    DomainObjectSet<LanguageSourceSet> getSource();
-
-    /**
-     * Adds one or more {@link org.gradle.language.base.LanguageSourceSet}s that are used to compile this binary.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
-     *     <li>A {@link org.gradle.language.base.LanguageSourceSet}</li>
-     *     <li>A Collection of {@link org.gradle.language.base.LanguageSourceSet}s</li>
-     * </ul>
-     */
-    void source(Object source);
 
     /**
      * The libraries that should be linked into this binary.
