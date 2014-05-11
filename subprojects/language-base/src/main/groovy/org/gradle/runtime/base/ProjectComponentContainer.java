@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,13 @@
 
 package org.gradle.runtime.base;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 
 /**
- * A logical software component.
- *
- * TODO:DAZ Better name/package. Need to decide what a 'component' is.
- * TODO:DAZ Should extend Named?
- * TODO:DAZ Merge with org.gradle.api.component.SoftwareComponent
+ * A container of software components.
+ * TODO:DAZ Merge with org.gradle.api.component.SoftwareComponentContainer
  */
 @Incubating
-public interface SoftwareComponent {
+public interface ProjectComponentContainer extends ExtensiblePolymorphicDomainObjectContainer<ProjectComponent> {
 }

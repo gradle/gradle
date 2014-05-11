@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.runtime.base;
+package org.gradle.runtime.base.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.runtime.base.ProjectComponent;
+import org.gradle.runtime.base.ProjectComponentContainer;
 
-/**
- * A software application.
- */
-@Incubating
-public interface Application {
+public class DefaultProjectComponentContainer extends DefaultPolymorphicDomainObjectContainer<ProjectComponent> implements ProjectComponentContainer {
+
+    public DefaultProjectComponentContainer(Instantiator instantiator) {
+        super(ProjectComponent.class, instantiator);
+    }
 }

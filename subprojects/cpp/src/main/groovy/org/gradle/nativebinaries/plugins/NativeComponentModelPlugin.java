@@ -39,7 +39,7 @@ import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
-import org.gradle.runtime.base.SoftwareComponentContainer;
+import org.gradle.runtime.base.ProjectComponentContainer;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -83,7 +83,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         modelRules.rule(new AddDefaultToolChainsIfRequired());
         modelRules.rule(new CreateNativeBinaries(instantiator, project, resolver));
 
-        SoftwareComponentContainer components = project.getExtensions().getByType(SoftwareComponentContainer.class);
+        ProjectComponentContainer components = project.getExtensions().getByType(ProjectComponentContainer.class);
         components.registerFactory(NativeExecutable.class, new NativeExecutableFactory(instantiator, project));
         NamedDomainObjectContainer<NativeExecutable> nativeExecutables = components.containerWithType(NativeExecutable.class);
 

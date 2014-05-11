@@ -17,7 +17,7 @@ package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Project;
-import org.gradle.runtime.base.SoftwareComponentContainer;
+import org.gradle.runtime.base.ProjectComponentContainer;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeLibrary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
@@ -31,11 +31,11 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
 
     public DomainObjectSet<NativeBinary> getBinaries(NativeLibraryRequirement requirement) {
         Project project = findProject(requirement);
-        SoftwareComponentContainer softwareComponentContainer = project.getExtensions().findByType(SoftwareComponentContainer.class);
-        if (softwareComponentContainer == null) {
+        ProjectComponentContainer projectComponentContainer = project.getExtensions().findByType(ProjectComponentContainer.class);
+        if (projectComponentContainer == null) {
             throw new LibraryResolveException(String.format("Project does not have a libraries container: '%s'", project.getPath()));
         }
-        return softwareComponentContainer.withType(NativeLibrary.class).getByName(requirement.getLibraryName()).getBinaries();
+        return projectComponentContainer.withType(NativeLibrary.class).getByName(requirement.getLibraryName()).getBinaries();
     }
 
     private Project findProject(NativeLibraryRequirement requirement) {

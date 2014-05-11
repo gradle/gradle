@@ -28,7 +28,7 @@ import org.gradle.nativebinaries.tasks.LinkSharedLibrary
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.runtime.base.BinaryContainer
-import org.gradle.runtime.base.SoftwareComponentContainer
+import org.gradle.runtime.base.ProjectComponentContainer
 
 /**
  * A plugin that creates tasks used for constructing native binaries.
@@ -43,7 +43,7 @@ public class NativeComponentPlugin implements Plugin<ProjectInternal> {
 
         // Create a functionalSourceSet for each native component, with the same name
         ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
-        final SoftwareComponentContainer components = project.getExtensions().getByType(SoftwareComponentContainer)
+        final ProjectComponentContainer components = project.getExtensions().getByType(ProjectComponentContainer)
         components.withType(ProjectNativeComponent).all { ProjectNativeComponent component ->
             component.source projectSourceSet.maybeCreate(component.name)
         }

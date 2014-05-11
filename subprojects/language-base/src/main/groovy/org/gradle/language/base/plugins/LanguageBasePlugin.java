@@ -26,14 +26,14 @@ import org.gradle.runtime.base.BinaryContainer;
 import org.gradle.runtime.base.ProjectBinary;
 import org.gradle.runtime.base.internal.BinaryInternal;
 import org.gradle.runtime.base.internal.DefaultBinaryContainer;
-import org.gradle.runtime.base.internal.DefaultSoftwareComponentContainer;
+import org.gradle.runtime.base.internal.DefaultProjectComponentContainer;
 
 import javax.inject.Inject;
 
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.runtime.base.SoftwareComponentContainer} named {@code softwareComponents} to the project.
+ * Adds a {@link org.gradle.runtime.base.ProjectComponentContainer} named {@code softwareComponents} to the project.
  * Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the project.
  * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  *
@@ -53,7 +53,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     public void apply(final Project target) {
         // TODO:DAZ Rename to 'components' and merge with Project.components
-        target.getExtensions().create("softwareComponents", DefaultSoftwareComponentContainer.class, instantiator);
+        target.getExtensions().create("softwareComponents", DefaultProjectComponentContainer.class, instantiator);
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
         final BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
 
