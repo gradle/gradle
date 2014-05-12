@@ -16,8 +16,45 @@
 
 package org.gradle.plugin.resolve.internal;
 
-public interface PluginResolverFactory {
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.plugin.resolve.portal.internal.PluginPortalResolver;
 
-    PluginResolver createPluginResolver(ClassLoader scriptClassLoader);
+import java.util.LinkedList;
+import java.util.List;
+
+public class PluginResolverFactory {
+
+    private final PluginRegistry pluginRegistry;
+    private final DocumentationRegistry documentationRegistry;
+    private final PluginPortalResolver pluginPortalResolver;
+
+    public PluginResolverFactory(
+            PluginRegistry pluginRegistry,
+            DocumentationRegistry documentationRegistry,
+            PluginPortalResolver pluginPortalResolver
+    ) {
+        this.pluginRegistry = pluginRegistry;
+        this.documentationRegistry = documentationRegistry;
+        this.pluginPortalResolver = pluginPortalResolver;
+    }
+
+    public PluginResolver createPluginResolver(ClassLoader scriptClassLoader) {
+        List<PluginResolver> resolvers = new LinkedList<PluginResolver>();
+        addDefaultResolvers(resolvers);
+        CompositePluginResolver compositePluginResolver = new CompositePluginResolver(resolvers);
+
+        PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(scriptClassLoader);
+
+        return new NotInPluginRegistryPluginResolverCheck(compositePluginResolver, pluginRegistry, scriptClasspathPluginDescriptorLocator);
+    }
+
+    private void addDefaultResolvers(List<PluginResolver> resolvers) {
+        resolvers.add(new NoopPluginResolver());
+        resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
+        resolvers.add(pluginPortalResolver);
+    }
 
 }
