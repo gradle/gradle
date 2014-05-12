@@ -65,7 +65,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.plugin.internal.PluginResolverFactory;
+import org.gradle.plugin.use.internal.PluginRequestApplicatorFactory;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
@@ -114,7 +114,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new DefaultClassPathProvider(get(ModuleRegistry.class)),
                 new DependencyClassPathProvider(get(ModuleRegistry.class),
                         get(PluginModuleRegistry.class)),
-                get(WorkerProcessClassPathProvider.class));
+                get(WorkerProcessClassPathProvider.class)
+        );
     }
 
     protected WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
@@ -164,7 +165,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DependencyAutoWireTaskFactory(
                 new AnnotationProcessingTaskFactory(
                         new TaskFactory(
-                                get(ClassGenerator.class))));
+                                get(ClassGenerator.class))
+                )
+        );
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, EmptyScriptGenerator emptyScriptGenerator, FileCacheBackedScriptClassCompiler scriptCompiler) {
@@ -173,9 +176,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new CachingScriptClassCompiler(
                         new ShortCircuitEmptyScriptCompiler(
                                 scriptCompiler,
-                                emptyScriptGenerator)),
+                                emptyScriptGenerator)
+                ),
                 new DefaultScriptRunnerFactory(
-                        scriptExecutionListener));
+                        scriptExecutionListener)
+        );
     }
 
     protected EmptyScriptGenerator createEmptyScriptGenerator() {
@@ -193,7 +198,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 scriptCacheInvalidator,
                 new DefaultScriptCompilationHandler(
                         emptyScriptGenerator),
-                progressLoggerFactory);
+                progressLoggerFactory
+        );
     }
 
     protected ScriptPluginFactory createScriptObjectConfigurerFactory() {
@@ -203,7 +209,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 getFactory(LoggingManagerInternal.class),
                 get(Instantiator.class),
                 get(ScriptHandlerFactory.class),
-                get(PluginResolverFactory.class),
+                get(PluginRequestApplicatorFactory.class),
                 get(FileLookup.class)
         );
     }
@@ -226,8 +232,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                                 get(Instantiator.class),
                                 get(ServiceRegistryFactory.class)
                         ),
-                        get(IGradlePropertiesLoader.class)),
-                get(IGradlePropertiesLoader.class));
+                        get(IGradlePropertiesLoader.class)
+                ),
+                get(IGradlePropertiesLoader.class)
+        );
     }
 
     protected ExceptionAnalyser createExceptionAnalyser() {
@@ -238,16 +246,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultScriptHandlerFactory(
                 get(DependencyManagementServices.class),
                 get(FileResolver.class),
-                new DependencyMetaDataProviderImpl());
-    }
-
-    protected PluginResolverFactory createPluginResolverFactory() {
-        return new PluginResolverFactory(
-                get(PluginRegistry.class),
-                get(DependencyManagementServices.class),
-                get(FileResolver.class),
-                new DependencyMetaDataProviderImpl(),
-                get(DocumentationRegistry.class)
+                get(DependencyMetaDataProvider.class)
         );
     }
 
@@ -291,6 +290,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProjectTaskLister createProjectTaskLister() {
         return new DefaultProjectTaskLister();
+    }
+
+    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
+        return new DependencyMetaDataProviderImpl();
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {

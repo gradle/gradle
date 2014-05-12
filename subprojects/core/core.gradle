@@ -59,6 +59,7 @@ dependencies {
 
     testFixturesCompile project(":internalTesting")
     testFixturesRuntime project(':coreImpl')
+    testFixturesRuntime project(':pluginUse')
 
     integTestCompile project(":internalIntegTesting")
 

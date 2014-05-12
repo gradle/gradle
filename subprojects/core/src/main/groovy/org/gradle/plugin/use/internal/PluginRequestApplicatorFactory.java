@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
+package org.gradle.plugin.use.internal;
 
-public interface DependencyResolutionServices {
-    RepositoryHandler getResolveRepositoryHandler();
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.plugins.PluginAware;
 
-    ConfigurationContainerInternal getConfigurationContainer();
+public interface PluginRequestApplicatorFactory {
 
-    DependencyHandler getDependencyHandler();
+    PluginRequestApplicator createRequestApplicator(PluginAware target, ClassLoader searchClassLoader, ClassLoaderScope exposeToScope);
 
 }

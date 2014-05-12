@@ -39,7 +39,9 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
             return classpath;
         }
         if (name.equals("GRADLE_CORE_IMPL")) {
-            return moduleRegistry.getModule("gradle-core-impl").getClasspath();
+            ClassPath coreImpl = moduleRegistry.getModule("gradle-core-impl").getClasspath();
+            ClassPath pluginUse = moduleRegistry.getModule("gradle-plugin-use").getClasspath();
+            return coreImpl.plus(pluginUse);
         }
 
         return null;

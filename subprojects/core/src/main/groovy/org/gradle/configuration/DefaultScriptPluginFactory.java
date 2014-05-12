@@ -36,13 +36,10 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.plugin.internal.PluginDependenciesService;
-import org.gradle.plugin.internal.PluginRequestApplicator;
-import org.gradle.plugin.internal.PluginResolutionApplicator;
-import org.gradle.plugin.internal.PluginResolverFactory;
 import org.gradle.plugin.resolve.internal.InvalidPluginRequestException;
-import org.gradle.plugin.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.resolve.internal.PluginRequest;
-import org.gradle.plugin.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.gradle.plugin.use.internal.PluginRequestApplicatorFactory;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -51,12 +48,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
+
+    public static final String NOOP_PLUGIN_ID = "noop";
+
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
     private final ScriptHandlerFactory scriptHandlerFactory;
-    private final PluginResolverFactory pluginResolverFactory;
+    private final PluginRequestApplicatorFactory pluginRequestApplicatorFactory;
     private final FileLookup fileLookup;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -64,14 +64,14 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
                                       ScriptHandlerFactory scriptHandlerFactory,
-                                      PluginResolverFactory pluginResolverFactory,
+                                      PluginRequestApplicatorFactory pluginRequestApplicatorFactory,
                                       FileLookup fileLookup) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
         this.scriptHandlerFactory = scriptHandlerFactory;
-        this.pluginResolverFactory = pluginResolverFactory;
+        this.pluginRequestApplicatorFactory = pluginRequestApplicatorFactory;
         this.fileLookup = fileLookup;
     }
 
@@ -148,7 +148,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 });
 
                 // Ignore duplicate noops - noop plugin just used for testing
-                groupedById.remove(NoopPluginResolver.PLUGIN_ID);
+                groupedById.remove(NOOP_PLUGIN_ID);
 
                 // Check for duplicates
                 for (Map.Entry<String, List<PluginRequest>> entry : groupedById.entrySet()) {
@@ -162,11 +162,10 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                     }
                 }
 
-                PluginResolver pluginResolver = pluginResolverFactory.createPluginResolver(exportedClassLoader);
-                @SuppressWarnings("ConstantConditions")
-                PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator((PluginAware) target, classLoaderScope);
-                PluginRequestApplicator requestApplicator = new PluginRequestApplicator(pluginResolver, resolutionApplicator);
-                requestApplicator.applyPlugin(pluginRequests);
+                PluginRequestApplicator requestApplicator = pluginRequestApplicatorFactory.createRequestApplicator((PluginAware) target, exportedClassLoader, classLoaderScope);
+                for (PluginRequest pluginRequest : pluginRequests) {
+                    requestApplicator.applyPlugin(pluginRequest);
+                }
             }
 
             classLoaderScope.lock();
