@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.jvm;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -55,7 +54,7 @@ public class UbuntuJvmLocator {
                 String version = matcher.group(1);
                 String arch = matcher.group(2);
                 boolean jdk = new File(javaHome, "bin/javac").isFile();
-                jvms.add(new JvmInstallation(JavaVersion.toVersion(version), VersionNumber.parse(version), javaHome, jdk, toArch(arch)));
+                jvms.add(new JvmInstallation(JavaVersion.toVersion(version), version, javaHome, jdk, toArch(arch)));
             }
         }
         return jvms;

@@ -21,7 +21,6 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.*;
@@ -55,7 +54,7 @@ public class InstalledJvmLocator {
             }
         }
         if (!installs.containsKey(currentJvm.getJavaHome())) {
-            installs.put(currentJvm.getJavaHome(), new JvmInstallation(currentJvm.getJavaVersion(), VersionNumber.parse(System.getProperty("java.version")), currentJvm.getJavaHome(), false, JvmInstallation.Arch.Unknown));
+            installs.put(currentJvm.getJavaHome(), new JvmInstallation(currentJvm.getJavaVersion(), System.getProperty("java.version"), currentJvm.getJavaHome(), false, JvmInstallation.Arch.Unknown));
         }
 
         List<JvmInstallation> result = new ArrayList<JvmInstallation>(installs.values());

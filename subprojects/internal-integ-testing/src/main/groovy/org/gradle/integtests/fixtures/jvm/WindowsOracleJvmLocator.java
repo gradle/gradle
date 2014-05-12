@@ -20,7 +20,6 @@ import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
-import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -63,7 +62,7 @@ class WindowsOracleJvmLocator {
                 continue;
             }
             String javaHome = windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, sdkSubkey + '\\' + version, "JavaHome");
-            jvms.add(new JvmInstallation(JavaVersion.toVersion(version), VersionNumber.parse(version), new File(javaHome), jdk, arch));
+            jvms.add(new JvmInstallation(JavaVersion.toVersion(version), version, new File(javaHome), jdk, arch));
         }
     }
 }

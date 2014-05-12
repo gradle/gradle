@@ -31,9 +31,9 @@ public class JvmInstallation {
     private final boolean jdk;
     private final Arch arch;
 
-    public JvmInstallation(JavaVersion javaVersion, VersionNumber version, File javaHome, boolean jdk, Arch arch) {
+    public JvmInstallation(JavaVersion javaVersion, String version, File javaHome, boolean jdk, Arch arch) {
         this.javaVersion = javaVersion;
-        this.version = version;
+        this.version = VersionNumber.withPatchNumber().parse(version);
         this.javaHome = GFileUtils.canonicalise(javaHome);
         this.jdk = jdk;
         this.arch = arch;

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.plugins
 
+import org.gradle.util.VersionNumber
 import spock.lang.Specification
 
 class GroovyJarFileTest extends Specification {
@@ -31,7 +32,7 @@ class GroovyJarFileTest extends Specification {
         jar != null
         jar.file == new File("/lib/groovy-2.0.5.jar")
         jar.baseName == "groovy"
-        jar.version.toString() == "2.0.5"
+        jar.version == VersionNumber.parse("2.0.5")
         !jar.groovyAll
         !jar.indy
         jar.dependencyNotation == "org.codehaus.groovy:groovy:2.0.5"
@@ -44,7 +45,7 @@ class GroovyJarFileTest extends Specification {
         jar != null
         jar.file == new File("/lib/groovy-all-2.0.5.jar")
         jar.baseName == "groovy-all"
-        jar.version.toString() == "2.0.5"
+        jar.version == VersionNumber.parse("2.0.5")
         jar.groovyAll
         !jar.indy
         jar.dependencyNotation == "org.codehaus.groovy:groovy-all:2.0.5"
@@ -58,7 +59,7 @@ class GroovyJarFileTest extends Specification {
         jar != null
         jar.file == new File("/lib/groovy-2.0.5-indy.jar")
         jar.baseName == "groovy"
-        jar.version.toString() == "2.0.5"
+        jar.version == VersionNumber.parse("2.0.5")
         !jar.groovyAll
         jar.indy
         jar.dependencyNotation == "org.codehaus.groovy:groovy:2.0.5:indy"

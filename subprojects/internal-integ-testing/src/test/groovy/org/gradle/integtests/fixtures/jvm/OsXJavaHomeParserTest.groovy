@@ -40,31 +40,31 @@ class OsXJavaHomeParserTest extends Specification {
         expect:
         def result = parser.parse(new StringReader(output))
         result.size() == 10
-        result[0].version == VersionNumber.parse("1.8.0")
+        result[0].version == parse("1.8.0")
         result[0].javaVersion == JavaVersion.VERSION_1_8
         result[0].jdk
         result[0].arch == JvmInstallation.Arch.x86_64
         result[0].javaHome == new File("/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home").canonicalFile
 
-        result[1].version == VersionNumber.parse("1.7.0_17")
+        result[1].version == parse("1.7.0_17")
         result[1].javaVersion == JavaVersion.VERSION_1_7
         result[1].javaHome == new File("/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home").canonicalFile
 
-        result[4].version == VersionNumber.parse("1.7.0-ea-b223-ea-b223-ea-b223")
+        result[4].version == parse("1.7.0-ea-b223-ea-b223-ea-b223")
         result[4].javaVersion == JavaVersion.VERSION_1_7
         result[4].javaHome == new File("/Library/Java/JavaVirtualMachines/JDK 1.7.0 Developer Preview.jdk/Contents/Home").canonicalFile
 
-        result[6].version == VersionNumber.parse("1.7.0")
+        result[6].version == parse("1.7.0")
         result[6].javaVersion == JavaVersion.VERSION_1_7
         result[6].javaHome == new File("/Library/Java/JavaVirtualMachines/1.7.0.jdk/Contents/Home").canonicalFile
 
-        result[8].version == VersionNumber.parse("1.6.0_65-b14-462")
+        result[8].version == parse("1.6.0_65-b14-462")
         result[8].javaVersion == JavaVersion.VERSION_1_6
         result[8].jdk
         result[8].arch == JvmInstallation.Arch.x86_64
         result[8].javaHome == new File("/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home").canonicalFile
 
-        result[9].version == VersionNumber.parse("1.6.0_65-b14-462")
+        result[9].version == parse("1.6.0_65-b14-462")
         result[9].javaVersion == JavaVersion.VERSION_1_6
         result[9].jdk
         result[9].arch == JvmInstallation.Arch.i386
@@ -81,16 +81,20 @@ class OsXJavaHomeParserTest extends Specification {
         expect:
         def result = parser.parse(new StringReader(output))
         result.size() == 2
-        result[0].version == VersionNumber.parse("1.6.0_17")
+        result[0].version == parse("1.6.0_17")
         result[0].javaVersion == JavaVersion.VERSION_1_6
         result[0].jdk
         result[0].arch == JvmInstallation.Arch.x86_64
         result[0].javaHome == new File("/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home").canonicalFile
 
-        result[1].version == VersionNumber.parse("1.6.0_17")
+        result[1].version == parse("1.6.0_17")
         result[1].javaVersion == JavaVersion.VERSION_1_6
         result[1].jdk
         result[1].arch == JvmInstallation.Arch.i386
         result[1].javaHome == new File("/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home").canonicalFile
+    }
+
+    def parse(String version) {
+        return VersionNumber.withPatchNumber().parse(version)
     }
 }

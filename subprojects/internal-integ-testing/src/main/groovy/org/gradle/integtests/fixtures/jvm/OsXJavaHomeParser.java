@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.jvm;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.util.VersionNumber;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -44,14 +43,14 @@ class OsXJavaHomeParser {
                 String version = matcher.group(1);
                 String arch = matcher.group(2);
                 String javaHome = matcher.group(3);
-                result.add(new JvmInstallation(JavaVersion.toVersion(version), VersionNumber.parse(version), new File(javaHome), true, toArch(arch)));
+                result.add(new JvmInstallation(JavaVersion.toVersion(version), version, new File(javaHome), true, toArch(arch)));
             } else {
                 matcher = OLD_FORMAT_PATTERN.matcher(line);
                 if (matcher.matches()) {
                     String version = matcher.group(1);
                     String arch = matcher.group(2);
                     String javaHome = matcher.group(3);
-                    result.add(new JvmInstallation(JavaVersion.toVersion(version), VersionNumber.parse(version), new File(javaHome), true, toArch(arch)));
+                    result.add(new JvmInstallation(JavaVersion.toVersion(version), version, new File(javaHome), true, toArch(arch)));
                 }
             }
         }
