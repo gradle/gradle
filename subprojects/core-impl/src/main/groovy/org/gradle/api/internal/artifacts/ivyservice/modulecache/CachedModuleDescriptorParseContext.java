@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.LocallyAvailableExternalResource;
 
 /**
  * Context used for parsing cached module descriptor files.

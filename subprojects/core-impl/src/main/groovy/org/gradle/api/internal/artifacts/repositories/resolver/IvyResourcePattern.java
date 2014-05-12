@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.externalresource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceName;
 
 import java.net.URI;
 import java.util.Map;

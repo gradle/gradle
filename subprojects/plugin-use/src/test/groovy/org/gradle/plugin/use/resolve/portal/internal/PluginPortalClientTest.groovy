@@ -19,8 +19,8 @@ package org.gradle.plugin.use.resolve.portal.internal
 import com.google.gson.Gson
 import org.gradle.api.GradleException
 import org.gradle.api.Transformer
-import org.gradle.api.internal.externalresource.transport.http.HttpResourceAccessor
-import org.gradle.api.internal.externalresource.transport.http.HttpResponseResource
+import org.gradle.internal.resource.transport.http.HttpResourceAccessor
+import org.gradle.internal.resource.transport.http.HttpResponseResource
 import org.gradle.plugin.use.internal.PluginRequest
 import spock.lang.Specification
 

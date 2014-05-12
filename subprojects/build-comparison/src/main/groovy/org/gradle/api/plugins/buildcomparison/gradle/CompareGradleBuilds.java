@@ -18,7 +18,7 @@ package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore;
+import org.gradle.internal.resource.local.PathNormalisingKeyFileStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter;
@@ -36,7 +36,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
-import org.gradle.internal.filestore.FileStore;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.logging.ConsoleRenderer;
 import org.gradle.logging.ProgressLogger;

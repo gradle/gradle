@@ -32,8 +32,8 @@ import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
-import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
-import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
+import org.gradle.internal.resource.cached.CachedArtifactIndex
+import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Unroll

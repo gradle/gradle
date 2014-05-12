@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.internal.resource.ResourceException
 import spock.lang.Specification
 import spock.lang.Unroll

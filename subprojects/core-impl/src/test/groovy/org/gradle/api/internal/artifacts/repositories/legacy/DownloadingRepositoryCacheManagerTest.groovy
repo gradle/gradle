@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactId
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.internal.filestore.FileStore
+import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

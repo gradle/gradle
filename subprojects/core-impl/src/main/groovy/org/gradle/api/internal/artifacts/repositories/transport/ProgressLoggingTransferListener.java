@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.transport;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
-import org.gradle.api.internal.externalresource.transfer.AbstractProgressLoggingHandler;
-import org.gradle.api.internal.externalresource.transfer.ResourceOperation;
+import org.gradle.internal.resource.transfer.AbstractProgressLoggingHandler;
+import org.gradle.internal.resource.transfer.ResourceOperation;
 import org.gradle.logging.ProgressLoggerFactory;
 
 public class ProgressLoggingTransferListener extends AbstractProgressLoggingHandler implements TransferListener {

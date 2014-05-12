@@ -26,7 +26,7 @@ import java.net.URI;
  *
  * <p>Implementations are not required to be thread-safe.</p>
  *
- * <p>This type will be merged with {@link org.gradle.api.internal.externalresource.ExternalResource} and friends.</p>
+ * <p>This type will be merged with {@link ExternalResource} and friends.</p>
  */
 public interface Resource {
     /**

@@ -30,9 +30,9 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersio
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.metadata.*;
-import org.gradle.api.internal.externalresource.cached.CachedArtifact;
-import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
-import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
+import org.gradle.internal.resource.cached.CachedArtifact;
+import org.gradle.internal.resource.cached.CachedArtifactIndex;
+import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;

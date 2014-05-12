@@ -39,7 +39,7 @@ import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMe
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.Factory;
-import org.gradle.internal.filestore.FileStore;
+import org.gradle.internal.resource.local.FileStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

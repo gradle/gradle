@@ -21,10 +21,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveEx
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
-import org.gradle.api.internal.externalresource.transfer.CacheAwareExternalResourceAccessor
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
-import org.gradle.internal.filestore.FileStore
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
+import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.local.FileStore
 import spock.lang.Specification
 
 class ExternalResourceResolverTest extends Specification {

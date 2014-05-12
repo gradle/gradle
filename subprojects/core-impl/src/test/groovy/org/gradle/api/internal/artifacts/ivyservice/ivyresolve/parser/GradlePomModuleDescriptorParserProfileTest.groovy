@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.internal.artifacts.result.metadata.MavenPomArtifact
-import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
+import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId

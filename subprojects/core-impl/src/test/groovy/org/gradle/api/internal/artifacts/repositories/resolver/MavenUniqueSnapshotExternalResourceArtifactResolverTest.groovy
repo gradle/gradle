@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentif
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
+import org.gradle.internal.resource.LocallyAvailableExternalResource
 import spock.lang.Specification
 
 class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specification {
