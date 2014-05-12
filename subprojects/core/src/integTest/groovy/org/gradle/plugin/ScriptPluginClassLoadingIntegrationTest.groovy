@@ -16,7 +16,6 @@
 
 package org.gradle.plugin
 
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -73,6 +72,85 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains "hello from method"
+    }
+
+    def "methods defined in script plugin are not inherited by applied script plugin"() {
+        given:
+        buildScript """
+            apply from: "script1.gradle"
+        """
+
+        file("script1.gradle") << """
+            def someMethod() {}
+            apply from: "script2.gradle"
+        """
+
+        file("script2.gradle") << """
+            someMethod()
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasFileName("Script '${file("script2.gradle").absolutePath}'")
+        failure.assertThatCause(containsText("Could not find method someMethod()"))
+    }
+
+    def "methods defined in settings script are not inherited by scripts"() {
+        given:
+        settingsFile << """
+            def someMethod() {}
+        """
+
+        buildScript """
+            someMethod()
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertThatCause(containsText("Could not find method someMethod()"))
+    }
+
+    def "methods defined in init script are not inherited by scripts"() {
+        given:
+        file("init.gradle") << """
+            def someMethod() {}
+        """
+
+        buildScript """
+            someMethod()
+        """
+
+        when:
+        fails "tasks", "-I", file("init.gradle").absolutePath
+
+        then:
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertThatCause(containsText("Could not find method someMethod()"))
+    }
+
+    def "methods defined in a build script are visible to scripts applied to sub projects"() {
+        given:
+        settingsFile << "include 'sub'"
+
+        buildScript """
+            def someMethod() {
+                println "from some method"
+            }
+        """
+
+        file("sub/build.gradle") << "apply from: 'script.gradle'"
+        file("sub/script.gradle") << "someMethod()"
+
+        when:
+        run "tasks"
+
+        then:
+        output.contains("from some method")
     }
 
     @Issue("http://issues.gradle.org/browse/GRADLE-3082")
