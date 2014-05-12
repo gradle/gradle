@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.portal.internal
+package org.gradle.plugin.use.resolve.portal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.test.fixtures.pluginportal.PluginPortalTestServer
 import org.hamcrest.Matchers
 import org.junit.Rule
 

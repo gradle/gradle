@@ -36,8 +36,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.plugin.resolve.internal.PluginResolverFactory;
-import org.gradle.plugin.resolve.portal.internal.PluginPortalClient;
-import org.gradle.plugin.resolve.portal.internal.PluginPortalResolver;
+import org.gradle.plugin.use.resolve.portal.internal.PluginPortalClient;
+import org.gradle.plugin.use.resolve.portal.internal.PluginPortalResolver;
 
 public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 

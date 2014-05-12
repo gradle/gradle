@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.portal.internal;
+package org.gradle.plugin.use.resolve.portal.internal;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;

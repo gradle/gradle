@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.portal.internal;
+package org.gradle.plugin.use.resolve.portal.internal;
 
 import org.gradle.api.GradleException;
 
@@ -24,6 +24,9 @@ import java.util.Map;
  * Defines the JSON protocol for the plugin portal response to a plugin metadata query.
  */
 class PluginUseMetaData {
+
+    public static final String M2_JAR = "M2_JAR";
+
     String id;
     String version;
     Map<String, String> implementation;
@@ -33,7 +36,7 @@ class PluginUseMetaData {
         if (implementationType == null) {
             throw new GradleException("Invalid plugin metadata: No implementation type specified.");
         }
-        if (!implementationType.equals("M2_JAR")) {
+        if (!implementationType.equals(M2_JAR)) {
             throw new GradleException(String.format("Invalid plugin metadata: Unsupported implementation type: %s.", implementationType));
         }
         if (implementation == null) {
@@ -45,5 +48,41 @@ class PluginUseMetaData {
         if (implementation.get("repo") == null) {
             throw new GradleException("Invalid plugin metadata: No module repository specified.");
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        PluginUseMetaData that = (PluginUseMetaData) o;
+
+        if (!id.equals(that.id)) {
+            return false;
+        }
+        if (!implementation.equals(that.implementation)) {
+            return false;
+        }
+        if (!implementationType.equals(that.implementationType)) {
+            return false;
+        }
+        if (!version.equals(that.version)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + version.hashCode();
+        result = 31 * result + implementation.hashCode();
+        result = 31 * result + implementationType.hashCode();
+        return result;
     }
 }

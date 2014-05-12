@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.portal.internal;
+package org.gradle.plugin.use.resolve.portal.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;

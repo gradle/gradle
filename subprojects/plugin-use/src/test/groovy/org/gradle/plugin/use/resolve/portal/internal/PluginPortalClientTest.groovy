@@ -14,53 +14,56 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.portal.internal
+package org.gradle.plugin.use.resolve.portal.internal
 
+import com.google.gson.Gson
 import org.gradle.api.GradleException
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
+import org.gradle.api.Transformer
+import org.gradle.api.internal.externalresource.transport.http.HttpResourceAccessor
 import org.gradle.api.internal.externalresource.transport.http.HttpResponseResource
 import org.gradle.plugin.resolve.internal.PluginRequest
 import spock.lang.Specification
 
 class PluginPortalClientTest extends Specification {
-    private transportFactory = Mock(RepositoryTransportFactory)
-    private client = new PluginPortalClient(transportFactory)
+    private resourceAccessor = Mock(HttpResourceAccessor)
+    private client = new PluginPortalClient(resourceAccessor)
     private request = Stub(PluginRequest)
 
-    def "plugin metadata query uses correct url scheme"() {
-        when:
-        client.queryPluginMetadata(request, "http://plugin.portal")
-
-        then:
-        1 * transportFactory.createTransport("http", _, _) >> stubTransport(200)
+    def "returns metadata "() {
+        given:
+        def data = new PluginUseMetaData(id: "foo", version: "bar", implementation: [gav: "foo:bar:baz", repo: "http://repo.com"], implementationType: PluginUseMetaData.M2_JAR)
 
         when:
-        client.queryPluginMetadata(request, "https://plugin.portal")
+        stubResponse(200, toString(data))
 
         then:
-        1 * transportFactory.createTransport("https", _, _) >> stubTransport(200)
+        client.queryPluginMetadata(request, "http://plugin.portal") == data
     }
 
     def "plugin metadata query barks if portal returns a status code other than 200"() {
         when:
+        stubResponse(404)
         client.queryPluginMetadata(request, "http://plugin.portal")
 
         then:
-        1 * transportFactory.createTransport(*_) >> stubTransport(404)
         def e = thrown(GradleException)
         e.message == "Plugin portal returned HTTP status code: 404"
     }
 
-    private stubTransport(int statusCode) {
-        Stub(RepositoryTransport) {
-            getRepository() >> Stub(ExternalResourceRepository) {
-                getResource(_) >> Stub(HttpResponseResource) {
-                    getStatusCode() >> statusCode
-                    withContent(_) >> Stub(PluginUseMetaData)
+    private void stubResponse(int statusCode, String json = null) {
+        interaction {
+            resourceAccessor.getResource(_) >> Stub(HttpResponseResource) {
+                getStatusCode() >> statusCode
+                if (json != null) {
+                    withContent(_) >> { Transformer<PluginUseMetaData, InputStream> action ->
+                        action.transform(new ByteArrayInputStream(json.getBytes("utf8")))
+                    }
                 }
             }
         }
+    }
+
+    String toString(PluginUseMetaData pluginUseMetaData) {
+        new Gson().toJson(pluginUseMetaData)
     }
 }

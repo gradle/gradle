@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.pluginportal
+package org.gradle.plugin.use.resolve.portal
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.plugin.resolve.portal.internal.PluginPortalResolver
+import org.gradle.plugin.use.resolve.portal.internal.PluginPortalResolver
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
