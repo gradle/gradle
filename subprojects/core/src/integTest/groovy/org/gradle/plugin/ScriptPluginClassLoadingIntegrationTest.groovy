@@ -16,8 +16,11 @@
 
 package org.gradle.plugin
 
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+
+import static org.gradle.util.Matchers.containsText
 
 class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
 
@@ -91,5 +94,25 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains "hello from script1"
         output.contains "hello from script2"
+    }
+
+    def "separate classloaders are used when using multi apply syntax"() {
+        given:
+        buildScript """
+          apply {
+            from "script1.gradle"
+            from "script2.gradle"
+          }
+        """
+
+        file("script1.gradle") << "class Foo {}"
+        file("script2.gradle") << "new Foo()"
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasFileName("Script '${file("script2.gradle").absolutePath}'")
+        failure.assertThatCause(containsText("unable to resolve class Foo"))
     }
 }
