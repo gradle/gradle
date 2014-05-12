@@ -31,11 +31,12 @@ class DependencyClassPathProviderTest extends Specification {
         def classpath = provider.findClassPath("GRADLE_API")
 
         then:
-        classpath.asFiles.collect{it.name} == ["gradle-core-runtime", "gradle-cli-runtime", "gradle-core-impl-runtime", "gradle-tooling-api-impl", "plugin1-runtime", "plugin2-runtime"]
+        classpath.asFiles.collect{it.name} == ["gradle-core-runtime", "gradle-cli-runtime", "gradle-core-impl-runtime", "gradle-plugin-use-runtime", "gradle-tooling-api-impl", "plugin1-runtime", "plugin2-runtime"]
 
         and:
         1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core", module("gradle-cli"))
         1 * moduleRegistry.getModule("gradle-core-impl") >> module("gradle-core-impl")
+        1 * moduleRegistry.getModule("gradle-plugin-use") >> module("gradle-plugin-use")
         1 * moduleRegistry.getModule("gradle-tooling-api") >> module("gradle-tooling-api")
         1 * pluginModuleRegistry.getPluginModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
     }
