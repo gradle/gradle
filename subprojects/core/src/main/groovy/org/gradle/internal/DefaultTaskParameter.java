@@ -16,7 +16,7 @@
 
 package org.gradle.internal;
 
-import com.google.common.base.Preconditions;
+import com.google.common.base.Objects;
 import org.gradle.TaskParameter;
 
 import java.io.Serializable;
@@ -25,24 +25,55 @@ import java.io.Serializable;
  * Adapter to create TaskParameter for a simple task name.
  */
 public class DefaultTaskParameter implements TaskParameter, Serializable {
-    private final String taskName;
-    private final String projectPath;
+    private String taskName;
+    private String projectPath;
 
-    public DefaultTaskParameter(String taskName) {
-        this(taskName, null);
-    }
-
-    public DefaultTaskParameter(String taskName, String projectPath) {
-        this.taskName = Preconditions.checkNotNull(taskName);
-        this.projectPath = projectPath;
+    public DefaultTaskParameter() {
     }
 
     public String getTaskName() {
         return taskName;
     }
 
+    public DefaultTaskParameter setTaskName(String taskName) {
+        this.taskName = taskName;
+        return this;
+    }
+
     public String getProjectPath() {
         return projectPath;
+    }
+
+    public DefaultTaskParameter setProjectPath(String projectPath) {
+        this.projectPath = projectPath;
+        return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultTaskParameter that = (DefaultTaskParameter) o;
+        if (!Objects.equal(projectPath, that.projectPath)) {
+            return false;
+        }
+        if (!Objects.equal(taskName, that.taskName)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = taskName != null ? taskName.hashCode() : 0;
+        result = 31 * result + (projectPath != null ? projectPath.hashCode() : 0);
+        return result;
     }
 
     @Override

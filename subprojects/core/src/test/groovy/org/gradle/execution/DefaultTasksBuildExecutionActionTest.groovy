@@ -47,6 +47,7 @@ class DefaultTasksBuildExecutionActionTest extends Specification {
     def "sets task names to project defaults when none specified in StartParameter"() {
         given:
         _ * startParameter.taskNames >> []
+        _ * startParameter.taskParameters >> []
         _ * defaultProject.defaultTasks >> ['a', 'b']
 
         when:
@@ -60,6 +61,7 @@ class DefaultTasksBuildExecutionActionTest extends Specification {
     def "uses the help task if no tasks specified in StartParameter or project"() {
         given:
         _ * startParameter.taskNames >> []
+        _ * startParameter.taskParameters >> []
         _ * defaultProject.defaultTasks >> []
 
         when:

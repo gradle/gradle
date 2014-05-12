@@ -54,6 +54,26 @@ class TaskParameterResolvingBuildConfigurationActionSpec extends Specification {
         0 * startParameters._()
     }
 
+    def "skip task name parsing when no selectors with project path are given"() {
+        given:
+        def startParameters = Mock(StartParameter)
+        // selectors with null projectPath
+        TaskParameter taskParameter1 = Mock(TaskParameter)
+        TaskParameter taskParameter2 = Mock(TaskParameter)
+
+        when:
+        _ * context.getGradle() >> gradle
+        _ * gradle.getStartParameter() >> startParameters
+        _ * startParameters.getTaskParameters() >> [taskParameter1, taskParameter2]
+
+        action.configure(context)
+
+        then:
+        1 * context.proceed()
+        0 * context._()
+        0 * startParameters._()
+    }
+
     def "expand task parameters to tasks"() {
         given:
         def startParameters = Mock(StartParameter)
@@ -68,6 +88,8 @@ class TaskParameterResolvingBuildConfigurationActionSpec extends Specification {
         when:
         _ * context.getGradle() >> gradle
         _ * gradle.getStartParameter() >> startParameters
+        _ * taskParameter1.projectPath >> ':'
+        _ * taskParameter2.projectPath >> ':'
         _ * startParameters.getTaskParameters() >> [taskParameter1, taskParameter2]
         _ * selector.getSelection(taskParameter1) >> selection1
         _ * selector.getSelection(taskParameter2) >> selection2

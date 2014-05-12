@@ -34,7 +34,8 @@ public class DefaultTasksBuildExecutionAction implements BuildConfigurationActio
     public void configure(BuildExecutionContext context) {
         StartParameter startParameter = context.getGradle().getStartParameter();
 
-        if (!startParameter.getTaskNames().isEmpty()) {
+        if (!startParameter.getTaskNames().isEmpty()
+                || !startParameter.getTaskParameters().isEmpty()) {
             context.proceed();
             return;
         }

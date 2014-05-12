@@ -16,6 +16,7 @@
 package org.gradle.execution;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
@@ -43,6 +44,17 @@ public class TaskParameterResolvingBuildConfigurationAction implements BuildConf
         StartParameter parameters = gradle.getStartParameter();
         List<TaskParameter> taskParameters = parameters.getTaskParameters();
         if (taskParameters == null || taskParameters.isEmpty()) {
+            context.proceed();
+            return;
+        }
+        boolean hasParametersWithProjectPath = Iterables.any(
+                taskParameters,
+                new Predicate<TaskParameter>() {
+                    public boolean apply(TaskParameter input) {
+                        return input.getProjectPath() != null;
+                    }
+                });
+        if (!hasParametersWithProjectPath) {
             context.proceed();
             return;
         }

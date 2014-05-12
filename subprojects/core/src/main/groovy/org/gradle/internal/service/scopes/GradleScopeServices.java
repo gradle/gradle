@@ -69,8 +69,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         if (get(StartParameter.class).isConfigureOnDemand()) {
             configs.add(new ProjectEvaluatingAction());
         }
-        configs.add(new TaskParameterResolvingBuildConfigurationAction(taskSelector));
         configs.add(new DefaultTasksBuildExecutionAction());
+        configs.add(new TaskParameterResolvingBuildConfigurationAction(taskSelector));
         configs.add(new ExcludedTaskFilteringBuildConfigurationAction());
         configs.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser, taskSelector));
 

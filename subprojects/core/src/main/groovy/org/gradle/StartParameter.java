@@ -16,6 +16,8 @@
 
 package org.gradle;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -26,6 +28,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
 import org.gradle.initialization.DistributionInitScriptFinder;
 import org.gradle.initialization.UserHomeInitScriptFinder;
+import org.gradle.internal.DefaultTaskParameter;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
@@ -51,7 +54,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
     private List<TaskParameter> taskParameters = new ArrayList<TaskParameter>();
-    private List<String> taskNames = new ArrayList<String>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
     private File currentDir;
@@ -121,7 +123,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.settingsFile = settingsFile;
         p.useEmptySettings = useEmptySettings;
         p.taskParameters = new ArrayList<TaskParameter>(taskParameters);
-        p.taskNames = new ArrayList<String>(taskNames);
         p.excludedTaskNames = new LinkedHashSet<String>(excludedTaskNames);
         p.buildProjectDependencies = buildProjectDependencies;
         p.currentDir = currentDir;
@@ -231,11 +232,18 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed.
+     * If {@link org.gradle.TaskParameter}s are set for this build then names from these task parameters are returned.
      *
      * @return the names of the tasks to execute in this build. Never returns null.
      */
     public List<String> getTaskNames() {
-        return taskNames;
+        return Lists.newArrayList(Iterables.transform(
+                taskParameters,
+                new Function<TaskParameter, String>() {
+                    public String apply(TaskParameter input) {
+                        return input.getTaskName();
+                    }
+                }));
     }
 
     /**
@@ -245,7 +253,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param taskNames the names of the tasks to execute in this build.
      */
     public void setTaskNames(Iterable<String> taskNames) {
-        this.taskNames = Lists.newArrayList(taskNames);
+        this.taskParameters = Lists.newArrayList(Iterables.transform(
+                taskNames != null ? taskNames : Collections.<String>emptyList(),
+                    new Function<String, TaskParameter>() {
+                        public TaskParameter apply(String input) {
+                            return new DefaultTaskParameter().setTaskName(input);
+                        }
+                    }));
     }
 
     /**
