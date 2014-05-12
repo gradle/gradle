@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.resolve.internal;
 
+import org.gradle.plugin.use.internal.PluginRequest;
+
 import java.util.List;
 
 public class CompositePluginResolver implements PluginResolver {

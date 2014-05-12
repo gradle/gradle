@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.internal;
+package org.gradle.plugin.use.internal;
 
 import com.google.common.base.CharMatcher;
 

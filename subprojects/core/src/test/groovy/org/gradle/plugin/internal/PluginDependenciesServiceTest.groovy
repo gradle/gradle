@@ -17,8 +17,9 @@
 package org.gradle.plugin.internal
 
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.resolve.internal.DefaultPluginRequest
-import org.gradle.plugin.resolve.internal.PluginRequest
+import org.gradle.plugin.use.internal.DefaultPluginRequest
+import org.gradle.plugin.use.internal.PluginDependenciesService
+import org.gradle.plugin.use.internal.PluginRequest
 import spock.lang.Specification
 
 class PluginDependenciesServiceTest extends Specification {

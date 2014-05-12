@@ -18,20 +18,20 @@ package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.ast.expr.ClosureExpression;
 
-class ScriptBlock {
+public class ScriptBlock {
     private final String name;
     private final ClosureExpression closureExpression;
 
-    ScriptBlock(String name, ClosureExpression closureExpression) {
+    public ScriptBlock(String name, ClosureExpression closureExpression) {
         this.name = name;
         this.closureExpression = closureExpression;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    ClosureExpression getClosureExpression() {
+    public ClosureExpression getClosureExpression() {
         return closureExpression;
     }
 }

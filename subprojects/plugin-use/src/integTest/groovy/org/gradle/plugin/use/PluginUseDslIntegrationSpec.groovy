@@ -22,7 +22,7 @@ import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-import static org.gradle.groovy.scripts.internal.PluginUseScriptBlockTransformer.*
+import static org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer.*
 
 class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 

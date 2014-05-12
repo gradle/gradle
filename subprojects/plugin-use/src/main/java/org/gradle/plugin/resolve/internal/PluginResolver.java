@@ -18,6 +18,8 @@ package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.plugin.use.internal.InvalidPluginRequestException;
+import org.gradle.plugin.use.internal.PluginRequest;
 
 /**
  * A repository of plugins.

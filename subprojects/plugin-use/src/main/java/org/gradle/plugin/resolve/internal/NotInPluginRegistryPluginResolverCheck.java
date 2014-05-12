@@ -20,6 +20,8 @@ import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.plugin.use.internal.InvalidPluginRequestException;
+import org.gradle.plugin.use.internal.PluginRequest;
 
 public class NotInPluginRegistryPluginResolverCheck implements PluginResolver {
 

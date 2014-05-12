@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.internal;
+package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.plugin.PluginDependenciesSpec;
-import org.gradle.plugin.PluginDependencySpec;
-import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
-import org.gradle.plugin.resolve.internal.PluginRequest;
+import org.gradle.plugin.use.PluginDependenciesSpec;
+import org.gradle.plugin.use.PluginDependencySpec;
 
 import java.util.LinkedList;
 import java.util.List;

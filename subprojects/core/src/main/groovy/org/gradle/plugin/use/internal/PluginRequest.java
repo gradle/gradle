@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin;
+package org.gradle.plugin.use.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+import org.gradle.groovy.scripts.ScriptSource;
 
-/**
- * A DSL for declaring dependencies on plugins.
- */
-@Incubating
-public interface PluginDependenciesSpec {
+public interface PluginRequest {
 
-    PluginDependencySpec id(String id);
+    // Value is always a valid id (i.e. only valid chars and not empty)
+    String getId();
+
+    @Nullable
+    String getVersion();
+
+    int getLineNumber();
+
+    ScriptSource getScriptSource();
 
 }

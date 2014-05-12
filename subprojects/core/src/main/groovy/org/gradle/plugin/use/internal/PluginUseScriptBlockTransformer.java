@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.groovy.scripts.internal;
+package org.gradle.plugin.use.internal;
 
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.expr.*;
@@ -22,7 +22,8 @@ import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.plugin.internal.PluginIds;
+import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
+import org.gradle.groovy.scripts.internal.ScriptBlock;
 
 public class PluginUseScriptBlockTransformer {
 

@@ -16,8 +16,7 @@
 
 package org.gradle.plugin.use.internal;
 
-import org.gradle.plugin.resolve.internal.PluginRequest;
-
+// Implementation is provided by 'plugin-use' module
 public interface PluginRequestApplicator {
     void applyPlugin(PluginRequest request);
 }

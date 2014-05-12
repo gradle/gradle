@@ -25,7 +25,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.externalresource.transport.http.HttpResourceAccessor;
 import org.gradle.api.internal.externalresource.transport.http.HttpResponseResource;
-import org.gradle.plugin.resolve.internal.PluginRequest;
+import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

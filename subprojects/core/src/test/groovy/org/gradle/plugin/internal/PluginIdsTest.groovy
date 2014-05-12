@@ -16,10 +16,11 @@
 
 package org.gradle.plugin.internal
 
+import org.gradle.plugin.use.internal.PluginIds
 import spock.lang.Specification
 
-import static org.gradle.plugin.internal.PluginIds.isQualified
-import static org.gradle.plugin.internal.PluginIds.qualifyIfUnqualified
+import static org.gradle.plugin.use.internal.PluginIds.isQualified
+import static org.gradle.plugin.use.internal.PluginIds.qualifyIfUnqualified
 
 class PluginIdsTest extends Specification {
 

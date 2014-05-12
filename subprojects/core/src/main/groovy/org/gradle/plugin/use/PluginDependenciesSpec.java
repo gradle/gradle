@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.internal;
+package org.gradle.plugin.use;
 
-import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 
-public class InvalidPluginRequestException extends GradleException {
-    private final PluginRequest pluginRequest;
+/**
+ * A DSL for declaring dependencies on plugins.
+ */
+@Incubating
+public interface PluginDependenciesSpec {
 
-    public InvalidPluginRequestException(PluginRequest pluginRequest, String message) {
-        super(message);
-        this.pluginRequest = pluginRequest;
-    }
+    PluginDependencySpec id(String id);
 
-    public PluginRequest getPluginRequest() {
-        return pluginRequest;
-    }
 }

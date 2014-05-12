@@ -20,7 +20,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.plugin.internal.PluginIds;
+import org.gradle.plugin.use.internal.PluginIds;
+import org.gradle.plugin.use.internal.InvalidPluginRequestException;
+import org.gradle.plugin.use.internal.PluginRequest;
 
 public class CorePluginResolver implements PluginResolver {
 

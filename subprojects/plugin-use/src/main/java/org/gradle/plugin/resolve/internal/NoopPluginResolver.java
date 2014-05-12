@@ -19,6 +19,8 @@ package org.gradle.plugin.resolve.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.configuration.DefaultScriptPluginFactory;
+import org.gradle.plugin.use.internal.InvalidPluginRequestException;
+import org.gradle.plugin.use.internal.PluginRequest;
 
 // Used for testing the plugins DSL
 public class NoopPluginResolver implements PluginResolver {

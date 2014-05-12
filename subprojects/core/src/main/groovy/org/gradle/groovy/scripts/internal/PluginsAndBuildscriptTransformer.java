@@ -26,7 +26,8 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.DefaultScript;
-import org.gradle.plugin.internal.PluginDependenciesService;
+import org.gradle.plugin.use.internal.PluginDependenciesService;
+import org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer;
 
 public class PluginsAndBuildscriptTransformer implements StatementTransformer {
 

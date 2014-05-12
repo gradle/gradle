@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.internal;
+package org.gradle.plugin.use;
 
-import org.gradle.api.Nullable;
-import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.api.Incubating;
 
-public interface PluginRequest {
+@Incubating
+public interface PluginDependencySpec {
 
-    // Value is always a valid id (i.e. only valid chars and not empty)
-    String getId();
-
-    @Nullable
-    String getVersion();
-
-    int getLineNumber();
-
-    ScriptSource getScriptSource();
+    void version(String version);
 
 }

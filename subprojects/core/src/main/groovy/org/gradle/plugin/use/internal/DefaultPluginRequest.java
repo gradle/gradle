@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.internal;
+package org.gradle.plugin.use.internal;
 
 import org.gradle.groovy.scripts.ScriptSource;
 
