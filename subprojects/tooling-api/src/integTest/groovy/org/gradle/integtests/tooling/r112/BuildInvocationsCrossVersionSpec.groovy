@@ -101,7 +101,6 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:c:t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
     def "build task selectors from connection"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -119,7 +118,6 @@ project(':b:c') {
         result.result.assertTasksExecuted(':t1', ':b:c:t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
     def "build task selectors from connection in specified order"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -142,7 +140,6 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
     def "can request task selectors for project"() {
         given:
         BuildInvocations model = withConnection { connection ->
@@ -225,7 +222,6 @@ project(':b:c') {
         result.result.assertTaskNotExecuted(':b:c:t2')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
     def "build task from connection as Launchable"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -243,7 +239,6 @@ project(':b:c') {
         result.result.assertTasksExecuted(':t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
     def "build tasks Launchables in order"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -287,7 +282,6 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
     def "build tasks and selectors in order cross version"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
@@ -311,7 +305,6 @@ project(':b:c') {
     @TargetGradleVersion("=1.12")
     def "build fails with selectors from different projects"() {
         when:
-        toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
         BuildInvocations rootSelectors = withConnection { connection ->
             connection.action(new FetchTaskSelectorsBuildAction('test')).run()
         }
