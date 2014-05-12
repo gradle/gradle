@@ -117,7 +117,7 @@ public class HttpClientHelper {
             return null;
         }
         if (!wasSuccessful(response)) {
-            LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]", new Object[]{method, response.getStatusLine(), source});
+            LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]", method, response.getStatusLine(), source);
             throw new UncheckedIOException(String.format("Could not %s '%s'. Received status code %s from server: %s",
                     method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
         }
