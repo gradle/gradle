@@ -40,7 +40,7 @@ class DefaultInitScriptProcessorTest extends Specification {
         }
 
         1 * scriptHandlerFactory.create(initScriptMock, compileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(initScriptMock, scriptHandler, compileScope, "initscript", InitScript, true) >> scriptPlugin
+        1 * scriptPluginFactory.create(initScriptMock, scriptHandler, compileScope, "initscript", InitScript, false) >> scriptPlugin
         1 * scriptPlugin.apply(gradleMock)
 
         DefaultInitScriptProcessor processor = new DefaultInitScriptProcessor(scriptPluginFactory, scriptHandlerFactory)
