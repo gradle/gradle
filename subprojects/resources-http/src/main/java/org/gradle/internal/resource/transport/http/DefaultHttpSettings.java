@@ -15,7 +15,8 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
+
+import org.gradle.internal.resource.PasswordCredentials;
 
 public class DefaultHttpSettings implements HttpSettings {
     private final PasswordCredentials passwordCredentials;

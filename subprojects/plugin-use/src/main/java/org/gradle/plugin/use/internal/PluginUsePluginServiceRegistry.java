@@ -23,16 +23,16 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials;
-import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
-import org.gradle.internal.resource.transport.http.HttpClientHelper;
-import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
+import org.gradle.internal.resource.transport.http.HttpClientHelper;
+import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.plugin.resolve.internal.PluginResolverFactory;
@@ -54,7 +54,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
     private static class BuildScopeServices {
         PluginPortalClient createPluginPortalClient() {
-            HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(new DefaultPasswordCredentials()));
+            HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(new PasswordCredentials()));
             HttpResourceAccessor accessor = new HttpResourceAccessor(http);
             return new PluginPortalClient(accessor);
         }

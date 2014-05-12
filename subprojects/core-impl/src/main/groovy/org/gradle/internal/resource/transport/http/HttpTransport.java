@@ -17,6 +17,7 @@ package org.gradle.internal.resource.transport.http;
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAccessor;
@@ -25,7 +26,6 @@ import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceUplo
 import org.gradle.internal.resource.transport.AbstractRepositoryTransport;
 import org.gradle.internal.resource.transport.DefaultExternalResourceRepository;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
@@ -40,7 +40,7 @@ public class HttpTransport extends AbstractRepositoryTransport {
                          BuildCommencedTimeProvider timeProvider,
                          CacheLockingManager cacheLockingManager) {
         super(name);
-        HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
+        HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(convertPasswordCredentials(credentials)));
         HttpResourceAccessor accessor = new HttpResourceAccessor(http);
         HttpResourceUploader uploader = new HttpResourceUploader(http);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory);
@@ -51,6 +51,10 @@ public class HttpTransport extends AbstractRepositoryTransport {
                 new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
                 new HttpResourceLister(accessor),
                 temporaryFileProvider);
+    }
+
+    private org.gradle.internal.resource.PasswordCredentials convertPasswordCredentials(PasswordCredentials credentials) {
+        return new org.gradle.internal.resource.PasswordCredentials(credentials.getUsername(), credentials.getPassword());
     }
 
     public boolean isLocal() {

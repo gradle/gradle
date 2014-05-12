@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resource.transport.http.ntlm;
+package org.gradle.internal.resource.transport.http.ntlm
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification

@@ -31,7 +31,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
 import org.gradle.internal.resource.UriResource;
