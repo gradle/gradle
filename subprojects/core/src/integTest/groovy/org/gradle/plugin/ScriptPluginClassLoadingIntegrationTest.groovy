@@ -17,11 +17,14 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsText
 
 class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
+
+    def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Issue("http://issues.gradle.org/browse/GRADLE-3069")
     def "second level and beyond script plugins have same class loader scope as original target"() {
@@ -192,5 +195,84 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasFileName("Script '${file("script2.gradle").absolutePath}'")
         failure.assertThatCause(containsText("unable to resolve class Foo"))
+    }
+
+    def "script plugin buildscript does not affect client"() {
+        given:
+        def jar = file("plugin.jar")
+        pluginBuilder.addPlugin("project.task('hello')")
+        pluginBuilder.publishTo(executer, jar)
+
+        settingsFile << "include 'sub'"
+
+        buildScript """
+            apply from: "script.gradle"
+
+            try {
+                getClass().classLoader.loadClass(pluginClass.name)
+                assert false
+            } catch (ClassNotFoundException ignore) {
+                println "not in root"
+            }
+
+        """
+
+        file("script.gradle") << """
+          buildscript {
+            dependencies { classpath files("plugin.jar") }
+          }
+
+          apply plugin: org.gradle.test.TestPlugin
+          ext.pluginClass = org.gradle.test.TestPlugin
+        """
+
+        file("sub/build.gradle") << """
+            try {
+                getClass().classLoader.loadClass(pluginClass.name)
+                assert false
+            } catch (ClassNotFoundException ignore) {
+                println "not in sub"
+            }
+        """
+
+        when:
+        succeeds "hello"
+
+        then:
+        output.contains "not in root"
+        output.contains "not in sub"
+    }
+
+    def "script plugin cannot access classed added by buildscript in applying script"() {
+        given:
+        def jar = file("plugin.jar")
+        pluginBuilder.addPlugin("project.task('hello')")
+        pluginBuilder.publishTo(executer, jar)
+
+        buildScript """
+            buildscript {
+                dependencies { classpath files("plugin.jar") }
+            }
+
+            apply plugin: org.gradle.test.TestPlugin
+            ext.pluginClass = org.gradle.test.TestPlugin
+
+            apply from: "script.gradle"
+        """
+
+        file("script.gradle") << """
+            try {
+                getClass().classLoader.loadClass(pluginClass.name)
+                assert false
+            } catch (ClassNotFoundException ignore) {
+                println "not in script"
+            }
+        """
+
+        when:
+        succeeds "hello"
+
+        then:
+        output.contains "not in script"
     }
 }
