@@ -535,6 +535,8 @@ i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
 ## Story: Build author searches for plugins using central Web UI
 
+## Story: New plugin mechanism can be used in external scripts to apply plugins to `Project`
+
 ## Story: Plugins are able to depend on other non core plugins
 
 Plugin dependencies can not be dynamic.
