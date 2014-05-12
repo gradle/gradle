@@ -43,6 +43,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
                 classpath = classpath.plus(module.getClasspath());
             }
             classpath = classpath.plus(moduleRegistry.getModule("gradle-core-impl").getClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-plugin-use").getClasspath());
             try {
                 classpath = classpath.plus(moduleRegistry.getModule("gradle-tooling-api").getImplementationClasspath());
             } catch (UnknownModuleException e) {
