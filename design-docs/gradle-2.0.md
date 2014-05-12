@@ -92,6 +92,7 @@ approximately 2 years old as of the Gradle 2.0 release.
 * Remove the special case logging from `LogbackLoggingConfigurer`.
 * Replace usages of `guava-jdk5`.
 * Clean up usages of `TestPrecondition.JDK5` and related preconditions.
+* Add warning when using Java version > 8 to inform the user that the Java version may not be supported.
 
 ## Archive tasks + base plugin
 
