@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.internal
+package org.gradle.plugin.use.internal
 
-import org.gradle.plugin.use.internal.PluginIds
 import spock.lang.Specification
 
 import static org.gradle.plugin.use.internal.PluginIds.isQualified
