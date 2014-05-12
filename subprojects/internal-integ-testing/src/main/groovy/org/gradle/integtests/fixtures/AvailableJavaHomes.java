@@ -15,46 +15,40 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.GFileUtils;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
 abstract public class AvailableJavaHomes {
-    private static File getJavaHome(String label) {
-        String value = System.getenv().get(String.format("JDK_%s", label));
-        return value == null ? null : GFileUtils.canonicalise(new File(value));
-    }
+
+    private static List<JvmInstallation> jvms;
 
     /**
      * Locates a JVM installation that is different to the current JVM.
      */
     public static File getBestAlternative() {
         Jvm jvm = Jvm.current();
-
-        List<JvmInstallation> jvms = new InstalledJvmLocator().findJvms();
-        for (JvmInstallation candidate : jvms) {
-            if (!candidate.getJavaHome().equals(jvm.getJavaHome())) {
-                return candidate.getJavaHome();
+        for (JvmInstallation candidate : getJvms()) {
+            if (candidate.getJavaHome().equals(jvm.getJavaHome())) {
+                continue;
             }
-        }
-
-        // Use environment variables
-        File javaHome = null;
-        if (jvm.getJavaVersion().isJava6Compatible()) {
-            javaHome = firstAvailable("15", "17");
-        } else if (jvm.getJavaVersion().isJava5Compatible()) {
-            javaHome = firstAvailable("16", "17");
-        }
-        if (javaHome != null) {
-            return javaHome;
+            // Currently tests implicitly assume a JDK
+            if (!candidate.isJdk()) {
+                continue;
+            }
+            return candidate.getJavaHome();
         }
 
         return null;
@@ -78,13 +72,32 @@ abstract public class AvailableJavaHomes {
         return null;
     }
 
-    public static File firstAvailable(String... labels) {
-        for (String label : labels) {
-            File found = getJavaHome(label);
-            if (found != null) {
-                return found;
-            }
+    private static List<JvmInstallation> getJvms() {
+        if (jvms == null) {
+            jvms = new ArrayList<JvmInstallation>();
+            jvms.addAll(new DevInfrastructureJvmLocator().findJvms());
+            jvms.addAll(new InstalledJvmLocator().findJvms());
+            // Order from most recent to least recent
+            Collections.sort(jvms, new Comparator<JvmInstallation>() {
+                public int compare(JvmInstallation o1, JvmInstallation o2) {
+                    return o2.getVersion().compareTo(o1.getVersion());
+                }
+            });
         }
-        return null;
+        return jvms;
+    }
+
+    private static class DevInfrastructureJvmLocator {
+        public List<JvmInstallation> findJvms() {
+            List<JvmInstallation> jvms = new ArrayList<JvmInstallation>();
+            if (OperatingSystem.current().isLinux()) {
+                jvms.add(new JvmInstallation(JavaVersion.VERSION_1_5, "1.5.0", new File("/opt/jdk/sun-jdk-5"), true, JvmInstallation.Arch.i386));
+                jvms.add(new JvmInstallation(JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/sun-jdk-6"), true, JvmInstallation.Arch.x86_64));
+                jvms.add(new JvmInstallation(JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/ibm-jdk-6"), true, JvmInstallation.Arch.x86_64));
+                jvms.add(new JvmInstallation(JavaVersion.VERSION_1_7, "1.7.0", new File("/opt/jdk/oracle-jdk-7"), true, JvmInstallation.Arch.x86_64));
+                jvms.add(new JvmInstallation(JavaVersion.VERSION_1_8, "1.8.0", new File("/opt/jdk/oracle-jdk-8"), true, JvmInstallation.Arch.x86_64));
+            }
+            return jvms;
+        }
     }
 }

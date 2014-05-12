@@ -54,7 +54,9 @@ public class InstalledJvmLocator {
             }
         }
         if (!installs.containsKey(currentJvm.getJavaHome())) {
-            installs.put(currentJvm.getJavaHome(), new JvmInstallation(currentJvm.getJavaVersion(), System.getProperty("java.version"), currentJvm.getJavaHome(), false, JvmInstallation.Arch.Unknown));
+            // TODO - this isn't quite right
+            boolean isJdk = !currentJvm.getJre().getHomeDir().equals(currentJvm.getJavaHome());
+            installs.put(currentJvm.getJavaHome(), new JvmInstallation(currentJvm.getJavaVersion(), System.getProperty("java.version"), currentJvm.getJavaHome(), isJdk, toArch(System.getProperty("os.arch"))));
         }
 
         List<JvmInstallation> result = new ArrayList<JvmInstallation>(installs.values());
@@ -64,5 +66,15 @@ public class InstalledJvmLocator {
             }
         });
         return result;
+    }
+
+    private JvmInstallation.Arch toArch(String arch) {
+        if (arch.equals("amd64") || arch.equals("x86_64")) {
+            return JvmInstallation.Arch.x86_64;
+        }
+        if (arch.equals("i386")) {
+            return JvmInstallation.Arch.i386;
+        }
+        return JvmInstallation.Arch.Unknown;
     }
 }
