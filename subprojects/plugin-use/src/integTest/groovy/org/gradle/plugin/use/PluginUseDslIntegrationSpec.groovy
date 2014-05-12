@@ -62,6 +62,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasLineNumber 3
+        failure.assertHasFileName("Build file '${buildFile}'")
         errorOutput.contains("all buildscript {} blocks must appear before any plugins {} blocks")
     }
 
@@ -77,7 +78,8 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasLineNumber 3
-        errorOutput.contains "only buildscript {} and and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+        failure.assertHasFileName("Build file '${buildFile}'")
+        errorOutput.contains "only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
     }
 
     def "build logic cannot precede any plugins block"() {
@@ -93,7 +95,8 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasLineNumber 4
-        errorOutput.contains "only buildscript {} and and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+        failure.assertHasFileName("Build file '${buildFile}'")
+        errorOutput.contains "only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
     }
 
     def "settings scripts cannot plugin blocks"() {
@@ -146,6 +149,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         then:
         fails "help"
         failure.assertHasLineNumber lineNumber
+        failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(Matchers.containsText(Pattern.quote(msg)))
 
         where:

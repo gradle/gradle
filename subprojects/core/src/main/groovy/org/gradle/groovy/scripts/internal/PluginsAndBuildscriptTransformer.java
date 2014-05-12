@@ -61,7 +61,7 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
                     seenPluginsBlock = true;
                     if (seenNonClasspathStatement) {
                         failMessage = String.format(
-                                "only %s {} and and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",
+                                "only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",
                                 classpathBlockName, PLUGINS, PLUGINS
                         );
                     } else {
