@@ -18,6 +18,7 @@ package org.gradle.plugin.use.resolve.portal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.util.GradleVersion
 import org.hamcrest.Matchers
 import org.junit.Rule
 
@@ -134,7 +135,16 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
     }
 
     def "portal redirects are being followed"() {
-        // TODO
+        portal.expectPluginQuery("myplugin", "1.0") {
+            sendRedirect("/api/gradle/${GradleVersion.current().version}/plugin/use/otherplugin/2.0")
+        }
+        portal.expectPluginQuery("otherplugin", "2.0", "other", "plugin", "2.0")
+        publishTestPlugin("otherplugin", "other", "plugin", "2.0")
+
+        buildScript applyAndVerify("otherplugin", "2.0")
+
+        expect:
+        succeeds("verify")
     }
 
     private void publishTestPlugin(String pluginId, String group, String artifact, String version) {
