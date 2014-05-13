@@ -17,6 +17,7 @@
 dependencies {
     compile project(":core")
     compile project(":coreImpl")
+    compile project(":resourcesHttp")
 
     testFixturesCompile project(":internalIntegTesting")
 }
