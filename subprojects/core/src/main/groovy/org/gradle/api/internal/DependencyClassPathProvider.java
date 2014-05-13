@@ -19,9 +19,10 @@ package org.gradle.api.internal;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
-import org.gradle.api.internal.classpath.UnknownModuleException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+
+import java.util.Arrays;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
@@ -38,16 +39,10 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     public ClassPath findClassPath(String name) {
         if (name.equals(GRADLE_API.name())) {
             ClassPath classpath = new DefaultClassPath();
-            Module core = moduleRegistry.getModule("gradle-core");
-            for (Module module : core.getAllRequiredModules()) {
-                classpath = classpath.plus(module.getClasspath());
-            }
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-core-impl").getClasspath());
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-plugin-use").getClasspath());
-            try {
-                classpath = classpath.plus(moduleRegistry.getModule("gradle-tooling-api").getImplementationClasspath());
-            } catch (UnknownModuleException e) {
-                // Ignore
+            for (String moduleName : Arrays.asList("gradle-core", "gradle-core-impl", "gradle-plugin-use", "gradle-tooling-api")) {
+                for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
+                    classpath = classpath.plus(module.getClasspath());
+                }
             }
             for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
                 classpath = classpath.plus(pluginModule.getClasspath());
