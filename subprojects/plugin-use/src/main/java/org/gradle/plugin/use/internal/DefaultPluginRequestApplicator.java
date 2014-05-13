@@ -39,13 +39,12 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             resolution = pluginResolver.resolve(request);
         } catch (Exception e) {
             throw new LocationAwareException(
-                    new GradleException(String.format("Error resolving plugin '%s:%s'.", request.getId(), request.getVersion()), e),
+                    new GradleException(String.format("Error resolving plugin %s.", request.getDisplayName()), e),
                     request.getScriptSource(), request.getLineNumber());
         }
         if (resolution == null) {
             throw new LocationAwareException(
-                    new UnknownPluginException(String.format("Plugin '%s:%s' not found in %s", request.getId(),
-                            request.getVersion(), pluginResolver.getDescriptionForNotFoundMessage())),
+                    new UnknownPluginException(String.format("Plugin %s not found in %s", request.getDisplayName(), pluginResolver.getDescriptionForNotFoundMessage())),
                     request.getScriptSource(),
                     request.getLineNumber()
             );

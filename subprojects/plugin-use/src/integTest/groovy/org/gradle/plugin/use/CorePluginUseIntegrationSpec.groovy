@@ -58,7 +58,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasDescription("Error resolving plugin 'java:1.0'.")
+        failure.assertHasDescription("Error resolving plugin [id: 'java', version: '1.0'].")
         failure.assertHasCause("Plugin 'java' is a core Gradle plugin, which cannot be specified with a version number")
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(3)
@@ -76,7 +76,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasDescription("Error resolving plugin 'org.gradle.java:1.0'.")
+        failure.assertHasDescription("Error resolving plugin [id: 'org.gradle.java', version: '1.0'].")
         failure.assertHasCause("Plugin 'org.gradle.java' is a core Gradle plugin, which cannot be specified with a version number")
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(3)

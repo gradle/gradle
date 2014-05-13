@@ -31,4 +31,5 @@ public interface PluginRequest {
 
     ScriptSource getScriptSource();
 
+    String getDisplayName();
 }

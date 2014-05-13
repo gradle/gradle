@@ -51,10 +51,14 @@ public class DefaultPluginRequest implements PluginRequest {
     @Override
     public String toString() {
         if (version == null) {
-            return String.format("[plugin: '%s']", id);
+            return String.format("[id: '%s']", id);
         } else {
-            return String.format("[plugin: '%s', version: '%s']", id, version);
+            return String.format("[id: '%s', version: '%s']", id, version);
         }
+    }
+
+    public String getDisplayName() {
+        return toString();
     }
 
     @Override
@@ -84,4 +88,6 @@ public class DefaultPluginRequest implements PluginRequest {
         result = 31 * result + (version != null ? version.hashCode() : 0);
         return result;
     }
+
+
 }

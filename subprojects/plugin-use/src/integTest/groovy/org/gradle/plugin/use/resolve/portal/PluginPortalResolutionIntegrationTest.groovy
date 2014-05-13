@@ -49,7 +49,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("Plugin 'myplugin:1.0' not found in plugin repositories:"))
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'myplugin', version: '1.0'] not found in plugin repositories:"))
     }
 
     def "failed module resolution fails plugin resolution"() {
@@ -73,7 +73,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
+        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
         failure.assertHasCause("Invalid plugin metadata: Unsupported implementation type: SUPER_GREAT.")
     }
 
@@ -86,7 +86,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
+        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
         failure.assertHasCause("Invalid plugin metadata: No module repository specified.")
     }
 
@@ -100,7 +100,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
+        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
         failure.assertHasCause("Failed to parse plugin portal JSON response.")
     }
 
@@ -141,7 +141,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
+        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
         failure.assertHasCause("Plugin cannot be resolved from plugin portal because Gradle is running in offline mode.")
     }
 
