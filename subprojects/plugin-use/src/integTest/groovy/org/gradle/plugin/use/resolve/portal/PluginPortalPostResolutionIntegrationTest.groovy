@@ -18,7 +18,6 @@ package org.gradle.plugin.use.resolve.portal
 
 import groovy.transform.NotYetImplemented
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.specs.AndSpec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -173,7 +172,7 @@ class PluginPortalPostResolutionIntegrationTest extends AbstractIntegrationSpec 
         module.allowAll()
         // why the heck does this fail with: java.lang.ClassCastException: java.util.LinkedHashMap cannot be cast to org.gradle.api.Project
         // pluginBuilder.addPlugin("apply plugin: ${JavaPlugin.name}", pluginId)
-        pluginBuilder.addPlugin("getClass().getClassLoader().loadClass('${JavaPlugin.name}')", pluginId)
+        pluginBuilder.addPlugin("getClass().getClassLoader().loadClass('org.gradle.api.plugins.JavaPlugin')", pluginId)
         pluginBuilder.publishTo(executer, module.artifactFile)
     }
 
