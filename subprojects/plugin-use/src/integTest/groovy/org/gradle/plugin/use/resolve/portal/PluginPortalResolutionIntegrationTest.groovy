@@ -52,6 +52,18 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         failure.assertThatDescription(Matchers.startsWith("Plugin 'myplugin:1.0' not found in plugin repositories:"))
     }
 
+    def "failed module resolution fails plugin resolution"() {
+        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
+
+        buildScript applyAndVerify("myplugin", "1.0")
+
+        expect:
+        fails("verify")
+        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration 'detachedConfiguration1'.")
+        failure.assertHasCause("Could not find my:plugin:1.0.")
+    }
+
     def "portal JSON response with unknown implementation type fails plugin resolution"() {
         portal.expectPluginQuery("myplugin", "1.0", "foo", "foo", "foo") {
             implementationType = "SUPER_GREAT"
