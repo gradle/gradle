@@ -15,28 +15,19 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import com.google.common.collect.Lists;
-import org.gradle.api.GradleException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.gradle.TaskListingLaunchable;
-import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
-import org.gradle.tooling.model.TaskSelector;
 
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
     private final AsyncConsumerActionExecutor connection;
@@ -76,36 +67,8 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     }
 
     public BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables) {
-        Set<String> taskPaths = new LinkedHashSet<String>();
-        List<InternalLaunchable> launchablesParams = Lists.newArrayList();
-        for (Launchable launchable : launchables) {
-            if (launchable instanceof Task) {
-                taskPaths.add(((Task) launchable).getPath());
-            } else if (launchable instanceof TaskListingLaunchable) {
-                taskPaths.addAll(((TaskListingLaunchable) launchable).getTaskNames());
-            } else if (!(launchable instanceof TaskSelector)) {
-                throw new GradleException("Only Task or TaskSelector instances are supported: "
-                        + (launchable != null ? launchable.getClass() : "null"));
-            }
-            maybeAddLaunchableParameter(launchablesParams, launchable);
-        }
-        operationParamsBuilder.setTasks(new ArrayList<String>(taskPaths));
-        operationParamsBuilder.setLaunchables(launchablesParams);
+        operationParamsBuilder.setLaunchables(launchables);
         return this;
-    }
-
-    private void maybeAddLaunchableParameter(List<InternalLaunchable> launchablesParams, Launchable launchable) {
-        Object original = launchable;
-        try {
-            if (Proxy.isProxyClass(launchable.getClass())) {
-                original = new ProtocolToModelAdapter().unpack(launchable);
-            }
-        } catch (IllegalArgumentException iae) {
-            // ignore: launchable created on consumer side for older provider
-        }
-        if (original instanceof InternalLaunchable) {
-            launchablesParams.add((InternalLaunchable) original);
-        }
     }
 
     public void run() {
