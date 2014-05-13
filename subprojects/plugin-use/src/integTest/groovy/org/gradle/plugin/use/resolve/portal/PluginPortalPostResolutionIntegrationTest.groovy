@@ -16,6 +16,10 @@
 
 package org.gradle.plugin.use.resolve.portal
 
+import groovy.transform.NotYetImplemented
+import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.specs.AndSpec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.hamcrest.Matchers
@@ -35,7 +39,7 @@ class PluginPortalPostResolutionIntegrationTest extends AbstractIntegrationSpec 
         portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
         publishPlugin("otherid", "my", "plugin", "1.0")
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyPlugin("myplugin", "1.0")
 
         expect:
         fails("verify")
@@ -48,7 +52,7 @@ class PluginPortalPostResolutionIntegrationTest extends AbstractIntegrationSpec 
         portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
         publishUnloadablePlugin("myplugin", "my", "plugin", "1.0")
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyPlugin("myplugin", "1.0")
 
         expect:
         fails("verify")
@@ -60,12 +64,80 @@ class PluginPortalPostResolutionIntegrationTest extends AbstractIntegrationSpec 
         portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
         publishFailingPlugin("myplugin", "my", "plugin", "1.0")
 
-        buildScript applyAndVerify("myplugin", "1.0")
+        buildScript applyPlugin("myplugin", "1.0")
 
         expect:
         fails("verify")
         failure.assertThatDescription(Matchers.startsWith("A problem occurred configuring root project"))
         failure.assertHasCause("throwing plugin")
+    }
+
+    @NotYetImplemented
+    def "plugin is available via `plugins` container"() {
+        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
+        publishPlugin("myplugin", "my", "plugin", "1.0")
+
+        buildScript """
+            plugins {
+                id "myplugin" version "1.0"
+            }
+
+            task verify << {
+                def foundById = false
+                plugins.withId("myplugin") { foundById = true }
+                assert foundById
+
+                def foundByClass = false
+                plugins.withClass(org.gradle.test.TestPlugin) { foundByClass = true }
+                assert foundByClass
+            }
+        """
+
+        expect:
+        succeeds("verify")
+    }
+
+    @NotYetImplemented
+    def "plugin class isn't visible to build script"() {
+        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
+        publishPlugin("myplugin", "my", "plugin", "1.0")
+
+        buildScript """
+            plugins {
+                id "myplugin" version "1.0"
+            }
+
+            task verify << {
+                try {
+                    getClass().getClassLoader().loadClass("org.gradle.test.TestPlugin")
+                    throw new AssertionError("plugin class *is* visible to build script")
+                } catch (ClassNotFoundException expected) {}
+            }
+        """
+
+        expect:
+        succeeds("verify")
+    }
+
+    def "plugin can access Gradle API classes"() {
+        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
+        publishPluginThatAccessesGradleApiClasses("myplugin", "my", "plugin", "1.0")
+
+        buildScript applyPlugin("myplugin", "1.0")
+
+        expect:
+        succeeds("verify")
+    }
+
+    @NotYetImplemented
+    def "plugin cannot access core Gradle plugin classes"() {
+        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
+        publishPluginThatAccessesCorePluginClasses("myplugin", "my", "plugin", "1.0")
+
+        buildScript applyPlugin("myplugin", "1.0")
+
+        expect:
+        fails("verify")
     }
 
     private void publishPlugin(String pluginId, String group, String artifact, String version) {
@@ -83,19 +155,35 @@ class PluginPortalPostResolutionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private void publishFailingPlugin(String pluginId, String group, String artifact, String version) {
-        def module = portal.m2repo.module(group, artifact, version) // don't know why tests are failing if this module is publish()'ed
+        def module = portal.m2repo.module(group, artifact, version)
         module.allowAll()
         pluginBuilder.addPlugin("throw new Exception('throwing plugin')", pluginId)
         pluginBuilder.publishTo(executer, module.artifactFile)
     }
 
-    private String applyAndVerify(String id, String version) {
+    private void publishPluginThatAccessesGradleApiClasses(String pluginId, String group, String artifact, String version) {
+        def module = portal.m2repo.module(group, artifact, version)
+        module.allowAll()
+        pluginBuilder.addPlugin("assert project instanceof ${Project.name}; new ${AndSpec.name}()", pluginId)
+        pluginBuilder.publishTo(executer, module.artifactFile)
+    }
+
+    private void publishPluginThatAccessesCorePluginClasses(String pluginId, String group, String artifact, String version) {
+        def module = portal.m2repo.module(group, artifact, version)
+        module.allowAll()
+        // why the heck does this fail with: java.lang.ClassCastException: java.util.LinkedHashMap cannot be cast to org.gradle.api.Project
+        // pluginBuilder.addPlugin("apply plugin: ${JavaPlugin.name}", pluginId)
+        pluginBuilder.addPlugin("getClass().getClassLoader().loadClass('${JavaPlugin.name}')", pluginId)
+        pluginBuilder.publishTo(executer, module.artifactFile)
+    }
+
+    private static String applyPlugin(String id, String version) {
         """
             plugins {
                 id "$id" version "$version"
             }
 
-            task verify
+            task verify // no-op, but gives us a task to execute
         """
     }
 }
