@@ -23,7 +23,6 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 
 public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSpec {
-
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Rule
@@ -35,7 +34,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
 
     def "plugin declared in plugins {} block gets resolved and applied"() {
         portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishTestPlugin("myplugin", "my", "plugin", "1.0")
+        publishPlugin("myplugin", "my", "plugin", "1.0")
 
         buildScript applyAndVerify("myplugin", "1.0")
 
@@ -94,7 +93,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
     }
 
     def "extra information in portal JSON response is tolerated (and neglected)"() {
-        publishTestPlugin("myplugin", "my", "plugin", "1.0")
+        publishPlugin("myplugin", "my", "plugin", "1.0")
 
         portal.expectPluginQuery("myplugin", "1.0") {
             contentType = "application/json"
@@ -123,7 +122,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
 
     def "resolution fails if Gradle is in offline mode"() {
         portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishTestPlugin("myplugin", "my", "plugin", "1.0")
+        publishPlugin("myplugin", "my", "plugin", "1.0")
 
         buildScript applyAndVerify("myplugin", "1.0")
         args("--offline")
@@ -134,12 +133,39 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         failure.assertHasCause("Plugin cannot be resolved from plugin portal because Gradle is running in offline mode.")
     }
 
+    def "cannot resolve plugin with snapshot version"() {
+        portal.expectPluginQuery("myplugin", "1.0-SNAPSHOT", "my", "plugin", "1.0")
+        publishPlugin("myplugin", "my", "plugin", "1.0")
+
+        buildScript applyAndVerify("myplugin", "1.0-SNAPSHOT")
+
+        expect:
+        fails("verify")
+        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0-SNAPSHOT'.")
+        failure.assertHasCause("Snapshot plugin versions are not supported.")
+    }
+
+    def "cannot resolve plugin with dynamic version"() {
+        portal.expectPluginQuery("myplugin", pluginVersion, "my", "plugin", "1.0")
+        publishPlugin("myplugin", "my", "plugin", "1.0")
+
+        buildScript applyAndVerify("myplugin", pluginVersion)
+
+        expect:
+        fails("verify")
+        failure.assertHasDescription("Error resolving plugin 'myplugin:$pluginVersion'.")
+        failure.assertHasCause("Dynamic plugin versions are not supported.")
+
+        where:
+        pluginVersion << ["[1.0,2.0)", "1.+", "latest.release"]
+    }
+
     def "portal redirects are being followed"() {
         portal.expectPluginQuery("myplugin", "1.0") {
             sendRedirect("/api/gradle/${GradleVersion.current().version}/plugin/use/otherplugin/2.0")
         }
         portal.expectPluginQuery("otherplugin", "2.0", "other", "plugin", "2.0")
-        publishTestPlugin("otherplugin", "other", "plugin", "2.0")
+        publishPlugin("otherplugin", "other", "plugin", "2.0")
 
         buildScript applyAndVerify("otherplugin", "2.0")
 
@@ -147,7 +173,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         succeeds("verify")
     }
 
-    private void publishTestPlugin(String pluginId, String group, String artifact, String version) {
+    private void publishPlugin(String pluginId, String group, String artifact, String version) {
         def module = portal.m2repo.module(group, artifact, version) // don't know why tests are failing if this module is publish()'ed
         module.allowAll()
         pluginBuilder.addPlugin("project.ext.pluginApplied = true", pluginId)

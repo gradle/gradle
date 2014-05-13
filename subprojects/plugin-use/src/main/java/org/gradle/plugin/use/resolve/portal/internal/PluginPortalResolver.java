@@ -27,6 +27,10 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.SubVersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeMatcher;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -44,6 +48,10 @@ public class PluginPortalResolver implements PluginResolver {
 
     public static final String OVERRIDE_URL_PROPERTY = PluginPortalResolver.class.getName() + ".repo.override";
     private static final String DEFAULT_API_URL = "http://plugins.gradle.org";
+
+    private static final VersionMatcher RANGE_MATCHER = new VersionRangeMatcher(null);
+    private static final VersionMatcher SUB_MATCHER = new SubVersionMatcher(null);
+    private static final VersionMatcher LATEST_MATCHER = new LatestVersionMatcher();
 
     private final PluginPortalClient portalClient;
     private final Instantiator instantiator;
@@ -68,17 +76,34 @@ public class PluginPortalResolver implements PluginResolver {
 
     @Nullable
     public PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException {
-        if (startParameter.isOffline()) {
-            // not yet caching plugin portal responses; let's blow up with a custom message for now
-            throw new GradleException(String.format("Plugin cannot be resolved from plugin portal because Gradle is running in offline mode."));
-        }
+        validatePluginRequest(pluginRequest);
 
         PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, getUrl());
         if (metaData == null) {
             return null;
         }
+
         ClassPath classPath = resolvePluginDependencies(metaData);
         return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), Factories.constant(classPath));
+    }
+
+    // validates request against current limitations
+    // we blow up with a custom message here, relying
+    // on the fact that plugin portal resolver comes last
+    private void validatePluginRequest(PluginRequest pluginRequest) {
+        if (startParameter.isOffline()) {
+            throw new GradleException(String.format("Plugin cannot be resolved from plugin portal because Gradle is running in offline mode."));
+        }
+        if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
+            throw new InvalidPluginRequestException(pluginRequest, "Snapshot plugin versions are not supported.");
+        }
+        if (isDynamicVersion(pluginRequest.getVersion())) {
+            throw new InvalidPluginRequestException(pluginRequest, "Dynamic plugin versions are not supported.");
+        }
+    }
+
+    private boolean isDynamicVersion(String version) {
+        return RANGE_MATCHER.canHandle(version) || SUB_MATCHER.canHandle(version) || LATEST_MATCHER.canHandle(version);
     }
 
     private ClassPath resolvePluginDependencies(final PluginUseMetaData metadata) {
