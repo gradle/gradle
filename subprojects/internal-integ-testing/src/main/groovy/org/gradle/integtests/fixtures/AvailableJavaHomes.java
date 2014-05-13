@@ -16,11 +16,13 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -97,7 +99,11 @@ abstract public class AvailableJavaHomes {
                 jvms.add(new JvmInstallation(JavaVersion.VERSION_1_7, "1.7.0", new File("/opt/jdk/oracle-jdk-7"), true, JvmInstallation.Arch.x86_64));
                 jvms.add(new JvmInstallation(JavaVersion.VERSION_1_8, "1.8.0", new File("/opt/jdk/oracle-jdk-8"), true, JvmInstallation.Arch.x86_64));
             }
-            return jvms;
+            return CollectionUtils.filter(jvms, new Spec<JvmInstallation>() {
+                public boolean isSatisfiedBy(JvmInstallation element) {
+                    return element.getJavaHome().isDirectory();
+                }
+            });
         }
     }
 }
