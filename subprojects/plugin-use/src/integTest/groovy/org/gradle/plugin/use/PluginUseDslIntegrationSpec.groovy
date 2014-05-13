@@ -141,6 +141,21 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         errorOutput.contains "Only Project build scripts can contain plugins {} blocks"
     }
 
+    def "script plugins applied to arbitrary objects cannot have plugin blocks"() {
+        def scriptPlugin = file("plugin.gradle")
+
+        when:
+        scriptPlugin << "plugins {}"
+        buildScript "task foo; apply from: 'plugin.gradle', to: foo"
+
+        then:
+        fails "help"
+
+        failure.assertHasLineNumber 1
+        failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
+        errorOutput.contains "Only Project build scripts can contain plugins {} blocks"
+    }
+
     @Unroll
     def "illegal syntax in plugins block - #code"() {
         when:
