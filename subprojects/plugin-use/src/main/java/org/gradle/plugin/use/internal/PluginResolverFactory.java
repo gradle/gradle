@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.internal;
+package org.gradle.plugin.use.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.plugin.use.resolve.internal.*;
 import org.gradle.plugin.use.resolve.portal.internal.PluginPortalResolver;
 
 import java.util.LinkedList;

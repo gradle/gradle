@@ -17,7 +17,7 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.resolve.internal.NotInPluginRegistryPluginResolverCheck
+import org.gradle.plugin.use.resolve.internal.NotInPluginRegistryPluginResolverCheck
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 /**

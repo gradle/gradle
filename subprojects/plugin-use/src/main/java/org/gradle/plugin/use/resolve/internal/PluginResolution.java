@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.internal;
+package org.gradle.plugin.use.resolve.internal;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 
-public class SimplePluginResolution implements PluginResolution {
+/**
+ * The result of attempting to resolve a plugin to a classpath.
+ */
+@Incubating
+public interface PluginResolution {
 
-    private final Class<? extends Plugin> pluginClass;
-
-    public SimplePluginResolution(Class<? extends Plugin> pluginClass) {
-        this.pluginClass = pluginClass;
-    }
-
-    public Class<? extends Plugin> resolve(ClassLoaderScope classLoaderScope) {
-        return pluginClass;
-    }
+    Class<? extends Plugin> resolve(ClassLoaderScope classLoaderScope);
 
 }

@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.internal;
+package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.Nullable;
+import org.gradle.plugin.use.internal.InvalidPluginRequestException;
+import org.gradle.plugin.use.internal.PluginRequest;
 
 /**
- * The result of attempting to resolve a plugin to a classpath.
+ * A repository of plugins.
  */
 @Incubating
-public interface PluginResolution {
+public interface PluginResolver {
 
-    Class<? extends Plugin> resolve(ClassLoaderScope classLoaderScope);
+    @Nullable
+    PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException;
+
+    String getDescriptionForNotFoundMessage();
 
 }

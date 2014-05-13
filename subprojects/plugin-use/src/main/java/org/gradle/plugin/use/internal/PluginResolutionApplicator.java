@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.plugin.resolve.internal.PluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolution;
 
 public class PluginResolutionApplicator implements Action<PluginResolution> {
 

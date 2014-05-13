@@ -18,8 +18,7 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.plugin.resolve.internal.PluginResolver;
-import org.gradle.plugin.resolve.internal.PluginResolverFactory;
+import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 public class DefaultPluginRequestApplicatorFactory implements PluginRequestApplicatorFactory {
 

@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.resolve.internal.PluginResolution;
-import org.gradle.plugin.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
