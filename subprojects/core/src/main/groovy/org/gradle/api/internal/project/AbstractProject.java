@@ -43,7 +43,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -731,29 +730,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     public boolean delete(Object... paths) {
         return getFileOperations().delete(paths);
-    }
-
-    /**
-     * @deprecated Use the {@link #mkdir(Object)} instead.
-     */
-    @Deprecated
-    public Directory dir(String path) {
-        DeprecationLogger.nagUserOfReplacedMethod("AbstractProject.dir()", "mkdir()");
-        String[] pathElements = path.split("/");
-        String name = "";
-        Directory dirTask = null;
-        for (String pathElement : pathElements) {
-            name += name.length() != 0 ? "/" + pathElement : pathElement;
-            Task task = taskContainer.findByName(name);
-            if (task instanceof Directory) {
-                dirTask = (Directory) task;
-            } else if (task != null) {
-                throw new InvalidUserDataException(String.format("Cannot add directory task '%s' as a non-directory task with this name already exists.", name));
-            } else {
-                dirTask = taskContainer.create(name, Directory.class);
-            }
-        }
-        return dirTask;
     }
 
     public Factory<AntBuilder> getAntBuilderFactory() {

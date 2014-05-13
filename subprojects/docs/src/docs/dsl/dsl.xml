@@ -280,9 +280,6 @@
                 <td>org.gradle.api.tasks.Delete</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.Directory</td>
-            </tr>
-            <tr>
                 <td>org.gradle.plugins.ear.Ear</td>
             </tr>
             <tr>

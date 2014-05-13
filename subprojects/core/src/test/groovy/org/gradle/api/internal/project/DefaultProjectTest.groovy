@@ -38,7 +38,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginContainer
-import org.gradle.api.tasks.Directory
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
@@ -766,59 +765,6 @@ def scriptMethod(Closure closure) {
             will(returnValue(dir))
         }
         assertEquals(dir, child1.buildDir)
-    }
-
-    @Test
-    public void testDir() {
-        Task dirTask1 = TestUtil.createTask(Directory.class)
-        Task dirTask12 = TestUtil.createTask(Directory.class)
-        Task dirTask123 = TestUtil.createTask(Directory.class)
-        context.checking {
-            one(taskContainerMock).findByName('dir1'); will(returnValue(null))
-            one(taskContainerMock).create('dir1', Directory); will(returnValue(dirTask1))
-            one(taskContainerMock).findByName('dir1/dir2'); will(returnValue(null))
-            one(taskContainerMock).create('dir1/dir2', Directory); will(returnValue(dirTask12))
-            one(taskContainerMock).findByName('dir1/dir2/dir3'); will(returnValue(null))
-            one(taskContainerMock).create('dir1/dir2/dir3', Directory); will(returnValue(dirTask123))
-        }
-        assertSame(dirTask123, project.dir('dir1/dir2/dir3'));
-    }
-
-    @Test
-    public void testDirWithExistingParentDirTask() {
-        Task dirTask1 = TestUtil.createTask(Directory.class)
-        context.checking {
-            one(taskContainerMock).findByName('dir1'); will(returnValue(null))
-            one(taskContainerMock).create('dir1', Directory); will(returnValue(dirTask1))
-        }
-        project.dir('dir1')
-
-        Task dirTask14 = TestUtil.createTask(Directory.class)
-        context.checking {
-            one(taskContainerMock).findByName('dir1'); will(returnValue(dirTask1))
-            one(taskContainerMock).findByName('dir1/dir4'); will(returnValue(null))
-            one(taskContainerMock).create('dir1/dir4', Directory); will(returnValue(dirTask14))
-        }
-        assertSame(dirTask14, project.dir('dir1/dir4'))
-    }
-
-    @Test
-    public void testDirWithConflictingNonDirTask() {
-        Task dirTask14 = TestUtil.createTask(DefaultTask.class)
-
-        Task dirTask1 = TestUtil.createTask(Directory.class)
-        context.checking {
-            one(taskContainerMock).findByName('dir1'); will(returnValue(null))
-            one(taskContainerMock).create('dir1', Directory); will(returnValue(dirTask1))
-            one(taskContainerMock).findByName('dir1/dir4'); will(returnValue(dirTask14))
-        }
-
-        try {
-            project.dir('dir1/dir4')
-            fail()
-        } catch (InvalidUserDataException e) {
-            assertThat(e.message, equalTo("Cannot add directory task 'dir1/dir4' as a non-directory task with this name already exists."))
-        }
     }
 
     @Test

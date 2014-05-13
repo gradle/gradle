@@ -346,6 +346,7 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 
 - `GradleLauncher` replaced by the tooling API.
 - `Compile` replaced by `JavaCompile`.
+- `org.gradle.api.tasks.Directory` with no replacement.
 - `CodeQualityPlugin` replaced by the `checkstyle` and `codenarc` plugins.
 - `GroovyCodeQualityPluginConvention` with no replacement.
 - `JavaCodeQualityPluginConvention` with no replacement.
@@ -354,8 +355,11 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 
 ### Removed Deprecated Methods
 
+- `Project.dir()` replaced with `mkdir()`
 - `CompileOptions.getFailOnError()` replaced with `isFailOnError()`
 - `CompileOptions.getDebug()` replaced with `isDebug()`
+- `StartParameter.getMergedSystemProperties()` with no replacement.
+- `Specs.filterIterable()` with no replacement.
 
 ### Removed Deprecated Properties
 
