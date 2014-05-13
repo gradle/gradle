@@ -549,6 +549,7 @@ Plugin dependencies can not be cyclic.
 Story is predicated on plugins.gradle.org providing a searchable interface for plugins.
 
 - Include new DSL in DSL reference.
+- Add link to further documentation in relevant error message (at least the compile time validation of plugin {} syntax)
 - Include types in the public API.
 - Add some material to the user guide discussion about using plugins.
 - Update website to replace references to the 'plugins' wiki page to instead reference `http://plugins.gradle.org`

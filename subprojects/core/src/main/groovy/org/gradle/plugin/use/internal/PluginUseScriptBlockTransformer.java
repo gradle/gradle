@@ -30,9 +30,9 @@ import org.gradle.plugin.internal.PluginId;
 public class PluginUseScriptBlockTransformer {
 
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
-    public static final String BASE_MESSAGE = "only id(String) method calls allowed";
-    public static final String VERSION_MESSAGE = "only version(String) method calls allowed";
-    private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal";
+    public static final String BASE_MESSAGE = "only id(String) method calls allowed in plugins {} script block";
+    public static final String VERSION_MESSAGE = "only version(String) method calls allowed in plugins {} script block";
+    private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal (i.e. not a variable)";
     private static final String NOT_LITERAL_ID_METHOD_NAME = BASE_MESSAGE + " - " + NOT_LITERAL_METHOD_NAME;
 
     private final String servicesFieldName;
