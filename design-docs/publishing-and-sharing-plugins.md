@@ -551,6 +551,7 @@ Story is predicated on plugins.gradle.org providing a searchable interface for p
 - Include new DSL in DSL reference.
 - Add link to further documentation in relevant error message (at least the compile time validation of plugin {} syntax)
 - Include types in the public API.
+- Add links to user guide to `org.gradle.plugin.use` types Javadoc
 - Add some material to the user guide discussion about using plugins.
 - Update website to replace references to the 'plugins' wiki page to instead reference `http://plugins.gradle.org`
 - Update the 'plugins' wiki page to direct build authors and plugin authors to `http://plugins.gradle.org` instead.

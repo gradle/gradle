@@ -17,10 +17,32 @@
 package org.gradle.plugin.use;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
+/**
+ * A mutable specification of a dependency on a plugin.
+ *
+ * @see PluginDependenciesSpec
+ */
 @Incubating
 public interface PluginDependencySpec {
 
-    void version(String version);
+    /**
+     * Specify the version of the plugin to depend on.
+     * <p>
+     * <pre>
+     * plugins {
+     *     id "org.company.myplugin" version "1.0"
+     * }
+     * </pre>
+     * <p>
+     * By default, dependencies have no (i.e. {@code null}) version.
+     * If no version is specified, plugin resolvers may infer the version.
+     * For example, “core” (e.g. {@code org.gradle.java}) plugins are always versioned with the Gradle platform.
+     * As such, they are required not to have a version number.
+     *
+     * @param version the version string ({@code null} for no specified version, which is the default)
+     */
+    void version(@Nullable String version);
 
 }
