@@ -19,8 +19,6 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-import java.util.regex.Pattern
-
 import static org.gradle.plugin.internal.PluginId.*
 import static org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer.*
 import static org.hamcrest.Matchers.containsString

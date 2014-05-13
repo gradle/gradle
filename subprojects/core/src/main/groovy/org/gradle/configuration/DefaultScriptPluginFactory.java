@@ -42,7 +42,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
