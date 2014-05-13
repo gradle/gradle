@@ -580,6 +580,10 @@ Introduce a plugin and implicit task that allows a build author to search for pl
 
 ## Story: New plugin mechanism can be used to apply `Settings` plugin
 
+## Story: All plugins are resolved before any plugin is applied to a target
+
+Before actually applying plugins (potentially expensive), all required plugins should be resolved in the spirit of fail fast.
+
 ## Story: Plugin declares minimum Gradle version requirement
 
 ## Story: User specifies non static plugin version constraint (i.e. dynamic plugin dependencies)
