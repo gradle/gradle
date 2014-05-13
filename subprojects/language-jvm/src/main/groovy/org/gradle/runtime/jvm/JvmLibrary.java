@@ -17,6 +17,7 @@
 package org.gradle.runtime.jvm;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.component.Component;
 import org.gradle.runtime.base.Library;
 import org.gradle.runtime.base.ProjectComponent;
 
@@ -24,5 +25,5 @@ import org.gradle.runtime.base.ProjectComponent;
  * A Library component that runs on the Java Virtual Machine.
  */
 @Incubating
-public interface JvmLibrary extends Library, ProjectComponent {
+public interface JvmLibrary extends Library, ProjectComponent, Component {
 }

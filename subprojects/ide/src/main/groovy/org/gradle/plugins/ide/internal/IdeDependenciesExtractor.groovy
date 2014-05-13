@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.artifacts.result.jvm.JavadocArtifact
-import org.gradle.api.artifacts.result.jvm.JvmLibraryComponent
 import org.gradle.api.artifacts.result.jvm.SourcesArtifact
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver
@@ -34,6 +33,7 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDepende
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency
+import org.gradle.runtime.jvm.JvmLibrary
 
 class IdeDependenciesExtractor {
     private final IdeDependencyResolver ideDependencyResolver = new DefaultIdeDependencyResolver()
@@ -88,10 +88,10 @@ class IdeDependenciesExtractor {
         def query = dependencyHandler.createArtifactResolutionQuery()
         query.forComponents(dependencies.keySet());
         if (downloadSources) {
-            query.withArtifacts(JvmLibraryComponent, SourcesArtifact)
+            query.withArtifacts(JvmLibrary, SourcesArtifact)
         }
         if (downloadJavadoc) {
-            query.withArtifacts(JvmLibraryComponent, JavadocArtifact)
+            query.withArtifacts(JvmLibrary, JavadocArtifact)
         }
 
         def componentResults = query.execute().getResolvedComponents()

@@ -133,7 +133,7 @@ task $taskName << {
 
     def result = dependencies.createArtifactResolutionQuery()
         .forComponents(deps[0].selected.id)
-        .withArtifacts(JvmLibraryComponent, $artifactTypesString)
+        .withArtifacts(JvmLibrary, $artifactTypesString)
         .execute()
 
     assert result.components.size() == 1
@@ -194,7 +194,7 @@ task verify << {
     def unknownComponentId = [getGroup: {'${id.group}'}, getModule: {'${id.module}'}, getVersion: {'${id.version}'}, getDisplayName: {'unknown'}] as ModuleComponentIdentifier
     def result = dependencies.createArtifactResolutionQuery()
         .forComponents(unknownComponentId)
-        .withArtifacts(JvmLibraryComponent, $artifactTypesString)
+        .withArtifacts(JvmLibrary, $artifactTypesString)
         .execute()
 
     assert result.components.size() == 1
