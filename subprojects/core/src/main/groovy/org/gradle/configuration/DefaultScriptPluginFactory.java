@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import com.google.common.collect.ListMultimap;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
@@ -138,23 +139,25 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
             if (!pluginRequests.isEmpty()) {
 
-                Map<PluginId, List<PluginRequest>> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequest>() {
+                ListMultimap<PluginId, PluginRequest> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequest>() {
                     public PluginId transform(PluginRequest pluginRequest) {
                         return pluginRequest.getId();
                     }
                 });
 
-                // Ignore duplicate noops - noop plugin just used for testing
-                groupedById.remove(NOOP_PLUGIN_ID);
-
                 // Check for duplicates
-                for (Map.Entry<PluginId, List<PluginRequest>> entry : groupedById.entrySet()) {
-                    List<PluginRequest> pluginRequestsForId = entry.getValue();
+                for (PluginId key : groupedById.keySet()) {
+                    // Ignore duplicate noops - noop plugin just used for testing
+                   if (key.equals(NOOP_PLUGIN_ID)) {
+                       continue;
+                   }
+
+                    List<PluginRequest> pluginRequestsForId = groupedById.get(key);
                     if (pluginRequestsForId.size() > 1) {
                         PluginRequest first = pluginRequests.get(0);
                         PluginRequest second = pluginRequests.get(1);
 
-                        InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + entry.getKey() + "' was already requested at line " + first.getLineNumber());
+                        InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
                         throw new LocationAwareException(exception, second.getScriptSource(), second.getLineNumber());
                     }
                 }

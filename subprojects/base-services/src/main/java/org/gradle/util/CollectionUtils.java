@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -530,21 +531,15 @@ public abstract class CollectionUtils {
         return target;
     }
 
-    public static <K, V> Map<K, List<V>> groupBy(Iterable<? extends V> iterable, Transformer<? extends K, V> grouper) {
-        Map<K, List<V>> map = new LinkedHashMap<K, List<V>>();
+    public static <K, V> ImmutableListMultimap<K, V> groupBy(Iterable<? extends V> iterable, Transformer<? extends K, V> grouper) {
+        ImmutableListMultimap.Builder<K, V> builder = ImmutableListMultimap.builder();
 
         for (V element : iterable) {
             K key = grouper.transform(element);
-            List<V> entries = map.get(key);
-            if (entries == null) {
-                entries = new LinkedList<V>();
-                map.put(key, entries);
-            }
-
-            entries.add(element);
+            builder.put(key, element);
         }
 
-        return map;
+        return builder.build();
     }
 
 }
