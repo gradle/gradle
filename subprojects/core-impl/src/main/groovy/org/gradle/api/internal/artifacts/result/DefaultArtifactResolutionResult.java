@@ -16,17 +16,9 @@
 package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.result.*;
-import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.JvmLibraryComponent;
-import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
-import org.gradle.api.internal.artifacts.result.jvm.DefaultJavadocArtifact;
-import org.gradle.api.internal.artifacts.result.jvm.DefaultJvmLibraryComponent;
-import org.gradle.api.internal.artifacts.result.jvm.DefaultSourcesArtifact;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.CollectionUtils;
+import org.gradle.api.artifacts.result.ArtifactResolutionResult;
+import org.gradle.api.artifacts.result.ComponentResult;
+import org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult;
 
 import java.util.Set;
 
@@ -42,37 +34,13 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
         return componentResults;
     }
 
-    public <T extends Component> Set<T> getResolvedComponents(Class<T> type) {
-        if (type.isAssignableFrom(JvmLibraryComponent.class)) {
-            return (Set<T>) getJvmLibraries();
-        }
-        throw new IllegalArgumentException("Not a known component type: " + type);
-    }
-
-    // TODO:DAZ This should live with the JVM model classes
-    private Set<JvmLibraryComponent> getJvmLibraries() {
-        Set<JvmLibraryComponent> libraries = Sets.newLinkedHashSet();
+    public Set<ResolvedComponentArtifactsResult> getResolvedComponents() {
+        Set<ResolvedComponentArtifactsResult> resolvedComponentResults = Sets.newLinkedHashSet();
         for (ComponentResult componentResult : componentResults) {
             if (componentResult instanceof ResolvedComponentArtifactsResult) {
-                Set<SourcesArtifact> sourcesArtifacts = transform((ResolvedComponentArtifactsResult) componentResult, SourcesArtifact.class, DefaultSourcesArtifact.class);
-                Set<JavadocArtifact> javadocArtifacts = transform((ResolvedComponentArtifactsResult) componentResult, JavadocArtifact.class, DefaultJavadocArtifact.class);
-                libraries.add(new DefaultJvmLibraryComponent(componentResult.getId(), sourcesArtifacts, javadocArtifacts));
+                resolvedComponentResults.add((ResolvedComponentArtifactsResult) componentResult);
             }
         }
-        return libraries;
-    }
-
-    private <T extends Artifact, U extends T> Set<T> transform(ResolvedComponentArtifactsResult componentResult, Class<T> type, final Class<U> impl) {
-        Set<ArtifactResult> sourceArtifactResults = componentResult.getArtifacts(type);
-        final Instantiator instantiator = new DirectInstantiator();
-        return CollectionUtils.collect(sourceArtifactResults, new Transformer<T, ArtifactResult>() {
-            public T transform(ArtifactResult original) {
-                if (original instanceof ResolvedArtifactResult) {
-                    return instantiator.newInstance(impl, ((ResolvedArtifactResult) original).getFile());
-                } else {
-                    return instantiator.newInstance(impl, ((UnresolvedArtifactResult) original).getFailure());
-                }
-            }
-        });
+        return resolvedComponentResults;
     }
 }

@@ -27,6 +27,7 @@ import java.util.Set;
  * Represents a component instance in the resolved dependency graph. Provides some basic identity and dependency information about the component.
  */
 @Incubating
+// TODO:DAZ Rename to ComponentGraphResult
 public interface ResolvedComponentResult {
 
     /**

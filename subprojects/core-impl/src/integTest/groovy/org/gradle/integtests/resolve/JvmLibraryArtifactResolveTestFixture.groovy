@@ -145,15 +145,6 @@ task $taskName << {
 
     ${checkComponentResultArtifacts("componentResult", "sources", expectedSources, expectedSourceFailure)}
     ${checkComponentResultArtifacts("componentResult", "javadoc", expectedJavadoc, expectedJavadocFailure)}
-
-    // Check JvmLibraryComponent component type
-    def jvmLibraries = result.getResolvedComponents(JvmLibraryComponent)
-    assert jvmLibraries.size() == 1
-    def jvmLibrary = jvmLibraries.iterator().next()
-    assert componentResult.id == jvmLibrary.id
-
-    ${checkJvmLibraryArtifacts("jvmLibrary", "sources", expectedSources, expectedSourceFailure)}
-    ${checkJvmLibraryArtifacts("jvmLibrary", "javadoc", expectedJavadoc, expectedJavadocFailure)}
 }
 """
     }
@@ -163,6 +154,10 @@ task $taskName << {
     def ${type}ArtifactResultFiles = []
     ${componentResult}.getArtifacts(${type.capitalize()}Artifact).each { artifactResult ->
         if (artifactResult instanceof ResolvedArtifactResult) {
+            copy {
+                from artifactResult.file
+                into "${type}"
+            }
             ${type}ArtifactResultFiles << artifactResult.file.name
         } else {
             ${checkException("artifactResult.failure", expectedFailure)}
@@ -172,24 +167,6 @@ task $taskName << {
 """
     }
 
-    private static String checkJvmLibraryArtifacts(String jvmLibrary, String type, def expectedFiles, def expectedFailure) {
-        """
-    def ${type}ArtifactFiles = []
-    ${jvmLibrary}.${type}Artifacts.each { artifact ->
-        assert artifact instanceof ${type.capitalize()}Artifact
-        if (artifact.failure != null) {
-            ${checkException("artifact.failure", expectedFailure)}
-        } else {
-            copy {
-                from artifact.file
-                into "${type}"
-            }
-            ${type}ArtifactFiles << artifact.file.name
-        }
-    }
-    assert ${type}ArtifactFiles as Set == ${toQuotedList(expectedFiles)} as Set
-"""
-    }
 
     private static String checkException(String reference, Throwable expected) {
         if (expected == null) {
