@@ -196,6 +196,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "id '.foo'"                         | ID_SEPARATOR_ON_START_OR_END
         2          | "id 'foo.'"                         | ID_SEPARATOR_ON_START_OR_END
         2          | "id '.'"                            | ID_SEPARATOR_ON_START_OR_END
+        2          | "id 'foo..bar'"                     | DOUBLE_SEPARATOR
     }
 
     @Unroll

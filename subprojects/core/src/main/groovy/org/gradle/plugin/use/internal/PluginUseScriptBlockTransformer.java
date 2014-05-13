@@ -33,6 +33,7 @@ public class PluginUseScriptBlockTransformer {
     private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal";
     private static final String NOT_LITERAL_ID_METHOD_NAME = BASE_MESSAGE + " - " + NOT_LITERAL_METHOD_NAME;
     public static final String ID_SEPARATOR_ON_START_OR_END = "plugin id cannot begin or end with '" + PluginIds.SEPARATOR + "'";
+    public static final String DOUBLE_SEPARATOR = "plugin id cannot contain '" + PluginIds.SEPARATOR + PluginIds.SEPARATOR + "'";
 
     private final String servicesFieldName;
     private final Class<?> serviceClass;
@@ -100,7 +101,9 @@ public class PluginUseScriptBlockTransformer {
                                 if (call.isImplicitThis()) {
                                     if (argStringValue.startsWith(PluginIds.SEPARATOR) || argStringValue.endsWith(PluginIds.SEPARATOR)) {
                                         restrict(argumentExpression, ID_SEPARATOR_ON_START_OR_END);
-                                    } else {
+                                    } else if (argStringValue.contains(PluginIds.SEPARATOR + PluginIds.SEPARATOR)) {
+                                        restrict(argumentExpression, DOUBLE_SEPARATOR);
+                                    } else  {
                                         int invalidCharIndex = PluginIds.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(argStringValue);
                                         if (invalidCharIndex < 0) {
                                             call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"), "createSpec", new ConstantExpression(call.getLineNumber(), true)));
