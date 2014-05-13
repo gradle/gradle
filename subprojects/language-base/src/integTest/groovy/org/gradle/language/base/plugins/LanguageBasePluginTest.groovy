@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins
+package org.gradle.language.base.plugins
+
 import org.gradle.api.Project
-import org.gradle.runtime.base.BinaryContainer
 import org.gradle.language.base.ProjectSourceSet
+import org.gradle.runtime.base.BinaryContainer
 import org.gradle.runtime.base.internal.BinaryInternal
 import org.gradle.runtime.base.internal.BinaryNamingScheme
-import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
