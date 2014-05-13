@@ -16,6 +16,7 @@
 
 package org.gradle.runtime.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.runtime.base.Binary;
 
 /**
@@ -24,5 +25,6 @@ import org.gradle.runtime.base.Binary;
  * TODO:DAZ Is this a JvmJarFile? JvmLibraryJar? JvmLibraryBinary?
  * How is this different from a ClassDirectoryBinary: 2 different packagings (linkages?) of the same target variant.
  */
+@Incubating
 public interface JvmLibraryBinary extends Binary {
 }
