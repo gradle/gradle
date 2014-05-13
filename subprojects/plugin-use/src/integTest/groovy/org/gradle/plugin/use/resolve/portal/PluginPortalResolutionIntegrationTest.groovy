@@ -59,7 +59,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0'.")
+        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
         failure.assertHasCause("Could not resolve all dependencies for configuration 'detachedConfiguration1'.")
         failure.assertHasCause("Could not find my:plugin:1.0.")
     }
@@ -153,7 +153,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin 'myplugin:1.0-SNAPSHOT'.")
+        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0-SNAPSHOT'].")
         failure.assertHasCause("Snapshot plugin versions are not supported.")
     }
 
@@ -165,7 +165,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin 'myplugin:$pluginVersion'.")
+        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '$pluginVersion'].")
         failure.assertHasCause("Dynamic plugin versions are not supported.")
 
         where:
