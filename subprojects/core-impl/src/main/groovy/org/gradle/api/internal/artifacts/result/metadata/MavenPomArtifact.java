@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result.metadata;
 
-import org.gradle.api.artifacts.result.Artifact;
+import org.gradle.api.component.Artifact;
 
 public interface MavenPomArtifact extends Artifact {
 }

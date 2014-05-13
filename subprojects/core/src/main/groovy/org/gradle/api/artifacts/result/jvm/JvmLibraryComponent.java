@@ -16,7 +16,7 @@
 package org.gradle.api.artifacts.result.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.result.Component;
+import org.gradle.api.component.Component;
 
 import java.util.Set;
 
@@ -27,6 +27,4 @@ import java.util.Set;
  */
 @Incubating
 public interface JvmLibraryComponent extends Component {
-    Set<SourcesArtifact> getSourcesArtifacts();
-    Set<JavadocArtifact> getJavadocArtifacts();
 }

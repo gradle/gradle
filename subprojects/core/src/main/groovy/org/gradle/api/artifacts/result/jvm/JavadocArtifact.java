@@ -16,7 +16,7 @@
 package org.gradle.api.artifacts.result.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.result.Artifact;
+import org.gradle.api.component.Artifact;
 
 /**
  * An artifact containing Javadoc documentation.

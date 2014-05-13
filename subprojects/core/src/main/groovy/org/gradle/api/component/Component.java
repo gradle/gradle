@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.result.jvm;
+package org.gradle.api.component;
 
-import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
+import org.gradle.api.Incubating;
 
-import java.io.File;
-
-public class DefaultJavadocArtifact extends AbstractArtifact implements JavadocArtifact {
-    public DefaultJavadocArtifact(File file) {
-        super(file);
-    }
-
-    public DefaultJavadocArtifact(Throwable failure) {
-        super(failure);
-    }
+/**
+ * A software component with resolved artifacts.
+ *
+ * @since 2.0
+ */
+@Incubating
+public interface Component {
 }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.result.Artifact;
+import org.gradle.api.component.Artifact;
 
 public class DefaultArtifactType implements ArtifactType {
     private final Class<? extends Artifact> artifactType;

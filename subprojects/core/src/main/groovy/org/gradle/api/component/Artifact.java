@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.result.jvm;
+package org.gradle.api.component;
 
-import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
+import org.gradle.api.Incubating;
 
-import java.io.File;
-
-public class DefaultSourcesArtifact extends AbstractArtifact implements SourcesArtifact {
-    public DefaultSourcesArtifact(File file) {
-        super(file);
-    }
-
-    public DefaultSourcesArtifact(Throwable failure) {
-        super(failure);
-    }
+/**
+ * An artifact of a software component.
+ *
+ * @since 2.0
+ */
+@Incubating
+public interface Artifact {
 }

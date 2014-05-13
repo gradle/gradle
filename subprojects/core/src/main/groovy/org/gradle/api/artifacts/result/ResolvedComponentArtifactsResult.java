@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.component.Artifact;
 
 import java.util.Set;
 
