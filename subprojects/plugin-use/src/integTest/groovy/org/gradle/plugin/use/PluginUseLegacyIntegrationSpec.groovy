@@ -17,8 +17,9 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.use.resolve.internal.NotInPluginRegistryPluginResolverCheck
 import org.gradle.test.fixtures.plugin.PluginBuilder
+
+import static org.gradle.plugin.use.resolve.internal.NotInPluginRegistryPluginResolverCheck.pluginOnClasspathErrorMessage
 
 /**
  * Tests various interactions between the “new” plugin system and the “legacy”.
@@ -86,7 +87,7 @@ class PluginUseLegacyIntegrationSpec extends AbstractIntegrationSpec {
         fails "sub:tasks"
 
         and:
-        errorOutput.contains NotInPluginRegistryPluginResolverCheck.pluginOnClasspathErrorMessage('plugin')
+        failure.assertHasCause(pluginOnClasspathErrorMessage('plugin'))
     }
 
     def "cannot apply buildSrc plugins in plugins block"() {
@@ -102,7 +103,7 @@ class PluginUseLegacyIntegrationSpec extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        errorOutput.contains NotInPluginRegistryPluginResolverCheck.pluginOnClasspathErrorMessage('plugin')
+        failure.assertHasCause(pluginOnClasspathErrorMessage('plugin'))
     }
 
 
