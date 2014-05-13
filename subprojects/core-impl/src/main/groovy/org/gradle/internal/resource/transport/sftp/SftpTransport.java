@@ -16,8 +16,8 @@
 
 package org.gradle.internal.resource.transport.sftp;
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAccessor;

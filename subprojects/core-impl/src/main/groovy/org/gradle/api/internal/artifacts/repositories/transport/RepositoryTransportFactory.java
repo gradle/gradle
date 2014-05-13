@@ -54,7 +54,7 @@ public class RepositoryTransportFactory {
     }
 
     private RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return new HttpTransport(name, credentials, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager);
+        return new HttpTransport(name, convertPasswordCredentials(credentials), progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager);
     }
 
     private RepositoryTransport createFileTransport(String name) {
@@ -62,13 +62,17 @@ public class RepositoryTransportFactory {
     }
 
     private RepositoryTransport createSftpTransport(String name, PasswordCredentials credentials) {
-        return new SftpTransport(name, credentials, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, sftpClientFactory, cacheLockingManager);
+        return new SftpTransport(name, convertPasswordCredentials(credentials), progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, sftpClientFactory, cacheLockingManager);
     }
 
     public RepositoryTransport createTransport(String scheme, String name, PasswordCredentials credentials) {
         Set<String> schemes = new HashSet<String>();
         schemes.add(scheme);
         return createTransport(schemes, name, credentials);
+    }
+
+    private org.gradle.internal.resource.PasswordCredentials convertPasswordCredentials(PasswordCredentials credentials) {
+        return new org.gradle.internal.resource.PasswordCredentials(credentials.getUsername(), credentials.getPassword());
     }
 
     public RepositoryTransport createTransport(Set<String> schemes, String name, PasswordCredentials credentials) {

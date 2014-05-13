@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.transport.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 
 import java.io.IOException;

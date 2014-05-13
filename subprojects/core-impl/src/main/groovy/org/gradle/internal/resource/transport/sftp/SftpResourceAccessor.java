@@ -18,12 +18,12 @@ package org.gradle.internal.resource.transport.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.hash.HashValue;
 
 import java.io.IOException;
 import java.net.URI;

@@ -18,15 +18,13 @@ package org.gradle.internal.resource.transport.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.internal.resource.transfer.ExternalResourceUploader;
-import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 public class SftpResourceUploader implements ExternalResourceUploader {
 
@@ -36,16 +34,6 @@ public class SftpResourceUploader implements ExternalResourceUploader {
     public SftpResourceUploader(SftpClientFactory sftpClientFactory, PasswordCredentials credentials) {
         this.sftpClientFactory = sftpClientFactory;
         this.credentials = credentials;
-    }
-
-    private URI toUri(String location) {
-        URI uri;
-        try {
-            uri = new URI(location);
-        } catch (URISyntaxException e) {
-            throw new ResourceException(String.format("Unable to create URI from string '%s' ", location), e);
-        }
-        return uri;
     }
 
     public void upload(Factory<InputStream> sourceFactory, Long contentLength, URI destination) throws IOException {

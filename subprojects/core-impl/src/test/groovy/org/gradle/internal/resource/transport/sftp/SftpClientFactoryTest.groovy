@@ -16,8 +16,7 @@
 
 package org.gradle.internal.resource.transport.sftp
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
+import org.gradle.internal.resource.PasswordCredentials
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import static org.gradle.internal.resource.transport.sftp.SftpClientFactory.SftpClientCreator
@@ -35,7 +34,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
 
         when:
         LockableSftpClient actualClient = sftpClientFactory.createSftpClient(uri, credentials)
@@ -61,7 +60,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
 
         when:
         LockableSftpClient initialClient = sftpClientFactory.createSftpClient(uri, credentials)
@@ -84,7 +83,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
 
         when:
         LockableSftpClient initialClient = sftpClientFactory.createSftpClient(uri, credentials)
@@ -117,8 +116,8 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         given:
         URI uri1 = new URI('http://localhost:22/repo1')
         URI uri2 = new URI('http://localhost:22/repo2')
-        PasswordCredentials credentials1 = new DefaultPasswordCredentials('sftp1', 'sftp1')
-        PasswordCredentials credentials2 = new DefaultPasswordCredentials('sftp2', 'sftp2')
+        PasswordCredentials credentials1 = new PasswordCredentials('sftp1', 'sftp1')
+        PasswordCredentials credentials2 = new PasswordCredentials('sftp2', 'sftp2')
 
         when:
         LockableSftpClient client1 = sftpClientFactory.createSftpClient(uri1, credentials1)
@@ -150,7 +149,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
 
         when:
         LockableSftpClient actualClient = sftpClientFactory.createSftpClient(uri, credentials)
@@ -173,8 +172,8 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         given:
         URI uri1 = new URI('http://localhost:22/repo1')
         URI uri2 = new URI('http://localhost:22/repo2')
-        PasswordCredentials credentials1 = new DefaultPasswordCredentials('sftp1', 'sftp1')
-        PasswordCredentials credentials2 = new DefaultPasswordCredentials('sftp2', 'sftp2')
+        PasswordCredentials credentials1 = new PasswordCredentials('sftp1', 'sftp1')
+        PasswordCredentials credentials2 = new PasswordCredentials('sftp2', 'sftp2')
 
         when:
         LockableSftpClient client1 = sftpClientFactory.createSftpClient(uri1, credentials1)
@@ -200,7 +199,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
 
         when:
         async {
@@ -225,7 +224,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new DefaultPasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
         LockableSftpClient actualClient1
         LockableSftpClient actualClient2
 

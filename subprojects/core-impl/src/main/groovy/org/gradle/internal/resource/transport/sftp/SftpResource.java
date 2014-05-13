@@ -16,8 +16,8 @@
 
 package org.gradle.internal.resource.transport.sftp;
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.internal.resource.AbstractExternalResource;
+import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.IOException;
