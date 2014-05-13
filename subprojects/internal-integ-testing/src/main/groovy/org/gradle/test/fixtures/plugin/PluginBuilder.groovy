@@ -100,6 +100,21 @@ class PluginBuilder {
         this
     }
 
+    PluginBuilder addUnloadablePlugin(String id = "test-plugin", String className = "TestPlugin") {
+        pluginIds[id] = className
+
+        groovy("${className}.groovy") << """
+            package $packageName
+
+            class $className implements $Plugin.name<$Project.name> {
+                static { throw new Exception("unloadable plugin class") }
+                void apply($Project.name project) {
+                }
+            }
+        """
+        this
+    }
+
     PluginBuilder addPluginWithPrintlnTask(String taskName, String message, String id = "test-plugin", String className = "TestPlugin") {
         addPlugin("project.task(\"$taskName\") << { println \"$message\" }", id, className)
         this
