@@ -89,3 +89,23 @@ Also remove the fast feedback agent pool
 # Leverage incremental build
 
 # Leverage parallel execution
+
+# Install BarKeep code review tool
+
+Set up [BarKeep](http://getbarkeep.org/) on `dev1` as an alternative to Crucible.
+
+# Build machines provisioning
+
+## Add monitoring to all build machines
+
+- add New Relic monitoring to Linux machines without Salt
+- add Nex Relic monitoring to Windows machines
+
+## Extend Salt to not yet managed machines
+
+Start with user management and installation of packages.
+This applies to unmanaged machines running Linux and one Windows box.
+
+## Use the same Linux distribution on all machines
+
+Upgrade existing Saucy machines and probably also Precise.
