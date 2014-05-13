@@ -169,35 +169,37 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertThatCause(Matchers.containsText(Pattern.quote(msg)))
 
         where:
-        lineNumber | code                                | msg
-        2          | "a"                                 | BASE_MESSAGE
-        2          | "def a = null"                      | BASE_MESSAGE
-        2          | "def a = id('foo')"                 | BASE_MESSAGE
-        2          | "delegate.id('a')"                  | BASE_MESSAGE
-        2          | "id()"                              | INVALID_ARGUMENT_LIST
-        2          | "id(1)"                             | INVALID_ARGUMENT_LIST
-        2          | "id(System.getProperty('foo'))"     | INVALID_ARGUMENT_LIST
-        2          | "id('a' + 'b')"                     | INVALID_ARGUMENT_LIST
-        2          | "id(\"\${'foo'}\")"                 | INVALID_ARGUMENT_LIST
-        2          | "version('foo')"                    | BASE_MESSAGE
-        2          | "id('foo').version(1)"              | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' version 1"                | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' bah '1'"                  | VERSION_MESSAGE
-        2          | "foo 'foo' version '1'"             | BASE_MESSAGE
-        3          | "id('foo')\nfoo 'bar'"              | BASE_MESSAGE
-        2          | "if (true) id 'foo'"                | BASE_MESSAGE
-        2          | "id 'foo';version 'bar'"            | BASE_MESSAGE
-        2          | "id('foo').\"\${'version'}\" 'bar'" | BASE_MESSAGE
-        2          | "id ' '"                            | invalidPluginIdCharMessage(' ' as char)
-        2          | "id '\$'"                           | invalidPluginIdCharMessage('$' as char)
-        2          | "id ''"                             | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' version ''"               | INVALID_ARGUMENT_LIST
-        2          | "id null"                           | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' version null"             | INVALID_ARGUMENT_LIST
-        2          | "id '.foo'"                         | ID_SEPARATOR_ON_START_OR_END
-        2          | "id 'foo.'"                         | ID_SEPARATOR_ON_START_OR_END
-        2          | "id '.'"                            | ID_SEPARATOR_ON_START_OR_END
-        2          | "id 'foo..bar'"                     | DOUBLE_SEPARATOR
+        lineNumber | code                                   | msg
+        2          | "a"                                    | BASE_MESSAGE
+        2          | "def a = null"                         | BASE_MESSAGE
+        2          | "def a = id('foo')"                    | BASE_MESSAGE
+        2          | "delegate.id('a')"                     | BASE_MESSAGE
+        2          | "id()"                                 | INVALID_ARGUMENT_LIST
+        2          | "id(1)"                                | INVALID_ARGUMENT_LIST
+        2          | "id(System.getProperty('foo'))"        | INVALID_ARGUMENT_LIST
+        2          | "id('a' + 'b')"                        | INVALID_ARGUMENT_LIST
+        2          | "id(\"\${'foo'}\")"                    | INVALID_ARGUMENT_LIST
+        2          | "version('foo')"                       | BASE_MESSAGE
+        2          | "id('foo').version(1)"                 | INVALID_ARGUMENT_LIST
+        2          | "id 'foo' version 1"                   | INVALID_ARGUMENT_LIST
+        2          | "id 'foo' bah '1'"                     | VERSION_MESSAGE
+        2          | "foo 'foo' version '1'"                | BASE_MESSAGE
+        3          | "id('foo')\nfoo 'bar'"                 | BASE_MESSAGE
+        2          | "if (true) id 'foo'"                   | BASE_MESSAGE
+        2          | "id 'foo';version 'bar'"               | BASE_MESSAGE
+        2          | "id('foo').\"\${'version'}\" 'bar'"    | BASE_MESSAGE
+        2          | "id ' '"                               | invalidPluginIdCharMessage(' ' as char)
+        2          | "id '\$'"                              | invalidPluginIdCharMessage('$' as char)
+        2          | "id ''"                                | INVALID_ARGUMENT_LIST
+        2          | "id 'foo' version ''"                  | INVALID_ARGUMENT_LIST
+        2          | "id null"                              | INVALID_ARGUMENT_LIST
+        2          | "id 'foo' version null"                | INVALID_ARGUMENT_LIST
+        2          | "id '.foo'"                            | ID_SEPARATOR_ON_START_OR_END
+        2          | "id 'foo.'"                            | ID_SEPARATOR_ON_START_OR_END
+        2          | "id '.'"                               | ID_SEPARATOR_ON_START_OR_END
+        2          | "id 'foo..bar'"                        | DOUBLE_SEPARATOR
+        2          | "file('foo')" /* script api */         | BASE_MESSAGE
+        2          | "getVersion()" /* script target api */ | BASE_MESSAGE
     }
 
     @Unroll
