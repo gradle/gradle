@@ -18,6 +18,8 @@ package org.gradle.plugin.internal
 
 import spock.lang.Specification
 
+import static org.gradle.plugin.internal.PluginId.validate
+
 class PluginIdTest extends Specification {
 
     def "test validation matcher"() {
@@ -28,10 +30,25 @@ class PluginIdTest extends Specification {
         input     | index
         "foo"     | -1
         "f o"     | 1
-        "ab_c"    | 2
         "foo.bür" | 5
         "123"     | -1
         "FOO.bar" | -1
+    }
+
+    def "validate valid"() {
+        when:
+        validate("foo")
+        validate("Foo")
+        validate("foo.bar")
+        validate("foo.Bar")
+        validate("1")
+        validate("1.1")
+        validate("_._")
+        validate("-.-")
+        validate("-")
+
+        then:
+        noExceptionThrown()
     }
 
     def "is qualified"() {

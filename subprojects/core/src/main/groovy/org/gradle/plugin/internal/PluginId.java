@@ -27,11 +27,11 @@ public class PluginId {
     public static final String ID_SEPARATOR_ON_START_OR_END = "cannot begin or end with '" + PluginId.SEPARATOR + "'";
     public static final String DOUBLE_SEPARATOR = "cannot contain '" + PluginId.SEPARATOR + PluginId.SEPARATOR + "'";
 
-    public static final String PLUGIN_ID_VALID_CHARS_DESCRIPTION = "ASCII alphanumeric characters, '.' and '-'";
+    public static final String PLUGIN_ID_VALID_CHARS_DESCRIPTION = "ASCII alphanumeric characters, '.', '_' and '-'";
     public static final CharMatcher INVALID_PLUGIN_ID_CHAR_MATCHER = inRange('a', 'z')
             .or(inRange('A', 'Z'))
             .or(inRange('0', '9'))
-            .or(anyOf(".-"))
+            .or(anyOf(".-_"))
             .negate();
     public static final String SEPARATOR = ".";
 

@@ -17,15 +17,12 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.internal.PluginId
 import org.gradle.util.Matchers
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-import static org.gradle.plugin.internal.PluginId.DOUBLE_SEPARATOR
-import static org.gradle.plugin.internal.PluginId.ID_SEPARATOR_ON_START_OR_END
-import static org.gradle.plugin.internal.PluginId.invalidPluginIdCharMessage
+import static org.gradle.plugin.internal.PluginId.*
 import static org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer.*
 
 class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
@@ -192,7 +189,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "id 'foo';version 'bar'"            | BASE_MESSAGE
         2          | "id('foo').\"\${'version'}\" 'bar'" | BASE_MESSAGE
         2          | "id ' '"                            | invalidPluginIdCharMessage(' ' as char)
-        2          | "id 'foo_bar'"                      | invalidPluginIdCharMessage('_' as char)
+        2          | "id '\$'"                           | invalidPluginIdCharMessage('$' as char)
         2          | "id ''"                             | INVALID_ARGUMENT_LIST
         2          | "id 'foo' version ''"               | INVALID_ARGUMENT_LIST
         2          | "id null"                           | INVALID_ARGUMENT_LIST

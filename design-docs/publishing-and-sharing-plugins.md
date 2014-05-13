@@ -101,12 +101,14 @@ Importantly, it also allows us (Gradle core team) to provide an “official” 
 
 Plugin ids…
 
-1. may contain any alpha numeric ascii character and -
+1. may contain any alpha numeric ascii character, '.', '_' and -
 1. must contain at least one '.' character, that separates the namespace from the name
 1. consist of a namespace (everything before the last '.') and a name (everything after the last '.')
 1. conventionally use a lowercase reverse domain name convention for the namespace component
 1. conventionally use only lowercase characters for the name component
 1. 'org.gradle' and 'com.gradleware' namespaces are reserved (users are actively prevented from using these namespaces)
+1. Cannot start or end with '.'
+1. Cannot contain '..'
 
 Plugin specs can be made of qualified («namespace.name») or unqualified («name») plugin ids.
 
