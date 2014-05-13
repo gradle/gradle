@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.internal;
 
-import org.gradle.api.Nullable;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.api.GradleException;
 
-public interface PluginRequest {
+public class InvalidPluginIdException extends GradleException {
 
-    PluginId getId();
+    private final String reason;
 
-    @Nullable
-    String getVersion();
+    public InvalidPluginIdException(String pluginId, String reason) {
+        super(String.format("plugin id '%s' is invalid: %s", pluginId, reason));
+        this.reason = reason;
+    }
 
-    int getLineNumber();
-
-    ScriptSource getScriptSource();
-
-    String getDisplayName();
+    public String getReason() {
+        return reason;
+    }
 }

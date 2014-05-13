@@ -17,11 +17,15 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.plugin.internal.PluginId
 import org.gradle.util.Matchers
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
+import static org.gradle.plugin.internal.PluginId.DOUBLE_SEPARATOR
+import static org.gradle.plugin.internal.PluginId.ID_SEPARATOR_ON_START_OR_END
+import static org.gradle.plugin.internal.PluginId.invalidPluginIdCharMessage
 import static org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer.*
 
 class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {

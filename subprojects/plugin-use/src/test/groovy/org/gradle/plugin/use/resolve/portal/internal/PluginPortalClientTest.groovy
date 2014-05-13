@@ -21,13 +21,16 @@ import org.gradle.api.GradleException
 import org.gradle.api.Transformer
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor
 import org.gradle.internal.resource.transport.http.HttpResponseResource
+import org.gradle.plugin.internal.PluginId
 import org.gradle.plugin.use.internal.PluginRequest
 import spock.lang.Specification
 
 class PluginPortalClientTest extends Specification {
     private resourceAccessor = Mock(HttpResourceAccessor)
     private client = new PluginPortalClient(resourceAccessor)
-    private request = Stub(PluginRequest)
+    private request = Stub(PluginRequest) {
+        getId() >> PluginId.of("foo")
+    }
 
     def "returns metadata "() {
         given:

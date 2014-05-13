@@ -23,14 +23,15 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugin.internal.PluginId;
 
 public class ClassPathPluginResolution implements PluginResolution {
 
-    private final String pluginId;
+    private final PluginId pluginId;
     private final Instantiator instantiator;
     private final Factory<? extends ClassPath> classPathFactory;
 
-    public ClassPathPluginResolution(Instantiator instantiator, String pluginId, Factory<? extends ClassPath> classPathFactory) {
+    public ClassPathPluginResolution(Instantiator instantiator, PluginId pluginId, Factory<? extends ClassPath> classPathFactory) {
         this.pluginId = pluginId;
         this.instantiator = instantiator;
         this.classPathFactory = classPathFactory;
@@ -40,6 +41,6 @@ public class ClassPathPluginResolution implements PluginResolution {
         ClassPath classPath = classPathFactory.create();
         ClassLoader classLoader = classLoaderScope.addLocal(classPath);
         PluginRegistry pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator);
-        return pluginRegistry.getTypeForId(pluginId);
+        return pluginRegistry.getTypeForId(pluginId.toString());
     }
 }

@@ -35,11 +35,8 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.plugin.use.internal.PluginDependenciesService;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.PluginRequest;
-import org.gradle.plugin.use.internal.PluginRequestApplicator;
-import org.gradle.plugin.use.internal.PluginRequestApplicatorFactory;
+import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.internal.*;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -49,7 +46,7 @@ import java.util.Set;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
-    public static final String NOOP_PLUGIN_ID = "noop";
+    public static final PluginId NOOP_PLUGIN_ID = PluginId.of("noop");
 
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
@@ -141,8 +138,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
             if (!pluginRequests.isEmpty()) {
 
-                Map<String, List<PluginRequest>> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<String, PluginRequest>() {
-                    public String transform(PluginRequest pluginRequest) {
+                Map<PluginId, List<PluginRequest>> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequest>() {
+                    public PluginId transform(PluginRequest pluginRequest) {
                         return pluginRequest.getId();
                     }
                 });
@@ -151,7 +148,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 groupedById.remove(NOOP_PLUGIN_ID);
 
                 // Check for duplicates
-                for (Map.Entry<String, List<PluginRequest>> entry : groupedById.entrySet()) {
+                for (Map.Entry<PluginId, List<PluginRequest>> entry : groupedById.entrySet()) {
                     List<PluginRequest> pluginRequestsForId = entry.getValue();
                     if (pluginRequestsForId.size() > 1) {
                         PluginRequest first = pluginRequests.get(0);

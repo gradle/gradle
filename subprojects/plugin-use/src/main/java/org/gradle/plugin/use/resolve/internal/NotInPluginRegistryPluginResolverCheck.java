@@ -20,6 +20,7 @@ import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
@@ -36,12 +37,12 @@ public class NotInPluginRegistryPluginResolverCheck implements PluginResolver {
     }
 
     public PluginResolution resolve(PluginRequest pluginRequest) {
-        String pluginId = pluginRequest.getId();
-        PluginDescriptor pluginDescriptor = pluginDescriptorLocator.findPluginDescriptor(pluginId);
+        PluginId pluginId = pluginRequest.getId();
+        PluginDescriptor pluginDescriptor = pluginDescriptorLocator.findPluginDescriptor(pluginId.toString());
         if (pluginDescriptor == null || isCorePlugin(pluginId)) {
             return delegate.resolve(pluginRequest);
         } else {
-            throw new InvalidPluginRequestException(pluginRequest, pluginOnClasspathErrorMessage(pluginId));
+            throw new InvalidPluginRequestException(pluginRequest, pluginOnClasspathErrorMessage(pluginId.toString()));
         }
     }
 
@@ -49,9 +50,9 @@ public class NotInPluginRegistryPluginResolverCheck implements PluginResolver {
         return String.format("Plugin '%s' is already on the script classpath. Plugins on the script classpath cannot be applied in the plugins {} block. Add  \"apply plugin: '%s'\" to the body of the script to use the plugin.", pluginId, pluginId);
     }
 
-    private boolean isCorePlugin(String pluginId) {
+    private boolean isCorePlugin(PluginId pluginId) {
         try {
-            corePluginRegistry.getTypeForId(pluginId);
+            corePluginRegistry.getTypeForId(pluginId.toString());
             return true;
         } catch (UnknownPluginException ignore) {
             return false;

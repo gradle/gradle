@@ -16,10 +16,10 @@
 
 package org.gradle.plugin.use.resolve.internal
 
+import org.gradle.api.Plugin
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.PluginRegistry
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.use.internal.DefaultPluginRequest
@@ -28,6 +28,12 @@ import org.gradle.plugin.use.internal.PluginRequest
 import spock.lang.Specification
 
 class CorePluginResolverTest extends Specification {
+
+    static class MyPlugin implements Plugin {
+        @Override
+        void apply(Object target) {
+        }
+    }
 
     def docRegistry = Mock(DocumentationRegistry)
     def pluginRegistry = Mock(PluginRegistry)
@@ -49,10 +55,10 @@ class CorePluginResolverTest extends Specification {
         def resolution = resolver.resolve(request("foo"))
 
         then:
-        1 * pluginRegistry.getTypeForId("foo") >> JavaPlugin
+        1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
 
         resolution instanceof SimplePluginResolution
-        resolution.resolve(classLoaderScope) == JavaPlugin
+        resolution.resolve(classLoaderScope) == MyPlugin
     }
 
     def "can resolve qualified"() {
@@ -60,10 +66,10 @@ class CorePluginResolverTest extends Specification {
         def resolution = resolver.resolve(request("${CorePluginResolver.CORE_PLUGIN_NAMESPACE}.foo"))
 
         then:
-        1 * pluginRegistry.getTypeForId("foo") >> JavaPlugin
+        1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
 
         resolution instanceof SimplePluginResolution
-        resolution.resolve(classLoaderScope) == JavaPlugin
+        resolution.resolve(classLoaderScope) == MyPlugin
     }
 
     def "cannot have version number"() {
@@ -71,7 +77,7 @@ class CorePluginResolverTest extends Specification {
         resolver.resolve(request("foo", "1.0"))
 
         then:
-        1 * pluginRegistry.getTypeForId("foo") >> JavaPlugin
+        1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
 
         and:
         thrown InvalidPluginRequestException

@@ -17,22 +17,27 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.plugin.internal.PluginId;
 
 public class DefaultPluginRequest implements PluginRequest {
 
-    private final String id;
+    private final PluginId id;
     private final String version;
     private final int lineNumber;
     private final ScriptSource scriptSource;
 
     public DefaultPluginRequest(String id, String version, int lineNumber, ScriptSource scriptSource) {
+        this(PluginId.of(id), version, lineNumber, scriptSource);
+    }
+
+    public DefaultPluginRequest(PluginId id, String version, int lineNumber, ScriptSource scriptSource) {
         this.id = id;
         this.version = version;
         this.lineNumber = lineNumber;
         this.scriptSource = scriptSource;
     }
 
-    public String getId() {
+    public PluginId getId() {
         return id;
     }
 

@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal
+package org.gradle.plugin.internal
 
 import spock.lang.Specification
 
-import static org.gradle.plugin.use.internal.PluginIds.isQualified
-import static org.gradle.plugin.use.internal.PluginIds.qualifyIfUnqualified
-
-class PluginIdsTest extends Specification {
+class PluginIdTest extends Specification {
 
     def "test validation matcher"() {
         expect:
-        PluginIds.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(input) == index
+        PluginId.INVALID_PLUGIN_ID_CHAR_MATCHER.indexIn(input) == index
 
         where:
         input     | index
@@ -39,14 +36,21 @@ class PluginIdsTest extends Specification {
 
     def "is qualified"() {
         expect:
-        !isQualified("foo")
-        isQualified("foo.bar")
+        !new PluginId("foo").qualified
+        new PluginId("foo.bar").qualified
     }
 
     def "qualify if unqualified"() {
         expect:
-        qualifyIfUnqualified("foo", "bar") == "foo.bar"
-        qualifyIfUnqualified("bar", "foo.bar") == "foo.bar"
+        new PluginId("foo").maybeQualify("bar").toString() == "bar.foo"
+        new PluginId("foo.bar").maybeQualify("bar").toString() == "foo.bar"
+    }
+
+    def "equality"() {
+        expect:
+        new PluginId("foo") == new PluginId("foo")
+        new PluginId("foo.bar") == new PluginId("foo.bar")
+        new PluginId("foo").maybeQualify("some.org") == new PluginId("some.org.foo")
     }
 
 }
