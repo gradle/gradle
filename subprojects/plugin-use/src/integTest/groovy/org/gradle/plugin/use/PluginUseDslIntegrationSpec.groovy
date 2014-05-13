@@ -17,13 +17,13 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Matchers
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
 import static org.gradle.plugin.internal.PluginId.*
 import static org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer.*
+import static org.hamcrest.Matchers.containsString
 
 class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -64,7 +64,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasLineNumber 3
         failure.assertHasFileName("Build file '${buildFile}'")
-        errorOutput.contains("all buildscript {} blocks must appear before any plugins {} blocks")
+        failure.assertThatCause(containsString("all buildscript {} blocks must appear before any plugins {} blocks"))
     }
 
     def "build logic cannot precede plugins block"() {
@@ -80,7 +80,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasLineNumber 3
         failure.assertHasFileName("Build file '${buildFile}'")
-        errorOutput.contains "only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+        failure.assertThatCause(containsString("only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
     }
 
     def "build logic cannot precede any plugins block"() {
@@ -97,7 +97,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasLineNumber 4
         failure.assertHasFileName("Build file '${buildFile}'")
-        errorOutput.contains "only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+        failure.assertThatCause(containsString("only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
     }
 
     def "settings scripts cannot plugin blocks"() {
@@ -109,7 +109,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Settings file '$settingsFile.absolutePath'")
-        errorOutput.contains "Only Project build scripts can contain plugins {} blocks"
+        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
     }
 
     def "init scripts cannot have plugin blocks"() {
@@ -124,7 +124,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Initialization script '$initScript.absolutePath'")
-        errorOutput.contains "Only Project build scripts can contain plugins {} blocks"
+        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
     }
 
     def "script plugins cannot have plugin blocks"() {
@@ -139,7 +139,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
-        errorOutput.contains "Only Project build scripts can contain plugins {} blocks"
+        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
     }
 
     def "script plugins applied to arbitrary objects cannot have plugin blocks"() {
@@ -154,7 +154,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         failure.assertHasLineNumber 1
         failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
-        errorOutput.contains "Only Project build scripts can contain plugins {} blocks"
+        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
     }
 
     @Unroll
@@ -166,7 +166,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
         failure.assertHasLineNumber lineNumber
         failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertThatCause(Matchers.containsText(Pattern.quote(msg)))
+        failure.assertThatCause(containsString(msg))
 
         where:
         lineNumber | code                                   | msg
