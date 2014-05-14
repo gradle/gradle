@@ -61,7 +61,7 @@ project(':b:c') {
     }
 
     @TargetGradleVersion(">=1.8 <=1.11")
-    def "no task selectors when running action in older container"() {
+    def "cannot fetch task selectors from action in older target version"() {
         when:
         withConnection { connection -> connection.action(new FetchAllTaskSelectorsBuildAction()).run() }
 
@@ -86,7 +86,7 @@ project(':b:c') {
     }
 
     @TargetGradleVersion(">=1.12")
-    def "build task selectors from action"() {
+    def "can run build using task selectors from action"() {
         given:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
         when:
@@ -101,7 +101,7 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:c:t1')
     }
 
-    def "build task selectors from connection"() {
+    def "can run build using task selectors from connection"() {
         when:
         toolingApi.isEmbedded = false // to load launchables using correct classloader in integTest
         BuildInvocations model = withConnection { connection ->
@@ -140,7 +140,7 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
     }
 
-    def "can request task selectors for project"() {
+    def "can fetch task selectors for root project from connection"() {
         given:
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
@@ -155,7 +155,7 @@ project(':b:c') {
     }
 
     @TargetGradleVersion("=1.12")
-    def "get tasks for projects"() {
+    def "can fetch tasks for project using action"() {
         when:
         List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
@@ -173,7 +173,7 @@ project(':b:c') {
     }
 
     @TargetGradleVersion(">=2.0")
-    def "get tasks including implicit for projects"() {
+    def "can fetch tasks including implicit for project using action"() {
         when:
         List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
