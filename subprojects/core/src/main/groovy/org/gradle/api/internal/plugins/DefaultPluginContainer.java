@@ -15,10 +15,8 @@
  */
 package org.gradle.api.internal.plugins;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
@@ -101,10 +99,6 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
     public void withId(String pluginId, Action<Plugin> action) {
         Class type = getTypeForId(pluginId);
         withType(type, action);
-    }
-
-    public void withId(String pluginId, Closure closure) {
-        withId(pluginId, new ClosureBackedAction<Plugin>(closure));
     }
 
     protected Class<? extends Plugin> getTypeForId(String id) {

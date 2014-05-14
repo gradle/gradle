@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -125,9 +124,4 @@ public interface PluginContainer extends PluginCollection<Plugin> {
     @Incubating
     void withId(String pluginId, Action<Plugin> action);
 
-    /**
-     * See {@link #withId(String, org.gradle.api.Action)}
-     */
-    @Incubating
-    void withId(String pluginId, Closure closure);
 }
