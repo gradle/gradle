@@ -17,6 +17,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.jvm.ClassDirectoryBinary
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -25,7 +26,6 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
-import org.gradle.api.jvm.ClassDirectoryBinary
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -154,32 +154,14 @@ class JavaBasePluginTest extends Specification {
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
-        test.testResultsDir == project.testResultsDir
-        test.testReportDir == project.testReportDir
-        test.testReport //by default (JUnit), the report is 'on'
+        test.reports.junitXml.destination == project.testResultsDir
+        test.reports.html.destination == project.testReportDir
+        test.reports.junitXml.enabled
+        test.reports.html.enabled
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")
         javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
-    }
-
-    void "configures test task for testNG"() {
-        given:
-        project.plugins.apply(JavaBasePlugin)
-        def test = project.task('customTest', type: Test.class)
-
-        when:
-        test.useTestNG()
-
-        then:
-        assert test.testReport
-
-        when:
-        test.testReport = false
-        test.useTestNG()
-
-        then:
-        assert !test.testReport
     }
 
     void appliesMappingsToCustomJarTasks() {

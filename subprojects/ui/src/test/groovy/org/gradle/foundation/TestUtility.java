@@ -65,7 +65,6 @@ public class TestUtility {
         attachSubProjects(context, project, subProjectArray);
         attachTasks(context, project, tasks);
         assignDefaultTasks(context, project, defaultTasks);
-        assignDependsOnProjects(context, project, dependsOnProjects);
 
         return project;
     }
@@ -162,21 +161,6 @@ public class TestUtility {
         context.checking(new Expectations() {{
             allowing(project).getDefaultTasks();
             will(returnValue(defaultTaskList));
-        }});
-    }
-
-    private static void assignDependsOnProjects(JUnit4Mockery context, final Project project, final Project... dependsOnProjects) {
-        final Set<Project> set
-                = new LinkedHashSet<Project>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
-
-        if (dependsOnProjects != null && dependsOnProjects.length != 0) {
-            set.addAll(Arrays.asList(dependsOnProjects));
-        }
-
-        //populate the subprojects (this may be an empty set)
-        context.checking(new Expectations() {{
-            allowing(project).getDependsOnProjects();
-            will(returnValue(set));
         }});
     }
 

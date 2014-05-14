@@ -17,21 +17,16 @@ package org.gradle.foundation;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * This converts Gradle's projects into ProjectView objects. These can be safely reused unlike Gradle's projects.
  */
 public class ProjectConverter {
     private List<ProjectView> rootLevelResultingProjects = new ArrayList<ProjectView>();
-    private HashMap<Project, ProjectView> projectMap = new HashMap<Project, ProjectView>();
-    private final Logger logger = Logging.getLogger(ProjectConverter.class);
-
-    public ProjectConverter() {
-    }
 
     /**
      * Call this to convert the projects.
@@ -40,23 +35,19 @@ public class ProjectConverter {
      */
     public List<ProjectView> convertProjects(Project rootProject) {
         rootLevelResultingProjects.clear();
-        projectMap.clear();
 
         addRootLevelProject(rootProject);
-
-        buildDependencies();
 
         return rootLevelResultingProjects;
     }
 
     /**
-     * This adds the specified poject as a root level projects. It then adds all tasks and recursively adds all sub projects.
+     * This adds the specified project as a root level projects. It then adds all tasks and recursively adds all sub projects.
      *
      * @param rootLevelProject a root level project.
      */
     public void addRootLevelProject(Project rootLevelProject) {
         ProjectView rootLevelProjectView = new ProjectView(null, rootLevelProject.getName(), rootLevelProject.getBuildFile(), rootLevelProject.getDescription());
-        projectMap.put(rootLevelProject, rootLevelProjectView);
 
         rootLevelResultingProjects.add(rootLevelProjectView);
 
@@ -77,7 +68,6 @@ public class ProjectConverter {
         Collection<Project> subProjects = parentProject.getChildProjects().values();
         for (Project subProject : subProjects) {
             ProjectView projectView = new ProjectView(parentProjectView, subProject.getName(), subProject.getBuildFile(), subProject.getDescription());
-            projectMap.put(subProject, projectView);
 
             addTasks(subProject, projectView);
 
@@ -102,39 +92,5 @@ public class ProjectConverter {
 
             projectView.createTask(taskName, task.getDescription(), isDefault);
         }
-    }
-
-    /**
-     * This sets the dependencies on the ProjectViews. We ask the gradle projects for the dependencies and then convert them to ProjectViews. Obviously, this must be done after converting all Projects
-     * to ProjectViews.
-     */
-    private void buildDependencies() {
-        for (Project project : projectMap.keySet()) {
-            ProjectView projectView = projectMap.get(project);
-
-            List<ProjectView> projectViewList = getProjectViews(project.getDependsOnProjects());
-
-            projectView.setDependsOnProjects(projectViewList);
-        }
-    }
-
-    /**
-     * Converts a set of projects to the existing project views. This does not actually instantiate new ProjectView objects.
-     */
-    private List<ProjectView> getProjectViews(Set<Project> projects) {
-        List<ProjectView> views = new ArrayList<ProjectView>();
-
-        Iterator<Project> projectIterator = projects.iterator();
-        while (projectIterator.hasNext()) {
-            Project project = projectIterator.next();
-            ProjectView projectView = projectMap.get(project);
-            if (projectView == null) {
-                logger.error("Missing project: " + project.getName());
-            } else {
-                views.add(projectView);
-            }
-        }
-
-        return views;
     }
 }

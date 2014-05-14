@@ -13,16 +13,8 @@
                 <td><literal>project.sourceSets.test.output.classesDir</literal></td>
             </tr>
             <tr>
-                <td>testResultsDir</td>
-                <td><literal>project.testResultsDir</literal></td>
-            </tr>
-            <tr>
                 <td>binResultsDir</td>
                 <td><literal><replaceable>project.testResultsDir</replaceable>/binary/<replaceable>task.name</replaceable></literal></td>
-            </tr>
-            <tr>
-                <td>testReportDir</td>
-                <td><literal>project.testReportDir</literal></td>
             </tr>
             <tr>
                 <td>reports</td>
@@ -39,10 +31,6 @@
             <tr>
                 <td>workingDir</td>
                 <td><literal>project.projectDir</literal></td>
-            </tr>
-            <tr>
-                <td>testReport</td>
-                <td><literal>true</literal></td>
             </tr>
             <tr>
                 <td>scanForTestClasses</td>

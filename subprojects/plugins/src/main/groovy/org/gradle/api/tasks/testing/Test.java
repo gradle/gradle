@@ -64,7 +64,6 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -751,30 +750,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Returns the root folder for the test results in XML format.
-     *
-     * @return the test result directory, containing the test results in XML format.
-     * @deprecated Replaced by {@code getReports().getJunitXml().getDestination()}
-     */
-    @Deprecated
-    public File getTestResultsDir() {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testResultsDir", "Test.getReports().getJunitXml().getDestination()");
-        return reports.getJunitXml().getDestination();
-    }
-
-    /**
-     * Sets the root folder for the test results.
-     *
-     * @param testResultsDir The root folder
-     * @deprecated Replaced by {@code getReports().getJunitXml().setDestination()}
-     */
-    @Deprecated
-    public void setTestResultsDir(File testResultsDir) {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testResultsDir", "Test.getReports().getJunitXml().setDestination()");
-        reports.getJunitXml().setDestination(testResultsDir);
-    }
-
-    /**
      * Returns the root folder for the test results in internal binary format.
      *
      * @return the test result directory, containing the test results in binary format.
@@ -793,30 +768,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Incubating
     public void setBinResultsDir(File binResultsDir) {
         this.binResultsDir = binResultsDir;
-    }
-
-    /**
-     * Returns the root folder for the test reports.
-     *
-     * @return the test report directory, containing the test report mostly in HTML form.
-     * @deprecated Replaced by {@code getReports().getHtml().getDestination()}
-     */
-    @Deprecated
-    public File getTestReportDir() {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReportDir", "Test.getReports().getHtml().getDestination()");
-        return reports.getHtml().getDestination();
-    }
-
-    /**
-     * Sets the root folder for the test reports.
-     *
-     * @param testReportDir The root folder
-     * @deprecated Replaced by {@code getReports().getHtml().setDestination()}
-     */
-    @Deprecated
-    public void setTestReportDir(File testReportDir) {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReportDir", "Test.getReports().getHtml().getDestination()");
-        reports.getHtml().setDestination(testReportDir);
     }
 
     /**
@@ -969,52 +920,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
-    }
-
-    /**
-     * Specifies whether the test HTML report should be generated.
-     *
-     * @deprecated Replaced by {@code getReports().getHtml().isEnabled()}
-     */
-    @Deprecated
-    public boolean isTestReport() {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReport", "Test.getReports().getHtml().isEnabled()");
-        return reports.getHtml().isEnabled();
-    }
-
-    /**
-     * Sets whether the test HTML report should be generated.
-     *
-     * @deprecated Replaced by {@code getReports().getHtml().setEnabled()}
-     */
-    @Deprecated
-    public void setTestReport(boolean testReport) {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReport", "Test.getReports().getHtml().setEnabled()");
-        reports.getHtml().setEnabled(testReport);
-    }
-
-    /**
-     * Enables the HTML test report.
-     *
-     * @deprecated Replaced by {@code getReports().getHtml().setEnabled()}
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public void enableTestReport() {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReport", "Test.getReports().getHtml().setEnabled()");
-        reports.getHtml().setEnabled(true);
-    }
-
-    /**
-     * Disables the HTML test report.
-     *
-     * @deprecated Replaced by {@code getReports().getHtml().setEnabled()}
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public void disableTestReport() {
-        DeprecationLogger.nagUserOfReplacedProperty("Test.testReport", "Test.getReports().getHtml().setEnabled()");
-        reports.getHtml().setEnabled(false);
     }
 
     /**

@@ -155,8 +155,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new PluginsProjectConfigureActions(get(ClassLoaderRegistry.class).getPluginsClassLoader()),
                 new BuildScriptProcessor(get(ScriptPluginFactory.class)),
                 new DelayedConfigurationActions(),
-                new TaskModelRealizingConfigurationAction(),
-                new ProjectDependencies2TaskResolver()
+                new TaskModelRealizingConfigurationAction()
         );
         return new LifecycleProjectEvaluator(withActionsEvaluator);
     }

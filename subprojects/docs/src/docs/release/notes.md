@@ -4,7 +4,7 @@ Here are the new features introduced in this Gradle release.
 
 ### Groovy 2.2.2
 
-Upgraded to Groovy 2.2.2 for running build scripts and plugins.
+Gradle now uses Groovy 2.2.2 to compile and running build scripts and plugins.
 
 ### New API for artifact resolution (i)
 
@@ -356,6 +356,18 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 ### Removed Deprecated Methods
 
 - `Project.dir()` replaced with `mkdir()`
+- `Project.dependsOn()` replaced with task dependencies.
+- `Project.childrenDependOnMe()` replaced with task dependencies.
+- `Project.dependsOnChildren()` replaced with task dependencies.
+- `Project.getDependsOnProjects()` with no replacement.
+- `Test.isTestReport()` replaced with `getReports().getHtml().isEnabled()`.
+- `Test.disableTestReport()` replaced with `getReports().getHtml().setEnabled()`.
+- `Test.enableTestReport()` replaced with `getReports().getHtml().setEnabled()`.
+- `Test.setTestReport()` replaced with `getReports().getHtml().setEnabled()`.
+- `Test.getTestResultsDir()` replaced with `getReports().getJunitXml().getDestination()`.
+- `Test.setTestResultsDir()` replaced with `getReports().getJunitXml().setDestination()`.
+- `Test.getTestReportDir()` replaced with `getReports().getHtml().getDestination()`.
+- `Test.setTestReportDir()` replaced with `getReports().getHtml().setDestination()`.
 - `CompileOptions.getFailOnError()` replaced with `isFailOnError()`
 - `CompileOptions.getDebug()` replaced with `isDebug()`
 - `StartParameter.getMergedSystemProperties()` with no replacement.

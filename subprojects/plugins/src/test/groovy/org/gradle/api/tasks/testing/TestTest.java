@@ -109,8 +109,8 @@ public class TestTest extends AbstractConventionTaskTest {
         assertThat(test.getTestFramework(), instanceOf(JUnitTestFramework.class));
         assertNull(test.getTestClassesDir());
         assertNull(test.getClasspath());
-        assertNull(test.getTestResultsDir());
-        assertNull(test.getTestReportDir());
+        assertNull(test.getReports().getJunitXml().getDestination());
+        assertNull(test.getReports().getHtml().getDestination());
         assertThat(test.getIncludes(), isEmpty());
         assertThat(test.getExcludes(), isEmpty());
         assertFalse(test.getIgnoreFailures());
@@ -359,9 +359,9 @@ public class TestTest extends AbstractConventionTaskTest {
         test.setTestExecuter(testExecuterMock);
 
         test.setTestClassesDir(classesDir);
-        test.setTestResultsDir(resultsDir);
+        test.getReports().getJunitXml().setDestination(resultsDir);
         test.setBinResultsDir(binResultsDir);
-        test.setTestReportDir(reportDir);
+        test.getReports().getHtml().setDestination(reportDir);
         test.setClasspath(classpathMock);
         test.setTestSrcDirs(Collections.<File>emptyList());
     }

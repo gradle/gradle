@@ -105,8 +105,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private List<String> defaultTasks = new ArrayList<String>();
 
-    private Set<Project> dependsOnProjects = new HashSet<Project>();
-
     private ProjectStateInternal state;
 
     private FileResolver fileResolver;
@@ -324,10 +322,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         this.defaultTasks = defaultTasks;
     }
 
-    public Set<Project> getDependsOnProjects() {
-        return dependsOnProjects;
-    }
-
     public ProjectStateInternal getState() {
         return state;
     }
@@ -538,26 +532,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         buildDir = path;
     }
 
-    public void dependsOn(final String path) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Project.dependsOn(String path)");
-        DeprecationLogger.whileDisabled(new Factory<Void>() {
-            public Void create() {
-                dependsOn(path, true);
-                return null;
-            }
-        });
-    }
-
-    public void dependsOn(String path, boolean evaluateDependsOnProject) {
-        if (!isTrue(path)) {
-            throw new InvalidUserDataException("You must specify a project!");
-        }
-        dependsOnProjects.add(project(path));
-        if (evaluateDependsOnProject) {
-            evaluationDependsOn(path);
-        }
-    }
-
     public void evaluationDependsOnChildren() {
         for (Project project : childProjects.values()) {
             DefaultProject defaultProjectToEvaluate = (DefaultProject) project;
@@ -579,42 +553,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                     projectToEvaluate));
         }
         return projectToEvaluate.evaluate();
-    }
-
-    public Project childrenDependOnMe() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Project.childrenDependOnMe()");
-        DeprecationLogger.whileDisabled(new Factory<Void>() {
-            public Void create() {
-                for (Project project : childProjects.values()) {
-                    project.dependsOn(getPath(), false);
-                }
-                return null;
-            }
-        });
-
-        return this;
-    }
-
-    public Project dependsOnChildren() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Project.dependsOnChildren()");
-        return DeprecationLogger.whileDisabled(new Factory<Project>() {
-            public Project create() {
-                return dependsOnChildren(false);
-            }
-        });
-    }
-
-    public Project dependsOnChildren(final boolean evaluateDependsOnProject) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Project.dependsOnChildren(boolean)");
-        DeprecationLogger.whileDisabled(new Factory<Void>() {
-            public Void create() {
-                for (Project project : childProjects.values()) {
-                    dependsOn(project.getPath(), evaluateDependsOnProject);
-                }
-                return null;
-            }
-        });
-        return this;
     }
 
     public String toString() {

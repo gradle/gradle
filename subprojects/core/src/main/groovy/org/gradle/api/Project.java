@@ -340,13 +340,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Map<String, Project> getChildProjects();
 
     /**
-     * <p>Returns the set of projects which this project depends on.</p>
-     *
-     * @return The set of projects. Returns an empty set if this project depends on no projects.
-     */
-    Set<Project> getDependsOnProjects();
-
-    /**
      * <p>Sets a property of this project.  This method searches for a property with the given name in the following
      * locations, and sets the property on the first location where it finds the property.</p>
      *
@@ -514,27 +507,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void defaultTasks(String... defaultTasks);
 
     /**
-     * <p>Declares that this project has an execution dependency on the project with the given path.</p>
-     *
-     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
-     * @param path The path of the project which this project depends on.
-     * @throws UnknownProjectException If no project with the given path exists.
-     */
-    @Deprecated
-    void dependsOn(String path) throws UnknownProjectException;
-
-    /**
-     * <p>Declares that this project has an execution dependency on the project with the given path.</p>
-     *
-     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
-     * @param path The path of the project which this project depends on.
-     * @param evaluateDependsOnProject If true, adds an evaluation dependency.
-     * @throws UnknownProjectException If no project with the given path exists.
-     */
-    @Deprecated
-    void dependsOn(String path, boolean evaluateDependsOnProject) throws UnknownProjectException;
-
-    /**
      * <p>Declares that this project has an evaluation dependency on the project with the given path.</p>
      *
      * @param path The path of the project which this project depends on.
@@ -548,36 +520,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      */
     void evaluationDependsOnChildren();
-
-    /**
-     * <p>Declares that all child projects of this project have an execution dependency on this project.</p>
-     *
-     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
-     * @return this project.
-     */
-    @Deprecated
-    Project childrenDependOnMe();
-
-    /**
-     * <p>Declares that this project has an execution dependency on each of its child projects.</p>
-     *
-     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
-     * @return this project.
-     */
-    @Deprecated
-    Project dependsOnChildren();
-
-    /**
-     * <p>Declares that this project has an execution dependency on each of its child projects.</p>
-     *
-     * @deprecated To definde task dependencies use {@link Task#dependsOn(Object...)} instead.
-     * For declaring evaluation dependencies to child projects, use evaluation dependencies
-     * use {@link #evaluationDependsOnChildren()}.
-     * @param evaluateDependsOnProject If true, adds an evaluation dependency.
-     * @return this project.
-     */
-    @Deprecated
-    Project dependsOnChildren(boolean evaluateDependsOnProject);
 
     /**
      * <p>Locates a project by path. If the path is relative, it is interpreted relative to this project.</p>
