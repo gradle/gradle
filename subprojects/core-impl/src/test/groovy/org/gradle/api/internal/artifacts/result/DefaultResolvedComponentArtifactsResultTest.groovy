@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.result
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.component.Artifact
 import org.gradle.api.artifacts.result.ArtifactResult
-import org.gradle.api.artifacts.result.jvm.JavadocArtifact
-import org.gradle.api.artifacts.result.jvm.SourcesArtifact
+import org.gradle.api.component.Artifact
 import spock.lang.Specification
 
 class DefaultResolvedComponentArtifactsResultTest extends Specification {
@@ -32,11 +30,14 @@ class DefaultResolvedComponentArtifactsResultTest extends Specification {
         result.addArtifact(artifact)
 
         when:
-        artifact.type >> SourcesArtifact
+        artifact.type >> ArtifactOne
 
         then:
         result.getArtifacts(Artifact) == [artifact] as Set
-        result.getArtifacts(SourcesArtifact) == [artifact] as Set
-        result.getArtifacts(JavadocArtifact) == [] as Set
+        result.getArtifacts(ArtifactOne) == [artifact] as Set
+        result.getArtifacts(ArtifactTwo) == [] as Set
     }
+
+    interface ArtifactOne extends Artifact {}
+    interface ArtifactTwo extends Artifact {}
 }

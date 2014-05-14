@@ -16,8 +16,8 @@
 
 package org.gradle.runtime.jvm.internal;
 
-import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
+import org.gradle.runtime.jvm.artifact.JavadocArtifact;
+import org.gradle.runtime.jvm.artifact.SourcesArtifact;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.service.ServiceRegistration;

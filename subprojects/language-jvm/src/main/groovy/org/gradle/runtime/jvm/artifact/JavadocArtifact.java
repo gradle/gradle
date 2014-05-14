@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.runtime.jvm.artifact;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.component.Artifact;
 
 /**
- * Classes comprising the JVM library model for the artifact resolution API.
+ * An artifact containing Javadoc documentation.
+ *
+ * @since 2.0
  */
-// TODO:DAZ These should live with the rest of the Java language/platform stuff
-package org.gradle.api.artifacts.result.jvm;
+@Incubating
+public interface JavadocArtifact extends Artifact {
+}

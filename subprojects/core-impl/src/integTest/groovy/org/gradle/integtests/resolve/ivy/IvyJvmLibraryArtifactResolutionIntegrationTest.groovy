@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
-
-import org.gradle.api.artifacts.result.jvm.JavadocArtifact
-import org.gradle.api.artifacts.result.jvm.SourcesArtifact
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
@@ -46,7 +43,7 @@ repositories {
     }
 
     def "resolve sources artifacts"() {
-        fixture.requestingTypes(SourcesArtifact)
+        fixture.requestingSource()
                 .expectSourceArtifact("my-sources")
                 .prepare()
 
@@ -59,7 +56,7 @@ repositories {
     }
 
     def "resolve javadoc artifacts"() {
-        fixture.requestingTypes(JavadocArtifact)
+        fixture.requestingJavadoc()
                 .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
@@ -129,7 +126,7 @@ repositories {
 
     @Unroll
     def "fetches missing artifacts for module #condition"() {
-        fixture.requestingTypes(SourcesArtifact)
+        fixture.requestingSource()
                 .expectSourceArtifactNotFound("my-sources")
                 .prepare()
         buildFile << """
@@ -197,7 +194,7 @@ if (project.hasProperty('nocache')) {
 """
 
         final sourceArtifact = module.getArtifact(classifier: "my-sources")
-        fixture.requestingTypes(SourcesArtifact)
+        fixture.requestingSource()
                 .expectSourceArtifact("my-sources")
                 .prepare()
 
@@ -340,7 +337,7 @@ if (project.hasProperty('nocache')) {
         moduleWithMavenScheme.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.1")
-                .requestingTypes(SourcesArtifact, JavadocArtifact)
+                .requestingSource().requestingJavadoc()
                 .expectSourceArtifact("sources")
                 .prepare()
 

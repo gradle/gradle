@@ -15,18 +15,13 @@
  */
 
 package org.gradle.integtests.resolve
-
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.component.Artifact
-import org.gradle.api.artifacts.result.jvm.JavadocArtifact
-import org.gradle.api.artifacts.result.jvm.SourcesArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.test.fixtures.file.TestFile
-
 /**
  * A test fixture that injects a task into a build that uses the Artifact Query API to download some artifacts, validating the results.
  */
@@ -51,10 +46,16 @@ class JvmLibraryArtifactResolveTestFixture {
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture requestingTypes(Class<? extends Artifact>... artifactTypes) {
-        this.artifactTypes = artifactTypes as List
+    JvmLibraryArtifactResolveTestFixture requestingSource() {
+        this.artifactTypes << "SourcesArtifact"
         this
     }
+
+    JvmLibraryArtifactResolveTestFixture requestingJavadoc() {
+        this.artifactTypes << "JavadocArtifact"
+        this
+    }
+
 
     JvmLibraryArtifactResolveTestFixture clearExpectations() {
         this.unresolvedComponentFailure = null
@@ -211,9 +212,9 @@ task verify << {
 
     private String getArtifactTypesString() {
         if (artifactTypes.empty) {
-            return [SourcesArtifact, JavadocArtifact].collect({it.simpleName}).join(',')
+            return "SourcesArtifact,JavadocArtifact"
         }
-        return artifactTypes.collect({ it.simpleName }).join(',')
+        return artifactTypes.join(',')
     }
 }
 

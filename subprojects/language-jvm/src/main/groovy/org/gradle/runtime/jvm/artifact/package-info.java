@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.result.jvm;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.component.Artifact;
 
 /**
- * An artifact containing sources for a software component.
- *
- * @since 2.0
+ * Classes comprising artifacts of the JVM library model.
  */
-@Incubating
-public interface SourcesArtifact extends Artifact {
-}
+package org.gradle.runtime.jvm.artifact;
