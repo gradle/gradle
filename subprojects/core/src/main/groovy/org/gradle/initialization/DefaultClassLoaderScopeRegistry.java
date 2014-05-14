@@ -21,7 +21,6 @@ import org.gradle.api.internal.initialization.ClassLoaderCache;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.RootClassLoaderScope;
-import org.gradle.internal.Factories;
 
 public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry {
 
@@ -31,7 +30,7 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
     public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry) {
         ClassLoaderCache cache = new DefaultClassLoaderCache(CacheBuilder.newBuilder().<DefaultClassLoaderCache.Key, ClassLoader>build());
         this.coreImplScope = new RootClassLoaderScope(loaderRegistry.getCoreImplClassLoader(), cache);
-        this.gradleApiScope = coreImplScope.createChild().export(Factories.constant(loaderRegistry.getGradleApiClassLoader())).lock();
+        this.gradleApiScope = new RootClassLoaderScope(loaderRegistry.getGradleApiClassLoader(), cache);
     }
 
     public ClassLoaderScope getGradleApiScope() {
