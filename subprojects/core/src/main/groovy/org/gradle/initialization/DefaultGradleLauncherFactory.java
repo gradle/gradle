@@ -21,7 +21,6 @@ import org.gradle.StartParameter;
 import org.gradle.TaskExecutionLogger;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cache.CacheRepository;
@@ -98,7 +97,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
         loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
 
-        LoggerProvider loggerProvider = (tracker.getCurrentBuild() == null)? buildProgressLogger: LoggerProvider.NO_OP;
+        LoggerProvider loggerProvider = (tracker.getCurrentBuild() == null) ? buildProgressLogger : LoggerProvider.NO_OP;
         listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class), loggerProvider));
         if (tracker.getCurrentBuild() == null) {
             listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
@@ -123,8 +122,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
-                                serviceRegistry.get(ClassLoaderScope.class),
-                                serviceRegistry.get(CacheRepository.class))),
+                                serviceRegistry.get(ClassLoaderScopeRegistry.class).getGradleApiScope(),
+                                serviceRegistry.get(CacheRepository.class))
+                ),
                 serviceRegistry.get(BuildLoader.class),
                 serviceRegistry.get(BuildConfigurer.class),
                 gradle.getBuildListenerBroadcaster(),
@@ -134,6 +134,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 listenerManager.getBroadcaster(TasksCompletionListener.class),
                 gradle.getServices().get(BuildExecuter.class),
                 listenerManager.getBroadcaster(BuildCompletionListener.class),
-                serviceRegistry);
+                serviceRegistry
+        );
     }
 }

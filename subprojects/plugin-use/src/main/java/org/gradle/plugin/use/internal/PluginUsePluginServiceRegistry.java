@@ -25,9 +25,9 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.PasswordCredentials;
@@ -59,14 +59,14 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new PluginPortalClient(accessor);
         }
 
-        PluginPortalResolver createPluginPortalResolver(PluginPortalClient pluginPortalClient, Instantiator instantiator, StartParameter startParameter, final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoaderScope classLoaderScope) {
+        PluginPortalResolver createPluginPortalResolver(PluginPortalClient pluginPortalClient, Instantiator instantiator, StartParameter startParameter, final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoaderScopeRegistry classLoaderScopeRegistry) {
             final ProjectFinder projectFinder = new ProjectFinder() {
                 public ProjectInternal getProject(String path) {
                     throw new UnknownProjectException("Cannot use project dependencies in a plugin resolution definition.");
                 }
             };
 
-            return new PluginPortalResolver(pluginPortalClient, instantiator, startParameter, classLoaderScope, new Factory<DependencyResolutionServices>() {
+            return new PluginPortalResolver(pluginPortalClient, instantiator, startParameter, classLoaderScopeRegistry.getCoreImplScope(), new Factory<DependencyResolutionServices>() {
                 public DependencyResolutionServices create() {
                     return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, new BasicDomainObjectContext());
                 }

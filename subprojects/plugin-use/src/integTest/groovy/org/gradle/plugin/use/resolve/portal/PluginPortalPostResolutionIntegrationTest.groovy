@@ -127,7 +127,6 @@ class PluginPortalPostResolutionIntegrationTest extends AbstractIntegrationSpec 
         succeeds("verify")
     }
 
-    @NotYetImplemented
     def "plugin cannot access core Gradle plugin classes"() {
         portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
         publishPluginThatAccessesCorePluginClasses("myplugin", "my", "plugin", "1.0")
@@ -167,6 +166,7 @@ class PluginPortalPostResolutionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private void publishPluginThatAccessesCorePluginClasses(String pluginId, String group, String artifact, String version) {
+        executer.requireGradleHome()
         def module = portal.m2repo.module(group, artifact, version)
         module.allowAll()
         // why the heck does this fail with: java.lang.ClassCastException: java.util.LinkedHashMap cannot be cast to org.gradle.api.Project
