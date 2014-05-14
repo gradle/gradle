@@ -25,7 +25,13 @@ import org.junit.Rule
 
 class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
 
-    def pluginBuilder = new PluginBuilder(file("plugin"))
+    public static final String PLUGIN_ID = "org.myplugin"
+    public static final String VERSION = "1.0"
+    public static final String GROUP = "my"
+    public static final String ARTIFACT = "plugin"
+    public static final String USE = "plugins { id '$PLUGIN_ID' version '$VERSION' }"
+
+    def pluginBuilder = new PluginBuilder(file(ARTIFACT))
 
     @Rule
     PluginPortalTestServer portal = new PluginPortalTestServer(executer, mavenRepo)
@@ -36,13 +42,10 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "plugin is available via `plugins` container"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishPlugin("myplugin", "my", "plugin", "1.0")
+        publishPlugin()
 
         buildScript """
-            plugins {
-                id "myplugin" version "1.0"
-            }
+            $USE
 
             task verify << {
                 def foundByClass = false
@@ -56,13 +59,10 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "plugin class isn't visible to build script"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishPlugin("myplugin", "my", "plugin", "1.0")
+        publishPlugin()
 
         buildScript """
-            plugins {
-                id "myplugin" version "1.0"
-            }
+            $USE
 
             task verify << {
                 try {
@@ -77,55 +77,34 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "plugin can access Gradle API classes"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishPluginThatAccessesGradleApiClasses("myplugin", "my", "plugin", "1.0")
+        publishPlugin("assert project instanceof ${Project.name}; new ${AndSpec.name}()")
 
-        buildScript applyPlugin("myplugin", "1.0")
+        buildScript USE
 
         expect:
-        succeeds("verify")
+        succeeds("tasks")
     }
 
     def "plugin cannot access core Gradle plugin classes"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishPluginThatAccessesCorePluginClasses("myplugin", "my", "plugin", "1.0")
+        publishPlugin("getClass().getClassLoader().loadClass('org.gradle.api.plugins.JavaPlugin')")
 
-        buildScript applyPlugin("myplugin", "1.0")
+        buildScript USE
 
         expect:
-        fails("verify")
+        fails("tasks")
     }
 
-    private static String applyPlugin(String id, String version) {
-        """
-            plugins {
-                id "$id" version "$version"
-            }
-
-            task verify // no-op, but gives us a task to execute
-        """
+    void publishPlugin() {
+        publishPlugin("project.ext.pluginApplied = true; project.ext.pluginClass = getClass()")
     }
 
-    private void publishPlugin(String pluginId, String group, String artifact, String version) {
-        def module = portal.m2repo.module(group, artifact, version) // don't know why tests are failing if this module is publish()'ed
+    void publishPlugin(String impl) {
+        portal.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
+        def module = portal.m2repo.module(GROUP, ARTIFACT, VERSION)
         module.allowAll()
-        pluginBuilder.addPlugin("project.ext.pluginApplied = true; project.ext.pluginClass = getClass()", pluginId)
+
+        pluginBuilder.addPlugin(impl, PLUGIN_ID)
         pluginBuilder.publishTo(executer, module.artifactFile)
     }
 
-    private void publishPluginThatAccessesGradleApiClasses(String pluginId, String group, String artifact, String version) {
-        def module = portal.m2repo.module(group, artifact, version)
-        module.allowAll()
-        pluginBuilder.addPlugin("assert project instanceof ${Project.name}; new ${AndSpec.name}()", pluginId)
-        pluginBuilder.publishTo(executer, module.artifactFile)
-    }
-
-    private void publishPluginThatAccessesCorePluginClasses(String pluginId, String group, String artifact, String version) {
-        def module = portal.m2repo.module(group, artifact, version)
-        module.allowAll()
-        // why the heck does this fail with: java.lang.ClassCastException: java.util.LinkedHashMap cannot be cast to org.gradle.api.Project
-        // pluginBuilder.addPlugin("apply plugin: ${JavaPlugin.name}", pluginId)
-        pluginBuilder.addPlugin("getClass().getClassLoader().loadClass('org.gradle.api.plugins.JavaPlugin')", pluginId)
-        pluginBuilder.publishTo(executer, module.artifactFile)
-    }
 }
