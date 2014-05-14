@@ -77,21 +77,33 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "plugin can access Gradle API classes"() {
-        publishPlugin("assert project instanceof ${Project.name}; new ${AndSpec.name}()")
+        publishPlugin """
+            assert project instanceof ${Project.name}; new ${AndSpec.name}()
+            project.task("verify")
+        """
 
         buildScript USE
 
         expect:
-        succeeds("tasks")
+        succeeds("verify")
     }
 
     def "plugin cannot access core Gradle plugin classes"() {
-        publishPlugin("getClass().getClassLoader().loadClass('org.gradle.api.plugins.JavaPlugin')")
+        publishPlugin("""
+            try {
+                getClass().getClassLoader().loadClass('org.gradle.api.plugins.JavaPlugin')
+                assert false : "should have failed to load java plugin"
+            } catch (ClassNotFoundException ignore) {
+
+            }
+
+            project.task("verify")
+        """)
 
         buildScript USE
 
         expect:
-        fails("tasks")
+        succeeds("verify")
     }
 
     void publishPlugin() {
