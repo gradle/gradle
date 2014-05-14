@@ -8,5 +8,6 @@ ant: org.gradle.api.internal.project.DefaultAntBuilder@12345
 antBuilderFactory: org.gradle.api.internal.project.DefaultAntBuilderFactory@12345
 artifacts: org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler@12345
 asDynamicObject: org.gradle.api.internal.ExtensibleDynamicObject@12345
+baseClassLoaderScope: org.gradle.api.internal.initialization.DefaultClassLoaderScope@12345
 buildDir: /home/user/gradle/samples/userguide/tutorial/projectReports/api/build
 buildFile: /home/user/gradle/samples/userguide/tutorial/projectReports/api/build.gradle
