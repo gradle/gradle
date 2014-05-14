@@ -287,6 +287,16 @@ literal code</programlisting><para> does something.
         format(result.docbook) == '''<para><emphasis>text</emphasis></para>'''
     }
 
+    def convertsAStrongElementToAnEmphasisElement() {
+        _ * classMetaData.rawCommentText >> '<strong>text</strong>'
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '''<para><emphasis>text</emphasis></para>'''
+    }
+
     def convertsBAndIElementToAnEmphasisElement() {
         _ * classMetaData.rawCommentText >> '<i>text</i> <b>other</b>'
 
