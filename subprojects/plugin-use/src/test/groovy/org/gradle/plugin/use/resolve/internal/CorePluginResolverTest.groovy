@@ -18,7 +18,6 @@ package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.Plugin
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.groovy.scripts.StringScriptSource
@@ -37,7 +36,6 @@ class CorePluginResolverTest extends Specification {
 
     def docRegistry = Mock(DocumentationRegistry)
     def pluginRegistry = Mock(PluginRegistry)
-    def classLoaderScope = Mock(ClassLoaderScope)
 
     def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
 
@@ -58,7 +56,7 @@ class CorePluginResolverTest extends Specification {
         1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
 
         resolution instanceof SimplePluginResolution
-        resolution.resolve(classLoaderScope) == MyPlugin
+        resolution.resolve() == MyPlugin
     }
 
     def "can resolve qualified"() {
@@ -69,7 +67,7 @@ class CorePluginResolverTest extends Specification {
         1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
 
         resolution instanceof SimplePluginResolution
-        resolution.resolve(classLoaderScope) == MyPlugin
+        resolution.resolve() == MyPlugin
     }
 
     def "cannot have version number"() {

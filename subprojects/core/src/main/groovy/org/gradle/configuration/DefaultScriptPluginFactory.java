@@ -161,7 +161,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                     }
                 }
 
-                PluginRequestApplicator requestApplicator = pluginRequestApplicatorFactory.createRequestApplicator((PluginAware) target, exportedClassLoader, classLoaderScope);
+                PluginRequestApplicator requestApplicator = pluginRequestApplicatorFactory.createRequestApplicator((PluginAware) target);
                 for (PluginRequest pluginRequest : pluginRequests) {
                     requestApplicator.applyPlugin(pluginRequest);
                 }

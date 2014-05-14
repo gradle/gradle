@@ -17,13 +17,12 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 /**
  * The result of attempting to resolve a plugin to a classpath.
  */
 public interface PluginResolution {
 
-    Class<? extends Plugin> resolve(ClassLoaderScope classLoaderScope);
+    Class<? extends Plugin> resolve();
 
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use.internal;
 
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
@@ -28,9 +27,9 @@ public class DefaultPluginRequestApplicatorFactory implements PluginRequestAppli
         this.pluginResolverFactory = pluginResolverFactory;
     }
 
-    public PluginRequestApplicator createRequestApplicator(PluginAware target, ClassLoader searchClassLoader, ClassLoaderScope exposeToScope) {
-        PluginResolver pluginResolver = pluginResolverFactory.createPluginResolver(searchClassLoader);
-        PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator(target, exposeToScope);
+    public PluginRequestApplicator createRequestApplicator(PluginAware target) {
+        PluginResolver pluginResolver = pluginResolverFactory.createPluginResolver();
+        PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator(target);
         return new DefaultPluginRequestApplicator(pluginResolver, resolutionApplicator);
     }
 }

@@ -96,7 +96,6 @@ class PluginPortalPostResolutionIntegrationTest extends AbstractIntegrationSpec 
         succeeds("verify")
     }
 
-    @NotYetImplemented
     def "plugin class isn't visible to build script"() {
         portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
         publishPlugin("myplugin", "my", "plugin", "1.0")

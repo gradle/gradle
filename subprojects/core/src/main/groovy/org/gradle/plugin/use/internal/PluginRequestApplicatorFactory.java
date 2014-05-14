@@ -16,11 +16,10 @@
 
 package org.gradle.plugin.use.internal;
 
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.PluginAware;
 
 public interface PluginRequestApplicatorFactory {
 
-    PluginRequestApplicator createRequestApplicator(PluginAware target, ClassLoader searchClassLoader, ClassLoaderScope exposeToScope);
+    PluginRequestApplicator createRequestApplicator(PluginAware target);
 
 }

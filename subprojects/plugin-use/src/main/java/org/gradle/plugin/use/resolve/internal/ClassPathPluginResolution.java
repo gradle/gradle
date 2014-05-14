@@ -25,21 +25,25 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.internal.PluginId;
 
+import java.net.URLClassLoader;
+
 public class ClassPathPluginResolution implements PluginResolution {
 
     private final PluginId pluginId;
     private final Instantiator instantiator;
+    private final ClassLoaderScope parent;
     private final Factory<? extends ClassPath> classPathFactory;
 
-    public ClassPathPluginResolution(Instantiator instantiator, PluginId pluginId, Factory<? extends ClassPath> classPathFactory) {
+    public ClassPathPluginResolution(Instantiator instantiator, PluginId pluginId, ClassLoaderScope parent, Factory<? extends ClassPath> classPathFactory) {
         this.pluginId = pluginId;
         this.instantiator = instantiator;
+        this.parent = parent;
         this.classPathFactory = classPathFactory;
     }
 
-    public Class<? extends Plugin> resolve(ClassLoaderScope classLoaderScope) {
+    public Class<? extends Plugin> resolve() {
         ClassPath classPath = classPathFactory.create();
-        ClassLoader classLoader = classLoaderScope.addLocal(classPath);
+        ClassLoader classLoader = new URLClassLoader(classPath.getAsURLArray(), parent.getChildClassLoader());
         PluginRegistry pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator);
         return pluginRegistry.getTypeForId(pluginId.toString());
     }

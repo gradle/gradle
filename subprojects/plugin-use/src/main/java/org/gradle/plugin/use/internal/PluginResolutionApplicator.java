@@ -18,22 +18,19 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 
 public class PluginResolutionApplicator implements Action<PluginResolution> {
 
     private final PluginAware target;
-    private final ClassLoaderScope classLoaderScope;
 
-    public PluginResolutionApplicator(PluginAware target, ClassLoaderScope classLoaderScope) {
+    public PluginResolutionApplicator(PluginAware target) {
         this.target = target;
-        this.classLoaderScope = classLoaderScope;
     }
 
     public void execute(PluginResolution pluginResolution) {
-        Class<? extends Plugin> pluginClass = pluginResolution.resolve(classLoaderScope);
+        Class<? extends Plugin> pluginClass = pluginResolution.resolve();
         target.getPlugins().apply(pluginClass);
     }
 }

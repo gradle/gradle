@@ -17,7 +17,6 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
@@ -27,7 +26,7 @@ public class NoopPluginResolver implements PluginResolver {
 
     public PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException {
         if (pluginRequest.getId().equals(DefaultScriptPluginFactory.NOOP_PLUGIN_ID)) {
-            return new NoopPluginResolution();
+            return new SimplePluginResolution(NoopPlugin.class);
         } else {
             return null;
         }
@@ -43,9 +42,4 @@ public class NoopPluginResolver implements PluginResolver {
         }
     }
 
-    private static class NoopPluginResolution implements PluginResolution {
-        public Class<? extends Plugin> resolve(ClassLoaderScope classLoaderScope) {
-            return NoopPlugin.class;
-        }
-    }
 }

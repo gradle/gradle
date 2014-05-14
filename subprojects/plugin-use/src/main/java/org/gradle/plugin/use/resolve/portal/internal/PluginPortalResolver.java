@@ -31,15 +31,18 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.SubVersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeMatcher;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.use.resolve.internal.*;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
+import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.io.File;
 import java.util.Set;
@@ -57,16 +60,18 @@ public class PluginPortalResolver implements PluginResolver {
     private final Instantiator instantiator;
     private final StartParameter startParameter;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
+    private final ClassLoaderScope parentScope;
 
     public PluginPortalResolver(
             PluginPortalClient portalClient,
             Instantiator instantiator,
             StartParameter startParameter,
-            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory
+            ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory
     ) {
         this.portalClient = portalClient;
         this.instantiator = instantiator;
         this.startParameter = startParameter;
+        this.parentScope = parentScope;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
     }
 
@@ -84,7 +89,7 @@ public class PluginPortalResolver implements PluginResolver {
         }
 
         ClassPath classPath = resolvePluginDependencies(metaData);
-        return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), Factories.constant(classPath));
+        return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
     }
 
     // validates request against current limitations
