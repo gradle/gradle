@@ -19,7 +19,7 @@ import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import spock.lang.Issue
 
-import static org.gradle.api.internal.artifacts.ivyservice.ArtifactType.MAVEN_POM
+import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 
 class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescriptorParserTest {

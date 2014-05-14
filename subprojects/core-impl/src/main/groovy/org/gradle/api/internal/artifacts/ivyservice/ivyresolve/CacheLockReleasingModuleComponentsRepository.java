@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.component.ArtifactType;
 
 /**
  * A wrapper around a {@link ModuleComponentRepository} that handles releasing the cache lock before making remote calls.

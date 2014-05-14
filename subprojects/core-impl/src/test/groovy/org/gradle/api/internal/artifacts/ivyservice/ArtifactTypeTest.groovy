@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.api.internal.component.ArtifactType
 import spock.lang.Specification
 
 class ArtifactTypeTest extends Specification {

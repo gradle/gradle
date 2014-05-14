@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
+import org.gradle.api.internal.component.ArtifactType;
 
 import java.util.Set;
 

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.*
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData
+import org.gradle.api.internal.component.ArtifactType
 import spock.lang.Specification
 
 class ErrorHandlingArtifactResolverTest extends Specification {

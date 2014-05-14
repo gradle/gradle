@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactType;
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 
 /**

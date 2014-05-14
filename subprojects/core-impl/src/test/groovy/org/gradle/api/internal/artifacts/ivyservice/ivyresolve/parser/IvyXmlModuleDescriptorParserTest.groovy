@@ -29,7 +29,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.ivyservice.ArtifactType.IVY_DESCRIPTOR
+import static org.gradle.api.internal.component.ArtifactType.IVY_DESCRIPTOR
 import static org.junit.Assert.*
 
 class IvyXmlModuleDescriptorParserTest extends Specification {

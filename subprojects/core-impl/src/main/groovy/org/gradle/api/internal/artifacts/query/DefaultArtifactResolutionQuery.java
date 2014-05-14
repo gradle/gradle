@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.*;
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
 import org.gradle.util.CollectionUtils;
