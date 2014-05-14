@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.component.Artifact;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactType;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -24,10 +24,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
 
@@ -50,8 +49,8 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         return dynamicResolve;
     }
 
-    protected boolean isMetaDataArtifact(Class<? extends Artifact> artifactType) {
-        return artifactType == IvyDescriptorArtifact.class;
+    protected boolean isMetaDataArtifact(ArtifactType artifactType) {
+        return artifactType == ArtifactType.IVY_DESCRIPTOR;
     }
 
     @Override

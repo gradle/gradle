@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.result.metadata;
+package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.component.Artifact;
+import spock.lang.Specification
 
-public interface MavenPomArtifact extends Artifact {
+class ArtifactTypeTest extends Specification {
+    def "have sensible toString values"() {
+        expect:
+        ArtifactType.SOURCES.toString() == "'sources' artifacts"
+        ArtifactType.JAVADOC.toString() == "'javadoc' artifacts"
+        ArtifactType.IVY_DESCRIPTOR.toString() == "'ivy descriptor' artifacts"
+        ArtifactType.MAVEN_POM.toString() == "'maven pom' artifacts"
+    }
 }

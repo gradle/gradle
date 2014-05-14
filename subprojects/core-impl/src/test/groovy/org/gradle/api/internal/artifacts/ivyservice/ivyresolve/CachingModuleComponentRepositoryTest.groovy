@@ -119,7 +119,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def component = Mock(ComponentMetaData)
         def source = Mock(ModuleSource)
         def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
-        def artifactType = Mock(ArtifactType)
+        def artifactType = ArtifactType.JAVADOC
         def result = new DefaultBuildableArtifactSetResolveResult()
 
         when:

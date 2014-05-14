@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.component.Artifact;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactType;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 
 /**
@@ -26,7 +26,7 @@ import org.gradle.internal.resource.LocallyAvailableExternalResource;
  */
 public class DisconnectedDescriptorParseContext implements DescriptorParseContext {
 
-    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, Class<? extends Artifact> artifactType) {
+    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, ArtifactType artifactType) {
         throw new UnsupportedOperationException();
     }
 

@@ -21,7 +21,6 @@ import org.apache.ivy.plugins.matcher.GlobPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
-import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,6 +29,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.ivyservice.ArtifactType.IVY_DESCRIPTOR
 import static org.junit.Assert.*
 
 class IvyXmlModuleDescriptorParserTest extends Specification {
@@ -244,7 +244,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 </ivy-module>
 """
         and:
-        parseContext.getMetaDataArtifact(_, IvyDescriptorArtifact.class) >> new DefaultLocallyAvailableExternalResource(parentFile.toURI(), new DefaultLocallyAvailableResource(parentFile))
+        parseContext.getMetaDataArtifact(_, IVY_DESCRIPTOR) >> new DefaultLocallyAvailableExternalResource(parentFile.toURI(), new DefaultLocallyAvailableResource(parentFile))
 
         when:
         ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor

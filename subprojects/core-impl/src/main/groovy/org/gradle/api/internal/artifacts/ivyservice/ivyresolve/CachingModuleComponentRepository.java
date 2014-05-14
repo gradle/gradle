@@ -340,7 +340,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private String cacheKey(ArtifactType artifactType) {
-        return "artifacts:" + artifactType.getType().getName();
+        return "artifacts:" + artifactType.name();
     }
 
     private String cacheKey(ComponentUsage context) {

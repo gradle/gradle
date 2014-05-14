@@ -62,7 +62,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def failure = new RuntimeException("foo")
 
         when:
-        def artifactType = Mock(ArtifactType)
+        def artifactType = ArtifactType.JAVADOC
         delegate.resolveModuleArtifacts(component, artifactType, result) >> { throw failure }
 
         and:

@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.component.Artifact;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactType;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 
 public interface DescriptorParseContext {
-    LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, Class<? extends Artifact> artifactType);
+    LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, ArtifactType artifactType);
 }

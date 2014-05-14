@@ -25,13 +25,12 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
-import org.gradle.api.component.Artifact;
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactType;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
-import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,7 +145,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
 
             public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
                 try {
-                    result.resolved(getCandidateArtifacts((ModuleVersionMetaData) component, artifactType.getType()));
+                    result.resolved(getCandidateArtifacts((ModuleVersionMetaData) component, artifactType));
                 } catch (Exception e) {
                     result.failed(new ArtifactResolveException(component.getComponentId(), e));
                 }
@@ -182,21 +181,18 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRe
 
 
 
-    private Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends Artifact> artifactType) {
-        if (artifactType == IvyDescriptorArtifact.class) {
-            org.apache.ivy.core.module.descriptor.Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
-            return ImmutableSet.of(module.artifact(metadataArtifact));
+    private Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, ArtifactType artifactType) {
+        switch (artifactType) {
+            case IVY_DESCRIPTOR:
+                org.apache.ivy.core.module.descriptor.Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
+                return ImmutableSet.of(module.artifact(metadataArtifact));
+            case SOURCES:
+                return createArtifactMetaData(module, "javadoc", "javadoc");
+            case JAVADOC:
+                return createArtifactMetaData(module, "source", "sources");
+            default:
+                throw new IllegalArgumentException(String.format("Cannot find %s in %s", artifactType, module));
         }
-
-        if (artifactType == JavadocArtifact.class) {
-            return createArtifactMetaData(module, "javadoc", "javadoc");
-        }
-
-        if (artifactType == SourcesArtifact.class) {
-            return createArtifactMetaData(module, "source", "sources");
-        }
-
-        throw new IllegalArgumentException(String.format("Cannot find artifacts of type %s in %s", artifactType.getName(), module));
     }
 
     private Set<ModuleVersionArtifactMetaData> createArtifactMetaData(ModuleVersionMetaData module, String type, String classifier) {

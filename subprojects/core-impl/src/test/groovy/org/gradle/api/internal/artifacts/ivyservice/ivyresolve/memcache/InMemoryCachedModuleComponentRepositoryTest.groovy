@@ -140,7 +140,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
 
     def "delegates request for module artifacts by type"() {
         def moduleMetaData = Stub(ModuleVersionMetaData)
-        def artifactType = Stub(ArtifactType)
+        def artifactType = ArtifactType.JAVADOC
         def result = Mock(BuildableArtifactSetResolveResult)
 
         when:

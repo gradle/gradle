@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.result.*;
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
@@ -120,7 +122,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
     private <T extends Artifact> void addArtifacts(DefaultResolvedComponentArtifactsResult artifacts, Class<T> type, ComponentMetaData component, ArtifactResolver artifactResolver) {
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        artifactResolver.resolveModuleArtifacts(component, new DefaultArtifactType(type), artifactSetResolveResult);
+        artifactResolver.resolveModuleArtifacts(component, convertType(type), artifactSetResolveResult);
 
         for (ComponentArtifactMetaData artifactMetaData : artifactSetResolveResult.getArtifacts()) {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
@@ -131,5 +133,15 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                 artifacts.addArtifact(new DefaultResolvedArtifactResult(type, resolveResult.getFile()));
             }
         }
+    }
+
+    private <T extends Artifact> ArtifactType convertType(Class<T> requestedType) {
+        if (requestedType == SourcesArtifact.class) {
+            return ArtifactType.SOURCES;
+        }
+        if (requestedType == JavadocArtifact.class) {
+            return ArtifactType.JAVADOC;
+        }
+        throw new IllegalArgumentException("Not a valid type for components of type " + componentType);
     }
 }

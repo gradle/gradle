@@ -27,9 +27,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.component.Artifact;
-import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactType;
@@ -41,12 +38,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Descriptor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
-import org.gradle.internal.SystemProperties;
-import org.gradle.internal.resource.local.FileStore;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -260,7 +257,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
     }
 
-    protected abstract boolean isMetaDataArtifact(Class<? extends Artifact> artifactType);
+    protected abstract boolean isMetaDataArtifact(ArtifactType artifactType);
 
     protected Set<ModuleVersionArtifactMetaData> findOptionalArtifacts(ModuleVersionMetaData module, String type, String classifier) {
         ModuleVersionArtifactMetaData artifact = module.artifact(type, "jar", classifier);
@@ -440,11 +437,11 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             ModuleVersionMetaData moduleMetaData = (ModuleVersionMetaData) component;
 
-            if (artifactType.getType() == JavadocArtifact.class) {
+            if (artifactType == ArtifactType.JAVADOC) {
                 resolveJavadocArtifacts(moduleMetaData, result);
-            } else if (artifactType.getType() == SourcesArtifact.class) {
+            } else if (artifactType == ArtifactType.SOURCES) {
                 resolveSourceArtifacts(moduleMetaData, result);
-            } else if (isMetaDataArtifact(artifactType.getType())) {
+            } else if (isMetaDataArtifact(artifactType)) {
                 resolveMetaDataArtifacts(moduleMetaData, result);
             }
         }

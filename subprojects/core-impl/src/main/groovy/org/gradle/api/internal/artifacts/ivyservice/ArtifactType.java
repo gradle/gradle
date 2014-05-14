@@ -15,8 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.component.Artifact;
+import org.gradle.util.GUtil;
 
-public interface ArtifactType {
-    Class<? extends Artifact> getType();
+public enum ArtifactType {
+    SOURCES, JAVADOC, IVY_DESCRIPTOR, MAVEN_POM;
+
+    public String toString() {
+        return String.format("'%s' artifacts", GUtil.toWords(name()));
+    }
 }

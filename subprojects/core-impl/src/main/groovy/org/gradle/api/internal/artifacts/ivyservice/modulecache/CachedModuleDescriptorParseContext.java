@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.component.Artifact;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactType;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 
@@ -26,7 +26,7 @@ import org.gradle.internal.resource.LocallyAvailableExternalResource;
  * Will only be used for parsing ivy.xml files, as pom files are converted before caching.
  */
 class CachedModuleDescriptorParseContext implements DescriptorParseContext {
-    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, Class<? extends Artifact> artifactType) {
+    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, ArtifactType artifactType) {
         throw new UnsupportedOperationException();
     }
 }
