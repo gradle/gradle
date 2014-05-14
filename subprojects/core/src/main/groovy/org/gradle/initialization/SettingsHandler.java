@@ -48,8 +48,16 @@ public class SettingsHandler {
         ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter);
 
         if (!spec.containsProject(settings.getProjectRegistry())) {
-            // The settings we found did not include the desired default project. Try again with an empty settings file.
+            // The settings we found did not include the desired default project
+            // and the desired default project is the settings directory
+            // So execute the root project instead.
+            if (spec.isCorresponding(settings.getSettingsDir())) {
+                startParameter.setProjectDir(settings.getRootProject().getProjectDir());
+                startParameter.setBuildFile(settings.getRootProject().getBuildFile());
+                return settings;
+            }
 
+            // The settings we found did not include the desired default project. Try again with an empty settings file.
             StartParameter noSearchParameter = startParameter.newInstance();
             noSearchParameter.useEmptySettings();
             settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);

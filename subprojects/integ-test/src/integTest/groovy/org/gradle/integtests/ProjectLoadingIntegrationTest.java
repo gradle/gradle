@@ -148,7 +148,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void settingsFileTakesPrecedenceOverBuildFileInSameDirectory() {
         testFile("settings.gradle").write("rootProject.buildFileName = 'root.gradle'");
         testFile("root.gradle").write("task('do-stuff')");
-        
+
         TestFile buildFile = testFile("build.gradle");
         buildFile.write("throw new RuntimeException()");
 
@@ -243,5 +243,29 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         usingProjectDir(getTestDirectory()).usingSettingsFile(settingsFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff");
         usingBuildFile(rootBuildFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff");
         usingBuildFile(childBuildFile).usingSettingsFile(settingsFile).withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
+    }
+
+    @Test
+    public void subprojectTasksTaskIsRunnable() {
+        TestFile settingsFile = testFile("settings.gradle");
+        settingsFile.writelns(
+            "include 'sub'",
+            "project(':sub').projectDir = new File(settingsDir, 'root/sub')"
+        );
+
+        inTestDirectory().withTasks(":sub:tasks").run().assertTasksExecuted(":sub:tasks");
+    }
+
+    @Test
+    public void subprojectTasksTaskIsRunnableWhenRootProjectProjectDirIsChanged() {
+        TestFile settingsFile = testFile("settings.gradle");
+        settingsFile.writelns(
+            "rootProject.projectDir = new File(settingsDir, 'root')",
+            "include 'sub'",
+            "project(':sub').projectDir = new File(settingsDir, 'root/sub')"
+        );
+
+        getTestDirectory().createDir("root").createFile("build.gradle");
+        inTestDirectory().withTasks(":sub:tasks").run().assertTasksExecuted(":sub:tasks");
     }
 }
