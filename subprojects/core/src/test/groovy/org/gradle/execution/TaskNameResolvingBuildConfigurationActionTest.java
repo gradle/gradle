@@ -15,9 +15,13 @@
  */
 package org.gradle.execution;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.StartParameter;
+import org.gradle.TaskParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
@@ -27,6 +31,7 @@ import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
+import org.gradle.internal.DefaultTaskParameter;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
@@ -36,8 +41,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.util.WrapUtil.*;
@@ -82,8 +89,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task3 = task("other");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList("name")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters("name")));
 
             one(resolver).selectAll("name", project);
             will(returnValue(tasks(task1, task2, task3)));
@@ -121,8 +128,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         tasks.add(task("other"));
 
         context.checking(new Expectations() {{
-            one(startParameter).getTaskNames();
-            will(returnValue(toList(pattern)));
+            one(startParameter).getTaskParameters();
+            will(returnValue(toParameters(pattern)));
 
             one(resolver).selectAll(pattern, project);
             will(returnValue(tasks(tasks)));
@@ -139,8 +146,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task2 = task("a");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList("a:b")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters("a:b")));
 
             one(project).getChildProjects();
             will(returnValue(toMap("a", otherProject)));
@@ -159,8 +166,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task2 = task("a");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList(":b")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters(":b")));
 
             one(project).getRootProject();
             will(returnValue(rootProject));
@@ -179,8 +186,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task2 = task("a");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList(":a:b")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters(":a:b")));
 
             one(project).getRootProject();
             will(returnValue(rootProject));
@@ -201,8 +208,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task2 = task("other");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList("anotherProject:soTa")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters("anotherProject:soTa")));
 
             one(project).getChildProjects();
             will(returnValue(toMap("anotherProject", otherProject)));
@@ -221,8 +228,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task2 = task("other");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList("anPr:soTa")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters("anPr:soTa")));
 
             one(project).getChildProjects();
             will(returnValue(toMap("anotherProject", otherProject)));
@@ -241,8 +248,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task2 = task("someTasks");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList("soTa")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters("soTa")));
 
             one(resolver).selectAll("soTa", project);
             will(returnValue(tasks(task1, task2)));
@@ -264,8 +271,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task4 = task("other");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList("ssomeTask")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters("ssomeTask")));
 
             one(resolver).selectAll("ssomeTask", project);
             will(returnValue(tasks(task1, task2, task3, task4)));
@@ -285,8 +292,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task2 = task("name2");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList("child:name1", "name2")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters("child:name1", "name2")));
 
             one(project).getChildProjects();
             will(returnValue(toMap("child", otherProject)));
@@ -315,8 +322,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task2 = task("name2");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList("name1", "--all", "name2")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters("name1", "--all", "name2")));
 
             one(resolver).selectAll("name1", project);
             will(returnValue(tasks(task1)));
@@ -345,8 +352,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task2 = task("t2");
 
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList("b3")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters("b3")));
 
             one(resolver).selectAll("b3", project);
             will(returnValue(tasks(task1, task2)));
@@ -363,8 +370,8 @@ public class TaskNameResolvingBuildConfigurationActionTest {
     @Test
     public void failsWhenCannotFindProjectInPath() {
         context.checking(new Expectations() {{
-            allowing(startParameter).getTaskNames();
-            will(returnValue(toList("a:b", "name2")));
+            allowing(startParameter).getTaskParameters();
+            will(returnValue(toParameters("a:b", "name2")));
 
             one(project).getChildProjects();
             will(returnValue(GUtil.map("aa", otherProject, "ab", otherProject)));
@@ -376,6 +383,17 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("Project 'a' is ambiguous in [project]. Candidates are: 'aa', 'ab'."));
         }
+    }
+
+    private List<TaskParameter> toParameters(String ... parameters) {
+        return Lists.newArrayList(Iterables.transform(
+                Lists.newArrayList(parameters),
+                new Function<String, TaskParameter>() {
+                    @Nullable
+                    public TaskParameter apply(@Nullable String input) {
+                        return new DefaultTaskParameter(input);
+                    }
+                }));
     }
 
     private Task task(String name) {
