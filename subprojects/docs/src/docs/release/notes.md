@@ -332,17 +332,23 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 
 - Package structure has changed, with many public classes being moved.
 
-### Support for the Gradle Open API removed
+### Support for the deprecated Gradle Open API removed
 
 - `GradleRunnerFactory` removed.
 - `UIFactory` removed.
 - `ExternalUtility` removed.
 
-### Removed Deprecated Plugins
+### Removed deprecated plugins
 
 - `code-quality` plugin replaced by `checkstyle` and `codenarc`.
 
-### Removed Deprecated Classes
+### Removed deprecated command line options
+
+- `--cache` and `-C` replaced with `--refresh-dependencies`, `--recompile-scripts` or `--rerun-tasks`.
+- `--no-opt` replaced with `--rerun-tasks`.
+- `--refresh` replaced with `--refresh-dependencies`.
+
+### Removed deprecated classes
 
 - `GradleLauncher` replaced by the tooling API.
 - `Compile` replaced by `JavaCompile`.
@@ -352,8 +358,10 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `JavaCodeQualityPluginConvention` with no replacement.
 - `IllegalOperationAtExecutionTimeException` with no replacement.
 - `AntJavadoc` with no replacement.
+- `org.gradle.RefreshOptions` with no replacement.
+- `org.gradle.tooling.model.eclipse.EclipseTask` with no replacement.
 
-### Removed Deprecated Methods
+### Removed deprecated methods
 
 - `Project.dir()` replaced with `mkdir()`
 - `Project.dependsOn()` replaced with task dependencies.
@@ -370,10 +378,17 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `Test.setTestReportDir()` replaced with `getReports().getHtml().setDestination()`.
 - `CompileOptions.getFailOnError()` replaced with `isFailOnError()`
 - `CompileOptions.getDebug()` replaced with `isDebug()`
+- `StartParameter.getCacheUsage()` replaced with `isRecompileScripts()` and `isRerunTasks()` and `isRefreshDependencies()`.
+- `StartParameter.setCacheUsage()` replaced with `setRecompileScripts()` and `setRerunTasks()` and `setRefreshDependencies()`.
+- `StartParameter.isNoOpt()` replaced with `isRerunTasks()`.
+- `StartParameter.setNoOpt()` replaced with `setRerunTasks()`.
+- `StartParameter.getRefreshOptions()` replaced with `getRefreshDependencies()`.
+- `StartParameter.setRefreshOptions()` replaced with `setRefreshDependencies()`.
+- `StartParameter.useEmptySettingsScript()` replaced with `useEmptySettings()`.
 - `StartParameter.getMergedSystemProperties()` with no replacement.
 - `Specs.filterIterable()` with no replacement.
 
-### Removed Deprecated Properties
+### Removed deprecated properties
 
 - `CompileOptions.compiler` replaced with `CompileOptions.fork` and `CompileOptions.forkOptions.executable`
 - `CompileOptions.useAnt` with no replacement.

@@ -42,7 +42,6 @@ class StartParameterTest extends Specification {
         parameter.systemPropertiesArgs = [b: 'b']
         parameter.gradleUserHomeDir = new File('b')
         parameter.initScripts = [new File('init script'), new File("/path/to/another init script")]
-        parameter.cacheUsage = CacheUsage.ON
         parameter.logLevel = LogLevel.WARN
         parameter.colorOutput = false
         parameter.continueOnFailure = true
@@ -109,7 +108,6 @@ class StartParameterTest extends Specification {
         parameter.systemPropertiesArgs.isEmpty()
         !parameter.dryRun
         !parameter.continueOnFailure
-        parameter.refreshOptions == RefreshOptions.NONE
         !parameter.rerunTasks
         !parameter.recompileScripts
         !parameter.refreshDependencies
@@ -258,7 +256,6 @@ class StartParameterTest extends Specification {
 
         // Copied properties
         parameter.gradleUserHomeDir = new File("home")
-        parameter.cacheUsage = CacheUsage.REBUILD
         parameter.logLevel = LogLevel.DEBUG
         parameter.colorOutput = false
         parameter.configureOnDemand = true
@@ -285,7 +282,6 @@ class StartParameterTest extends Specification {
 
         newParameter.configureOnDemand == parameter.configureOnDemand
         newParameter.gradleUserHomeDir == parameter.gradleUserHomeDir
-        newParameter.cacheUsage == parameter.cacheUsage
         newParameter.logLevel == parameter.logLevel
         newParameter.colorOutput == parameter.colorOutput
         newParameter.continueOnFailure == parameter.continueOnFailure

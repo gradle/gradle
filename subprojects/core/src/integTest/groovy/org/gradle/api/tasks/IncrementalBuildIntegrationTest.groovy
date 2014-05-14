@@ -129,8 +129,8 @@ b.outputFile = file('new-output.txt')
         outputFileB = testFile('new-output.txt')
         outputFileB.assertIsFile()
 
-        // Run with --no-opt command-line options
-        inTestDirectory().withTasks('b').withArguments('--no-opt').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+        // Run with --rerun-tasks command-line options
+        inTestDirectory().withTasks('b').withArguments('--rerun-tasks').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
 
         // Output files already exist before using this version of Gradle
         // delete .gradle dir to simulate this

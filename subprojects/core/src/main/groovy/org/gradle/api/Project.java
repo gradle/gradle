@@ -791,7 +791,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     FileTree zipTree(Object zipPath);
 
-
     /**
      * Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path can be:
      * <ul>

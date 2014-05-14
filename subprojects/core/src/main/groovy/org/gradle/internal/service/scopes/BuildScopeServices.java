@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -148,7 +149,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         DefaultCacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(), GradleVersion.current());
         return new DefaultCacheRepository(
                 scopeMapping,
-                startParameter.getCacheUsage(),
+                CacheUsage.ON,
                 factory);
     }
 
