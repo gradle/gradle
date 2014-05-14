@@ -133,8 +133,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
 
-            if (!classpathConfiguration.getDependencies().isEmpty()) {
-                Set<File> files = classpathConfiguration.getFiles();
+            Set<File> files = classpathConfiguration.getFiles();
+            if (!files.isEmpty()) {
                 ClassPath classPath = new DefaultClassPath(files);
                 Factory<? extends ClassLoader> loader = targetScope.getParent().loader(classPath);
                 targetScope.export(loader);
