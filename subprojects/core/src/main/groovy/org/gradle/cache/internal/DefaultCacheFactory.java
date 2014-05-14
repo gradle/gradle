@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.filelock.LockOptions;
@@ -45,10 +44,10 @@ public class DefaultCacheFactory implements CacheFactory {
     void onClose(Object cache) {
     }
 
-    public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
         lock.lock();
         try {
-            return doOpen(cacheDir, displayName, usage, cacheValidator, properties, lockOptions, initializer);
+            return doOpen(cacheDir, displayName, cacheValidator, properties, lockOptions, initializer);
         } finally {
             lock.unlock();
         }
@@ -73,18 +72,15 @@ public class DefaultCacheFactory implements CacheFactory {
         }
     }
 
-    private PersistentCache doOpen(File cacheDir, String displayName, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> action) {
+    private PersistentCache doOpen(File cacheDir, String displayName, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> action) {
         File canonicalDir = GFileUtils.canonicalise(cacheDir);
         DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
         if (dirCacheReference == null) {
-            ReferencablePersistentCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, lockOptions, action, lockManager);
+            ReferencablePersistentCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, validator, properties, lockOptions, action, lockManager);
             cache.open();
-            dirCacheReference = new DirCacheReference(cache, properties, lockOptions, usage == CacheUsage.REBUILD);
+            dirCacheReference = new DirCacheReference(cache, properties, lockOptions);
             dirCaches.put(canonicalDir, dirCacheReference);
         } else {
-            if (usage == CacheUsage.REBUILD && !dirCacheReference.rebuild) {
-                throw new IllegalStateException(String.format("Cannot rebuild cache '%s' as it is already open.", cacheDir));
-            }
             if (!lockOptions.equals(dirCacheReference.lockOptions)) {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different options.", cacheDir));
             }
@@ -104,7 +100,7 @@ public class DefaultCacheFactory implements CacheFactory {
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockOptions, lockManager);
             cache.open();
-            dirCacheReference = new DirCacheReference(cache, Collections.<String, Object>emptyMap(), lockOptions, false);
+            dirCacheReference = new DirCacheReference(cache, Collections.<String, Object>emptyMap(), lockOptions);
             dirCaches.put(canonicalDir, dirCacheReference);
         }
         return new ReferenceTrackingCache(dirCacheReference);
@@ -115,13 +111,11 @@ public class DefaultCacheFactory implements CacheFactory {
         private final LockOptions lockOptions;
         private final ReferencablePersistentCache cache;
         private final Set<ReferenceTrackingCache> references = new HashSet<ReferenceTrackingCache>();
-        private final boolean rebuild;
 
-        public DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, LockOptions lockOptions, boolean rebuild) {
+        public DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, LockOptions lockOptions) {
             this.cache = cache;
             this.properties = properties;
             this.lockOptions = lockOptions;
-            this.rebuild = rebuild;
             onOpen(cache);
         }
 

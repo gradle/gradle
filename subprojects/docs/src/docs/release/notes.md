@@ -360,6 +360,7 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `AntJavadoc` with no replacement.
 - `org.gradle.RefreshOptions` with no replacement.
 - `org.gradle.tooling.model.eclipse.EclipseTask` with no replacement.
+- `org.gradle.CacheUsage` with no replacement.
 
 ### Removed deprecated methods
 
