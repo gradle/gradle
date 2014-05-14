@@ -32,41 +32,43 @@ class PluginPortalClientTest extends Specification {
         getId() >> PluginId.of("foo")
     }
 
-    def "returns metadata "() {
+    def "returns plugin metadata for successful query"() {
         given:
-        def data = new PluginUseMetaData(id: "foo", version: "bar", implementation: [gav: "foo:bar:baz", repo: "http://repo.com"], implementationType: PluginUseMetaData.M2_JAR)
+        def metaData = new PluginUseMetaData(id: "foo", version: "bar", implementation: [gav: "foo:bar:baz", repo: "http://repo.com"], implementationType: PluginUseMetaData.M2_JAR)
 
         when:
-        stubResponse(200, toString(data))
+        stubResponse(200, toJson(metaData))
 
         then:
-        client.queryPluginMetadata(request, "http://plugin.portal") == data
+        client.queryPluginMetadata(request, "http://plugin.portal") == metaData
     }
 
-    def "plugin metadata query barks if portal returns a status code other than 200"() {
+    def "returns error response for unsuccessful query"() {
+        def errorResponse = new ErrorResponse("INTERNAL_SERVER_ERROR", "Not feeling well today")
+
         when:
-        stubResponse(404)
+        stubResponse(500, toJson(errorResponse))
         client.queryPluginMetadata(request, "http://plugin.portal")
 
         then:
         def e = thrown(GradleException)
-        e.message == "Plugin portal returned HTTP status code: 404"
+        e.message == "Plugin portal returned HTTP 500 with message 'Not feeling well today'."
     }
 
-    private void stubResponse(int statusCode, String json = null) {
+    private void stubResponse(int statusCode, String jsonResponse = null) {
         interaction {
-            resourceAccessor.getResource(_) >> Stub(HttpResponseResource) {
+            resourceAccessor.getRawResource(_) >> Stub(HttpResponseResource) {
                 getStatusCode() >> statusCode
-                if (json != null) {
+                if (jsonResponse != null) {
                     withContent(_) >> { Transformer<PluginUseMetaData, InputStream> action ->
-                        action.transform(new ByteArrayInputStream(json.getBytes("utf8")))
+                        action.transform(new ByteArrayInputStream(jsonResponse.getBytes("utf8")))
                     }
                 }
             }
         }
     }
 
-    String toString(PluginUseMetaData pluginUseMetaData) {
-        new Gson().toJson(pluginUseMetaData)
+    private String toJson(Object object) {
+        new Gson().toJson(object)
     }
 }

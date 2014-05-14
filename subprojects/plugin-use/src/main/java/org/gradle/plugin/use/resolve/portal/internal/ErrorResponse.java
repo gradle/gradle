@@ -22,4 +22,9 @@ package org.gradle.plugin.use.resolve.portal.internal;
 class ErrorResponse {
     String errorCode;
     String message;
+
+    ErrorResponse(String errorCode, String message) {
+        this.errorCode = errorCode;
+        this.message = message;
+    }
 }
