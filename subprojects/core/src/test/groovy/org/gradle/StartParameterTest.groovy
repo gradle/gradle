@@ -338,11 +338,11 @@ class StartParameterTest extends Specification {
         StartParameter parameter = new StartParameter()
 
         when:
-        parameter.taskParameters = [ new DefaultTaskParameter().setTaskName('a'), new DefaultTaskParameter().setTaskName('b') ]
+        parameter.taskParameters = [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
 
         then:
         parameter.taskNames == [ 'a', 'b' ]
-        parameter.taskParameters == [ new DefaultTaskParameter().setTaskName('a'), new DefaultTaskParameter().setTaskName('b') ]
+        parameter.taskParameters == [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
     }
 
     def 'taskNames setter defaults to taskParameters'() {
@@ -353,7 +353,7 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.taskNames == [ 'a', 'b' ]
-        parameter.taskParameters == [ new DefaultTaskParameter().setTaskName('a'), new DefaultTaskParameter().setTaskName('b') ]
+        parameter.taskParameters == [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
 
         when:
         parameter.taskNames = null

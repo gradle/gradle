@@ -17,6 +17,7 @@
 package org.gradle.internal;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import org.gradle.TaskParameter;
 
 import java.io.Serializable;
@@ -25,28 +26,24 @@ import java.io.Serializable;
  * Adapter to create TaskParameter for a simple task name.
  */
 public class DefaultTaskParameter implements TaskParameter, Serializable {
-    private String taskName;
-    private String projectPath;
+    private final String taskName;
+    private final String projectPath;
 
-    public DefaultTaskParameter() {
+    public DefaultTaskParameter(String taskName) {
+        this(taskName, null);
+    }
+
+    public DefaultTaskParameter(String taskName, String projectPath) {
+        this.taskName = Preconditions.checkNotNull(taskName);
+        this.projectPath = projectPath;
     }
 
     public String getTaskName() {
         return taskName;
     }
 
-    public DefaultTaskParameter setTaskName(String taskName) {
-        this.taskName = taskName;
-        return this;
-    }
-
     public String getProjectPath() {
         return projectPath;
-    }
-
-    public DefaultTaskParameter setProjectPath(String projectPath) {
-        this.projectPath = projectPath;
-        return this;
     }
 
     @Override

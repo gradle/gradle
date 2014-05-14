@@ -256,7 +256,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 taskNames != null ? taskNames : Collections.<String>emptyList(),
                     new Function<String, TaskParameter>() {
                         public TaskParameter apply(String input) {
-                            return new DefaultTaskParameter().setTaskName(input);
+                            return new DefaultTaskParameter(input);
                         }
                     }));
     }
