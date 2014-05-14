@@ -107,7 +107,8 @@ class DefaultProjectTest {
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
 
-    ClassLoaderScope rootProjectClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, new DefaultClassLoaderCache()).createChild()
+    ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, new DefaultClassLoaderCache())
+    ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild()
 
     @Before
     void setUp() {
@@ -167,13 +168,13 @@ class DefaultProjectTest {
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
-        project = classGenerator.newInstance(DefaultProject.class, 'root', null, rootDir, script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope);
+        project = classGenerator.newInstance(DefaultProject.class, 'root', null, rootDir, script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope, baseClassLoaderScope);
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild()
-        child1 = classGenerator.newInstance(DefaultProject.class, "child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock, child1ClassLoaderScope)
+        child1 = classGenerator.newInstance(DefaultProject.class, "child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock, child1ClassLoaderScope, baseClassLoaderScope)
         project.addChildProject(child1)
-        childchild = classGenerator.newInstance(DefaultProject.class, "childchild", child1, new File("childchild"), script, build, projectServiceRegistryFactoryMock, child1ClassLoaderScope.createChild())
+        childchild = classGenerator.newInstance(DefaultProject.class, "childchild", child1, new File("childchild"), script, build, projectServiceRegistryFactoryMock, child1ClassLoaderScope.createChild(), baseClassLoaderScope.createChild())
         child1.addChildProject(childchild)
-        child2 = classGenerator.newInstance(DefaultProject.class, "child2", project, new File("child2"), script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope.createChild())
+        child2 = classGenerator.newInstance(DefaultProject.class, "child2", project, new File("child2"), script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope.createChild(), baseClassLoaderScope.createChild())
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)

@@ -13,7 +13,7 @@ import static junit.framework.Assert.assertEquals;
 public class MySystemClassLoader extends URLClassLoader {
     public MySystemClassLoader(ClassLoader parent) throws URISyntaxException, ClassNotFoundException {
         super(new URL[0], parent);
-        // Should be constructed with the default system ClassLoader as parent
+        // Should be constructed with the default system ClassLoader as root
         assertEquals(getClass().getClassLoader(), parent);
         addClasspathFor("org.gradle.MyAgent");
         addClasspathFor("org.gradle.JUnitTest");

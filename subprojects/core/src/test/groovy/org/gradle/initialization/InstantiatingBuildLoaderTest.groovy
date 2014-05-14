@@ -44,6 +44,9 @@ class InstantiatingBuildLoaderTest extends Specification {
     ProjectInternal childProject
     GradleInternal build
     def rootProjectClassLoaderScope = Mock(ClassLoaderScope)
+    def baseClassLoaderScope = Mock(ClassLoaderScope) {
+        1 * createChild() >> rootProjectClassLoaderScope
+    }
 
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -68,27 +71,27 @@ class InstantiatingBuildLoaderTest extends Specification {
         ProjectDescriptor rootDescriptor = descriptor('root', null, rootProjectDir)
         ProjectInternal rootProject = project(rootDescriptor, null)
 
-        projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope) >> rootProject
+        projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseClassLoaderScope) >> rootProject
         1 * build.setRootProject(rootProject)
         build.getRootProject() >> rootProject
         1 * build.setDefaultProject(rootProject)
 
         then:
-        buildLoader.load(rootDescriptor, build, rootProjectClassLoaderScope)
+        buildLoader.load(rootDescriptor, build, baseClassLoaderScope)
     }
 
     def createsBuildWithMultipleProjects() {
         when:
         expectProjectsCreated()
-        buildLoader.load(rootDescriptor, build, rootProjectClassLoaderScope)
+        buildLoader.load(rootDescriptor, build, baseClassLoaderScope)
 
         then:
         rootProject.childProjects['child'].is childProject
     }
 
     def expectProjectsCreatedNoDefaultProject() {
-        1 * projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope) >> rootProject
-        1 * projectFactory.createProject(childDescriptor, rootProject, !null, _ as ClassLoaderScope) >> childProject
+        1 * projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseClassLoaderScope) >> rootProject
+        1 * projectFactory.createProject(childDescriptor, rootProject, !null, _ as ClassLoaderScope, baseClassLoaderScope) >> childProject
         1 * build.setRootProject(rootProject)
         build.getRootProject() >> rootProject
     }

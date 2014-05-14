@@ -43,7 +43,7 @@ public class ClassPathPluginResolution implements PluginResolution {
 
     public Class<? extends Plugin> resolve() {
         ClassPath classPath = classPathFactory.create();
-        ClassLoader classLoader = new URLClassLoader(classPath.getAsURLArray(), parent.getChildClassLoader());
+        ClassLoader classLoader = new URLClassLoader(classPath.getAsURLArray(), parent.getExportClassLoader());
         PluginRegistry pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator);
         return pluginRegistry.getTypeForId(pluginId.toString());
     }

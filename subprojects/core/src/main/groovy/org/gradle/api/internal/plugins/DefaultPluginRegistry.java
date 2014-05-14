@@ -49,7 +49,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
     public PluginRegistry createChild(final ClassLoaderScope lookupScope, Instantiator instantiator) {
         Factory<ClassLoader> classLoaderFactory = new Factory<ClassLoader>() {
             public ClassLoader create() {
-                return lookupScope.getScopeClassLoader();
+                return lookupScope.getLocalClassLoader();
             }
         };
         return new DefaultPluginRegistry(this, classLoaderFactory, instantiator);

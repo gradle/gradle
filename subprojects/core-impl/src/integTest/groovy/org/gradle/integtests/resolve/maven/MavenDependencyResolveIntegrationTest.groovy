@@ -138,7 +138,7 @@ task check << {
 
     @Requires(TestPrecondition.ONLINE)
     def "resolves dependencies on real projects"() {
-        // Hibernate core brings in conflicts, exclusions and parent poms
+        // Hibernate core brings in conflicts, exclusions and root poms
         // Add a direct dependency on an earlier version of commons-collection than required by hibernate core
         // Logback classic depends on a later version of slf4j-api than required by hibernate core
 

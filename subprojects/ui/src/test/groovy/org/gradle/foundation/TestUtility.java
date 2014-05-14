@@ -70,11 +70,11 @@ public class TestUtility {
     }
 
     /**
-     * This makes the sub projects children of the parent project. If you call this repeatedly on the same parentProject, any previous sub projects will be replaced with the new ones.
+     * This makes the sub projects children of the root project. If you call this repeatedly on the same parentProject, any previous sub projects will be replaced with the new ones.
      *
      * @param context the mock context
      * @param parentProject where to attach the sub projects. This must be a mock object.
-     * @param subProjectArray the sub projects to attach to the parent. These must be mock objects. Pass in null or an empty array to set no sub projects.
+     * @param subProjectArray the sub projects to attach to the root. These must be mock objects. Pass in null or an empty array to set no sub projects.
      */
     public static void attachSubProjects(JUnit4Mockery context, final Project parentProject, Project... subProjectArray) {
         final Map<String, Project> childProjects = new LinkedHashMap<String, Project>();
@@ -112,11 +112,11 @@ public class TestUtility {
     }
 
     /**
-     * This makes the tasks children of the parent project. If you call this repeatedly on the same parentProject, any previous tasks will be replaced with the new ones.
+     * This makes the tasks children of the root project. If you call this repeatedly on the same parentProject, any previous tasks will be replaced with the new ones.
      *
      * @param context the mock context
      * @param parentProject where to attach the sub projects. This must be a mock object.
-     * @param taskArray the tasks to attach to the parent. these must be mock objects. Pass in null or an empty array to set no tasks.
+     * @param taskArray the tasks to attach to the root. these must be mock objects. Pass in null or an empty array to set no tasks.
      */
     public static void attachTasks(JUnit4Mockery context, final Project parentProject, Task... taskArray) {
         //first, make our project return our task container
@@ -133,7 +133,7 @@ public class TestUtility {
         if (taskArray != null && taskArray.length != 0) {
             set.addAll(Arrays.asList(taskArray));
 
-            //set the parent project of the tasks
+            //set the root project of the tasks
             for (int index = 0; index < taskArray.length; index++) {
                 final Task task = taskArray[index];
 

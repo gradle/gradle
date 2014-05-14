@@ -68,7 +68,7 @@ sonar.embeddedDatabase.port=$databasePort
     def "can run Sonar analysis"() {
         executer.requireIsolatedDaemons()
         // Without forking, we run into problems with Sonar's BootStrapClassLoader, at least when running from IDEA.
-        // Problem is that BootStrapClassLoader, although generally isolated from its parent(s), always
+        // Problem is that BootStrapClassLoader, although generally isolated from its root(s), always
         // delegates to the system class loader. That class loader holds the test class path and therefore
         // also the Sonar dependencies with "provided" scope. Hence, the Sonar dependencies get loaded by
         // the wrong class loader.

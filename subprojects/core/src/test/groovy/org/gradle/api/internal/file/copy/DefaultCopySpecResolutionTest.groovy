@@ -132,7 +132,7 @@ public class DefaultCopySpecResolutionTest {
 
     @Test
     public void testResolvesSourceUsingOwnSourceFilteredByPatternset() {
-        //Does not get source from parent
+        //Does not get source from root
         parentSpec.from 'x'
         parentSpec.from 'y'
 

@@ -264,7 +264,7 @@ class OpenApiUiTest {
     /**
      * This tests getting projects and tasks from gradle. It then goes through a series of tests
      * related to projects and tasks (such as making sure their description is returned, their
-     * parent is returned, etc).
+     * root is returned, etc).
      */
     @Test
     void testProjectsAndTasks() {
@@ -315,7 +315,7 @@ class OpenApiUiTest {
         ProjectVersion1 apiProject = rootProjects.get(0).getSubProject("api");
         Assert.assertNotNull(apiProject);
 
-        //verify the parent project is set correctly
+        //verify the root project is set correctly
         Assert.assertEquals(servicesProject, webserviceProject.getParentProject())
 
         //verify its full name is correct (this might should be prefixed with a colon)
@@ -550,7 +550,7 @@ class OpenApiUiTest {
     /**
      * We want to make sure the settings are working correctly here. This is the mechanism that
      * handles saving/restoring the values within the UI and can be stored in different ways
-     * depending on how the UI integrated with its parent (its up to whoever implements
+     * depending on how the UI integrated with its root (its up to whoever implements
      * SettingsNodeVersion1). Here, to spot check that the basics are working, we'll create a
      * UI, set a value, close it, then recreate it using the same settings object. The values
      * should be saved upon close and then restored.

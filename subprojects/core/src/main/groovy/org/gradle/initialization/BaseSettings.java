@@ -214,8 +214,12 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         return scriptHandlerFactory;
     }
 
-    @Override
     public ClassLoaderScope getClassLoaderScope() {
         return classLoaderScope;
+    }
+
+    @Override
+    protected ClassLoaderScope getBaseClassLoaderScope() {
+        return getClassLoaderScope();
     }
 }

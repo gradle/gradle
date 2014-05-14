@@ -23,5 +23,5 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
  * Creates a {@link ProjectInternal} implementation.
  */
 public interface IProjectFactory {
-    ProjectInternal createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope classLoaderScope);
+    ProjectInternal createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope);
 }

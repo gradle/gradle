@@ -79,6 +79,7 @@ import static org.gradle.util.GUtil.isTrue;
 public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private final ClassLoaderScope classLoaderScope;
+    private final ClassLoaderScope baseClassLoaderScope;
     private ServiceRegistry services;
 
     private final ProjectInternal rootProject;
@@ -143,9 +144,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                            ScriptSource buildScriptSource,
                            GradleInternal gradle,
                            ServiceRegistryFactory serviceRegistryFactory,
-                           ClassLoaderScope classLoaderScope
-    ) {
-        this.classLoaderScope = classLoaderScope;
+                           ClassLoaderScope selfClassLoaderScope,
+                           ClassLoaderScope baseClassLoaderScope) {
+        this.classLoaderScope = selfClassLoaderScope;
+        this.baseClassLoaderScope = baseClassLoaderScope;
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
@@ -895,9 +897,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         throw new UnsupportedOperationException();
     }
 
-    @Override
     public ClassLoaderScope getClassLoaderScope() {
         return classLoaderScope;
+    }
+
+    @Override
+    public ClassLoaderScope getBaseClassLoaderScope() {
+        return baseClassLoaderScope;
     }
 
     /**

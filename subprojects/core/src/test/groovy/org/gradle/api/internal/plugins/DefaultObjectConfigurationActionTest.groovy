@@ -51,7 +51,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         1 * resolver.resolveUri('script') >> file
         1 * parentCompileScope.createChild() >> scriptCompileScope
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript, false) >> configurer
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, "buildscript", DefaultScript, false) >> configurer
 
         when:
         action.from('script')
@@ -67,7 +67,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         Object target2 = new Object()
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript, false) >> configurer
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope,  "buildscript", DefaultScript, false) >> configurer
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
         1 * parentCompileScope.createChild() >> scriptCompileScope
@@ -87,7 +87,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
         Object target2 = new Object()
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, "buildscript", DefaultScript, false) >> configurer
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, "buildscript", DefaultScript, false) >> configurer
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
         1 * parentCompileScope.createChild() >> scriptCompileScope

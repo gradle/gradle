@@ -72,21 +72,23 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.fileLookup = fileLookup;
     }
 
-    public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptClass, boolean ownerScript) {
-        return new ScriptPluginImpl(scriptSource, scriptHandler, classLoaderScope, classpathClosureName, scriptClass, ownerScript);
+    public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptClass, boolean ownerScript) {
+        return new ScriptPluginImpl(scriptSource, scriptHandler, targetScope, baseScope, classpathClosureName, scriptClass, ownerScript);
     }
 
     private class ScriptPluginImpl implements ScriptPlugin {
         private final ScriptSource scriptSource;
-        private final ClassLoaderScope classLoaderScope;
+        private final ClassLoaderScope targetScope;
+        private final ClassLoaderScope baseScope;
         private final String classpathClosureName;
         private final Class<? extends BasicScript> scriptType;
         private final ScriptHandler scriptHandler;
         private final boolean ownerScript;
 
-        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptType, boolean ownerScript) {
+        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptType, boolean ownerScript) {
             this.scriptSource = scriptSource;
-            this.classLoaderScope = classLoaderScope;
+            this.targetScope = targetScope;
+            this.baseScope = baseScope;
             this.classpathClosureName = classpathClosureName;
             this.scriptHandler = scriptHandler;
             this.scriptType = scriptType;
@@ -102,7 +104,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(ScriptHandlerFactory.class, scriptHandlerFactory);
-            services.add(ClassLoaderScope.class, classLoaderScope);
+            services.add(ClassLoaderScope.class, targetScope);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandler.class, scriptHandler);
@@ -114,7 +116,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(PluginDependenciesService.class, pluginDependenciesService);
 
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
-            compiler.setClassloader(classLoaderScope.getBase().getChildClassLoader());
+            compiler.setClassloader(baseScope.getExportClassLoader());
 
             boolean supportsPluginsBlock = ProjectScript.class.isAssignableFrom(scriptType);
             String onPluginBlockError = supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
@@ -133,7 +135,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             Set<File> files = classpathConfiguration.getFiles();
             ClassPath classPath = new DefaultClassPath(files);
 
-            ClassLoader exportedClassLoader = classLoaderScope.export(classPath);
+            Factory<? extends ClassLoader> loader = targetScope.getParent().loader(classPath);
+            targetScope.export(loader);
 
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
             if (!pluginRequests.isEmpty()) {
@@ -147,9 +150,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 // Check for duplicates
                 for (PluginId key : groupedById.keySet()) {
                     // Ignore duplicate noops - noop plugin just used for testing
-                   if (key.equals(NOOP_PLUGIN_ID)) {
-                       continue;
-                   }
+                    if (key.equals(NOOP_PLUGIN_ID)) {
+                        continue;
+                    }
 
                     List<PluginRequest> pluginRequestsForId = groupedById.get(key);
                     if (pluginRequestsForId.size() > 1) {
@@ -167,9 +170,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 }
             }
 
-            classLoaderScope.lock();
+            targetScope.lock();
 
-            compiler.setClassloader(classLoaderScope.getScopeClassLoader());
+            compiler.setClassloader(targetScope.getLocalClassLoader());
 
             compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert()));
             ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);

@@ -244,8 +244,12 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return scriptHandlerFactory;
     }
 
-    @Override
     public ClassLoaderScope getClassLoaderScope() {
         return classLoaderScope;
+    }
+
+    @Override
+    protected ClassLoaderScope getBaseClassLoaderScope() {
+        return getClassLoaderScope();
     }
 }

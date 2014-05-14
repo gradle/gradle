@@ -336,7 +336,7 @@ public class DefaultCopySpecTest {
     @Test
     void "properties accessed directly on specs created using from inherit from parents"() {
 
-        //set non defaults on parent
+        //set non defaults on root
         spec.caseSensitive = false
         spec.includeEmptyDirs = false
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -359,7 +359,7 @@ public class DefaultCopySpecTest {
     @Test
     void "properties accessed directly on specs created using into inherit from parents"() {
 
-        //set non defaults on parent
+        //set non defaults on root
         spec.caseSensitive = false
         spec.includeEmptyDirs = false
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
