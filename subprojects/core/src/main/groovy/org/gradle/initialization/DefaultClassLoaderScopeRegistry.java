@@ -24,20 +24,20 @@ import org.gradle.api.internal.initialization.RootClassLoaderScope;
 
 public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry {
 
-    private final ClassLoaderScope gradleApiScope;
-    private final ClassLoaderScope coreImplScope;
+    private final ClassLoaderScope coreAndPluginsScope;
+    private final ClassLoaderScope coreScope;
 
     public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry) {
         ClassLoaderCache cache = new DefaultClassLoaderCache(CacheBuilder.newBuilder().<DefaultClassLoaderCache.Key, ClassLoader>build());
-        this.coreImplScope = new RootClassLoaderScope(loaderRegistry.getCoreImplClassLoader(), cache);
-        this.gradleApiScope = new RootClassLoaderScope(loaderRegistry.getGradleApiClassLoader(), cache);
+        this.coreScope = new RootClassLoaderScope(loaderRegistry.getGradleCoreApiClassLoader(), cache);
+        this.coreAndPluginsScope = new RootClassLoaderScope(loaderRegistry.getGradleApiClassLoader(), cache);
     }
 
-    public ClassLoaderScope getGradleApiScope() {
-        return gradleApiScope;
+    public ClassLoaderScope getCoreAndPluginsScope() {
+        return coreAndPluginsScope;
     }
 
-    public ClassLoaderScope getCoreImplScope() {
-        return coreImplScope;
+    public ClassLoaderScope getCoreScope() {
+        return coreScope;
     }
 }

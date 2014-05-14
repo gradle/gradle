@@ -66,7 +66,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
                 }
             };
 
-            return new PluginPortalResolver(pluginPortalClient, instantiator, startParameter, classLoaderScopeRegistry.getCoreImplScope(), new Factory<DependencyResolutionServices>() {
+            return new PluginPortalResolver(pluginPortalClient, instantiator, startParameter, classLoaderScopeRegistry.getCoreScope(), new Factory<DependencyResolutionServices>() {
                 public DependencyResolutionServices create() {
                     return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, new BasicDomainObjectContext());
                 }
