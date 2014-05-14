@@ -458,6 +458,7 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 - Plugin implementation classes are not visible to build script (or to anything else)
 - Plugin cannot access classes from core Gradle plugins
 - Plugin can access classes from Gradle API
+- Plugin cannot access Gradle internal implementation classes
 - Plugin resolution fails when --offline is specified
 - Client follows redirect from server
 - Unicode characters in the response are interpreted correctly and don't cause strange behaviour

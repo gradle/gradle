@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.Project
 import org.gradle.api.specs.AndSpec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -93,6 +94,28 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
             try {
                 getClass().getClassLoader().loadClass('org.gradle.api.plugins.JavaPlugin')
                 assert false : "should have failed to load java plugin"
+            } catch (ClassNotFoundException ignore) {
+
+            }
+
+            project.task("verify")
+        """)
+
+        buildScript USE
+
+        expect:
+        succeeds("verify")
+    }
+
+    @NotYetImplemented
+    def "plugin cannot access Gradle implementation classes"() {
+        publishPlugin("""
+            def implClassName = 'com.google.common.collect.Multimap'
+            project.getClass().getClassLoader().loadClass(implClassName)
+
+            try {
+                getClass().getClassLoader().loadClass(implClassName)
+                assert false : "should have failed to load gradle implementation class: \$implClassName"
             } catch (ClassNotFoundException ignore) {
 
             }
