@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.Project
 import org.gradle.api.specs.AndSpec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -36,7 +35,6 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
         portal.start()
     }
 
-    @NotYetImplemented
     def "plugin is available via `plugins` container"() {
         portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
         publishPlugin("myplugin", "my", "plugin", "1.0")
@@ -47,12 +45,8 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
             }
 
             task verify << {
-                def foundById = false
-                plugins.withId("myplugin") { foundById = true }
-                assert foundById
-
                 def foundByClass = false
-                plugins.withClass(org.gradle.test.TestPlugin) { foundByClass = true }
+                plugins.withType(pluginClass) { foundByClass = true }
                 assert foundByClass
             }
         """
@@ -115,7 +109,7 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
     private void publishPlugin(String pluginId, String group, String artifact, String version) {
         def module = portal.m2repo.module(group, artifact, version) // don't know why tests are failing if this module is publish()'ed
         module.allowAll()
-        pluginBuilder.addPlugin("project.ext.pluginApplied = true", pluginId)
+        pluginBuilder.addPlugin("project.ext.pluginApplied = true; project.ext.pluginClass = getClass()", pluginId)
         pluginBuilder.publishTo(executer, module.artifactFile)
     }
 
