@@ -52,6 +52,9 @@ public interface ClassLoaderScope {
     /**
      * Returns a factory for a loader based on the given classpath, whose parent is the export classloader of this scope.
      * <p>
+     * There is no short circuiting for an empty classpath.
+     * Callers should verify the classpath argument is non empty.
+     * <p>
      * It is strongly preferable to only invoke the factory after {@link #lock() locking} the scope as it allows the structure to be optimized.
      */
     Factory<? extends ClassLoader> loader(ClassPath classPath);
