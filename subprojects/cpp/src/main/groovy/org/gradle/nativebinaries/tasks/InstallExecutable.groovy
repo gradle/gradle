@@ -38,14 +38,19 @@ import javax.inject.Inject
 @Incubating
 public class InstallExecutable extends DefaultTask {
 
-    private final Instantiator instantiator
-    private final FileOperations fileOperations
+    @Inject
+    InstallExecutable() {
+        this.libs = project.files()
+    }
 
     @Inject
-    InstallExecutable(Instantiator instantiator, FileOperations fileOperations) {
-        this.instantiator = instantiator
-        this.fileOperations = fileOperations
-        this.libs = project.files()
+    Instantiator getInstantiator() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Inject
+    FileOperations getFileOperations() {
+        throw new UnsupportedOperationException()
     }
 
     /**
@@ -86,8 +91,15 @@ public class InstallExecutable extends DefaultTask {
         new File(getDestinationDir(), os.getScriptName(getExecutable().name))
     }
 
-    // TODO:DAZ Allow this to be configured
-    private OperatingSystem os = OperatingSystem.current()
+    @Inject
+    OperatingSystem getOs() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Inject
+    FileSystem getFileSystem() {
+        throw new UnsupportedOperationException()
+    }
 
     @TaskAction
     void install() {
@@ -139,7 +151,6 @@ export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
 exec "\$APP_BASE_NAME/lib/${executable.name}" \"\$@\"
 """
 
-        FileSystem fileSystem = getServices().get(FileSystem.class);
         fileSystem.chmod(runScript, 0755)
     }
 

@@ -22,12 +22,19 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.nativebinaries.NativeBinaryTasks;
 import org.gradle.nativebinaries.tasks.AbstractLinkTask;
-import org.gradle.nativebinaries.tasks.BuildBinaryTask;
+import org.gradle.nativebinaries.tasks.ObjectFilesToBinary;
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary;
 
 public class DefaultNativeBinaryTasks extends DefaultDomainObjectSet<Task> implements NativeBinaryTasks {
-    public DefaultNativeBinaryTasks() {
+    private final ProjectNativeBinaryInternal binary;
+
+    public DefaultNativeBinaryTasks(ProjectNativeBinaryInternal binary) {
         super(Task.class);
+        this.binary = binary;
+    }
+
+    public Task getBuild() {
+        return binary.getBuildTask();
     }
 
     public AbstractLinkTask getLink() {
@@ -38,8 +45,8 @@ public class DefaultNativeBinaryTasks extends DefaultDomainObjectSet<Task> imple
         return findOnlyWithType(CreateStaticLibrary.class);
     }
 
-    public BuildBinaryTask getBuilder() {
-        BuildBinaryTask link = getLink();
+    public ObjectFilesToBinary getCreateOrLink() {
+        ObjectFilesToBinary link = getLink();
         return link == null ? getCreateStaticLib() : link;
     }
 

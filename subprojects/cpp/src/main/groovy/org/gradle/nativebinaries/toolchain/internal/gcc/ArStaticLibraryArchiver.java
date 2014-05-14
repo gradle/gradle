@@ -16,13 +16,15 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativebinaries.toolchain.internal.MutableCommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,17 +34,22 @@ import java.util.List;
  * A static library archiver based on the GNU 'ar' utility
  */
 class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
-    private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
+    private final ArgsTransformer<StaticLibraryArchiverSpec> arguments = new ArchiverSpecToArguments();
+    private final CommandLineToolInvocation baseInvocation;
 
-    public ArStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool, Action<List<String>> argsAction) {
-        ArgsTransformer<StaticLibraryArchiverSpec> arguments = new ArchiverSpecToArguments();
-        arguments = new PostTransformActionArgsTransformer<StaticLibraryArchiverSpec>(arguments, argsAction);
-        this.commandLineTool = commandLineTool.withArguments(arguments);
+    public ArStaticLibraryArchiver(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation) {
+        this.commandLineTool = commandLineTool;
+        this.baseInvocation = baseInvocation;
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         deletePreviousOutput(spec);
-        return commandLineTool.execute(spec);
+
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        invocation.setArgs(arguments.transform(spec));
+        commandLineTool.execute(invocation);
+        return new SimpleWorkResult(true);
     }
 
     private void deletePreviousOutput(StaticLibraryArchiverSpec spec) {

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
-class IvyCustomStatusLatestVersionIntegrationTest extends AbstractDependencyResolutionTest {
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+
+class IvyCustomStatusLatestVersionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "latest.xyz selects highest version with given or higher status"() {
         given:
         buildFile << """
@@ -60,7 +61,6 @@ task retrieve(type: Sync) {
     }
 
     def "uses status provided by component metadata rule for latest.xyz"() {
-        server.start()
         given:
         buildFile << """
 repositories {

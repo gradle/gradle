@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.protocol;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface HierarchicalProjectVersion1 extends ProjectVersion3 {
+public interface HierarchicalProjectVersion1 {
     HierarchicalProjectVersion1 getParent();
 
     Iterable<? extends HierarchicalProjectVersion1> getChildren();

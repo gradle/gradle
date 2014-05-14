@@ -40,16 +40,13 @@ class CompileOptionsTest {
         assertTrue(compileOptions.failOnError)
         assertTrue(compileOptions.warnings)
 
-        assertFalse(compileOptions.includeJavaRuntime)
         assertFalse(compileOptions.deprecation)
         assertFalse(compileOptions.listFiles)
         assertFalse(compileOptions.verbose)
         assertFalse(compileOptions.fork)
-        assertFalse(compileOptions.useAnt)
 
         assertThat(compileOptions.compilerArgs, isEmpty())
         assertNull(compileOptions.encoding)
-        assertNull(compileOptions.compiler)
         assertNull(compileOptions.bootClasspath)
         assertNull(compileOptions.extensionDirs)
 
@@ -67,7 +64,6 @@ class CompileOptionsTest {
         Map optionMap = compileOptions.optionMap()
         Map nullables = [
                 encoding: 'encoding',
-                compiler: 'compiler',
                 bootClasspath: 'bootClasspath',
                 extensionDirs: 'extdirs'
         ]
@@ -89,8 +85,7 @@ class CompileOptionsTest {
                 listFiles: 'listFiles',
                 deprecation: 'deprecation',
                 warnings: 'nowarn',
-                debug: 'debug',
-                includeJavaRuntime: 'includeJavaRuntime'
+                debug: 'debug'
         ]
         booleans.keySet().each {compileOptions."$it" = true}
         Map optionMap = compileOptions.optionMap()
@@ -158,13 +153,11 @@ class CompileOptionsTest {
 
     @Test public void testDefine() {
         compileOptions.debug = false
-        compileOptions.compiler = null
         compileOptions.bootClasspath = 'xxxx'
         compileOptions.fork = false
         compileOptions.useDepend = false
-        compileOptions.define(debug: true, compiler: 'compiler', bootClasspath: null)
+        compileOptions.define(debug: true, bootClasspath: null)
         assertTrue(compileOptions.debug)
-        assertEquals('compiler', compileOptions.compiler)
         assertNull(compileOptions.bootClasspath)
         assertFalse(compileOptions.fork)
         assertFalse(compileOptions.useDepend)

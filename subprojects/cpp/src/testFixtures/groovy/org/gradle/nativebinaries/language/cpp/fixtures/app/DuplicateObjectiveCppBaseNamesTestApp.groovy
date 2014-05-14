@@ -16,8 +16,6 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
-import org.gradle.internal.os.OperatingSystem
-
 class DuplicateObjectiveCppBaseNamesTestApp extends TestComponent{
     def plugins = ["objective-cpp"]
     @Override
@@ -69,11 +67,14 @@ class DuplicateObjectiveCppBaseNamesTestApp extends TestComponent{
     }
 
     public String getExtraConfiguration() {
-        def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
         return """
             binaries.all {
-                objcppCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                linker.args $linkerArgs
+                if (targetPlatform.operatingSystem.macOsX) {
+                    linker.args "-framework", "Foundation"
+                } else {
+                    objcppCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                    linker.args "-lgnustep-base", "-lobjc"
+                }
             }
         """
     }

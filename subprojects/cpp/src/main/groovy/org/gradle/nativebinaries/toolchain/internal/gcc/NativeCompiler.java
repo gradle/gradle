@@ -16,50 +16,57 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.SingleSourceCompileArgTransformer;
+import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
-    private final CommandLineTool<T> commandLineTool;
+    private final CommandLineTool commandLineTool;
     private final ArgsTransformer<T> argsTransfomer;
+    private final CommandLineToolInvocation baseInvocation;
+    private String objectFileSuffix;
+    private final boolean useCommandFile;
 
-    public NativeCompiler(CommandLineTool<T> commandLineTool, Action<List<String>> toolChainArgsAction, ArgsTransformer<T> argsTransformer, boolean useCommandFile) {
-        argsTransformer = new PostTransformActionArgsTransformer<T>(argsTransformer, toolChainArgsAction);
-        if (useCommandFile) {
-            argsTransformer = new GccOptionsFileArgTransformer<T>(argsTransformer);
-        }
+    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, String objectFileSuffix, boolean useCommandFile) {
+        this.baseInvocation = baseInvocation;
+        this.objectFileSuffix = objectFileSuffix;
+        this.useCommandFile = useCommandFile;
         this.argsTransfomer = argsTransformer;
         this.commandLineTool = commandLineTool;
     }
 
     public WorkResult execute(T spec) {
-        boolean didWork = false;
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
 
-        String objectFileExtension = OperatingSystem.current().isWindows() ? ".obj" : ".o";
-        for (File sourceFile : spec.getSourceFiles()) {
-            String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + objectFileExtension;
-            WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir())
-                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,
-                                            objectFileName,
-                                            new ShortCircuitArgsTransformer(argsTransfomer),
-                                            windowsPathLimitation,
-                                            false))
-                    .execute(spec);
-            didWork = didWork || result.getDidWork();
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        invocation.setWorkDirectory(spec.getObjectFileDir());
+        if (useCommandFile) {
+            invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
         }
-        return new SimpleWorkResult(didWork);
+
+        Transformer<List<String>, File> outputFileArgTransformer = new Transformer<List<String>, File>() {
+            public List<String> transform(File outputFile) {
+                return Arrays.asList("-o", outputFile.getAbsolutePath());
+            }
+        };
+
+        for (File sourceFile : spec.getSourceFiles()) {
+            SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
+                    objectFileSuffix,
+                    new ShortCircuitArgsTransformer<T>(argsTransfomer),
+                    windowsPathLimitation,
+                    outputFileArgTransformer);
+            invocation.setArgs(argTransformer.transform(spec));
+            commandLineTool.execute(invocation);
+        }
+        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 }

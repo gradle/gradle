@@ -33,10 +33,6 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
-                <td>optimize</td>
-                <td><literal>false</literal></td>
-            </tr>
-            <tr>
                 <td>debug</td>
                 <td><literal>true</literal></td>
             </tr>
@@ -61,14 +57,6 @@
                 <td></td>
             </tr>
             <tr>
-                <td>compiler</td>
-                <td><literal>null</literal></td>
-            </tr>
-            <tr>
-                <td>includeJavaRuntime</td>
-                <td><literal>false</literal></td>
-            </tr>
-            <tr>
                 <td>bootClasspath</td>
                 <td><literal>null</literal></td>
             </tr>
@@ -79,10 +67,6 @@
             <tr>
                 <td>compilerArgs</td>
                 <td><literal>[]</literal></td>
-            </tr>
-            <tr>
-                <td>useAnt</td>
-                <td><literal>false</literal></td>
             </tr>
         </table>
     </section>

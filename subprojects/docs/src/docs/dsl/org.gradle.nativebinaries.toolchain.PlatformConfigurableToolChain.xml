@@ -23,11 +23,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>assembler</td></tr>
-            <tr><td>cCompiler</td></tr>
-            <tr><td>cppCompiler</td></tr>
-            <tr><td>linker</td></tr>
-            <tr><td>staticLibArchiver</td></tr>
         </table>
     </section>
     <section>
@@ -38,7 +33,7 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>addPlatformConfiguration</td></tr>
+            <tr><td>target</td></tr>
         </table>
     </section>
 </section>

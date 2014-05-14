@@ -80,7 +80,7 @@ public class IdeaDependenciesProviderTest extends Specification {
         when:
         project.dependencies.add('compile', project.files('lib/guava.jar'))
         project.dependencies.add('excluded', project.files('lib/guava.jar'))
-        module.scopes.COMPILE.minus += project.configurations.getByName('excluded')
+        module.scopes.COMPILE.minus << project.configurations.getByName('excluded')
         def result = dependenciesProvider.provide(module)
 
         then:
@@ -102,8 +102,8 @@ public class IdeaDependenciesProviderTest extends Specification {
         project.dependencies.add('compile', project.files('lib/slf4j-api.jar'))
         project.dependencies.add('excluded1', project.files('lib/guava.jar'))
         project.dependencies.add('excluded2', project.files('lib/slf4j-api.jar'))
-        module.scopes.COMPILE.minus += project.configurations.getByName('excluded1')
-        module.scopes.COMPILE.minus += project.configurations.getByName('excluded2')
+        module.scopes.COMPILE.minus << project.configurations.getByName('excluded1')
+        module.scopes.COMPILE.minus << project.configurations.getByName('excluded2')
         def result = dependenciesProvider.provide(module)
 
         then:
@@ -121,7 +121,7 @@ public class IdeaDependenciesProviderTest extends Specification {
         module.offline = true
 
         when:
-        module.scopes.RUNTIME.plus += detachedCfg
+        module.scopes.RUNTIME.plus << detachedCfg
         def result = dependenciesProvider.provide(module)
 
         then:

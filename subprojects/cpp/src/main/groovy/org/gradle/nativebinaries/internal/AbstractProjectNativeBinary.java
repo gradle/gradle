@@ -22,8 +22,8 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.AbstractBuildableModelElement;
-import org.gradle.language.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.AbstractBuildableModelElement;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
@@ -42,7 +42,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final DefaultTool linker = new DefaultTool();
     private final DefaultTool staticLibArchiver = new DefaultTool();
-    private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks();
+    private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks(this);
     private final BinaryNamingScheme namingScheme;
     private final Flavor flavor;
     private final ToolChainInternal toolChain;
@@ -137,7 +137,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
         libs.add(notation);
     }
 
-    public Collection<LibraryBinary> getDependentBinaries() {
+    public Collection<NativeLibraryBinary> getDependentBinaries() {
         return resolve(source.withType(DependentSourceSet.class)).getAllLibraryBinaries();
     }
 

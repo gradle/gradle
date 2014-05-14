@@ -15,15 +15,14 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class MavenM2CacheReuseIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenM2CacheReuseIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "uses cached artifacts from maven local cache"() {
         given:
-        def module1 = mavenHttpRepo.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+        def remoteModule = mavenHttpRepo.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
         m2Installation.generateGlobalSettingsFile()
-        def module2 = m2Installation.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
-        server.start()
+        def m2Module = m2Installation.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
 
         buildFile.text = """
 repositories {
@@ -39,16 +38,51 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        module1.pom.expectHead()
-        module1.pom.sha1.expectGet()
-        module1.artifact.expectHead()
-        module1.artifact.sha1.expectGet()
+        remoteModule.pom.expectHead()
+        remoteModule.pom.sha1.expectGet()
+        remoteModule.artifact.expectHead()
+        remoteModule.artifact.sha1.expectGet()
 
         when:
         using m2Installation
         run 'retrieve'
 
         then:
-        file('build/foo-1.0.jar').assertIsCopyOf(module2.artifactFile)
+        file('build/foo-1.0.jar').assertIsCopyOf(m2Module.artifactFile)
+    }
+
+    def "does not reuse cached artifacts from maven local cache when they are different to those in the remote repository"() {
+        given:
+        def remoteModule = mavenHttpRepo.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+        m2Installation.generateGlobalSettingsFile()
+        m2Installation.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publishWithChangedContent()
+
+        buildFile.text = """
+repositories {
+    maven { url "${mavenHttpRepo.uri}" }
+}
+configurations { compile }
+dependencies {
+    compile 'gradletest.maven.local.cache.test:foo:1.0'
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'build'
+}
+"""
+        and:
+        remoteModule.pom.expectHead()
+        remoteModule.pom.sha1.expectGet()
+        remoteModule.pom.expectGet()
+        remoteModule.artifact.expectHead()
+        remoteModule.artifact.sha1.expectGet()
+        remoteModule.artifact.expectGet()
+
+        when:
+        using m2Installation
+        run 'retrieve'
+
+        then:
+        file('build/foo-1.0.jar').assertIsCopyOf(remoteModule.artifactFile)
     }
 }

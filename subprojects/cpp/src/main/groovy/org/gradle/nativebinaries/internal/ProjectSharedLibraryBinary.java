@@ -18,11 +18,11 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.Library;
+import org.gradle.nativebinaries.NativeLibrary;
 import org.gradle.nativebinaries.SharedLibraryBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
@@ -32,11 +32,11 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary implements SharedLibraryBinary {
+public class ProjectSharedLibraryBinary extends AbstractProjectNativeLibraryBinary implements SharedLibraryBinary {
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
-    public ProjectSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public ProjectSharedLibraryBinary(NativeLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                       BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }
@@ -94,7 +94,6 @@ public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary imp
         }
 
         private boolean hasExportedSymbols() {
-            // TODO:DAZ This is a very rough approximation: actually inspect the binary to determine if there are exported symbols
             for (LanguageSourceSet languageSourceSet : getSource()) {
                 if (!(languageSourceSet instanceof WindowsResourceSet)) {
                     if (!languageSourceSet.getSource().isEmpty()) {

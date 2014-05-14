@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio.internal
 
+import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.DefaultDomainObjectSet
@@ -24,9 +25,10 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.Executable
-import org.gradle.nativebinaries.ExecutableBinary
+import org.gradle.nativebinaries.NativeBinaryTasks
 import org.gradle.nativebinaries.NativeDependencySet
+import org.gradle.nativebinaries.NativeExecutable
+import org.gradle.nativebinaries.NativeExecutableBinary
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
@@ -38,7 +40,7 @@ import spock.lang.Specification
 class VisualStudioProjectConfigurationTest extends Specification {
     final flavor = new DefaultFlavor("flavor1")
     def flavors = new DefaultFlavorContainer(new DirectInstantiator())
-    def exe = Mock(ExecutableInternal) {
+    def exe = Mock(NativeExecutableInternal) {
         getFlavors() >> flavors
     }
     def extensions = Mock(ExtensionContainer)
@@ -66,13 +68,17 @@ class VisualStudioProjectConfigurationTest extends Specification {
     }
 
     def "configuration tasks are binary tasks"() {
+        given:
+        def tasks = Mock(NativeBinaryTasks)
+        def lifecycleTask = Mock(Task)
         when:
-        exeBinary.name >> "exeBinary"
-        exeBinary.component >> exe
+        exeBinary.tasks >> tasks
+        tasks.build >> lifecycleTask
+        lifecycleTask.path >> "lifecycle-task-path"
         exe.projectPath >> ":project-path"
 
         then:
-        configuration.buildTask == ":project-path:exeBinary"
+        configuration.buildTask == "lifecycle-task-path"
         configuration.cleanTask == ":project-path:clean"
     }
 
@@ -190,7 +196,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         return deps
     }
 
-    interface ExecutableInternal extends Executable, ProjectNativeComponentInternal {}
-    interface TestExecutableBinary extends ProjectNativeBinaryInternal, ExecutableBinary, ExtensionAware {}
+    interface NativeExecutableInternal extends NativeExecutable, ProjectNativeComponentInternal {}
+    interface TestExecutableBinary extends ProjectNativeBinaryInternal, NativeExecutableBinary, ExtensionAware {}
 
 }

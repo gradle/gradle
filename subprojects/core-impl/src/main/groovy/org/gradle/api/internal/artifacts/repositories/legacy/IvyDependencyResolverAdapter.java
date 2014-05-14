@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories.legacy;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.ivy.core.IvyContext;
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
@@ -25,13 +24,14 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact;
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
+import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.*;
-import org.gradle.api.internal.artifacts.resolution.IvyDescriptorArtifact;
+import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +42,9 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * A {@link org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository} wrapper around an Ivy {@link DependencyResolver}.
+ * A {@link org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository} wrapper around an Ivy {@link DependencyResolver}.
  */
-public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepository, IvyAwareModuleVersionRepository, LocalArtifactsModuleVersionRepository {
+public class IvyDependencyResolverAdapter implements ConfiguredModuleComponentRepository, IvyAwareModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyDependencyResolverAdapter.class);
     private final DownloadOptions downloadOptions = new DownloadOptions();
     private final String identifier;
@@ -62,6 +62,10 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
 
     public String getName() {
         return resolver.getName();
+    }
+
+    public boolean canListModuleVersions() {
+        return false;
     }
 
     @Override
@@ -85,97 +89,110 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         return false;
     }
 
-    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
-        IvyContext.getContext().setResolveData(resolveData);
-        try {
-            ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);
-            if (revision == null) {
-                result.listed(new DefaultModuleVersionListing());
-            } else {
-                result.listed(new DefaultModuleVersionListing(revision.getId().getRevision()));
+    public ModuleComponentRepositoryAccess getLocalAccess() {
+        return new ModuleComponentRepositoryAccess() {
+            public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
             }
-        } catch (ParseException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
-        IvyContext.getContext().setResolveData(resolveData);
-        try {
-            ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);
-            if (revision == null) {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dependency.getRequested(), getName());
-                result.missing();
-            } else {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependency.getRequested(), getName());
-                ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(revision.getDescriptor());
-                metaData.setChanging(isChanging(revision));
-                result.resolved(metaData, null);
+            public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
             }
-        } catch (ParseException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
 
-    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        Artifact ivyArtifact = ((ModuleVersionArtifactMetaData) artifact).toIvyArtifact();
-        ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
-        if (downloadFailed(artifactDownloadReport)) {
-            if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
-                EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;
-                result.failed(new ArtifactResolveException(artifact.getId(), enhancedReport.getFailure()));
-            } else {
-                result.failed(new ArtifactResolveException(artifact.getId(), artifactDownloadReport.getDownloadDetails()));
+            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             }
-            return;
-        }
 
-        File localFile = artifactDownloadReport.getLocalFile();
-        if (localFile != null) {
-            result.resolved(localFile);
-        } else {
-            result.notFound(artifact.getId());
-        }
-    }
-
-    public void localResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        doResolveModuleArtifacts(component, context, result, true);
-    }
-
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        doResolveModuleArtifacts(component, context, result, false);
-    }
-
-    // TODO:DAZ This "local-only" pattern is quite ugly: improve it.
-    private void doResolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result, boolean localOnly) {
-        ModuleVersionMetaData moduleVersion = (ModuleVersionMetaData) component;
-        if (context instanceof ConfigurationResolveContext) {
-            String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
-            result.resolved(component.getConfiguration(configurationName).getArtifacts());
-            return;
-        }
-
-        if (!localOnly && context instanceof ArtifactTypeResolveContext) {
-            Class<? extends SoftwareArtifact> artifactType = ((ArtifactTypeResolveContext) context).getArtifactType();
-            try {
-                result.resolved(doGetCandidateArtifacts(moduleVersion, artifactType));
-            } catch (Exception e) {
-                result.failed(new ArtifactResolveException(component.getComponentId(), e));
+            public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+                String configurationName = componentUsage.getConfigurationName();
+                result.resolved(component.getConfiguration(configurationName).getArtifacts());
             }
-        }
+
+            public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            }
+        };
     }
 
-    private Set<ModuleVersionArtifactMetaData> doGetCandidateArtifacts(ModuleVersionMetaData module, Class<? extends SoftwareArtifact> artifactType) {
+    public ModuleComponentRepositoryAccess getRemoteAccess() {
+        return new ModuleComponentRepositoryAccess() {
+            public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
+                IvyContext.getContext().setResolveData(resolveData);
+                try {
+                    ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);
+                    if (revision == null) {
+                        result.listed(new DefaultModuleVersionListing());
+                    } else {
+                        result.listed(new DefaultModuleVersionListing(revision.getId().getRevision()));
+                    }
+                } catch (ParseException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+
+            public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponent, BuildableModuleVersionMetaDataResolveResult result) {
+                IvyContext.getContext().setResolveData(resolveData);
+                try {
+                    ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);
+                    if (revision == null) {
+                        LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", moduleComponent, getName());
+                        result.missing();
+                    } else {
+                        LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", moduleComponent, getName());
+                        MutableModuleVersionMetaData metaData = new DefaultIvyModuleVersionMetaData(revision.getDescriptor());
+                        metaData.setChanging(isChanging(revision));
+                        result.resolved(metaData, null);
+                    }
+                } catch (ParseException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+
+            public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+                try {
+                    result.resolved(getCandidateArtifacts((ModuleVersionMetaData) component, artifactType.getType()));
+                } catch (Exception e) {
+                    result.failed(new ArtifactResolveException(component.getComponentId(), e));
+                }
+            }
+
+            public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+                String configurationName = componentUsage.getConfigurationName();
+                result.resolved(component.getConfiguration(configurationName).getArtifacts());
+            }
+
+            public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+                org.apache.ivy.core.module.descriptor.Artifact ivyArtifact = ((ModuleVersionArtifactMetaData) artifact).toIvyArtifact();
+                ArtifactDownloadReport artifactDownloadReport = resolver.download(new org.apache.ivy.core.module.descriptor.Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
+                if (downloadFailed(artifactDownloadReport)) {
+                    if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
+                        EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;
+                        result.failed(new ArtifactResolveException(artifact.getId(), enhancedReport.getFailure()));
+                    } else {
+                        result.failed(new ArtifactResolveException(artifact.getId(), artifactDownloadReport.getDownloadDetails()));
+                    }
+                    return;
+                }
+
+                File localFile = artifactDownloadReport.getLocalFile();
+                if (localFile != null) {
+                    result.resolved(localFile);
+                } else {
+                    result.notFound(artifact.getId());
+                }
+            }
+        };
+    }
+
+
+
+    private Set<ModuleVersionArtifactMetaData> getCandidateArtifacts(ModuleVersionMetaData module, Class<? extends Artifact> artifactType) {
         if (artifactType == IvyDescriptorArtifact.class) {
-            Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
+            org.apache.ivy.core.module.descriptor.Artifact metadataArtifact = module.getDescriptor().getMetadataArtifact();
             return ImmutableSet.of(module.artifact(metadataArtifact));
         }
 
-        if (artifactType == JvmLibraryJavadocArtifact.class) {
+        if (artifactType == JavadocArtifact.class) {
             return createArtifactMetaData(module, "javadoc", "javadoc");
         }
 
-        if (artifactType == JvmLibrarySourcesArtifact.class) {
+        if (artifactType == SourcesArtifact.class) {
             return createArtifactMetaData(module, "source", "sources");
         }
 

@@ -69,6 +69,26 @@ class CompositeTestResultsTest extends Specification {
         results.formattedSuccessRate == '50%'
     }
 
+    def formatsSuccessRateWhenAllTestsFail() {
+        def failed = results.addTest(test())
+        results.failed(failed)
+
+        expect:
+        results.successRate == 0
+        results.formattedSuccessRate == '0%'
+    }
+
+    def formatsSuccessRateWhenAllTestsAreIgnored() {
+        results.addTest(test())
+        results.addTest(test())
+        results.ignored(test());
+        results.ignored(test());
+
+        expect:
+        results.successRate == null
+        results.formattedSuccessRate == '-'
+    }
+
     def formatsDurationWhenNoTests() {
         expect:
         results.formattedDuration == '-'

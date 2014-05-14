@@ -17,27 +17,35 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.internal.resource.ExternalResourceName;
 
 public interface ResourcePattern {
     /**
-     * Returns the path to the given artifact.
+     * Returns this pattern converted to a String.
      */
-    String toPath(ModuleVersionArtifactMetaData artifact);
+    String getPattern();
+
+    /**
+     * Returns the path for the given artifact.
+     */
+    ExternalResourceName getLocation(ModuleVersionArtifactMetaData artifact);
 
     /**
      * Returns the pattern which can be used to search for versions of the given artifact.
      * The returned pattern should include at least one [revision] placeholder.
      */
-    String toVersionListPattern(ModuleVersionArtifactMetaData artifact);
+    ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact);
 
     /**
-     * Returns the path to the given module.
+     * Returns the path for the given module.
      */
-    String toModulePath(ModuleIdentifier moduleIdentifier);
+    ExternalResourceName toModulePath(ModuleIdentifier moduleIdentifier);
 
     /**
-     * Returns the path to the module version for the given artifact.
+     * Returns the path for the given component.
      */
-    String toModuleVersionPath(ModuleVersionArtifactMetaData artifact);
+    ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier);
 }

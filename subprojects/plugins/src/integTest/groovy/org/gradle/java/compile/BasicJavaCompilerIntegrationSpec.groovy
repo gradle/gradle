@@ -25,9 +25,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         executer.withArguments("-i")
         buildFile << buildScript()
         buildFile << """
-DeprecationLogger.whileDisabled {
     ${compilerConfiguration()}
-}
 """
     }
 
@@ -131,8 +129,12 @@ compileJava.options.debug = false
         '''
 apply plugin: "java"
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
-    compile localGroovy()
+    compile "org.codehaus.groovy:groovy:2.2.2"
 }
 '''
     }
@@ -148,14 +150,13 @@ package compile.test;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class Person {
     String name;
     int age;
 
     void hello() {
-        List<Integer> vars = Arrays.asList(3, 1, 2);
+        Iterable<Integer> vars = Arrays.asList(3, 1, 2);
         DefaultGroovyMethods.max(vars);
     }
 }'''

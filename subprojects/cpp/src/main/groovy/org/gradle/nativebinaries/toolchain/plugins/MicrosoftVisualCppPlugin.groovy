@@ -17,7 +17,6 @@
 
 
 package org.gradle.nativebinaries.toolchain.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -26,7 +25,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
@@ -35,7 +34,6 @@ import org.gradle.nativebinaries.toolchain.internal.msvcpp.WindowsSdkLocator
 import org.gradle.process.internal.ExecActionFactory
 
 import javax.inject.Inject
-
 /**
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
  */
@@ -62,12 +60,12 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
     }
 
     void apply(Project project) {
-        project.plugins.apply(NativeBinariesPlugin)
+        project.plugins.apply(NativeComponentModelPlugin);
 
         modelRules.rule(new ModelRule() {
             void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(VisualCpp, { String name ->
-                    return instantiator.newInstance(VisualCppToolChain, name, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator)
+                    return instantiator.newInstance(VisualCppToolChain, name, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
                 })
                 toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
             }

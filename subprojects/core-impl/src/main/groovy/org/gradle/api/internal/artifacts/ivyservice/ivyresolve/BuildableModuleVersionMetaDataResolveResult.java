@@ -33,6 +33,8 @@ public interface BuildableModuleVersionMetaDataResolveResult {
      */
     State getState();
 
+    boolean hasResult();
+
     /**
      * Returns the meta-data.
      *

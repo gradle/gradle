@@ -39,7 +39,7 @@ allprojects {
 """
     }
 
-    @TargetGradleVersion("<1.8")
+    @TargetGradleVersion(">=1.0-milestone-8 <1.8")
     def "can request GradleBuild model"() {
         when:
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }

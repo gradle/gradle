@@ -21,14 +21,15 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.resource.local.FileStore;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -43,15 +44,17 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private List<Object> additionalUrls = new ArrayList<Object>();
     private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
     private final ResolverStrategy resolverStrategy;
+    private final FileStore<ModuleVersionArtifactMetaData> artifactFileStore;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                          ResolverStrategy resolverStrategy) {
+                                          ResolverStrategy resolverStrategy, FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.resolverStrategy = resolverStrategy;
+        this.artifactFileStore = artifactFileStore;
     }
 
     public URI getUrl() {
@@ -87,7 +90,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return new LegacyMavenResolver(resolver);
     }
 
-    public ConfiguredModuleVersionRepository createResolver() {
+    public ConfiguredModuleComponentRepository createResolver() {
         return createRealResolver();
     }
 
@@ -97,20 +100,25 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver = new MavenResolver(getName(), rootUri, getTransport(rootUri.getScheme()),
-                locallyAvailableResourceFinder, resolverStrategy);
+        MavenResolver resolver = createResolver(rootUri);
+
         for (URI repoUrl : getArtifactUrls()) {
-            resolver.addArtifactLocation(repoUrl, null);
+            resolver.addArtifactLocation(repoUrl);
         }
         return resolver;
     }
 
+    private MavenResolver createResolver(URI rootUri) {
+        RepositoryTransport transport = getTransport(rootUri.getScheme());
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, resolverStrategy, artifactFileStore);
+    }
+
+    protected FileStore<ModuleVersionArtifactMetaData> getArtifactFileStore() {
+        return artifactFileStore;
+    }
+
     protected RepositoryTransport getTransport(String scheme) {
-        if (scheme.equalsIgnoreCase("file")) {
-            return transportFactory.createFileTransport(getName());
-        } else {
-            return transportFactory.createHttpTransport(getName(), getCredentials());
-        }
+        return transportFactory.createTransport(scheme, getName(), getCredentials());
     }
 
     protected LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> getLocallyAvailableResourceFinder() {

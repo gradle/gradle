@@ -330,7 +330,10 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.attribute("status", md.getStatus());
 
         SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
-        writer.attribute("publication", ivyDateFormat.format(md.getResolvedPublicationDate()));
+        Date publicationDate = md.getResolvedPublicationDate();
+        if (publicationDate != null) {
+            writer.attribute("publication", ivyDateFormat.format(publicationDate));
+        }
         if (md.isDefault()) {
             writer.attribute("default", "true");
         }

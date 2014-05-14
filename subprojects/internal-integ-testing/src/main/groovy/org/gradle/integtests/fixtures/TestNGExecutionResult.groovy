@@ -86,7 +86,7 @@ class TestNGExecutionResult implements TestExecutionResult {
     }
 }
 
-private class TestNgTestClassExecutionResult implements TestClassExecutionResult {
+class TestNgTestClassExecutionResult implements TestClassExecutionResult {
     def String testClass
     def GPathResult testClassNode
 

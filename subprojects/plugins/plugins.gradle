@@ -41,6 +41,7 @@ dependencies {
 
     runtime libraries.commons_cli
 
+    testCompile "com.google.inject:guice:2.0@jar"
     testCompile libraries.jsoup
 }
 

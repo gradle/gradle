@@ -17,16 +17,14 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * An immutable classpath.
@@ -35,14 +33,19 @@ public class DefaultClassPath implements ClassPath, Serializable {
     private final List<File> files;
 
     public DefaultClassPath(Iterable<File> files) {
-        this.files = new ArrayList<File>();
-        for (File file : files) {
-            this.files.add(file);
-        }
+        Set<File> noDuplicates = new LinkedHashSet<File>();
+        CollectionUtils.addAll(noDuplicates, files);
+        this.files = new ArrayList<File>(noDuplicates);
     }
-    
+
+    private DefaultClassPath(Set<File> files) {
+        this.files = new ArrayList<File>(files);
+    }
+
     public DefaultClassPath(File... files) {
-        this(Arrays.asList(files));
+        Set<File> noDuplicates = new LinkedHashSet<File>();
+        CollectionUtils.addAll(noDuplicates, files);
+        this.files = new ArrayList<File>(noDuplicates);
     }
 
     @Override
@@ -54,7 +57,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return files.isEmpty();
     }
 
-    public Collection<URI> getAsURIs() {
+    public List<URI> getAsURIs() {
         List<URI> urls = new ArrayList<URI>();
         for (File file : files) {
             urls.add(file.toURI());
@@ -62,7 +65,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return urls;
     }
 
-    public Collection<File> getAsFiles() {
+    public List<File> getAsFiles() {
         return files;
     }
 
@@ -71,7 +74,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return result.toArray(new URL[result.size()]);
     }
 
-    public Collection<URL> getAsURLs() {
+    public List<URL> getAsURLs() {
         List<URL> urls = new ArrayList<URL>();
         for (File file : files) {
             try {
@@ -100,8 +103,8 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return new DefaultClassPath(concat(files, other));
     }
 
-    private Iterable<File> concat(List<File> files1, Collection<File> files2) {
-        List<File> result = new ArrayList<File>();
+    private Set<File> concat(Collection<File> files1, Collection<File> files2) {
+        Set<File> result = new LinkedHashSet<File>();
         result.addAll(files1);
         result.addAll(files2);
         return result;

@@ -15,8 +15,8 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.internal.resource.CachingResource;
-import org.gradle.api.internal.resource.Resource;
+import org.gradle.internal.resource.CachingResource;
+import org.gradle.internal.resource.Resource;
 
 public class CachingScriptSource extends DelegatingScriptSource {
     private Resource resource;

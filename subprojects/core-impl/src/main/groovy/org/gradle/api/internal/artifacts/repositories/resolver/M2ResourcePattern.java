@@ -18,14 +18,21 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.internal.resource.ExternalResourceName;
 
+import java.net.URI;
 import java.util.Map;
 
-// TODO:DAZ Should extend common base class
-public class M2ResourcePattern extends IvyResourcePattern {
+public class M2ResourcePattern extends AbstractResourcePattern {
     public M2ResourcePattern(String pattern) {
         super(pattern);
+    }
+
+    public M2ResourcePattern(URI baseUri, String pattern) {
+        super(baseUri, pattern);
     }
 
     @Override
@@ -33,47 +40,48 @@ public class M2ResourcePattern extends IvyResourcePattern {
         return String.format("M2 pattern '%s'", getPattern());
     }
 
-    @Override
-    public String toModulePath(ModuleIdentifier module) {
-        String pattern = getPattern();
+    public ExternalResourceName getLocation(ModuleVersionArtifactMetaData artifact) {
+        Map<String, String> attributes = toAttributes(artifact);
+        String pattern = maybeSubstituteTimestamp(artifact, getBase().getPath());
+        return getBase().getRoot().resolve(substituteTokens(pattern, attributes));
+    }
+
+    private String maybeSubstituteTimestamp(ModuleVersionArtifactMetaData artifact, String pattern) {
+        if (artifact.getComponentId() instanceof MavenUniqueSnapshotComponentIdentifier) {
+            String timestampedVersion = ((MavenUniqueSnapshotComponentIdentifier) artifact.getComponentId()).getTimestampedVersion();
+            pattern = pattern.replaceFirst("\\-\\[revision\\]", "-" + timestampedVersion);
+        }
+        return pattern;
+    }
+
+    public ExternalResourceName toVersionListPattern(ModuleIdentifier module, IvyArtifactName artifact) {
+        Map<String, String> attributes = toAttributes(module, artifact);
+        return getBase().getRoot().resolve(substituteTokens(getBase().getPath(), attributes));
+    }
+
+    public ExternalResourceName toModulePath(ModuleIdentifier module) {
+        String pattern = getBase().getPath();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
             throw new UnsupportedOperationException("Cannot locate module for non-maven layout.");
         }
         String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_PATTERN.length() - 1);
-        return IvyPatternHelper.substituteTokens(metaDataPattern, toAttributes(module));
+        return getBase().getRoot().resolve(substituteTokens(metaDataPattern, toAttributes(module)));
     }
 
-    @Override
-    public String toPath(ModuleVersionArtifactMetaData artifact) {
-        Map<String, Object> attributes = toAttributes(artifact);
-        return IvyPatternHelper.substituteTokens(getPattern(), attributes);
-    }
-
-    @Override
-    public String toModuleVersionPath(ModuleVersionArtifactMetaData artifact) {
-        String pattern = getPattern();
+    public ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
+        String pattern = getBase().getPath();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
             throw new UnsupportedOperationException("Cannot locate module version for non-maven layout.");
         }
         String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_VERSION_PATTERN.length() - 1);
-        return IvyPatternHelper.substituteTokens(metaDataPattern, toAttributes(artifact));
+        return getBase().getRoot().resolve(substituteTokens(metaDataPattern, toAttributes(componentIdentifier)));
     }
 
-    @Override
-    protected Map<String, Object> toAttributes(ModuleVersionArtifactMetaData artifact) {
-        return mapOrganisation(super.toAttributes(artifact));
-    }
-
-    @Override
-    protected Map<String, Object> toAttributes(ModuleIdentifier module) {
-        return mapOrganisation(super.toAttributes(module));
-    }
-
-    private Map<String, Object> mapOrganisation(Map<String, Object> attributes) {
-        String org = (String) attributes.get(IvyPatternHelper.ORGANISATION_KEY);
+    protected String substituteTokens(String pattern, Map<String, String> attributes) {
+        String org = attributes.get(IvyPatternHelper.ORGANISATION_KEY);
         if (org != null) {
             attributes.put(IvyPatternHelper.ORGANISATION_KEY, org.replace(".", "/"));
         }
-        return attributes;
+        return super.substituteTokens(pattern, attributes);
     }
 }

@@ -22,7 +22,6 @@ import org.gradle.api.file.*;
 import org.gradle.api.specs.Spec;
 
 import java.io.FilterReader;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -31,20 +30,8 @@ abstract public class DelegatingCopySpecInternal implements CopySpecInternal {
 
     abstract protected CopySpecInternal getDelegateCopySpec();
 
-    public RelativePath getDestPath() {
-        return getDelegateCopySpec().getDestPath();
-    }
-
-    public FileTree getSource() {
-        return getDelegateCopySpec().getSource();
-    }
-
     public boolean hasSource() {
         return getDelegateCopySpec().hasSource();
-    }
-
-    public Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions() {
-        return getDelegateCopySpec().getAllCopyActions();
     }
 
     public boolean isCaseSensitive() {
@@ -75,7 +62,7 @@ abstract public class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().filesMatching(pattern, action);
     }
 
-     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
+    public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
         return getDelegateCopySpec().filesNotMatching(pattern, action);
     }
 
@@ -203,10 +190,6 @@ abstract public class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().getChildren();
     }
 
-    public FileTree getAllSource() {
-        return getDelegateCopySpec().getAllSource();
-    }
-
     public CopySpecInternal addChild() {
         return getDelegateCopySpec().addChild();
     }
@@ -219,10 +202,15 @@ abstract public class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().addFirst();
     }
 
-    public void walk(Action<? super CopySpecInternal> action) {
-        action.execute(this);
-        for (CopySpecInternal child : getChildren()) {
-            child.walk(action);
-        }
+    public void walk(Action<? super CopySpecResolver> action) {
+        getDelegateCopySpec().walk(action);
+    }
+
+    public CopySpecResolver buildRootResolver() {
+        return getDelegateCopySpec().buildRootResolver();
+    }
+
+    public CopySpecResolver buildResolverRelativeToParent(CopySpecResolver parent) {
+        return getDelegateCopySpec().buildResolverRelativeToParent(parent);
     }
 }

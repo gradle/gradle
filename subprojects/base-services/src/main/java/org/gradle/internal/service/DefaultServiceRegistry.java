@@ -23,6 +23,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
+import java.io.Closeable;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -50,7 +51,7 @@ import java.util.*;
  *
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  */
-public class DefaultServiceRegistry implements ServiceRegistry {
+public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private final Object lock = new Object();
     private final CompositeProvider allServices = new CompositeProvider();
     private final OwnServices ownServices;

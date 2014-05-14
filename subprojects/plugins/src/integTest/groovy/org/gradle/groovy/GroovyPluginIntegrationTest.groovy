@@ -29,7 +29,7 @@ class GroovyPluginIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                groovy "org.codehaus.groovy:groovy-all:2.0.5"
+                groovy "org.codehaus.groovy:groovy:2.2.2"
                 compile "com.google.guava:guava:11.0.2"
             }
         """

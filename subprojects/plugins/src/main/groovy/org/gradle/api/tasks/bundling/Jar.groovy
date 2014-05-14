@@ -18,13 +18,11 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.internal.nativeplatform.filesystem.Chmod
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -38,11 +36,11 @@ public class Jar extends Zip {
 
     Jar() {
         extension = DEFAULT_EXTENSION
-        manifest = new DefaultManifest(getServices().get(FileResolver))
+        manifest = new DefaultManifest(fileResolver)
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = rootSpec.addFirst().into('META-INF')
         metaInf.addChild().from {
-            MapFileTree manifestSource = new MapFileTree(temporaryDirFactory, services.get(Chmod))
+            MapFileTree manifestSource = new MapFileTree(temporaryDirFactory, fileSystem)
             manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
                 Manifest manifest = getManifest() ?: new DefaultManifest(null)
                 manifest.writeTo(new OutputStreamWriter(outstr))

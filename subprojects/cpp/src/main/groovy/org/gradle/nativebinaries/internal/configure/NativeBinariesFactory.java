@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.internal.configure;
 
-import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.ProjectNativeComponent;

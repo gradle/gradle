@@ -32,18 +32,21 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         if (isProjectModule(component.getComponentId())) {
-            if (context instanceof ConfigurationResolveContext) {
-                String configurationName = ((ConfigurationResolveContext) context).getConfigurationName();
-                Set<ComponentArtifactMetaData> artifacts = component.getConfiguration(configurationName).getArtifacts();
-                result.resolved(artifacts);
-                return;
-            }
-            throw new UnsupportedOperationException(String.format("Resolving %s for project modules is not yet supported", context.getDescription()));
+            throw new UnsupportedOperationException("Resolving artifacts by type is not yet supported for project modules");
         }
+        delegate.resolveModuleArtifacts(component, artifactType, result);
+    }
 
-        delegate.resolveModuleArtifacts(component, context, result);
+    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        if (isProjectModule(component.getComponentId())) {
+            String configurationName = usage.getConfigurationName();
+            Set<ComponentArtifactMetaData> artifacts = component.getConfiguration(configurationName).getArtifacts();
+            result.resolved(artifacts);
+            return;
+        }
+        delegate.resolveModuleArtifacts(component, usage, result);
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {

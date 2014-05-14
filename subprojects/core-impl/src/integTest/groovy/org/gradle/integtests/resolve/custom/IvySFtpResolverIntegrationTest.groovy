@@ -15,26 +15,16 @@
  */
 package org.gradle.integtests.resolve.custom
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSftpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
-import org.gradle.test.fixtures.ivy.IvyRepository
-import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 
-class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
-
-    @Rule
-    public final SFTPServer server = new SFTPServer(this)
-
+class IvySFtpResolverIntegrationTest extends AbstractSftpDependencyResolutionTest {
     @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
-
-    def setup() {
-        requireOwnGradleUserHomeDir()
-    }
 
     public void "can resolve and cache dependencies from an SFTP Ivy repository"() {
         given:
-        def repo = ivyRepo()
+        def repo = ivySftpRepo
         def module = repo.module('group', 'projectA', '1.2')
         module.publish();
 
@@ -47,8 +37,8 @@ repositories {
         port = ${server.port}
         user = "simple"
         userPassword = "simple"
-        addIvyPattern "repos/libs/[organization]/[module]/[revision]/ivy-[revision].xml"
-        addArtifactPattern "repos/libs/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        addIvyPattern "repo/[organization]/[module]/[revision]/ivy-[revision].xml"
+        addArtifactPattern "repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
 configurations { compile }
@@ -58,27 +48,31 @@ task listJars << {
 }
 """
         when:
+        server.expectRealpath('')
+
+        module.repository.expectDirectoryList('group', 'projectA', '1.2')
+
+        module.ivy.expectStat()
+        module.ivy.expectFileDownload()
+
+        module.repository.expectDirectoryList('group', 'projectA', '1.2')
+
+        module.jar.expectStat()
+        module.jar.expectFileDownload()
+
+        and:
         executer.withDeprecationChecksDisabled()
         run 'listJars'
 
         then:
-        server.fileRequests == ["repos/libs/group/projectA/1.2/ivy-1.2.xml",
-                "repos/libs/group/projectA/1.2/projectA-1.2.jar"
-        ] as Set
-
-        progressLogging.downloadProgressLogged("repos/libs/group/projectA/1.2/ivy-1.2.xml")
-        progressLogging.downloadProgressLogged("repos/libs/group/projectA/1.2/projectA-1.2.jar")
+        progressLogging.downloadProgressLogged("repo/group/projectA/1.2/ivy-1.2.xml")
+        progressLogging.downloadProgressLogged("repo/group/projectA/1.2/projectA-1.2.jar")
 
         when:
-        server.clearRequests()
+        server.resetExpectations()
         executer.withDeprecationChecksDisabled()
-        run 'listJars'
 
         then:
-        server.fileRequests.empty
-    }
-
-    IvyRepository ivyRepo() {
-        return ivy(server.file("repos/libs/"))
+        run 'listJars'
     }
 }

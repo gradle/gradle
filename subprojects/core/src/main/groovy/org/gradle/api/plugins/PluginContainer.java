@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 
 /**
@@ -108,4 +110,18 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @throws UnknownPluginException When there is no plugin with the given type.
      */
     <T extends Plugin> T getAt(Class<T> type) throws UnknownPluginException;
+
+    /**
+     * Executes or registers an action for a plugin with given id.
+     * If the plugin was already applied, the action is executed.
+     * If the plugin is applied sometime later the action will be executed after the plugin is applied.
+     * If the plugin is never applied, the action is never executed.
+     * The behavior is similar to {@link #withType(Class, org.gradle.api.Action)}.
+     *
+     * @param pluginId the id of the plugin
+     * @param action the action
+     */
+    @Incubating
+    void withId(String pluginId, Action<Plugin> action);
+
 }

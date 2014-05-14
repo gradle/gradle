@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativebinaries.test.tasks
+
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.internal.ConventionTask
@@ -23,9 +24,10 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.process.ExecResult
-import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
+
+import javax.inject.Inject
+
 /**
  * Runs a compiled and installed test executable.
  */
@@ -46,19 +48,18 @@ public class RunTestExecutable extends ConventionTask {
      */
     @Input boolean ignoreFailures
 
-    private ExecAction execAction;
-    private ExecResult execResult;
-
-    public RunTestExecutable() {
-        execAction = getServices().get(ExecActionFactory.class).newExecAction();
+    @Inject
+    ExecActionFactory getExecActionFactory() {
+        throw new UnsupportedOperationException()
     }
 
     @TaskAction
     void exec() {
+        def execAction = getExecActionFactory().newExecAction();
         execAction.setExecutable(getTestExecutable())
         execAction.setWorkingDir(getOutputDir())
         try {
-            execResult = execAction.execute();
+            execAction.execute();
         } catch (Exception e) {
             handleTestFailures(e);
         }

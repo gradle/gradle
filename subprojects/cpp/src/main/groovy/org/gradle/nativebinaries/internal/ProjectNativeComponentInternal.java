@@ -19,6 +19,5 @@ import org.gradle.nativebinaries.ProjectNativeComponent;
 
 public interface ProjectNativeComponentInternal extends ProjectNativeComponent {
 
-    // TODO:DAZ Use BuildComponentIdentifier
     String getProjectPath();
 }

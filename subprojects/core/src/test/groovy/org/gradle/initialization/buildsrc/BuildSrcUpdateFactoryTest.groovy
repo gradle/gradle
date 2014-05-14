@@ -16,7 +16,7 @@
 
 package org.gradle.initialization.buildsrc
 
-import org.gradle.GradleLauncher
+import org.gradle.initialization.GradleLauncher
 import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

@@ -16,7 +16,7 @@
 
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.internal.resource.UriResource;
+import org.gradle.internal.resource.UriResource;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.junit.Before;

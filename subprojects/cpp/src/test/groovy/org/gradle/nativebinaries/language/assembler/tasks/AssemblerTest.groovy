@@ -47,7 +47,7 @@ class AssemblerTest extends Specification {
         then:
         _ * toolChain.outputType >> "c"
         _ * platform.compatibilityString >> "p"
-        1 * toolChain.target(platform) >> platformToolChain
+        1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.createAssembler() >> assembler
         1 * assembler.execute({ AssembleSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]

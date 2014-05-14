@@ -29,15 +29,13 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
-import org.gradle.api.internal.plugins.CleanRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.UploadRule;
-import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -47,10 +45,11 @@ import java.util.concurrent.Callable;
  * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
  */
 public class BasePlugin implements Plugin<Project> {
-    public static final String CLEAN_TASK_NAME = "clean";
-    public static final String ASSEMBLE_TASK_NAME = "assemble";
+    public static final String CLEAN_TASK_NAME = LifecycleBasePlugin.CLEAN_TASK_NAME;
+    public static final String ASSEMBLE_TASK_NAME = LifecycleBasePlugin.ASSEMBLE_TASK_NAME;
+    public static final String BUILD_GROUP = LifecycleBasePlugin.BUILD_GROUP;
+
     public static final String UPLOAD_ARCHIVES_TASK_NAME = "uploadArchives";
-    public static final String BUILD_GROUP = LanguageBasePlugin.BUILD_GROUP;
     public static final String UPLOAD_GROUP = "upload";
 
     private final ProjectPublicationRegistry publicationRegistry;
@@ -63,6 +62,8 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     public void apply(Project project) {
+        project.getPlugins().apply(LifecycleBasePlugin.class);
+
         BasePluginConvention convention = new BasePluginConvention(project);
         project.getConvention().getPlugins().put("base", convention);
 
@@ -71,17 +72,7 @@ public class BasePlugin implements Plugin<Project> {
         configureUploadArchivesTask();
         configureArchiveDefaults(project, convention);
         configureConfigurations(project);
-
-        addClean(project);
-        addCleanRule(project);
-        addAssemble(project);
-    }
-
-    private void addAssemble(Project project) {
-        Task assembleTask = project.getTasks().create(ASSEMBLE_TASK_NAME);
-        assembleTask.setDescription("Assembles the outputs of this project.");
-        assembleTask.setGroup(BUILD_GROUP);
-        assembleTask.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+        configureAssemble(project);
     }
 
     private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
@@ -118,21 +109,6 @@ public class BasePlugin implements Plugin<Project> {
                 });
             }
         });
-    }
-
-    private void addClean(final Project project) {
-        Delete clean = project.getTasks().create(CLEAN_TASK_NAME, Delete.class);
-        clean.setDescription("Deletes the build directory.");
-        clean.setGroup(BUILD_GROUP);
-        clean.delete(new Callable<File>() {
-            public File call() throws Exception {
-                return project.getBuildDir();
-            }
-        });
-    }
-
-    private void addCleanRule(Project project) {
-        project.getTasks().addRule(new CleanRule(project.getTasks()));
     }
 
     private void configureBuildConfigurationRule(Project project) {
@@ -184,5 +160,10 @@ public class BasePlugin implements Plugin<Project> {
                 });
             }
         });
+    }
+
+    private void configureAssemble(Project project) {
+        Task assembleTask = project.getTasks().getByName(ASSEMBLE_TASK_NAME);
+        assembleTask.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
     }
 }

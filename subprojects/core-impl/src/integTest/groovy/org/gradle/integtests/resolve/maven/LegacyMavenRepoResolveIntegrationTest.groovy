@@ -16,110 +16,10 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class LegacyMavenRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def "can configure legacy Maven resolver to verify artifact using checksums"() {
-        server.start()
-
-        given:
-        def module = mavenHttpRepo.module("group", "module", "1.2").publishWithChangedContent()
-        buildFile << """
-repositories {
-    def repo = mavenRepo url: '${mavenHttpRepo.uri}'
-    repo.checksums = 'sha1,md5'
-}
-
-configurations {
-    check
-}
-
-dependencies {
-    check 'group:module:1.2'
-}
-
-task check << {
-    configurations.check.files*.name == 'module-1.2.jar'
-}
-"""
-        and:
-        module.pom.expectGet()
-        module.pom.sha1.expectGetMissing()
-        module.pom.md5.expectGet()
-        module.artifact.expectGet()
-        module.artifact.sha1.expectGetMissing()
-        module.artifact.md5.expectGet()
-        executer.withDeprecationChecksDisabled()
-
-        expect:
-        succeeds 'check'
-
-        when:
-        module.publishWithChangedContent()
-
-        and:
-        server.resetExpectations()
-        module.pom.expectHead()
-        module.pom.sha1.expectGet()
-        module.pom.expectGet()
-        // TODO - shouldn't get checksum twice
-        module.pom.sha1.expectGet()
-        module.artifact.expectHead()
-        module.artifact.sha1.expectGet()
-        module.artifact.expectGet()
-        // TODO - shouldn't get checksum twice
-        module.artifact.sha1.expectGet()
-        executer.withDeprecationChecksDisabled()
-
-        then:
-        executer.withArguments("--refresh-dependencies")
-        succeeds 'check'
-    }
-
-    def "fails when checksum does not match artifact contents"() {
-        server.start()
-
-        given:
-        def module = mavenHttpRepo.module("group", "module", "1.2").publishWithChangedContent()
-        buildFile << """
-repositories {
-    def repo = mavenRepo url: '${mavenHttpRepo.uri}'
-    repo.checksums = 'sha1'
-}
-
-configurations {
-    check
-}
-
-dependencies {
-    check 'group:module:1.2'
-}
-
-task check << {
-    configurations.check.files*.name == 'module-1.2.jar'
-}
-"""
-        and:
-        module.pom.expectGet()
-        module.pom.sha1.expectGet()
-        module.artifact.expectGet()
-        module.artifact.sha1.expectGet()
-
-        and:
-        module.artifact.sha1.file.text = '1234'
-
-        and:
-        executer.withDeprecationChecksDisabled()
-
-        expect:
-        fails 'check'
-        failureHasCause("Could not download artifact 'group:module:1.2:module.jar'")
-        failureHasCause("invalid sha1: expected=1234 computed=2ee22701c9bd9af023ed20917897da5ce77336bc")
-    }
-
+class LegacyMavenRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "can configure resolver to fail when descriptor is not present"() {
-        server.start()
-
         given:
         def module = mavenHttpRepo.module("group", "module", "1.2").publish()
 
@@ -153,8 +53,6 @@ task check << {
     }
 
     def "can configure resolver to ignore poms"() {
-        server.start()
-
         given:
         def module = mavenHttpRepo.module("group", "module", "1.2").publish()
 
@@ -189,8 +87,6 @@ task check << {
     }
 
     def "can configure resolver to ignore maven-metadata.xml when resolving snapshots"() {
-        server.start()
-
         given:
         def module = mavenHttpRepo.module("group", "module", "1.2-SNAPSHOT").withNonUniqueSnapshots().publish()
 

@@ -15,13 +15,11 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-public class CacheResolveIntegrationTest extends AbstractDependencyResolutionTest {
+public class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     public void "cache handles manual deletion of cached artifacts"() {
-        server.start()
-
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
@@ -59,7 +57,6 @@ task deleteCacheFiles(type: Delete) {
     }
 
     public void "cache entries are segregated between different repositories"() {
-        server.start()
         given:
         def repo1 = ivyHttpRepo('ivy-repo-a')
         def module1 = repo1.module('org.gradle', 'testproject', '1.0').publish()

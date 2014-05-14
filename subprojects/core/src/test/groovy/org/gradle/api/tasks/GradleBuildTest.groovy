@@ -16,7 +16,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.BuildResult
-import org.gradle.GradleLauncher
+import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -51,6 +51,7 @@ public class GradleBuildTest extends Specification {
         1 * launcherFactory.newInstance(task.startParameter) >> launcher
         1 * launcher.run() >> resultMock
         1 * resultMock.rethrowFailure()
+        1 * launcher.stop()
         0 * _._
     }
 }

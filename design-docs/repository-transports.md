@@ -89,9 +89,9 @@ The plan will be to include this coverage for HTTP transport in a later story.
 
 ### Open issues
 
-- Add an `AbstractMultiTestRunner` implementation to permit a test to be run with different repository tranports.
+- Add an `AbstractMultiTestRunner` implementation to permit a test to be run with different repository transports.
 
-## Support a maven repository declared with 'sftp' as the URL scheme, using password credentials
+## Support resolving from a maven repository declared with 'sftp' as the URL scheme, using password credentials
 
 ### User visible changes
 
@@ -112,13 +112,25 @@ Configuring a repository for sftp transport:
 In many cases, this may be a matter of adapting existing test coverage to run against multiple transports.
 
 - Resolve via 'sftp' from maven repository.
-- Publish via 'sftp' to maven repository (with maven-publish)
 - Resolve dynamic version from maven repository with 'sftp'
 - Reasonable error message produced when:
     - attempt to resolve missing module with valid credentials
-    - publish or resolve with invalid credentials
-    - publish or resolve where cannot connect to server
-    - publish or resolve where server throws exception
+    - resolve with invalid credentials
+    - resolve where cannot connect to server
+    - resolve where server throws exception
+
+## Support publishing to a maven repository declared with 'sftp' as the URL scheme, using password credentials
+
+### Test cases
+
+In many cases, this may be a matter of adapting existing test coverage to run against multiple transports.
+
+- Un `@Ignore` `MavenPublishSftpIntegrationTest`.
+- Publish via 'sftp' to maven repository (old and new plugins)
+- Reasonable error message produced when:
+    - publish with invalid credentials
+    - publish where cannot connect to server
+    - publish where server throws exception
 
 ## Run more remote publish and resolve integration tests against an sftp repository
 
@@ -129,6 +141,10 @@ Adapt more existing test coverage to execute against an 'sftp' repository:
 - `org.gradle.api.publish.ivy.IvyPublishHttpIntegTest`
 - `org.gradle.api.publish.ivy.IvyPublishMultipleRepositoriesIntegTest`
 - `org.gradle.api.publish.maven.MavenPublishHttpIntegTest`
+
+## All repository transports support using `sha1` resources to avoid downloads
+
+Currently only the HTTP transports support using for a `.sha1` resource.
 
 ## Support 'scp' scheme for ivy and maven repository URL
 
@@ -158,3 +174,4 @@ use a remote resource that requires authentication, and where no credentials hav
 ## Prompt IDE user for credentials when not provided
 
 Allow tooling API clients to provide a credentials provider. This will allow IDE integrations to prompt the user for and manage their credentials.
+

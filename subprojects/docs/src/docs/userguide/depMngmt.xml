@@ -683,6 +683,50 @@
             </tr>
         </table>
 
+        <section id='sub:supported_transport_protocols'>
+            <title>Supported repository transport protocols</title>
+            <para>Maven and Ivy repositories support the use of various transport protocols. At the moment the following protocols are supported:
+            </para>
+            <table>
+                <title>Repository transport protocols</title>
+                <thead>
+                    <tr>
+                        <td>Type</td>
+                        <td>Authentication schemes</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><literal>file</literal></td>
+                    <td>none</td>
+                </tr>
+                <tr>
+                    <td><literal>http</literal></td>
+                    <td>username/password</td>
+                </tr>
+                <tr>
+                    <td><literal>https</literal></td>
+                    <td>username/password</td>
+                </tr>
+                <tr>
+                    <td><literal>sftp</literal></td>
+                    <td>username/password</td>
+                </tr>
+            </table>
+            <para>To define a repository use the <literal>repositories</literal> configuration block. Within the <literal>repositories</literal> closure,
+                a Maven repository is declared with <literal>maven</literal>. An Ivy repository is declared with <literal>ivy</literal>. The transport protocol
+                is part of the URL definition for a repository. The following build script demonstrates how to create a HTTP-based Maven and Ivy repository:
+            </para>
+            <sample id="mavenIvyRepositoriesNoAuth" dir="userguide/artifacts/defineRepository" title="Declaring a Maven and Ivy repository">
+                <sourcefile file="build.gradle" snippet="maven-ivy-repository-no-auth"/>
+            </sample>
+            <para>If authentication is required for a repository, the relevant credentials can be provided. The following example shows how to provide
+                username/password-based authentication for SFTP repositories:
+            </para>
+            <sample id="mavenIvyRepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Providing credentials to a Maven and Ivy repository">
+                <sourcefile file="build.gradle" snippet="maven-ivy-repository-auth"/>
+            </sample>
+        </section>
+
         <section id='sub:maven_central'>
             <title>Maven central repository</title>
             <para>To add the central Maven 2 repository (<ulink url='http://repo1.maven.org/maven2'/>) simply add this to your build script:
@@ -764,43 +808,48 @@
 
         <section id="sec:ivy_repositories">
             <title>Ivy repositories</title>
-            <para>To use an Ivy repository with a standard layout:</para>
-            <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
-                <sourcefile file="build.gradle" snippet="ivy-repo-with-maven-layout"/>
-            </sample>
-            <para>See
-                <apilink class="org.gradle.api.artifacts.repositories.IvyArtifactRepository"/>
-                for details.
-            </para>
             <section>
-                <title>Defining custom patterns for an Ivy repository</title>
-                <para>To define an Ivy repository with a non-standard layout, you can define a pattern layout for the repository:
+                <title>Defining an Ivy repository with a standard layout</title>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
+                    <sourcefile file="build.gradle" snippet="ivy-repo"/>
+                </sample>
+            </section>
+            <section>
+                <title>Defining a named layout for an Ivy repository</title>
+                <para>
+                    You can specify that your repository conforms to the Ivy or Maven default layout by using a named layout.
+                </para>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with named layout">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-maven-layout"/>
+                </sample>
+                <para>
+                    Valid named layout values are <literal>'gradle'</literal> (the default), <literal>'maven'</literal> and <literal>'ivy'</literal>.
+                    See <apilink class="org.gradle.api.artifacts.repositories.IvyArtifactRepository" method="layout(java.lang.String, groovy.lang.Closure)"/> for details of these named layouts.
+                </para>
+            </section>
+            <section>
+                <title>Defining custom pattern layout for an Ivy repository</title>
+                <para>To define an Ivy repository with a non-standard layout, you can define a 'pattern' layout for the repository:
                 </para>
                 <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with pattern layout">
                     <sourcefile file="build.gradle" snippet="ivy-repo-with-pattern-layout"/>
                 </sample>
-            </section>
-            <section>
-                <title>Ivy repository with Maven compatible layout</title>
+                <para>To define an Ivy repository which fetches Ivy files and artifacts from different locations,
+                    you can define separate patterns to use to locate the Ivy files and artifacts:
+                </para>
+                <para>
+                    Each <literal>artifact</literal> or <literal>ivy</literal> specified for a repository adds an <emphasis>additional</emphasis> pattern to use.
+                    The patterns are used in the order that they are defined.
+                </para>
+                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with multiple custom patterns">
+                    <sourcefile file="build.gradle" snippet="ivy-repo-with-custom-pattern"/>
+                </sample>
                 <para>Optionally, a repository with pattern layout can have its 'organisation' part laid out in Maven style, with
                     forward slashes replacing dots as separators. For example, the organisation <literal>my.company</literal> would then be represented as <literal>my/company</literal>.
                 </para>
                 <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with Maven compatible layout">
                     <sourcefile file="build.gradle" snippet="ivy-repo-with-m2compatible-layout"/>
                 </sample>
-            </section>
-            <section>
-                <title>Defining different artifact and Ivy file locations for an Ivy repository</title>
-                <para>To define an Ivy repository which fetches Ivy files and artifacts from different locations, you can use the pattern layout with separate patterns to use to locate
-                    the Ivy files and artifacts:
-                </para>
-                <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with custom patterns">
-                    <sourcefile file="build.gradle" snippet="ivy-repo-with-custom-pattern"/>
-                </sample>
-                <para>
-                    Each <literal>artifact</literal> or <literal>ivy</literal> specified for a repository adds an <emphasis>additional</emphasis> pattern to use. The patterns are used in the order
-                    that they are defined.
-                </para>
             </section>
             <section>
                 <title>Accessing password protected Ivy repositories</title>
@@ -829,7 +878,11 @@
             </para>
             <itemizedlist>
                 <listitem>
-                    <para>There are many options for the protocol to communicate with the repository (e.g. filesystem, http, ssh, ...)
+                    <para>There are many options for the protocol to communicate with the repository (e.g. filesystem, http, ssh, sftp ...)
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>The protocol sftp currently only supports username/password-based authentication.
                     </para>
                 </listitem>
                 <listitem>

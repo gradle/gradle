@@ -22,7 +22,7 @@ class SystemPropertiesCommandLineConverterTest extends Specification {
     def converter = new SystemPropertiesCommandLineConverter();
 
     def convert(String... args) {
-        converter.convert(Arrays.asList(args)).sort()
+        converter.convert(Arrays.asList(args), new HashMap<String, String>()).sort()
     }
 
     def "parses system properties args"() {

@@ -21,10 +21,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Resolver
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import spock.lang.Specification
 
 class DefaultFlatDirArtifactRepositoryTest extends Specification {
@@ -34,9 +35,9 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder = Mock()
     final ResolverStrategy resolverStrategy = Stub()
+    final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
 
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(
-            fileResolver, transportFactory, locallyAvailableResourceFinder, resolverStrategy)
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, resolverStrategy, artifactIdentifierFileStore)
 
     def "creates a repository with multiple root directories"() {
         given:
@@ -53,15 +54,15 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         def repo = repository.createResolver()
 
         then:
-        1 * transportFactory.createFileTransport("repo-name") >> repositoryTransport
+        1 * transportFactory.createTransport("file", "repo-name", null) >> repositoryTransport
 
         and:
         repo instanceof IvyResolver
         def expectedPatterns = [
-                "$dir1.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
-                "$dir1.absolutePath/[artifact](-[classifier]).[ext]",
-                "$dir2.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
-                "$dir2.absolutePath/[artifact](-[classifier]).[ext]"
+                "${dir1.toURI()}/[artifact]-[revision](-[classifier]).[ext]",
+                "${dir1.toURI()}/[artifact](-[classifier]).[ext]",
+                "${dir2.toURI()}/[artifact]-[revision](-[classifier]).[ext]",
+                "${dir2.toURI()}/[artifact](-[classifier]).[ext]"
         ]
         repo.ivyPatterns == []
         repo.artifactPatterns == expectedPatterns

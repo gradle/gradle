@@ -21,7 +21,7 @@ import spock.lang.Unroll
 class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTest {
 
     @Unroll
-    def "can publish with project coordinates containing #title characters"() {
+    def "can publish with project coordinates containing #identifier characters"() {
         given:
         file("content-file") << "some content"
         def organisation = identifier.safeForFileName().decorate("org")
@@ -65,16 +65,11 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
         resolveArtifacts(module) == [moduleName + '-' + version + '.jar']
 
         where:
-        title        | identifier
-        "punctuation"| Identifier.punctuation
-        "non-ascii"  | Identifier.nonAscii
-        "whitespace" | Identifier.whiteSpace
-        "filesystem" | Identifier.fileSystemReserved
-        "xml markup" | Identifier.xmlMarkup
+        identifier << Identifier.all
     }
 
     @Unroll
-    def "can publish artifacts with attributes containing #title characters"() {
+    def "can publish artifacts with attributes containing #identifier characters"() {
         given:
         file("content-file") << "some content"
 
@@ -124,12 +119,7 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
         resolveArtifacts(module, conf) == ["${artifact}-${version}-${classifier}.${extension}"]
 
         where:
-        title        | identifier
-        "punctuation"| Identifier.punctuation
-        "non-ascii"  | Identifier.nonAscii
-        "whitespace" | Identifier.whiteSpace
-        "filesystem" | Identifier.fileSystemReserved
-        "xml markup" | Identifier.xmlMarkup
+        identifier << Identifier.all
     }
 
     def "fails with reasonable error message for invalid identifier value"() {

@@ -26,7 +26,6 @@ import org.gradle.nativebinaries.*
  * Exposes a more logical view of the actual .cproject descriptor file
  */
 @Incubating
-// TODO:DAZ I'm sure this is now broken
 class CprojectSettings {
 
     ProjectNativeComponent binary
@@ -78,9 +77,9 @@ class CprojectSettings {
 
         def extension = ""
         def type 
-        if (binary instanceof Library) {
+        if (binary instanceof NativeLibrary) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
-        } else if (binary instanceof Executable) {
+        } else if (binary instanceof NativeExecutable) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.exe"
         } else {
             throw new IllegalStateException("The binary $binary is of a type that we don't know about")

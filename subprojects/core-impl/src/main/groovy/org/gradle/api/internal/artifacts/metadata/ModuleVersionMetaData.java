@@ -36,6 +36,4 @@ public interface ModuleVersionMetaData extends ComponentMetaData {
 
     ModuleVersionArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier);
 
-    // TODO:DAZ This is not set correctly when read from cache
-    boolean isMetaDataOnly();
 }

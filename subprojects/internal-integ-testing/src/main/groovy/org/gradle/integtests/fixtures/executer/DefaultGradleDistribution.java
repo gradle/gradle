@@ -99,7 +99,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public boolean isOpenApiSupported() {
-        return isSameOrNewer("0.9-rc-1");
+        return isSameOrNewer("0.9-rc-1") && !isSameOrNewer("2.0");
     }
 
     public boolean isToolingApiSupported() {
@@ -114,7 +114,9 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public VersionNumber getArtifactCacheLayoutVersion() {
-        if (isSameOrNewer("1.12-rc-1")) {
+        if (isSameOrNewer("2.0-rc-1")) {
+            return VersionNumber.parse("2.12");
+        } else if (isSameOrNewer("1.12-rc-1")) {
             return VersionNumber.parse("2.6");
         } else if (isSameOrNewer("1.11-rc-1")) {
             return VersionNumber.parse("2.2");

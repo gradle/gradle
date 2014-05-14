@@ -16,36 +16,61 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfo;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoExtractor;
-import org.gradle.api.internal.tasks.compile.incremental.graph.ClassDependencyInfoSerializer;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoSerializer;
+import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.util.Clock;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
 public class IncrementalCompilationSupport {
 
     private static final Logger LOG = Logging.getLogger(IncrementalCompilationSupport.class);
-    private JarSnapshotFeeder jarSnapshotFeeder;
+    private final JarSnapshotsMaker jarSnapshotsMaker;
+    private final ClassDependencyInfoSerializer dependencyInfoSerializer;
+    private final FileOperations fileOperations;
+    private final CleaningJavaCompiler cleaningCompiler;
+    private final String displayName;
+    private final RecompilationSpecProvider staleClassDetecter;
+    private final ClassDependencyInfoUpdater classDependencyInfoUpdater;
+    private final CompilationSourceDirs sourceDirs;
 
-    public IncrementalCompilationSupport(JarSnapshotFeeder jarSnapshotFeeder) {
-        this.jarSnapshotFeeder = jarSnapshotFeeder;
+    public IncrementalCompilationSupport(JarSnapshotsMaker jarSnapshotsMaker, ClassDependencyInfoSerializer dependencyInfoSerializer,
+                                         FileOperations fileOperations, CleaningJavaCompiler cleaningCompiler, String displayName,
+                                         RecompilationSpecProvider staleClassDetecter, ClassDependencyInfoUpdater classDependencyInfoUpdater,
+                                         CompilationSourceDirs sourceDirs) {
+        this.jarSnapshotsMaker = jarSnapshotsMaker;
+        this.dependencyInfoSerializer = dependencyInfoSerializer;
+        this.fileOperations = fileOperations;
+        this.cleaningCompiler = cleaningCompiler;
+        this.displayName = displayName;
+        this.staleClassDetecter = staleClassDetecter;
+        this.classDependencyInfoUpdater = classDependencyInfoUpdater;
+        this.sourceDirs = sourceDirs;
     }
 
-    public void compilationComplete(CompileOptions options,
-                                    ClassDependencyInfoExtractor extractor,
-                                    ClassDependencyInfoSerializer serializer,
-                                    Iterable<JarArchive> jarsOnClasspath) {
-        if (options.isIncremental()) {
-            Clock clock = new Clock();
-            ClassDependencyInfo info = extractor.extractInfo("");
-            serializer.writeInfo(info);
-            LOG.lifecycle("Performed class dependency analysis in {}, wrote results into {}", clock.getTime(), serializer);
+    public Compiler<JavaCompileSpec> prepareCompiler(final IncrementalTaskInputs inputs) {
+        final Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
+        return new IncrementalCompilationFinalizer(compiler, jarSnapshotsMaker, classDependencyInfoUpdater);
+    }
 
-//            clock = new Clock();
-//            jarSnapshotFeeder.storeJarSnapshots(jarsOnClasspath);
-//            LOG.lifecycle("Wrote jar snapshots in {}.", clock.getTime());
+    private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
+        if (!inputs.isIncremental()) {
+            LOG.lifecycle("{} - is not incremental (e.g. outputs have changed, no previous execution, etc)", displayName);
+            return cleaningCompiler;
         }
+        if (!sourceDirs.areSourceDirsKnown()) {
+            LOG.lifecycle("{} - is not incremental. Unable to infer the source directories.", displayName);
+            return cleaningCompiler;
+        }
+        if (!dependencyInfoSerializer.isInfoAvailable()) {
+            LOG.lifecycle("{} - is not incremental. No class dependency data available from previous build.", displayName);
+            return cleaningCompiler;
+        }
+        return new SelectiveCompiler(inputs, cleaningCompiler, staleClassDetecter, new IncrementalCompilationInitializer(fileOperations));
     }
 }

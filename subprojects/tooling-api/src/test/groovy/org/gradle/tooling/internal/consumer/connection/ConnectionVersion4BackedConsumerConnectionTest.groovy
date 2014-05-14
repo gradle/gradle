@@ -15,274 +15,46 @@
  */
 package org.gradle.tooling.internal.consumer.connection
 
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
-import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment
+import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.consumer.versioning.CustomModel
-import org.gradle.tooling.internal.consumer.versioning.ModelMapping
-import org.gradle.tooling.internal.gradle.DefaultGradleBuild
-import org.gradle.tooling.internal.gradle.PartialGradleProject
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
-import org.gradle.tooling.internal.protocol.ProjectVersion3
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
-import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.tooling.model.idea.BasicIdeaProject
-import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
-    final ConnectionMetaDataVersion1 metaData = Stub()
-    final ConnectionVersion4 target = Mock() {
-        getMetaData() >> metaData
-    }
+    final Distribution distribution = Mock(Distribution)
     final ConsumerOperationParameters parameters = Mock()
-    final ModelMapping modelMapping = Stub()
-    final ProtocolToModelAdapter adapter = Mock()
+    final ConnectionVersion4 connection = Mock()
+    final ConnectionMetaDataVersion1 metaDataVersion1 = Mock()
+    final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter()
 
-    def "describes capabilities of a 1.0-m3 provider"() {
-        given:
-        metaData.version >> "1.0-milestone-3"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-        def details = connection.versionDetails
-
-        expect:
-        !details.supportsGradleProjectModel()
-
-        and:
-        details.maySupportModel(HierarchicalEclipseProject)
-        details.maySupportModel(EclipseProject)
-        details.maySupportModel(Void)
-
-        and:
-        !details.maySupportModel(IdeaProject)
-        !details.maySupportModel(BasicIdeaProject)
-        !details.maySupportModel(GradleProject)
-        !details.maySupportModel(BuildEnvironment)
-        !details.maySupportModel(ProjectOutcomes)
-        !details.maySupportModel(CustomModel)
-        !details.maySupportModel(GradleBuild)
+    def setup() {
+        _ * connection.metaData >> metaDataVersion1
+        _ * metaDataVersion1.version >> '1.0-milestoneX'
     }
 
-    def "describes capabilities of a 1.0-m5 provider"() {
-        given:
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-        def details = connection.versionDetails
-
-        expect:
-        details.supportsGradleProjectModel()
-
-        and:
-        details.maySupportModel(HierarchicalEclipseProject)
-        details.maySupportModel(EclipseProject)
-        details.maySupportModel(IdeaProject)
-        details.maySupportModel(BasicIdeaProject)
-        details.maySupportModel(GradleProject)
-        details.maySupportModel(Void)
-
-        and:
-        !details.maySupportModel(BuildEnvironment)
-        !details.maySupportModel(ProjectOutcomes)
-        !details.maySupportModel(CustomModel)
-        !details.maySupportModel(GradleBuild)
-    }
-
-    def "builds model using connection's getModel() method"() {
-        ProjectVersion3 protocolModel = Mock()
-        GradleProject model = Mock()
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-
-        when:
-        def result = connection.run(GradleProject.class, parameters)
-
-        then:
-        result == model
-
-        and:
-        _ * modelMapping.getProtocolType(GradleProject.class) >> ProjectVersion3.class
-        1 * target.getModel(ProjectVersion3.class, parameters) >> protocolModel
-        1 * adapter.adapt(GradleProject.class, protocolModel, _) >> model
-        0 * target._
-    }
-
-    def "runs build using connection's executeBuild() method"() {
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-
-        when:
-        connection.run(Void.class, parameters)
-
-        then:
-        1 * target.executeBuild(parameters, parameters)
-        0 * target._
-    }
-
-    def "builds partial BuildEnvironment model locally"() {
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-        BuildEnvironment model = Stub()
-
-        when:
-        def result = connection.run(BuildEnvironment.class, parameters)
-
-        then:
-        result == model
-
-        and:
-        1 * adapter.adapt(BuildEnvironment.class, {it instanceof VersionOnlyBuildEnvironment}, _) >> model
-        0 * target._
-    }
-
-    def "builds partial GradleProject model using the Eclipse model for a 1.0-m3 provider"() {
-        metaData.version >> "1.0-milestone-3"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-        EclipseProjectVersion3 protocolModel = Stub()
-        GradleProject model = Stub()
-
-        when:
-        def result = connection.run(GradleProject.class, parameters)
-
-        then:
-        result == model
-
-        and:
-        _ * modelMapping.getProtocolType(EclipseProjectVersion3) >> EclipseProjectVersion3.class
-        1 * target.getModel(EclipseProjectVersion3.class, parameters) >> protocolModel
-        1 * adapter.adapt(EclipseProjectVersion3.class, _, _) >> protocolModel
-        1 * adapter.adapt(GradleProject.class, _) >> model
-        0 * target._
-    }
-
-    def "builds partial GradleBuild model using the Eclipse model for a 1.0-m3 provider"() {
-        metaData.version >> "1.0-milestone-3"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-        EclipseProjectVersion3 protocolModel = Stub()
-        GradleProject gradleProject = Stub()
-        GradleBuild model = Stub()
-
-        when:
-        def result = connection.run(GradleBuild.class, parameters)
-
-        then:
-        result == model
-
-        and:
-        _ * modelMapping.getProtocolType(EclipseProjectVersion3) >> EclipseProjectVersion3.class
-        1 * target.getModel(EclipseProjectVersion3.class, parameters) >> protocolModel
-        1 * adapter.adapt(EclipseProjectVersion3.class, _, _) >> protocolModel
-        1 * adapter.adapt(GradleProject.class, { it instanceof PartialGradleProject }) >> gradleProject
-        1 * adapter.adapt(GradleBuild.class, { it instanceof DefaultGradleBuild }) >> model
-        0 * adapter._
-        0 * target._
-    }
-
-    def "fails when unknown model is requested"() {
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-
-        when:
-        connection.run(CustomModel.class, parameters)
-
-        then:
-        UnknownModelException e = thrown()
-        e.message == /The version of Gradle you are using (1.0-milestone-5) does not support building a model of type 'CustomModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions./
-    }
-
-    def "fails when unsupported model is requested"() {
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-
-        when:
-        connection.run(ProjectOutcomes.class, parameters)
-
-        then:
-        UnknownModelException e = thrown()
-        e.message == /The version of Gradle you are using (1.0-milestone-5) does not support building a model of type 'ProjectOutcomes'. Support for building 'ProjectOutcomes' models was added in Gradle 1.2 and is available in all later versions./
-    }
-
-    def "fails when both tasks and model requested"() {
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-
-        given:
-        parameters.tasks >> ['a']
+    def "run fails"() {
+        def connection = new ConnectionVersion4BackedConsumerConnection(distribution, connection, adapter)
 
         when:
         connection.run(GradleProject.class, parameters)
 
         then:
-        UnsupportedOperationConfigurationException e = thrown()
-        e.message.startsWith("Unsupported configuration: modelBuilder.forTasks()")
-    }
-
-    def "fails when build action requested"() {
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-
-        given:
-        parameters.tasks >> ['a']
-
-        when:
-        connection.run(Stub(BuildAction), parameters)
-
-        then:
         UnsupportedVersionException e = thrown()
-        e.message == /The version of Gradle you are using (1.0-milestone-5) does not support execution of build actions provided by the tooling API client. Support for this was added in Gradle 1.8 and is available in all later versions./
+        e != null
     }
 
-    def "fails when stdin provided"() {
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-
-        given:
-        parameters.standardInput >> new ByteArrayInputStream("hi".bytes)
+    def "partial BuildEnvirnment"() {
+        def connection = new ConnectionVersion4BackedConsumerConnection(distribution, connection, adapter)
 
         when:
-        connection.run(CustomModel.class, parameters)
+        def buildEnv = connection.run(BuildEnvironment.class, parameters)
 
         then:
-        UnsupportedOperationConfigurationException e = thrown()
-        e.message.startsWith("Unsupported configuration: modelBuilder.setStandardInput()")
-    }
-
-    def "fails when Java home specified"() {
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-
-        given:
-        parameters.javaHome >> new File("java-home")
-
-        when:
-        connection.run(CustomModel.class, parameters)
-
-        then:
-        UnsupportedOperationConfigurationException e = thrown()
-        e.message.startsWith("Unsupported configuration: modelBuilder.setJavaHome()")
-    }
-
-    def "fails when JVM args specified"() {
-        metaData.version >> "1.0-milestone-5"
-        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
-
-        given:
-        parameters.jvmArguments >> ['-Dsome.arg']
-
-        when:
-        connection.run(CustomModel.class, parameters)
-
-        then:
-        UnsupportedOperationConfigurationException e = thrown()
-        e.message.startsWith("Unsupported configuration: modelBuilder.setJvmArguments()")
+        buildEnv.gradle.gradleVersion == '1.0-milestoneX'
     }
 }

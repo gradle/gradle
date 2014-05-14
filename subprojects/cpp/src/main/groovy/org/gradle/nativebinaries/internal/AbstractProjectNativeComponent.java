@@ -26,13 +26,13 @@ import java.util.Set;
 
 public abstract class AbstractProjectNativeComponent implements ProjectNativeComponentInternal {
     private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
-    private final NativeProjectComponentIdentifier id;
+    private final ProjectNativeComponentIdentifier id;
     private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
 
     private String baseName;
 
-    public AbstractProjectNativeComponent(NativeProjectComponentIdentifier id) {
+    public AbstractProjectNativeComponent(ProjectNativeComponentIdentifier id) {
         this.id = id;
         this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
         binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);

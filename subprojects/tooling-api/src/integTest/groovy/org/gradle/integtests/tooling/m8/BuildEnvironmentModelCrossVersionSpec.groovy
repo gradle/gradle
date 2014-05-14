@@ -18,12 +18,9 @@ package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 
-@ToolingApiVersion('>=1.0-milestone-8')
-@TargetGradleVersion('>=1.0-milestone-8')
 class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "informs about build environment"() {
@@ -34,6 +31,16 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
         model.gradle.gradleVersion == targetDist.version.version
         model.java.javaHome
         !model.java.jvmArguments.empty
+    }
+
+    @TargetGradleVersion("<1.0-milestone-8")
+    def "partial BuildEnvironment model for pre 1.0m8 providers"() {
+        when:
+        BuildEnvironment buildEnv = withConnection { it.getModel(BuildEnvironment.class) }
+
+        then:
+        buildEnv != null
+        buildEnv.gradle.gradleVersion == targetDist.version.version
     }
 
     def "informs about java args as in the build script"() {
@@ -52,10 +59,26 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
         env.java.jvmArguments.each { inputArgsInBuild.contains(it) }
     }
 
+    @TargetGradleVersion(">=1.0-milestone-8 <=1.0-milestone-9")
+    def "informs about java home as in the build script for older versions"() {
+        given:
+        file('build.gradle') << """
+        description = org.gradle.util.Jvm.current().javaHome.toString()
+        """
+
+        when:
+        BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
+
+        then:
+        env.java.javaHome.toString() == project.description
+    }
+
+    @TargetGradleVersion(">1.0-milestone-9")
     def "informs about java home as in the build script"() {
         given:
         file('build.gradle') << """
-        description = Jvm.current().javaHome.toString()
+        description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         """
 
         when:

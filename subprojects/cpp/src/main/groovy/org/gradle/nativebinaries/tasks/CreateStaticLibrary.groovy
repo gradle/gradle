@@ -28,7 +28,7 @@ import javax.inject.Inject
  * Assembles a static library from object files.
  */
 @Incubating
-class CreateStaticLibrary extends DefaultTask implements BuildBinaryTask {
+class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
     private FileCollection source
 
     @Inject
@@ -89,7 +89,7 @@ class CreateStaticLibrary extends DefaultTask implements BuildBinaryTask {
         spec.objectFiles getSource()
         spec.args getStaticLibArgs()
 
-        def result = toolChain.target(targetPlatform).createStaticLibraryArchiver().execute(spec)
+        def result = toolChain.select(targetPlatform).createStaticLibraryArchiver().execute(spec)
         didWork = result.didWork
     }
 

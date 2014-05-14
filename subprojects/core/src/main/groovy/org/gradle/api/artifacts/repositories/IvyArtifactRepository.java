@@ -34,6 +34,8 @@ import java.net.URI;
  */
 public interface IvyArtifactRepository extends ArtifactRepository, AuthenticationSupported {
 
+    String IVY_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact](.[ext])";
+
     String GRADLE_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
     String GRADLE_IVY_PATTERN = "[organisation]/[module]/[revision]/ivy-[revision].xml";
 
@@ -107,6 +109,13 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *     <li>Ivy: <code>$baseUri/{@value #MAVEN_IVY_PATTERN}</code></li>
      * </ul>
      * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
+     *
+     * <h4>'ivy'</h4>
+     * A Repository Layout that applies the following patterns:
+     * <ul>
+     *     <li>Artifacts: <code>$baseUri/{@value #IVY_ARTIFACT_PATTERN}</code></li>
+     *     <li>Ivy: <code>$baseUri/{@value #IVY_ARTIFACT_PATTERN}</code></li>
+     * </ul>
      *
      * <h4>'pattern'</h4>
      * A repository layout that allows custom patterns to be defined. eg:

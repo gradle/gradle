@@ -69,7 +69,24 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class
         TestR12Connection.class   | BuildActionRunnerBackedConsumerConnection.class
         TestR10M8Connection.class | InternalConnectionBackedConsumerConnection.class
-        TestR10M3Connection.class | ConnectionVersion4BackedConsumerConnection.class
+    }
+
+    def "locates connection implementation using meta-inf service for deprecated connection"() {
+        given:
+        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir) >> new DefaultClassPath(
+                getToolingApiResourcesDir(TestR10M3Connection.class),
+                ClasspathUtil.getClasspathForClass(TestConnection.class),
+                ClasspathUtil.getClasspathForClass(ActorFactory.class),
+                ClasspathUtil.getClasspathForClass(Logger.class),
+                ClasspathUtil.getClasspathForClass(GroovyObject.class),
+                getVersionResourcesDir(),
+                ClasspathUtil.getClasspathForClass(GradleVersion.class))
+
+        when:
+        def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters)
+
+        then:
+        adaptedConnection.class == ConnectionVersion4BackedConsumerConnection.class
     }
 
     private getToolingApiResourcesDir(Class implementation) {

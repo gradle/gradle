@@ -15,14 +15,18 @@
  */
 package org.gradle.test.fixtures.server.http
 
+import com.google.common.net.UrlEscapers
 import com.google.gson.Gson
 import com.google.gson.JsonElement
+import groovy.xml.MarkupBuilder
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.hash.HashUtil
+import org.gradle.test.fixtures.server.ExpectOne
+import org.gradle.test.fixtures.server.ServerExpectation
+import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matcher
-import org.junit.rules.ExternalResource
 import org.mortbay.jetty.*
 import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
@@ -36,9 +40,9 @@ import javax.servlet.http.HttpServletResponse
 import java.security.Principal
 import java.util.zip.GZIPOutputStream
 
-class HttpServer extends ExternalResource {
+class HttpServer extends ServerWithExpectations {
 
-    private static Logger logger = LoggerFactory.getLogger(HttpServer.class)
+    private final static Logger logger = LoggerFactory.getLogger(HttpServer.class)
 
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
@@ -48,9 +52,9 @@ class HttpServer extends ExternalResource {
     private SslSocketConnector sslConnector
     AuthScheme authenticationScheme = AuthScheme.BASIC
 
-    private Throwable failure
-    private final List<Expection> expections = []
-    private Matcher expectedUserAgent = null
+    protected Matcher expectedUserAgent = null
+
+    List<ServerExpectation> expectations = []
 
     enum AuthScheme {
         BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler())
@@ -104,6 +108,10 @@ class HttpServer extends ExternalResource {
         server.setHandler(handlers)
     }
 
+    protected Logger getLogger() {
+        logger
+    }
+
     String getAddress() {
         if (!server.started) {
             server.start()
@@ -111,45 +119,34 @@ class HttpServer extends ExternalResource {
         "http://localhost:${port}"
     }
 
-    void start() {
-        start(0)
-    }
-
     boolean isRunning() {
         server.running
     }
 
-    void start(int port) {
+    void start() {
         connector = new SocketConnector()
-        connector.port = port
+        connector.port = 0
         server.addConnector(connector)
-        try {
-            server.start()
-        } catch (java.net.BindException e) {
-            //without this, it is not possible to retry starting the server on the same port
-            //retrying is useful if we need to start server on a specific port
-            //and the OS forces us to wait until it is available.
+        server.start()
+        for (int i = 0; i < 5; i++) {
+            if (connector.localPort > 0) {
+                return;
+            }
+            // Has failed to start for some reason - try again
             server.removeConnector(connector)
-            throw e
+            connector.stop()
+            connector = new SocketConnector()
+            connector.port = 0
+            server.addConnector(connector)
+            connector.start()
         }
-        def localPort = connector.localPort
-        if (localPort <= 0) {
-            throw new AssertionError("SocketConnector.localPort returned $localPort after starting server");
-        }
+        throw new AssertionError("SocketConnector failed to start.");
     }
 
     void stop() {
-        resetExpectations()
         server?.stop()
         if (connector) {
             server?.removeConnector(connector)
-        }
-    }
-
-    private void onFailure(Throwable failure) {
-        logger.error(failure.message)
-        if (this.failure == null) {
-            this.failure = failure
         }
     }
 
@@ -163,6 +160,9 @@ class HttpServer extends ExternalResource {
             sslConnector.trustPassword = trustPassword
         }
         server.addConnector(sslConnector)
+        if (server.started) {
+            sslConnector.start()
+        }
     }
 
     int getSslPort() {
@@ -175,24 +175,19 @@ class HttpServer extends ExternalResource {
 
     void resetExpectations() {
         try {
-            if (failure != null) {
-                throw failure
-            }
-            for (Expection e in expections) {
-                e.assertMet()
-            }
+            super.resetExpectations()
         } finally {
             realm = null
-            failure = null
             expectedUserAgent = null
-            expections.clear()
             collection.setHandlers()
         }
     }
 
-    @Override
-    protected void after() {
-        stop()
+    /**
+     * Adds a given file at the given URL. The source file can be either a file or a directory.
+     */
+    void allowHead(String path, File srcFile) {
+        allow(path, true, ['HEAD'], fileHandler(path, srcFile))
     }
 
     /**
@@ -209,34 +204,48 @@ class HttpServer extends ExternalResource {
         allow(path, true, ['GET', 'HEAD'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
     }
 
-    private Action fileHandler(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
-        return new Action() {
-            String getDisplayName() {
-                return "return contents of $srcFile.name"
-            }
+    /**
+     * Allows one GET request for the given URL, which return 404 status code
+     */
+    void allowGetMissing(String path) {
+        allow(path, false, ['GET'], notFound())
+    }
 
-            void handle(HttpServletRequest request, HttpServletResponse response) {
-                if (HttpServer.this.expectedUserAgent != null) {
-                    String receivedUserAgent = request.getHeader("User-Agent")
-                    if (!expectedUserAgent.matches(receivedUserAgent)) {
-                        response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent));
-                        return;
-                    }
+    private Action fileHandler(String path, File srcFile) {
+        return new SendFileAction(path, srcFile)
+    }
+
+    class SendFileAction extends ActionSupport {
+        private final String path
+        private final File srcFile
+
+        SendFileAction(String path, File srcFile) {
+            super("return contents of $srcFile.name")
+            this.srcFile = srcFile
+            this.path = path
+        }
+
+        void handle(HttpServletRequest request, HttpServletResponse response) {
+            if (expectedUserAgent != null) {
+                String receivedUserAgent = request.getHeader("User-Agent")
+                if (!expectedUserAgent.matches(receivedUserAgent)) {
+                    response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent));
+                    return;
                 }
-                def file
-                if (request.pathInfo == path) {
-                    file = srcFile
-                } else {
-                    def relativePath = request.pathInfo.substring(path.length() + 1)
-                    file = new File(srcFile, relativePath)
-                }
-                if (file.isFile()) {
-                    sendFile(response, file, lastModified, contentLength)
-                } else if (file.isDirectory()) {
-                    sendDirectoryListing(response, file)
-                } else {
-                    response.sendError(404, "'$request.pathInfo' does not exist")
-                }
+            }
+            def file
+            if (request.pathInfo == path) {
+                file = srcFile
+            } else {
+                def relativePath = request.pathInfo.substring(path.length() + 1)
+                file = new File(srcFile, relativePath)
+            }
+            if (file.isFile()) {
+                sendFile(response, file, null, null, interaction.contentType)
+            } else if (file.isDirectory()) {
+                sendDirectoryListing(response, file)
+            } else {
+                response.sendError(404, "'$request.pathInfo' does not exist")
             }
         }
     }
@@ -249,39 +258,35 @@ class HttpServer extends ExternalResource {
     }
 
     /**
-     * Allows one GET request, which fails with a 500 status code
+     * Expects one GET request, which fails with a 500 status code
      */
     void expectGetBroken(String path) {
         expect(path, false, ['GET'], broken())
     }
 
     /**
-     * Allows one GET request for the given URL, which return 404 status code
+     * Expects one GET request for the given URL, which return 404 status code
      */
     void expectGetMissing(String path, PasswordCredentials passwordCredentials = null) {
         expect(path, false, ['GET'], notFound(), passwordCredentials)
     }
 
     /**
-     * Allows one HEAD request for the given URL, which return 404 status code
+     * Expects one HEAD request for the given URL, which return 404 status code
      */
     void expectHeadMissing(String path) {
         expect(path, false, ['HEAD'], notFound())
     }
 
     /**
-     * Allows one HEAD request for the given URL, which returns a 500 status code
+     * Expects one HEAD request for the given URL, which returns a 500 status code
      */
     void expectHeadBroken(String path) {
         expect(path, false, ['HEAD'], broken())
     }
 
     private Action notFound() {
-        new Action() {
-            String getDisplayName() {
-                return "return 404 not found"
-            }
-
+        new ActionSupport("return 404 not found") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(404, "not found")
             }
@@ -289,11 +294,7 @@ class HttpServer extends ExternalResource {
     }
 
     private Action broken() {
-        new Action() {
-            String getDisplayName() {
-                return "return 500 broken"
-            }
-
+        new ActionSupport("return 500 broken") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(500, "broken")
             }
@@ -301,10 +302,10 @@ class HttpServer extends ExternalResource {
     }
 
     /**
-     * Allows one HEAD request for the given URL.
+     * Expects one HEAD request for the given URL.
      */
-    void expectHead(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
-        expect(path, false, ['HEAD'], fileHandler(path, srcFile, lastModified, contentLength))
+    void expectHead(String path, File srcFile) {
+        expect(path, false, ['HEAD'], fileHandler(path, srcFile))
     }
 
     /**
@@ -317,26 +318,22 @@ class HttpServer extends ExternalResource {
     /**
      * Allows one GET request for the given URL. Reads the request content from the given file.
      */
-    void expectGet(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
-        expect(path, false, ['GET'], fileHandler(path, srcFile, lastModified, contentLength))
+    HttpResourceInteraction expectGet(String path, File srcFile) {
+        return expect(path, false, ['GET'], fileHandler(path, srcFile))
     }
 
     /**
-     * Allows one GET request for the given URL, with the given credentials. Reads the request content from the given file.
+     * Expects one GET request for the given URL, with the given credentials. Reads the request content from the given file.
      */
-    void expectGet(String path, String username, String password, File srcFile) {
-        expect(path, false, ['GET'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
+    HttpResourceInteraction expectGet(String path, String username, String password, File srcFile) {
+        return expect(path, false, ['GET'], withAuthentication(path, username, password, fileHandler(path, srcFile)))
     }
 
     /**
-     * Allows one GET request for the given URL, with the response being GZip encoded.
+     * Expects one GET request for the given URL, with the response being GZip encoded.
      */
     void expectGetGZipped(String path, File srcFile) {
-        expect(path, false, ['GET'], new Action() {
-            String getDisplayName() {
-                return "return gzipped $srcFile.name"
-            }
-
+        expect(path, false, ['GET'], new ActionSupport("return gzipped $srcFile.name") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 def file = srcFile
                 if (file.isFile()) {
@@ -353,25 +350,21 @@ class HttpServer extends ExternalResource {
     }
 
     /**
-     * Allow one GET request for the given URL, responding with a redirect.
+     * Expects one GET request for the given URL, responding with a redirect.
      */
     void expectGetRedirected(String path, String location) {
         expectRedirected('GET', path, location)
     }
 
     /**
-     * Allow one HEAD request for the given URL, responding with a redirect.
+     * Expects one HEAD request for the given URL, responding with a redirect.
      */
     void expectHeadRedirected(String path, String location) {
         expectRedirected('HEAD', path, location)
     }
 
     private void expectRedirected(String method, String path, String location) {
-        expect(path, false, [method], new Action() {
-            String getDisplayName() {
-                return "redirect to $location"
-            }
-
+        expect(path, false, [method], new ActionSupport("redirect to $location") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendRedirect(location)
             }
@@ -382,11 +375,7 @@ class HttpServer extends ExternalResource {
      * Allows GET requests for the given URL, returning an apache-compatible directory listing with the given File names.
      */
     void allowGetDirectoryListing(String path, File directory) {
-        allow(path, false, ['GET'], new Action() {
-            String getDisplayName() {
-                return "return listing of directory $directory.name"
-            }
-
+        allow(path, false, ['GET'], new ActionSupport("return listing of directory $directory.name") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 sendDirectoryListing(response, directory)
             }
@@ -397,11 +386,7 @@ class HttpServer extends ExternalResource {
      * Expects one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
      */
     void expectGetDirectoryListing(String path, File directory) {
-        expect(path, false, ['GET'], new Action() {
-            String getDisplayName() {
-                return "return listing of directory $directory.name"
-            }
-
+        expect(path, false, ['GET'], new ActionSupport("return listing of directory $directory.name") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 sendDirectoryListing(response, directory)
             }
@@ -409,28 +394,23 @@ class HttpServer extends ExternalResource {
     }
 
     /**
-     * Allows one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
+     * Expects one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
      */
     void expectGetDirectoryListing(String path, String username, String password, File directory) {
-        expect(path, false, ['GET'], withAuthentication(path, username, password, new Action() {
-            String getDisplayName() {
-                return "return listing of directory $directory.name"
-            }
-
+        expect(path, false, ['GET'], withAuthentication(path, username, password, new ActionSupport("return listing of directory $directory.name") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 sendDirectoryListing(response, directory)
             }
         }));
     }
 
-
-    private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength) {
+    private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength, String contentType) {
         if (sendLastModified) {
             response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified ?: file.lastModified())
         }
         def content = file.bytes
         response.setContentLength((contentLength ?: content.length) as int)
-        response.setContentType(new MimeTypes().getMimeByExtension(file.name).toString())
+        response.setContentType(contentType ?: new MimeTypes().getMimeByExtension(file.name).toString())
         if (sendSha1Header) {
             response.addHeader("X-Checksum-Sha1", HashUtil.sha1(content).asHexString())
         }
@@ -457,25 +437,29 @@ class HttpServer extends ExternalResource {
     }
 
     private sendDirectoryListing(HttpServletResponse response, File directory) {
-        def directoryListing = ""
-        for (String fileName : directory.list()) {
-            directoryListing += "<a href=\"$fileName\">$fileName</a>"
-        }
+        def writer = new StringWriter()
+        def markupBuilder = new MarkupBuilder(writer)
+        markupBuilder.doubleQuotes = true // for Ivy
+        markupBuilder.html {
+            for (String fileName : directory.list()) {
+                def uri = UrlEscapers.urlPathSegmentEscaper().escape(fileName).replaceAll(':', '%3A')
+                a(href: uri, fileName)
+            }
 
-        response.setContentLength(directoryListing.length())
+        }
+        def directoryListing = writer.toString().getBytes("utf8")
+
+        response.setContentLength(directoryListing.length)
         response.setContentType("text/html")
-        response.outputStream.bytes = directoryListing.bytes
+        response.setCharacterEncoding("utf8")
+        response.outputStream.bytes = directoryListing
     }
 
     /**
-     * Allows one PUT request for the given URL. Writes the request content to the given file.
+     * Expects one PUT request for the given URL. Writes the request content to the given file.
      */
     void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK, PasswordCredentials credentials = null) {
-        def action = new Action() {
-            String getDisplayName() {
-                return "write request to $destFile.name and return status $statusCode"
-            }
-
+        def action = new ActionSupport("write request to $destFile.name and return status $statusCode") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 if (HttpServer.this.expectedUserAgent != null) {
                     String receivedUserAgent = request.getHeader("User-Agent")
@@ -494,14 +478,10 @@ class HttpServer extends ExternalResource {
     }
 
     /**
-     * Allows one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
+     * Expects one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
      */
     void expectPut(String path, String username, String password, File destFile) {
-        expect(path, false, ['PUT'], withAuthentication(path, username, password, new Action() {
-            String getDisplayName() {
-                return "write request to $destFile.name"
-            }
-
+        expect(path, false, ['PUT'], withAuthentication(path, username, password, new ActionSupport("write request to $destFile.name") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
 
                 if (request.remoteUser != username) {
@@ -518,11 +498,7 @@ class HttpServer extends ExternalResource {
      * Allows PUT requests with the given credentials.
      */
     void allowPut(String path, String username, String password) {
-        allow(path, false, ['PUT'], withAuthentication(path, username, password, new Action() {
-            String getDisplayName() {
-                return "return 500"
-            }
-
+        allow(path, false, ['PUT'], withAuthentication(path, username, password, new ActionSupport("return 500") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(500, "unexpected username '${request.remoteUser}'")
             }
@@ -543,6 +519,11 @@ class HttpServer extends ExternalResource {
         }
 
         return new Action() {
+            @Override
+            HttpResourceInteraction getInteraction() {
+                return action.interaction
+            }
+
             String getDisplayName() {
                 return action.displayName
             }
@@ -561,13 +542,13 @@ class HttpServer extends ExternalResource {
         expect(path, false, methods, action, passwordCredentials)
     }
 
-    void expect(String path, boolean matchPrefix, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
+    HttpResourceInteraction expect(String path, boolean matchPrefix, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
         if (credentials != null) {
             action = withAuthentication(path, credentials.username, credentials.password, action)
         }
 
-        ExpectOne expectation = new ExpectOne(action, methods, path)
-        expections << expectation
+        HttpExpectOne expectation = new HttpExpectOne(action, methods, path)
+        expectations << expectation
         add(path, matchPrefix, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (expectation.run) {
@@ -578,6 +559,8 @@ class HttpServer extends ExternalResource {
                 request.handled = true
             }
         })
+
+        return action.interaction
     }
 
     private void allow(String path, boolean matchPrefix, Collection<String> methods, Action action) {
@@ -591,7 +574,6 @@ class HttpServer extends ExternalResource {
 
     private void add(String path, boolean matchPrefix, Collection<String> methods, Handler handler) {
         assert path.startsWith('/')
-//        assert path == '/' || !path.endsWith('/')
         def prefix = path == '/' ? '/' : path + '/'
         collection.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
@@ -610,30 +592,25 @@ class HttpServer extends ExternalResource {
         return server.connectors[0].localPort
     }
 
-    interface Expection {
-        void assertMet()
-    }
-
-    static class ExpectOne implements Expection {
-        boolean run
+    static class HttpExpectOne extends ExpectOne {
         final Action action
         final Collection<String> methods
         final String path
 
-        ExpectOne(Action action, Collection<String> methods, String path) {
+        HttpExpectOne(Action action, Collection<String> methods, String path) {
             this.action = action
             this.methods = methods
             this.path = path
         }
 
-        void assertMet() {
-            if (!run) {
-                throw new AssertionError("Expected HTTP request not received: ${methods.size() == 1 ? methods[0] : methods} $path and $action.displayName")
-            }
+        String getNotMetMessage() {
+            "Expected HTTP request not received: ${methods.size() == 1 ? methods[0] : methods} $path and $action.displayName"
         }
     }
 
     interface Action {
+        HttpResourceInteraction getInteraction()
+
         String getDisplayName()
 
         void handle(HttpServletRequest request, HttpServletResponse response)
@@ -641,9 +618,20 @@ class HttpServer extends ExternalResource {
 
     static abstract class ActionSupport implements Action {
         final String displayName
+        final HttpResourceInteraction interaction = new DefaultResourceInteraction()
 
         ActionSupport(String displayName) {
             this.displayName = displayName
+        }
+    }
+
+    static class DefaultResourceInteraction implements HttpResourceInteraction {
+        String contentType
+
+        @Override
+        HttpResourceInteraction contentType(String encoding) {
+            this.contentType = encoding
+            return this
         }
     }
 

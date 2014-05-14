@@ -18,16 +18,21 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionResult;
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration;
+import org.gradle.nativebinaries.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+
 
 /**
  * Compiler adapter for GCC.
@@ -42,17 +47,14 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     private GccVersionResult versionResult;
 
-    public GccToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
-        super(name, operatingSystem, fileResolver, execActionFactory, new GccToolSearchPath(operatingSystem));
+    public GccToolChain(Instantiator instantiator, String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
+        super(name, operatingSystem, fileResolver, execActionFactory, new GccToolSearchPath(operatingSystem), instantiator);
         this.versionDeterminer = new GccVersionDeterminer(execActionFactory);
 
-        registerTool(ToolType.CPP_COMPILER, "g++");
-        registerTool(ToolType.C_COMPILER, "gcc");
-        registerTool(ToolType.OBJECTIVECPP_COMPILER, "g++");
-        registerTool(ToolType.OBJECTIVEC_COMPILER, "gcc");
-        registerTool(ToolType.ASSEMBLER, "as");
-        registerTool(ToolType.LINKER, "g++");
-        registerTool(ToolType.STATIC_LIB_ARCHIVER, "ar");
+        add(new DefaultGccCommandLineToolConfiguration("cCompiler", ToolType.C_COMPILER, "gcc"));
+        add(new DefaultGccCommandLineToolConfiguration("cppCompiler", ToolType.CPP_COMPILER, "g++"));
+        add(new DefaultGccCommandLineToolConfiguration("linker", ToolType.LINKER, "g++"));
+        add(new DefaultGccCommandLineToolConfiguration("staticLibArchiver", ToolType.STATIC_LIB_ARCHIVER, "ar"));
     }
 
     @Override
@@ -61,11 +63,11 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     }
 
     @Override
-    protected void initTools(ToolChainAvailability availability) {
+    protected void initTools(ConfigurableToolChain configurableToolChain, ToolChainAvailability availability) {
         if (versionResult == null) {
-            CommandLineToolSearchResult compiler = locate(ToolType.C_COMPILER);
+            CommandLineToolSearchResult compiler = locate((GccCommandLineToolConfigurationInternal) configurableToolChain.getByName("cCompiler"));
             if (!compiler.isAvailable()) {
-                compiler = locate(ToolType.CPP_COMPILER);
+                compiler = locate((GccCommandLineToolConfigurationInternal) configurableToolChain.getByName("cppCompiler"));
             }
             availability.mustBeAvailable(compiler);
             if (!compiler.isAvailable()) {

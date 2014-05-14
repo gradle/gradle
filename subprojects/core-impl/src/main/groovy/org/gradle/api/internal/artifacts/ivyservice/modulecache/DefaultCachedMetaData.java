@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.math.BigInteger;
@@ -31,18 +29,11 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
     private final long ageMillis;
     private final MutableModuleVersionMetaData metaData;
 
-    public DefaultCachedMetaData(ModuleDescriptorCacheEntry entry, ModuleDescriptor moduleDescriptor, BuildCommencedTimeProvider timeProvider) {
+    public DefaultCachedMetaData(ModuleDescriptorCacheEntry entry, MutableModuleVersionMetaData metaData, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
         this.descriptorHash = entry.moduleDescriptorHash;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
-        if (moduleDescriptor == null) {
-            metaData = null;
-        } else {
-            ModuleDescriptorAdapter moduleDescriptorAdapter = new ModuleDescriptorAdapter(moduleDescriptor);
-            moduleDescriptorAdapter.setChanging(entry.isChanging);
-            moduleDescriptorAdapter.setMetaDataOnly(entry.isMetaDataOnly);
-            metaData = moduleDescriptorAdapter;
-        }
+        this.metaData = metaData;
     }
 
     public boolean isMissing() {

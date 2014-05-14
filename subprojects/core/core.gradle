@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/providedConfiguration.gradle"
-
 configurations {
     reports
 }
@@ -26,9 +24,9 @@ dependencies {
     publishCompile libraries.slf4j_api
     publishCompile project(":baseServices")
     publishCompile project(":messaging")
+    publishCompile project(":resources")
 
     compile project(":baseServicesGroovy")
-    compile project(":resources")
     compile libraries.asm
     compile libraries.ant
     compile libraries.commons_collections
@@ -48,17 +46,6 @@ dependencies {
 
     runtime project(":docs")
 
-    compile(group: 'com.jfrog.bintray.client', name: 'bintray-client-java-impl', version: '0.1.0') {
-        exclude module:'groovy-all'
-        exclude module:'groovy'
-        exclude group: 'org.slf4j'
-        exclude module: 'commons-collections'
-        exclude module: 'commons-lang'
-        exclude module: 'httpclient'
-        exclude module: 'nekohtml'
-    }
-    compile libraries.commons_httpclient // Needed by bintray client
-
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j
 
@@ -71,6 +58,7 @@ dependencies {
 
     testFixturesCompile project(":internalTesting")
     testFixturesRuntime project(':coreImpl')
+    testFixturesRuntime project(':pluginUse')
 
     integTestCompile project(":internalIntegTesting")
 

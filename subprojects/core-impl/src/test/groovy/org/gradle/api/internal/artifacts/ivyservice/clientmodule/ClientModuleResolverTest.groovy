@@ -15,81 +15,90 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule
-
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.ClientModule
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class ClientModuleResolverTest extends Specification {
-    final ModuleSource moduleSource = Mock()
-    final ModuleVersionMetaData moduleMetaData = Mock()
-    final DependencyToModuleVersionResolver target = Mock()
-    final ClientModuleResolver resolver = new ClientModuleResolver(target)
+    final target = Mock(DependencyToModuleVersionResolver)
+    final dependencyDescriptorFactory = Mock(DependencyDescriptorFactory)
+    final ClientModuleResolver resolver = new ClientModuleResolver(target, dependencyDescriptorFactory)
 
-    def "replaces meta-data for a client module dependency"() {
-        ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
-        DependencyMetaData dependencyMetaData = Mock()
-        BuildableComponentResolveResult result = Mock()
-        ModuleVersionMetaData resolvedMetaData = Mock()
-
-        given:
-
-        _ * dependencyMetaData.descriptor >> dependencyDescriptor
-        _ * dependencyDescriptor.getTargetModule() >> moduleMetaData
-
-        when:
-        resolver.resolve(dependencyMetaData, result)
-
-        then:
-        1 * target.resolve(dependencyMetaData, result)
-        1 * result.getMetaData() >> resolvedMetaData
-        1 * resolvedMetaData.getSource() >> moduleSource
-        1 * dependencyDescriptor.getTargetModule() >> moduleMetaData
-        1 * moduleMetaData.withSource(moduleSource) >> moduleMetaData
-        1 * result.setMetaData(moduleMetaData)
-        _ * result.failure >> null
-        0 * result._
+    def result = Mock(BuildableComponentResolveResult)
+    def metaData = Mock(MutableModuleVersionMetaData)
+    def descriptor = Mock(EnhancedDependencyDescriptor)
+    def dependency = Mock(DependencyMetaData) {
+        getDescriptor() >> descriptor
     }
 
-    def "does not replace meta-data for unknown module version"() {
-        DependencyDescriptor dependencyDescriptor = Mock()
-        DependencyMetaData dependencyMetaData = Mock()
-        BuildableComponentResolveResult result = Mock()
-
-        given:
-        _ * dependencyMetaData.descriptor >> dependencyDescriptor
+    def "replaces meta-data for a client module dependency"() {
+        def clientModule = Mock(ClientModule)
+        def dep = Mock(ModuleDependency)
+        def moduleDescriptor = Mock(ModuleDescriptor)
+        def dependencyDescriptor = Mock(DependencyDescriptor)
+        def artifact = Mock(ModuleVersionArtifactMetaData)
 
         when:
-        resolver.resolve(dependencyMetaData, result)
+        resolver.resolve(dependency, result)
 
         then:
-        1 * target.resolve(dependencyMetaData, result)
-        _ * result.failure >> null
-        0 * result._
+        1 * target.resolve(dependency, result)
+        1 * result.getFailure() >> null
+        1 * dependency.descriptor >> descriptor
+        1 * descriptor.moduleDependency >> clientModule
+        1 * result.getMetaData() >> metaData
+        1 * metaData.copy() >> metaData
+        1 * clientModule.getDependencies() >> ([dep] as Set)
+        1 * dep.getConfiguration() >> "config"
+        1 * metaData.getDescriptor() >> moduleDescriptor
+        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", moduleDescriptor, dep) >> dependencyDescriptor
+        1 * dependencyDescriptor.getDependencyRevisionId() >> ModuleRevisionId.newInstance("org", "mod", "1.0")
+        1 * metaData.setDependencies({
+            it.size() == 1 && it[0].descriptor == dependencyDescriptor
+        })
+        1 * metaData.artifact('jar', 'jar', null) >> artifact
+        1 * metaData.setArtifacts({
+            (it as List) == [artifact]
+        })
+        1 * result.setMetaData(metaData)
+        0 * _
+    }
+
+    def "does not replace meta-data when not client module"() {
+        def descriptor = Mock(EnhancedDependencyDescriptor)
+        def moduleDependency = Mock(ModuleDependency)
+
+        when:
+        resolver.resolve(dependency, result)
+
+        then:
+        1 * target.resolve(dependency, result)
+        1 * result.getFailure() >> null
+        1 * dependency.descriptor >> descriptor
+        1 * descriptor.moduleDependency >> moduleDependency
+        0 * _
     }
 
     def "does not replace meta-data for broken module version"() {
-        ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
-        DependencyMetaData dependencyMetaData = Mock()
-        BuildableComponentResolveResult result = Mock()
-
-        given:
-        _ * dependencyMetaData.descriptor >> dependencyDescriptor
-
         when:
-        resolver.resolve(dependencyMetaData, result)
+        resolver.resolve(dependency, result)
 
         then:
-        1 * target.resolve(dependencyMetaData, result)
+        1 * target.resolve(dependency, result)
         _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
-        0 * result._
+        0 * _
     }
 }

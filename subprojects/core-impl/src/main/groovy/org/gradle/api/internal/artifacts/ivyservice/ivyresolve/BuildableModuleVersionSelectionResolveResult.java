@@ -20,7 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 /**
- * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.
+ * The result of attempting to resolve a dependency descriptor to a list of candidate versions that might match that descriptor.
  */
 public interface BuildableModuleVersionSelectionResolveResult {
 
@@ -32,6 +32,8 @@ public interface BuildableModuleVersionSelectionResolveResult {
      * Returns the current state of this descriptor.
      */
     State getState();
+
+    boolean hasResult();
 
     /**
      * Returns the versions that match the selector.

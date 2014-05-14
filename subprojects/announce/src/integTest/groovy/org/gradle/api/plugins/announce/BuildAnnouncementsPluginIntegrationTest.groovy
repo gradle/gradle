@@ -30,12 +30,23 @@ class BuildAnnouncementsPluginIntegrationTest extends WellBehavedPluginTest {
 
     def "does not blow up when a local notification mechanism is not available"() {
         buildFile << """
-apply plugin: 'java'
 apply plugin: 'build-announcements'
 """
 
         expect:
-        succeeds 'assemble'
+        succeeds 'tasks'
+    }
+
+    def "does not blow up in headless mode when a local notification mechanism is not available"() {
+        buildFile << """
+apply plugin: 'build-announcements'
+"""
+
+        given:
+        executer.withArgument("-Djava.awt.headless=false")
+
+        expect:
+        succeeds 'tasks'
     }
 
     def "can use custom announcer to receive announcements"() {

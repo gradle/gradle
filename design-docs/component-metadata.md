@@ -132,12 +132,13 @@ Add a "changing" property to `ComponentMetadataDetails`.
     * Static dependency
     * Dynamic dependency (that is, the dependency may refer to different components over time, but the components themselves do not change)
 
-## Use Ivy extra attributes to determine status of module
+## Use Ivy extra info properties to determine status of module
 
-This story makes extra attributes defined in ivy.xml files available to component metadata rules, on request.
+An ivy.xml `<info>` element permits arbitrary child elements with string values. This story makes these extra info properties available to component metadata rules,
+on request.
 
-A rule should declare that these extra attributes form an input to the rule, in which case they will be provided.
-While this is perhaps not important for Ivy extra attributes, which are cheap to determine, this will be more important for
+A rule should declare that these extra info properties form an input to the rule, in which case they will be provided.
+While this is perhaps not important for Ivy properties, which are cheap to determine, this will be more important for
 Artifactory properties (see below).
 
 A medium-term goal is to sync the Component Metadata Rules DSL with the new general-purpose Rules DSL. So the same mechanism will be
@@ -146,58 +147,41 @@ simply attempt to introduce a DSL to declare such rules.
 
 ### User visible changes
 
-Option1: Typed ComponentMetadataDetails:
+    interface IvyModuleDescriptor {
+        Map<String, String> extraInfo
+    }
 
     componentMetadata {
-        eachComponent { IvyModuleMetadataDetails details ->
-            if (details.ivyExtraAttributes['my-custom-attribute'] == 'value') {
+        eachComponent { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
+            if (ivyModule.extraInfo['my-custom-attribute'] == 'value') {
                 details.status == 'release'
             }
         }
-    }
-
-Option2: Additional parameters:
-
-    componentMetadata {
-        eachComponent { ComponentMetadataDetails details, IvyExtraAttributes ivyAttributes ->
-            if (ivyAttributes['my-custom-attribute'] == 'value') {
-                details.status == 'release'
-            }
-        }
-    }
-
-Option3: Limit rule applicability (this might be useful in addition to one of the above):
-
-    componentMetadata {
-        eachComponent.withType(IvyModule) {
-            if (it.ivyAttributes['my-custom-attribute'] == 'value') {
-                it.status == 'release'
-            }
-        }
-    }
-
-    // This could later be extended with
-    eachComponent.withType(IvyModule).matching({ group == 'myorg' }) {
-        // custom rule that only applies to my internal modules
     }
 
 ### Implementation
 
 * Add a model for Ivy-specific module metadata and make this available via `ModuleVersionMetaData`
+    * Include any name/value pairs defined as child elements of the `<info>` element. Do not include the namespace qualifier.
     * The actual values should already be available (and cached) via the underlying Ivy ModuleDescriptor
-    * The API should assume that a number of custom domain metadata elements may be present
-* For any rule defined that requires Ivy extra attributes to be processed, then Ivy extra attributes will be made available as per the DSL chosen
+    * The API should assume that other metadata models may be present as well
+* For any rule that declares IvyModuleDescriptor as an input:
+    * Provide the IvyModuleDescriptor as input where the resolved module came from an ivy repository
+    * Do not execute the rule where the resolved module does not have an associated ivy.xml file
 
 ### Test coverage
 
-* Publish with arbitrary extra attributes, and ensure these are available in resolve.
+* Publish with arbitrary extra info properties, and ensure these are available in resolve.
 * Publish again with changed values:
     * Original values are take from cache
     * New values are obtained when changing module is refreshed
-* Component metadata rule does not have access to ivy extra attributes if not declared as rule input
+* Component metadata rule does not have access to ivy extra info properties if not declared as rule input
 * Component metadata rule is not evaluated for non-ivy module when rule declares ivy attributes as input
 * Resolve with rule that does not have ivy extra attributes as input. Modify rule to include those inputs and resolve again
   Attributes are made available to rule (extra HTTP requests are OK, but not required).
+
+### Open issues
+
 
 ## Use Artifactory properties to determine status of module
 

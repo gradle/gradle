@@ -76,7 +76,9 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
             model {
                 toolChains {
                     ${toolChain.id} {
-                        cCompiler.executable = 'does-not-exist'
+                        all {
+                            executable = 'does-not-exist'
+                        }
                     }
                 }
             }
@@ -86,7 +88,28 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "help"
     }
 
-    def "fails when required language tool is not available"() {
+    def "tool chain is not available when no tools are available"() {
+        when:
+        buildFile << """
+            model {
+                toolChains {
+                    ${toolChain.id} {
+                        all {
+                            executable = 'does-not-exist'
+                        }
+                    }
+                }
+            }
+"""
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform 'current'"))
+        failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: Could not find C compiler 'does-not-exist'"))
+    }
+
+    def "fails when required language tool is not available but other language tools are available"() {
         when:
         buildFile << """
             model {
@@ -104,7 +127,7 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
         failure.assertThatCause(Matchers.startsWith("Could not find C compiler 'does-not-exist'"))
     }
 
-    def "fails when required linker tool is not available"() {
+    def "fails when required linker tool is not available but language tool is available"() {
         when:
         buildFile << """
             model {

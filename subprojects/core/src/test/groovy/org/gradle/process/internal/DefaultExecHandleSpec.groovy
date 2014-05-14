@@ -16,11 +16,11 @@
 
 package org.gradle.process.internal
 
+import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.streams.StreamsHandler
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
-import org.gradle.util.Jvm
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -306,13 +306,6 @@ class DefaultExecHandleSpec extends Specification {
 
     private List args(Class mainClass, String ... args) {
         GUtil.flattenElements("-cp", System.getProperty("java.class.path"), mainClass.getName(), args);
-    }
-
-    public static class TestApp {
-        public static void main(String[] args) {
-            System.out.print("output args: " + Arrays.asList(args));
-            System.err.print("error args: " + Arrays.asList(args));
-        }
     }
 
     public static class BrokenApp {

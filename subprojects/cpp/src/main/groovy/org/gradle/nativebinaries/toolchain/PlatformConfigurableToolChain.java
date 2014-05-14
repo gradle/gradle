@@ -15,7 +15,12 @@
  */
 package org.gradle.nativebinaries.toolchain;
 
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.nativebinaries.platform.Platform;
+
+import java.util.List;
 
 /**
  * A ToolChain that can handle additional platforms simply by configuring the NativeBinary.
@@ -24,32 +29,43 @@ import org.gradle.api.Incubating;
 public interface PlatformConfigurableToolChain extends ToolChain {
 
     /**
-     * Add configuration for a target platform.
+     * Add configuration for a target platform with additional configuration action.
      */
-    void addPlatformConfiguration(TargetPlatformConfiguration platformConfig);
+    public void target(Platform platform, Action<ConfigurableToolChain> action);
 
     /**
-     * The C++ compiler.
+     * Add support for target platform.
      */
-    GccTool getCCompiler();
+    public void target(Platform platform);
 
     /**
-     * The C compiler.
+     * Add support for a set of target platforms.
      */
-    GccTool getCppCompiler();
+    public void target(DomainObjectSet<Platform> platform);
 
     /**
-     * The assembler.
+     * Add support for target platform specified by name.
      */
-    GccTool getAssembler();
+    public void target(String platformName);
 
     /**
-     * The linker.
+     * Add support for target platform specified by name.
      */
-    GccTool getLinker();
+    public void target(List<String> platformNames);
 
     /**
-     * The static library archiver.
+     * Add configuration for a set of target platforms with additional configuration action.
      */
-    GccTool getStaticLibArchiver();
+    public void target(DomainObjectSet<Platform> platform, Action<ConfigurableToolChain> action);
+
+    /**
+     * Add configuration for a target platform specified by name with additional configuration action.
+     */
+    public void target(String platformName, Action<ConfigurableToolChain> action);
+
+    /**
+     * Add configuration for multiple target platforms specified by name with additional configuration action.
+     */
+    public void target(List<String> platformNames, Action<ConfigurableToolChain> action);
+
 }

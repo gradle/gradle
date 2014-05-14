@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
@@ -37,6 +36,7 @@ import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +52,9 @@ import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultConfigurationTest {
+
+    //TODO **** if you touch this class, try pushing out more coverage into new DefaultConfigurationSpec ****
+
     private JUnit4Mockery context = new JUnit4GroovyMockery();
     private ConfigurationResolver dependencyResolver = context.mock(ConfigurationResolver.class);
     private ConfigurationsProvider configurationContainer;
@@ -255,7 +258,7 @@ public class DefaultConfigurationTest {
     public void filesWithSpec() {
         final Set<File> fileSet = toSet(new File("somePath"));
         prepareForFilesBySpec(fileSet);
-        assertThat(configuration.files(context.mock(Spec.class)), equalTo(fileSet));
+        Assert.<Set<File>>assertThat(configuration.files(context.mock(Spec.class)), equalTo(fileSet));
         assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
     }
 
@@ -510,64 +513,6 @@ public class DefaultConfigurationTest {
         configuration.extendsFrom(otherConfiguration);
 
         assertThat(configuration.getBuildDependencies().getDependencies(target), equalTo((Set) toSet(otherConfTaskMock)));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test public void taskDependencyFromProjectDependencyUsingNeeded() {
-        Configuration superConfig = createNamedConfiguration("superConf");
-        configuration.extendsFrom(superConfig);
-
-        final ProjectDependency projectDependencyStub = context.mock(ProjectDependency.class);
-        superConfig.getDependencies().add(projectDependencyStub);
-
-        final Project projectStub = context.mock(Project.class);
-        final TaskContainer taskContainerStub = context.mock(TaskContainer.class);
-        final Task taskStub = context.mock(Task.class);
-        final String taskName = "testit";
-
-        context.checking(new Expectations() {{
-            allowing(projectDependencyStub).getDependencyProject(); will(returnValue(projectStub));
-            allowing(projectStub).getTasks(); will(returnValue(taskContainerStub));
-            allowing(taskContainerStub).findByName(taskName); will(returnValue(taskStub));
-        }});
-
-        TaskDependency td = configuration.getTaskDependencyFromProjectDependency(true, taskName);
-        Task unusedTask = context.mock(Task.class, "unused");
-
-        assertThat((Set<Task>) td.getDependencies(unusedTask), equalTo(toSet(taskStub)));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test public void taskDependencyFromProjectDependencyUsingDependents() {
-        final String configName = configuration.getName();
-        final String taskName = "testit";
-        final Task tdTask = context.mock(Task.class, "tdTask");
-        final Project taskProject = context.mock(Project.class, "taskProject");
-        final Project rootProject = context.mock(Project.class, "rootProject");
-        final Project dependentProject = context.mock(Project.class, "dependentProject");
-        final Task desiredTask = context.mock(Task.class, "desiredTask");
-        final Set<Task> taskSet = toSet(desiredTask);
-        final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
-        final Configuration dependentConfig = context.mock(Configuration.class);
-        final ProjectDependency projectDependency = context.mock(ProjectDependency.class);
-        final Set<ProjectDependency> projectDependencies = toDomainObjectSet(ProjectDependency.class, projectDependency);
-        final DependencySet otherDependencies = context.mock(DependencySet.class);
-
-        context.checking(new Expectations() {{
-            allowing(tdTask).getProject(); will(returnValue(taskProject));
-            allowing(taskProject).getRootProject(); will(returnValue(rootProject));
-            allowing(rootProject).getTasksByName(taskName, true); will(returnValue(taskSet));
-            allowing(desiredTask).getProject(); will(returnValue(dependentProject));
-            allowing(dependentProject).getConfigurations(); will(returnValue(configurationContainer));
-            allowing(configurationContainer).findByName(configName); will(returnValue(dependentConfig));
-
-            allowing(dependentConfig).getAllDependencies(); will(returnValue(otherDependencies));
-            allowing(otherDependencies).withType(ProjectDependency.class); will(returnValue(projectDependencies));
-            allowing(projectDependency).getDependencyProject(); will(returnValue(taskProject));
-        }});
-
-        TaskDependency td = configuration.getTaskDependencyFromProjectDependency(false, taskName);
-        assertThat((Set<Task>) td.getDependencies(tdTask), equalTo(toSet(desiredTask)));
     }
 
     @SuppressWarnings("unchecked")

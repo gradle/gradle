@@ -15,23 +15,21 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.ivy.IvyRepository
 import spock.lang.Unroll
 
-// TODO:DAZ Test can resolve multiple source/javadoc artifacts declared in 'sources'/'javadoc' configuration
-class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def fileRepo = ivyRepo
     def httpRepo = ivyHttpRepo
     def module = httpRepo.module("some.group", "some-artifact", "1.0")
     JvmLibraryArtifactResolveTestFixture fixture
 
     def setup() {
-        server.start()
         initBuild(httpRepo)
 
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
@@ -39,20 +37,16 @@ class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyR
         publishModule()
     }
 
-    def initBuild(IvyRepository repo, String module = "some.group:some-artifact:1.0") {
+    def initBuild(IvyRepository repo) {
         buildFile.text = """
 repositories {
     ivy { url '$repo.uri' }
-}
-configurations { compile }
-dependencies {
-    compile "${module}"
 }
 """
     }
 
     def "resolve sources artifacts"() {
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectSourceArtifact("my-sources")
                 .prepare()
 
@@ -65,7 +59,7 @@ dependencies {
     }
 
     def "resolve javadoc artifacts"() {
-        fixture.requestingTypes(JvmLibraryJavadocArtifact)
+        fixture.requestingTypes(JavadocArtifact)
                 .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
@@ -78,8 +72,7 @@ dependencies {
     }
 
     def "resolve all artifacts"() {
-        fixture.requestingTypes()
-                .expectSourceArtifact("my-sources")
+        fixture.expectSourceArtifact("my-sources")
                 .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
@@ -92,9 +85,51 @@ dependencies {
         checkArtifactsResolvedAndCached()
     }
 
+    def "resolves multiple artifacts of the same type"() {
+        given:
+        module.artifact(type: "source", classifier: "other-sources", ext: "jar", conf: "sources")
+        module.artifact(type: "javadoc", classifier: "other-javadoc", ext: "jar", conf: "javadoc")
+        module.publish()
+
+        fixture.expectSourceArtifact("my-sources")
+                .expectSourceArtifact("other-sources")
+                .expectJavadocArtifact("my-javadoc")
+                .expectJavadocArtifact("other-javadoc")
+                .prepare()
+
+        when:
+        module.ivy.expectGet()
+        module.getArtifact(classifier: "my-sources").expectGet()
+        module.getArtifact(classifier: "other-sources").expectGet()
+        module.getArtifact(classifier: "my-javadoc").expectGet()
+        module.getArtifact(classifier: "other-javadoc").expectGet()
+
+        then:
+        checkArtifactsResolvedAndCached()
+    }
+
+    def "resolves when configurations are present and empty"() {
+        given:
+        def module1 = httpRepo.module("some.group", "some-artifact", "1.1")
+        module1.configuration("sources")
+        module1.configuration("javadoc")
+        // Add an artifact to prevent the default artifact being added with conf='*'
+        module1.artifact([conf: 'default'])
+        module1.publish()
+
+        and:
+        fixture.withComponentVersion("some.group", "some-artifact", "1.1").prepare()
+
+        when:
+        module1.ivy.expectGet()
+
+        then:
+        checkArtifactsResolvedAndCached()
+    }
+
     @Unroll
     def "fetches missing artifacts for module #condition"() {
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectSourceArtifactNotFound("my-sources")
                 .prepare()
         buildFile << """
@@ -107,7 +142,9 @@ dependencies {
 }
 
 if (project.hasProperty('nocache')) {
-    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
 }
 """
 
@@ -153,12 +190,14 @@ dependencies {
 }
 
 if (project.hasProperty('nocache')) {
-    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
 }
 """
 
         final sourceArtifact = module.getArtifact(classifier: "my-sources")
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectSourceArtifact("my-sources")
                 .prepare()
 
@@ -232,14 +271,25 @@ if (project.hasProperty('nocache')) {
         checkArtifactsResolvedAndCached()
     }
 
-    def "resolves when some artifacts are broken"() {
+    def "resolves and recovers from broken artifacts"() {
+        given:
+        module.artifact(type: "source", classifier: "broken-sources", ext: "jar", conf: "sources")
+        module.publish()
+
         fixture.expectSourceArtifact("my-sources")
-                .expectJavadocArtifactFailure(new ArtifactResolveException("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar'"))
+                .expectSourceArtifactFailure(new ArtifactResolveException(
+                                                "Could not download artifact 'some.group:some-artifact:1.0:some-artifact-broken-sources.jar'",
+                                                new Throwable("Received status code 500 from server: broken")))
+                .expectJavadocArtifactFailure(new ArtifactResolveException(
+                                                "Could not download artifact 'some.group:some-artifact:1.0:some-artifact-my-javadoc.jar'",
+                                                new Throwable("Received status code 500 from server: broken")))
                 .prepare()
 
         when:
         module.ivy.expectGet()
         module.getArtifact(classifier: "my-sources").expectGet()
+        module.getArtifact(classifier: "broken-sources").expectGetBroken()
+
         module.getArtifact(classifier: "my-javadoc").expectGetBroken()
 
         then:
@@ -248,12 +298,14 @@ if (project.hasProperty('nocache')) {
         when:
         fixture.clearExpectations()
                 .expectSourceArtifact("my-sources")
+                .expectSourceArtifact("broken-sources")
                 .expectJavadocArtifact("my-javadoc")
                 .createVerifyTask("verifyFixed")
 
         and:
         server.resetExpectations()
-        // Only the broken artifact is not cached
+        // Only the broken artifacts are not cached
+        module.getArtifact(classifier: "broken-sources").expectGet()
         module.getArtifact(classifier: "my-javadoc").expectGet()
 
         then:
@@ -263,8 +315,7 @@ if (project.hasProperty('nocache')) {
     def "resolve and does not cache artifacts from local repository"() {
         initBuild(fileRepo)
 
-        fixture.requestingTypes()
-                .expectSourceArtifact("my-sources")
+        fixture.expectSourceArtifact("my-sources")
                 .expectJavadocArtifact("my-javadoc")
                 .prepare()
 
@@ -283,16 +334,13 @@ if (project.hasProperty('nocache')) {
     }
 
     def "can resolve artifacts with maven scheme from ivy repository"() {
-        initBuild(httpRepo, "some.group:some-artifact:1.1")
-
         // Published with no configurations, and a source artifact only
         def moduleWithMavenScheme = httpRepo.module("some.group", "some-artifact", "1.1")
         moduleWithMavenScheme.artifact(classifier: "sources")
         moduleWithMavenScheme.publish()
 
-
         fixture.withComponentVersion("some.group", "some-artifact", "1.1")
-                .requestingTypes(JvmLibrarySourcesArtifact, JvmLibraryJavadocArtifact)
+                .requestingTypes(SourcesArtifact, JavadocArtifact)
                 .expectSourceArtifact("sources")
                 .prepare()
 

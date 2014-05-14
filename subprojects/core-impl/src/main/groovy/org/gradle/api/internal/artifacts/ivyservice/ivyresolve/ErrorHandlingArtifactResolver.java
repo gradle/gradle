@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
@@ -29,9 +26,17 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
         this.resolver = resolver;
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         try {
-            resolver.resolveModuleArtifacts(component, context, result);
+            resolver.resolveModuleArtifacts(component, artifactType, result);
+        } catch (Throwable t) {
+            result.failed(new ArtifactResolveException(component.getComponentId(), t));
+        }
+    }
+
+    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        try {
+            resolver.resolveModuleArtifacts(component, usage, result);
         } catch (Throwable t) {
             result.failed(new ArtifactResolveException(component.getComponentId(), t));
         }

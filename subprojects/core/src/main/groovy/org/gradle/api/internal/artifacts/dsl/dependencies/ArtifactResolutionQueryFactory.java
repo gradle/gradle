@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.artifacts.resolution.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
 
 public interface ArtifactResolutionQueryFactory {
     ArtifactResolutionQuery createArtifactResolutionQuery();

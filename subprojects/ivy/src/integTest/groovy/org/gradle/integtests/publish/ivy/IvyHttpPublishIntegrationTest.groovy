@@ -19,12 +19,12 @@ package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.ivy.IvyHttpModule
-import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.IvyHttpModule
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
-import org.gradle.util.Jvm
 import org.hamcrest.Matchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus

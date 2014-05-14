@@ -21,9 +21,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Resolver
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
@@ -36,48 +37,17 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ExternalResourceRepository resourceRepository = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ResolverStrategy resolverStrategy = Stub()
+    final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
             fileResolver, credentials, transportFactory, locallyAvailableResourceFinder,
-            new DirectInstantiator(), resolverStrategy
+            new DirectInstantiator(), resolverStrategy, artifactIdentifierFileStore
     )
 
     def "default values"() {
         expect:
         repository.url == null
         !repository.resolve.dynamicMode
-    }
-
-    def "cannot create a resolver for url with unknown scheme"() {
-        repository.name = 'name'
-        repository.artifactPattern 'pattern1'
-
-        given:
-        fileResolver.resolveUri('pattern1') >> new URI('scheme:resource1')
-
-        when:
-        repository.createResolver()
-
-        then:
-        InvalidUserDataException e = thrown()
-        e.message == "You may only specify 'file', 'http' and 'https' urls for an Ivy repository."
-    }
-
-    def "cannot creates a resolver for mixed url scheme"() {
-        repository.name = 'name'
-        repository.artifactPattern 'pattern1'
-        repository.artifactPattern 'pattern2'
-
-        given:
-        fileResolver.resolveUri('pattern1') >> new URI('http:resource1')
-        fileResolver.resolveUri('pattern2') >> new URI('file:resource2')
-
-        when:
-        repository.createResolver()
-
-        then:
-        InvalidUserDataException e = thrown()
-        e.message == "You cannot mix file and http(s) urls for a single Ivy repository. Please declare 2 separate repositories."
     }
 
     def "creates a resolver for HTTP patterns"() {
@@ -89,7 +59,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
         fileResolver.resolveUri('http://other/') >> new URI('http://other/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
+
 
         when:
         def resolver = repository.createResolver()
@@ -114,7 +85,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('repo/') >> fileUri
-        transportFactory.createFileTransport('name') >> transport()
+        transportFactory.createTransport({ it == ['file'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -137,7 +108,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('repo/') >> fileUri
-        transportFactory.createFileTransport('name') >> transport()
+        transportFactory.createTransport({ it == ['file'] as Set}, 'name', credentials) >> transport()
 
         when:
         def wrapper = repository.createLegacyDslObject()
@@ -155,13 +126,35 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repo.is(wrapper.resolver)
     }
 
+    def "uses ivy patterns with specified url and default layout"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        repository.layout 'ivy'
+
+        given:
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
+
+        when:
+        def resolver = repository.createResolver()
+
+        then:
+        with(resolver) {
+            it instanceof IvyResolver
+            repository instanceof ExternalResourceRepository
+            name == 'name'
+            artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[type]s/[artifact](.[ext])']
+            ivyPatterns == ["http://host/[organisation]/[module]/[revision]/[type]s/[artifact](.[ext])"]
+        }
+    }
+
     def "uses gradle patterns with specified url and default layout"() {
         repository.name = 'name'
         repository.url = 'http://host'
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -183,7 +176,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -209,7 +202,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -236,7 +229,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -260,7 +253,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         when:
         def resolver = repository.createResolver()
@@ -282,7 +275,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             artifact '[layoutPattern]'
         }
         repository.artifactPattern 'http://other/[additionalPattern]'
-        transportFactory.createHttpTransport('name', credentials) >> transport()
+        transportFactory.createTransport({ it == ['http'] as Set}, 'name', credentials) >> transport()
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host')
@@ -311,10 +304,6 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     private RepositoryTransport transport() {
         return Mock(RepositoryTransport) {
             getRepository() >> resourceRepository
-            convertToPath(_) >> { URI uri ->
-                def result = uri.toString()
-                return result.endsWith('/') ? result : result + '/'
-            }
         }
     }
 }

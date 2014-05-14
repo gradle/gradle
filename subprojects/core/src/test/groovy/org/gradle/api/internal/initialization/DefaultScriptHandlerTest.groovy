@@ -31,7 +31,7 @@ class DefaultScriptHandlerTest extends Specification {
     def scriptSource = Stub(ScriptSource)
     def baseClassLoader = new ClassLoader() {}
     def classLoaderScope = Stub(ClassLoaderScope) {
-        getScopeClassLoader() >> baseClassLoader
+        getLocalClassLoader() >> baseClassLoader
     }
 
     def "adds classpath configuration"() {

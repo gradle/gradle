@@ -26,6 +26,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaExecAction;
 import org.gradle.process.internal.JavaExecAction;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,8 +45,12 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     private JavaExecAction javaExecHandleBuilder;
 
     public JavaExec() {
-        FileResolver fileResolver = getServices().get(FileResolver.class);
-        javaExecHandleBuilder = new DefaultJavaExecAction(fileResolver);
+        javaExecHandleBuilder = new DefaultJavaExecAction(getFileResolver());
+    }
+
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
     }
 
     @TaskAction

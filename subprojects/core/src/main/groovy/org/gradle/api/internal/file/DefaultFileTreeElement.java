@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeplatform.filesystem.Chmod;
 import org.gradle.internal.nativeplatform.filesystem.Stat;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 
 public class DefaultFileTreeElement extends AbstractFileTreeElement {
@@ -66,10 +64,6 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
     }
 
     public int getMode() {
-        try {
-            return stat.getUnixMode(file);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return stat.getUnixMode(file);
     }
 }

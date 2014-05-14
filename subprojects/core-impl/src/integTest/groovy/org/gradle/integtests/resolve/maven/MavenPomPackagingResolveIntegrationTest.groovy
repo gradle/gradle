@@ -15,20 +15,19 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.maven.MavenHttpModule
-import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import spock.lang.FailsWith
 import spock.lang.Issue
 
-class MavenPomPackagingResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenPomPackagingResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     MavenHttpRepository repo1
     MavenHttpRepository repo2
     MavenHttpModule projectARepo1
     MavenHttpModule projectARepo2
 
     public setup() {
-        server.start()
         repo1 = mavenHttpRepo("repo1")
         repo2 = mavenHttpRepo("repo2")
         projectARepo1 = repo1.module('group', 'projectA')
@@ -268,7 +267,7 @@ if (project.hasProperty('skipCache')) {
         fails 'retrieve'
 
         and:
-        result.error.contains("Artifact 'group:projectA:1.0:projectA.jar' not found.")
+        failure.assertHasCause("Artifact 'group:projectA:1.0:projectA.jar' not found.")
     }
 
     def "will use non-jar dependency type to determine jar artifact location"() {
@@ -287,9 +286,6 @@ compile('group:projectA:1.0') {
 
         and:
         projectARepo1.pom.expectGet()
-
-        // TODO:GRADLE-2188 This call should not be required, since "type='zip'" on the dependency alleviates the need to check for the packaging artifact
-        projectARepo1.artifact(type: 'custom').expectHeadMissing()
         projectARepo1.artifact(type: 'zip').expectGet()
 
         then:
@@ -321,8 +317,6 @@ compile 'group:mavenProject:1.0'
         mavenProject.artifact.expectHeadMissing()
 
         projectARepo1.pom.expectGet()
-        // TODO:GRADLE-2188 This call should not be required, since "type='zip'" on the dependency alleviates the need to check for the packaging artifact
-        projectARepo1.artifact(type: 'custom').expectHeadMissing()
         projectARepo1.artifact(type: 'zip').expectGet()
 
         then:

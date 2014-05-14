@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-import org.junit.Test
-
+@TestCase
 class TestCaseTransformTest {
-    @Test
-    void addsGroovyTestCaseAsSuperclass() {
-        assert MyTestCase.superclass == GroovyTestCase
+    void testAddsGroovyTestCaseAsSuperclass() {
+        assert getClass().superclass == GroovyTestCase
+        shouldFail(IOException.class) {
+            throw new IOException()
+        }
     }
-
-    @TestCase
-    static abstract class MyTestCase {}
 }
-

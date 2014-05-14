@@ -15,23 +15,22 @@
  */
 package org.gradle.integtests.resolve.http
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Unroll
 
-class HttpProxyResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class HttpProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
 
     public void "uses configured proxy to access remote HTTP repository"() {
-        server.start()
         proxyServer.start()
 
         given:
-        def repo = ivyRepo()
+        def repo = ivyHttpRepo
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
 
@@ -51,8 +50,8 @@ task listJars << {
         executer.withArguments("-Dhttp.proxyHost=localhost", "-Dhttp.proxyPort=${proxyServer.port}")
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         then:
         succeeds('listJars')
@@ -62,11 +61,10 @@ task listJars << {
     }
 
     public void "uses authenticated proxy to access remote HTTP repository"() {
-        server.start()
         proxyServer.start()
 
         given:
-        def repo = ivyRepo()
+        def repo = ivyHttpRepo
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
 
@@ -92,8 +90,8 @@ task listJars << {
         proxyServer.requireAuthentication('proxyUser', 'proxyPassword')
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         then:
         succeeds('listJars')
@@ -104,11 +102,10 @@ task listJars << {
 
     @Unroll
     public void "passes target credentials to #authScheme authenticated server via proxy"() {
-        server.start()
         proxyServer.start()
 
         given:
-        def repo = ivyRepo()
+        def repo = ivyHttpRepo
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
 
@@ -138,8 +135,8 @@ task listJars << {
         proxyServer.requireAuthentication('proxyUser', 'proxyPassword')
 
         and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'targetUser', 'targetPassword', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'targetUser', 'targetPassword', module.jarFile)
+        module.ivy.expectGet('targetUser', 'targetPassword')
+        module.jar.expectGet('targetUser', 'targetPassword')
 
         then:
         succeeds('listJars')

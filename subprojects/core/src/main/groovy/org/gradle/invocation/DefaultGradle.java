@@ -34,6 +34,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ActionBroadcast;
@@ -71,7 +72,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.listenerManager = services.get(ListenerManager.class);
         taskGraph = services.get(TaskGraphExecuter.class);
         distributionLocator = services.get(GradleDistributionLocator.class);
-        classLoaderScope = services.get(ClassLoaderScope.class);
+        classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getGradleApiScope();
         pluginContainer = services.get(PluginContainer.class);
         fileResolver = services.get(FileResolver.class);
         scriptPluginFactory = services.get(ScriptPluginFactory.class);
@@ -244,8 +245,12 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return scriptHandlerFactory;
     }
 
-    @Override
     public ClassLoaderScope getClassLoaderScope() {
         return classLoaderScope;
+    }
+
+    @Override
+    protected ClassLoaderScope getBaseClassLoaderScope() {
+        return getClassLoaderScope();
     }
 }

@@ -15,9 +15,7 @@
  */
 package org.gradle.test.fixtures.ivy
 
-import org.apache.ivy.core.IvyPatternHelper
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
+import groovy.xml.MarkupBuilder
 import org.gradle.api.Action
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
@@ -30,22 +28,26 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final String organisation
     final String module
     final String revision
+    final boolean m2Compatible
     final List dependencies = []
     final Map<String, Map> configurations = [:]
     final List artifacts = []
     final Map extendsFrom = [:]
+    final Map extraAttributes = [:]
+    final Map extraInfo = [:]
     String status = "integration"
     boolean noMetaData
     int publishCount = 1
     XmlTransformer transformer = new XmlTransformer()
 
-    IvyFileModule(String ivyPattern, String artifactPattern, TestFile moduleDir, String organisation, String module, String revision) {
+    IvyFileModule(String ivyPattern, String artifactPattern, TestFile moduleDir, String organisation, String module, String revision, boolean m2Compatible) {
         this.ivyPattern = ivyPattern
         this.artifactPattern = artifactPattern
         this.moduleDir = moduleDir
         this.organisation = organisation
         this.module = module
         this.revision = revision
+        this.m2Compatible = m2Compatible
         configurations['runtime'] = [extendsFrom: [], transitive: true, visibility: 'public']
         configurations['default'] = [extendsFrom: ['runtime'], transitive: true, visibility: 'public']
     }
@@ -111,23 +113,52 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     IvyFileModule withStatus(String status) {
-        this.status = status;
+        this.status = status
         return this
     }
 
     IvyFileModule withNoMetaData() {
-        noMetaData = true;
+        noMetaData = true
         return this
     }
 
+    IvyFileModule withExtraAttributes(Map extraAttributes) {
+        this.extraAttributes.putAll(extraAttributes)
+        return this
+    }
+
+    /**
+     * Keys in extra info will be prefixed with namespace prefix "my" in this fixture.
+     */
+    IvyFileModule withExtraInfo(Map extraInfo) {
+        this.extraInfo.putAll(extraInfo)
+        return this
+    }
+
+    protected String getIvyFilePath() {
+        getArtifactFilePath(name: "ivy", type: "ivy", ext: "xml")
+    }
+
     TestFile getIvyFile() {
-        def path = IvyPatternHelper.substitute(ivyPattern, new ModuleRevisionId(new ModuleId(organisation, module), revision))
-        return moduleDir.file(path)
+        return moduleDir.file(ivyFilePath)
     }
 
     TestFile getJarFile() {
-        def path = IvyPatternHelper.substitute(artifactPattern, new ModuleRevisionId(new ModuleId(organisation, module), revision), null, "jar", "jar")
-        return moduleDir.file(path)
+        return moduleDir.file(jarFilePath)
+    }
+
+    protected String getJarFilePath() {
+        getArtifactFilePath(name: module, type: "jar", ext: "jar")
+    }
+
+    TestFile file(Map<String, ?> options) {
+        return moduleDir.file(getArtifactFilePath(options))
+    }
+
+    protected String getArtifactFilePath(Map<String, ?> options) {
+        def artifact = toArtifact(options)
+        def tokens = [organisation: organisation, module: module, revision: revision, artifact: artifact.name, type: artifact.type, ext: artifact.ext, classifier: artifact.classifier]
+        M2CompatibleIvyPatternHelper.substitute(artifactPattern, m2Compatible, tokens)
     }
 
     /**
@@ -166,66 +197,60 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             transformer.transform(writer, new Action<Writer>() {
                 void execute(Writer ivyFileWriter) {
                     ivyFileWriter << """<?xml version="1.0" encoding="UTF-8"?>
-<ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven">
+<ivy-module version="1.0" xmlns:m="http://ant.apache.org/ivy/maven"
+${ extraAttributes ? 'xmlns:e="http://ant.apache.org/ivy/extra"' : ''}
+${ extraInfo ? 'xmlns:my="http://my.extra.info"' : ''}>
     <!-- ${getArtifactContent()} -->
-	<info organisation="${organisation}"
-		module="${module}"
-		revision="${revision}"
-		status="${status}"
-        publication="${getPublicationDate()}"
-	>"""
-        if (extendsFrom) {
-            ivyFileWriter << "<extends organisation='${extendsFrom.organisation}' module='${extendsFrom.module}' revision='${extendsFrom.revision}'"
-            if (extendsFrom.location) {
-                ivyFileWriter << " location='${extendsFrom.location}'"
-            }
-            ivyFileWriter << "/>"
-        }
-                    ivyFileWriter << """</info>
-	<configurations>"""
-            configurations.each { name, config ->
-                ivyFileWriter << "<conf name='$name'"
-                if (config.extendsFrom) {
-                    ivyFileWriter << " extends='${config.extendsFrom.join(',')}'"
-                }
-                if (!config.transitive) {
-                    ivyFileWriter << " transitive='false'"
-                }
-                ivyFileWriter << " visibility='$config.visibility'"
-                ivyFileWriter << "/>"
-            }
-            ivyFileWriter << """</configurations>
-	<publications>
 """
-            artifacts.each { artifact ->
-                if (!artifact.undeclared) {
-                    ivyFileWriter << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.ext}" conf="${artifact.conf}" m:classifier="${artifact.classifier ?: ''}"/>
-"""
-                }
-            }
-            ivyFileWriter << """
-	</publications>
-	<dependencies>
-"""
-            dependencies.each { dep ->
-                def confAttribute = dep.conf == null ? "" : """ conf="${dep.conf}" """
-                def revConstraint = dep.revConstraint == null ? "" : """ revConstraint="${dep.revConstraint}" """
-                ivyFileWriter << """<dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}" ${confAttribute} ${revConstraint}/>
-"""
-            }
-            ivyFileWriter << """
-    </dependencies>
-</ivy-module>
-        """
+
+                    def builder = new MarkupBuilder(ivyFileWriter)
+                    def infoAttrs = [organisation: organisation, module: module, revision: revision, status: status, publication: getPublicationDate()]
+                    infoAttrs += extraAttributes.collectEntries {key, value -> ["e:$key", value]}
+                    builder.info(infoAttrs) {
+                        if (extendsFrom) {
+                            "extends"(extendsFrom)
+                        }
+                        extraInfo.each { key, value ->
+                            "my:$key"(value)
+                        }
+                    }
+                    builder.configurations {
+                        configurations.each { name, config ->
+                            def confAttrs = [name: name, visibility: config.visibility]
+                            if (config.extendsFrom) {
+                                confAttrs.extends=config.extendsFrom.join(',')
+                            }
+                            if (!config.transitive) {
+                                confAttrs.transitive='false'
+                            }
+                            conf(confAttrs)
+                        }
+                    }
+                    builder.publications {
+                        artifacts.each { art ->
+                            if (!art.undeclared) {
+                                builder.artifact(name: art.name, type:art.type, ext: art.ext, conf:art.conf, "m:classifier": art.classifier ?: '')
+                            }
+                        }
+                    }
+                    builder.dependencies {
+                        dependencies.each { dep ->
+                            def depAttrs = [org: dep.organisation, name: dep.module, rev: dep.revision]
+                            if (dep.conf) {
+                                depAttrs.conf = dep.conf
+                            }
+                            if (dep.revConstraint) {
+                                depAttrs.revConstraint = dep.revConstraint
+                            }
+                            dependency(depAttrs)
+                        }
+                    }
+
+            ivyFileWriter << '</ivy-module>'
                 }
             })
         }
         return this
-    }
-
-    TestFile file(Map<String, ?> options) {
-        def artifact = toArtifact(options)
-        return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.ext}")
     }
 
     @Override

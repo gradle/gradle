@@ -38,7 +38,7 @@ public class JUnitFilteringSupportIntegrationTest extends AbstractIntegrationSpe
         when: fails("test")
 
         then:
-        failure.error.contains("Test filtering is not supported for given version of JUnit. Please upgrade JUnit version to at least 4.6.")
+        failure.assertHasCause("Test filtering is not supported for given version of JUnit. Please upgrade JUnit version to at least 4.6.")
     }
 
     void "informs that we dont support filtering for JUnit 3.x"() {
@@ -57,6 +57,6 @@ public class JUnitFilteringSupportIntegrationTest extends AbstractIntegrationSpe
 
         when: fails("test")
 
-        then: failure.error.contains("Test filtering is not supported for given version of JUnit. Please upgrade JUnit version to at least 4.6.")
+        then: failure.assertHasCause("Test filtering is not supported for given version of JUnit. Please upgrade JUnit version to at least 4.6.")
     }
 }

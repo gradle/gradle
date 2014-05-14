@@ -16,19 +16,29 @@
 
 package org.gradle.tooling.internal.consumer.parameters;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.GradleException;
 import org.gradle.tooling.ProgressListener;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
+import org.gradle.tooling.internal.gradle.TaskListingLaunchable;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParameters;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
+import org.gradle.tooling.model.Launchable;
+import org.gradle.tooling.model.Task;
+import org.gradle.tooling.model.TaskSelector;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
@@ -93,9 +103,37 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-        public Builder setLaunchables(List<InternalLaunchable> launchables) {
-            this.launchables = launchables;
+        public Builder setLaunchables(Iterable<? extends Launchable> launchables) {
+            Set<String> taskPaths = new LinkedHashSet<String>();
+            List<InternalLaunchable> launchablesParams = Lists.newArrayList();
+            for (Launchable launchable : launchables) {
+                if (launchable instanceof Task) {
+                    taskPaths.add(((Task) launchable).getPath());
+                } else if (launchable instanceof TaskListingLaunchable) {
+                    taskPaths.addAll(((TaskListingLaunchable) launchable).getTaskNames());
+                } else if (!(launchable instanceof TaskSelector)) {
+                    throw new GradleException("Only Task or TaskSelector instances are supported: "
+                            + (launchable != null ? launchable.getClass() : "null"));
+                }
+                maybeAddLaunchableParameter(launchablesParams, launchable);
+            }
+            this.launchables = launchablesParams;
+            tasks = Lists.newArrayList(taskPaths);
             return this;
+        }
+
+        private void maybeAddLaunchableParameter(List<InternalLaunchable> launchablesParams, Launchable launchable) {
+            Object original = launchable;
+            try {
+                if (Proxy.isProxyClass(launchable.getClass())) {
+                    original = new ProtocolToModelAdapter().unpack(launchable);
+                }
+            } catch (IllegalArgumentException iae) {
+                // ignore: launchable created on consumer side for older provider
+            }
+            if (original instanceof InternalLaunchable) {
+                launchablesParams.add((InternalLaunchable) original);
+            }
         }
 
         public void addProgressListener(ProgressListener listener) {

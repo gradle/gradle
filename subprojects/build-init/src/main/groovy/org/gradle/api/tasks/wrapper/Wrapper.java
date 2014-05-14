@@ -29,6 +29,7 @@ import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.Install;
 import org.gradle.wrapper.WrapperExecutor;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.net.URL;
 import java.util.Properties;
@@ -84,11 +85,16 @@ public class Wrapper extends DefaultTask {
         gradleVersion = GradleVersion.current();
     }
 
+    @Inject
+    protected FileLookup getFileLookup() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     void generate() {
         File jarFileDestination = getJarFile();
         File unixScript = getScriptFile();
-        FileResolver resolver = getServices().get(FileLookup.class).getFileResolver(unixScript.getParentFile());
+        FileResolver resolver = getFileLookup().getFileResolver(unixScript.getParentFile());
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
 
         writeProperties(getPropertiesFile());

@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.resolution.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 

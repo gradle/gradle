@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class TasksFactoryTest extends Specification {
     final Project project = Mock()
-    final org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3 eclipseProject = new DefaultEclipseProject(null, null, null, null, [])
+    final def eclipseProject = new DefaultEclipseProject(null, null, null, null, [])
     final task = TestUtil.createTask(AbstractTask)
 
     def "does not return tasks"() {

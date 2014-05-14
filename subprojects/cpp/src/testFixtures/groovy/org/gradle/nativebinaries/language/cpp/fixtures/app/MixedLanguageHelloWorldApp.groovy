@@ -130,7 +130,6 @@ _sumx:
     ret
 '''
 
-    // TODO:DAZ test 64 bit assembler generation (on all tool chains)
     private static String x64GnuAsmSource = '''
     .text
     .p2align 4,,15

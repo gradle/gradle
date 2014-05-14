@@ -18,6 +18,6 @@ package org.gradle.tooling.internal.protocol;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface BuildableProjectVersion1 extends ProjectVersion3 {
+public interface BuildableProjectVersion1 {
     Iterable<? extends TaskVersion1> getTasks();
 }

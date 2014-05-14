@@ -16,15 +16,15 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativebinaries.toolchain.internal.MutableCommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,26 +33,25 @@ import java.util.List;
 
 class Assembler implements Compiler<AssembleSpec> {
 
-    private final CommandLineTool<AssembleSpec> commandLineTool;
-    private final Action<List<String>> argsAction;
+    private final CommandLineTool commandLineTool;
+    private final CommandLineToolInvocation baseInvocation;
     private String outputFileSuffix;
 
-    public Assembler(CommandLineTool<AssembleSpec> commandLineTool, Action<List<String>> argsAction, String outputFileSuffix) {
+    public Assembler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String outputFileSuffix) {
         this.commandLineTool = commandLineTool;
-        this.argsAction = argsAction;
+        this.baseInvocation = baseInvocation;
         this.outputFileSuffix = outputFileSuffix;
     }
 
     public WorkResult execute(AssembleSpec spec) {
-        boolean didWork = false;
-        CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        invocation.setWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
             ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile, spec.getObjectFileDir(), outputFileSuffix);
-            arguments = new PostTransformActionArgsTransformer<AssembleSpec>(arguments, argsAction);
-            WorkResult result = commandLineAssembler.withArguments(arguments).execute(spec);
-            didWork = didWork || result.getDidWork();
+            invocation.setArgs(arguments.transform(spec));
+            commandLineTool.execute(invocation);
         }
-        return new SimpleWorkResult(didWork);
+        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 
     private static class AssembleSpecToArgsList implements ArgsTransformer<AssembleSpec> {
@@ -61,16 +60,17 @@ class Assembler implements Compiler<AssembleSpec> {
 
         public AssembleSpecToArgsList(File inputFile, File objectFileRootDir, String outputFileSuffix) {
             this.inputFile = inputFile;
-            String outputFileName = FilenameUtils.removeExtension(inputFile.getName())+ outputFileSuffix;
-            File currentObjectOutputDir = new File(objectFileRootDir, HashUtil.createCompactMD5(inputFile.getAbsolutePath()));
-            this.outputFile = new File(currentObjectOutputDir, outputFileName);
+            this.outputFile = new CompilerOutputFileNamingScheme()
+                                    .withOutputBaseFolder(objectFileRootDir)
+                                    .withObjectFileNameSuffix(outputFileSuffix)
+                                    .map(inputFile);
         }
 
         public List<String> transform(AssembleSpec spec) {
             List<String> args = new ArrayList<String>();
             args.addAll(spec.getAllArgs());
-            if(!outputFile.getParentFile().exists()){
-                outputFile.getParentFile().mkdir();
+            if (!outputFile.getParentFile().exists()) {
+                outputFile.getParentFile().mkdirs();
             }
             Collections.addAll(args, "-o", outputFile.getAbsolutePath());
             args.add(inputFile.getAbsolutePath());

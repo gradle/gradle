@@ -15,10 +15,10 @@
  */
 package org.gradle.api.plugins
 import org.gradle.api.Project
-import org.gradle.language.base.BinaryContainer
+import org.gradle.runtime.base.BinaryContainer
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.BinaryInternal
-import org.gradle.language.base.internal.BinaryNamingScheme
+import org.gradle.runtime.base.internal.BinaryInternal
+import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -51,6 +51,6 @@ class LanguageBasePluginTest extends Specification {
         _ * binary.name >> "binaryName"
         1 * binary.namingScheme >> namingScheme
         1 * namingScheme.lifecycleTaskName >> "lifecycle"
-        1 * binary.setLifecycleTask({it == project.tasks.findByName("lifecycle")})
+        1 * binary.setBuildTask({it == project.tasks.findByName("lifecycle")})
     }
 }

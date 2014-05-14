@@ -21,16 +21,20 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
+import org.gradle.nativebinaries.language.objectivecpp.internal.ObjectiveCppCompileSpec;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.*;
+import org.gradle.nativebinaries.toolchain.internal.tools.CommandLineToolConfigurationInternal;
+import org.gradle.nativebinaries.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
 import org.slf4j.Logger;
@@ -39,8 +43,13 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
 
-public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
+public class VisualCppToolChain extends ExtendableToolChain implements VisualCpp, ToolChainInternal {
+
+    private final String name;
+    protected final OperatingSystem operatingSystem;
+    private final FileResolver fileResolver;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VisualCppToolChain.class);
 
@@ -56,16 +65,60 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private ToolChainAvailability availability;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
-                              VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
-        super(name, operatingSystem, fileResolver);
+                              VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, Instantiator instantiator) {
+        super(CommandLineToolConfigurationInternal.class, name, operatingSystem, fileResolver, instantiator);
+
+        add(new DefaultCommandLineToolConfiguration("cCompiler"));
+        add(new DefaultCommandLineToolConfiguration("cppCompiler"));
+        add(new DefaultCommandLineToolConfiguration("linker"));
+        add(new DefaultCommandLineToolConfiguration("staticLibArchiver"));
+
+        this.name = name;
+        this.operatingSystem = operatingSystem;
+        this.fileResolver = fileResolver;
         this.execActionFactory = execActionFactory;
         this.visualStudioLocator = visualStudioLocator;
         this.windowsSdkLocator = windowsSdkLocator;
     }
 
-    @Override
     protected String getTypeName() {
         return "Visual Studio";
+    }
+
+    public File getInstallDir() {
+        return installDir;
+    }
+
+    public void setInstallDir(Object installDirPath) {
+        this.installDir = resolve(installDirPath);
+    }
+
+    public File getWindowsSdkDir() {
+        return windowsSdkDir;
+    }
+
+    public void setWindowsSdkDir(Object windowsSdkDirPath) {
+        this.windowsSdkDir = resolve(windowsSdkDirPath);
+    }
+
+    public PlatformToolChain select(Platform targetPlatform) {
+        ToolChainAvailability result = new ToolChainAvailability();
+        result.mustBeAvailable(getAvailability());
+        if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
+            result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
+        }
+        if (!result.isAvailable()) {
+            return new UnavailablePlatformToolChain(result);
+        }
+        return new VisualCppPlatformToolChain(getAsMap(), visualCpp, windowsSdk, targetPlatform);
+    }
+
+    private ToolChainAvailability getAvailability() {
+        if (availability == null) {
+            availability = new ToolChainAvailability();
+            checkAvailable(availability);
+        }
+        return availability;
     }
 
     private void checkAvailable(ToolChainAvailability availability) {
@@ -85,53 +138,51 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
     }
 
-    public File getInstallDir() {
-        return installDir;
+    public String getName() {
+        return name;
     }
 
-    public void setInstallDir(Object installDirPath) {
-        this.installDir = resolve(installDirPath);
-    }
-
-    public File getWindowsSdkDir() {
-        return windowsSdkDir;
-    }
-
-    public void setWindowsSdkDir(Object windowsSdkDirPath) {
-        this.windowsSdkDir = resolve(windowsSdkDirPath);
-    }
-
-    private ToolChainAvailability getAvailability() {
-        if (availability == null) {
-            availability = new ToolChainAvailability();
-            checkAvailable(availability);
-        }
-        return availability;
-    }
-
-    public PlatformToolChain target(Platform targetPlatform) {
-        ToolChainAvailability result = new ToolChainAvailability();
-        result.mustBeAvailable(getAvailability());
-        if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
-            result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
-        }
-        if (!result.isAvailable()) {
-            return new UnavailablePlatformToolChain(result);
-        }
-        return new VisualCppPlatformToolChain(visualCpp, windowsSdk, targetPlatform);
+    public String getDisplayName() {
+        return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
     }
 
     @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    public String getOutputType() {
+        return String.format("%s-%s", getName(), operatingSystem.getName());
+    }
+
+    public String getExecutableName(String executablePath) {
+        return operatingSystem.getExecutableName(executablePath);
+    }
+
+    public String getSharedLibraryName(String libraryName) {
+        return operatingSystem.getSharedLibraryName(libraryName);
+    }
+
+    public String getStaticLibraryName(String libraryName) {
+        return operatingSystem.getStaticLibraryName(libraryName);
+    }
+
+    protected File resolve(Object path) {
+        return fileResolver.resolve(path);
+    }
+
     public String getSharedLibraryLinkFileName(String libraryName) {
         return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
     }
 
     private class VisualCppPlatformToolChain implements PlatformToolChain {
+        private SortedMap<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
+        private final VisualCppInstall visualCpp;
         private final WindowsSdk sdk;
         private final Platform targetPlatform;
-        private final VisualCppInstall visualCpp;
 
-        private VisualCppPlatformToolChain(VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
+        private VisualCppPlatformToolChain(SortedMap<String, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
+            this.commandLineToolConfigurations = commandLineToolConfigurations;
             this.visualCpp = visualCpp;
             this.sdk = sdk;
             this.targetPlatform = targetPlatform;
@@ -144,74 +195,72 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         public void explain(TreeVisitor<? super String> visitor) {
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-            CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-            Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePathAndDefinitions();
-            commandLineTool.withSpecTransformer(specTransformer);
-            CppCompiler cppCompiler = new CppCompiler(commandLineTool);
-            return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
+        public Compiler<CppCompileSpec> createCppCompiler() {
+            CommandLineTool commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
+            CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("cppCompiler")), addIncludePathAndDefinitions(CppCompileSpec.class));
+            return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-            CommandLineTool<CCompileSpec> commandLineTool = commandLineTool("C compiler", visualCpp.getCompiler(targetPlatform));
-            Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePathAndDefinitions();
-            commandLineTool.withSpecTransformer(specTransformer);
-            CCompiler cCompiler = new CCompiler(commandLineTool);
-            return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
+        public Compiler<CCompileSpec> createCCompiler() {
+            CommandLineTool commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
+            CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("cCompiler")), addIncludePathAndDefinitions(CCompileSpec.class));
+            return new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler() {
+        public Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler() {
             throw new RuntimeException("Objective-C++ is not available on the Visual C++ toolchain");
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler() {
+        public Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler() {
             throw new RuntimeException("Objective-C is not available on the Visual C++ toolchain");
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-            CommandLineTool<AssembleSpec> commandLineTool = commandLineTool("Assembler", visualCpp.getAssembler(targetPlatform));
-            return (Compiler<T>) new Assembler(commandLineTool);
+        public Compiler<AssembleSpec> createAssembler() {
+            CommandLineTool commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
+            return new Assembler(commandLineTool, invocation(commandLineToolConfigurations.get("assembler")));
         }
 
-        public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
-            CommandLineTool<WindowsResourceCompileSpec> commandLineTool = commandLineTool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
-            Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer = addIncludePathAndDefinitions();
-            commandLineTool.withSpecTransformer(specTransformer);
-            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool);
-            return (Compiler<T>) new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
+        public Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
+            CommandLineTool commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
+            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, invocation(commandLineToolConfigurations.get("rcCompiler")), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
+            return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
         }
 
-        public <T extends LinkerSpec> Compiler<T> createLinker() {
-            CommandLineTool<LinkerSpec> commandLineTool = commandLineTool("Linker", visualCpp.getLinker(targetPlatform));
-            commandLineTool.withSpecTransformer(addLibraryPath());
-            return (Compiler<T>) new LinkExeLinker(commandLineTool);
+        public Compiler<LinkerSpec> createLinker() {
+            CommandLineTool commandLineTool = tool("Linker", visualCpp.getLinker(targetPlatform));
+            return new LinkExeLinker(commandLineTool, invocation(commandLineToolConfigurations.get("linker")), addLibraryPath());
         }
 
-        public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool("Static library archiver", visualCpp.getArchiver(targetPlatform));
-            return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool);
+        public Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
+            CommandLineTool commandLineTool = tool("Static library archiver", visualCpp.getArchiver(targetPlatform));
+            return new LibExeStaticLibraryArchiver(commandLineTool, invocation(commandLineToolConfigurations.get("staticLibArchiver")));
         }
 
-        private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(String toolName, File exe) {
-            CommandLineTool<T> tool = new CommandLineTool<T>(toolName, exe, execActionFactory);
+        private CommandLineTool tool(String toolName, File exe) {
+            return new CommandLineTool(toolName, exe, execActionFactory);
+        }
 
+        private CommandLineToolInvocation invocation(CommandLineToolConfigurationInternal commandLineToolConfiguration) {
+            MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
             // The visual C++ tools use the path to find other executables
             // TODO:ADAM - restrict this to the specific path for the target tool
-            tool.withPath(visualCpp.getPath(targetPlatform));
-            tool.withPath(sdk.getBinDir(targetPlatform));
-
+            invocation.addPath(visualCpp.getPath(targetPlatform));
+            invocation.addPath(sdk.getBinDir(targetPlatform));
             // Clear environment variables that might effect cl.exe & link.exe
-            clearEnvironmentVars(tool, "INCLUDE", "CL", "LIBPATH", "LINK", "LIB");
-            return tool;
+            clearEnvironmentVars(invocation, "INCLUDE", "CL", "LIBPATH", "LINK", "LIB");
+
+            invocation.addPostArgsAction(commandLineToolConfiguration.getArgAction());
+            return invocation;
         }
 
-        private <T extends BinaryToolSpec> void clearEnvironmentVars(CommandLineTool<T> tool, String... names) {
+        private void clearEnvironmentVars(MutableCommandLineToolInvocation invocation, String... names) {
+            // TODO:DAZ This check should really be done in the compiler process
             Map<String, ?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(System.getenv());
             for (String name : names) {
                 Object value = environmentVariables.get(name);
                 if (value != null) {
                     LOGGER.warn("Ignoring value '{}' set for environment variable '{}'.", value, name);
-                    tool.withEnvironmentVar(name, "");
+                    invocation.addEnvironmentVar(name, "");
                 }
             }
         }
@@ -220,7 +269,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return String.format("%s-%s", getName(), operatingSystem.getName());
         }
 
-        private <T extends NativeCompileSpec> Transformer<T, T> addIncludePathAndDefinitions() {
+        // TODO:DAZ These should be modelled properly, not hidden in a compile spec transformation
+        private <T extends NativeCompileSpec> Transformer<T, T> addIncludePathAndDefinitions(Class<T> type) {
             return new Transformer<T, T>() {
                 public T transform(T original) {
                     original.include(visualCpp.getIncludePath(targetPlatform));

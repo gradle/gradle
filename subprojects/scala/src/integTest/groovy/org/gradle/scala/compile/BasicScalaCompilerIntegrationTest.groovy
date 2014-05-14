@@ -147,7 +147,6 @@ repositories {
 
 dependencies {
     compile "org.scala-lang:scala-library:$version"
-    compile localGroovy()
 }
 """
     }
@@ -162,12 +161,11 @@ dependencies {
 package compile.test
 
 import scala.collection.JavaConversions._
-import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 class Person(val name: String, val age: Int) {
     def hello() {
-        val x: java.util.Collection[Int] = List(3, 1, 2)
-        DefaultGroovyMethods.max(x)
+        val x: java.util.List[Int] = List(3, 1, 2)
+        java.util.Collections.reverse(x)
     }
 }
 """

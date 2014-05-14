@@ -16,12 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultModuleVersionListing implements ModuleVersionListing {
@@ -40,16 +37,6 @@ public class DefaultModuleVersionListing implements ModuleVersionListing {
 
     public Set<Versioned> getVersions() {
         return versions;
-    }
-
-    public boolean isEmpty() {
-        return versions.isEmpty();
-    }
-
-    public List<Versioned> sortLatestFirst(LatestStrategy latestStrategy) {
-        List<Versioned> sorted = latestStrategy.sort(versions);
-        Collections.reverse(sorted);
-        return sorted;
     }
 
     @Override

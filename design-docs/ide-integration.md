@@ -82,34 +82,80 @@ Change the task visibility logic so that the lifecycle task of all `BuildableMod
 A new model will be available for defining IDEA scopes: these scopes will formed by combining and excluding Gradle configurations and other scopes.
 The model can statically restrict the available scopes to 'compile', 'runtime', 'provided' and 'test'.
 
-- scope `provided` should default to empty, or `configurations.providedCompile` when the war plugin is applied.
-- scope `compile` should default to `configurations.compile` minus scope `provided`.
-- scope `runtime` should default to `configurations.runtime` minus scope `compile`.
-- scope `test` should default to (`configurations.testCompile` minus scope `compile`) union (`configurations.testRuntime` minus scope `runtime`).
+#### Model
 
-#### User visible changes
+Introduce a model for binaries that run on the JVM and that are built locally:
+
+    interface Classpath { // This type already exists
+        ...
+        libs(Object) // Adds libraries to this classpath
+    }
+
+    interface JvmPlatform {
+        Classpath compile
+        Classpath runtime
+    }
+
+    interface JvmBinary {
+        JvmPlatform platform
+        Classpath compile
+        Classpath runtime
+    }
+
+    interface MainJvmBinary extends JvmBinary {
+        JvmBinary tests
+    }
+
+The Java base plugin registers an implementation of `MainJvmBinary`, and the Java and WAR plugins fill it in so that:
+
+- `configurations.compile` is added to `jvmBinary.compile`
+- `configurations.runtime` is added to `jvmBinary.runtime`
+- `configurations.testCompile` is added to `jvmBinary.test.compile`
+- `configurations.testRuntime` is added to `jvmBinary.test.runtime`
+- `configurations.providedCompile` is added to `jvmBinary.platform.compile`
+- `configurations.providedRuntime` is added to `jvmBinary.platform.runtime`
+
+Introduce IDEA scope model:
+
+    interface IdeaScope {
+        String name
+        List<Dependency> libraries // read-only, calculated on demand
+    }
+
+    interface IdeaScopes {
+        IdeaScope provided
+        IdeaScope compile
+        IdeaScope runtime
+        IdeaScope test
+    }
+
+    class IdeaModule { // this type already exists
+        ...
+        IdeaScopes ideaScopes
+    }
+
+The IDEA plugin calculates the contents of the scopes based on the `JvmBinary` model defined above:
+
+- scope `provided` should contain `jvmBinary.platform.compile`
+- scope `compile` should contain `jvmBinary.compile` minus scope `provided`.
+- scope `runtime` should contain (`jvmBinary.runtime` union `jvmBinary.platform.runtime`) minus scope `compile`.
+- scope `test` should contain (`jvmBinary.test.compile` minus scope `compile`) union (`jvmBinary.test.runtime` minus scope `runtime`).
+
+An example customisation:
+
+    binaries {
+        jvm {
+            test.compile configurations.integTestCompile
+            test.runtime configurations.integTestRuntime
+
+            platform.compile configurations.myCustomProvided
+        }
+    }
 
 TODO: Example DSL
 
 The new DSL (and model defaults) will be used to configure an IDEA module when the current `scopes` map has not been altered by the user.
 Once the new DSL is stabilised we will deprecate and remove the `scopes` map.
-
-Initial proposal for the new DSL is to support complete scope definition ...
-
-```
-    ideaScope.TEST.build {
-      filtered(base: configurations.testCompile, excluded: configurations.compile)
-      filtered(base: configurations.testRuntime, excluded: configurations.runtime)
-    }
-```
-
-... or to append to previously defined set of items for this scope like ...
-
-```
-    ideaScope.TEST.append {
-      configurations.integTestCompile
-    }
-```
 
 #### Implementation
 
@@ -129,7 +175,7 @@ Initial proposal for the new DSL is to support complete scope definition ...
     - When a java project has a dependency declared for `testRuntime` and `runtime`, the dependency appears with `runtime` scope only.
     - When a java project has a dependency declared for `compile` and `testCompile`, the dependency appears with `compile` scope only.
     - When a war project has a dependency declared for `providedCompile` and `compile`, the dependency appears with `provided` scope only.
-- Current defaults are used when the `scopes` maps is configured by user
+- Current defaults are used when the `scopes` maps is configured by user.
 - User is informed of failure when both `scopes` map and new DSL are configured.
 
 #### Open issues
@@ -147,6 +193,20 @@ The implementation will do the same thing as if the daemon client is disconnecte
 Later stories incrementally add more graceful cancellation handling.
 
 See [tooling-api-improvements.md](tooling-api-improvements.md#story-tooling-api-client-cancels-a-long-running-operation)
+
+## Feature - Expose dependency resolution problems
+
+- For the following kinds of failures:
+    - Missing or broken module version
+    - Missing or broken jar
+    - Missing or broken source and javadoc artifact
+- Change the IDE plugins to warn for each such problem it ignores, and fail on all others.
+- Change the tooling model include the failure details for each such problem.
+
+### Test coverage
+
+- Change the existing IDE plugin int tests to verify the warning is produced in each of the above cases.
+- Add test coverage for the tooling API to cover the above cases.
 
 ## Feature - Expose build script compilation details
 
@@ -203,12 +263,6 @@ Expose the corresponding Eclipse and IDEA model.
 Expose Scala language level and other details about a Scala component.
 
 Expose the corresponding Eclipse and IDEA model.
-
-### Story - Expose the publications of a project
-
-See [tooling-api-improvements.md](tooling-api-improvements.md#story-expose-the-publications-of-a-project):
-
-Expose the publications of a project so that the IDE can wire together Gradle and Maven builds.
 
 ### Story - Expose Web components to the IDE
 

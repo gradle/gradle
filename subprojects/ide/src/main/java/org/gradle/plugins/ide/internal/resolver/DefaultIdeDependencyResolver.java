@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.*;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
@@ -114,7 +114,8 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      */
     public List<IdeExtendedRepoFileDependency> getIdeRepoFileDependencies(Configuration configuration) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
-        List<ResolvedComponentResult> resolvedDependencies = findAllResolvedDependencyResults(result.getAllDependencies(), ModuleComponentIdentifier.class);
+        List<ResolvedComponentResult> resolvedDependencies = new ArrayList<ResolvedComponentResult>();
+        findAllResolvedDependencyResultsAndTheirDependencies(resolvedDependencies, result.getRoot().getDependencies(), ModuleComponentIdentifier.class);
         Set<ModuleVersionIdentifier> mappedResolvedDependencies = mapResolvedDependencies(resolvedDependencies);
         Set<ResolvedArtifact> artifacts = getExternalArtifacts(configuration);
 
@@ -129,6 +130,28 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         }
 
         return externalDependencies;
+    }
+
+    /**
+     * Finds all resolved components of the given type from the given set of dependency edges. If resolved component has dependencies itself, recursively resolve them as well
+     * and add them to the results. This method can handle circular dependencies.
+     *
+     * @param dependencies Dependencies
+     * @return Resolved dependency results
+     */
+    private void findAllResolvedDependencyResultsAndTheirDependencies(List<ResolvedComponentResult> matches, Set<? extends DependencyResult> dependencies, Class<? extends ComponentIdentifier> type) {
+        for (DependencyResult dependencyResult : dependencies) {
+            if (dependencyResult instanceof ResolvedDependencyResult) {
+                ResolvedDependencyResult resolvedResult = (ResolvedDependencyResult) dependencyResult;
+                if (type.isInstance(resolvedResult.getSelected().getId())) {
+                    // avoid circular dependencies by checking whether component result is already added
+                    if (!matches.contains(resolvedResult.getSelected())) {
+                        matches.add(resolvedResult.getSelected());
+                        findAllResolvedDependencyResultsAndTheirDependencies(matches, resolvedResult.getSelected().getDependencies(), type);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -238,12 +261,6 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @return External artifacts
      */
     private Set<ResolvedArtifact> getExternalArtifacts(Configuration configuration) {
-        return configuration.getResolvedConfiguration().getLenientConfiguration().getArtifacts(new ExternalDependencySpec());
-    }
-
-    private class ExternalDependencySpec implements Spec<Dependency> {
-        public boolean isSatisfiedBy(Dependency element) {
-            return element instanceof ExternalDependency;
-        }
+        return configuration.getResolvedConfiguration().getLenientConfiguration().getArtifacts(Specs.SATISFIES_ALL);
     }
 }

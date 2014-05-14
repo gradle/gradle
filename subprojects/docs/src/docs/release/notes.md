@@ -1,311 +1,427 @@
-Gradle 1.12 brings some nice universal performance improvements, useful new features and a slew of bug and compatibility fixes.
-
-In the native space, improvements have been made to the Clang support as well as improved integration with Visual Studio.
-Gradle also now provides support for unit testing your native code via CUnit.
-
-A considerable amount of work in this release went in to the dependency management engine, preparing for new APIs that allow more control over the dependency resolution process.
-The visible result of this work in Gradle 1.12 is the ability to specify rules that identify _changing_ components (e.g. snapshots).
-
-Another significant area of investment in 1.12 is in the area of IDE integration, via the [Tooling API](userguide/embedding.html).
-Integration with IntelliJ IDEA in particular has been improved, along with general improvements that will offer tooling providers more integration capabilities.
-Optimizations have also been made to the parts of the codebase that deal with IDE import, making importing Gradle 1.12 projects into IDEs faster than any previous Gradle version.
-
-Gradle 1.12 set a new high watermark for contributions.
-It includes contributions from 16 different people.
-Contributions range from documentation improvements, to Ant import improvements, to support for building large zips,
-to Sonar improvements, to test reporting improvements and more.
-Thank you to all of the contributors.
-
-Gradle 1.12 will be the last release in the Gradle 1.x line.
-The next release will be Gradle 2.0.
-For information on what this means for you and for the future of Gradle, please see [the Gradle 2.0 announcement](http://forums.gradle.org/gradle/topics/after_1_12_comes_2_0).
-
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
 
-### CUnit integration (i)
+### Groovy 2.2.2
 
-The new Gradle `cunit` plugin provides support for compiling and executing [CUnit](http://cunit.sourceforge.net) tests in your native-binary project.
+Gradle now uses Groovy 2.2.2 to compile and running build scripts and plugins.
 
-You simply need to include your CUnit test sources, and provide a hook for Gradle to register the suites and tests defined.
+### New API for artifact resolution (i)
 
-    #include <CUnit/Basic.h>
-    #include "gradle_cunit_register.h"
-    #include "operator_tests.h"
+Gradle 2.0 introduces a new, incubating API for resolving component artifacts. With this addition, Gradle now offers separate dedicated APIs for resolving
+components and artifacts. (Component resolution is mainly concerned with computing the dependency graph, whereas artifact resolution is
+mainly concerned with locating and downloading artifacts.) The entry points to the component and artifact resolution APIs are `configuration.incoming` and
+`dependencies.createArtifactResolutionQuery()`, respectively.
 
-    void gradle_cunit_register() {
-        CU_pSuite mySuite = CU_add_suite("operator tests", suite_init, suite_clean);
-        CU_add_test(mySuite, "test plus", test_plus);
-        CU_add_test(mySuite, "test minus", test_minus);
+TODO: This API examples are out of date. Add new tested samples to the Javadoc or Userguide and link instead
+
+Here is an example usage of the new API:
+
+    def query = dependencies.createArtifactResolutionQuery()
+        .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
+        .forArtifacts(JvmLibrary)
+
+    def result = query.execute() // artifacts are downloaded at this point
+
+    for (component in result.components) {
+        assert component instanceof JvmLibrary
+        println component.id
+        component.sourceArtifacts.each { println it.file }
+        component.javadocArtifacts.each { println it.file }
     }
 
-Gradle will then generate the required boiler-plate CUnit code, build a test executable, and run your tests.
+    assert result.unresolvedComponents.isEmpty()
 
-<pre><tt>> gradle -q runFailingOperatorsTest
+Artifact resolution can be limited to selected artifact types:
 
-There were test failures:
-  1. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:6  - plus(0, -2) == -2
-  2. /home/user/gradle/samples/native-binaries/cunit/src/operatorsTest/cunit/test_plus.c:7  - plus(2, 2) == 4
+    def query = dependencies.createArtifactResolutionQuery()
+        .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
+        .forArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
 
-BUILD FAILED</tt></pre>
+    def result = query.execute()
 
-See the [user guide chapter](userguide/nativeBinaries.html#native_binaries:cunit) and the cunit sample (`samples/native-binaries/cunit`)
-in the distribution to learn more. Expect deeper integration with CUnit (and other native testing tools) in the future.
+    for (component in result.components) {
+        assert !component.sourceArtifacts.isEmpty()
+        assert component.javadocArtifacts.isEmpty()
+    }
 
-### Component metadata rules can control whether a component version is considered changing (i)
+Artifacts for many components can be resolved together:
 
-Component metadata rules ([introduced in Gradle 1.8](http://www.gradle.org/docs/1.8/release-notes#component-metadata-rules)) can now be used to specify whether a component version is considered _changing_.
+    def query = dependencies.createArtifactResolutionQuery()
+        .forComponents(setOfComponentIds)
+        .forArtifacts(JvmLibrary)
 
-A _changing_ component is expected to change over time without a change to the version number.
-A commonly used and well understood example of a changing component is a “`-SNAPSHOT`” dependency from an Apache Maven repository (which Gradle implicitly considers to be changing).
+So far, only one component type (`JvmLibrary`) is available, but others will follow, also for platforms other than the JVM.
 
-This new feature makes it possible to implement custom strategies for deciding if a component version is changing.
-In the following example, every component version whose group is “`my.company`” and whose version number ends in “`-dev`” will be considered changing:
+### Accessing Ivy extra info from component metadata rules
+
+It's now possible to access Ivy extra info from component metadata rules. Roughly speaking, Ivy extra info is a set of user-defined
+key-value pairs published in the Ivy module descriptor. Rules wishing to access the extra info need to specify a parameter of type
+`IvyModuleDescriptor`. Here is an example:
 
     dependencies {
         components {
-            eachComponent { ComponentMetadataDetails details ->
-                details.changing =
-                    details.id.group == "my.company" &&
-                        details.id.version.endsWith("-dev")
+            eachComponent { component, IvyModuleDescriptor descriptor ->
+                println descriptor.extraInfo["expired"] // TODO: what's a real-world use case?
             }
         }
     }
 
-This feature is especially useful when dealing with Ivy repositories, as it is a generalized form of Ivy's `changingPattern` concept.
+### Cleaner build scripts with `plugins.withId`
 
-See [ComponentMetadataHandler](javadoc/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html) for more information.
+New <a href="javadoc/org/gradle/api/plugins/PluginContainer.html#withId(java.lang.String, org.gradle.api.Action)">plugins.withId()</a>
+enables referring to plugins more conveniently.
+In previous releases, some times it was necessary for the client of a custom plugin to know the fully qualified type of the plugin:
 
-### Tooling API exposes information on a project's publications (i)
+    import com.my.custom.InterestingPlugin
+    plugins.withType(InterestingPlugin) { ...
 
-The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically.
-The new [`ProjectPublications`](javadoc/org/gradle/tooling/model/gradle/ProjectPublications.html) Tooling API model type provides basic information about a project's publications.
+    //now possible, given InterestingPlugin uses "interesting-plugin" id:
+    plugins.withId("interesting-plugin") { ...
 
-The following example demonstrates using the `ProjectPublications` model to print out the group/name/version of each publication.
+Benefits of the new API for the users:
 
-    def projectConnection = ...
-    def publications = projectConnection.getModel(ProjectPublications)
-    for (publication in project.publications) {
-        println publication.id.group
-        println publication.id.name
-        println publication.id.version
+* less pressure to know the exact java class of the plugin
+* build scripts are more likely to be decoupled from the plugin types (e.g. it's easier for plugin author to refactor/change the type)
+* some build scripts are cleaner and more consistent because plugins are applied by 'id' and are also filtered by 'id'
+
+### Support for Ivy and Maven repositories with SFTP scheme
+
+In addition to `file`, `http` and `https`, Ivy and Maven repositories now also support the `sftp` transport scheme. Currently, authentication with the SFTP server only works based on
+providing username and password credentials.
+
+Here is an example usage of resolving dependencies from a SFTP server with Ivy:
+
+    apply plugin: 'java'
+
+    repositories {
+        ivy {
+            url 'sftp://127.0.0.1:22/repo'
+            credentials {
+                username 'sftp'
+                password 'sftp'
+            }
+            layout 'maven'
+        }
     }
 
-Both publications declared in the old (`artifacts` block, `Upload` task) and new (`publishing.publications` block) way are reflected in the result.
-
-### Tooling API exposes more information on how to launch a Gradle build (i)
-
-The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically.
-The new [`BuildInvocations`](javadoc/org/gradle/tooling/model/gradle/BuildInvocations.html) Tooling API model type provides information about the possible ways to invoke the build.
-
-It provides the invokable tasks of a project, and importantly also its applicable task _selectors_.
-A task selector effectively refers to all of the tasks with a given name in a project and its child projects.
-For example, it is common in a multi project build for all projects to have a `build` task.
-Invoking the build via the Tooling API with the `build` task _selector_ would run the `build` task in every project, effectively building the entire multi project build.
-In contrast, invoking the build with the `build` _task_ would only build the root project (or which ever project is being targeted).
-
-This new capability makes it easier for integrators to provide more powerful interfaces for invoking Gradle builds.
-
-### Easier to identify ignored tests in HTML test report
-
-The HTML test report now has a dedicated tab for ignored tests, at the overview and package level.
-This makes it much easier to see which tests were ignored at a glance.
-
-Thanks to [Paul Merlin](https://github.com/eskatos) for this improvement.
-
-### Support for building large zips
-
-It is now possible to build zips with the [Zip64 extension](http://en.wikipedia.org/wiki/Zip_\(file_format\)#ZIP64), enabling the building of large zip files.
-
-    task largeZip(type: Zip) {
-        from 'lotsOfLargeFiles'
-        zip64 = true
+    dependencies {
+        compile 'org.apache.commons:commons-lang3:3.3.1'
     }
 
-The zip standard does not support containing more than 65535 files, containing any file greater than 4GB or being greater than 4GB compressed.
-If your zip file meets any of these criteria, then the zip must be built with the
-[`zip64` property](dsl/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:zip64) set to `true` (it is `false` by default).
-This flag also applies to all JARs, WARs, EARs and anything else that uses the Zip format.
+Resolving dependencies from a SFTP server with Maven works accordingly. Publishing is not supported yet. The following example demonstrates the use case:
 
-However, not all Zip readers support the Zip64 extensions.
-Notably, the `ZipInputStream` JDK class does not support Zip64 for versions earlier than Java 7.
-This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
+    apply plugin: 'java'
 
-Thanks to [Jason Gauci](https://github.com/MisterTea) for this improvement.
+    repositories {
+        maven {
+            url 'sftp://127.0.0.1:22/repo'
+            credentials {
+                username 'sftp'
+                password 'sftp'
+            }
+        }
+    }
 
-### Support for consuming Apache Maven POMs with active profiles
+    dependencies {
+        compile 'org.apache.commons:commons-lang3:3.3.1'
+    }
 
-Gradle now respects POM profiles that are [active by default](https://maven.apache.org/pom.html#Activation), during dependency resolution.
-More specifically, the properties, dependencies and dependency management information is now respected.
+Here is an example usage of publishing an artifact to an Ivy repository hosted on a SFTP server:
 
-### Customise Clang compiler tool chain (i)
+    apply plugin: 'java'
+    apply plugin: 'ivy-publish'
 
-In earlier Gradle versions, it was possible to customize the GCC compiler tool chain in various ways. For example, you could use the `cCompiler.executable` property
-to specify a custom C compiler to use.
+    version = '2'
+    group = 'org.group.name'
 
-Now you can customize the Clang tool chain in exactly the same way as the GCC tool chain.
+    publishing {
+        repositories {
+            ivy {
+                url 'sftp://127.0.0.1:22/repo'
+                credentials {
+                    username 'sftp'
+                    password 'sftp'
+                }
+                layout 'maven'
+            }
+        }
+        publications {
+            ivy(IvyPublication) {
+                from components.java
+            }
+        }
+    }
 
-For more details see [Clang](dsl/org.gradle.nativebinaries.toolchain.Clang.html) and [GCC](dsl/org.gradle.nativebinaries.toolchain.Gcc.html).
 
-### Improved Visual Studio project file generation (i)
+### Consumed Apache Maven POM profile activation through absence of system property
 
-Gradle 1.11 added support for [generating Visual Studio configuration files](http://www.gradle.org/docs/current/release-notes#generate-visual-studio-configuration-for-a-native-binary-project).
-This feature has been improved in the following ways in Gradle 1.12:
+On top of the support for POM profiles that [are active by default](http://books.sonatype.com/mvnref-book/reference/profiles-sect-activation.html), a profile also becomes active if the
+corresponding system property is _not_ set. The following POM file demonstrates such a use case:
 
-* Visual studio log files are generated into `.vs` instead of the project directory
-* Project files are named by `ProjectNativeComponent.name` instead of `ProjectNativeComponent.baseName`
-* Header files co-located with source files are now include in the generated project
+    <project>
+        ...
+        <profiles>
+            <profile>
+                <id>profile-1</id>
+                <property>
+                    <name>!env</name>
+                </property>
+            </profile>
+        </profiles>
+    </project>
 
-### Updated mapping of dependencies to IDEA classpath scopes
+### Allow control of the exact set of arguments passed to a toolchain executable
 
-There were changes in IDEA project mapping related to bug reports [GRADLE-2017] and [GRADLE-2231]. Projects generated by the [IDEA plugin](userguide/idea_plugin.html) now
-better map project dependencies to classpath scopes in IDEA modules.
+Gradle now provides a 'hook' allowing the build author to control the exact set of arguments passed a toolchain executable.
+This will allow a build author to work around any limitations in Gradle, or incorrect assumptions that Gradle makes.
 
-### Easier debugging of JVM `Test` and `JavaExec` processes (i)
+    apply plugin:'cpp'
 
-The [`Test`](dsl/org.gradle.api.tasks.testing.Test.html) and [`JavaExec`](dsl/org.gradle.api.tasks.JavaExec.html) tasks both now support a `--debug-jvm` invocation time switch, which is equivalent
-to setting the `debug` property of these tasks to `true`.
+    model {
+        toolChains {
+            visualCpp(VisualCpp) {
+                cppCompiler.withArguments { args ->
+                    args << "-DFRENCH"
+                }
+            }
+            clang(Clang){
+                cCompiler.withArguments { args ->
+                    Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
+                }
+                linker.withArguments { args ->
+                    args.remove "CUSTOM"
+                }
+                staticLibArchiver.withArguments { args ->
+                    args.remove "CUSTOM"
+                }
+            }
 
-This makes it easy, for example, to launch the application in debug mode when using the [Application plugin](userguide/application_plugin.html)…
+        }
+    }
 
-<pre><tt>gradle run --debug-jvm</tt></pre>
+### Support for adding target platform specific configurations in native binary projects (Gcc based toolchains)
 
-This starts the JVM process in debug mode, and halts the process until a debugger attaches on port 5005.
-The same can be done for any [`Test`](dsl/org.gradle.api.tasks.testing.Test.html) task.
+When declaring a toolchain, the targetted platforms can be configured directly in the toolChain model. Furthermore target platform specific configurations
+can be declared:
 
-### Source and Javadoc artifacts declared in ivy.xml are recognised by IDE plugins
+	model {
+	    toolChains {
+	        gcc(Gcc) {
+	            target("arm"){
+	                cppCompiler.executable = "custom-gcc"
+	                cppCompiler.withArguments { args ->
+	                    args << "-m32"
+	                }
+	                linker.withArguments { args ->
+	                    args << "-m32"
+	                }
+	            }
+	            target("sparc")
+	        }
+	    }
+		platforms {
+			arm {
+		    	architecture "arm"
+			}
+			sparc {
+		    	architecture "sparc"
+			}
+		}
 
-The Gradle `eclipse` and `idea` plugins are able to find and download the source artifacts for external dependencies, and link
-these artifacts into the generated IDE files.
+### New 'ivy' layout support for Ivy repositories
 
-In addition to the conventional classifier-based scheme for locating source and javadoc artifacts, Gradle will now recognise
-artifacts declared in a specific configuration of an `ivy.xml` file.
+When defining an 'ivy' repository, you can provide a named layout to describe how artifacts are organised within that repository.
 
-For an IDE project that references an external module located in an `ivy` repository, Gradle will now include:
+In addition to the 'gradle' (default) and 'maven' layouts, you can now specify the 'ivy' layout which tells Gradle that your repository
+is configured with the default ivy artifact and metadata patterns.
 
-* Source artifacts declared in a `sources` configuration in `ivy.xml`
-* Javadoc artifacts declared in a `javadoc` configuration in `ivy.xml`
-* Source artifacts conventionally named with a `sources` classifier: eg. `module-1.0-sources.jar`
-* Javadoc artifacts conventionally named with a `javadoc` classifier: eg. `module-1.0-javadoc.jar`
+    repositories {
+        ivy {
+            url 'http://my.server/repo'
+            layout 'ivy'
+        }
+    }
 
-### HTTPS wrapper downloads
+See the [User Guide](userguide/dependency_management.html#N150B8) and the
+<a href="dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout(java.lang.String, groovy.lang.Closure)">
+DSL Reference</a> for more detail on how to use named layouts.
 
-The [Gradle Wrapper](userguide/gradle_wrapper.html) is now downloaded over HTTPS.
-The `gradle-wrapper.properties` file created by the `wrapper` task will now specify a HTTPS URL as the location of the Gradle distribution to download.
+## Promoted features
 
-Existing projects should consider updating the `gradle/wrapper/gradle-wrapper.properties` file to use `https` instead of `http` for the `distributionUrl` property value.
-No other change to the URL is necessary.
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+
+The following are the features that have been promoted in this Gradle release.
+
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 2.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-### Tooling API version compatibility
-
-The [Tooling API](userguide/embedding.html) is a mechanism for embedding Gradle and/or driving Gradle programmatically.
-It is used by IDEs and other _tooling_ to integrate with Gradle.
-
-* Connecting to 1.0-milestone-8 and earlier providers is now deprecated and will not be supported in Gradle 2.0. This means that the Gradle 2.0 Tooling API client will
-not be able to run builds that use Gradle 1.0-milestone-8 and earlier.
-* Client versions older than 1.2 are now deprecated and will not be supported in Gradle 2.0. This means that the Gradle 1.2 and earlier Tooling API clients will not
-be able to run builds that use Gradle 2.0 and later.
-
-If your project is building with Gradle 1.0-milestone-8 or earlier, you are __strongly__ encouraged to upgrade to a more recent Gradle version.
-All versions of integrating tools released since the release of Gradle 1.2 (September 2012) should be using a Tooling API client newer than version 1.2.
-
-### Deprecated method in Tooling API
-
-The <a href="javadoc/org/gradle/tooling/model/Task.html#getProject()">`org.gradle.tooling.model.Task.getProject()`</a> method is now deprecated and
-can throw `UnsupportedMethodException`. There is no replacement as it is expected that the caller has a reference to project prior calling to this method.
+<!--
+### Example deprecation
+-->
 
 ## Potential breaking changes
 
-### Incremental Scala compilation
+### Upgraded to Groovy 2.2.2
 
-The version of the Scala incremental compiler, Zinc, that Gradle uses has been upgraded to a version 0.3.0.
-This might be a breaking change for users who explicitly configured an early version of zinc in their build scripts.
-There should be very few such users, if any.
+Gradle now uses Groovy 2.2.2 to compile and run scripts and plugins. Generally, this should be backwards compatible. However, this change may require
+that you recompile some plugins and may also require some source changes.
 
-### Changes to incubating native support
+### Custom TestNG listeners are applied before Gradle's listeners
 
-* '-Xlinker' is no longer automatically added to linker args for GCC or Clang. If you want to pass an argument directly to 'ld' you need to add this escape yourself.
-* Tasks for Windows resource compilation are now named 'compileXXXX' instead of 'resourceCompileXXX'.
+This way the custom listeners are more robust because they can affect the test status.
+There should be no impact of this change because majority of users do not employ custom listeners
+and even if they do healthy listeners will work correctly regardless of the listeners' order.
 
-### Change to JUnit XML file for skipped tests
+### Support for reading or changing file permissions on certain platforms with Java 5 or 6
 
-The way that skipped/ignored tests are represented in the JUnit XML output file produced by the `Test` task.
-Gradle now produces the same output, with regard to skipped tests, as Apache Ant and Apache Maven.
-This format is accepted, and expected, by all major Continuous Integration servers.
+Gradle previously supported file permissions on Solaris and Linux ia-64 using Java 5 and Java 6. This support has
+been removed. You will receive a warning when attempting to use file permissions on these platforms.
 
-This change is described as follows:
+Note that file permissions are supported on these platforms when you use Java 7 and later, and is supported for all Java
+versions on Linux, OS X, Windows and FreeBSD for x86 and amd64 architectures.
 
-1. The `testsuite` element now contains a `skipped` attribute, indicating the number of skipped tests (may be 0)
-2. The element representing a test case is now always named `testcase` (previously it was named `ignored-testcase` if it was a skipped test)
-3. If a test case was skipped, a child `<skipped/>` element will be present
+If you wish to have support for file permissions on other platforms and architectures, please help us out with porting our
+native integration to these platforms.
 
-No changes are necessary to build scripts or Continuous Integration server configuration to accommodate this change.
+### Support for terminal integration on certain platforms
 
-### Ordering of dependencies in imported Ant builds
+Gradle previously supported terminal integration on Solaris and Linux ia-64. This support has been removed. When you use Gradle on these
+platforms, Gradle will fall back to using plain text output.
 
-The ordering of Ant target dependencies is now respected when possible.
-This may cause tasks of imported Ant builds to executed in a different order from this version of Gradle on.
+Note that terminal integration is supported on Linux, OS X, Windows and FreeBSD for x86 and amd64 architectures.
 
-Given…
+If you wish to have terminal integration on other platforms and architectures, please help us out with porting our
+native integration to these platforms.
 
-    <target name='a' depends='d,c,b'/>
+### Build scripts must be encoded using UTF-8
 
-A shouldRunAfter [task ordering](userguide/more_about_tasks.html#sec:ordering_tasks) will be applied to the dependencies so that,
-`c.shouldRunAfter d` and `b.shouldRunAfter c`.
+Gradle now assumes that all Gradle scripts are encoded using UTF-8. Previously, Gradle assumed the system encoding. This change
+affects all build scripts, settings scripts and init scripts.
 
-This is in alignment with Ant's ordering of target dependencies and resolves a long standing Gradle enhancement request [GRADLE-1102].
+### Native binaries model changes
 
-### Invalid large zip files now fail the build
+A bunch of changes and renames have been made to the incubating 'native binaries' support.
+For certain common usages, a backward-compatible api has been maintained.
 
-If a zip file is built without the `zip64` flag (new in this release) set to true that surpasses the file size and count limits
-of the zip format, Gradle will now fail the build.
-Previously, it may have silently created an invalid zip.
+- Package structure has changed, with many public classes being moved.
+- `Library`, `Executable` and `TestSuite` renamed to `NativeLibrary`, `NativeExecutable` and `NativeTestSuite`
+    - Related binary types have also been renamed
+    - Kept `StaticLibraryBinary`, `SharedLibraryBinary`, `ExecutableBinary` and `TestSuiteExecutableBinary` for compatibility
+- `NativeBinariesPlugin` has been renamed to `NativeComponentPlugin` with id `'native-component'`
+- `NativeBinariesModelPlugin` renamed to `NativeComponentModelPlugin`
+- `BuildableModelElement.lifecycleTask` renamed to `buildTask`
+- `NativeBinaryTasks.getBuilder()` renamed to `getCreateOrLink()`
+- `NativeBinaryTasks.getLifecycle()` renamed to `getBuild()`
+- `BuildBinaryTask` renamed to `ObjectFilesToBinary`
 
-To allow the large zip to be correctly built, set the `zip64` property of the task to `true`.
+### New Java component model changes
 
-### Change to signature of `Test.filter(Closure)`
+A bunch of changes and renames have been made to the new, incubating 'java component' support.
 
-The incubating `Test.filter(Closure)` method introduced in 1.10 for configuring the `TestFilter` has been changed to be more consistent with other configuration methods.
-This method now accepts an `Action` and no longer returns the `TestFilter`.
-This change should not require any adjustments to build scripts as this method can still be called with a `Closure`, upon which it will be implicitly converted into an `Action`.
+- Package structure has changed, with many public classes being moved.
 
-### Change to signature of `IdeaModule.singleEntryLibraries`
+### Support for the Gradle Open API removed
 
-The property `IdeaModule.singleEntryLibraries` was previously declared as a `Map` with values of type `Collection<File>`. The values are in fact `Iterable<File>` and
-the type signature has been updated.
+- `GradleRunnerFactory` removed.
+- `UIFactory` removed.
+- `ExternalUtility` removed.
+
+### Removed Deprecated Plugins
+
+- `code-quality` plugin replaced by `checkstyle` and `codenarc`.
+
+### Removed Deprecated Classes
+
+- `GradleLauncher` replaced by the tooling API.
+- `Compile` replaced by `JavaCompile`.
+- `org.gradle.api.tasks.Directory` with no replacement.
+- `CodeQualityPlugin` replaced by the `checkstyle` and `codenarc` plugins.
+- `GroovyCodeQualityPluginConvention` with no replacement.
+- `JavaCodeQualityPluginConvention` with no replacement.
+- `IllegalOperationAtExecutionTimeException` with no replacement.
+- `AntJavadoc` with no replacement.
+
+### Removed Deprecated Methods
+
+- `Project.dir()` replaced with `mkdir()`
+- `Project.dependsOn()` replaced with task dependencies.
+- `Project.childrenDependOnMe()` replaced with task dependencies.
+- `Project.dependsOnChildren()` replaced with task dependencies.
+- `Project.getDependsOnProjects()` with no replacement.
+- `Test.isTestReport()` replaced with `getReports().getHtml().isEnabled()`.
+- `Test.disableTestReport()` replaced with `getReports().getHtml().setEnabled()`.
+- `Test.enableTestReport()` replaced with `getReports().getHtml().setEnabled()`.
+- `Test.setTestReport()` replaced with `getReports().getHtml().setEnabled()`.
+- `Test.getTestResultsDir()` replaced with `getReports().getJunitXml().getDestination()`.
+- `Test.setTestResultsDir()` replaced with `getReports().getJunitXml().setDestination()`.
+- `Test.getTestReportDir()` replaced with `getReports().getHtml().getDestination()`.
+- `Test.setTestReportDir()` replaced with `getReports().getHtml().setDestination()`.
+- `CompileOptions.getFailOnError()` replaced with `isFailOnError()`
+- `CompileOptions.getDebug()` replaced with `isDebug()`
+- `StartParameter.getMergedSystemProperties()` with no replacement.
+- `Specs.filterIterable()` with no replacement.
+
+### Removed Deprecated Properties
+
+- `CompileOptions.compiler` replaced with `CompileOptions.fork` and `CompileOptions.forkOptions.executable`
+- `CompileOptions.useAnt` with no replacement.
+- `CompileOptions.optimize` with no replacement.
+- `CompileOptions.includeJavaRuntime` with no replacement.
+- `GroovyCompileOptions.useAnt` with no replacement.
+- `GroovyCompileOptions.stacktrace` with no replacement.
+- `GroovyCompileOptions.includeJavaRuntime` with no replacement.
+- `Checkstyle.properties` replaced with `Checkstyle.configProperties`.
+- `Checkstyle.resultFile` replaced with `Checkstyle.reports.xml.destination`.
+- `CodeNarc.reportFormat` replaced with `CodeNarc.reports.<type>.enabled`.
+- `CodeNarc.reportFile` replaced with `CodeNarc.reports.<type>.destination`.
+- `ResolvedArtifact.resolvedDependency` with `ResolvedArtifact.moduleVersion` as a partial replacement.
+
+### Removed incubating method
+
+- `StartParameter.setProjectPath` and `StartParameter.getProjectPath` were replaced with `TaskParameter`.
+
+### Task constructor changes
+
+All task types now have a zero args constructor. The following types are affected:
+
+- `org.gradle.api.tasks.testing.Test`
+- `org.gradle.api.tasks.Upload`
+- `org.gradle.api.plugins.quality.Checkstyle`
+- `org.gradle.api.plugins.quality.CodeNarc`
+- `org.gradle.api.plugins.quality.FindBugs`
+- `org.gradle.api.plugins.quality.Pmd`
+- `org.gradle.api.plugins.quality.JDepend`
+- `org.gradle.testing.jacoco.tasks.JacocoReport`
+- `org.gradle.api.tasks.GradleBuild`
+- `org.gradle.api.tasks.diagnostics.DependencyInsightReportTask`
+- `org.gradle.api.reporting.GenerateBuildDashboard`
+- `org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor`
+- `org.gradle.api.publish.maven.tasks.GenerateMavenPom`
+- `org.gradle.api.publish.maven.tasks.PublishToMavenRepository`
+- `org.gradle.api.publish.maven.tasks.PublishToMavenLocal`
+- `org.gradle.nativebinaries.tasks.InstallExecutable`
+- `org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds`
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Marcin Erdmann](https://github.com/erdi)
-    * dependency ordering of imported Ant targets [GRADLE-1102]
-    * fixes for excluding tasks [GRADLE-2974] & [GRADLE-3031]
-* [Jesse Glick](https://github.com/jglick) - enabling newlines in option values passed to build
-* [Zeeke](https://github.com/zeeke) - documentation improvements
-* [Kamil Szymański](https://github.com/kamilszymanski) - documentation improvements
-* [Jakub Kubryński](https://github.com/jkubrynski) - handling of empty string proxy system property values
-* [Lee Symes](https://github.com/leesdolphin) & [Greg Temchenko](https://github.com/soid) - fix skipped test representation in JUnit XML result files [GRADLE-2731]
-* [Ivan Vyshnevskyi](https://github.com/sainaen) - Fixes to HTML test report
-* [Vincent Cantin](https://github.com/green-coder) - documentation improvements
-* [Sterling Greene](https://github.com/big-guy) - Support for developing Gradle in Eclipse
-* [Matthew Michihara](https://github.com/matthewmichihara) - Documentation improvements
-* [Andrew Oberstar](https://github.com/ajoberstar) - Improved Sonar support on Java 1.5 [GRADLE-3005]
-* [Mark Johnson](https://github.com/elucify) - documentation improvements
-* [Paul Merlin](https://github.com/eskatos) - ignored tests tab for HTML test report
-* [Jason Gauci](https://github.com/MisterTea) - Support for large zips
-* [Zsolt Kúti](https://github.com/tinca) - Fixes for Gradle on FreeBSD
-* [Rich Jones](https://github.com/Miserlou) - HTTPS URLs for wrapper downloads
+* [Marcin Erdmann](https://github.com/erdi) - Support an ivy repository declared with 'sftp' as the URL scheme
+* [Lukasz Kryger](https://github.com/kryger) - Documentation improvements
+* [Ben McCann](https://github.com/benmccann) - Added named 'ivy' layout to 'ivy' repositories
+* [Alex Selesse](https://github.com/selesse) - Fixed announce plugin in headless mode on OS X
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

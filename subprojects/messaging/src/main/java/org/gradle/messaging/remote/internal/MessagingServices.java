@@ -143,8 +143,8 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
                 messageClassLoader);
     }
 
-    protected AsyncConnection<DiscoveryMessage> createMulticastConnection(ExecutorFactory executorFactory) {
-        MulticastConnection<DiscoveryMessage> connection = new MulticastConnection<DiscoveryMessage>(broadcastAddress, new DiscoveryProtocolSerializer());
+    protected AsyncConnection<DiscoveryMessage> createMulticastConnection(ExecutorFactory executorFactory, InetAddressFactory addressFactory) {
+        MulticastConnection<DiscoveryMessage> connection = new MulticastConnection<DiscoveryMessage>(broadcastAddress, new DiscoveryProtocolSerializer(), addressFactory);
         return new AsyncConnectionAdapter<DiscoveryMessage>(
                 connection,
                 new DiscardingFailureHandler<DiscoveryMessage>(LoggerFactory.getLogger(MulticastConnection.class)),

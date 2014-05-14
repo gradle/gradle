@@ -19,57 +19,18 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.CSourceParser;
-import org.gradle.nativebinaries.language.c.internal.incremental.sourceparser.RegexBackedCSourceParser;
-import org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile;
-import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
-import java.io.File;
-
 public class IncrementalCompilerBuilder {
-    private final TaskInternal task;
     private final TaskArtifactStateCacheAccess cacheAccess;
-    private final SourceIncludesParser sourceIncludesParser;
     private final FileSnapshotter fileSnapshotter;
-    private boolean cleanCompile;
-    private Iterable<File> includes;
 
-    public IncrementalCompilerBuilder(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, TaskInternal task) {
-        this.task = task;
-        this.sourceIncludesParser = createIncludesParser(task);
+    public IncrementalCompilerBuilder(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter) {
         this.cacheAccess = cacheAccess;
         this.fileSnapshotter = fileSnapshotter;
     }
 
-    private static SourceIncludesParser createIncludesParser(TaskInternal task) {
-        CSourceParser sourceParser = new RegexBackedCSourceParser();
-        boolean importsAreIncludes = ObjectiveCCompile.class.isAssignableFrom(task.getClass()) || ObjectiveCppCompile.class.isAssignableFrom(task.getClass());
-        return new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
-    }
-
-    public IncrementalCompilerBuilder withCleanCompile() {
-        this.cleanCompile = true;
-        return this;
-    }
-
-    public IncrementalCompilerBuilder withIncludes(Iterable<File> includes) {
-        this.includes = includes;
-        return this;
-    }
-
-    public Compiler<NativeCompileSpec> createIncrementalCompiler(Compiler<NativeCompileSpec> compiler) {
-        if (cleanCompile) {
-            return createCleaningCompiler(compiler, task, includes);
-        }
-        return createIncrementalCompiler(compiler, task, includes);
-    }
-
-    private Compiler<NativeCompileSpec> createIncrementalCompiler(Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        return new IncrementalNativeCompiler(task, sourceIncludesParser, includes, cacheAccess, fileSnapshotter, compiler);
-    }
-
-    private Compiler<NativeCompileSpec> createCleaningCompiler(Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        return new CleanCompilingNativeCompiler(task, sourceIncludesParser, includes, cacheAccess, fileSnapshotter, compiler);
+    public Compiler<NativeCompileSpec> createIncrementalCompiler(TaskInternal task, Compiler<NativeCompileSpec> compiler) {
+        return new IncrementalNativeCompiler(task, cacheAccess, fileSnapshotter, compiler);
     }
 }

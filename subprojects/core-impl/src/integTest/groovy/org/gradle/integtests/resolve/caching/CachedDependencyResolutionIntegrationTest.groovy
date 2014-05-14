@@ -16,23 +16,22 @@
 
 package org.gradle.integtests.resolve.caching
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.ivy.IvyHttpModule
+import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.HttpServer
 import spock.lang.Issue
 
 /**
  * We are using Ivy here, but the strategy is the same for any kind of repository.
  */
-class CachedDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class CachedDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     IvyHttpModule module
 
     TestFile downloaded
     TestFile.Snapshot lastState
 
     def setup() {
-        server.start()
         buildFile << """
 repositories {
     ivy { url "${ivyHttpRepo.uri}" }

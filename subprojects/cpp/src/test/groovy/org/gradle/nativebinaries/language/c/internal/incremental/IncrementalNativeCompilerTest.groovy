@@ -15,6 +15,10 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental
 
+import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -24,31 +28,59 @@ class IncrementalNativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def delegateCompiler = Mock(org.gradle.api.internal.tasks.compile.Compiler)
-    def incrementalCompileProcessor = Mock(IncrementalCompileProcessor)
-    def includesParser = Mock(SourceIncludesParser);
-    def compiler = new IncrementalNativeCompiler(null, includesParser, null, null, null, delegateCompiler)
+    def task = Mock(TaskInternal)
+    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler)
+
+    def outputs = Mock(TaskOutputsInternal)
 
     def "updates spec for incremental compilation"() {
         def spec = Mock(NativeCompileSpec)
-        def existingSource = temporaryFolder.file("existing")
         def newSource = temporaryFolder.file("new")
         def removedSource = temporaryFolder.file("removed")
 
-        def sources = [existingSource, newSource]
         def compilation = Mock(IncrementalCompilation)
 
         when:
-        spec.getSourceFiles() >> sources
-        incrementalCompileProcessor.processSourceFiles(_) >> compilation
         compilation.getRecompile() >> [newSource]
         compilation.getRemoved() >> [removedSource]
 
         and:
-        compiler.doIncrementalCompile(incrementalCompileProcessor, spec)
+        compiler.doIncrementalCompile(compilation, spec)
 
         then:
         1 * spec.setSourceFiles([newSource])
         1 * spec.setRemovedSourceFiles([removedSource])
         1 * delegateCompiler.execute(spec)
     }
+
+    def "cleans outputs and delegates spec for clean compilation"() {
+        def spec = Mock(NativeCompileSpec)
+        def existingSource = temporaryFolder.file("existing")
+        def newSource = temporaryFolder.file("new")
+        def outputFile = temporaryFolder.createFile("output", "previous")
+
+        def sources = [existingSource, newSource]
+
+        when:
+        outputFile.assertExists()
+
+        and:
+        spec.incrementalCompile >> false
+        task.outputs >> outputs
+        spec.getSourceFiles() >> sources
+
+        and:
+        def result = compiler.doCleanIncrementalCompile(spec)
+
+        then:
+        1 * spec.getObjectFileDir() >> outputFile.parentFile
+        1 * outputs.previousFiles >> new SimpleFileCollection(outputFile)
+        0 * spec._
+        1 * delegateCompiler.execute(spec) >> new SimpleWorkResult(false)
+
+        and:
+        result.didWork
+        outputFile.assertDoesNotExist()
+    }
+
 }

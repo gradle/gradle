@@ -41,6 +41,8 @@ import spock.lang.Specification
  * </ul>
  */
 @RunWith(ToolingApiCompatibilitySuiteRunner)
+@ToolingApiVersion('>=1.2')
+@TargetGradleVersion('>=1.0-milestone-8')
 abstract class ToolingApiSpecification extends Specification {
     static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()

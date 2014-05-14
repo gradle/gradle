@@ -21,11 +21,9 @@
 package org.gradle.integtests.tooling.r15
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import spock.lang.Issue
 
-@ToolingApiVersion(">=1.0")
 @TargetGradleVersion(">=1.5")
 class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecification {
 

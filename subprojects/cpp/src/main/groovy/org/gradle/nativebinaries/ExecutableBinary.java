@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,10 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
 
-import java.io.File;
-
 /**
- * A binary artifact that is built from of a {@link Executable}, targeted at a particular platform with specific configuration.
+ * A binary artifact that is built from of a {@link org.gradle.nativebinaries.NativeExecutable}, targeted at a particular platform with specific configuration.
+ * // TODO:DAZ Deprecate in 2.1
  */
 @Incubating
-public interface ExecutableBinary extends NativeBinary {
-    /**
-     * The executable file.
-     */
-    File getExecutableFile();
-
-    /**
-     * The executable file.
-     */
-    void setExecutableFile(File executableFile);
+public interface ExecutableBinary extends NativeExecutableBinary {
 }

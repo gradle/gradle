@@ -15,32 +15,33 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.resolution.IvyDescriptorArtifact;
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
+import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact;
+import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.local.FileStore;
 
 import java.net.URI;
 
 public class IvyResolver extends ExternalResourceResolver implements PatternBasedResolver {
 
-    private final RepositoryTransport transport;
     private final boolean dynamicResolve;
+    private final MetaDataParser metaDataParser;
+    private boolean m2Compatible;
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                       boolean dynamicResolve, ResolverStrategy resolverStrategy) {
-        super(name, transport.getRepository(), new ResourceVersionLister(transport.getRepository()),
-                locallyAvailableResourceFinder, new DownloadedIvyModuleDescriptorParser(resolverStrategy),
-                resolverStrategy);
-        this.transport = transport;
-        this.transport.configureCacheManager(this);
+                       boolean dynamicResolve, ResolverStrategy resolverStrategy, FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, resolverStrategy, artifactFileStore);
+        this.metaDataParser = new DownloadedIvyModuleDescriptorParser(resolverStrategy);
         this.dynamicResolve = dynamicResolve;
     }
 
@@ -49,44 +50,91 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         return dynamicResolve;
     }
 
-    @Override
-    protected boolean isMetaDataArtifact(Class<? extends SoftwareArtifact> artifactType) {
+    protected boolean isMetaDataArtifact(Class<? extends Artifact> artifactType) {
         return artifactType == IvyDescriptorArtifact.class;
     }
 
-    @Nullable
-    protected ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleVersionIdentifier moduleVersionIdentifier) {
-        DefaultModuleVersionArtifactIdentifier artifactId = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, "ivy", "ivy", "xml");
-        return new DefaultModuleVersionArtifactMetaData(artifactId);
+    @Override
+    protected IvyArtifactName getMetaDataArtifactName(String moduleName) {
+        return new DefaultIvyArtifactName("ivy", "ivy", "xml");
+    }
+
+    @Override
+    public boolean isM2compatible() {
+        return m2Compatible;
+    }
+
+    public void setM2compatible(boolean m2compatible) {
+        this.m2Compatible = m2compatible;
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {
-        String artifactPattern = transport.convertToPath(baseUri) + pattern;
-        addArtifactPattern(artifactPattern);
+        addArtifactPattern(toResourcePattern(baseUri, pattern));
     }
 
     public void addDescriptorLocation(URI baseUri, String pattern) {
-        String descriptorPattern = transport.convertToPath(baseUri) + pattern;
-        addIvyPattern(descriptorPattern);
+        addIvyPattern(toResourcePattern(baseUri, pattern));
     }
 
-    @Override
-    protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result, boolean localOnly) {
-        ConfigurationMetaData configuration = module.getConfiguration("javadoc");
-        if (configuration != null) {
+    protected ResourcePattern toResourcePattern(URI baseUri, String pattern) {
+        return isM2compatible() ? new M2ResourcePattern(baseUri, pattern) : new IvyResourcePattern(baseUri, pattern);
+    }
+
+    public ModuleComponentRepositoryAccess getLocalAccess() {
+        return new IvyLocalRepositoryAccess();
+    }
+
+    public ModuleComponentRepositoryAccess getRemoteAccess() {
+        return new IvyRemoteRepositoryAccess();
+    }
+
+    protected MutableModuleVersionMetaData createMetaDataForDependency(DependencyMetaData dependency) {
+        return new DefaultIvyModuleVersionMetaData(dependency);
+    }
+
+    protected MutableModuleVersionMetaData parseMetaDataFromResource(LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
+        return metaDataParser.parseMetaData(context, cachedResource);
+    }
+
+    private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
+
+        protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
             result.resolved(configuration.getArtifacts());
-        } else {
-            super.resolveJavadocArtifacts(module, result, localOnly);
+        }
+
+        @Override
+        protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            ConfigurationMetaData configuration = module.getConfiguration("javadoc");
+            if (configuration != null) {
+                result.resolved(configuration.getArtifacts());
+            }
+        }
+
+        @Override
+        protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            ConfigurationMetaData configuration = module.getConfiguration("sources");
+            if (configuration != null) {
+                result.resolved(configuration.getArtifacts());
+            }
         }
     }
 
-    @Override
-    protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result, boolean localOnly) {
-        ConfigurationMetaData configuration = module.getConfiguration("sources");
-        if (configuration != null) {
-            result.resolved(configuration.getArtifacts());
-        } else {
-            super.resolveSourceArtifacts(module, result, localOnly);
+    private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
+        @Override
+        protected void resolveConfigurationArtifacts(ModuleVersionMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+            // Configuration artifacts are determined locally
+        }
+
+        @Override
+        protected void resolveJavadocArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            // Probe for artifact with classifier
+            result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
+        }
+
+        @Override
+        protected void resolveSourceArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
+            // Probe for artifact with classifier
+            result.resolved(findOptionalArtifacts(module, "source", "sources"));
         }
     }
 }

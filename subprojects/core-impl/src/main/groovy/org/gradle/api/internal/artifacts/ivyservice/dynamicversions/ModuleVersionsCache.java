@@ -16,14 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionListing;
 
 public interface ModuleVersionsCache {
 
-    void cacheModuleVersionList(ModuleVersionRepository repository, ModuleIdentifier moduleId, ModuleVersionListing listedVersions);
+    void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, ModuleVersionListing listedVersions);
 
-    CachedModuleVersionList getCachedModuleResolution(ModuleVersionRepository repository, ModuleIdentifier moduleId);
+    CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository repository, ModuleIdentifier moduleId);
 
     interface CachedModuleVersionList {
         ModuleVersionListing getModuleVersions();

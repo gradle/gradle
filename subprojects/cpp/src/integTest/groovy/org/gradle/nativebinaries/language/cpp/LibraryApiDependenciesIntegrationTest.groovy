@@ -220,7 +220,7 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
         and:
         buildFile << """
             executables {
-                main {}
+                main
             }
             libraries {
                 hello {}

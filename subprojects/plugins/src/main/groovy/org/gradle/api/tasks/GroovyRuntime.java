@@ -98,10 +98,6 @@ public class GroovyRuntime {
                 List<Dependency> dependencies = Lists.newArrayList();
                 // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
                 dependencies.add(project.getDependencies().create(notation));
-                if (groovyJar.getVersion().getMajor() >= 2) {
-                    // add groovy-ant to bring in AntGroovyCompiler
-                    dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
-                }
                 return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
             }
 

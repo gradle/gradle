@@ -15,14 +15,20 @@
  */
 package org.gradle.launcher.cli
 
+import org.apache.ivy.Ivy
+import org.apache.tools.ant.Main
 import org.gradle.api.Action
 import org.gradle.cli.CommandLineArgumentException
-import org.gradle.cli.CommandLineConverter
 import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Factory
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.ExecutionListener
-import org.gradle.logging.*
+import org.gradle.logging.LoggingManagerInternal
+import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.logging.StyledTextOutput
+import org.gradle.logging.StyledTextOutputFactory
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.logging.internal.StreamingStyledTextOutput
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,7 +47,6 @@ class CommandLineActionFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final ExecutionListener executionListener = Mock()
     final ServiceRegistry loggingServices = Mock()
-    final CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = Mock()
     final LoggingManagerInternal loggingManager = Mock()
     final CommandLineAction actionFactory1 = Mock()
     final CommandLineAction actionFactory2 = Mock()
@@ -61,7 +66,6 @@ class CommandLineActionFactoryTest extends Specification {
     def setup() {
         ProgressLoggerFactory progressLoggerFactory = Mock()
         _ * loggingServices.get(ProgressLoggerFactory) >> progressLoggerFactory
-        _ * loggingServices.get(CommandLineConverter) >> loggingConfigurationConverter
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
         Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
         _ * loggingServices.getFactory(LoggingManagerInternal) >> loggingManagerFactory
@@ -149,7 +153,7 @@ class CommandLineActionFactoryTest extends Specification {
         0 * executionListener._
     }
 
-    def "ignores failure to parse logging configuration"() {
+    def "continues on failure to parse logging configuration"() {
         when:
         def action = factory.convert(["--logging=broken"])
         action.execute(executionListener)
@@ -161,7 +165,6 @@ class CommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('--some-option')
 
         and:
-        1 * loggingConfigurationConverter.configure(!null) >> {CommandLineParser parser -> parser.option("logging").hasArgument(String)}
         1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
         1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
         0 * executionListener._
@@ -213,12 +216,29 @@ class CommandLineActionFactoryTest extends Specification {
     }
 
     def "displays version message"() {
+        def version = GradleVersion.current()
+        def expectedText = """
+------------------------------------------------------------
+Gradle ${version.version}
+------------------------------------------------------------
+
+Build time:   $version.buildTime
+Build number: $version.buildNumber
+Revision:     $version.revision
+
+Groovy:       $GroovySystem.version
+Ant:          $Main.antVersion
+Ivy:          ${Ivy.ivyVersion}
+JVM:          ${Jvm.current()}
+OS:           ${OperatingSystem.current()}
+"""
+
         when:
         def action = factory.convert([option])
         action.execute(executionListener)
 
         then:
-        outputs.stdOut.contains(GradleVersion.current().prettyPrint())
+        outputs.stdOut.contains(expectedText)
 
         and:
         1 * loggingManager.start()

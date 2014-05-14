@@ -15,11 +15,11 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.initialization.GradleLauncherFactory;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -31,10 +31,9 @@ public class GradleBuild extends ConventionTask {
     private final GradleLauncherFactory gradleLauncherFactory;
     private StartParameter startParameter;
 
-    @Inject
-    public GradleBuild(StartParameter currentBuild, GradleLauncherFactory gradleLauncherFactory) {
-        this.gradleLauncherFactory = gradleLauncherFactory;
-        this.startParameter = currentBuild.newBuild();
+    public GradleBuild() {
+        this.gradleLauncherFactory = getServices().get(GradleLauncherFactory.class);
+        this.startParameter = getServices().get(StartParameter.class).newBuild();
         startParameter.setCurrentDir(getProject().getProjectDir());
     }
 
@@ -113,6 +112,11 @@ public class GradleBuild extends ConventionTask {
 
     @TaskAction
     void build() {
-        gradleLauncherFactory.newInstance(getStartParameter()).run().rethrowFailure();
+        GradleLauncher launcher = gradleLauncherFactory.newInstance(getStartParameter());
+        try {
+            launcher.run().rethrowFailure();
+        } finally {
+            launcher.stop();
+        }
     }
 }

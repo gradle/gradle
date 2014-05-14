@@ -16,15 +16,12 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import org.gradle.tooling.internal.protocol.InternalGradleProject;
-
-import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultGradleProject<T> extends PartialGradleProject implements InternalGradleProject, Serializable, GradleProjectIdentity {
+public class DefaultGradleProject<T> extends PartialGradleProject implements Serializable, GradleProjectIdentity {
     private DefaultGradleScript buildScript = new DefaultGradleScript();
     private List<T> tasks = new LinkedList<T>();
 
@@ -63,10 +60,6 @@ public class DefaultGradleProject<T> extends PartialGradleProject implements Int
 
     public DefaultGradleScript getBuildScript() {
         return buildScript;
-    }
-
-    public File getProjectDirectory() {
-        throw new RuntimeException("ProjectVersion3 methods are deprecated.");
     }
 
     @Override

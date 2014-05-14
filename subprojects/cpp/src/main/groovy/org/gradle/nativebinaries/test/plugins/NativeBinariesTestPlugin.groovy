@@ -18,13 +18,13 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.BinaryContainer
+import org.gradle.runtime.base.BinaryContainer
 import org.gradle.model.ModelRules
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentPlugin
 import org.gradle.nativebinaries.tasks.InstallExecutable
-import org.gradle.nativebinaries.test.TestSuiteExecutableBinary
+import org.gradle.nativebinaries.test.NativeTestSuiteBinary
 import org.gradle.nativebinaries.test.internal.DefaultTestSuiteContainer
 import org.gradle.nativebinaries.test.tasks.RunTestExecutable
 
@@ -48,7 +48,7 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(NativeBinariesPlugin.class)
+        project.getPlugins().apply(NativeComponentPlugin.class)
 
         project.getExtensions().create(
                 "testSuites",
@@ -57,11 +57,10 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
         );
 
         final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
-        binaries.withType(TestSuiteExecutableBinary).all { testBinary ->
+        binaries.withType(NativeTestSuiteBinary).all { testBinary ->
             def binary = testBinary as ProjectNativeBinaryInternal
             def namingScheme = binary.namingScheme
 
-            // TODO:DAZ Need a better model for accessing tasks related to binary
             def installTask = binary.tasks.withType(InstallExecutable).find()
 
             def runTask = project.tasks.create(namingScheme.getTaskName("run"), RunTestExecutable)

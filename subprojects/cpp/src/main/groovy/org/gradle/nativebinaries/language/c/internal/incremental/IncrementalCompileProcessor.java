@@ -88,7 +88,6 @@ public class IncrementalCompileProcessor {
             CompilationFileState previousState = previous.getState(file);
             CompilationFileState newState = new CompilationFileState(snapshotter.snapshot(file).getHash());
 
-            // TODO:DAZ Keep a separate, build-scoped cache of file -> parsed includes. This would prevent need for reparsing per-variant and per-component.
             if (!sameHash(previousState, newState)) {
                 changed = true;
                 newState.setSourceIncludes(sourceIncludesParser.parseIncludes(file));

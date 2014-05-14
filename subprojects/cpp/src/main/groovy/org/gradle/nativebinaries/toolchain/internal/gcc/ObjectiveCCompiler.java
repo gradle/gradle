@@ -16,17 +16,17 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.Action;
 import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-
-import java.util.List;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
 
 public class ObjectiveCCompiler extends NativeCompiler<ObjectiveCCompileSpec> {
 
-    public ObjectiveCCompiler(CommandLineTool<ObjectiveCCompileSpec> commandLineTool, Action<List<String>> toolChainArgsAction, boolean useCommandFile) {
-        super(commandLineTool, toolChainArgsAction, new ObjectiveCCompileArgsTransformer(), useCommandFile);
+    public ObjectiveCCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
+        super(commandLineTool, baseInvocation, new ObjectiveCCompileArgsTransformer(), objectFileSuffix, useCommandFile);
     }
+
+
 
     private static class ObjectiveCCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCCompileSpec> {
         protected String getLanguage() {

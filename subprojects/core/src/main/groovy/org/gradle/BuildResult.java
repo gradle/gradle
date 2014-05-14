@@ -19,7 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.invocation.Gradle;
 
 /**
- * <p>A {@code BuildResult} packages up the results of a build executed by a {@link GradleLauncher} instance.</p>
+ * <p>A {@code BuildResult} packages up the results of a build executed by a {@link org.gradle.initialization.GradleLauncher} instance.</p>
  */
 public class BuildResult {
     private final Throwable failure;

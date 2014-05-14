@@ -19,9 +19,9 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.HeaderExportingSourceSet
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme
+import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
-import org.gradle.nativebinaries.Library
+import org.gradle.nativebinaries.NativeLibrary
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
@@ -33,7 +33,7 @@ import spock.lang.Specification
 class ProjectStaticLibraryBinaryTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
-    def library = Stub(Library)
+    def library = Stub(NativeLibrary)
     def toolChain = Stub(ToolChainInternal)
     def platform = Stub(Platform)
     def buildType = Stub(BuildType)
@@ -65,7 +65,7 @@ class ProjectStaticLibraryBinaryTest extends Specification {
         final binary = staticLibrary
         given:
         def lifecycleTask = Stub(Task)
-        binary.lifecycleTask = lifecycleTask
+        binary.buildTask = lifecycleTask
         binary.builtBy(Stub(Task))
 
         and:

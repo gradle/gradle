@@ -16,10 +16,6 @@
     <plugin id="antlr" description="Antlr Plugin">
         <extends targetClass="org.gradle.api.tasks.SourceSet" mixinClass="org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory"/>
     </plugin>
-    <plugin id="code-quality" description="Code Quality Plugin">
-        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.quality.JavaCodeQualityPluginConvention"/>
-        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.quality.GroovyCodeQualityPluginConvention"/>
-    </plugin>
     <plugin id="maven" description="Maven Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.MavenPluginConvention"/>
         <extends targetClass="org.gradle.api.artifacts.dsl.RepositoryHandler" mixinClass="org.gradle.api.plugins.MavenRepositoryHandlerConvention"/>
@@ -78,13 +74,15 @@
         <extends targetClass="org.gradle.api.tasks.testing.Test" id="jacoco" extensionClass="org.gradle.testing.jacoco.plugins.JacocoTaskExtension"/>
     </plugin>
     <plugin id="LanguageBasePlugin" description="Language Base Plugin">
-        <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.language.base.BinaryContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="softwareComponents" extensionClass="org.gradle.runtime.base.ProjectComponentContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.runtime.base.BinaryContainer"/>
         <extends targetClass="org.gradle.api.Project" id="sources" extensionClass="org.gradle.language.base.ProjectSourceSet"/>
     </plugin>
-    <plugin id="native-binaries" description="Native Binaries Model Plugin">
-        <extends targetClass="org.gradle.api.Project" id="executables" extensionClass="org.gradle.nativebinaries.ExecutableContainer"/>
-        <extends targetClass="org.gradle.api.Project" id="libraries" extensionClass="org.gradle.nativebinaries.LibraryContainer"/>
-        <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.language.base.BinaryContainer"/>
+    <plugin id="jvm-component" description="JVM Component Model Plugin">
+        <extends targetClass="org.gradle.api.Project" id="jvm" extensionClass="org.gradle.runtime.jvm.JvmComponentExtension"/>
+    </plugin>
+    <plugin id="native-component" description="Native Component Model Plugin">
+        <extends targetClass="org.gradle.api.Project" id="nativeCode" extensionClass="org.gradle.nativebinaries.NativeComponentExtension"/>
         <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativebinaries.toolchain.ToolChainRegistry"/>
         <extends targetClass="org.gradle.api.Project" id="buildTypes" extensionClass="org.gradle.nativebinaries.BuildTypeContainer"/>
         <extends targetClass="org.gradle.api.Project" id="platforms" extensionClass="org.gradle.nativebinaries.platform.PlatformContainer"/>

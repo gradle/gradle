@@ -40,12 +40,11 @@ import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
@@ -83,7 +82,7 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         this.loggingManager = loggingManager;
     }
 
-    public ConfiguredModuleVersionRepository createResolver() {
+    public ConfiguredModuleComponentRepository createResolver() {
         throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
@@ -174,7 +173,6 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
     }
 
     public void publish(ModuleVersionPublishMetaData moduleVersion) {
-        ModuleVersionIdentifier id = moduleVersion.getId();
         for (ModuleVersionArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
             collectArtifact(artifact.toIvyArtifact(), artifact.getFile());
         }

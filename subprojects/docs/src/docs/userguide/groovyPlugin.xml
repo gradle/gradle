@@ -312,8 +312,7 @@
         <title>GroovyCompile</title>
         <para>The Groovy plugin adds a <apilink class="org.gradle.api.tasks.compile.GroovyCompile"/> task for
             each source set in the project. The task type extends the <literal>JavaCompile</literal>
-            task (see <xref linkend='sec:compile'/>). Unless <literal>groovyOptions.useAnt</literal> is set to <literal>true</literal>,
-            Gradle's native Groovy compiler integration is used. For most projects, this is the better choice than the Ant-based compiler.
+            task (see <xref linkend='sec:compile'/>).
             The <literal>GroovyCompile</literal> task supports most configuration options of the official Groovy compiler.
         </para>
         <table>

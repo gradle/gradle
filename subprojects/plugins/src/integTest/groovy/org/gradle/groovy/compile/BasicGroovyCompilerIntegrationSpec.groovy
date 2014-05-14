@@ -21,10 +21,9 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.util.VersionNumber
 import org.junit.Rule
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.0'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.0', '2.2.2', '2.3.0-beta-2'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
@@ -68,14 +67,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
-        if (getClass() == AntInProcessGroovyCompilerIntegrationTest &&
-                (version == '1.6.9' || version == '1.7.11' || versionNumber >= VersionNumber.parse('1.8.7'))) {
-            // known not to work in 1.7.11, 1.8.7 and beyond (see comment on GRADLE-2404)
-            // only works with 1.6.9 if JUnit makes it on Ant (!) class path, which is no longer the case
-            // note that these problems only apply to useAnt=true; fork=false
-            return
-        }
-
         expect:
         succeeds("test")
     }
@@ -114,9 +105,7 @@ dependencies {
     compile '${groovyDependency.toString()}'
 }
 
-DeprecationLogger.whileDisabled {
-    ${compilerConfiguration()}
-}
+${compilerConfiguration()}
         """
     }
 

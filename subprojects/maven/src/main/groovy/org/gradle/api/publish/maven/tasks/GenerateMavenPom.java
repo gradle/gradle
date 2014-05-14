@@ -38,16 +38,17 @@ import java.io.File;
 @Incubating
 public class GenerateMavenPom extends DefaultTask {
 
-    private final FileResolver fileResolver;
     private MavenPom pom;
     private Object destination;
 
-    @Inject
-    public GenerateMavenPom(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-
+    public GenerateMavenPom() {
         // Never up to date; we don't understand the data structures.
         getOutputs().upToDateWhen(Specs.satisfyNone());
+    }
+
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -70,7 +71,7 @@ public class GenerateMavenPom extends DefaultTask {
      */
     @OutputFile
     public File getDestination() {
-        return destination == null ? null : fileResolver.resolve(destination);
+        return destination == null ? null : getFileResolver().resolve(destination);
     }
 
     /**

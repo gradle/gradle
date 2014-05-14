@@ -45,7 +45,6 @@ public class ConfigureGeneratedSourceSets implements Action<ProjectInternal> {
     }
 
     private void maybeSetSourceDir(SourceDirectorySet sourceSet, Task task, String propertyName) {
-        // TODO:DAZ Handle multiple output directories
         Object value = task.property(propertyName);
         if (value != null) {
             sourceSet.srcDir(value);

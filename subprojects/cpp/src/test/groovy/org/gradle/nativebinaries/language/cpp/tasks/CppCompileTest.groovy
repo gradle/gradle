@@ -48,7 +48,7 @@ class CppCompileTest extends Specification {
         then:
         _ * toolChain.outputType >> "cpp"
         _ * platform.compatibilityString >> "p"
-        1 * toolChain.target(platform) >> platformToolChain
+        1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.createCppCompiler() >> cppCompiler
         1 * cppCompiler.execute({ CppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]

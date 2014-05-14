@@ -18,36 +18,22 @@ package org.gradle.test.fixtures.encoding;
 
 import org.gradle.internal.os.OperatingSystem;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Identifier {
     private static final String PUNCTUATION_CHARS = "-'!@#$%^&*()_+=,.?{}[]<>";
     private static final String NON_ASCII_CHARS = "-√æず∫ʙぴ₦ガき∆ç√∫";
+    private static final String NON_PRECOMPOSED_NON_ASCII = "-√æ∫ʙ₦∆√∫";
     private static final String FILESYSTEM_RESERVED_CHARS = "-./\\?%*:|\"<>";
     private static final String XML_MARKUP_CHARS = "-<with>some<xml-markup/></with>";
 
     private final String suffix;
+    private final String displayName;
 
-    public Identifier(String suffix) {
+    private Identifier(String suffix, String displayName) {
+        this.displayName = displayName;
         this.suffix = suffix == null ? "" : suffix;
-    }
-
-    public Identifier withPunctuation() {
-        return new Identifier(suffix + PUNCTUATION_CHARS);
-    }
-
-    public Identifier withNonAscii() {
-        return new Identifier(suffix + NON_ASCII_CHARS);
-    }
-
-    public Identifier withReservedFileSystemChars() {
-        return new Identifier(suffix + FILESYSTEM_RESERVED_CHARS);
-    }
-
-    public Identifier withMarkup() {
-        return new Identifier(suffix + XML_MARKUP_CHARS);
-    }
-
-    public Identifier withWhiteSpace() {
-        return new Identifier(suffix + " with white space");
     }
 
     public Identifier safeForFileName() {
@@ -59,7 +45,7 @@ public class Identifier {
         for (char c : toRemove.toCharArray()) {
             newSuffix = newSuffix.replace(c, '-');
         }
-        return new Identifier(newSuffix);
+        return new Identifier(newSuffix, displayName);
     }
 
     private static String getUnsupportedFileNameCharacters() {
@@ -73,28 +59,40 @@ public class Identifier {
         return prefix + suffix;
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
     @Override
     public String toString() {
-        return suffix;
+        return displayName;
+    }
+
+    public static List<Identifier> getAll() {
+        return Arrays.asList(getPunctuation(), getNonAscii(), getFileSystemReserved(), getXmlMarkup(), getWhiteSpace());
     }
 
     public static Identifier getPunctuation() {
-        return new Identifier("").withPunctuation();
+        return new Identifier(PUNCTUATION_CHARS, "punctuation");
     }
 
     public static Identifier getNonAscii() {
-        return new Identifier("").withNonAscii();
+        if (OperatingSystem.current().isMacOsX()) {
+            // The hfs+ file system stores file names in decomposed form. Don't use precomposed characters on OS X, as way too few things normalise text correctly
+            return new Identifier(NON_PRECOMPOSED_NON_ASCII, "non-ascii");
+        }
+        return new Identifier(NON_ASCII_CHARS, "non-ascii");
     }
 
     public static Identifier getFileSystemReserved() {
-        return new Identifier("").withReservedFileSystemChars();
+        return new Identifier(FILESYSTEM_RESERVED_CHARS, "filesystem");
     }
 
     public static Identifier getXmlMarkup() {
-        return new Identifier("").withMarkup();
+        return new Identifier(XML_MARKUP_CHARS, "xml markup");
     }
 
     public static Identifier getWhiteSpace() {
-        return new Identifier("").withWhiteSpace();
+        return new Identifier(" with white space", "whitespace");
     }
 }

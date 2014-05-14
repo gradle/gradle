@@ -21,6 +21,19 @@ class AbstractClassGeneratorTestGroovy {
     public static class BeanWithGroovyBoolean {
         boolean smallB
         Boolean bigB
+        Boolean mixedB
+
+        boolean getMixedB() { mixedB }
+
+        Boolean isMixedB() { mixedB }
+
+        void setMixedB(Boolean mixedB) {
+            this.mixedB = mixedB
+        }
+
+        void setMixedB(boolean mixedB) {
+            this.mixedB = mixedB
+        }
     }
 
 }

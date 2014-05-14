@@ -58,6 +58,10 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         return state;
     }
 
+    public boolean hasResult() {
+        return state != State.Unknown;
+    }
+
     public ModuleVersionResolveException getFailure() {
         assertHasResult();
         return failure;
@@ -69,7 +73,7 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
     }
 
     private void assertHasResult() {
-        if (state == State.Unknown) {
+        if (!hasResult()) {
             throw new IllegalStateException("No result has been specified.");
         }
     }

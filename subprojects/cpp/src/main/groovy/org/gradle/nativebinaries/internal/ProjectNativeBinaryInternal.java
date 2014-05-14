@@ -17,8 +17,8 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.language.DependentSourceSet;
-import org.gradle.language.base.internal.BinaryInternal;
-import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.runtime.base.internal.BinaryInternal;
+import org.gradle.nativebinaries.NativeLibraryBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 
@@ -32,5 +32,5 @@ public interface ProjectNativeBinaryInternal extends ProjectNativeBinary, Binary
 
     void setBuildable(boolean buildable);
 
-    Collection<LibraryBinary> getDependentBinaries();
+    Collection<NativeLibraryBinary> getDependentBinaries();
 }

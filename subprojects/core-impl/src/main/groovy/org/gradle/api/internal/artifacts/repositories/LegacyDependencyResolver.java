@@ -35,14 +35,13 @@ import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -69,7 +68,7 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
         return resolver.toString();
     }
 
-    public ConfiguredModuleVersionRepository createResolver() {
+    public ConfiguredModuleComponentRepository createResolver() {
         return resolver;
     }
 
@@ -171,33 +170,9 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
         throw new UnsupportedOperationException();
     }
 
-    public void addIvyPattern(String pattern) {
-        resolver.addIvyPattern(pattern);
-    }
-
-    public void addArtifactPattern(String pattern) {
-        resolver.addArtifactPattern(pattern);
-    }
-
-    public List<String> getIvyPatterns() {
-        return resolver.getIvyPatterns();
-    }
-
-    public List<String> getArtifactPatterns() {
-        return resolver.getArtifactPatterns();
-    }
-
     public void dumpSettings() {
         // this is not used
         throw new UnsupportedOperationException();
-    }
-
-    public boolean isM2compatible() {
-        return resolver.isM2compatible();
-    }
-
-    public void setM2compatible(boolean compatible) {
-        resolver.setM2compatible(compatible);
     }
 
     public boolean isCheckconsistency() {
@@ -241,14 +216,6 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
                 + "'. Allowed rules are: "
                 + Arrays.asList(BasicResolver.DESCRIPTOR_REQUIRED, BasicResolver.DESCRIPTOR_OPTIONAL));
         }
-    }
-
-    public String[] getChecksumAlgorithms() {
-        return resolver.getChecksumAlgorithms();
-    }
-
-    public void setChecksums(String checksums) {
-        resolver.setChecksums(checksums);
     }
 
     public LatestStrategy getLatestStrategy() {

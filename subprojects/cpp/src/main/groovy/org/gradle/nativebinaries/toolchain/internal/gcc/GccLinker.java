@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
@@ -24,6 +24,8 @@ import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativebinaries.toolchain.internal.MutableCommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,19 +33,26 @@ import java.util.List;
 
 class GccLinker implements Compiler<LinkerSpec> {
 
-    private final CommandLineTool<LinkerSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
+    private final ArgsTransformer<LinkerSpec> argsTransformer;
+    private final CommandLineToolInvocation baseInvocation;
+    private final boolean useCommandFile;
 
-    public GccLinker(CommandLineTool<LinkerSpec> commandLineTool, Action<List<String>> argsAction, boolean useCommandFile) {
-        ArgsTransformer<LinkerSpec> argsTransformer = new GccLinkerArgsTransformer();
-        argsTransformer = new PostTransformActionArgsTransformer<LinkerSpec>(argsTransformer, argsAction);
-        if (useCommandFile) {
-            argsTransformer = new GccOptionsFileArgTransformer<LinkerSpec>(argsTransformer);
-        }
-        this.commandLineTool = commandLineTool.withArguments(argsTransformer);
+    public GccLinker(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, boolean useCommandFile) {
+        this.argsTransformer = new GccLinkerArgsTransformer();
+        this.baseInvocation = baseInvocation;
+        this.useCommandFile = useCommandFile;
+        this.commandLineTool = commandLineTool;
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        return commandLineTool.execute(spec);
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        if (useCommandFile) {
+            invocation.addPostArgsAction(new GccOptionsFileArgTransformer(spec.getTempDir()));
+        }
+        invocation.setArgs(argsTransformer.transform(spec));
+        commandLineTool.execute(invocation);
+        return new SimpleWorkResult(true);
     }
 
     private static class GccLinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
@@ -64,11 +73,7 @@ class GccLinker implements Compiler<LinkerSpec> {
             for (File file : spec.getLibraries()) {
                 args.add(file.getAbsolutePath());
             }
-            for (File pathEntry : spec.getLibraryPath()) {
-                // TODO:DAZ It's not clear to me what the correct meaning of this should be for GCC
-//                args.add("-L" + pathEntry.getAbsolutePath());
-//                args.add("-Wl,-L" + pathEntry.getAbsolutePath());
-//                args.add("-Wl,-rpath," + pathEntry.getAbsolutePath());
+            if (!spec.getLibraryPath().isEmpty()) {
                 throw new UnsupportedOperationException("Library Path not yet supported on GCC");
             }
 

@@ -18,10 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultModuleVersionListing;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionListing;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
@@ -55,12 +52,12 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
         return cacheLockingManager.createCache("module-versions", new ModuleKeySerializer(), new ModuleVersionsCacheEntrySerializer());
     }
 
-    public void cacheModuleVersionList(ModuleVersionRepository repository, ModuleIdentifier moduleId, ModuleVersionListing listedVersions) {
+    public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, ModuleVersionListing listedVersions) {
         LOGGER.debug("Caching version list in module versions cache: Using '{}' for '{}'", listedVersions, moduleId);
         getCache().put(createKey(repository, moduleId), createEntry(listedVersions));
     }
 
-    public CachedModuleVersionList getCachedModuleResolution(ModuleVersionRepository repository, ModuleIdentifier moduleId) {
+    public CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository repository, ModuleIdentifier moduleId) {
         ModuleVersionsCacheEntry moduleVersionsCacheEntry = getCache().get(createKey(repository, moduleId));
         if (moduleVersionsCacheEntry == null) {
             return null;
@@ -68,7 +65,7 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
         return new DefaultCachedModuleVersionList(moduleVersionsCacheEntry, timeProvider);
     }
 
-    private ModuleKey createKey(ModuleVersionRepository repository, ModuleIdentifier moduleId) {
+    private ModuleKey createKey(ModuleComponentRepository repository, ModuleIdentifier moduleId) {
         return new ModuleKey(repository.getId(), moduleId);
     }
 

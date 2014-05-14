@@ -35,7 +35,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
     }
 
     @ToolingApiVersion("current")
-    @TargetGradleVersion("<1.6")
+    @TargetGradleVersion(">=1.0-milestone-8 <1.6")
     def "fails gracefully when unknown model requested when custom models are not supported by the target version"() {
         when:
         withConnection { it.getModel(CustomModel.class) }

@@ -18,12 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
-import org.gradle.api.internal.filestore.PathKeyFileStore
+import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -35,20 +35,20 @@ class ModuleDescriptorStoreTest extends Specification {
     ModuleDescriptorStore store
     PathKeyFileStore pathKeyFileStore = Mock()
     ModuleRevisionId moduleRevisionId = Mock()
-    ModuleVersionRepository repository = Mock()
+    ModuleComponentRepository repository = Mock()
     LocallyAvailableResource fileStoreEntry = Mock()
     ModuleDescriptor moduleDescriptor = Mock()
     IvyModuleDescriptorWriter ivyModuleDescriptorWriter = Mock()
     IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser = Mock()
-    ModuleVersionIdentifier moduleVersionIdentifier = Mock()
+    ModuleComponentIdentifier moduleComponentIdentifier = Mock()
     def resolver = Mock(DependencyToModuleVersionResolver)
 
     def setup() {
         store = new ModuleDescriptorStore(pathKeyFileStore, ivyModuleDescriptorWriter, ivyXmlModuleDescriptorParser);
         _ * repository.getId() >> "repositoryId"
-        _ * moduleVersionIdentifier.group >> "org.test"
-        _ * moduleVersionIdentifier.name >> "testArtifact"
-        _ * moduleVersionIdentifier.version >> "1.0"
+        _ * moduleComponentIdentifier.group >> "org.test"
+        _ * moduleComponentIdentifier.module >> "testArtifact"
+        _ * moduleComponentIdentifier.version >> "1.0"
         _ * moduleDescriptor.getModuleRevisionId() >> moduleRevisionId
     }
 
@@ -56,12 +56,12 @@ class ModuleDescriptorStoreTest extends Specification {
         when:
         pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/ivy.xml") >> null
         then:
-        null == store.getModuleDescriptor(repository, moduleVersionIdentifier)
+        null == store.getModuleDescriptor(repository, moduleComponentIdentifier)
     }
 
     def "getModuleDescriptorFile uses PathKeyFileStore to get file"() {
         when:
-        store.getModuleDescriptor(repository, moduleVersionIdentifier);
+        store.getModuleDescriptor(repository, moduleComponentIdentifier);
         then:
         1 * pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/ivy.xml") >> null
     }

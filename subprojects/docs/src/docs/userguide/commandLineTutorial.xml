@@ -157,7 +157,7 @@
         <section id="sec:show_task_details">
             <title>Show task usage details</title>
             <para>Running <userinput>gradle help --task someTask</userinput> gives you detailed information about a specific task or multiple
-                tasks matching the given task name in your multiproject build <!--TODO RG ref multiproject-->
+                tasks matching the given task name in your multiproject build.
                 Below is an example of this detailed information:
             </para>
             <sample id="taskHelp" dir="userguide/tutorial/projectReports" title="Obtaining detailed help for tasks">

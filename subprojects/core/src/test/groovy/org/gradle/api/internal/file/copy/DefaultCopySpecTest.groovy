@@ -20,11 +20,9 @@ import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.Action
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -32,7 +30,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
-import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -93,23 +90,23 @@ public class DefaultCopySpecTest {
 
     @Test
     public void testDefaultDestinationPathForRootSpec() {
-        assertThat(spec.destPath, equalTo(new RelativePath(false)))
+        assertThat(spec.buildRootResolver().destPath, equalTo(new RelativePath(false)))
     }
 
     @Test
     public void testInto() {
         spec.into 'spec'
-        assertThat(spec.destPath, equalTo(new RelativePath(false, 'spec')))
+        assertThat(spec.buildRootResolver().destPath, equalTo(new RelativePath(false, 'spec')))
         spec.into '/'
-        assertThat(spec.destPath, equalTo(new RelativePath(false)))
+        assertThat(spec.buildRootResolver().destPath, equalTo(new RelativePath(false)))
     }
 
     @Test
     public void testIntoWithAClosure() {
         spec.into { 'spec' }
-        assertThat(spec.destPath, equalTo(new RelativePath(false, 'spec')))
+        assertThat(spec.buildRootResolver().destPath, equalTo(new RelativePath(false, 'spec')))
         spec.into { return { 'spec' } }
-        assertThat(spec.destPath, equalTo(new RelativePath(false, 'spec')))
+        assertThat(spec.buildRootResolver().destPath, equalTo(new RelativePath(false, 'spec')))
     }
 
     @Test
@@ -123,171 +120,30 @@ public class DefaultCopySpecTest {
     }
 
     @Test
-    public void testWithSpecInheritsDestinationPathFromParent() {
-        DefaultCopySpec other = new DefaultCopySpec(fileResolver, instantiator)
-        other.into 'other'
-
-        spec.into 'spec'
-        spec.with other
-
-        CopySpecInternal child = spec.childSpecs[0]
-        assertThat(child.destPath, equalTo(new RelativePath(false, 'spec', 'other')))
-    }
-
-    @Test
     public void testDestinationWithClosure() {
         CopySpec child = spec.into('target') {
         }
 
         assertThat(child, not(sameInstance(spec as CopySpec)))
-        assertThat(unpackWrapper(child).destPath, equalTo(new RelativePath(false, 'target')))
-    }
-
-    @Test
-    public void testRootSpecHasRootPathAsDestination() {
-        assertThat(spec.destPath, equalTo(new RelativePath(false)))
-    }
-
-    @Test
-    public void testChildSpecResolvesIntoArgRelativeToParentDestinationDir() {
-        CopySpec child = spec.from('somedir') { into 'child' }
-        assertThat(unpackWrapper(child).destPath, equalTo(new RelativePath(false, 'child')))
-
-        CopySpec grandchild = child.from('somedir') { into 'grandchild' }
-        assertThat(unpackWrapper(grandchild).destPath, equalTo(new RelativePath(false, 'child', 'grandchild')))
-
-        grandchild.into '/grandchild'
-        assertThat(unpackWrapper(grandchild).destPath, equalTo(new RelativePath(false, 'grandchild')))
-    }
-
-    @Test
-    public void testChildSpecUsesParentDestinationPathAsDefault() {
-        CopySpec child = spec.from('somedir') {}
-        assertThat(unpackWrapper(child).destPath, equalTo(spec.destPath))
-
-        child.into 'child'
-
-        CopySpec grandchild = child.from('somedir') {}
-        assertThat(unpackWrapper(grandchild).destPath, equalTo(unpackWrapper(child).destPath))
-    }
-
-    @Test
-    public void testSourceIsFilteredTreeOfSources() {
-        spec.from 'a'
-        spec.from 'b'
-
-        def filteredTree = context.mock(FileTree, 'filtered')
-
-        context.checking {
-            one(fileResolver).resolveFilesAsTree(['a', 'b'] as Set)
-            def tree = context.mock(FileTree, 'source')
-            will(returnValue(tree))
-            one(tree).matching(withParam(equalTo(spec.patternSet)))
-            will(returnValue(filteredTree))
-        }
-
-        assertThat(spec.source, sameInstance(filteredTree))
-    }
-
-    @Test
-    public void testChildUsesPatternsFromParent() {
-        CopySpec child = spec.from('dir') {}
-        Spec specInclude = [:] as Spec
-        Spec specExclude = [:] as Spec
-        Spec childInclude = [:] as Spec
-        Spec childExclude = [:] as Spec
-
-        spec.include('parent-include')
-        spec.exclude('parent-exclude')
-        spec.include(specInclude)
-        spec.exclude(specExclude)
-        child.include('child-include')
-        child.exclude('child-exclude')
-        child.include(childInclude)
-        child.exclude(childExclude)
-
-        PatternSet patterns = unpackWrapper(child).patternSet
-        assertThat(patterns.includes, equalTo(['parent-include', 'child-include'] as Set))
-        assertThat(patterns.excludes, equalTo(['parent-exclude', 'child-exclude'] as Set))
-        assertThat(patterns.includeSpecs, equalTo([specInclude, childInclude] as Set))
-        assertThat(patterns.excludeSpecs, equalTo([specExclude, childExclude] as Set))
-    }
-
-    @Test
-    public void testChildUsesParentPatternsAsDefault() {
-        CopySpec child = spec.from('dir') {}
-        Spec specInclude = [:] as Spec
-        Spec specExclude = [:] as Spec
-
-        spec.include('parent-include')
-        spec.exclude('parent-exclude')
-        spec.include(specInclude)
-        spec.exclude(specExclude)
-
-        PatternSet patterns = unpackWrapper(child).patternSet
-        assertThat(patterns.includes, equalTo(['parent-include'] as Set))
-        assertThat(patterns.excludes, equalTo(['parent-exclude'] as Set))
-        assertThat(patterns.includeSpecs, equalTo([specInclude] as Set))
-        assertThat(patterns.excludeSpecs, equalTo([specExclude] as Set))
-    }
-
-    @Test
-    public void caseSensitiveFlagDefaultsToTrue() {
-        assert spec.caseSensitive
-        assert spec.patternSet.caseSensitive
-    }
-
-    @Test
-    public void childUsesCaseSensitiveFlagFromParentAsDefault() {
-        def child = spec.from('dir') {}
-        def realChild = (child as CopySpecWrapper).delegate as DefaultCopySpec
-
-        assert child.caseSensitive
-        assert realChild.patternSet.caseSensitive
-
-        spec.caseSensitive = false
-        assert !child.caseSensitive
-        assert !realChild.patternSet.caseSensitive
-
-        child.caseSensitive = true
-        assert child.caseSensitive
-        assert realChild.patternSet.caseSensitive
-    }
-
-    @Test
-    public void includeEmptyDirsFlagDefaultsToTrue() {
-        assert spec.includeEmptyDirs
-    }
-
-    @Test
-    public void childUsesIncludeEmptyDirsFlagFromParentAsDefault() {
-        def child = spec.from('dir') {}
-
-        assert child.includeEmptyDirs
-
-        spec.includeEmptyDirs = false
-        assert !child.includeEmptyDirs
-
-        child.includeEmptyDirs = true
-        assert child.includeEmptyDirs
+        assertThat(unpackWrapper(child).buildRootResolver().destPath, equalTo(new RelativePath(false, 'target')))
     }
 
     @Test
     public void testNoArgFilter() {
         spec.filter(StripJavaComments)
-        assertThat(spec.allCopyActions.size(), equalTo(1))
+        assertThat(spec.copyActions.size(), equalTo(1))
     }
 
     @Test
     public void testArgFilter() {
         spec.filter(HeadFilter, lines: 15, skip: 2)
-        assertThat(spec.allCopyActions.size(), equalTo(1))
+        assertThat(spec.copyActions.size(), equalTo(1))
     }
 
     @Test
     public void testExpand() {
         spec.expand(version: '1.2', skip: 2)
-        assertThat(spec.allCopyActions.size(), equalTo(1))
+        assertThat(spec.copyActions.size(), equalTo(1))
     }
 
     @Test
@@ -295,33 +151,33 @@ public class DefaultCopySpecTest {
         spec.filter(StripJavaComments)
         spec.filter(HeadFilter, lines: 15, skip: 2)
 
-        assertThat(spec.allCopyActions.size(), equalTo(2))
+        assertThat(spec.copyActions.size(), equalTo(2))
     }
 
     @Test
     public void testAddsStringNameTransformerToActions() {
         spec.rename("regexp", "replacement")
 
-        assertThat(spec.allCopyActions.size(), equalTo(1))
-        assertThat(spec.allCopyActions[0], instanceOf(RenamingCopyAction))
-        assertThat(spec.allCopyActions[0].transformer, instanceOf(RegExpNameMapper))
+        assertThat(spec.copyActions.size(), equalTo(1))
+        assertThat(spec.copyActions[0], instanceOf(RenamingCopyAction))
+        assertThat(spec.copyActions[0].transformer, instanceOf(RegExpNameMapper))
     }
 
     @Test
     public void testAddsPatternNameTransformerToActions() {
         spec.rename(/regexp/, "replacement")
 
-        assertThat(spec.allCopyActions.size(), equalTo(1))
-        assertThat(spec.allCopyActions[0], instanceOf(RenamingCopyAction))
-        assertThat(spec.allCopyActions[0].transformer, instanceOf(RegExpNameMapper))
+        assertThat(spec.copyActions.size(), equalTo(1))
+        assertThat(spec.copyActions[0], instanceOf(RenamingCopyAction))
+        assertThat(spec.copyActions[0].transformer, instanceOf(RegExpNameMapper))
     }
 
     @Test
     public void testAddsClosureToActions() {
         spec.rename {}
 
-        assertThat(spec.allCopyActions.size(), equalTo(1))
-        assertThat(spec.allCopyActions[0], instanceOf(RenamingCopyAction))
+        assertThat(spec.copyActions.size(), equalTo(1))
+        assertThat(spec.copyActions[0], instanceOf(RenamingCopyAction))
     }
 
     @Test
@@ -329,7 +185,7 @@ public class DefaultCopySpecTest {
         def action = context.mock(Action)
         spec.eachFile(action)
 
-        assertThat(spec.allCopyActions, equalTo([action]))
+        assertThat(spec.copyActions, equalTo([action]))
     }
 
     @Test
@@ -337,37 +193,9 @@ public class DefaultCopySpecTest {
         def action = {}
         spec.eachFile(action)
 
-        assertThat(spec.allCopyActions.size(), equalTo(1))
+        assertThat(spec.copyActions.size(), equalTo(1))
     }
 
-    @Test
-    public void testSpecInheritsActionsFromParent() {
-        Action parentAction = context.mock(Action, 'parent')
-        Action childAction = context.mock(Action, 'child')
-
-        spec.eachFile parentAction
-        CopySpec childSpec = spec.from('src') {
-            eachFile childAction
-        }
-
-        assertThat(unpackWrapper(childSpec).allCopyActions, equalTo([parentAction, childAction]))
-    }
-
-    @Test
-    public void testHasNoPermissionsByDefault() {
-        assert spec.fileMode == null
-        assert spec.dirMode == null
-    }
-
-    @Test
-    public void testInheritsPermissionsFromParent() {
-        spec.fileMode = 0x1
-        spec.dirMode = 0x2
-
-        CopySpec child = spec.from('src') {}
-        Assert.assertEquals(0x1, child.fileMode)
-        Assert.assertEquals(0x2, child.dirMode)
-    }
 
     @Test
     public void testHasNoSourceByDefault() {
@@ -386,31 +214,14 @@ public class DefaultCopySpecTest {
         assertTrue(spec.hasSource())
     }
 
-    @Test
-    public void duplicatesStrategyDefaultsToInclude() {
-        assert spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
-    }
-
-    @Test
-    public void childInheritsDuplicatesStrategyFromParent() {
-        def child = spec.from('dir') {}
-
-        assert child.duplicatesStrategy == DuplicatesStrategy.INCLUDE
-
-        spec.duplicatesStrategy = 'EXCLUDE'
-        assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
-
-        child.duplicatesStrategy = 'INCLUDE'
-        assert child.duplicatesStrategy == DuplicatesStrategy.INCLUDE
-    }
 
     @Test
     public void testMatchingCreatesAppropriateAction() {
         spec.filesMatching "root/**/a*", Actions.doNothing()
-        assertEquals(1, spec.allCopyActions.size())
-        assertThat(spec.allCopyActions[0], instanceOf(MatchingCopyAction))
+        assertEquals(1, spec.copyActions.size())
+        assertThat(spec.copyActions[0], instanceOf(MatchingCopyAction))
 
-        Spec<RelativePath> matchSpec = spec.allCopyActions[0].matchSpec
+        Spec<RelativePath> matchSpec = spec.copyActions[0].matchSpec
         assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/folder/abc')))
         assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/abc')))
         assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/abc')))
@@ -422,10 +233,10 @@ public class DefaultCopySpecTest {
     public void testNotMatchingCreatesAppropriateAction() {
         // no path component starting with an a
         spec.filesNotMatching("**/a*/**", Actions.doNothing())
-        assertEquals(1, spec.allCopyActions.size())
-        assertThat(spec.allCopyActions[0], instanceOf(MatchingCopyAction))
+        assertEquals(1, spec.copyActions.size())
+        assertThat(spec.copyActions[0], instanceOf(MatchingCopyAction))
 
-        Spec<RelativePath> matchSpec = spec.allCopyActions[0].matchSpec
+        Spec<RelativePath> matchSpec = spec.copyActions[0].matchSpec
         assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder1/folder2')))
         assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'modules/project1')))
         assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'archives/folder/file')))
@@ -497,6 +308,77 @@ public class DefaultCopySpecTest {
         assert spec.childSpecs[1] == child2
         assert spec.childSpecs[2] == child3
     }
+
+    @Test
+    void "properties accessed directly have defaults"() {
+
+        assert spec.caseSensitive == true;
+        assert spec.getIncludeEmptyDirs() == true;
+        assert spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        assert spec.fileMode == null
+        assert spec.dirMode == null
+
+        spec.caseSensitive = false
+        spec.includeEmptyDirs = false
+        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        spec.fileMode = 1
+        spec.dirMode = 2
+
+        assert spec.caseSensitive == false;
+        assert spec.getIncludeEmptyDirs() == false;
+        assert spec.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        assert spec.fileMode == 1
+        assert spec.dirMode == 2
+
+
+    }
+
+    @Test
+    void "properties accessed directly on specs created using from inherit from parents"() {
+
+        //set non defaults on root
+        spec.caseSensitive = false
+        spec.includeEmptyDirs = false
+        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        spec.fileMode = 1
+        spec.dirMode = 2
+
+        DefaultCopySpec child = unpackWrapper(spec.from("child") {
+
+        })
+
+        //children still have defaults
+        assert child.caseSensitive == false;
+        assert child.getIncludeEmptyDirs() == false;
+        assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        assert child.fileMode == 1
+        assert child.dirMode == 2
+
+    }
+
+    @Test
+    void "properties accessed directly on specs created using into inherit from parents"() {
+
+        //set non defaults on root
+        spec.caseSensitive = false
+        spec.includeEmptyDirs = false
+        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        spec.fileMode = 1
+        spec.dirMode = 2
+
+        DefaultCopySpec child = unpackWrapper(spec.into("child") {
+
+        })
+
+        //children still have defaults
+        assert child.caseSensitive == false;
+        assert child.getIncludeEmptyDirs() == false;
+        assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        assert child.fileMode == 1
+        assert child.dirMode == 2
+
+    }
+
 
     DefaultCopySpec unpackWrapper(CopySpec copySpec) {
         (copySpec as CopySpecWrapper).delegate as DefaultCopySpec

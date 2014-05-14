@@ -19,16 +19,15 @@ package org.gradle.internal.nativeplatform.filesystem;
 import net.rubygrapefruit.platform.PosixFiles;
 
 import java.io.File;
-import java.io.IOException;
 
-class NativePlatformBackedChmod implements Chmod {
+class NativePlatformBackedChmod implements FileModeMutator {
     private final PosixFiles posixFiles;
 
     public NativePlatformBackedChmod(PosixFiles posixFiles) {
         this.posixFiles = posixFiles;
     }
 
-    public void chmod(File file, int mode) throws IOException {
+    public void chmod(File file, int mode) {
         posixFiles.setMode(file, mode);
     }
 }

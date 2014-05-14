@@ -24,17 +24,32 @@
     </note>
 
     <para>
-        The various native binary plugins add support for building native software components from C++, C, Objective-C, Objective-C++ and Assembler sources.
+        The various native binary plugins add support for building native software components, such as executables or shared libraries, from C++, C and other languages.
         While many excellent build tools exist for this space of software development, Gradle offers developers it's trademark power and flexibility
         together with the dependency management practices more traditionally found in the JVM development space.
     </para>
+
+    <section>
+        <title>Supported languages</title>
+        <para>
+            The following source languages are currently supported:
+        </para>
+        <itemizedlist>
+            <listitem><para>C</para></listitem>
+            <listitem><para>C++</para></listitem>
+            <listitem><para>Objective-C</para></listitem>
+            <listitem><para>Objective-C++</para></listitem>
+            <listitem><para>Assembly</para></listitem>
+            <listitem><para>Windows resources</para></listitem>
+        </itemizedlist>
+    </section>
 
     <section id="native-binaries:tool-chain-support">
         <title>Tool chain support</title>
         <para>
             Gradle offers the ability to execute the same build using different tool chains. You can control which tool chain will be used to build
             by changing the operating system PATH to include the desired tool chain compiler. Alternatively, you can configure the tool chains directly,
-            as described in the `Native Binary Variants` section, below.
+            as described in <xref linkend="native_binaries:tool_chain"/>.
         </para>
         <para>
             The following tool chains are supported:
@@ -50,34 +65,40 @@
                 <td>Linux</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td></td>
             </tr>
             <tr>
-                <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Using GCC distributed with XCode.</td>
+                <td>Mac OS X</td><td>XCode</td><td>Uses the Clang tool chain bundled with XCode.</td>
             </tr>
             <tr>
-                <td>Mac OS X</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td>Using Clang distributed with XCode.</td>
+                <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td></td>
+            </tr>
+            <tr>
+                <td>Mac OS X</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td></td>
             </tr>
             <tr>
                 <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Windows XP and later, using GCC distributed with Cygwin.</td>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://cygwin.com">Cywin 32</ulink></td><td>Windows XP and later. Cygwin 64 is currently not supported.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later.</td>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink> with <ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later. <ulink url="http://mingw-w64.sourceforge.net">Mingw-w64</ulink> is currently not supported.</td>
             </tr>
         </table>
+        <para>
+            The native plugins should generally work on other UNIX-like platforms, but are currently officially supported on the above platforms only.
+        </para>
     </section>
 
     <section>
         <title>Component model</title>
         <para>
-            A native binary project defines a set of <apilink class="org.gradle.nativebinaries.Executable"/> and <apilink class="org.gradle.nativebinaries.Library"/> components,
+            A native binary project defines a set of <apilink class="org.gradle.nativebinaries.NativeExecutable"/> and <apilink class="org.gradle.nativebinaries.NativeLibrary"/> components,
             each of which Gradle maps to a number of <apilink class="org.gradle.nativebinaries.NativeBinary"/> outputs.
             For each <literal>executable</literal> or <literal>library</literal> defined, Gradle adds a <apilink class="org.gradle.language.base.FunctionalSourceSet"/> with the same name.
             Each of these functional source sets will contain a language-specific source set for each of the languages supported by the project.
         </para>
         <para>
             To build either a static or shared native library binary,
-            a <apilink class="org.gradle.nativebinaries.Library"/> component is added to the <literal>libraries</literal> container.
+            a <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component is added to the <literal>libraries</literal> container.
             Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/>
             and at least one <apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/>.
         </para>
@@ -86,7 +107,7 @@
         </sample>
         <para>
             To build an executable binary,
-            an <apilink class="org.gradle.nativebinaries.Executable"/> component is added to the <literal>executables</literal> container
+            an <apilink class="org.gradle.nativebinaries.NativeExecutable"/> component is added to the <literal>executables</literal> container
             and associated with a set of sources.
         </para>
         <sample id="cppExecutables" dir="native-binaries/c" title="Defining executable components">
@@ -112,13 +133,13 @@
                 <tr><td>Component Type</td><td>Native Binary Type</td><td>Lifecycle task</td><td>Location of created binary</td></tr>
             </thread>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.Executable"/></td><td><apilink class="org.gradle.nativebinaries.ExecutableBinary"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeExecutable"/></td><td><apilink class="org.gradle.nativebinaries.ExecutableBinary"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.Library"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.Library"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.NativeLibrary"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
             </tr>
         </table>
 
@@ -133,12 +154,20 @@
     </section>
 
     <section id="native_binaries:languages">
-        <title>Core language support: C, C++, Assembler, Objective-C and Objective-C++ </title>
+        <title>Language support</title>
         <para>
-            Presently, Gradle supports building native binaries from any combination of C++, C, Assembler, Objective-C and Objective-C++ sources.
+            Presently, Gradle supports building native binaries from any combination of source languages listed below.
             A native binary project will contain one or more named <literal>FunctionalSourceSet</literal> instances (eg 'main', 'test', etc),
-            each of which can contain <literal>LanguageSourceSet</literal>s containing C++, C, Assembler, Objective-C or Objective-C++ source files.
+            each of which can contain <literal>LanguageSourceSet</literal>s containing source files, one for each language.
         </para>
+        <itemizedlist>
+            <listitem><para>C</para></listitem>
+            <listitem><para>C++</para></listitem>
+            <listitem><para>Objective-C</para></listitem>
+            <listitem><para>Objective-C++</para></listitem>
+            <listitem><para>Assembly</para></listitem>
+            <listitem><para>Windows resources</para></listitem>
+        </itemizedlist>
 
         <section>
             <title>C++ sources</title>
@@ -322,8 +351,8 @@
     <section>
         <title>Library Dependencies</title>
         <para>
-            Dependencies for C++ projects are binary libraries that export header files. The header files are used during compilation, with the compiled
-            binary dependency being used during the linking.
+            Dependencies for native components are binary libraries that export header files. The header files are used during compilation, with the compiled
+            binary dependency being used during linking and execution.
         </para>
         <section>
            <title>Dependencies within the same project</title>
@@ -512,6 +541,7 @@
             <para>
                 Each tool chain implementation allows for a certain degree of configuration (see the API documentation for more details).
             </para>
+
         </section>
 
         <section>
@@ -547,24 +577,33 @@
             <para>
                 So for GCC running on linux, the supported target platforms are 'linux/x86' and 'linux/x86_64'.
                 For GCC running on Windows via Cygwin, platforms 'windows/x86' and 'windows/x86_64' are supported.
-                (The Cygwin runtime is not yet modelled as part of the Platform, but will be in the future.)
+                (The Cygwin POSIX runtime is not yet modelled as part of the platform, but will be in the future.)
             </para>
             <para>
                 If no target platforms are defined for a project, then all binaries are built to target a default platform named 'current'.
                 This default platform does not specify any <literal>architecture</literal> or <literal>operatingSystem</literal> value,
                 hence using the default values of the first available tool chain.
             </para>
+            <para>
+                Gradle provides a <firstterm>hook</firstterm> that allows the build author to control the exact set of arguments passed to a tool chain executable.
+                This enables the build author to work around any limitations in Gradle, or assumptions that Gradle makes.
+                The arguments hook should be seen as a 'last-resort' mechanism, with preference given to truly modelling the underlying domain.
+            </para>
+            <sample id="withArguments" dir="native-binaries/tool-chains" title="Reconfigure tool arguments">
+                <sourcefile file="build.gradle" snippet="withArguments"/>
+            </sample>
         </section>
 
         <section>
             <title>Cross-compiling with GCC</title>
             <para>
                 Cross-compiling is possible with the <apilink class="org.gradle.nativebinaries.toolchain.Gcc"/> and <apilink class="org.gradle.nativebinaries.toolchain.Clang"/> tool chains,
-                by programmatically adding support for additional target platforms.
-                This is done using the <apilink class="org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain"/> API.
-                Each added <apilink class="org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration"/> defines support for a particular target platform,
-                and supplies additional tool arguments that are required to target this platform.
+                by adding support for additional target platforms.
+                This is done by specifying a target platform for a toolchain. For each targetted platform a custom configuration can be specified.
             </para>
+            <sample id="targetPlatforms" dir="native-binaries/target-platforms" title="Defining target platforms">
+                <sourcefile file="build.gradle" snippet="targetplatforms"/>
+            </sample>
         </section>
     </section>
     <section id="native_binaries:visual_studio">
@@ -589,7 +628,7 @@
         <title>CUnit support</title>
         <para>
             The Gradle <literal>cunit</literal> plugin provides support for compiling and executing CUnit tests in your native-binary project.
-            For each <apilink class="org.gradle.nativebinaries.Executable"/> and <apilink class="org.gradle.nativebinaries.Library"/>
+            For each <apilink class="org.gradle.nativebinaries.NativeExecutable"/> and <apilink class="org.gradle.nativebinaries.NativeLibrary"/>
             defined in your project, Gradle will create a matching <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuite"/> component,
             named <literal>${component.name}Test</literal>.
         </para>
@@ -617,7 +656,7 @@
             <title>Building CUnit executables</title>
             <para>
                 A <apilink class="org.gradle.nativebinaries.test.cunit.CUnitTestSuite"/> component has an associated
-                <apilink class="org.gradle.nativebinaries.Executable"/> or <apilink class="org.gradle.nativebinaries.Library"/> component.
+                <apilink class="org.gradle.nativebinaries.NativeExecutable"/> or <apilink class="org.gradle.nativebinaries.NativeLibrary"/> component.
                 For each <apilink class="org.gradle.nativebinaries.ProjectNativeBinary"/> configured for the main component, a matching
                 <apilink class="org.gradle.nativebinaries.test.TestSuiteExecutableBinary"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:

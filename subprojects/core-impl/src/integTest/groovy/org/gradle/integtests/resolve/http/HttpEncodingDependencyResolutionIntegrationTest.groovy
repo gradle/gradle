@@ -15,13 +15,10 @@
  */
 package org.gradle.integtests.resolve.http
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest;
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-
-public class HttpEncodingDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+public class HttpEncodingDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public void "handles gzip encoded content"() {
-        server.start()
-
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')

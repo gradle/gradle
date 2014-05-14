@@ -20,12 +20,13 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.runtime.base.ProjectComponent;
 
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.
  */
 @Incubating @HasInternalProtocol
-public interface ProjectNativeComponent extends Named {
+public interface ProjectNativeComponent extends ProjectComponent, Named {
     /**
      * Returns a human-consumable display name for this component.
      */

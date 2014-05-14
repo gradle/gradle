@@ -42,30 +42,6 @@ to use this same mechanism is one step in this direction.
 
 # Implementation plan
 
-## Story: Expose the build script of a project
-
-This story exposes via the tooling API some basic information about the build script of a project.
-
-1. Add a `GradleScript` type with the following properties:
-    1. A `file` property with type `File`.
-2. Add a `buildScript` property to `GradleProject` with type `GradleScript`.
-3. Include an `@since` javadoc tag and an `@Incubating` annotation on the new types and methods.
-4. Change `GradleProjectBuilder` to populate the model.
-
-An example usage:
-
-    GradleProject project = connection.getModel(GradleProject.class);
-    System.out.println("project " + project.getPath() + " uses script " + project.getBuildScript().getFile());
-
-### Test coverage
-
-- Add a new `ToolingApiSpecification` integration test class that covers:
-    - A project with standard build script location
-    - A project with customized build script location
-- Verify that a decent error message is received when using a Gradle version that does not expose the build scripts.
-    - Request `GradleProject` directly.
-    - Using `GradleProject` via an `EclipseProject` or `IdeaModule`.
-
 ## Story: Expose the compile details of a build script
 
 This story exposes some information about how a build script will be compiled. This information can be used by an
@@ -74,9 +50,12 @@ IDE to provide some basic content assistance for a build script.
 1. Introduce a new hierarchy to represent a classpath element. Retrofit the IDEA and Eclipse models to use this.
     - Should expose a set of files, a set of source archives and a set of API docs.
 2. Add `compileClasspath` property to `GradleScript` to expose the build script classpath.
-3. Include the Gradle API and core plugins in the script classpath.
+3. Script classpath includes the Gradle API and core plugins
     - Should include the source and Javadoc
-4. Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used.
+4. Script classpath includes the libraries declared in the `buildscript { }` block.
+5. Script classpath includes the plugins declared in the `plugins { }` block.
+6. Script classpath includes the libraries inherited from parent project.
+7. Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used.
 
 ### Open issues
 
@@ -92,44 +71,6 @@ IDE to provide some basic content assistance for a build script.
     - Classpath declared in script of ancestor project is included in the classpath.
     - Source and Javadoc artifacts for the above are included in the classpath.
 - Verify that a decent error message is received when using a Gradle version that does not expose the build script classpath.
-
-## Story: Expose the publications of a project
-
-This story allows an IDE to map dependencies between different Gradle builds and and between Gradle and non-Gradle builds.
-For incoming dependencies, the Gradle coordinates of a given library are already exposed through `ExternalDependency`. This
-story exposes the outgoing publications of a Gradle project.
-
-1. Add a `GradlePublication` type with the following properties:
-    1. An `id` property with type `GradleModuleVersion`.
-2. Add a `publications` property to `GradleProject` with type `DomainObjectSet<GradlePublication>`.
-3. Include an `@since` javadoc tag and an `@Incubating` annotation on the new types and methods.
-4. Introduce a project-scoped internal service which provides some detail about the publications of a project.
-   This service will also be used during dependency resolution. See [dependency-management.md](dependency-management.md#story-dependency-resolution-result-exposes-local-component-instances-that-are-not-module-versions)
-    1. The `publishing` plugin registers each publication defined in the `publishing.publications` container.
-       For an instance of type `IvyPublicationInternal`, use the publication's `identity` property to determine the publication identifier to use.
-       For an instance of type `MavenPublicationInternal`, use the publication's `mavenProjectIdentity` property.
-    2. For each `MavenResolver` defined for the `uploadArchives` task, register a publication. Use the resolver's `pom` property to determine the
-       publication identifier to use. Will need to deal with duplicate values.
-    3. When the `uploadArchives` task has any other type of repository defined, then register a publication that uses the `uploadArchives.configuration.module`
-       property to determine the publication identifier to use.
-5. Change `GradleProjectBuilder` to use this service to populate the tooling model.
-
-An example usage:
-
-    GradleProject project = connection.getModel(GradleProject.class);
-    for (GradlePublication publication: project.getPublications()) {
-        System.out.println("project " + project.getPath() + " produces " + publication.getId());
-    }
-
-### Test coverage
-
-- Add a new `ToolingApiSpecification` integration test class that covers:
-    - For a project that does not configure `uploadArchives` or use the publishing plugins, verify that the tooling model does not include any publications.
-    - A project that uses the `ivy-publish` plugin and defines a single Ivy publication.
-    - A project that uses the `maven-publish` plugin and defines a single Maven publication.
-    - A project that uses the `maven` plugin and defines a single remote `mavenDeployer` repository on the `uploadArchives` task.
-    - A project that defines a single Ivy repository on the `uploadArchives` task.
-- Verify that a decent error message is received when using a Gradle version that does not expose the publications.
 
 ## Story: Gradle plugin provides a custom tooling model to the tooling API client
 
@@ -248,28 +189,6 @@ Note: there is a breaking change here.
     - Requests a model from an unknown project.
     - Requests an unknown model.
 
-## Story: Tooling API client requests build model for old Gradle version (DONE)
-
-This story adds support for the `GradleBuild` model for older target Gradle versions.
-
-### Implementation
-
-Change the implementations of `ConsumerConnection.run(type, parameters)` so that when asked for a `GradleBuild` model, they instead
-request the `GradleProject` model and then convert it to a `DefaultGradleBuild` instance. See `ConnectionVersion4BackedConsumerConnection.doGetModel()`
-for an example of this kind of thing.
-
-For the `ModelBuilderBackedConsumerConnection` implementation, if the provider Gradle version supports the `GradleBuild` model (is >= 1.8-rc-1) then
-forward to the provider, as it does now.
-
-To implement this cleanly, one option might be to introduce some chain of model producers into the `ConsumerConnection` subclasses, so that each producer is
-asked in turn whether it can produce the requested model. The last producer can delegate to the provider connection. Stop at the first producer that can
-produce the model.
-
-### Test cases
-
-- For all Gradle versions, can request the `GradleBuild` model via `ProjectConnection`. This basically means removing the `@TargetGradleVersion` from
-  the test case in `GradleBuildModelCrossVersionSpec`.
-
 ## Story: Gradle provider builds build model efficiently
 
 When the `GradleBuild` model is requested, execute only the settings script, and don't configure any of the projects.
@@ -292,88 +211,70 @@ This story adds support for conditionally requesting a model, if it is available
 
 Fix the `ClassLoader` caching in the tooling API so that it can deal with changing implementations.
 
-## Story: GRADLE-2434 - Expose the aggregate tasks for a project
+## Story: Tooling API client launches a build using task selectors from different projects
 
-This story allows an IDE to implement a way to select the tasks to execute based on their name, similar to the Gradle command-line.
-
-1. Add an `EntryPoint` model interface, which represents some arbitrary entry point to the build.
-2. Add a `TaskSelector` model interface, which represents an entry point that uses a task name to select the tasks to execute.
-3. Change `GradleTask` to extend `EntryPoint`, so that each task can be used as an entry point.
-4. Add a method to `GradleProject` to expose the task selectors for the project.
-    - For new target Gradle versions, delegate to the provider.
-    - For older target Gradle versions, use a client-side mix-in that assembles the task selectors using the information available in `GradleProject`.
-5. Add methods to `BuildLauncher` to allow a sequence of entry points to be used to specify what the build should execute.
-6. Add `@since` and `@Incubating` to the new types and methods.
-
-Here are the above types:
-
-    interface EntryPoint {
-    }
-
-    interface TaskSelector extends EntryPoint {
-        String getName(); // A display name
-    }
-
-    interface GradleTask extends EntryPoint {
-        ...
-    }
-
-    interface GradleProject {
-        DomainObjectSet<? extends TaskSelector> getTaskSelectors();
-        ...
-    }
-
-    interface BuildLauncher {
-        BuildLauncher forTasks(Iterable<? extends EntryPoint> tasks);
-        BuildLauncher forTasks(EntryPoint... tasks);
-        ...
-    }
-
-TBD - maybe don't change `forTasks()` but instead add an `execute(Iterable<? extends EntryPoint> tasks)` method.
+TBD
 
 ### Test cases
 
-- Can request the entry points for a given project hierarchy
-    - Task is present in some subprojects but not the target project
-    - Task is present in target project but no subprojects
-    - Task is present in target project and some subprojects
-- Executing a task selector when task is also present in subprojects runs all the matching tasks, for the above cases.
-- Executing a task (as an `EntryPoint`) when task is also present in subprojects run the specified task only and nothing from subprojects.
-- Can request the entry points for all target Gradle versions.
+- Can execute task selectors from multiple projects, for all target Gradle versions
+- Can execute overlapping task selectors.
+
+## Story: Tooling API exposes project's implicit tasks as launchable
+
+Change the building of the `BuildInvocations` model so that:
+
+- `getTasks()` includes the implicit tasks of the project.
+- `getTaskSelectors()` includes the implicit tasks of the project and all its subprojects.
+
+### Test cases
+
+- `BuildInvocations.getTasks()` includes `help` and other implicit tasks.
+    - Launching a build using one of these task instances runs the appropriate task.
+- `BuildInvocations.getTaskSelectors()` includes the `help` and other implicit tasks.
+    - Launching a build using the `dependencies` selector runs the task in the default project only (this is the behaviour on the command-line).
+- A project defines a task placeholder. This should be visible in the `BuildInvocations` model for the project and for the parent of the project.
+    - Launching a build using the selector runs the task.
 
 ## Story: Expose information about the visibility of a task
 
 This story allows the IDE to hide those tasks that are part of the implementation details of a build.
 
-## Story: Deprecate support for Tooling API clients earlier than Gradle 1.2 (DONE)
-
-When any of the following methods are called on the provider connection treat the client version as deprecated:
-
-- `ConnectionVersion4.getModel()` and `executeBuild()`.
-- `InternalConnection.getTheModel()`.
-- `configureLogging(boolean)`.
-
-Whenever an operation is invoked on the provider connection by a deprecated client version, the connection implementation should report to
-the user that the client version is deprecated and support for it will be removed in Gradle 2.0.
-The logging output should be received through the stream attached to `LongRunningOperation.setStandardOutput()`.
+- Add a `visibility` property to `Launchable`.
+- A task is considered `public` when it has a non-empty `group` property, otherwise it is considered `private`.
+- A task selector is considered `public` when any task it selects is `public`, otherwise it is considered `private`.
 
 ### Test cases
 
-- Running a build generates a warning when using a client < 1.2, and does not generate a warning when using a client >= 1.2.
-- Fetching a model generates a warning when using a client < 1.2, and does not generate a warning when using a client >= 1.2.
+- A project defines a public and private task.
+    - The `BuildInvocations` model for the project includes task instances with the correct visibility.
+    - The `BuildInvocations` model for the project includes task selectors with the correct visibility.
+    - The `BuildInvocations` model for the parent project includes task selectors with the correct visibility.
 
-## Story: Deprecate support for Gradle versions earlier than Gradle 1.0-milestone-8 (DONE)
+## Story: Allow options to be specified for tasks
 
-When the provider connection does not implement `InternalConnection` then treat the provider version as deprecated.
+For example, allow something similar to `gradle test --tests SomePattern`
 
-Whenever an operation is invoked on a deprecated provider version, the client implementation should report to the user that the provider
-version is deprecated and support for it will be removed in Gradle 2.0.
-The logging output should be received through the stream attached to `LongRunningOperation.setStandardOutput()`.
+## Story: Tooling API build action requests a tooling model for a Gradle build
+
+This story adds support to build models that have a scope of a whole Gradle build (not just a project)
+
+1. Add a new `GradleBuildToolingModelBuilder` similar to `ToolingModelBuilder`. Possibly an abstract class since this is an SPI.
+2. Extend `ToolingModelBuilderRegistry` to allow registration of such a builder.
+3. Change the way how models are queried from `ProjectConnection` to use this new builders (there is no project context passed).
+   The only special case is the EclipseModel, which is actually built from the default project instead of the root project, so we'd need a specific implementation for that.
+4. Extend `BuildController.getModel()` to support `GradleBuild` as model parameter or add `BuildController.getBuildModel(Class)`.
+   Those would be using gradle model builder rather than project model builders
 
 ### Test cases
 
-- Running a build generates a warning when using a provider version < 1.0-milestone-8, and does not generate a warning when using a provider version >= 1.0-milestone-8.
-- Fetching a model generates a warning when using a provider version < 1.0-milestone-8, and does not generate a warning when using a provider version >= 1.0-milestone-8.
+- Can register new model builder and
+  - query it from client via `ProjectConnection`.
+  - query it from client via build action.
+- Can request a model via build action:
+  - And get result from `GradleBuildToolingModelBuilder` for gradle build scope if passing `GradleBuild` as target.
+  - And get result from `ToolingModelBuilder` for project scope if passing one of parameters describing project.
+- Client receives decent feedback when requests an unknown model.
 
 ## Story: Tooling API client cancels a long running operation
 
@@ -386,20 +287,21 @@ Represent the execution of a long running operation using a `Future`. This `Futu
     }
 
     interface ModelBuilder<T> {
-        BuildInvocation<T> fetch(); // starts building the model, does not block
+        BuildFuture<T> fetch(); // starts building the model, does not block
         ...
     }
 
     interface BuildLauncher {
-        BuildInvocation<Void> start(); // starts running the build, does not block
+        BuildFuture<Void> start(); // starts running the build, does not block
         ...
     }
 
     interface BuildActionExecuter<T> {
-        BuildInvocation<T> start(); // starts running the build, does not block
+        BuildFuture<T> start(); // starts running the build, does not block
         ...
     }
 
+    // TBD - fetch() should be called start() as well?
     BuildFuture<GradleProject> model = connection.model(GradleProject.class).fetch();
     model.cancel(true);
 
@@ -416,7 +318,7 @@ to the build:
 
 Use futures to represent the existing asynchronous behaviour:
 
-1. Change internal class `BlockingResultHandler` to implement `BuildInvocation` and reuse this type to implement the futures.
+1. Change internal class `BlockingResultHandler` to implement `BuildFuture` and reuse this type to implement the futures.
 2. Implementation should discard handlers once they have been notified, so they can be garbage collected.
 
 Push asynchronous execution down to the provider:
@@ -444,10 +346,12 @@ For target versions that do not support cancellation, `Future.cancel()` always r
 - Client receives failure when using `get()` and operation fails
 - Client receives timeout exception when blocking with timeout
 - Client can cancel operation
-    - Stops the operation for all target versions that support cancellation
-    - Returns `false` for all older target versions
-- Client is notified when result is available
-- Client is notified when operation fails
+    - Stops the operation for all target versions that support cancellation. Does not block.
+    - Returns `false` for all older target versions.
+    - Client listener added to future is notified that operation failed due to cancellation.
+    - When a thread is blocked on `get()`, a call to `cancel()` will unblock the thread and the call to `get()` will fail with an exception.
+- Client listener added to future is notified when result is available.
+- Client listener added to future is notified when operation fails.
 
 ## Story: Expose the IDE output directories
 
@@ -492,24 +396,5 @@ Need to allow a debug port to be specified, as hard-coded port 5005 can conflict
 * Replace `LongRunningOperation.standardOutput` and `standardError` with overloads that take a `Writer`, and (later) deprecate the `OutputStream` variants.
 * Handle cancellation during the Gradle distribution download.
 * Daemon cleanly stops the build when cancellation is requested.
-
-## Story: Tooling API build action requests a tooling model for a Gradle build
-
-This story adds support to build models that have a scope of a whole Gradle build (not just a project)
-
-1. Add a new `GradleBuildToolingModelBuilder` similar to `ToolingModelBuilder`. Possibly an abstract class since this is an SPI.
-2. Extend `ToolingModelBuilderRegistry` to allow registration of such a builder.
-3. Change the way how models are queried from `ProjectConnection` to use this new builders (there is no project context passed).
-   The only special case is the EclipseModel, which is actually built from the default project instead of the root project, so we'd need a specific implementation for that.
-4. Extend `BuildController.getModel()` to support `GradleBuild` as model parameter or add `BuildController.getBuildModel(Class)`.
-   Those would be using gradle model builder rather than project model builders
-
-### Test cases
-
-- Can register new model builder and
-  - query it from client via `ProjectConnection`.
-  - query it from client via build action.
-- Can request a model via build action:
-  - And get result from `GradleBuildToolingModelBuilder` for gradle build scope if passing `GradleBuild` as target.
-  - And get result from `ToolingModelBuilder` for project scope if passing one of parameters describing project.
-- Client receives decent feedback when requests an unknown model.
+* Test fixtures should stop daemons at end of test when custom user home dir is used.
+* Introduce a `GradleExecutor` implementation backed by the tooling API.

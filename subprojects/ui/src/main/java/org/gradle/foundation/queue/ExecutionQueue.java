@@ -112,9 +112,10 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
         public void run() {
             while (true) {
                 R request = getNextAvailableRequest();
-                if (request != null) {
-                    executeInteraction.execute(request);
+                if (request == null) {
+                    return;
                 }
+                executeInteraction.execute(request);
             }
         }
     }

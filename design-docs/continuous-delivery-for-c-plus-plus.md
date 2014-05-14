@@ -570,6 +570,7 @@ The implementation will also remove stale object files.
 
 - Need to handle `#import` with Visual C++, which may reference a `.tld` file.
 - Should not parse headers that we deem to be unchanging: 'system' libraries, unchanging repository libraries, etc.
+- Implementation currently locks the task artifact cache while compiling
 
 ## Story: Modify command line arguments for binary tool prior to execution
 
@@ -1121,6 +1122,8 @@ This story introduces a set of headers that are visible to all the source files 
 
 - Default location for the implementation headers
 - Rename `lib()` to `dependsOn()` or similar?
+- Model 'implicit' headers: in the same directory as the source files or included via relative path.
+    - Need to make these available in the IDE and include in compile task inputs
 
 ### Story: Introduce public headers for native libraries
 
@@ -1239,6 +1242,7 @@ This story moves definition and configuration of the source sets for a component
   built-in tools.
 - Fix `TargetPlatformConfiguration` and `PlatformToolChain` to make them extensible, so that not every configuration supports every tool.
 - Gcc and Clang tool chains need to provide the correct compile and link time arguments on OS X and Linux.
+- Add test coverage on Windows
 
 ### Story: Incremental compilation for Objective-C and Objective-C++
 
@@ -1267,6 +1271,8 @@ this consistent with the way that tool arguments are configured in a tool chain.
 * Replace `PlatformConfigurableToolChain.addPlatformConfiguration` with `PlatformConfigurableToolChain.target(Platform..., Action<ConfigurableToolChain>)`
 * Replace the built-in `TargetPlatformConfiguration` actions with `Action<ConfigurableToolChain>`
 * If `PlatformConfigurableToolChain.target()` is called on a tool chain, then the default target configurations are removed.
+* Documentation describes how to define a new platform.
+* Documentation describes how to configure a tool for an existing platform.
 
 ### User visible changes
 
@@ -1305,6 +1311,56 @@ this consistent with the way that tool arguments are configured in a tool chain.
 * When no Platform architecture/os is defined, assume the current platform architecture/os, not the tool chain default.
     * This will require detecting the current platform, and supplying the correct tool chain arguments when building.
 
+
+## Story: Modify command line arguments for visualCpp toolchain prior execution
+
+provide a 'hook' allowing the build author to control the exact set of arguments passed to a visualcpp toolchain executable.
+This will allow a build author to work around any limitations in Gradle, or incorrect assumptions that Gradle makes.
+
+### Implementation
+
+* Change `VisualCppToolChain` to extend `ExtendableToolChain` and register `linker` and `staticLibArchiver` tools
+* Move registration of cpp, windows-rc and assembler tools in VisualCppToolChain to according plugins
+* Extract `CommandLineToolChain` interface out of `Gcc` and introduce similar functionality to VisualCpp and Clang tool chains.
+* Move setter/getter of executables in into GccCommandLineToolConfiguration
+* Add according documentation to userguide/DSL reference and update release notes
+
+### User visible changes
+    	
+		apply plugin:'cpp'    
+		
+		model {
+            toolChains {
+                visualCpp(VisualCpp) {
+                    cppCompiler.withArguments { args ->
+                            args << "-DFRENCH"
+                    }
+                }
+            }
+        }
+
+
+### Test coverage
+
+* Can tweak arguments for VisualCpp, Gcc and Clang
+
+## Story: Allow configuration of tool chain executables on a per-platform basis (Gcc based toolchains)
+
+### Implementation
+
+* In AbstractGccCompatibleToolChain change initTools method to configure configurableToolChain instead after targetPlatformConfigurationConfiguration is applied 
+
+### Test coverage
+
+* Can use g++ instead of gcc for compiling C sources
+* Can use custom executable
+
+### Open issues
+
+* path configuration is currently not possible on a per platform basis. full paths to executables must be used or executable must be on 
+system path.
+
+
 ## Story: Improved DSL for tool chain configuration
 
 This story improves the DSL for tweaking arguments for a command-line tool that is part of a tool chain, and extends this
@@ -1316,8 +1372,7 @@ ability to all command-line based tool chains. It also permits the configuration
 * Rename `GccTool` to `CommandLineTool` and change to have `withInvocation(Action<CommandLineToolInvocation>)` in place of `withArguments`
 * Remove tool-specific getters from `Gcc`, and instead make `Gcc` serve as a NamedDomainObjectSet of `CommandLineTool` instances.
     * Continue to register a `CommandLineTool` for every supported language.
-* Allow the `eachInvocation` method to override the default executable to use.
-* Extract `CommandLineToolChain` interface out of `Gcc` and introduce similar functionality to VisualCpp and Clang tool chains.
+* Allow the `withInvocation` method to override the default executable to use.
 * Add a sample, user-guide documentation and note the breaking change in the release notes.
 * Consolidate various `ArgsTransformer` implementations so that most/all simply set/modify args on a `CommandLineToolInvocation`.
 
@@ -1354,6 +1409,7 @@ ability to all command-line based tool chains. It also permits the configuration
 
 * Only to register a `CommandLineTool` for languages that are supported by build.
    * Need to make it easy to have centralised tool chain configuration that works regardless of languages in effect.
+* Make it simpler to add support for new languages to existing tool chain implementations
 
 ## Story: Only use gcc/g++ front-ends for GCC tool chain
 
@@ -1421,6 +1477,12 @@ This story also aggregates a bunch of review items that relate to Architecture a
 - How to make Platform instance immutable
 - Consistent API for Architecture and OperatingSystem: either public method on both [os.isWindows(),arch.isAmd64()] or only on internal api.
 - Include ABI in architecture so that the correct prebuilt library can be selected for a tool chain
+- When no Platform architecture/os is defined, assume the current platform architecture/os, not the tool chain default.
+    - This will require detecting the current platform, and supplying the correct tool chain arguments when building.
+    - We can then remove the concept of the "tool chain default" platform, and always explicitly tell the tool chain which platform to build for.
+- For GCC, need to probe the output of the compiler to determine exactly what is being created
+- For Clang, need to provide the full `-target <triple>` to define the exact output, or provide a subset and probe the output.
+    - see http://clang.llvm.org/docs/CrossCompilation.html
 
 ## Story: Include all macro definitions in Visual Studio project configuration
 
@@ -1878,6 +1940,11 @@ TBD
 - Don't create compile tasks for empty source sets
 - Compile windows resource files with gcc/clang using [`windres`](http://sourceware.org/binutils/docs/binutils/windres.html)
 
+### Incremental compile
+
+- Perform incremental compile when header is included via simple macro definition
+- Keep a separate, build-scoped cache of file -> parsed includes. This would prevent need for reparsing per-variant and per-component.
+- Detect changes to headers that are implicit on the include path via the tool chain
 
 ## Target platforms
 
@@ -1913,11 +1980,14 @@ TBD
     - A component packaging that satisfies multiple points in the variant space.
     - Use `lipo` to merge two binaries into a single universal binary.
     - Transforms the meta-data for the component - same set of variants but different set of binaries.
+- Use separate directories for output binaries, rather than encoding all dimensions in the name: eg `flavor/platform/buildType/myLib.so`
 
 ## Toolchains
 
 - DSL to declare that a toolchain supports certain target platform, and how to invoke the tools to do so.
 - Introduce `XCode`, `Cygwin`, `MinGW` toolchains, to allow selection of specific gcc or clang implementations.
+    - Use the `XCode` tool chain to determine mac-specific gcc args
+    - Use the `Cygwin` and `MinGW` toolchains to provide additional path requirements for `InstallExecutable` task
 
     toolchains {
         gcc {
@@ -1936,6 +2006,8 @@ TBD
         }
     }
 
+- Prevent configuration of tool chains after availability has been determined.
+
 ## Structure
 
 - Some common plugin that determines which tool-chains to apply
@@ -1953,6 +2025,11 @@ TBD
 - Need to make standard 'build', 'check' lifecycle tasks available too. The `assemble` task should build all buildable variants.
     - Reasonable behaviour when nothing is buildable on the current machine.
 - Come up with consistent naming scheme for language plugins: 'cpp', 'c', 'assembler', 'java-lang', 'scala-lang', etc
+- Windows resources
+    - Automatically add `/noentry` and `/machine` linker args when building resource-only DLL
+    - Actually inspect the binary to determine if there are any exported symbols
+    - Use a model rule to determine if library sources contain windows resources
+
 
 ### Performance
 
@@ -1967,8 +2044,16 @@ TBD
 - Better way to see how the compiler is being invoked
 - Make names less important
 
+## Test coverage
+
+- Update the UnknownOS CI build to run on java 7, and remove the "CAN_INSTALL_EXECUTABLE" test requirement
+- Integration test coverage for 64-bit assembler on all platforms/tool chains.
+- Verify that the correct windows system libraries are available at link time
+    - Use a test app that uses something like WriteFile() to write its hello world message to stdout. If it can link and run, then the paths are probably ok.
+
 # Open issues
 
+* For incremental build with visual c++, use `dumpbin  /RAWDATA` to strip timestamps from binary files before comparison
 * Add ABI as an aspect of target platform.
 * Output of any custom post link task should be treated as input to anything that depends on the binary.
 * Route stdout to info level when linking a shared library using visual studio, to get rid of the pointless notice.
@@ -2003,3 +2088,6 @@ TBD
 * JNI plugin generates native header, and sets up the JNI stuff in $java.home as a platform library.
 * Model minimum OS version.
     * For OS X can use -mmacosx-version-min option.
+* Clean task for a binary
+* Update CDT support to match Visual Studio support
+* Rename 'install' task to indicate that it's installing a developer image

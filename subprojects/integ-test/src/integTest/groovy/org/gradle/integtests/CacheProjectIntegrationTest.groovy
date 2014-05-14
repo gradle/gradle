@@ -21,7 +21,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Before

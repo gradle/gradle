@@ -16,7 +16,7 @@
 package org.gradle.groovy.scripts.internal
 
 import spock.lang.Specification
-import org.gradle.api.internal.resource.Resource
+import org.gradle.internal.resource.Resource
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.groovy.scripts.Script

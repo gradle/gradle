@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 
 public class RootClassLoaderScope implements ClassLoaderScope {
@@ -28,23 +29,31 @@ public class RootClassLoaderScope implements ClassLoaderScope {
         this.classLoaderCache = classLoaderCache;
     }
 
-    public ClassLoader getScopeClassLoader() {
+    public ClassLoader getLocalClassLoader() {
         return classLoader;
     }
 
-    public ClassLoader getChildClassLoader() {
+    public ClassLoader getExportClassLoader() {
         return classLoader;
     }
 
-    public ClassLoaderScope getBase() {
-        return this;
+    public ClassLoaderScope getParent() {
+        return this; // should this be null?
     }
 
-    public ClassLoader addLocal(ClassPath classpath) {
+    public Factory<ClassLoader> loader(final ClassPath classPath) {
+        return new Factory<ClassLoader>() {
+            public ClassLoader create() {
+                return classLoaderCache.get(getExportClassLoader(), classPath, null);
+            }
+        };
+    }
+
+    public ClassLoaderScope local(Factory<? extends ClassLoader> classLoader) {
         throw new UnsupportedOperationException("root class loader scope is immutable");
     }
 
-    public ClassLoader export(ClassPath classpath) {
+    public ClassLoaderScope export(Factory<? extends ClassLoader> classLoader) {
         throw new UnsupportedOperationException("root class loader scope is immutable");
     }
 
@@ -53,11 +62,7 @@ public class RootClassLoaderScope implements ClassLoaderScope {
     }
 
     public ClassLoaderScope createChild() {
-        return new DefaultClassLoaderScope(this, this, classLoaderCache);
-    }
-
-    public ClassLoaderScope createRebasedChild() {
-        return createChild();
+        return new DefaultClassLoaderScope(this, classLoaderCache);
     }
 
     public ClassLoaderScope lock() {

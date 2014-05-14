@@ -120,7 +120,6 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
 
         def failure2 = new RuntimeException()
         def runnable2 = {
-            thread.blockUntil.broken1
             instant.broken2
             throw failure2
         }
@@ -128,6 +127,7 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         when:
         def executor = factory.create('test')
         executor.execute(runnable1)
+        thread.blockUntil.broken1
         executor.execute(runnable2)
         thread.blockUntil.broken2
 

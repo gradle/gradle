@@ -16,7 +16,7 @@
 package org.gradle.language.java;
 
 import org.gradle.api.Incubating;
-import org.gradle.language.jvm.Classpath;
+import org.gradle.runtime.jvm.Classpath;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**

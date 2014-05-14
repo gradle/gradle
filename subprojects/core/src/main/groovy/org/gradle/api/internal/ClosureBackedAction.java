@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import com.google.common.base.Objects;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
@@ -47,7 +48,7 @@ public class ClosureBackedAction<T> implements Action<T> {
 
         try {
             if (configureableAware && delegate instanceof Configurable) {
-                ((Configurable)delegate).configure(closure);
+                ((Configurable) delegate).configure(closure);
             } else {
                 Closure copy = (Closure) closure.clone();
                 copy.setResolveStrategy(resolveStrategy);
@@ -59,9 +60,10 @@ public class ClosureBackedAction<T> implements Action<T> {
                 }
             }
         } catch (groovy.lang.MissingMethodException e) {
-            if (e.getType().equals(closure.getClass()) && e.getMethod().equals("doCall")) {
+            if (Objects.equal(e.getType(), closure.getClass()) && Objects.equal(e.getMethod(), "doCall")) {
                 throw new InvalidActionClosureException(closure, delegate);
             }
+            throw e;
         }
     }
 

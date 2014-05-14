@@ -24,8 +24,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.*
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import spock.lang.Specification
@@ -215,7 +215,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
     def module() {
         ModuleRevisionId id = IvyUtil.createModuleRevisionId("group", "module", "1.0")
-        return new ModuleDescriptorAdapter(new DefaultModuleDescriptor(id, "release", new Date()))
+        return new DefaultIvyModuleVersionMetaData(new DefaultModuleDescriptor(id, "release", new Date()))
     }
 
     def dependency() {

@@ -34,7 +34,7 @@ public class DaemonGreeter {
             throw new GradleException(prepareMessage(output, result));
         }
         String[] lines = output.split("\n");
-        //TODO SF don't assume it is the last line
+        //Assuming that the diagnostics were printed out to the last line. It's not bullet-proof but seems to be doing fine.
         String lastLine = lines[lines.length-1];
         return new DaemonStartupCommunication().readDiagnostics(lastLine);
     }
@@ -42,13 +42,6 @@ public class DaemonGreeter {
     private String prepareMessage(String output, ExecResult result) {
         StringBuilder sb = new StringBuilder();
         sb.append(DaemonMessages.UNABLE_TO_START_DAEMON);
-        //TODO SF if possible, include the exit value.
-//        if (result.getExitValue()) {
-//            sb.append("\nThe process has exited with value: ");
-//            sb.append(result.getExecResult().getExitValue()).append(".");
-//        } else {
-//            sb.append("\nThe process may still be running.");
-//        }
         sb.append("\nThis problem might be caused by incorrect configuration of the daemon.");
         sb.append("\nFor example, an unrecognized jvm option is used.");
         sb.append("\nPlease refer to the user guide chapter on the daemon at ");

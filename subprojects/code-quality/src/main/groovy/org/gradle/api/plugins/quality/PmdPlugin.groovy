@@ -78,7 +78,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         config.incoming.beforeResolve {
             if (config.dependencies.empty) {
                 VersionNumber version = VersionNumber.parse(extension.toolVersion)
-                String dependency = (version < VersionNumber.parse("5.0.0"))?
+                String dependency = (version < VersionNumber.version(5))?
                     "pmd:pmd:$extension.toolVersion" : "net.sourceforge.pmd:pmd:$extension.toolVersion"
                 config.dependencies.add(project.dependencies.create(dependency))
             }

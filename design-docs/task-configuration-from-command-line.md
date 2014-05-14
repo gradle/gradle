@@ -75,96 +75,6 @@ TBD
     * Annotation is missing 'options' value.
     * Annotation is missing 'description' value.
 
-## Help task shows basic details about a task
-
-Add some command line interface for discovering details about a task (name, type, path, description)
-
-### User visible changes
-
-Running `gradle help --task test` shows a usage message for the `test` task.
-
-If multiple tasks match, details of the matching tasks are shown
-
-* all matched tasks have the same type
-    * print one report of the task type and include all matching paths in the report
-
-* matched tasks have different types
-    * print one detail output for each different task type including all available paths
-
-### Test coverage
-
-* integration tests
-    * `gradle help --task` on simple task
-    * `gradle help --task` on task referenced by full path  (e.g. `:someProj:dependencies`)
-    * `gradle help --task` on implicit task task
-    * `gradle help --task` on task defined via placeholder
-    * `gradle help --task` on non existing task displays reasonable error message, including candidate matches
-    * `gradle help --task` on multiple matching tasks
-    * `gradle help --task` using camel-case matching to select task
-
-### Implementation approach
-
-- Change the `help` task:
-    - add `--task` commandline property
-    - change displayHelp implementation to print task details when `--task` is set
-    - lookup project tasks and implicit tasks using the task selector
-    - throw decent error message when requested task cannot be found
-    - task details (task name, task type, path)
-    - the default message informs the user about using `gradle help --task n`
-
-- Update the 'using Gradle from the command-line' user guide chapter to mention the help task.
-
-## Help task shows command-line options for a task
-
-Commandline options of the task passed to help are listed including a description. The legal values for each property are not shown - this
-is added in a later story.
-
-### User visible changes
-
-The usage message of running `gradle help --task <task>` lists commandline options of the selected tasks.
-
-### Test coverage
-
-* integration tests
-    * `gradle help` on task with no commandline properties
-    * `gradle help` on task with commandline properties
-    * `gradle help` on implicit task no commandline properties
-    * `gradle help` on implicit task with no commandline properties
-    * `gradle help --tassk help` (should print hint to `gradle help --task help`)
-
-### Implementation approach
-
-- Change configuration error message in `CommandLineTaskConfigurer` to suggest that the user run `gradle help --task <broken-task>`.
-- Update the 'using Gradle from the command-line' user guide chapter.
-
-## Help task shows legal values for each command-line option
-
-### User visible changes
-
-The usage message of running `gradle help --task init` includes the available values for the task command line options (e.g --type)
-
-### Test coverage
-
-* integration tests
-    * `gradle help` on task with enum property type mapped to commandline option
-    * `gradle help` on task with boolean property type mapped to commandline option
-    * `gradle help` on task with String property mapped to commandline option
-    * `gradle help --task init` shows all available init types
-
-- A reasonable error message is provided when user specified an illegal value for an enum property from the command-line.
-- A reasonable error message is provided when user specified an illegal value for an string property from the command-line.
-
-### Implementation approach
-
-- Introduce marker annotation `Option("optionName")` to mark a task property mapped to a commandline option.
-- `@Option` with not provided "optionName" is mapped to option with same name as the annotated field
-- `@Option("optionName")` annotated on Enums includes enum values as possible option values
-- `@Option("optionName")` annotated on boolean includes true/false as possible option values
-- `@Option("optionName")` annotated on a setter method evaluates the available options from the parameter type)
-- Introduce marker annotation `OptionValues("optionName")` to to allow a dynamic value lookup in the task implementation itself.
-- Adapt InitBuild task to use `@OptionValues` to map values for the `--type` command line option.
-- Update the 'using Gradle from the command-line' user guide chapter.
-
 ## Add task validator for task options
 
 ### User visible changes
@@ -173,7 +83,13 @@ When task options that have unsupported option values, will throw an Exception p
 what values are supported.
 
 ### Implementation approach
+
 - Add a task validator that validates a string property has a legal value at execution time.
+
+### Test cases
+
+- A reasonable error message is provided when user specified an illegal value for an enum property from the command-line.
+- A reasonable error message is provided when user specified an illegal value for an string property from the command-line.
 
 ## Support camel-case matching for task commandline property values
 
@@ -220,10 +136,12 @@ TBD
 
 # Open issues
 
-1. Figure out what to do if multiple tasks of different types are selected *and* there are clashing command line options.
+- Figure out what to do if multiple tasks of different types are selected *and* there are clashing command line options.
 For example, 'foo' option that requires a string value in one task type but is a boolean flag in some other task type.
 This is not a blocker because we have very little command line options, yet.
-1. Decide on precedence order if task is configured from the command line and in the build script. Add coverage, etc.
-1. If a method marked with `@Option` accepts varargs or a Collection type as parameter, allow the command-line option to be specified multiple
-   time on the command-line.
-1. Output of `gradle help --task x` provides link to task documentation.
+- Decide on precedence order if task is configured from the command line and in the build script. Add coverage, etc.
+- If a method marked with `@Option` accepts varargs or a Collection type as parameter, allow the command-line option to be specified multiple
+  time on the command-line.
+- Output of `gradle help --task x` provides link to task documentation.
+- Remove the 'chrome' from the output of `gradle help` and other command-line tasks.
+- Remove the `implicitTasks` container from Project.

@@ -21,8 +21,8 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.filestore.GroupedAndNamedUniqueFileStore;
-import org.gradle.api.internal.filestore.PathKeyFileStore;
+import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
+import org.gradle.internal.resource.local.PathKeyFileStore;
 
 public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleVersionArtifactMetaData> {
 
@@ -37,7 +37,7 @@ public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<
         final ResourcePattern resourcePattern = new IvyResourcePattern(pattern);
         return new Transformer<String, ModuleVersionArtifactMetaData>() {
              public String transform(ModuleVersionArtifactMetaData artifact) {
-                 return resourcePattern.toPath(artifact);
+                 return resourcePattern.getLocation(artifact).getPath();
              }
          };
     }

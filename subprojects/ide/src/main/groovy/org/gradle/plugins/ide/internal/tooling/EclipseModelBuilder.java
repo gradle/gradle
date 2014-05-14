@@ -23,10 +23,6 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.util.GUtil;
 
@@ -88,9 +84,9 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         classpath.setProjectDependenciesOnly(projectDependenciesOnly);
         List<ClasspathEntry> entries = classpath.resolveDependencies();
 
-        final List<ExternalDependencyVersion1> externalDependencies = new LinkedList<ExternalDependencyVersion1>();
-        final List<EclipseProjectDependencyVersion2> projectDependencies = new LinkedList<EclipseProjectDependencyVersion2>();
-        final List<EclipseSourceDirectoryVersion1> sourceDirectories = new LinkedList<EclipseSourceDirectoryVersion1>();
+        final List<DefaultEclipseExternalDependency> externalDependencies = new LinkedList<DefaultEclipseExternalDependency>();
+        final List<DefaultEclipseProjectDependency> projectDependencies = new LinkedList<DefaultEclipseProjectDependency>();
+        final List<DefaultEclipseSourceDirectory> sourceDirectories = new LinkedList<DefaultEclipseSourceDirectory>();
 
         for (ClasspathEntry entry : entries) {
             //we don't handle Variables at the moment because users didn't request it yet
@@ -122,7 +118,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         }
         eclipseProject.setLinkedResources(linkedResources);
 
-        List<EclipseTaskVersion1> tasks = new ArrayList<EclipseTaskVersion1>();
+        List<DefaultEclipseTask> tasks = new ArrayList<DefaultEclipseTask>();
         for (Task t : tasksFactory.getTasks(project)) {
             tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
         }

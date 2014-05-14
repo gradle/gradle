@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.PluginContainer;
@@ -34,7 +35,7 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
         return addPluginInternal(getTypeForId(id));
     }
 
-    public <T extends Plugin> T apply(Class<T> type) {
+    public <P extends Plugin> P apply(Class<P> type) {
         return addPluginInternal(type);
     }
 
@@ -54,7 +55,7 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
         }
     }
 
-    public <T extends Plugin> T findPlugin(Class<T> type) {
+    public <P extends Plugin> P findPlugin(Class<P> type) {
         for (Plugin plugin : this) {
             if (plugin.getClass().equals(type)) {
                 return type.cast(plugin);
@@ -63,7 +64,7 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
         return null;
     }
 
-    private <T extends Plugin> T addPluginInternal(Class<T> type) {
+    private <P extends Plugin<?>> P addPluginInternal(Class<P> type) {
         if (findPlugin(type) == null) {
             Plugin plugin = providePlugin(type);
             add(plugin);
@@ -83,11 +84,11 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
         return getPlugin(id);
     }
 
-    public <T extends Plugin> T getAt(Class<T> type) throws UnknownPluginException {
+    public <P extends Plugin> P getAt(Class<P> type) throws UnknownPluginException {
         return getPlugin(type);
     }
 
-    public <T extends Plugin> T getPlugin(Class<T> type) throws UnknownPluginException {
+    public <P extends Plugin> P getPlugin(Class<P> type) throws UnknownPluginException {
         Plugin plugin = findPlugin(type);
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with type " + type + " has not been used.");
@@ -95,12 +96,17 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
         return type.cast(plugin);
     }
 
+    public void withId(String pluginId, Action<Plugin> action) {
+        Class type = getTypeForId(pluginId);
+        withType(type, action);
+    }
+
     protected Class<? extends Plugin> getTypeForId(String id) {
         return pluginRegistry.getTypeForId(id);
     }
 
-    private Plugin<T> providePlugin(Class<? extends Plugin> type) {
-        Plugin<T> plugin = pluginRegistry.loadPlugin(type);
+    private Plugin<T> providePlugin(Class<? extends Plugin<?>> type) {
+        @SuppressWarnings("unchecked") Plugin<T> plugin = (Plugin<T>) pluginRegistry.loadPlugin(type);
         plugin.apply(pluginAware);
         return plugin;
     }

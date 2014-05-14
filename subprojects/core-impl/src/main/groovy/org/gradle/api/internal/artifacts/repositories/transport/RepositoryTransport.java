@@ -15,15 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-
-import java.net.URI;
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
 
 public interface RepositoryTransport {
     ExternalResourceRepository getRepository();
 
-    void configureCacheManager(ExternalResourceResolver resolver);
+    CacheAwareExternalResourceAccessor getResourceAccessor();
 
-    String convertToPath(URI uri);
+    boolean isLocal();
 }

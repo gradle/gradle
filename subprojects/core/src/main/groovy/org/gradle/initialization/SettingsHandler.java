@@ -85,7 +85,7 @@ public class SettingsHandler {
                 BaseSettings.DEFAULT_BUILD_SRC_DIR));
         ClassLoaderScope buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
 
-        return loadSettings(gradle, settingsLocation, buildSourceClassLoader.createRebasedChild(), startParameter);
+        return loadSettings(gradle, settingsLocation, buildSourceClassLoader.createChild().lock(), startParameter);
     }
 
     private SettingsLocation findSettings(StartParameter startParameter) {
@@ -93,8 +93,8 @@ public class SettingsHandler {
     }
 
     private SettingsInternal loadSettings(GradleInternal gradle, SettingsLocation settingsLocation,
-                                          ClassLoaderScope classLoaderScope, StartParameter startParameter) {
-        return settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
+                                          ClassLoaderScope baseClassLoaderScope, StartParameter startParameter) {
+        return settingsProcessor.process(gradle, settingsLocation, baseClassLoaderScope, startParameter);
     }
 }
 

@@ -107,8 +107,8 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     }
 
     def "cleans up stale object files when source file renamed"() {
-        def oldObjFile = objectFile("build/objectFiles/helloSharedLibrary/helloAsm/${hashFor(asmSourceFile)}/sum")
-        def newObjFile = objectFile("build/objectFiles/helloSharedLibrary/helloAsm/${hashFor(file('src/hello/asm/changed_sum.s'))}/changed_sum")
+        def oldObjFile = objectFileFor(asmSourceFile, "build/objectFiles/helloSharedLibrary/helloAsm")
+        def newObjFile = objectFileFor(file('src/hello/asm/changed_sum.s'), "build/objectFiles/helloSharedLibrary/helloAsm")
         assert oldObjFile.file
         assert !newObjFile.file
 

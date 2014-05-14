@@ -18,11 +18,14 @@ package org.gradle.testing.jacoco.tasks
 import org.gradle.api.Incubating
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
+
+import javax.inject.Inject
 
 /**
  * Task to merge multiple execution data files into one.
@@ -41,11 +44,18 @@ class JacocoMerge extends JacocoBase {
     @OutputFile
     File destinationFile
 
+    @Inject
+    protected IsolatedAntBuilder getAntBuilder() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     void merge() {
-        getAnt().taskdef(name: 'jacocoMerge', classname: 'org.jacoco.ant.MergeTask', classpath: getJacocoClasspath().asPath)
-        getAnt().jacocoMerge(destfile: getDestinationFile()) {
-            getExecutionData().addToAntBuilder(ant, 'resources')
+        antBuilder.withClasspath(getJacocoClasspath()).execute {
+            ant.taskdef(name: 'jacocoMerge', classname: 'org.jacoco.ant.MergeTask')
+            ant.jacocoMerge(destfile: getDestinationFile()) {
+                getExecutionData().addToAntBuilder(ant, 'resources')
+            }
         }
     }
 

@@ -18,8 +18,8 @@ package org.gradle.nativebinaries.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.DependentSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.BinaryNamingScheme
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme
+import org.gradle.runtime.base.internal.BinaryNamingScheme
+import org.gradle.runtime.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.resolve.NativeBinaryResolveResult
@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 class ProjectNativeBinaryTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
-    def id = new NativeProjectComponentIdentifier("project", "name")
+    def id = new ProjectNativeComponentIdentifier("project", "name")
     def component = new TestProjectNativeComponent(id)
     def toolChain1 = Stub(ToolChainInternal) {
         getName() >> "ToolChain1"
@@ -122,7 +122,7 @@ class ProjectNativeBinaryTest extends Specification {
 
     def "order of libraries is maintained"() {
         def binary = testBinary(component)
-        def libraryBinary = Mock(LibraryBinary)
+        def libraryBinary = Mock(NativeLibraryBinary)
         def dependency1 = Stub(NativeDependencySet)
         def dependency2 = Stub(NativeDependencySet)
         def dependency3 = Stub(NativeDependencySet)
@@ -180,7 +180,7 @@ class ProjectNativeBinaryTest extends Specification {
     }
 
     class TestProjectNativeComponent extends AbstractProjectNativeComponent {
-        TestProjectNativeComponent(NativeProjectComponentIdentifier id) {
+        TestProjectNativeComponent(ProjectNativeComponentIdentifier id) {
             super(id)
         }
 

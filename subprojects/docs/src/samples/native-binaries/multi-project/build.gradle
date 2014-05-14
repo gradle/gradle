@@ -4,6 +4,12 @@ project(":lib") {
     libraries {
         main {}
     }
+    // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+    binaries.withType(SharedLibraryBinary) {
+        if (toolChain in VisualCpp) {
+            cppCompiler.define "DLL_EXPORT"
+        }
+    }
 }
 
 project(":exe") {

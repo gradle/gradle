@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.LocallyAvailableExternalResource;
 
 import java.io.File;
 

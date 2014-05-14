@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.ResourceException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -35,14 +35,14 @@ public class MavenVersionLister implements VersionLister {
         return new DefaultVersionList() {
             final Set<String> searched = new HashSet<String>();
 
-            public void visit(ResourcePattern resourcePattern, ModuleVersionArtifactMetaData artifact) throws ResourceException {
-                String metadataLocation = resourcePattern.toModulePath(module) + "/maven-metadata.xml";
+            public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
+                String metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml").getUri().toString();
                 if (!searched.add(metadataLocation)) {
                     return;
                 }
                 MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
                 for (String version : mavenMetaData.versions) {
-                    add(new ListedVersion(version, resourcePattern));
+                    add(new ListedVersion(version, pattern));
                 }
             }
         };

@@ -17,6 +17,7 @@
 package org.gradle
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.DefaultTaskParameter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -102,6 +103,7 @@ class StartParameterTest extends Specification {
         parameter.logLevel == LogLevel.LIFECYCLE
         parameter.colorOutput
         parameter.taskNames.empty
+        parameter.taskParameters.empty
         parameter.excludedTaskNames.empty
         parameter.projectProperties.isEmpty()
         parameter.systemPropertiesArgs.isEmpty()
@@ -235,6 +237,22 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
     }
 
+    void "considers system properties for null user home dir"() {
+        def gradleUserHome = tmpDir.file("someGradleUserHomePath")
+        System.setProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHome.absolutePath)
+
+        given:
+        StartParameter parameter = new StartParameter()
+        parameter.gradleUserHomeDir = tmpDir.file("ignore-me")
+
+        when:
+        parameter.gradleUserHomeDir = null
+
+        then:
+        parameter.gradleUserHomeDir == gradleUserHome
+        assertThat(parameter, isSerializable())
+    }
+
     void "creates parameter for new build"() {
         StartParameter parameter = new StartParameter()
 
@@ -276,6 +294,7 @@ class StartParameterTest extends Specification {
         newParameter.recompileScripts == parameter.recompileScripts
 
         newParameter.buildFile == null
+        newParameter.taskParameters.empty
         newParameter.taskNames.empty
         newParameter.excludedTaskNames.empty
         newParameter.currentDir == new File(System.getProperty("user.dir")).getCanonicalFile()
@@ -313,5 +332,34 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.allInitScripts == [userMainInit, userInit1, userInit2, distroInit1, distroInit2]
+    }
+
+    def 'taskNames getter defaults to taskParameters'() {
+        StartParameter parameter = new StartParameter()
+
+        when:
+        parameter.taskParameters = [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+
+        then:
+        parameter.taskNames == [ 'a', 'b' ]
+        parameter.taskParameters == [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+    }
+
+    def 'taskNames setter defaults to taskParameters'() {
+        StartParameter parameter = new StartParameter()
+
+        when:
+        parameter.taskNames = [ 'a', 'b' ]
+
+        then:
+        parameter.taskNames == [ 'a', 'b' ]
+        parameter.taskParameters == [ new DefaultTaskParameter('a'), new DefaultTaskParameter('b') ]
+
+        when:
+        parameter.taskNames = null
+
+        then:
+        parameter.taskNames == []
+        parameter.taskParameters == []
     }
 }

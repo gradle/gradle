@@ -36,9 +36,10 @@ public class DefaultInitScriptProcessor implements InitScriptProcessor {
     }
 
     public void process(final ScriptSource initScript, GradleInternal gradle) {
-        ClassLoaderScope classLoaderScope = gradle.getClassLoaderScope().createSibling();
-        ScriptHandler scriptHandler = scriptHandlerFactory.create(initScript, classLoaderScope);
-        ScriptPlugin configurer = configurerFactory.create(initScript, scriptHandler, classLoaderScope, "initscript", InitScript.class);
+        ClassLoaderScope baseScope = gradle.getClassLoaderScope();
+        ClassLoaderScope scriptScope = baseScope.createSibling();
+        ScriptHandler scriptHandler = scriptHandlerFactory.create(initScript, scriptScope);
+        ScriptPlugin configurer = configurerFactory.create(initScript, scriptHandler, scriptScope, baseScope, "initscript", InitScript.class, false);
         configurer.apply(gradle);
     }
 }

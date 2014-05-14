@@ -3,5 +3,4 @@ ${original}
 test {
     useTestNG()
     maxParallelForks = 2
-    testReport = true
 }

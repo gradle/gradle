@@ -22,31 +22,40 @@ import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.test.cunit.CUnitTestResults
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.GccCompatible
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule public final Sample c = new Sample(temporaryFolder, 'native-binaries/c')
-    @Rule public final Sample assembler = new Sample(temporaryFolder, 'native-binaries/assembler')
-    @Rule public final Sample cpp = new Sample(temporaryFolder, 'native-binaries/cpp')
-    @Rule public final Sample cppLib = new Sample(temporaryFolder, 'native-binaries/cpp-lib')
-    @Rule public final Sample cppExe = new Sample(temporaryFolder, 'native-binaries/cpp-exe')
-    @Rule public final Sample objectiveC = new Sample(temporaryFolder, 'native-binaries/objective-c')
-    @Rule public final Sample objectiveCpp = new Sample(temporaryFolder, 'native-binaries/objective-cpp')
-    @Rule public final Sample customLayout = new Sample(temporaryFolder, 'native-binaries/custom-layout')
-    @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
-    @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
-    @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
-    @Rule public final Sample toolChains = new Sample(temporaryFolder, 'native-binaries/tool-chains')
-    @Rule public final Sample windowsResources = new Sample(temporaryFolder, 'native-binaries/windows-resources')
-    @Rule public final Sample visualStudio = new Sample(temporaryFolder, 'native-binaries/visual-studio')
-    @Rule public final Sample prebuilt = new Sample(temporaryFolder, 'native-binaries/prebuilt')
-    @Rule public final Sample idl = new Sample(temporaryFolder, 'native-binaries/idl')
-    @Rule public final Sample cunit = new Sample(temporaryFolder, 'native-binaries/cunit')
+    @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider()
+    @Rule public final Sample c = sample(testDirProvider, 'c')
+    @Rule public final Sample assembler = sample(testDirProvider, 'assembler')
+    @Rule public final Sample cpp = sample(testDirProvider, 'cpp')
+    @Rule public final Sample cppLib = sample(testDirProvider, 'cpp-lib')
+    @Rule public final Sample cppExe = sample(testDirProvider, 'cpp-exe')
+    @Rule public final Sample objectiveC = sample(testDirProvider, 'objective-c')
+    @Rule public final Sample objectiveCpp = sample(testDirProvider, 'objective-cpp')
+    @Rule public final Sample customLayout = sample(testDirProvider, 'custom-layout')
+    @Rule public final Sample multiProject = sample(testDirProvider, 'multi-project')
+    @Rule public final Sample flavors = sample(testDirProvider, 'flavors')
+    @Rule public final Sample variants = sample(testDirProvider, 'variants')
+    @Rule public final Sample toolChains = sample(testDirProvider, 'tool-chains')
+    @Rule public final Sample windowsResources = sample(testDirProvider, 'windows-resources')
+    @Rule public final Sample visualStudio = sample(testDirProvider, 'visual-studio')
+    @Rule public final Sample prebuilt = sample(testDirProvider, 'prebuilt')
+    @Rule public final Sample idl = sample(testDirProvider, 'idl')
+    @Rule public final Sample cunit = sample(testDirProvider, 'cunit')
+    @Rule public final Sample targetPlatforms = sample(testDirProvider, 'target-platforms')
+
+    private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
+        return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
+    }
 
     def "assembler"() {
         given:
@@ -60,7 +69,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         executedAndNotSkipped ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("native-binaries/assembler/build/install/mainExecutable").exec().out == "5 + 7 = 12\n"
+        installation(assembler.dir.file("build/install/mainExecutable")).exec().out == "5 + 7 = 12\n"
     }
 
     def "c"() {
@@ -75,7 +84,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
                               ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("native-binaries/c/build/install/mainExecutable").exec().out == "Hello world!"
+        installation(c.dir.file("build/install/mainExecutable")).exec().out == "Hello world!"
     }
 
     def "cpp"() {
@@ -90,7 +99,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("native-binaries/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
+        installation(cpp.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -105,7 +114,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         executedAndNotSkipped ":compileMainExecutableMainObjc", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        executable("native-binaries/objective-c/build/binaries/mainExecutable/main").exec().out == "Hello world!\n"
+        executable(objectiveC.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello world!\n"
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -120,7 +129,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         executedAndNotSkipped ":compileMainExecutableMainObjcpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        executable("native-binaries/objective-cpp/build/binaries/mainExecutable/main").exec().out == "Hello world!\n"
+        executable(objectiveCpp.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello world!\n"
     }
 
     def "exe"() {
@@ -138,8 +147,8 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         executedAndNotSkipped ":compileMainExecutableMainCpp", ":linkMainExecutable", ":stripMainExecutable", ":mainExecutable"
 
         and:
-        executable("native-binaries/cpp-exe/build/binaries/mainExecutable/main").exec().out == "Hello, World!\n"
-        installation("native-binaries/cpp-exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
+        executable(cppExe.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello, World!\n"
+        installation(cppExe.dir.file("build/install/mainExecutable")).exec().out == "Hello, World!\n"
 
         cleanup:
         toolChain.resetEnvironment()
@@ -156,7 +165,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         executedAndNotSkipped ":compileMainSharedLibraryMainCpp", ":linkMainSharedLibrary", ":mainSharedLibrary"
 
         and:
-        sharedLibrary("native-binaries/cpp-lib/build/binaries/mainSharedLibrary/main").assertExists()
+        sharedLibrary(cppLib.dir.file("build/binaries/mainSharedLibrary/main")).assertExists()
 
         when:
         sample cppLib
@@ -166,7 +175,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         executedAndNotSkipped ":compileMainStaticLibraryMainCpp", ":createMainStaticLibrary", ":mainStaticLibrary"
 
         and:
-        staticLibrary("native-binaries/cpp-lib/build/binaries/mainStaticLibrary/main").assertExists()
+        staticLibrary(cppLib.dir.file("build/binaries/mainStaticLibrary/main")).assertExists()
     }
 
 
@@ -184,14 +193,14 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("native-binaries/windows-resources/build/install/mainExecutable").exec().out == "Hello world!\n"
+        installation(windowsResources.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
 
         when:
         executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
         run "helloResSharedLibrary"
 
         then:
-        file("native-binaries/windows-resources/build/binaries/helloResSharedLibrary/helloRes.dll").assertExists()
+        file(windowsResources.dir.file("build/binaries/helloResSharedLibrary/helloRes.dll")).assertExists()
     }
 
     def "custom layout"() {
@@ -206,7 +215,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
                               ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("native-binaries/custom-layout/build/install/mainExecutable").exec().out == "Hello world!"
+        installation(customLayout.dir.file("build/install/mainExecutable")).exec().out == "Hello world!"
     }
 
     def flavors() {
@@ -219,11 +228,11 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         executedAndNotSkipped ":compileEnglishMainExecutableExeCpp", ":linkEnglishMainExecutable", ":englishMainExecutable"
 
         and:
-        executable("native-binaries/flavors/build/binaries/mainExecutable/english/main").assertExists()
-        sharedLibrary("native-binaries/flavors/build/binaries/helloSharedLibrary/english/hello").assertExists()
+        executable(flavors.dir.file("build/binaries/mainExecutable/english/main")).assertExists()
+        sharedLibrary(flavors.dir.file("build/binaries/helloSharedLibrary/english/hello")).assertExists()
 
         and:
-        installation("native-binaries/flavors/build/install/mainExecutable/english").exec().out == "Hello world!\n"
+        installation(flavors.dir.file("build/install/mainExecutable/english")).exec().out == "Hello world!\n"
 
         when:
         sample flavors
@@ -234,25 +243,25 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         executedAndNotSkipped ":compileFrenchMainExecutableExeCpp", ":linkFrenchMainExecutable", ":frenchMainExecutable"
 
         and:
-        executable("native-binaries/flavors/build/binaries/mainExecutable/french/main").assertExists()
-        sharedLibrary("native-binaries/flavors/build/binaries/helloSharedLibrary/french/hello").assertExists()
+        executable(flavors.dir.file("build/binaries/mainExecutable/french/main")).assertExists()
+        sharedLibrary(flavors.dir.file("build/binaries/helloSharedLibrary/french/hello")).assertExists()
 
         and:
-        installation("native-binaries/flavors/build/install/mainExecutable/french").exec().out == "Bonjour monde!\n"
+        installation(flavors.dir.file("build/install/mainExecutable/french")).exec().out == "Bonjour monde!\n"
     }
 
     def variants() {
         when:
         sample variants
-        run "buildExecutables"
+        run "assemble"
 
         then:
-        final debugX86 = executable("native-binaries/variants/build/binaries/mainExecutable/x86Debug/main")
-        final releaseX86 = executable("native-binaries/variants/build/binaries/mainExecutable/x86Release/main")
-        final debugX64 = executable("native-binaries/variants/build/binaries/mainExecutable/x64Debug/main")
-        final releaseX64 = executable("native-binaries/variants/build/binaries/mainExecutable/x64Release/main")
-        final debugIA64 = executable("native-binaries/variants/build/binaries/mainExecutable/itaniumDebug/main")
-        final releaseIA64 = executable("native-binaries/variants/build/binaries/mainExecutable/itaniumRelease/main")
+        final debugX86 = executable(variants.dir.file("build/binaries/mainExecutable/x86Debug/main"))
+        final releaseX86 = executable(variants.dir.file("build/binaries/mainExecutable/x86Release/main"))
+        final debugX64 = executable(variants.dir.file("build/binaries/mainExecutable/x64Debug/main"))
+        final releaseX64 = executable(variants.dir.file("build/binaries/mainExecutable/x64Release/main"))
+        final debugIA64 = executable(variants.dir.file("build/binaries/mainExecutable/itaniumDebug/main"))
+        final releaseIA64 = executable(variants.dir.file("build/binaries/mainExecutable/itaniumRelease/main"))
 
         debugX86.binaryInfo.arch.name == "x86"
         debugX86.assertDebugFileExists()
@@ -276,6 +285,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         releaseIA64.assertDoesNotExist()
     }
 
+
     def "tool chains"() {
         given:
         sample toolChains
@@ -284,7 +294,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         run "installMainExecutable"
 
         then:
-        executable("native-binaries/tool-chains/build/binaries/mainExecutable/main").exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
+        executable(toolChains.dir.file("build/binaries/mainExecutable/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
     }
 
     def multiProject() {
@@ -298,9 +308,24 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         ":exe:mainExecutable" in executedTasks
 
         and:
-        sharedLibrary("native-binaries/multi-project/lib/build/binaries/mainSharedLibrary/main").assertExists()
-        executable("native-binaries/multi-project/exe/build/binaries/mainExecutable/main").assertExists()
-        installation("native-binaries/multi-project/exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
+        sharedLibrary(multiProject.dir.file("lib/build/binaries/mainSharedLibrary/main")).assertExists()
+        executable(multiProject.dir.file("exe/build/binaries/mainExecutable/main")).assertExists()
+        installation(multiProject.dir.file("exe/build/install/mainExecutable")).exec().out == "Hello, World!\n"
+    }
+
+    @RequiresInstalledToolChain(GccCompatible)
+    def "target platforms"() {
+        given:
+        sample targetPlatforms
+
+        when:
+        run "installArmMainExecutable", "installSparcMainExecutable"
+
+        then:
+        executable(targetPlatforms.dir.file("build/binaries/mainExecutable/arm/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
+        executable(targetPlatforms.dir.file("build/binaries/mainExecutable/arm/main")).binaryInfo.arch.isI386()
+
+        executable(targetPlatforms.dir.file("build/binaries/mainExecutable/sparc/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
     }
 
     def "visual studio"() {
@@ -323,13 +348,13 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     def prebuilt() {
         given:
         inDirectory(prebuilt.dir.file("3rd-party-lib/util"))
-        run "buildLibraries"
+        run "assemble"
 
         and:
         sample prebuilt
 
         when:
-        succeeds "buildExecutables"
+        succeeds "assemble"
 
         then:
 
@@ -355,7 +380,7 @@ Util build type: RELEASE
                               ":linkMainExecutable", ":mainExecutable"
 
         and:
-        installation("native-binaries/idl/build/install/mainExecutable").exec().out == "Hello from generated source!!\n"
+        installation(idl.dir.file("build/install/mainExecutable")).exec().out == "Hello from generated source!!\n"
     }
 
     def "cunit"() {
@@ -376,7 +401,7 @@ Util build type: RELEASE
                               ":installPassingOperatorsTestCUnitExe", ":runPassingOperatorsTestCUnitExe"
 
         and:
-        def passingResults = new CUnitTestResults(file("native-binaries/cunit/build/test-results/operatorsTestCUnitExe/passing/CUnitAutomated-Results.xml"))
+        def passingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTestCUnitExe/passing/CUnitAutomated-Results.xml"))
         passingResults.suiteNames == ['operator tests']
         passingResults.suites['operator tests'].passingTests == ['test_plus', 'test_minus']
         passingResults.suites['operator tests'].failingTests == []
@@ -394,7 +419,7 @@ Util build type: RELEASE
                               ":installFailingOperatorsTestCUnitExe", ":runFailingOperatorsTestCUnitExe"
 
         and:
-        def failingResults = new CUnitTestResults(file("native-binaries/cunit/build/test-results/operatorsTestCUnitExe/failing/CUnitAutomated-Results.xml"))
+        def failingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTestCUnitExe/failing/CUnitAutomated-Results.xml"))
         failingResults.suiteNames == ['operator tests']
         failingResults.suites['operator tests'].passingTests == ['test_minus']
         failingResults.suites['operator tests'].failingTests == ['test_plus']

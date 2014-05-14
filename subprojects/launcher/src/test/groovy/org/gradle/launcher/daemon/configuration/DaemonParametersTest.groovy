@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.configuration
 
-import org.gradle.StartParameter
 import org.gradle.initialization.BuildLayoutParameters
 import spock.lang.Specification
 
@@ -37,7 +36,7 @@ class DaemonParametersTest extends Specification {
     void assertDefaultValues() {
         assert !parameters.enabled
         assert parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
-        def baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon")
+        def baseDir = new File(new BuildLayoutParameters().getGradleUserHomeDir(), "daemon")
         assert parameters.baseDir == baseDir
         assert parameters.systemProperties.isEmpty()
         assert parameters.effectiveJvmArgs.containsAll(parameters.defaultJvmArgs)

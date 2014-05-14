@@ -17,13 +17,14 @@ package org.gradle.tooling.internal.protocol.eclipse;
 
 import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
+import org.gradle.tooling.internal.protocol.ProjectVersion3;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 1.0-milestone-3
  */
-public interface EclipseProjectVersion3 extends HierarchicalEclipseProjectVersion1, BuildableProjectVersion1 {
+public interface EclipseProjectVersion3 extends HierarchicalEclipseProjectVersion1, BuildableProjectVersion1, ProjectVersion3 {
     EclipseProjectVersion3 getParent();
 
     Iterable<? extends EclipseTaskVersion1> getTasks();

@@ -367,6 +367,38 @@ class RegexBackedCSourceParserTest extends Specification {
         directive << ["include", "import"]
     }
 
+    def "ignores badly formed directives"() {
+        when:
+        sourceFile << """
+include
+#
+# include
+# import
+
+void # include <thing>
+
+#import <
+
+# inklude <thing.h>
+
+#import thing.h
+#import thing.h"
+#import "thing.h>
+#include <thing.h
+#include "thing.h
+
+#include
+<thing.h>
+
+#include 'thing.h' extra stuff
+
+"""
+
+        then:
+        noIncludes()
+        noImports()
+    }
+
     def "detects imports with line=continuation"() {
         when:
         sourceFile << """

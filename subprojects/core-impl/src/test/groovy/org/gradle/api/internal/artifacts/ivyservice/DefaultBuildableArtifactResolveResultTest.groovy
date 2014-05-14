@@ -15,14 +15,64 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice
-
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier
 import spock.lang.Specification
 
 class DefaultBuildableArtifactResolveResultTest extends Specification {
     final result = new DefaultBuildableArtifactResolveResult()
+    final artifactFile = Mock(File)
+    final artifactId = Mock(ComponentArtifactIdentifier)
+
+    def "has no result by default"() {
+        expect:
+        !result.hasResult()
+    }
+
+    def "can have artifact result"() {
+        when:
+        result.resolved(artifactFile)
+
+        then:
+        result.file == artifactFile
+        result.failure == null
+        result.hasResult()
+    }
+
+    def "can have missing result"() {
+        when:
+        result.notFound(artifactId)
+
+        then:
+        result.failure instanceof ArtifactNotFoundException
+        result.hasResult()
+
+        when:
+        result.file
+
+        then:
+        def e = thrown(ArtifactNotFoundException)
+        result.failure == e
+    }
+
+    def "can have failure result"() {
+        def failure = new ArtifactResolveException("broken")
+
+        when:
+        result.failed(failure)
+
+        then:
+        result.failure == failure
+        result.hasResult()
+
+        when:
+        result.file
+
+        then:
+        ArtifactResolveException e = thrown()
+        e == failure
+    }
 
     def "cannot get file when no result specified"() {
         when:
@@ -52,13 +102,5 @@ class DefaultBuildableArtifactResolveResultTest extends Specification {
         then:
         ArtifactResolveException e = thrown()
         e == failure
-    }
-
-    def "fails with not found exception when artifact not found"() {
-        when:
-        result.notFound(Stub(ModuleVersionArtifactIdentifier))
-
-        then:
-        result.failure instanceof ArtifactNotFoundException
     }
 }

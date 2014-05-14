@@ -15,15 +15,15 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
+import org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
-import spock.lang.Ignore
 
 @RequiresInstalledToolChain
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
@@ -36,74 +36,49 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
             executables {
                 main {}
             }
-            libraries {
-                hello {}
-            }
-            sources.main.cpp.lib libraries.hello
         """
 
-        helloWorld.executable.writeSources(file("src/main"))
-        helloWorld.library.writeSources(file("src/hello"))
-    }
-
-    // TODO:DAZ Test building for 2 platforms that require different tool chains
-    @Ignore
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "can build with all multiple tool chains"() {
-        List<AvailableToolChains.InstalledToolChain> installedToolChains = []
-        for (AvailableToolChains.ToolChainCandidate toolChainCandidate : AvailableToolChains.getToolChains()) {
-            if (toolChainCandidate.isAvailable()) {
-                installedToolChains << toolChainCandidate
-            }
-        }
-
-        def toolChainConfig = installedToolChains.collect({it.buildScriptConfig}).join("\n")
-
-        when:
-        buildFile << """
-            model {
-                toolChains {
-                    ${toolChainConfig}
-                    unavailable(Gcc) {
-                        linker.executable = "does_not_exist"
-                    }
-                }
-            }
-
-"""
-
-        then:
-        def tasks = installedToolChains.collect { "install${it.id.capitalize()}MainExecutable" }
-        succeeds tasks as String[]
-
-        and:
-        installedToolChains.each { toolChain ->
-            checkInstall("build/install/mainExecutable/${toolChain.id}/main", toolChain)
-        }
-    }
-
-    def "exception when building with unavailable tool chain"() {
-        when:
-        buildFile << """
-            model {
-                toolChains {
-                    bad(Gcc) {
-                        cCompiler.executable = "does_not_exist"
-                        cppCompiler.executable = "does_not_exist"
-                    }
-                }
-            }
-"""
-
         helloWorld.writeSources(file("src/main"))
+    }
+
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @RequiresInstalledToolChain(ToolChainRequirement.Gcc)
+    def "can build with multiple tool chains"() {
+        AvailableToolChains.InstalledToolChain x86ToolChain = OperatingSystem.current().isWindows() ?
+                AvailableToolChains.getToolChain(ToolChainRequirement.VisualCpp) :
+                AvailableToolChains.getToolChain(ToolChainRequirement.Clang)
+        AvailableToolChains.InstalledToolChain sparcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.Gcc)
+
+        when:
+        buildFile << """
+            model {
+                platforms {
+                    i386 {
+                        architecture "i386"
+                    }
+                    sparc {
+                        architecture "sparc"
+                    }
+                }
+                toolChains {
+                    ${x86ToolChain.buildScriptConfig}
+                    ${sparcToolChain.buildScriptConfig}
+                    ${sparcToolChain.id} {
+                        target("sparc")
+                    }
+                }
+            }
+
+"""
 
         then:
-        fails "mainExecutable"
+        succeeds 'i386MainExecutable', 'sparcMainExecutable'
 
         and:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause(TextUtil.toPlatformLineSeparators("""No tool chain is available to build for platform 'current':
-  - Tool chain 'bad' (GNU GCC): """))
+        def i386Exe = x86ToolChain.executable(file("build/binaries/mainExecutable/i386/main"))
+        assert i386Exe.exec().out == helloWorld.expectedOutput(x86ToolChain)
+        def sparcExe = sparcToolChain.executable(file("build/binaries/mainExecutable/sparc/main"))
+        assert sparcExe.exec().out == helloWorld.expectedOutput(sparcToolChain)
     }
 
     def checkInstall(String path, AvailableToolChains.InstalledToolChain toolChain) {

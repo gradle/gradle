@@ -19,10 +19,10 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.internal.ErroringAction;
-import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.resource.ResourceException;
-import org.gradle.api.internal.resource.ResourceNotFoundException;
+import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -30,6 +30,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 class MavenMetadataLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenMetadataLoader.class);
@@ -53,7 +54,7 @@ class MavenMetadataLoader {
     }
 
     private void parseMavenMetadataInfo(final String metadataLocation, final MavenMetadata metadata) throws Exception {
-        final ExternalResource resource = repository.getResource(metadataLocation);
+        ExternalResource resource = repository.getResource(URI.create(metadataLocation));
         if (resource == null) {
             throw new ResourceNotFoundException(String.format("Maven meta-data not available: %s", metadataLocation));
         }

@@ -16,13 +16,11 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.api.internal.tasks.compile.ArgWriter;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,16 +29,22 @@ import java.util.List;
 import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
 class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
-    private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
+    private final ArgsTransformer<StaticLibraryArchiverSpec> args;
+    private final CommandLineToolInvocation baseInvocation;
 
-    public LibExeStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool) {
-        this.commandLineTool = commandLineTool
-                .withArguments(new OptionsFileArgsTransformer<StaticLibraryArchiverSpec>(ArgWriter.windowsStyleFactory(), new LibExeSpecToArguments()
-        ));
+    public LibExeStaticLibraryArchiver(CommandLineTool commandLineTool, CommandLineToolInvocation invocation) {
+        args = new LibExeSpecToArguments();
+        this.commandLineTool = commandLineTool;
+        this.baseInvocation = invocation;
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
-        return commandLineTool.execute(spec);
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
+        invocation.setArgs(args.transform(spec));
+        commandLineTool.execute(invocation);
+        return new SimpleWorkResult(true);
     }
 
     private static class LibExeSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {

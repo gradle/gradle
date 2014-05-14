@@ -17,13 +17,16 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.resolution.JvmLibraryArtifact
+import org.gradle.api.artifacts.result.Artifact
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.test.fixtures.file.TestFile
+
 /**
  * A test fixture that injects a task into a build that uses the Artifact Query API to download some artifacts, validating the results.
  */
@@ -48,7 +51,7 @@ class JvmLibraryArtifactResolveTestFixture {
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture requestingTypes(Class<? extends JvmLibraryArtifact>... artifactTypes) {
+    JvmLibraryArtifactResolveTestFixture requestingTypes(Class<? extends Artifact>... artifactTypes) {
         this.artifactTypes = artifactTypes as List
         this
     }
@@ -106,6 +109,14 @@ class JvmLibraryArtifactResolveTestFixture {
      * Injects the appropriate stuff into the build script.
      */
     void prepare() {
+        buildFile << """
+configurations {
+    ${config}
+}
+dependencies {
+    ${config} "${id.group}:${id.module}:${id.version}"
+}
+"""
         if (unresolvedComponentFailure != null) {
             prepareComponentNotFound()
         } else {
@@ -113,57 +124,70 @@ class JvmLibraryArtifactResolveTestFixture {
         }
     }
 
-    void createVerifyTask(def taskName) {
+    void createVerifyTask(String taskName) {
         buildFile << """
 task $taskName << {
-    def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
+    def deps = configurations.${config}.incoming.resolutionResult.allDependencies as List
     assert deps.size() == 1
     def componentId = deps[0].selected.id
 
     def result = dependencies.createArtifactResolutionQuery()
         .forComponents(deps[0].selected.id)
-        .withArtifacts(JvmLibrary$artifactTypesString)
+        .withArtifacts(JvmLibraryComponent, $artifactTypesString)
         .execute()
 
     assert result.components.size() == 1
-    def jvmLibrary = result.components.iterator().next()
-    assert jvmLibrary.id.group == "${id.group}"
-    assert jvmLibrary.id.module == "${id.module}"
-    assert jvmLibrary.id.version == "${id.version}"
-    assert jvmLibrary instanceof JvmLibrary
 
-    def sourceArtifactFiles = []
-    jvmLibrary.sourcesArtifacts.each { artifact ->
-        assert artifact instanceof JvmLibrarySourcesArtifact
-        if (artifact.failure != null) {
-            ${checkException("artifact.failure", expectedSourceFailure)}
-        } else {
-            copy {
-                from artifact.file
-                into "sources"
-            }
-            sourceArtifactFiles << artifact.file.name
-        }
-    }
-    assert sourceArtifactFiles as Set == ${toQuotedList(expectedSources)} as Set
+    // Check generic component result
+    def componentResult = result.components.iterator().next()
+    assert componentResult.id.displayName == "${id.displayName}"
+    assert componentResult instanceof ResolvedComponentArtifactsResult
 
-    def javadocArtifactFiles = []
-    jvmLibrary.javadocArtifacts.each { artifact ->
-        assert artifact instanceof JvmLibraryJavadocArtifact
-        if (artifact.failure != null) {
-            ${checkException("artifact.failure", expectedJavadocFailure)}
-        } else {
-            copy {
-                from artifact.file
-                into "javadoc"
-            }
-            javadocArtifactFiles << artifact.file.name
-        }
-    }
-    assert javadocArtifactFiles as Set == ${toQuotedList(expectedJavadoc)} as Set
+    ${checkComponentResultArtifacts("componentResult", "sources", expectedSources, expectedSourceFailure)}
+    ${checkComponentResultArtifacts("componentResult", "javadoc", expectedJavadoc, expectedJavadocFailure)}
 
-    assert result.unresolvedComponents.empty
+    // Check JvmLibraryComponent component type
+    def jvmLibraries = result.getResolvedComponents(JvmLibraryComponent)
+    assert jvmLibraries.size() == 1
+    def jvmLibrary = jvmLibraries.iterator().next()
+    assert componentResult.id == jvmLibrary.id
+
+    ${checkJvmLibraryArtifacts("jvmLibrary", "sources", expectedSources, expectedSourceFailure)}
+    ${checkJvmLibraryArtifacts("jvmLibrary", "javadoc", expectedJavadoc, expectedJavadocFailure)}
 }
+"""
+    }
+
+    private static String checkComponentResultArtifacts(String componentResult, String type, def expectedFiles, def expectedFailure) {
+        """
+    def ${type}ArtifactResultFiles = []
+    ${componentResult}.getArtifacts(${type.capitalize()}Artifact).each { artifactResult ->
+        if (artifactResult instanceof ResolvedArtifactResult) {
+            ${type}ArtifactResultFiles << artifactResult.file.name
+        } else {
+            ${checkException("artifactResult.failure", expectedFailure)}
+        }
+    }
+    assert ${type}ArtifactResultFiles as Set == ${toQuotedList(expectedFiles)} as Set
+"""
+    }
+
+    private static String checkJvmLibraryArtifacts(String jvmLibrary, String type, def expectedFiles, def expectedFailure) {
+        """
+    def ${type}ArtifactFiles = []
+    ${jvmLibrary}.${type}Artifacts.each { artifact ->
+        assert artifact instanceof ${type.capitalize()}Artifact
+        if (artifact.failure != null) {
+            ${checkException("artifact.failure", expectedFailure)}
+        } else {
+            copy {
+                from artifact.file
+                into "${type}"
+            }
+            ${type}ArtifactFiles << artifact.file.name
+        }
+    }
+    assert ${type}ArtifactFiles as Set == ${toQuotedList(expectedFiles)} as Set
 """
     }
 
@@ -171,10 +195,16 @@ task $taskName << {
         if (expected == null) {
             return "throw $reference"
         }
-        return """
+        String check = """
     assert ${reference} instanceof ${expected.class.name}
     assert ${reference}.message == "${expected.message}"
 """
+        if (expected.cause != null) {
+            check += """
+    assert ${reference}.cause.message =~ "${expected.cause.message}"
+"""
+        }
+        return check
     }
 
     private static String toQuotedList(def values) {
@@ -187,28 +217,26 @@ task verify << {
     def unknownComponentId = [getGroup: {'${id.group}'}, getModule: {'${id.module}'}, getVersion: {'${id.version}'}, getDisplayName: {'unknown'}] as ModuleComponentIdentifier
     def result = dependencies.createArtifactResolutionQuery()
         .forComponents(unknownComponentId)
-        .withArtifacts(JvmLibrary$artifactTypesString)
+        .withArtifacts(JvmLibraryComponent, $artifactTypesString)
         .execute()
 
-    assert result.components.empty
-    assert result.unresolvedComponents.size() == 1
-    for (component in result.unresolvedComponents) {
-        assert component.id.group == "${id.group}"
-        assert component.id.module == "${id.module}"
-        assert component.id.version == "${id.version}"
-        assert component.id.displayName == 'unknown'
-        ${checkException("component.failure", unresolvedComponentFailure)}
-    }
+    assert result.components.size() == 1
+    def component = result.components.iterator().next()
+    assert component instanceof UnresolvedComponentResult
+    assert component.id.group == "${id.group}"
+    assert component.id.module == "${id.module}"
+    assert component.id.version == "${id.version}"
+    assert component.id.displayName == 'unknown'
+    ${checkException("component.failure", unresolvedComponentFailure)}
 }
 """
     }
 
     private String getArtifactTypesString() {
-        def artifactTypesString = ""
-        for (Class<? extends JvmLibraryArtifact> type : artifactTypes) {
-            artifactTypesString += ", ${type.simpleName}"
+        if (artifactTypes.empty) {
+            return [SourcesArtifact, JavadocArtifact].collect({it.simpleName}).join(',')
         }
-        return artifactTypesString
+        return artifactTypes.collect({ it.simpleName }).join(',')
     }
 }
 

@@ -16,16 +16,13 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.tooling.internal.protocol.InternalIdeaProject;
-import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
 
-public class DefaultIdeaProject implements InternalIdeaProject, Serializable {
+public class DefaultIdeaProject implements Serializable {
     private String name;
     private String description;
     private Collection<DefaultIdeaModule> children = new LinkedList<DefaultIdeaModule>();
@@ -68,16 +65,8 @@ public class DefaultIdeaProject implements InternalIdeaProject, Serializable {
         return this;
     }
 
-    public HierarchicalElement getParent() {
+    public Object getParent() {
         return null;
-    }
-
-    public File getProjectDirectory() {
-        throw new UnsupportedOperationException("This method should not be used.");
-    }
-
-    public String getPath() {
-        throw new UnsupportedOperationException("This method should not be used.");
     }
 
     public DefaultIdeaProject setChildren(Collection<? extends DefaultIdeaModule> children) {

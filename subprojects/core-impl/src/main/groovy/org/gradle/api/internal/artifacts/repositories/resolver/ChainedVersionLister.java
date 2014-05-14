@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.resource.ResourceException;
-import org.gradle.api.internal.resource.ResourceNotFoundException;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
+import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public class ChainedVersionLister implements VersionLister {
             versionLists.add(lister.getVersionList(module));
         }
         return new AbstractVersionList() {
-            public void visit(ResourcePattern pattern, ModuleVersionArtifactMetaData artifact) throws ResourceException {
+            public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
                 final Iterator<VersionList> versionListIterator = versionLists.iterator();
                 while (versionListIterator.hasNext()) {
                     VersionList list = versionListIterator.next();

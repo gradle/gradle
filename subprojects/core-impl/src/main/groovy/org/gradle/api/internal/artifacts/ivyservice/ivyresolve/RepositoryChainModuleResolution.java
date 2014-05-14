@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 class RepositoryChainModuleResolution implements Versioned {
-    public final ModuleVersionRepository repository;
+    public final ModuleComponentRepository repository;
     public final MutableModuleVersionMetaData module;
     public final ModuleSource moduleSource;
 
-    public RepositoryChainModuleResolution(ModuleVersionRepository repository, MutableModuleVersionMetaData module, ModuleSource moduleSource) {
+    public RepositoryChainModuleResolution(ModuleComponentRepository repository, MutableModuleVersionMetaData module, ModuleSource moduleSource) {
         this.repository = repository;
         this.module = module;
         this.moduleSource = moduleSource;

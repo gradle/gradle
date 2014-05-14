@@ -16,25 +16,31 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinaryContainer;
-import org.gradle.language.base.internal.BinaryInternal;
-import org.gradle.language.base.internal.DefaultBinaryContainer;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
+import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.ProjectBinary;
+import org.gradle.runtime.base.internal.BinaryInternal;
+import org.gradle.runtime.base.internal.DefaultBinaryContainer;
+import org.gradle.runtime.base.internal.DefaultProjectComponentContainer;
 
 import javax.inject.Inject;
 
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.language.base.BinaryContainer} named {@code binaries} to the project.
+ * Adds a {@link org.gradle.runtime.base.ProjectComponentContainer} named {@code softwareComponents} to the project.
+ * Adds a {@link org.gradle.runtime.base.BinaryContainer} named {@code binaries} to the project.
  * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
+ *
+ * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
-    public static final String BUILD_GROUP = "build";
 
     private final Instantiator instantiator;
     private final ModelRules modelRules;
@@ -46,6 +52,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     public void apply(final Project target) {
+        // TODO:DAZ Rename to 'components' and merge with Project.components
+        target.getExtensions().create("softwareComponents", DefaultProjectComponentContainer.class, instantiator);
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
         final BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
 
@@ -54,14 +62,27 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 return binaries;
             }
         });
+        modelRules.rule(new AttachBinariesToLifecycle());
 
         binaries.withType(BinaryInternal.class).all(new Action<BinaryInternal>() {
             public void execute(BinaryInternal binary) {
                 Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
-                binaryLifecycleTask.setGroup(BUILD_GROUP);
+                binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                 binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
-                binary.setLifecycleTask(binaryLifecycleTask);
+                binary.setBuildTask(binaryLifecycleTask);
             }
         });
+    }
+
+    private static class AttachBinariesToLifecycle extends ModelRule {
+        @SuppressWarnings("UnusedDeclaration")
+        void attach(TaskContainer tasks, BinaryContainer binaries) {
+            Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
+            for (ProjectBinary binary : binaries.withType(ProjectBinary.class)) {
+                if (binary.isBuildable()) {
+                    assembleTask.dependsOn(binary);
+                }
+            }
+        }
     }
 }

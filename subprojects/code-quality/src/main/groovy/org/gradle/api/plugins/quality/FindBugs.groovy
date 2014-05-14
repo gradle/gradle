@@ -129,12 +129,18 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     @Nested
     private final FindBugsReportsImpl reports
 
-    private final Factory<WorkerProcessBuilder> workerFactory
+    FindBugs() {
+        reports = instantiator.newInstance(FindBugsReportsImpl, this)
+    }
 
     @Inject
-    FindBugs(Instantiator instantiator, Factory<WorkerProcessBuilder> workerFactory) {
-        reports = instantiator.newInstance(FindBugsReportsImpl, this)
-        this.workerFactory = workerFactory
+    Instantiator getInstantiator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -176,7 +182,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
         logging.captureStandardOutput(LogLevel.DEBUG)
         logging.captureStandardError(LogLevel.DEBUG)
 
-        FindBugsResult result = manager.runWorker(getProject().getProjectDir(), workerFactory, getFindbugsClasspath(), spec)
+        FindBugsResult result = manager.runWorker(getProject().getProjectDir(), workerProcessBuilderFactory, getFindbugsClasspath(), spec)
         evaluateResult(result);
     }
 

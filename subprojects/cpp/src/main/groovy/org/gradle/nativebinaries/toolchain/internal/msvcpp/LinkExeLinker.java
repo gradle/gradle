@@ -16,14 +16,13 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.api.internal.tasks.compile.ArgWriter;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,17 +32,24 @@ import static org.gradle.nativebinaries.toolchain.internal.msvcpp.EscapeUserArgs
 
 class LinkExeLinker implements Compiler<LinkerSpec> {
 
-    private final CommandLineTool<LinkerSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
+    private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
+    private final ArgsTransformer<LinkerSpec> argsTransformer;
+    private final CommandLineToolInvocation baseInvocation;
 
-    public LinkExeLinker(CommandLineTool<LinkerSpec> commandLineTool) {
-        this.commandLineTool = commandLineTool
-                .withArguments(new OptionsFileArgsTransformer<LinkerSpec>(
-                ArgWriter.windowsStyleFactory(), new LinkerArgsTransformer()
-        ));
+    public LinkExeLinker(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
+        argsTransformer = new LinkerArgsTransformer();
+        this.commandLineTool = commandLineTool;
+        this.baseInvocation = invocation;
+        this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        return commandLineTool.execute(spec);
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
+        invocation.setArgs(argsTransformer.transform(specTransformer.transform(spec)));
+        commandLineTool.execute(invocation);
+        return new SimpleWorkResult(true);
     }
 
     private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {

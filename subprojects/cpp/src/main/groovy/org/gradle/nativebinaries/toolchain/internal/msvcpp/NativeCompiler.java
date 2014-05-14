@@ -16,44 +16,51 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.internal.tasks.compile.ArgWriter;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.SingleSourceCompileArgTransformer;
+import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.nativebinaries.toolchain.internal.gcc.ShortCircuitArgsTransformer;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
-abstract public class NativeCompiler<T extends NativeCompileSpec> implements org.gradle.api.internal.tasks.compile.Compiler<T> {
+abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
-    private final CommandLineTool<T> commandLineTool;
-    private final OptionsFileArgsTransformer<T> argsTransFormer;
+    private final CommandLineTool commandLineTool;
+    private final ArgsTransformer<T> argsTransFormer;
+    private final Transformer<T, T> specTransformer;
+    private final CommandLineToolInvocation baseInvocation;
 
-    NativeCompiler(CommandLineTool<T> commandLineTool, ArgsTransformer<T> argsTransFormer) {
-        this.argsTransFormer = new OptionsFileArgsTransformer<T>(
-                        ArgWriter.windowsStyleFactory(),
-                        argsTransFormer);
+    NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, ArgsTransformer<T> argsTransFormer, Transformer<T, T> specTransformer) {
+        this.argsTransFormer = argsTransFormer;
         this.commandLineTool = commandLineTool;
+        this.baseInvocation = invocation;
+        this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(T spec) {
-        boolean didWork = false;
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
+
+        Transformer<List<String>, File> outputFileArgTransformer = new Transformer<List<String>, File>(){
+            public List<String> transform(File outputFile) {
+                return Arrays.asList("/Fo"+ outputFile.getAbsolutePath());
+            }
+        };
         for (File sourceFile : spec.getSourceFiles()) {
-            String objectFileName = FilenameUtils.removeExtension(sourceFile.getName()) + ".obj";
-            WorkResult result = commandLineTool.inWorkDirectory(spec.getObjectFileDir())
-                    .withArguments(new SingleSourceCompileArgTransformer<T>(sourceFile,
-                                                                            objectFileName,
-                                                                            new ShortCircuitArgsTransformer<T>(argsTransFormer),
-                                                                            true,
-                                                                            true))
-                    .execute(spec);
-            didWork = didWork || result.getDidWork();
+            String objectFileNameSuffix = ".obj";
+            SingleSourceCompileArgTransformer<T> argTransformer = new SingleSourceCompileArgTransformer<T>(sourceFile,
+                    objectFileNameSuffix,
+                    new ShortCircuitArgsTransformer<T>(argsTransFormer),
+                    true,
+                    outputFileArgTransformer);
+            invocation.setArgs(argTransformer.transform(specTransformer.transform(spec)));
+            invocation.setWorkDirectory(spec.getObjectFileDir());
+            commandLineTool.execute(invocation);
         }
-        return new SimpleWorkResult(didWork);
+        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 }

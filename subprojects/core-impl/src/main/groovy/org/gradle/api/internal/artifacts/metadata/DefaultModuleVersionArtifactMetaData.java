@@ -31,6 +31,10 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
         this(new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifact));
     }
 
+    public DefaultModuleVersionArtifactMetaData(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
+        this(new DefaultModuleVersionArtifactIdentifier(componentIdentifier, artifact));
+    }
+
     public DefaultModuleVersionArtifactMetaData(ModuleVersionArtifactIdentifier moduleVersionArtifactIdentifier) {
         this.id = (DefaultModuleVersionArtifactIdentifier) moduleVersionArtifactIdentifier;
     }

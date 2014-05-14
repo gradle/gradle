@@ -16,32 +16,64 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ClientModule;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
+import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.internal.Transformers;
+
+import java.util.List;
 
 public class ClientModuleResolver implements DependencyToModuleVersionResolver {
     private final DependencyToModuleVersionResolver resolver;
+    private final DependencyDescriptorFactory dependencyDescriptorFactory;
+    private final Transformer<MutableModuleVersionMetaData, ComponentMetaData> toModuleVersionMetaData = Transformers.cast(MutableModuleVersionMetaData.class);
 
-    public ClientModuleResolver(DependencyToModuleVersionResolver resolver) {
+    public ClientModuleResolver(DependencyToModuleVersionResolver resolver, DependencyDescriptorFactory dependencyDescriptorFactory) {
         this.resolver = resolver;
+        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result) {
         resolver.resolve(dependency, result);
 
-        DependencyDescriptor descriptor = dependency.getDescriptor();
-        if (result.getFailure() != null || !(descriptor instanceof ClientModuleDependencyDescriptor)) {
+        if (result.getFailure() != null) {
             return;
         }
+        DependencyDescriptor descriptor = dependency.getDescriptor();
+        if (descriptor instanceof EnhancedDependencyDescriptor) {
+            ModuleDependency maybeClientModule = ((EnhancedDependencyDescriptor) descriptor).getModuleDependency();
+            if (maybeClientModule instanceof ClientModule) {
+                ClientModule clientModule = (ClientModule) maybeClientModule;
 
-        ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) descriptor;
-        ModuleVersionMetaData clientModuleMetaData = clientModuleDependencyDescriptor.getTargetModule();
-        ModuleSource moduleSource = result.getMetaData().getSource();
-        result.setMetaData(clientModuleMetaData.withSource(moduleSource));
+                MutableModuleVersionMetaData clientModuleMetaData = toModuleVersionMetaData.transform(result.getMetaData()).copy();
+                addClientModuleDependencies(clientModule, clientModuleMetaData);
+
+                setClientModuleArtifact(clientModuleMetaData);
+
+                result.setMetaData(clientModuleMetaData);
+            }
+        }
+    }
+
+    private void addClientModuleDependencies(ClientModule clientModule, MutableModuleVersionMetaData clientModuleMetaData) {
+        List<DependencyMetaData> dependencies = Lists.newArrayList();
+        for (ModuleDependency moduleDependency : clientModule.getDependencies()) {
+            DependencyDescriptor dependencyDescriptor = dependencyDescriptorFactory.createDependencyDescriptor(moduleDependency.getConfiguration(), clientModuleMetaData.getDescriptor(), moduleDependency);
+            dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
+        }
+        clientModuleMetaData.setDependencies(dependencies);
+    }
+
+    private void setClientModuleArtifact(MutableModuleVersionMetaData clientModuleMetaData) {
+        ModuleVersionArtifactMetaData artifact = clientModuleMetaData.artifact("jar", "jar", null);
+        clientModuleMetaData.setArtifacts(Sets.newHashSet(artifact));
     }
 }

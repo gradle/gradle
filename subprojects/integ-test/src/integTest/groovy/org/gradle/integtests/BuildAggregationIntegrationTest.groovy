@@ -93,20 +93,37 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Issue("http://issues.gradle.org//browse/GRADLE-3052")
     void buildTaskCanHaveInputsAndOutputs() {
-        def message = "This is from the hello task"
+        file("input") << "foo"
+        file("settings.gradle") << "rootProject.name = 'proj'"
         file("build.gradle") << """
-            task hello << { println "$message" }
+            class UpperFile extends DefaultTask {
+                @InputFile
+                File input
+
+                @OutputFile
+                File output
+
+                @TaskAction
+                void upper() {
+                  output.text = input.text.toUpperCase()
+                }
+            }
+
+            task upper(type: UpperFile) {
+                input = file("input")
+                output = file("output")
+            }
 
             task build(type: GradleBuild) {
-              tasks = ["hello"]
+              dependsOn upper
+              tasks = ["upper"]
               startParameter.searchUpwards = false
               outputs.file "build.gradle" // having an output (or input) triggers the bug
             }
         """
 
         def run = executer.withTasks("build").run()
-        def output = run.output
-
-        assert output.contains(message)
+        assert run.executedTasks == [":upper", ":build", ":proj:upper"]
+        assert run.skippedTasks == [":proj:upper"].toSet()
     }
 }

@@ -14,33 +14,47 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.dependencies
-
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
-import org.gradle.util.TestUtil
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
-class AbstractModuleDependencySpec extends Specification {
+abstract class AbstractModuleDependencySpec extends Specification {
 
     private dependency = createDependency("org.gradle", "gradle-core", "4.4-beta2")
 
-    private static createDependency(String group, String name, String version) {
+    def init() {
+        dependency = createDependency("org.gradle", "gradle-core", "4.4-beta2")
+    }
+
+    protected createDependency(String group, String name, String version) {
         createDependency(group, name, version, null)
     }
 
-    private static createDependency(String group, String name, String version, String configuration) {
-        new DefaultExternalModuleDependency(group, name, version, configuration)
-    }
+    protected abstract ExternalModuleDependency createDependency(String group, String name, String version, String configuration);
 
     void "has reasonable default values"() {
         expect:
+        dependency.group == "org.gradle"
+        dependency.name == "gradle-core"
+        dependency.version == "4.4-beta2"
         dependency.transitive
         dependency.artifacts.isEmpty()
         dependency.excludeRules.isEmpty()
         dependency.configuration == Dependency.DEFAULT_CONFIGURATION
+    }
+
+    def "cannot create with null name"() {
+        when:
+        createDependency("group", null, "version")
+
+        then:
+        def e = thrown InvalidUserDataException
+        e.message == "Name must not be null!"
     }
 
     void "can exclude dependencies"() {
@@ -58,8 +72,8 @@ class AbstractModuleDependencySpec extends Specification {
     }
 
     void "can add artifacts"() {
-        DependencyArtifact artifact1 = createAnonymousArtifact()
-        DependencyArtifact artifact2 = createAnonymousArtifact()
+        def artifact1 = Mock(DependencyArtifact)
+        def artifact2 = Mock(DependencyArtifact)
 
         when:
         dependency.addArtifact(artifact1)
@@ -82,8 +96,12 @@ class AbstractModuleDependencySpec extends Specification {
         createDependency("group1", "name1", "version1", "depConf1") != createDependency("group1", "name1", "version1", "depConf2")
     }
 
-    private DependencyArtifact createAnonymousArtifact() {
-        return new DefaultDependencyArtifact(TestUtil.createUniqueId(), "type", "org", "classifier", "url")
+    def "creates deep copy"() {
+        when:
+        def copy = dependency.copy()
+
+        then:
+        assertDeepCopy(dependency, copy)
     }
 
     public static void assertDeepCopy(ModuleDependency dependency, ModuleDependency copiedDependency) {

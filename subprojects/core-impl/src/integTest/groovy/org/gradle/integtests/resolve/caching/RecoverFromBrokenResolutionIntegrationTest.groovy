@@ -16,18 +16,15 @@
 
 package org.gradle.integtests.resolve.caching
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.maven.MavenHttpModule
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.hamcrest.Matchers
 
-class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    def repo
-    def module
-
-    def setup() {
-        server.start()
-    }
+    MavenHttpRepository repo
+    MavenHttpModule module
 
     private void buildFileWithSnapshotDependency() {
         buildFile << """
@@ -163,9 +160,9 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
         when:
         publishedMavenModule()
         server.resetExpectations()
-        server.expectGet('/repo/group/projectA/1.0-SNAPSHOT/maven-metadata.xml', 'username', 'password', module.metaDataFile)
-        server.expectGet("/repo/group/projectA/1.0-SNAPSHOT/${module.pomFile.name}", 'username', 'password', module.pomFile)
-        server.expectGet("/repo/group/projectA/1.0-SNAPSHOT/${module.artifactFile.name}", 'username', 'password', module.artifactFile)
+        module.metaData.expectGet('username', 'password')
+        module.pom.expectGet('username', 'password')
+        module.artifact.expectGet('username', 'password')
 
         then:
         run 'retrieve'

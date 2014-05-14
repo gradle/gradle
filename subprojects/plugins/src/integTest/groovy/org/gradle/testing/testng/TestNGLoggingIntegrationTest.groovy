@@ -34,7 +34,7 @@ class TestNGLoggingIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                compile "org.codehaus.groovy:groovy-all:2.0.5"
+                compile "org.codehaus.groovy:groovy:2.2.2"
                 testCompile "org.testng:testng:6.3.1"
             }
 
@@ -121,7 +121,7 @@ Gradle test FAILED
             }
 
             dependencies {
-                compile "org.codehaus.groovy:groovy-all:2.0.5"
+                compile "org.codehaus.groovy:groovy:2.2.2"
                 testCompile "org.testng:testng:6.3.1"
             }
 

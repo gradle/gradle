@@ -22,7 +22,9 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
@@ -33,12 +35,30 @@ import spock.lang.Specification
 class DefaultDependencyMetaDataTest extends Specification {
     final requestedModuleId = IvyUtil.createModuleRevisionId("org", "module", "1.2+")
 
-    def "constructs selector from descriptor"() {
+    def "constructs meta-data from ivy descriptor"() {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false)
         def metaData = new DefaultDependencyMetaData(descriptor)
 
         expect:
         metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.2+")
+    }
+
+    def "constructs meta-data from component id"() {
+        def id = new DefaultModuleComponentIdentifier("org", "module", "1.1")
+        def metaData = new DefaultDependencyMetaData(id, false)
+
+        expect:
+        metaData.descriptor.dependencyRevisionId == IvyUtil.createModuleRevisionId("org", "module", "1.1")
+        metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.1")
+    }
+
+    def "constructs meta-data from module version id"() {
+        def id = new DefaultModuleVersionIdentifier("org", "module", "1.1")
+        def metaData = new DefaultDependencyMetaData(id, false)
+
+        expect:
+        metaData.descriptor.dependencyRevisionId == IvyUtil.createModuleRevisionId("org", "module", "1.1")
+        metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.1")
     }
 
     def "creates a copy with new requested version"() {

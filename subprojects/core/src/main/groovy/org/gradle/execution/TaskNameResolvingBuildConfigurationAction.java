@@ -16,6 +16,7 @@
 package org.gradle.execution;
 
 import com.google.common.collect.Multimap;
+import org.gradle.TaskParameter;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.commandline.CommandLineTaskParser;
@@ -41,11 +42,11 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
 
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
-        List<String> taskNames = gradle.getStartParameter().getTaskNames();
-        Multimap<String, Task> selectedTasks = commandLineTaskParser.parseTasks(taskNames, selector);
+        List<TaskParameter> taskParameters = gradle.getStartParameter().getTaskParameters();
+        Multimap<TaskParameter, Task> selectedTasks = commandLineTaskParser.parseTasks(taskParameters, selector);
 
         TaskGraphExecuter executer = gradle.getTaskGraph();
-        for (String name : selectedTasks.keySet()) {
+        for (TaskParameter name : selectedTasks.keySet()) {
             executer.addTasks(selectedTasks.get(name));
         }
 

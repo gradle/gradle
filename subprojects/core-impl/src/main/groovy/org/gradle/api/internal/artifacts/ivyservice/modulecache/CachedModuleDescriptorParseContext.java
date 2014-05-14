@@ -17,22 +17,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.resolution.SoftwareArtifact;
+import org.gradle.api.artifacts.result.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.LocallyAvailableExternalResource;
 
 /**
  * Context used for parsing cached module descriptor files.
  * Will only be used for parsing ivy.xml files, as pom files are converted before caching.
  */
 class CachedModuleDescriptorParseContext implements DescriptorParseContext {
-
-    public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
-        throw new UnsupportedOperationException();
-    }
-
-    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, Class<? extends SoftwareArtifact> artifactType) {
+    public LocallyAvailableExternalResource getMetaDataArtifact(ModuleVersionIdentifier moduleVersionIdentifier, Class<? extends Artifact> artifactType) {
         throw new UnsupportedOperationException();
     }
 }

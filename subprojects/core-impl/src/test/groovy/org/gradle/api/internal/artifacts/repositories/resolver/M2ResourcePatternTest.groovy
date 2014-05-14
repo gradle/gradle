@@ -15,36 +15,79 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
-
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import spock.lang.Specification
 
-class M2ResourcePatternTest extends Specification {
-    def "substitutes artifact attributes into pattern"() {
-        def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        final String group = "group"
-        final String name = "projectA"
-        final String version = "1.2"
-        def artifact1 = artifact(group, name, version)
-        def artifact2 = artifact("org.group", "projectA", "1.2")
+import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier.newId
 
+class M2ResourcePatternTest extends Specification {
+    def "can construct from URI and pattern"() {
         expect:
-        pattern.toPath(artifact1) == 'prefix/group/projectA/1.2/ivys/1.2/ivy.xml'
-        pattern.toPath(artifact2) == 'prefix/org/group/projectA/1.2/ivys/1.2/ivy.xml'
+        new M2ResourcePattern(new URI(uri), pattern).pattern == expectedPattern
+
+        where:
+        uri            | pattern  | expectedPattern
+        "http://host/" | "a/b/c"  | "http://host/a/b/c"
+        "http://host"  | "a/b/c"  | "http://host/a/b/c"
+        "http://host/" | "/a/b/c" | "http://host/a/b/c"
+        "http://host/" | ""       | "http://host/"
+        "http://host"  | ""       | "http://host"
     }
 
-    def "substitutes module attributes into pattern to determine module pattern"() {
+    def "substitutes artifact attributes into pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def artifact1 = artifact("group", "projectA", "1.2")
-        def artifact2 = artifact("org.group", "projectA", "1.2")
+        def artifact = artifact(group, module, version)
 
         expect:
-        pattern.toVersionListPattern(artifact1) == 'prefix/group/projectA/[revision]/ivys/[revision]/ivy.xml'
-        pattern.toVersionListPattern(artifact2) == 'prefix/org/group/projectA/[revision]/ivys/[revision]/ivy.xml'
+        pattern.getLocation(artifact).path == expectPath
+
+        where:
+        group       | module     | version | expectPath
+        "group"     | "projectA" | "1.2"   | 'prefix/group/projectA/1.2/ivys/1.2/ivy.xml'
+        "org.group" | "projectA" | "1.2"   | 'prefix/org/group/projectA/1.2/ivys/1.2/ivy.xml'
+        "##??::"    | "projectA" | "1.2"   | 'prefix/##??::/projectA/1.2/ivys/1.2/ivy.xml'
+    }
+
+    def "substitutes snapshot artifact attributes into pattern"() {
+        def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
+        def snapshotId = new MavenUniqueSnapshotComponentIdentifier("group", "projectA", "1.2-SNAPSHOT", "2014-timestamp-3333")
+
+        def artifact1 = new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(snapshotId, "projectA", "pom", "pom"))
+
+        expect:
+        pattern.getLocation(artifact1).path == 'prefix/group/projectA/1.2-SNAPSHOT/projectA-1.2-2014-timestamp-3333.pom'
+    }
+
+    def "determines artifact location by substituting artifact attributes into pattern and resolving relative to base URI"() {
+        def pattern = new M2ResourcePattern(new URI("http://server/lookup"), "[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
+        def artifact = artifact(group, module, version)
+
+        expect:
+        pattern.getLocation(artifact).uri == new URI(expectPath)
+
+        where:
+        group       | module     | version | expectPath
+        "group"     | "projectA" | "1.2"   | 'http://server/lookup/group/projectA/1.2/ivys/1.2/ivy.xml'
+        "org.group" | "projectA" | "1.2"   | 'http://server/lookup/org/group/projectA/1.2/ivys/1.2/ivy.xml'
+        "#?:%12"    | "projectA" | "1.2"   | 'http://server/lookup/%23%3F:%2512/projectA/1.2/ivys/1.2/ivy.xml'
+    }
+
+    def "substitutes attributes into pattern to determine version list pattern"() {
+        def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
+        def ivyName = new DefaultIvyArtifactName("projectA", "pom", "pom")
+        def moduleId = new DefaultModuleIdentifier(group, module)
+
+        expect:
+        pattern.toVersionListPattern(moduleId, ivyName).path == expectedPath
+
+        where:
+        group       | module     | expectedPath
+        "group"     | "projectA" | 'prefix/group/projectA/[revision]/poms/[revision]/projectA.pom'
+        "org.group" | "projectA" | 'prefix/org/group/projectA/[revision]/poms/[revision]/projectA.pom'
     }
 
     def "can build module path"() {
@@ -53,18 +96,18 @@ class M2ResourcePatternTest extends Specification {
         def module2 = new DefaultModuleIdentifier("org.group", "projectA")
 
         expect:
-        pattern.toModulePath(module1) == 'prefix/group/projectA'
-        pattern.toModulePath(module2) == 'prefix/org/group/projectA'
+        pattern.toModulePath(module1).path == 'prefix/group/projectA'
+        pattern.toModulePath(module2).path == 'prefix/org/group/projectA'
     }
 
     def "can build module version path"() {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def artifact1 = artifact("group", "projectA", "1.2")
-        def artifact2 = artifact("org.group", "projectA", "1.2")
+        def component1 = newId("group", "projectA", "1.2")
+        def component2 = newId("org.group", "projectA", "1.2")
 
         expect:
-        pattern.toModuleVersionPath(artifact1) == 'prefix/group/projectA/1.2'
-        pattern.toModuleVersionPath(artifact2) == 'prefix/org/group/projectA/1.2'
+        pattern.toModuleVersionPath(component1).path == 'prefix/group/projectA/1.2'
+        pattern.toModuleVersionPath(component2).path == 'prefix/org/group/projectA/1.2'
     }
 
     def "throws UnsupportedOperationException for non M2 compatible pattern"() {
@@ -78,7 +121,7 @@ class M2ResourcePatternTest extends Specification {
     }
 
     private static ModuleVersionArtifactMetaData artifact(String group, String name, String version) {
-        final moduleVersionId = DefaultModuleVersionIdentifier.newId(group, name, version)
+        final moduleVersionId = newId(group, name, version)
         return new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(moduleVersionId, "ivy", "ivy", "xml"))
     }
 }

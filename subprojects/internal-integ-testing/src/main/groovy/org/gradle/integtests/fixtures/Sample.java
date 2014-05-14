@@ -33,22 +33,32 @@ import org.slf4j.LoggerFactory;
 public class Sample implements MethodRule {
     private final Logger logger = LoggerFactory.getLogger(Sample.class);
     private final String defaultSampleName;
+    private final String testSampleDirName;
 
     private TestFile sampleDir;
     private TestDirectoryProvider testDirectoryProvider;
-
-    public Sample(TestDirectoryProvider testDirectoryProvider, String defaultSampleName) {
-        this.testDirectoryProvider = testDirectoryProvider;
-        this.defaultSampleName = defaultSampleName;
-    }
 
     public Sample(TestDirectoryProvider testDirectoryProvider) {
         this(testDirectoryProvider, null);
     }
 
+    public Sample(TestDirectoryProvider testDirectoryProvider, String defaultSampleName) {
+        this(testDirectoryProvider, defaultSampleName, null);
+    }
+
+    public Sample(TestDirectoryProvider testDirectoryProvider, String defaultSampleName, String testSampleDirName) {
+        this.testDirectoryProvider = testDirectoryProvider;
+        this.defaultSampleName = defaultSampleName;
+        this.testSampleDirName = testSampleDirName;
+    }
+
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         final String sampleName = getSampleName(method);
-        sampleDir = sampleName == null ? null : testDirectoryProvider.getTestDirectory().file(sampleName);
+        if (testSampleDirName != null) {
+            sampleDir = testDirectoryProvider.getTestDirectory().file(testSampleDirName);
+        } else {
+            sampleDir = sampleName == null ? null : testDirectoryProvider.getTestDirectory().file(sampleName);
+        }
 
         return new Statement() {
             @Override

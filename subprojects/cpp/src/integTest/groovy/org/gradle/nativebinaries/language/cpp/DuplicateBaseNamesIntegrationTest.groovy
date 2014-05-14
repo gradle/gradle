@@ -25,6 +25,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateMixedSameBas
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateObjectiveCBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateObjectiveCppBaseNamesTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.SourceFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -68,6 +69,67 @@ class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegr
         new DuplicateCppBaseNamesTestApp()                   |    "foo1foo2"
         new DuplicateAssemblerBaseNamesTestApp(toolChain)    |    "foo1foo2"
         new DuplicateMixedSameBaseNamesTestApp(toolChain)    |    "fooFromC\nfooFromCpp\nfooFromAsm\n"
+    }
+
+    /**
+     * TODO: need filter declaration to get this passed. Remove filter once
+     * story-language-source-sets-filter-source-files-by-file-extension
+     * is implemented
+     * */
+    def "can have sourcefiles with same base name in same directory"() {
+        setup:
+        def testApp = new DuplicateMixedSameBaseNamesTestApp(toolChain)
+
+
+        testApp.getSourceFiles().each {  SourceFile sourceFile ->
+            file("src/main/all/${sourceFile.name}") << sourceFile.content
+        }
+
+        testApp.headerFiles.each { SourceFile sourceFile ->
+            file("src/main/headers/${sourceFile.name}") << sourceFile.content
+        }
+
+        buildFile.text = ""
+        testApp.plugins.each { plugin ->
+            buildFile << "apply plugin: '$plugin'\n"
+        }
+
+        testApp.functionalSourceSets.each { name, filterPattern ->
+                buildFile << """
+                sources {
+                        main {
+                            $name {
+                                source {
+                                    include '$filterPattern'
+                                    srcDirs "src/main/all"
+                                }
+                            }
+                        }
+                }
+                """
+        }
+
+        buildFile << """
+
+        binaries.all{
+            linker.args "-v"
+        }
+
+        model {
+            platforms {
+                x86 {
+                    architecture "i386"
+                }
+            }
+        }
+        executables {
+            main {}
+        }
+
+        """
+        expect:
+        succeeds "mainExecutable"
+        executable("build/binaries/mainExecutable/main").exec().out == "fooFromC\nfooFromCpp\nfooFromAsm\n"
     }
 
     //TODO Rene: inline with testcase above once we got coverage for objective-c and objective-cpp on windows

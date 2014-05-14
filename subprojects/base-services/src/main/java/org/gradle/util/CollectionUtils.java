@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -211,19 +212,17 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> toList(Iterable<? extends T> things) {
-        if (things == null) {
-            return new ArrayList<T>(0);
-        }
         if (things instanceof List) {
             @SuppressWarnings("unchecked") List<T> castThings = (List<T>) things;
             return castThings;
         }
-        if (things instanceof Collection) {
-            return new ArrayList<T>((Collection) things);
-        }
-        List<T> list = new ArrayList<T>();
-        for (T thing : things) {
-            list.add(thing);
+        return toMutableList(things);
+    }
+
+    public static <T> List<T> toList(Enumeration<? extends T> things) {
+        AbstractList<T> list = new ArrayList<T>();
+        while (things.hasMoreElements()) {
+            list.add(things.nextElement());
         }
         return list;
     }
@@ -530,6 +529,17 @@ public abstract class CollectionUtils {
             action.execute(new InjectionStep<T, I>(target, item));
         }
         return target;
+    }
+
+    public static <K, V> ImmutableListMultimap<K, V> groupBy(Iterable<? extends V> iterable, Transformer<? extends K, V> grouper) {
+        ImmutableListMultimap.Builder<K, V> builder = ImmutableListMultimap.builder();
+
+        for (V element : iterable) {
+            K key = grouper.transform(element);
+            builder.put(key, element);
+        }
+
+        return builder.build();
     }
 
 }

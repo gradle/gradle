@@ -66,10 +66,14 @@ project(':shared:model') {
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
 
         //then
-        def apiDeps = parseImlDependencies(project: 'master/api', "api.iml")
-        ['shared-api', 'model'].each { assert apiDeps.contains(it) }
-        def modelDeps = parseImlDependencies(project: 'master/shared/model', "model.iml")
-        ['util'].each { assert modelDeps.contains(it) }
+        def dependencies = parseIml("master/api/api.iml").dependencies
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule("COMPILE", "shared-api")
+        dependencies.assertHasModule("TEST", "model")
+
+        dependencies = parseIml("master/shared/model/model.iml").dependencies
+        assert dependencies.modules.size() == 1
+        dependencies.assertHasModule("TEST", "util")
     }
 
     @Test
@@ -136,30 +140,18 @@ project(':services:utilities') {
 
         //then
         assertIprContainsCorrectModules()
-        assertApiModuleContainsCorrectDependencies()
-        assertServicesUtilModuleContainsCorrectDependencies()
-    }
 
-    def assertServicesUtilModuleContainsCorrectDependencies() {
-        List moduleDeps = parseImlDependencies(project: 'master/services/utilities', "services-util.iml")
+        def moduleDeps = parseIml("master/api/api.iml").dependencies
+        assert moduleDeps.modules.size() == 2
+        moduleDeps.assertHasModule("COMPILE", "shared-api")
+        moduleDeps.assertHasModule("COMPILE", "very-cool-model")
 
-        assert moduleDeps.contains("very-cool-model")
-        assert moduleDeps.contains("util")
-        assert moduleDeps.contains("shared-api")
-        assert moduleDeps.contains("contrib-services-util")
-    }
-
-    List parseImlDependencies(options, file) {
-        def iml = parseFile(options, file)
-        def moduleDeps = iml.component.orderEntry.'@module-name'.collect { it.text() }
-        return moduleDeps
-    }
-
-    def assertApiModuleContainsCorrectDependencies() {
-        def moduleDeps = parseImlDependencies(project: 'master/api', "api.iml")
-
-        assert moduleDeps.contains("very-cool-model")
-        assert moduleDeps.contains("shared-api")
+        moduleDeps = parseIml("master/services/utilities/services-util.iml").dependencies
+        assert moduleDeps.modules.size() == 4
+        moduleDeps.assertHasModule("COMPILE", "shared-api")
+        moduleDeps.assertHasModule("COMPILE", "very-cool-model")
+        moduleDeps.assertHasModule("COMPILE", "util")
+        moduleDeps.assertHasModule("COMPILE", "contrib-services-util")
     }
 
     def assertIprContainsCorrectModules() {
@@ -333,20 +325,14 @@ project(':app') {
 
         //when
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
-        def iml = parseFile(project: 'master/app', print: true, 'app.iml')
 
         //then
-        assert iml.component.orderEntry.@scope.collect { it.text() == ['RUNTIME', 'TEST'] }
-
-        def orderEntries = iml.component.orderEntry
-        assert orderEntries.size() == 5
-        assert orderEntries.any { it.@type == 'inheritedJdk' }
-        assert orderEntries.any { it.@type == 'sourceFolder' }
-        assert orderEntries.any { it.@type == 'module' &&
-                it.'@module-name'.text().contains ('api') }
-        assert orderEntries.any { it.@type == 'module' && it.@scope == 'RUNTIME' &&
-                it.'@module-name'.text().contains ('impl') }
-        assert orderEntries.any { it.@type == 'module' && it.@scope == 'TEST' &&
-                it.'@module-name'.text().contains ('impl') }
+        def dependencies = parseIml("master/app/app.iml").dependencies
+        assert dependencies.modules.size() == 3
+        dependencies.assertHasInheritedJdk()
+        dependencies.assertHasSource('false')
+        dependencies.assertHasModule('COMPILE', 'api')
+        dependencies.assertHasModule('TEST', 'impl')
+        dependencies.assertHasModule('RUNTIME', 'impl')
     }
 }

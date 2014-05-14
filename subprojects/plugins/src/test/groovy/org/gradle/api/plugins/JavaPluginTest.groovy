@@ -243,8 +243,8 @@ class JavaPluginTest {
         assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.sourceSets.test.output.classesDir))
         assertThat(task.workingDir, equalTo(project.projectDir))
-        assertThat(task.testResultsDir, equalTo(project.testResultsDir))
-        assertThat(task.testReportDir, equalTo(project.testReportDir))
+        assertThat(task.reports.junitXml.destination, equalTo(project.testResultsDir))
+        assertThat(task.reports.html.destination, equalTo(project.testReportDir))
     }
 
     @Test public void buildOtherProjects() {

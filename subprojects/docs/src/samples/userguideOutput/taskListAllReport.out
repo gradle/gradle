@@ -25,8 +25,20 @@ wrapper - Generates Gradle wrapper files. [incubating]
 Help tasks
 ----------
 dependencies - Displays all dependencies declared in root project 'projectReports'.
+api:dependencies - Displays all dependencies declared in project ':api'.
+webapp:dependencies - Displays all dependencies declared in project ':webapp'.
 dependencyInsight - Displays the insight into a specific dependency in root project 'projectReports'.
+api:dependencyInsight - Displays the insight into a specific dependency in project ':api'.
+webapp:dependencyInsight - Displays the insight into a specific dependency in project ':webapp'.
 help - Displays a help message
+api:help - Displays a help message
+webapp:help - Displays a help message
 projects - Displays the sub-projects of root project 'projectReports'.
+api:projects - Displays the sub-projects of project ':api'.
+webapp:projects - Displays the sub-projects of project ':webapp'.
 properties - Displays the properties of root project 'projectReports'.
+api:properties - Displays the properties of project ':api'.
+webapp:properties - Displays the properties of project ':webapp'.
 tasks - Displays the tasks runnable from root project 'projectReports' (some of the displayed tasks may belong to subprojects).
+api:tasks - Displays the tasks runnable from project ':api'.
+webapp:tasks - Displays the tasks runnable from project ':webapp'.

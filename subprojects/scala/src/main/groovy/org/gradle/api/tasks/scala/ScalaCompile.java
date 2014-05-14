@@ -58,13 +58,6 @@ public class ScalaCompile extends AbstractCompile {
 
     @Inject
     public ScalaCompile() {
-        ProjectInternal projectInternal = (ProjectInternal) getProject();
-        IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
-        Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
-        CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
-        ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal, antBuilder, antBuilderFactory, compilerDaemonManager);
-        Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = new DelegatingScalaCompiler(scalaCompilerFactory);
-        compiler = new CleaningScalaCompiler(delegatingCompiler, getOutputs());
     }
 
     /**
@@ -115,6 +108,19 @@ public class ScalaCompile extends AbstractCompile {
         this.compiler = compiler;
     }
 
+    private Compiler<ScalaJavaJointCompileSpec> getCompiler() {
+        if (compiler == null) {
+            ProjectInternal projectInternal = (ProjectInternal) getProject();
+            IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
+            Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
+            CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
+            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal, antBuilder, antBuilderFactory, compilerDaemonManager);
+            Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = new DelegatingScalaCompiler(scalaCompilerFactory);
+            compiler = new CleaningScalaCompiler(delegatingCompiler, getOutputs());
+        }
+        return compiler;
+    }
+
     @TaskAction
     protected void compile() {
         checkScalaClasspathIsNonEmpty();
@@ -132,7 +138,7 @@ public class ScalaCompile extends AbstractCompile {
             configureIncrementalCompilation(spec);
         }
 
-        compiler.execute(spec);
+        getCompiler().execute(spec);
     }
 
     private void checkScalaClasspathIsNonEmpty() {

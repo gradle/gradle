@@ -15,16 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
-
-import java.util.List;
 import java.util.Set;
 
 public interface ModuleVersionListing {
-
     Set<Versioned> getVersions();
-
-    boolean isEmpty();
-
-    List<Versioned> sortLatestFirst(LatestStrategy latestStrategy);
 }

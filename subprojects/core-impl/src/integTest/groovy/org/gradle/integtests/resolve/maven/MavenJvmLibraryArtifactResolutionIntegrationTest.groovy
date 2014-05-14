@@ -15,15 +15,15 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.api.artifacts.resolution.JvmLibraryJavadocArtifact
-import org.gradle.api.artifacts.resolution.JvmLibrarySourcesArtifact
+import org.gradle.api.artifacts.result.jvm.JavadocArtifact
+import org.gradle.api.artifacts.result.jvm.SourcesArtifact
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository
 import spock.lang.Unroll
 
-class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def repo = mavenHttpRepo
     def fileRepo = mavenRepo
     def module = repo.module("some.group", "some-artifact", "1.0")
@@ -32,7 +32,6 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
     JvmLibraryArtifactResolveTestFixture fixture
 
     def setup() {
-        server.start()
         initBuild(repo)
 
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
@@ -40,20 +39,16 @@ class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependenc
         module.publish()
     }
 
-    def initBuild(MavenRepository repo, String module = "some.group:some-artifact:1.0") {
+    def initBuild(MavenRepository repo) {
         buildFile.text = """
 repositories {
     maven { url '$repo.uri' }
-}
-configurations { compile }
-dependencies {
-    compile "${module}"
 }
 """
     }
 
     def "resolves and caches source artifacts"() {
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectSourceArtifact("sources")
                 .prepare()
 
@@ -67,7 +62,7 @@ dependencies {
     }
 
     def "resolve javadoc artifacts"() {
-        fixture.requestingTypes(JvmLibraryJavadocArtifact)
+        fixture.requestingTypes(JavadocArtifact)
                 .expectJavadocArtifact("javadoc")
                 .prepare()
 
@@ -81,8 +76,7 @@ dependencies {
     }
 
     def "resolves and caches all artifacts"() {
-        fixture.requestingTypes()
-                .expectSourceArtifact("sources")
+        fixture.expectSourceArtifact("sources")
                 .expectJavadocArtifact("javadoc")
                 .prepare()
 
@@ -99,10 +93,11 @@ dependencies {
 
     @Unroll
     def "fetches missing snapshot artifacts #condition"() {
-        initBuild(repo, "some.group:some-artifact:1.0-SNAPSHOT")
         buildFile << """
 if (project.hasProperty('nocache')) {
-    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
 }
 """
 
@@ -111,7 +106,7 @@ if (project.hasProperty('nocache')) {
         snapshotModule.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.0-SNAPSHOT")
-                .requestingTypes(JvmLibrarySourcesArtifact)
+                .requestingTypes(SourcesArtifact)
                 .prepare()
 
         when:
@@ -149,10 +144,11 @@ if (project.hasProperty('nocache')) {
 
     @Unroll
     def "updates snapshot artifacts #condition"() {
-        initBuild(repo, "some.group:some-artifact:1.0-SNAPSHOT")
         buildFile << """
 if (project.hasProperty('nocache')) {
-    configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
 }
 """
 
@@ -161,7 +157,7 @@ if (project.hasProperty('nocache')) {
         snapshotModule.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.0-SNAPSHOT")
-                .requestingTypes(JvmLibrarySourcesArtifact)
+                .requestingTypes(SourcesArtifact)
                 .expectSourceArtifact("sources")
                 .prepare()
 
@@ -185,7 +181,7 @@ if (project.hasProperty('nocache')) {
         snapshotModule.pom.sha1.expectGet()
         snapshotModule.pom.expectGet()
         snapshotSources.expectHead()
-        // TODO:DAZ Extra head request should not be required
+        // TODO Extra head request should not be required
         snapshotSources.expectHead()
         snapshotSources.sha1.expectGet()
         snapshotSources.expectGet()
@@ -213,7 +209,7 @@ if (project.hasProperty('nocache')) {
     }
 
     def "resolve and caches missing artifacts of existing component"() {
-        fixture.requestingTypes().prepare()
+        fixture.prepare()
 
         when:
         module.pom.expectGet()
@@ -225,8 +221,7 @@ if (project.hasProperty('nocache')) {
     }
 
     def "resolves and caches artifacts where some are present"() {
-        fixture.requestingTypes()
-                .expectSourceArtifact("sources")
+        fixture.expectSourceArtifact("sources")
                 .prepare()
 
         when:
@@ -240,7 +235,7 @@ if (project.hasProperty('nocache')) {
     }
 
     def "reports on failure to list artifacts and recovers on subsequent resolve"() {
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectComponentResolutionFailure(new ArtifactResolveException("Could not determine artifacts for component 'some.group:some-artifact:1.0'"))
                 .prepare()
 
@@ -266,8 +261,10 @@ if (project.hasProperty('nocache')) {
     }
 
     def "resolves and recovers from broken artifacts"() {
-        fixture.requestingTypes(JvmLibraryJavadocArtifact)
-                .expectJavadocArtifactFailure(new ArtifactResolveException("Could not download artifact 'some.group:some-artifact:1.0:some-artifact-javadoc.jar'"))
+        fixture.requestingTypes(JavadocArtifact)
+                .expectJavadocArtifactFailure(new ArtifactResolveException(
+                                                "Could not download artifact 'some.group:some-artifact:1.0:some-artifact-javadoc.jar'",
+                                                new Throwable("Received status code 500 from server: broken")))
                 .prepare()
 
         when:
@@ -294,7 +291,7 @@ if (project.hasProperty('nocache')) {
     def "resolve and does not cache artifacts from local repository"() {
         initBuild(fileRepo)
 
-        fixture.requestingTypes(JvmLibrarySourcesArtifact)
+        fixture.requestingTypes(SourcesArtifact)
                 .expectSourceArtifact("sources")
                 .prepare()
 

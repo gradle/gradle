@@ -35,12 +35,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.resolution.IvyDescriptorArtifact;
-import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
-import org.gradle.api.internal.externalresource.UrlExternalResource;
+import org.gradle.api.internal.artifacts.result.metadata.IvyDescriptorArtifact;
+import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.UrlExternalResource;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TextUtil;
@@ -65,7 +65,7 @@ import java.util.*;
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId;
 
 /**
- * Copied from org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser into Gradle codebase.
+ * Copied from org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser into Gradle codebase, and heavily modified.
  */
 public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser {
     static final String[] DEPENDENCY_REGULAR_ATTRIBUTES =
@@ -94,7 +94,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         parser.parse();
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
         postProcess(moduleDescriptor);
-        return new ModuleDescriptorAdapter(moduleDescriptor);
+
+        return new DefaultIvyModuleVersionMetaData(moduleDescriptor);
     }
 
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
@@ -143,7 +144,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         protected AbstractParser(ExternalResource resource) {
             this.res = resource; // used for log and date only
             md = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
-            md.setLastModified(res.getLastModified());
         }
 
         protected void checkErrors() throws ParseException {
@@ -394,10 +394,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return md;
         }
 
-        protected Date getDefaultPubDate() {
-            return new Date(md.getLastModified());
-        }
-
         private void replaceConfigurationWildcards(ModuleDescriptor md) {
             Configuration[] configs = md.getConfigurations();
             for (int i = 0; i < configs.length; i++) {
@@ -506,7 +502,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             checkErrors();
             checkConfigurations();
             replaceConfigurationWildcards();
-            getMd().setModuleArtifact(DefaultArtifact.newIvyArtifact(getMd().getResolvedModuleRevisionId(), getMd().getPublicationDate()));
             if (!artifactsDeclared) {
                 String[] configurationNames = getMd().getConfigurationsNames();
                 for (String configurationName : configurationNames) {
@@ -972,10 +967,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     getMd().setPublicationDate(ivyDateFormat.parse(pubDate));
                 } catch (ParseException e) {
                     addError("invalid publication date format: " + pubDate);
-                    getMd().setPublicationDate(getDefaultPubDate());
                 }
-            } else {
-                getMd().setPublicationDate(getDefaultPubDate());
             }
         }
 

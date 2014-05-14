@@ -45,17 +45,12 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     }
                 }
             }
-            task buildAll {
-                dependsOn binaries.matching {
-                    it.buildable
-                }
-            }
 """
     }
 
     private void preBuildLibrary() {
         executer.inDirectory(file("libs"))
-        run "buildAll"
+        run "assemble"
     }
 
     def "can link to a prebuilt header-only library with api linkage"() {
@@ -299,7 +294,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
 
         then:
         failure.assertHasDescription("Could not locate library 'other'.")
-        failure.assertHasCause("Library with name 'other' not found.")
+        failure.assertHasCause("NativeLibrary with name 'other' not found.")
         failure.assertHasCause("Prebuilt library with name 'other' not found in repositories '[libs, libs2]'.")
     }
 
@@ -343,7 +338,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
 
         then:
         failure.assertHasDescription("Could not locate library 'hello' for project ':projectB'.")
-        failure.assertHasCause("Library with name 'hello' not found.")
+        failure.assertHasCause("NativeLibrary with name 'hello' not found.")
         failure.assertHasCause("Prebuilt library with name 'hello' not found in repositories '[libs, libs2]'.")
     }
 }

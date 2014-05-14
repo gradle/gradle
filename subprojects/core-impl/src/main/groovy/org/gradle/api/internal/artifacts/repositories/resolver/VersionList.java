@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.resource.ResourceException;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
+import org.gradle.internal.resource.ResourceException;
 
 import java.util.List;
 import java.util.Set;
@@ -32,7 +32,7 @@ public interface VersionList {
      * 
      * @throws ResourceException If information for versions cannot be loaded.
      */
-    void visit(ResourcePattern pattern, ModuleVersionArtifactMetaData artifact) throws ResourceException;
+    void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException;
 
     Set<ListedVersion> getVersions();
 

@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.resolve.http
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 import static org.gradle.util.Matchers.containsText
 
-abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
+abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     File clientStore // contains the client's public and private keys
     File serverStore // contains the server's public and private keys
@@ -32,7 +32,6 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractDependenc
     def "resolve with server certificate"() {
         setupCertStores()
         server.enableSsl(serverStore.path, "asdfgh")
-        server.start()
 
         def repoType = setupRepo()
         setupBuildFile(repoType)
@@ -49,7 +48,6 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractDependenc
     def "resolve with server and client certificate"() {
         setupCertStores()
         server.enableSsl(serverStore.path, "asdfgh", clientStore.path, "asdfgh")
-        server.start()
 
         def repoType = setupRepo()
         setupBuildFile(repoType)
@@ -68,7 +66,6 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractDependenc
     def "decent error message when client can't authenticate server"() {
         setupCertStores()
         server.enableSsl(serverStore.path, "asdfgh")
-        server.start()
 
         def repoType = setupRepo()
         setupBuildFile(repoType)
@@ -87,7 +84,6 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractDependenc
     def "decent error message when server can't authenticate client"() {
         setupCertStores()
         server.enableSsl(serverStore.path, "asdfgh", serverStore.path, "asdfgh") // intentionally use wrong trust store for server
-        server.start()
 
         def repoType = setupRepo()
         setupBuildFile(repoType)

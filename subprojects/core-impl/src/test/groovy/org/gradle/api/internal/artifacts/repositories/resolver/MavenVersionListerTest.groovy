@@ -21,12 +21,11 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
-import org.gradle.api.internal.externalresource.ExternalResource
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
-import org.gradle.api.internal.resource.ResourceException
-import org.gradle.api.internal.resource.ResourceNotFoundException
+import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
+import org.gradle.internal.resource.ExternalResource
+import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.ResourceException
+import org.gradle.internal.resource.ResourceNotFoundException
 import org.gradle.internal.UncheckedException
 import org.xml.sax.SAXParseException
 import spock.lang.Specification
@@ -36,11 +35,11 @@ class MavenVersionListerTest extends Specification {
     def moduleRevisionId = IvyUtil.createModuleRevisionId("org.acme", "testproject", "1.0")
     def module = new DefaultModuleIdentifier("org.acme", "testproject")
     def moduleVersion = new DefaultModuleVersionIdentifier(module, "1.0")
-    def artifact = new DefaultModuleVersionArtifactMetaData(new DefaultModuleVersionArtifactIdentifier(moduleVersion, "testproject", "jar", "jar"))
+    def artifact = new DefaultIvyArtifactName("testproject", "jar", "jar")
 
     def repository = Mock(ExternalResourceRepository)
-    def pattern = pattern("localhost:8081/testRepo/" + MavenPattern.M2_PATTERN)
-    String metaDataResource = 'localhost:8081/testRepo/org/acme/testproject/maven-metadata.xml'
+    def pattern = pattern("testRepo/" + MavenPattern.M2_PATTERN)
+    def metaDataResource = new URI('testRepo/org/acme/testproject/maven-metadata.xml')
 
     final MavenVersionLister lister = new MavenVersionLister(repository)
 
@@ -87,7 +86,7 @@ class MavenVersionListerTest extends Specification {
         sort(versionList).collect {it.pattern} == [pattern2, pattern1, pattern1]
 
         and:
-        1 * repository.getResource('prefix1/org/acme/testproject/maven-metadata.xml') >> resource1
+        1 * repository.getResource(new URI('prefix1/org/acme/testproject/maven-metadata.xml')) >> resource1
         1 * resource1.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -98,7 +97,7 @@ class MavenVersionListerTest extends Specification {
     </versioning>
 </metadata>""".bytes))
         }
-        1 * repository.getResource('prefix2/org/acme/testproject/maven-metadata.xml') >> resource2
+        1 * repository.getResource(new URI('prefix2/org/acme/testproject/maven-metadata.xml')) >> resource2
         1 * resource2.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>

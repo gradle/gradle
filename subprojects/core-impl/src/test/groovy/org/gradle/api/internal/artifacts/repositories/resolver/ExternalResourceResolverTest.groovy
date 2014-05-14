@@ -15,16 +15,16 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
-
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
+import org.gradle.internal.resource.transport.ExternalResourceRepository
+import org.gradle.internal.resource.local.FileStore
 import spock.lang.Specification
 
 class ExternalResourceResolverTest extends Specification {
@@ -33,7 +33,6 @@ class ExternalResourceResolverTest extends Specification {
     VersionLister versionLister = Mock()
     LocallyAvailableResourceFinder<ArtifactIdentifier> locallyAvailableResourceFinder = Mock()
     BuildableArtifactResolveResult result = Mock()
-    MetaDataParser parser = Mock()
     final ResolverStrategy resolverStrategy = Mock()
     ModuleVersionArtifactIdentifier artifactIdentifier = Stub() {
         getDisplayName() >> 'some-artifact'
@@ -41,13 +40,15 @@ class ExternalResourceResolverTest extends Specification {
     ModuleVersionArtifactMetaData artifact = Stub() {
         getId() >> artifactIdentifier
     }
-    MavenResolver.TimestampedModuleSource moduleSource = Mock()
+    MavenUniqueSnapshotModuleSource moduleSource = Mock()
     File downloadedFile = Mock(File)
+    CacheAwareExternalResourceAccessor resourceAccessor = Stub()
+    FileStore<ModuleVersionArtifactMetaData> fileStore = Stub()
     ExternalResourceResolver resolver
 
     def setup() {
         //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
-        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, versionLister, locallyAvailableResourceFinder, parser, resolverStrategy])
+        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, resolverStrategy, fileStore])
     }
 
     def reportsNotFoundArtifactResolveResult() {
@@ -103,7 +104,7 @@ class ExternalResourceResolverTest extends Specification {
     }
 
     def artifactIsTimestampedSnapshotVersion() {
-        _ * moduleSource.timestampedVersion >> "1.0-20100101.120001-1"
+        _ * moduleSource.timestamp >> "1.0-20100101.120001-1"
     }
 
     def artifactIsMissing() {

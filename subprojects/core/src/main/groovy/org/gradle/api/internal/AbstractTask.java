@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.AndSpec;
@@ -47,6 +46,7 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 
+import javax.inject.Inject;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -85,17 +85,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private AndSpec<Task> onlyIfSpec = new AndSpec<Task>(createNewOnlyIfSpec());
 
-    private final TaskOutputsInternal outputs;
-
-    private final TaskInputs inputs;
-
     private TaskExecuter executer;
 
     private final ServiceRegistry services;
 
     private final TaskStateInternal state;
-
-    private final LoggingManagerInternal loggingManager;
 
     private List<TaskValidator> validators = new ArrayList<TaskValidator>();
 
@@ -126,11 +120,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         finalizedBy = new DefaultTaskDependency(project.getTasks());
         shouldRunAfter = new DefaultTaskDependency(project.getTasks());
         services = project.getServiceRegistryFactory().createFor(this);
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, getServices().get(Instantiator.class));
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         taskStatusNagger = services.get(TaskStatusNagger.class);
-        outputs = services.get(TaskOutputsInternal.class);
-        inputs = services.get(TaskInputs.class);
-        executer = services.get(TaskExecuter.class);
 
         observableActionList = new ObservableActionWrapperList(actions);
         observableActionList.addPropertyChangeListener(new PropertyChangeListener() {
@@ -138,7 +129,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 taskStatusNagger.nagAboutMutatingListIfTaskNotInConfigurableState("Task.getActions()", evt);
             }
         });
-        loggingManager = services.get(LoggingManagerInternal.class);
     }
 
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Callable<T> factory) {
@@ -286,10 +276,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void executeWithoutThrowingTaskFailure() {
-        executer.execute(this, state, new DefaultTaskExecutionContext());
+        getExecuter().execute(this, state, new DefaultTaskExecutionContext());
     }
 
     public TaskExecuter getExecuter() {
+        if (executer == null) {
+            executer = services.get(TaskExecuter.class);
+        }
         return executer;
     }
 
@@ -338,12 +331,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return buildLogger;
     }
 
-    public LoggingManager getLogging() {
-        return loggingManager;
+    @Inject
+    public LoggingManagerInternal getLogging() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     public StandardOutputCapture getStandardOutputCapture() {
-        return loggingManager;
+        return getLogging();
     }
 
     public Object property(String propertyName) throws MissingPropertyException {
@@ -386,12 +381,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.group = group;
     }
 
+    @Inject
     public TaskInputs getInputs() {
-        return inputs;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
+    @Inject
     public TaskOutputsInternal getOutputs() {
-        return outputs;
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 
     protected ServiceRegistry getServices() {

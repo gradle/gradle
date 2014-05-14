@@ -38,6 +38,13 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         this.attributes = attributes.isEmpty() ? Collections.<String, String>emptyMap() : new HashMap<String, String>(attributes);
     }
 
+    public DefaultIvyArtifactName(String name, String type, @Nullable String extension) {
+        this.name = name;
+        this.type = type;
+        this.extension = extension;
+        this.attributes = Collections.emptyMap();
+    }
+
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();

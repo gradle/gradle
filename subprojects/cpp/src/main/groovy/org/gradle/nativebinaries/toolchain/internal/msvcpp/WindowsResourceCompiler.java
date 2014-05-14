@@ -15,17 +15,15 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativebinaries.internal.CompilerOutputFileNamingScheme;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter;
+import org.gradle.nativebinaries.toolchain.internal.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,21 +31,27 @@ import java.util.List;
 
 public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileSpec> {
 
-    private final CommandLineTool<WindowsResourceCompileSpec> commandLineTool;
+    private final CommandLineTool commandLineTool;
+    private final Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer;
+    private final CommandLineToolInvocation baseInvocation;
 
-    WindowsResourceCompiler(CommandLineTool<WindowsResourceCompileSpec> commandLineTool) {
+    WindowsResourceCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer) {
         this.commandLineTool = commandLineTool;
+        this.specTransformer = specTransformer;
+        this.baseInvocation = invocation;
     }
 
     public WorkResult execute(WindowsResourceCompileSpec spec) {
-        boolean didWork = false;
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
-        CommandLineTool<WindowsResourceCompileSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
+        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        spec = specTransformer.transform(spec);
         for (File sourceFile : spec.getSourceFiles()) {
-            WorkResult result = commandLineAssembler.withArguments(new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation)).execute(spec);
-            didWork |= result.getDidWork();
+            RcCompilerArgsTransformer argsTransformer = new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation);
+            invocation.setArgs(argsTransformer.transform(spec));
+            invocation.setWorkDirectory(spec.getObjectFileDir());
+            commandLineTool.execute(invocation);
         }
-        return new SimpleWorkResult(didWork);
+        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }
 
     private static class RcCompilerArgsTransformer implements ArgsTransformer<WindowsResourceCompileSpec> {
@@ -77,13 +81,16 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
         }
 
         private File getOutputFile(WindowsResourceCompileSpec spec) {
-            String outputFileName = FilenameUtils.getBaseName(inputFile.getName()) + ".res";
-            String compactMD5 = HashUtil.createCompactMD5(inputFile.getAbsolutePath());
-            File outputDirectory = new File(spec.getObjectFileDir(), compactMD5);
-            if(!outputDirectory.exists()){
-                outputDirectory.mkdir();
+
+            File outputFile = new CompilerOutputFileNamingScheme()
+                    .withObjectFileNameSuffix(".res")
+                    .withOutputBaseFolder(spec.getObjectFileDir())
+                    .map(inputFile);
+
+            File outputDirectory = outputFile.getParentFile();
+            if (!outputDirectory.exists()) {
+                outputDirectory.mkdirs();
             }
-            File outputFile = new File(outputDirectory, outputFileName);
             return windowsPathLengthLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
         }
     }

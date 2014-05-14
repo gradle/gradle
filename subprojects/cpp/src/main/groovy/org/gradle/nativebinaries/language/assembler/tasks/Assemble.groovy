@@ -81,7 +81,7 @@ class Assemble extends DefaultTask {
         spec.source getSource()
         spec.args getAssemblerArgs()
 
-        def result = toolChain.target(targetPlatform).createAssembler().execute(spec)
+        def result = toolChain.select(targetPlatform).createAssembler().execute(spec)
         didWork = result.didWork
     }
 

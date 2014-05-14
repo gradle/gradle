@@ -19,9 +19,9 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.language.base.BinaryContainer;
-import org.gradle.language.base.internal.BinaryInternal;
-import org.gradle.language.base.internal.BinaryNamingScheme;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.internal.BinaryInternal;
+import org.gradle.runtime.base.internal.BinaryNamingScheme;
 import org.gradle.language.java.internal.DefaultJavaSourceSet;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -29,17 +29,16 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.jvm.internal.DefaultClasspath;
+import org.gradle.runtime.jvm.internal.DefaultClasspath;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.language.jvm.ClassDirectoryBinary;
-import org.gradle.language.jvm.plugins.JvmLanguagePlugin;
+import org.gradle.api.jvm.ClassDirectoryBinary;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
- * Plugin for compiling Java code. Applies the {@link org.gradle.language.jvm.plugins.JvmLanguagePlugin}.
- * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.language.jvm.ClassDirectoryBinary}.
+ * Plugin for compiling Java code. Applies the {@link JvmLanguagePlugin}.
+ * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.api.jvm.ClassDirectoryBinary}.
  * Registers the {@link JavaSourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
  */
 @Incubating

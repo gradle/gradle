@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveContext;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.internal.Transformers;
@@ -26,24 +23,46 @@ import org.gradle.internal.Transformers;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// TODO:DAZ Unit test
 class RepositoryChainArtifactResolver implements ArtifactResolver {
-    private final Map<String, ModuleVersionRepository> repositories = new LinkedHashMap<String, ModuleVersionRepository>();
+    private final Map<String, ModuleComponentRepository> repositories = new LinkedHashMap<String, ModuleComponentRepository>();
 
-    void add(ModuleVersionRepository repository) {
+    void add(ModuleComponentRepository repository) {
         repositories.put(repository.getId(), repository);
     }
 
-    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactResolveContext context, BuildableArtifactSetResolveResult result) {
-        findSourceRepository(component.getSource()).resolveModuleArtifacts(unpackSource(component), context, result);
+    public void resolveModuleArtifacts(ComponentMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
+        ComponentMetaData unpackedComponent = unpackSource(component);
+        // First try to determine the artifacts locally before going remote
+        sourceRepository.getLocalAccess().resolveModuleArtifacts(unpackedComponent, artifactType, result);
+        if (!result.hasResult()) {
+            sourceRepository.getRemoteAccess().resolveModuleArtifacts(unpackedComponent, artifactType, result);
+        }
+    }
+
+    public void resolveModuleArtifacts(ComponentMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
+        ComponentMetaData unpackedComponent = unpackSource(component);
+        // First try to determine the artifacts locally before going remote
+        sourceRepository.getLocalAccess().resolveModuleArtifacts(unpackedComponent, usage, result);
+        if (!result.hasResult()) {
+            sourceRepository.getRemoteAccess().resolveModuleArtifacts(unpackedComponent, usage, result);
+        }
     }
 
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource source, BuildableArtifactResolveResult result) {
-        findSourceRepository(source).resolveArtifact(artifact, unpackSource(source), result);
+        ModuleComponentRepository sourceRepository = findSourceRepository(source);
+        ModuleSource unpackedSource = unpackSource(source);
+
+        // First try to resolve the artifacts locally before going remote
+        sourceRepository.getLocalAccess().resolveArtifact(artifact, unpackedSource, result);
+        if (!result.hasResult()) {
+            sourceRepository.getRemoteAccess().resolveArtifact(artifact, unpackedSource, result);
+        }
     }
 
-    private ModuleVersionRepository findSourceRepository(ModuleSource originalSource) {
-        ModuleVersionRepository moduleVersionRepository = repositories.get(repositorySource(originalSource).getRepositoryId());
+    private ModuleComponentRepository findSourceRepository(ModuleSource originalSource) {
+        ModuleComponentRepository moduleVersionRepository = repositories.get(repositorySource(originalSource).getRepositoryId());
         if (moduleVersionRepository == null) {
             throw new IllegalStateException("Attempting to resolve artifacts from invalid repository");
         }

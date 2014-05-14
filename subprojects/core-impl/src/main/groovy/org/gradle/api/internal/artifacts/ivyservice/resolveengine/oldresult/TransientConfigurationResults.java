@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
 import java.util.Map;
 
@@ -27,6 +26,4 @@ public interface TransientConfigurationResults {
     Map<ModuleDependency, ResolvedDependency> getFirstLevelDependencies();
 
     ResolvedDependency getRoot();
-
-    ResolvedDependency getResolvedDependency(ResolvedConfigurationIdentifier id);
 }

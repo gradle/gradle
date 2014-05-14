@@ -30,15 +30,6 @@ public interface ResolvedArtifact {
      */
     ResolvedModuleVersion getModuleVersion();
 
-    /**
-     * Returns one of the dependencies which this artifact belongs to.
-     *
-     * @return One of the dependencies which this artifact belongs to.
-     * @deprecated An artifact can belong to multiple dependencies. Use {@link #getModuleVersion()} instead.
-     */
-    @Deprecated
-    ResolvedDependency getResolvedDependency();
-
     String getName();
 
     String getType();

@@ -33,7 +33,7 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Value
 
     public T parseNotation(CharSequence notation) throws UnsupportedNotationException, TypeConversionException {
         final String enumString = notation.toString();
-        List<T> enumConstants = Arrays.asList(type.getEnumConstants());
+        List<? extends T> enumConstants = Arrays.asList(type.getEnumConstants());
         T match = CollectionUtils.findFirst(enumConstants, new Spec<T>() {
             public boolean isSatisfiedBy(T enumValue) {
                 return enumValue.name().equalsIgnoreCase(enumString);

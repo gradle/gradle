@@ -25,4 +25,5 @@ public interface DependencyResolutionServices {
     ConfigurationContainerInternal getConfigurationContainer();
 
     DependencyHandler getDependencyHandler();
+
 }

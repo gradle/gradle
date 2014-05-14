@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -36,9 +36,11 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.*;
 
 /**
  * Copied from org.apache.ivy.plugins.parser.m2.PomReader.
@@ -75,6 +77,7 @@ public class PomReader implements PomParent {
     private static final String PROFILE_ID = "id";
     private static final String PROFILE_ACTIVATION = "activation";
     private static final String PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT = "activeByDefault";
+    private static final String PROFILE_ACTIVATION_PROPERTY = "property";
 
     private PomParent pomParent = new RootPomParent();
     private final Map<String, String> properties = new HashMap<String, String>();
@@ -585,7 +588,8 @@ public class PomReader implements PomParent {
      */
     private List<PomProfile> parseActivePomProfiles() {
         if(declaredActivePomProfiles == null) {
-            List<PomProfile> activePomProfiles = new ArrayList<PomProfile>();
+            List<PomProfile> activeByDefaultPomProfiles = new ArrayList<PomProfile>();
+            List<PomProfile> activeByAbsenceOfPropertyPomProfiles = new ArrayList<PomProfile>();
             Element profilesElement = getFirstChildElement(projectElement, PROFILES);
 
             if(profilesElement != null) {
@@ -597,17 +601,49 @@ public class PomReader implements PomParent {
                             String activeByDefault = getFirstChildText(activationElement, PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT);
 
                             if(activeByDefault != null && "true".equals(activeByDefault)) {
-                                activePomProfiles.add(new PomProfileElement(profileElement));
+                                activeByDefaultPomProfiles.add(new PomProfileElement(profileElement));
+                            } else {
+                                Element propertyElement = getFirstChildElement(activationElement, PROFILE_ACTIVATION_PROPERTY);
+
+                                if(propertyElement != null) {
+                                    if(isActivationPropertyActivated(propertyElement)) {
+                                        activeByAbsenceOfPropertyPomProfiles.add(new PomProfileElement(profileElement));
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
 
-            declaredActivePomProfiles = activePomProfiles;
+            declaredActivePomProfiles = determineActiveProfiles(activeByDefaultPomProfiles, activeByAbsenceOfPropertyPomProfiles);
         }
 
         return declaredActivePomProfiles;
+    }
+
+    /**
+     * If a profile is identified as active through any other activation method than activeByDefault, none of the existing
+     * profiles marked as activeByDefault apply.
+     *
+     * @param activeByDefaultPomProfiles Parsed profiles that are active by default
+     * @param activeByAbsenceOfPropertyPomProfiles Parsed profiles that are activated by absence of property
+     * @return List of active profiles that are not activeByDefault
+     */
+    private List<PomProfile> determineActiveProfiles(List<PomProfile> activeByDefaultPomProfiles, List<PomProfile> activeByAbsenceOfPropertyPomProfiles) {
+        return !activeByAbsenceOfPropertyPomProfiles.isEmpty() ? activeByAbsenceOfPropertyPomProfiles : activeByDefaultPomProfiles;
+    }
+
+    /**
+     * Checks if activation property is actived through absense of system property.
+     *
+     * @param propertyElement Property element
+     * @return Activation indicator
+     * @see <a href="http://books.sonatype.com/mvnref-book/reference/profiles-sect-activation.html#profiles-sect-activation-config">Maven documentation</a>
+     */
+    private boolean isActivationPropertyActivated(Element propertyElement) {
+        String propertyName = getFirstChildText(propertyElement, "name");
+        return propertyName.startsWith("!");
     }
 
     /**
@@ -636,141 +672,4 @@ public class PomReader implements PomParent {
             return IvyPatternHelper.substituteVariables(val, properties).trim();
         }
     }
-
-    private static String getTextContent(Element element) {
-        StringBuilder result = new StringBuilder();
-
-        NodeList childNodes = element.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-
-            switch (child.getNodeType()) {
-                case Node.CDATA_SECTION_NODE:
-                case Node.TEXT_NODE:
-                    result.append(child.getNodeValue());
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        return result.toString();
-    }
-
-    private static String getFirstChildText(Element parentElem, String name) {
-        Element node = getFirstChildElement(parentElem, name);
-        if (node != null) {
-            return getTextContent(node);
-        } else {
-            return null;
-        }
-    }
-
-    private static Element getFirstChildElement(Element parentElem, String name) {
-        if (parentElem == null) {
-            return null;
-        }
-        NodeList childs = parentElem.getChildNodes();
-        for (int i = 0; i < childs.getLength(); i++) {
-            Node node = childs.item(i);
-            if (node instanceof Element && name.equals(node.getNodeName())) {
-                return (Element) node;
-            }
-        }
-        return null;
-    }
-
-    private static List<Element> getAllChilds(Element parent) {
-        List<Element> r = new LinkedList<Element>();
-        if (parent != null) {
-            NodeList childs = parent.getChildNodes();
-            for (int i = 0; i < childs.getLength(); i++) {
-                Node node = childs.item(i);
-                if (node instanceof Element) {
-                    r.add((Element) node);
-                }
-            }
-        }
-        return r;
-    }
-
-    private static final class AddDTDFilterInputStream extends FilterInputStream {
-        private static final int MARK = 10000;
-        private static final String DOCTYPE = "<!DOCTYPE project SYSTEM \"m2-entities.ent\">\n";
-
-        private int count;
-        private byte[] prefix = DOCTYPE.getBytes();
-
-        private AddDTDFilterInputStream(InputStream in) throws IOException {
-            super(new BufferedInputStream(in));
-
-            this.in.mark(MARK);
-
-            // TODO: we should really find a better solution for this...
-            // maybe we could use a FilterReader instead of a FilterInputStream?
-            int byte1 = this.in.read();
-            int byte2 = this.in.read();
-            int byte3 = this.in.read();
-
-            if (byte1 == 239 && byte2 == 187 && byte3 == 191) {
-                // skip the UTF-8 BOM
-                this.in.mark(MARK);
-            } else {
-                this.in.reset();
-            }
-
-            int bytesToSkip = 0;
-            LineNumberReader reader = new LineNumberReader(new InputStreamReader(this.in, "UTF-8"), 100);
-            String firstLine = reader.readLine();
-            if (firstLine != null) {
-                String trimmed = firstLine.trim();
-                if (trimmed.startsWith("<?xml ")) {
-                    int endIndex = trimmed.indexOf("?>");
-                    String xmlDecl = trimmed.substring(0, endIndex + 2);
-                    prefix = (xmlDecl + "\n" + DOCTYPE).getBytes();
-                    bytesToSkip = xmlDecl.getBytes().length;
-                }
-            }
-
-            this.in.reset();
-            for (int i = 0; i < bytesToSkip; i++) {
-                this.in.read();
-            }
-        }
-
-        public int read() throws IOException {
-            if (count < prefix.length) {
-                return prefix[count++];
-            }
-
-            return super.read();
-        }
-
-        public int read(byte[] b, int off, int len) throws IOException {
-            if (b == null) {
-                throw new NullPointerException();
-            } else if ((off < 0) || (off > b.length) || (len < 0)
-                    || ((off + len) > b.length) || ((off + len) < 0)) {
-                throw new IndexOutOfBoundsException();
-            } else if (len == 0) {
-                return 0;
-            }
-
-            int nbrBytesCopied = 0;
-
-            if (count < prefix.length) {
-                int nbrBytesFromPrefix = Math.min(prefix.length - count, len);
-                System.arraycopy(prefix, count, b, off, nbrBytesFromPrefix);
-                nbrBytesCopied = nbrBytesFromPrefix;
-            }
-
-            if (nbrBytesCopied < len) {
-                nbrBytesCopied += in.read(b, off + nbrBytesCopied, len - nbrBytesCopied);
-            }
-
-            count += nbrBytesCopied;
-            return nbrBytesCopied;
-        }
-    }
-
 }

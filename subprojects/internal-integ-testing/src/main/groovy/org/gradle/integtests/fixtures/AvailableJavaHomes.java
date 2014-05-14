@@ -15,14 +15,19 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.api.specs.Spec;
+import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
+import org.gradle.integtests.fixtures.jvm.JvmInstallation;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -30,74 +35,22 @@ import java.util.List;
  */
 abstract public class AvailableJavaHomes {
 
-    private static File getJavaHome(String label) {
-        String value = System.getenv().get(String.format("JDK_%s", label));
-        return value == null ? null : GFileUtils.canonicalise(new File(value));
-    }
+    private static List<JvmInstallation> jvms;
 
     /**
      * Locates a JVM installation that is different to the current JVM.
      */
     public static File getBestAlternative() {
         Jvm jvm = Jvm.current();
-
-        // Use environment variables
-        File javaHome = null;
-        if (jvm.getJavaVersion().isJava6Compatible()) {
-            javaHome = firstAvailable("15", "17");
-        } else if (jvm.getJavaVersion().isJava5Compatible()) {
-            javaHome = firstAvailable("16", "17");
-        }
-        if (javaHome != null) {
-            return javaHome;
-        }
-
-        if (OperatingSystem.current().isMacOsX()) {
-            // Search in the install dir used by the Apple jvms, followed by the install dir used by the OpenJDK jvms
-            List<File> installDirs = Arrays.asList(new File("/System/Library/Java/JavaVirtualMachines"), new File("/Library/Java/JavaVirtualMachines"));
-            for (File installDir : installDirs) {
-                if (installDir.isDirectory()) {
-                    for (File candidate : installDir.listFiles()) {
-                        javaHome = GFileUtils.canonicalise(new File(candidate, "Contents/Home"));
-                        if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java").isFile()) {
-                            return javaHome;
-                        }
-                    }
-                }
+        for (JvmInstallation candidate : getJvms()) {
+            if (candidate.getJavaHome().equals(jvm.getJavaHome())) {
+                continue;
             }
-        } else if (OperatingSystem.current().isLinux()) {
-            // Ubuntu specific
-            File installedJvms = new File("/usr/lib/jvm");
-            if (installedJvms.isDirectory()) {
-                for (File candidate : installedJvms.listFiles()) {
-                    javaHome = GFileUtils.canonicalise(candidate);
-                    if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java").isFile()) {
-                        return javaHome;
-                    }
-                }
+            // Currently tests implicitly assume a JDK
+            if (!candidate.isJdk()) {
+                continue;
             }
-        } else if (OperatingSystem.current().isWindows()) {
-            //very simple algorithm trying to find java on windows
-            List<File> installDirs = new ArrayList<File>();
-            File candidate = new File("c:/Program Files/Java");
-            if (candidate.isDirectory()) {
-                installDirs.add(candidate);
-            }
-            // Attempt to look for 32-bit version under 64-bit OS
-            candidate = new File("c:/Program Files (x86)/Java");
-            if (candidate.isDirectory()) {
-                installDirs.add(candidate);
-            }
-            for (File installDir : installDirs) {
-                for (File file : installDir.listFiles()) {
-                    if (file.getName().startsWith("jdk")) {
-                        javaHome = GFileUtils.canonicalise(file);
-                        if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java.exe").isFile()) {
-                            return javaHome;
-                        }
-                    }
-                }
-            }
+            return candidate.getJavaHome();
         }
 
         return null;
@@ -121,13 +74,36 @@ abstract public class AvailableJavaHomes {
         return null;
     }
 
-    public static File firstAvailable(String... labels) {
-        for (String label : labels) {
-            File found = getJavaHome(label);
-            if (found != null) {
-                return found;
-            }
+    private static List<JvmInstallation> getJvms() {
+        if (jvms == null) {
+            jvms = new ArrayList<JvmInstallation>();
+            jvms.addAll(new DevInfrastructureJvmLocator().findJvms());
+            jvms.addAll(new InstalledJvmLocator().findJvms());
+            // Order from most recent to least recent
+            Collections.sort(jvms, new Comparator<JvmInstallation>() {
+                public int compare(JvmInstallation o1, JvmInstallation o2) {
+                    return o2.getVersion().compareTo(o1.getVersion());
+                }
+            });
         }
-        return null;
+        return jvms;
+    }
+
+    private static class DevInfrastructureJvmLocator {
+        public List<JvmInstallation> findJvms() {
+            List<JvmInstallation> jvms = new ArrayList<JvmInstallation>();
+            if (OperatingSystem.current().isLinux()) {
+                jvms.add(new JvmInstallation(JavaVersion.VERSION_1_5, "1.5.0", new File("/opt/jdk/sun-jdk-5"), true, JvmInstallation.Arch.i386));
+                jvms.add(new JvmInstallation(JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/sun-jdk-6"), true, JvmInstallation.Arch.x86_64));
+                jvms.add(new JvmInstallation(JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/ibm-jdk-6"), true, JvmInstallation.Arch.x86_64));
+                jvms.add(new JvmInstallation(JavaVersion.VERSION_1_7, "1.7.0", new File("/opt/jdk/oracle-jdk-7"), true, JvmInstallation.Arch.x86_64));
+                jvms.add(new JvmInstallation(JavaVersion.VERSION_1_8, "1.8.0", new File("/opt/jdk/oracle-jdk-8"), true, JvmInstallation.Arch.x86_64));
+            }
+            return CollectionUtils.filter(jvms, new Spec<JvmInstallation>() {
+                public boolean isSatisfiedBy(JvmInstallation element) {
+                    return element.getJavaHome().isDirectory();
+                }
+            });
+        }
     }
 }

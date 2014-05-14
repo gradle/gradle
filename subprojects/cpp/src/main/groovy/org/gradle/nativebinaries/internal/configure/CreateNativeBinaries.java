@@ -19,18 +19,18 @@ package org.gradle.nativebinaries.internal.configure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.BinaryContainer;
-import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.model.ModelRule;
-import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.BuildTypeContainer;
+import org.gradle.nativebinaries.FlavorContainer;
+import org.gradle.nativebinaries.ProjectNativeBinary;
+import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import org.gradle.runtime.base.BinaryContainer;
+import org.gradle.runtime.base.ProjectComponentContainer;
+import org.gradle.runtime.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.runtime.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 public class CreateNativeBinaries extends ModelRule {
     private final Instantiator instantiator;
@@ -45,7 +45,6 @@ public class CreateNativeBinaries extends ModelRule {
 
     public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains,
                        PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors) {
-        // TODO:DAZ Work out the right way to make these containers available to binaries.all
         project.getExtensions().add("platforms", platforms);
         project.getExtensions().add("buildTypes", buildTypes);
         project.getExtensions().add("flavors", flavors);
@@ -56,24 +55,10 @@ public class CreateNativeBinaries extends ModelRule {
         Action<ProjectNativeComponent> createBinariesAction =
                 new ProjectNativeComponentInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
 
-        for (ProjectNativeComponent component : allComponents()) {
+        ProjectComponentContainer softwareComponents = project.getExtensions().getByType(ProjectComponentContainer.class);
+        for (ProjectNativeComponent component : softwareComponents.withType(ProjectNativeComponent.class)) {
             createBinariesAction.execute(component);
             binaries.addAll(component.getBinaries());
         }
     }
-
-    private Collection<ProjectNativeComponent> allComponents() {
-        ExecutableContainer executables = project.getExtensions().getByType(ExecutableContainer.class);
-        LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
-
-        List<ProjectNativeComponent> components = new ArrayList<ProjectNativeComponent>();
-        for (Library library : libraries) {
-            components.add(library);
-        }
-        for (Executable executable : executables) {
-            components.add(executable);
-        }
-        return components;
-    }
-
 }

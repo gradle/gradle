@@ -18,29 +18,30 @@ package org.gradle.plugins.ide.internal.tooling.eclipse;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.*;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultEclipseProject implements EclipseProjectVersion3, Serializable, GradleProjectIdentity {
+/**
+ * An implementation for {@link org.gradle.tooling.model.eclipse.EclipseProject}.
+ */
+public class DefaultEclipseProject implements Serializable, GradleProjectIdentity {
     private final String name;
     private final String path;
-    private EclipseProjectVersion3 parent;
-    private List<ExternalDependencyVersion1> classpath;
-    private final List<EclipseProjectVersion3> children;
-    private List<EclipseSourceDirectoryVersion1> sourceDirectories;
-    private List<EclipseProjectDependencyVersion2> projectDependencies;
+    private DefaultEclipseProject parent;
+    private List<DefaultEclipseExternalDependency> classpath;
+    private final List<DefaultEclipseProject> children;
+    private List<DefaultEclipseSourceDirectory> sourceDirectories;
+    private List<DefaultEclipseProjectDependency> projectDependencies;
     private final String description;
     private final File projectDirectory;
-    private Iterable<? extends EclipseTaskVersion1> tasks;
-    private Iterable<? extends EclipseLinkedResourceVersion1> linkedResources;
+    private Iterable<? extends DefaultEclipseTask> tasks;
+    private Iterable<? extends DefaultEclipseLinkedResource> linkedResources;
     private DefaultGradleProject gradleProject;
 
-    public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends EclipseProjectVersion3> children) {
+    public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children) {
         this.name = name;
         this.path = path;
         this.description = description;
@@ -69,7 +70,7 @@ public class DefaultEclipseProject implements EclipseProjectVersion3, Serializab
         return description;
     }
 
-    public EclipseProjectVersion3 getParent() {
+    public DefaultEclipseProject getParent() {
         return parent;
     }
 
@@ -77,50 +78,51 @@ public class DefaultEclipseProject implements EclipseProjectVersion3, Serializab
         return projectDirectory;
     }
 
-    public void setParent(EclipseProjectVersion3 parent) {
+    public void setParent(DefaultEclipseProject parent) {
         this.parent = parent;
     }
 
-    public List<EclipseProjectVersion3> getChildren() {
+    public List<DefaultEclipseProject> getChildren() {
         return children;
     }
 
-    public Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories() {
+    public Iterable<? extends DefaultEclipseSourceDirectory> getSourceDirectories() {
         return sourceDirectories;
     }
 
-    public void setSourceDirectories(List<EclipseSourceDirectoryVersion1> sourceDirectories) {
+    public void setSourceDirectories(List<DefaultEclipseSourceDirectory> sourceDirectories) {
         this.sourceDirectories = sourceDirectories;
     }
 
-    public Iterable<? extends EclipseProjectDependencyVersion2> getProjectDependencies() {
+    public Iterable<? extends DefaultEclipseProjectDependency> getProjectDependencies() {
         return projectDependencies;
     }
 
-    public void setProjectDependencies(List<EclipseProjectDependencyVersion2> projectDependencies) {
+    public void setProjectDependencies(List<DefaultEclipseProjectDependency> projectDependencies) {
         this.projectDependencies = projectDependencies;
     }
 
-    public List<ExternalDependencyVersion1> getClasspath() {
+    public List<DefaultEclipseExternalDependency> getClasspath() {
         return classpath;
     }
-    public void setClasspath(List<ExternalDependencyVersion1> classpath) {
+
+    public void setClasspath(List<DefaultEclipseExternalDependency> classpath) {
         this.classpath = classpath;
     }
 
-    public Iterable<? extends EclipseTaskVersion1> getTasks() {
+    public Iterable<? extends DefaultEclipseTask> getTasks() {
         return tasks;
     }
 
-    public void setTasks(Iterable<? extends EclipseTaskVersion1> tasks) {
+    public void setTasks(Iterable<? extends DefaultEclipseTask> tasks) {
         this.tasks = tasks;
     }
 
-    public Iterable<? extends EclipseLinkedResourceVersion1> getLinkedResources() {
+    public Iterable<? extends DefaultEclipseLinkedResource> getLinkedResources() {
         return linkedResources;
     }
 
-    public void setLinkedResources(Iterable<? extends EclipseLinkedResourceVersion1> linkedResources) {
+    public void setLinkedResources(Iterable<? extends DefaultEclipseLinkedResource> linkedResources) {
         this.linkedResources = linkedResources;
     }
 

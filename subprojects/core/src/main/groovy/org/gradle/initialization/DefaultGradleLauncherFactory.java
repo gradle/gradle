@@ -16,25 +16,25 @@
 
 package org.gradle.initialization;
 
-import org.gradle.*;
+import org.gradle.BuildLogger;
+import org.gradle.StartParameter;
+import org.gradle.TaskExecutionLogger;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.internal.progress.BuildProgressFilter;
-import org.gradle.internal.progress.BuildProgressLogger;
-import org.gradle.internal.progress.LoggerProvider;
-import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.progress.BuildProgressFilter;
+import org.gradle.internal.progress.BuildProgressLogger;
+import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
@@ -45,13 +45,10 @@ import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.Arrays;
-
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final ServiceRegistry sharedServices;
     private final NestedBuildTracker tracker;
     private final BuildProgressLogger buildProgressLogger;
-    private CommandLineConverter<StartParameter> commandLineConverter;
 
     public DefaultGradleLauncherFactory(ServiceRegistry globalServices) {
         sharedServices = globalServices;
@@ -62,8 +59,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         buildProgressLogger = new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class));
         listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
         listenerManager.useLogger(new DependencyResolutionLogger(sharedServices.get(ProgressLoggerFactory.class)));
-
-        GradleLauncher.injectCustomFactory(this);
     }
 
     public void addListener(Object listener) {
@@ -72,13 +67,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
     public void removeListener(Object listener) {
         sharedServices.get(ListenerManager.class).removeListener(listener);
-    }
-
-    public StartParameter createStartParameter(String... commandLineArgs) {
-        if (commandLineConverter == null) {
-            commandLineConverter = sharedServices.get(CommandLineConverter.class);
-        }
-        return commandLineConverter.convert(Arrays.asList(commandLineArgs));
     }
 
     public DefaultGradleLauncher newInstance(StartParameter startParameter) {
@@ -109,13 +97,12 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
         loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
 
-        LoggerProvider loggerProvider = (tracker.getCurrentBuild() == null)? buildProgressLogger: LoggerProvider.NO_OP;
+        LoggerProvider loggerProvider = (tracker.getCurrentBuild() == null) ? buildProgressLogger : LoggerProvider.NO_OP;
         listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class), loggerProvider));
         if (tracker.getCurrentBuild() == null) {
             listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
         }
         listenerManager.addListener(tracker);
-        listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
 
         listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
@@ -135,8 +122,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
-                                serviceRegistry.get(ClassLoaderScope.class),
-                                serviceRegistry.get(CacheRepository.class))),
+                                serviceRegistry.get(ClassLoaderScopeRegistry.class).getGradleApiScope(),
+                                serviceRegistry.get(CacheRepository.class))
+                ),
                 serviceRegistry.get(BuildLoader.class),
                 serviceRegistry.get(BuildConfigurer.class),
                 gradle.getBuildListenerBroadcaster(),
@@ -144,25 +132,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 loggingManager,
                 listenerManager.getBroadcaster(ModelConfigurationListener.class),
                 listenerManager.getBroadcaster(TasksCompletionListener.class),
-                gradle.getServices().get(BuildExecuter.class));
+                gradle.getServices().get(BuildExecuter.class),
+                listenerManager.getBroadcaster(BuildCompletionListener.class),
+                serviceRegistry
+        );
     }
-
-    public void setCommandLineConverter(
-            CommandLineConverter<StartParameter> commandLineConverter) {
-        this.commandLineConverter = commandLineConverter;
-    }
-
-    private static class BuildCleanupListener extends BuildAdapter {
-        private final BuildScopeServices services;
-
-        private BuildCleanupListener(BuildScopeServices services) {
-            this.services = services;
-        }
-
-        @Override
-        public void buildFinished(BuildResult result) {
-            services.close();
-        }
-    }
-
 }

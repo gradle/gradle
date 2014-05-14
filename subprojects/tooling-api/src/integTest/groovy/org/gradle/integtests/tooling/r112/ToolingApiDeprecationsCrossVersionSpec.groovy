@@ -19,11 +19,18 @@ package org.gradle.integtests.tooling.r112
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 
+import java.util.regex.Pattern
+
 class ToolingApiDeprecationsCrossVersionSpec extends ToolingApiSpecification {
+    private static final Pattern REGEXP_UNSUPPORTED_CONNECTION = Pattern.compile(
+            'Connection to the specified Gradle installation \'.*\' is not supported in this version of tooling API. Update your tooling API provider to version newer than 1.0-milestone-8.')
+
     def setup() {
         file("build.gradle") << """
 task noop << {
@@ -34,7 +41,7 @@ task noop << {
 
     @ToolingApiVersion(">=1.12")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "build shows deprecation warning for pre 1.0m8 providers"() {
+    def "build rejected for pre 1.0m8 providers"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -45,12 +52,13 @@ task noop << {
         }
 
         then:
-        output.toString().contains(deprecationMessageProvider(targetDist.version.version))
+        UnsupportedVersionException e = thrown()
+        REGEXP_UNSUPPORTED_CONNECTION.matcher(e.message).matches()
     }
 
     @ToolingApiVersion(">=1.12")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "model retrieving shows deprecation warning for pre 1.0m8 providers"() {
+    def "model retrieving fails for pre 1.0m8 providers"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -60,7 +68,8 @@ task noop << {
         }
 
         then:
-        output.toString().contains(deprecationMessageProvider(targetDist.version.version))
+        UnsupportedVersionException e = thrown()
+        REGEXP_UNSUPPORTED_CONNECTION.matcher(e.message).matches()
     }
 
     @ToolingApiVersion(">=1.12")
@@ -100,7 +109,7 @@ task noop << {
 
     @ToolingApiVersion("<1.2")
     @TargetGradleVersion(">=1.12")
-    def "provider shows deprecation warning when build is requested by old toolingApi"() {
+    def "provider rejects build request from old toolingApi (pre 1.2)"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -111,7 +120,8 @@ task noop << {
         }
 
         then:
-        output.toString().contains(deprecationMessageApi(targetDist.version.version))
+        GradleConnectionException e = thrown()
+        e.cause.message.contains('Consumers using version older than 1.2 are not supported.')
     }
 
     @ToolingApiVersion(">=1.2")
@@ -132,7 +142,7 @@ task noop << {
 
     @ToolingApiVersion("<1.2")
     @TargetGradleVersion(">=1.12")
-    def "provider shows deprecation warning when model is requested by old toolingApi"() {
+    def "provider rejects model request from old toolingApi"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -142,7 +152,9 @@ task noop << {
         }
 
         then:
-        output.toString().contains(deprecationMessageApi(targetDist.version.version))
+        GradleConnectionException e = thrown()
+        e.cause.message.contains('Consumers using version older than 1.2 are not supported.')
+        // TODO cause is UnsupportedVersionException?
     }
 
     @ToolingApiVersion(">=1.2")
@@ -161,7 +173,7 @@ task noop << {
     }
 
     def deprecationMessageApi(def version) {
-        "Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 2.0"
+        "Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle"
     }
 
 }

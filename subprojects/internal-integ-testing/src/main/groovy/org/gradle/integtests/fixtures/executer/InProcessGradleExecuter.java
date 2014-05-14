@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
@@ -39,10 +39,14 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -65,8 +69,13 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 class InProcessGradleExecuter extends AbstractGradleExecuter {
-
-    private final ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
+    private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
+            .displayName("Global services")
+            .parent(LoggingServiceRegistry.newProcessLogging())
+            .parent(NativeServices.getInstance())
+            .provider(new GlobalScopeServices(true))
+            .build();
+    private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
     InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
@@ -153,7 +162,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         converter.configure(parser);
         ParsedCommandLine parsedCommandLine = parser.parse(getAllArgs());
 
-        BuildLayoutParameters layout = converter.getLayoutConverter().convert(parsedCommandLine);
+        BuildLayoutParameters layout = converter.getLayoutConverter().convert(parsedCommandLine, new BuildLayoutParameters());
 
         Map<String, String> properties = new HashMap<String, String>();
         new LayoutToPropertiesConverter().convert(layout, properties);
@@ -162,17 +171,17 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         new PropertiesToStartParameterConverter().convert(properties, parameter);
         converter.convert(parsedCommandLine, parameter);
 
-        DefaultGradleLauncherFactory factory = DeprecationLogger.whileDisabled(new Factory<DefaultGradleLauncherFactory>() {
-            public DefaultGradleLauncherFactory create() {
-                return (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
-            }
-        });
+        DefaultGradleLauncherFactory factory = GLOBAL_SERVICES.get(DefaultGradleLauncherFactory.class);
         factory.addListener(listener);
-        GradleLauncher gradleLauncher = factory.newInstance(parameter);
-        gradleLauncher.addStandardOutputListener(outputListener);
-        gradleLauncher.addStandardErrorListener(errorListener);
         try {
-            return gradleLauncher.run();
+            GradleLauncher gradleLauncher = factory.newInstance(parameter);
+            try {
+                gradleLauncher.addStandardOutputListener(outputListener);
+                gradleLauncher.addStandardErrorListener(errorListener);
+                return gradleLauncher.run();
+            } finally {
+                gradleLauncher.stop();
+            }
         } finally {
             // Restore the environment
             System.setProperties(originalSysProperties);

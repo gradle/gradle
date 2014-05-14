@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.util.Collections;
 import java.util.Map;
@@ -33,13 +31,17 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
         this(componentIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes());
     }
 
-    public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension) {
-        this(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), name, type, extension, Collections.<String, String>emptyMap());
+    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension) {
+        this(componentIdentifier, name, type, extension, Collections.<String, String>emptyMap());
     }
 
     public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
+        this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension, attributes));
+    }
+
+    public DefaultModuleVersionArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this.componentIdentifier = componentIdentifier;
-        this.name = new DefaultIvyArtifactName(name, type, extension, attributes);
+        this.name = artifact;
     }
 
     public String getDisplayName() {

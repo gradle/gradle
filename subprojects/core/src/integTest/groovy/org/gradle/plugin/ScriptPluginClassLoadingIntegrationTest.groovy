@@ -17,9 +17,14 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
 
+import static org.gradle.util.Matchers.containsText
+
 class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
+
+    def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Issue("http://issues.gradle.org/browse/GRADLE-3069")
     def "second level and beyond script plugins have same class loader scope as original target"() {
@@ -50,5 +55,224 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds "sayMessageFrom1", "sayMessageFrom2", "sayMessageFrom3"
         output.contains "hello"
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-3079")
+    def "methods defined in script are available to used script plugins"() {
+        given:
+        buildScript """
+          def addTask(project) {
+            project.tasks.create("hello").doLast { println "hello from method" }
+          }
+
+          apply from: "script.gradle"
+        """
+
+        file("script.gradle") << "addTask(project)"
+
+        when:
+        succeeds "hello"
+
+        then:
+        output.contains "hello from method"
+    }
+
+    def "methods defined in script plugin are not inherited by applied script plugin"() {
+        given:
+        buildScript """
+            apply from: "script1.gradle"
+        """
+
+        file("script1.gradle") << """
+            def someMethod() {}
+            apply from: "script2.gradle"
+        """
+
+        file("script2.gradle") << """
+            someMethod()
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasFileName("Script '${file("script2.gradle").absolutePath}'")
+        failure.assertThatCause(containsText("Could not find method someMethod()"))
+    }
+
+    def "methods defined in settings script are not inherited by scripts"() {
+        given:
+        settingsFile << """
+            def someMethod() {}
+        """
+
+        buildScript """
+            someMethod()
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertThatCause(containsText("Could not find method someMethod()"))
+    }
+
+    def "methods defined in init script are not inherited by scripts"() {
+        given:
+        file("init.gradle") << """
+            def someMethod() {}
+        """
+
+        buildScript """
+            someMethod()
+        """
+
+        when:
+        fails "tasks", "-I", file("init.gradle").absolutePath
+
+        then:
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertThatCause(containsText("Could not find method someMethod()"))
+    }
+
+    def "methods defined in a build script are visible to scripts applied to sub projects"() {
+        given:
+        settingsFile << "include 'sub'"
+
+        buildScript """
+            def someMethod() {
+                println "from some method"
+            }
+        """
+
+        file("sub/build.gradle") << "apply from: 'script.gradle'"
+        file("sub/script.gradle") << "someMethod()"
+
+        when:
+        run "tasks"
+
+        then:
+        output.contains("from some method")
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-3082")
+    def "can use apply block syntax to apply multiple scripts"() {
+        given:
+        buildScript """
+          apply {
+            from "script1.gradle"
+            from "script2.gradle"
+          }
+        """
+
+        file("script1.gradle") << "task hello1 << { println 'hello from script1' }"
+        file("script2.gradle") << "task hello2 << { println 'hello from script2' }"
+
+        when:
+        succeeds "hello1", "hello2"
+
+        then:
+        output.contains "hello from script1"
+        output.contains "hello from script2"
+    }
+
+    def "separate classloaders are used when using multi apply syntax"() {
+        given:
+        buildScript """
+          apply {
+            from "script1.gradle"
+            from "script2.gradle"
+          }
+        """
+
+        file("script1.gradle") << "class Foo {}"
+        file("script2.gradle") << "new Foo()"
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasFileName("Script '${file("script2.gradle").absolutePath}'")
+        failure.assertThatCause(containsText("unable to resolve class Foo"))
+    }
+
+    def "script plugin buildscript does not affect client"() {
+        given:
+        def jar = file("plugin.jar")
+        pluginBuilder.addPlugin("project.task('hello')")
+        pluginBuilder.publishTo(executer, jar)
+
+        settingsFile << "include 'sub'"
+
+        buildScript """
+            apply from: "script.gradle"
+
+            try {
+                getClass().classLoader.loadClass(pluginClass.name)
+                assert false
+            } catch (ClassNotFoundException ignore) {
+                println "not in root"
+            }
+
+        """
+
+        file("script.gradle") << """
+          buildscript {
+            dependencies { classpath files("plugin.jar") }
+          }
+
+          apply plugin: org.gradle.test.TestPlugin
+          ext.pluginClass = org.gradle.test.TestPlugin
+        """
+
+        file("sub/build.gradle") << """
+            try {
+                getClass().classLoader.loadClass(pluginClass.name)
+                assert false
+            } catch (ClassNotFoundException ignore) {
+                println "not in sub"
+            }
+        """
+
+        when:
+        succeeds "hello"
+
+        then:
+        output.contains "not in root"
+        output.contains "not in sub"
+    }
+
+    def "script plugin cannot access classed added by buildscript in applying script"() {
+        given:
+        def jar = file("plugin.jar")
+        pluginBuilder.addPlugin("project.task('hello')")
+        pluginBuilder.publishTo(executer, jar)
+
+        buildScript """
+            buildscript {
+                dependencies { classpath files("plugin.jar") }
+            }
+
+            apply plugin: org.gradle.test.TestPlugin
+            ext.pluginClass = org.gradle.test.TestPlugin
+
+            apply from: "script.gradle"
+        """
+
+        file("script.gradle") << """
+            try {
+                getClass().classLoader.loadClass(pluginClass.name)
+                assert false
+            } catch (ClassNotFoundException ignore) {
+                println "not in script"
+            }
+        """
+
+        when:
+        succeeds "hello"
+
+        then:
+        output.contains "not in script"
     }
 }

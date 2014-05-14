@@ -18,28 +18,18 @@ package org.gradle.nativebinaries.toolchain.internal;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.*;
 
-public class CommandLineTool<T extends BinaryToolSpec> {
+public class CommandLineTool {
     private final String action;
     private final File executable;
     private final ExecActionFactory execActionFactory;
-    private final Map<String, String> environment = new HashMap<String, String>();
-    private final List<File> path = new ArrayList<File>();
-    private ArgsTransformer<T> specToArgs;
-    private Transformer<T, T> specTransformer = new IdentityTransformer<T>();
-    private File workDir;
 
     public CommandLineTool(String action, File executable, ExecActionFactory execActionFactory) {
         this.action = action;
@@ -47,67 +37,29 @@ public class CommandLineTool<T extends BinaryToolSpec> {
         this.execActionFactory = execActionFactory;
     }
 
-    public CommandLineTool<T> inWorkDirectory(File workDir) {
-        GFileUtils.mkdirs(workDir);
-        this.workDir = workDir;
-        return this;
-    }
-
-    public CommandLineTool<T> withSpecTransformer(Transformer<T, T> specAction) {
-        this.specTransformer = specAction;
-        return this;
-    }
-
-    public CommandLineTool<T> withPath(List<File> pathEntries) {
-        path.addAll(pathEntries);
-        return this;
-    }
-
-    public CommandLineTool<T> withPath(File... pathEntries) {
-        Collections.addAll(path, pathEntries);
-        return this;
-    }
-
-    public CommandLineTool<T> withEnvironmentVar(String name, String value) {
-        environment.put(name, value);
-        return this;
-    }
-
-    public CommandLineTool<T> withArguments(ArgsTransformer<T> arguments) {
-        this.specToArgs = arguments;
-        return this;
-    }
-
-    public WorkResult execute(T spec) {
+    public void execute(CommandLineToolInvocation invocation) {
         ExecAction compiler = execActionFactory.newExecAction();
         compiler.executable(executable);
-        if (workDir != null) {
-            compiler.workingDir(workDir);
+        if (invocation.getWorkDirectory() != null) {
+            GFileUtils.mkdirs(invocation.getWorkDirectory());
+            compiler.workingDir(invocation.getWorkDirectory());
         }
 
-        List<String> args = specToArgs.transform(specTransformer.transform(spec));
-        compiler.args(args);
+        compiler.args(invocation.getArgs());
 
-        if (!path.isEmpty()) {
+        if (!invocation.getPath().isEmpty()) {
             String pathVar = OperatingSystem.current().getPathVar();
-            String compilerPath = Joiner.on(File.pathSeparator).join(path);
+            String compilerPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
             compilerPath = compilerPath + File.pathSeparator + System.getenv(pathVar);
             compiler.environment(pathVar, compilerPath);
         }
 
-        compiler.environment(environment);
+        compiler.environment(invocation.getEnvironment());
 
         try {
             compiler.execute();
         } catch (ExecException e) {
             throw new GradleException(String.format("%s failed; see the error output for details.", action), e);
-        }
-        return new SimpleWorkResult(true);
-    }
-
-    static class IdentityTransformer<T> implements Transformer<T, T> {
-        public T transform(T original) {
-            return original;
         }
     }
 }

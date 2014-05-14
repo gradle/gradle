@@ -39,7 +39,7 @@ public class CreateVisualStudioTasks extends ModelRule {
         for (VisualStudioSolution vsSolution : visualStudioExtension.getSolutions()) {
             Task solutionTask = tasks.create(vsSolution.getName() + "VisualStudio");
             solutionTask.setDescription(String.format("Generates the '%s' Visual Studio solution file.", vsSolution.getName()));
-            vsSolution.setLifecycleTask(solutionTask);
+            vsSolution.setBuildTask(solutionTask);
             vsSolution.builtBy(createSolutionTask(tasks, vsSolution));
 
             // Lifecycle task for component

@@ -19,12 +19,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.plugins.NativeComponentModelPlugin
 import org.gradle.nativebinaries.toolchain.Clang
+import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.toolchain.internal.clang.ClangToolChain
 import org.gradle.process.internal.ExecActionFactory
 
@@ -48,12 +48,12 @@ class ClangCompilerPlugin implements Plugin<Project> {
     }
 
     void apply(Project project) {
-        project.plugins.apply(NativeBinariesPlugin)
+        project.plugins.apply(NativeComponentModelPlugin);
 
         modelRules.rule(new ModelRule() {
             void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(Clang, { String name ->
-                    return instantiator.newInstance(ClangToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory)
+                    return instantiator.newInstance(ClangToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory, instantiator)
                 })
                 toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang)
             }

@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
 
-class MavenCustomPackagingResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2984")
     def "can resolve dependency with custom packaging"() {
@@ -35,8 +35,6 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractDependencyResol
 
         // Not publishing, just allowing the HTTP requests to 404
         mavenHttpRepo.module("local", "local", "1.0").allowAll()
-
-        server.start()
 
         when:
         buildScript """

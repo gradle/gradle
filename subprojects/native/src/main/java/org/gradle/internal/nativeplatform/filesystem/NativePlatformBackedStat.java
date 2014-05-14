@@ -21,7 +21,7 @@ import net.rubygrapefruit.platform.PosixFiles;
 import java.io.File;
 import java.io.IOException;
 
-class NativePlatformBackedStat implements Stat {
+class NativePlatformBackedStat implements FileModeAccessor {
     private final PosixFiles posixFiles;
 
     public NativePlatformBackedStat(PosixFiles posixFiles) {

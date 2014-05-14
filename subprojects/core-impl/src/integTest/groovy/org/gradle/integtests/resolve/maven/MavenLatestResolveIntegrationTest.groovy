@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class MavenLatestResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "latest selector works correctly when no snapshot versions are present"() {
         given:
         mavenRepo().module('group', 'projectA', '1.0').publish()
@@ -67,7 +67,6 @@ task retrieve(type: Sync) {
 
     def "snapshot versions are considered integration status when using latest selector"() {
         given:
-        server.start()
         mavenHttpRepo.getModuleMetaData('group', 'projectA').allowGetOrHead()
         mavenHttpRepo.module('group', 'projectA', '1.0').publish().allowAll()
         mavenHttpRepo.module('group', 'projectA', '1.2-SNAPSHOT').publish().allowAll()

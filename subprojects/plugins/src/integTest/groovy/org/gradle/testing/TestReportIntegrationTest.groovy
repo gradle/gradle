@@ -140,11 +140,11 @@ public class SuperTest {
 $testFilePrelude
 public class SubTest {
     @Category(SubClassTests.class) @Test public void onlySub() {
-        System.out.println("org.gradle.testing.SubTest#onlySub");
+        System.out.println("org.gradle.testing.SubTest#onlySub " + System.getProperty("category"));
         assertEquals("sub", System.getProperty("category"));
     }
     @Category(SubClassTests.class) @Test public void passing() {
-        System.out.println("org.gradle.testing.SubTest#passing");
+        System.out.println("org.gradle.testing.SubTest#passing " + System.getProperty("category"));
     }
 }
 """
@@ -169,7 +169,10 @@ public class SubClassTests extends SuperClassTests {
                 .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing test'))
                 .assertStdout(allOf(containsString('org.gradle.testing.SuperTest#failing\n'), containsString('org.gradle.testing.SuperTest#passing\n')))
         htmlReport.testClass("org.gradle.testing.SubTest").assertTestCount(4, 1, 0).assertTestPassed("passing") // onlySub is passing once and failing once
-                .assertStdout(allOf(containsString('org.gradle.testing.SubTest#passing\n'), containsString('org.gradle.testing.SubTest#onlySub\n')))
+                .assertStdout(allOf(containsString('org.gradle.testing.SubTest#passing sub\n'),
+                        containsString('org.gradle.testing.SubTest#passing super\n'),
+                        containsString('org.gradle.testing.SubTest#onlySub sub\n'),
+                        containsString('org.gradle.testing.SubTest#onlySub super\n')))
     }
 
     @Issue("http://issues.gradle.org//browse/GRADLE-2821")

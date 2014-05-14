@@ -31,10 +31,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
@@ -53,6 +55,7 @@ import java.util.List;
 public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependencyResolver.class);
     private final LocalComponentFactory localComponentFactory;
+    private final DependencyDescriptorFactory dependencyDescriptorFactory;
     private final ResolveIvyFactory ivyFactory;
     private final ProjectComponentRegistry projectComponentRegistry;
     private final CacheLockingManager cacheLockingManager;
@@ -61,11 +64,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
 
-    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory,
+    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
                                      ProjectComponentRegistry projectComponentRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
                                      ResolutionResultsStoreFactory storeFactory, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.ivyFactory = ivyFactory;
         this.localComponentFactory = localComponentFactory;
+        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
         this.projectComponentRegistry = projectComponentRegistry;
         this.cacheLockingManager = cacheLockingManager;
         this.ivyContextManager = ivyContextManager;
@@ -84,7 +88,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataProcessor);
 
                 DependencyToModuleVersionResolver dependencyResolver = repositoryChain.getDependencyResolver();
-                dependencyResolver = new ClientModuleResolver(dependencyResolver);
+                dependencyResolver = new ClientModuleResolver(dependencyResolver, dependencyDescriptorFactory);
                 ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, dependencyResolver);
                 dependencyResolver = projectDependencyResolver;
                 DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, versionMatcher);

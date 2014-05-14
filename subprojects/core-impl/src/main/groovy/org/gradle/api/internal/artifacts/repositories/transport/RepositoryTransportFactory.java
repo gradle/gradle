@@ -15,42 +15,79 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
-import org.gradle.api.internal.externalresource.transport.file.FileTransport;
-import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
+import org.gradle.internal.resource.transport.file.FileTransport;
+import org.gradle.internal.resource.transport.http.HttpTransport;
+import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
+import org.gradle.internal.resource.transport.sftp.SftpTransport;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.WrapUtil;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class RepositoryTransportFactory {
-    private final RepositoryArtifactCache downloadingCacheManager;
     private final TemporaryFileProvider temporaryFileProvider;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
-    private final RepositoryArtifactCache localCacheManager;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildCommencedTimeProvider timeProvider;
+    private final SftpClientFactory sftpClientFactory;
+    private final CacheLockingManager cacheLockingManager;
 
     public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
-                                      RepositoryArtifactCache localCacheManager,
-                                      RepositoryArtifactCache downloadingCacheManager,
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
-                                      BuildCommencedTimeProvider timeProvider) {
+                                      BuildCommencedTimeProvider timeProvider,
+                                      SftpClientFactory sftpClientFactory,
+                                      CacheLockingManager cacheLockingManager) {
         this.progressLoggerFactory = progressLoggerFactory;
-        this.localCacheManager = localCacheManager;
-        this.downloadingCacheManager = downloadingCacheManager;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
+        this.sftpClientFactory = sftpClientFactory;
+        this.cacheLockingManager = cacheLockingManager;
     }
 
-    public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
+    private RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
+        return new HttpTransport(name, convertPasswordCredentials(credentials), progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager);
     }
 
-    public RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name, localCacheManager, temporaryFileProvider);
+    private RepositoryTransport createFileTransport(String name) {
+        return new FileTransport(name, temporaryFileProvider);
+    }
+
+    private RepositoryTransport createSftpTransport(String name, PasswordCredentials credentials) {
+        return new SftpTransport(name, convertPasswordCredentials(credentials), progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, sftpClientFactory, cacheLockingManager);
+    }
+
+    public RepositoryTransport createTransport(String scheme, String name, PasswordCredentials credentials) {
+        Set<String> schemes = new HashSet<String>();
+        schemes.add(scheme);
+        return createTransport(schemes, name, credentials);
+    }
+
+    private org.gradle.internal.resource.PasswordCredentials convertPasswordCredentials(PasswordCredentials credentials) {
+        return new org.gradle.internal.resource.PasswordCredentials(credentials.getUsername(), credentials.getPassword());
+    }
+
+    public RepositoryTransport createTransport(Set<String> schemes, String name, PasswordCredentials credentials) {
+        if (!WrapUtil.toSet("http", "https", "file", "sftp").containsAll(schemes)) {
+            throw new InvalidUserDataException("You may only specify 'file', 'http', 'https' and 'sftp' URLs for a repository.");
+        }
+        if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
+            return createHttpTransport(name, credentials);
+        }
+        if (WrapUtil.toSet("file").containsAll(schemes)) {
+            return createFileTransport(name);
+        }
+        if (WrapUtil.toSet("sftp").containsAll(schemes)) {
+            return createSftpTransport(name, credentials);
+        }
+        throw new InvalidUserDataException("You cannot mix different URL schemes for a single repository. Please declare separate repositories.");
     }
 }

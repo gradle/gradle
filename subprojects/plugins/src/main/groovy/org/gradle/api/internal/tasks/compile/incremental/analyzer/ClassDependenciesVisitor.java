@@ -20,7 +20,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class ClassDependenciesVisitor extends ClassVisitor {
+class ClassDependenciesVisitor extends ClassVisitor {
 
     private final static int API = Opcodes.ASM4;
     boolean dependentToAll;

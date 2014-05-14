@@ -18,31 +18,37 @@ package org.gradle.nativebinaries.toolchain.internal.gcc
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativebinaries.toolchain.internal.clang.ClangToolChain
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ClangToolChainTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
-    final toolChain = new ClangToolChain("clang", OperatingSystem.current(), fileResolver, Stub(ExecActionFactory))
+    final Instantiator instantiator = Mock(Instantiator)
+    final toolChain = new ClangToolChain("clang", OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), instantiator)
 
-    def "has default tool names"() {
+    @Unroll
+    def "has default #tool registered using #name"() {
         expect:
-        toolChain.cppCompiler.executable == "clang++"
-        toolChain.cCompiler.executable == "clang"
-        toolChain.assembler.executable == "as"
-        toolChain.linker.executable == "clang++"
-        toolChain.staticLibArchiver.executable == "ar"
+        toolChain.getByName(tool).executable == executable
+        where:
+        tool                | executable
+        "cCompiler"         | "clang"
+        "cppCompiler"       | "clang++"
+        "linker"            | "clang++"
+        "staticLibArchiver" | "ar"
     }
 
     def "can update tool names"() {
         when:
-        toolChain.assembler.executable = "foo"
+        toolChain.getByName("cCompiler").executable = "foo"
 
         then:
-        toolChain.assembler.executable == "foo"
+        toolChain.getByName("cCompiler").executable == "foo"
     }
 }

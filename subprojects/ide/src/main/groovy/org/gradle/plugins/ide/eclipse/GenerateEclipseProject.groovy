@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseProject
@@ -35,7 +34,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     GenerateEclipseProject() {
         xmlTransformer.indentation = "\t"
-        projectModel = services.get(Instantiator).newInstance(EclipseProject, new XmlFileContentMerger(xmlTransformer))
+        projectModel = instantiator.newInstance(EclipseProject, new XmlFileContentMerger(xmlTransformer))
     }
 
     @Override protected Project create() {

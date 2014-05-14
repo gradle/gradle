@@ -64,7 +64,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
 
     public ToolChain getForPlatform(Platform targetPlatform) {
         for (ToolChainInternal toolChain : searchOrder) {
-            if (toolChain.target(targetPlatform).isAvailable()) {
+            if (toolChain.select(targetPlatform).isAvailable()) {
                 return toolChain;
             }
         }
@@ -72,7 +72,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         // No tool chains can build for this platform. Assemble a description of why
         Map<String, PlatformToolChain> candidates = new LinkedHashMap<String, PlatformToolChain>();
         for (ToolChainInternal toolChain : searchOrder) {
-            candidates.put(toolChain.getDisplayName(), toolChain.target(targetPlatform));
+            candidates.put(toolChain.getDisplayName(), toolChain.select(targetPlatform));
         }
 
         return new UnavailableToolChain(new UnavailableToolChainDescription(targetPlatform, candidates));
@@ -122,7 +122,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             return "unavailable";
         }
 
-        public PlatformToolChain target(Platform targetPlatform) {
+        public PlatformToolChain select(Platform targetPlatform) {
             return new UnavailablePlatformToolChain(failure);
         }
 

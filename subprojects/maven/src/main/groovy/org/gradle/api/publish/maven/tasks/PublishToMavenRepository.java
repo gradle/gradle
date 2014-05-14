@@ -46,13 +46,7 @@ public class PublishToMavenRepository extends DefaultTask {
     private MavenPublicationInternal publication;
     private MavenArtifactRepository repository;
 
-    private final Factory<LoggingManagerInternal> loggingManagerFactory;
-
-    @Inject
-    public PublishToMavenRepository(Factory<LoggingManagerInternal> loggingManagerFactory) {
-        this.loggingManagerFactory = loggingManagerFactory;
-
-
+    public PublishToMavenRepository() {
         // Allow the publication to participate in incremental build
         getInputs().files(new Callable<FileCollection>() {
             public FileCollection call() throws Exception {
@@ -139,15 +133,16 @@ public class PublishToMavenRepository extends DefaultTask {
         doPublish(publicationInternal, repository);
     }
 
+    @Inject
     protected Factory<LoggingManagerInternal> getLoggingManagerFactory() {
-        return loggingManagerFactory;
+        throw new UnsupportedOperationException();
     }
 
     protected void doPublish(final MavenPublicationInternal publication, final MavenArtifactRepository repository) {
         new PublishOperation(publication, repository) {
             @Override
             protected void publish() throws Exception {
-                MavenPublisher antBackedPublisher = new AntTaskBackedMavenPublisher(loggingManagerFactory, getTemporaryDirFactory());
+                MavenPublisher antBackedPublisher = new AntTaskBackedMavenPublisher(getLoggingManagerFactory(), getTemporaryDirFactory());
                 MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(antBackedPublisher);
                 MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
                 validatingPublisher.publish(publication.asNormalisedPublication(), repository);

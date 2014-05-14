@@ -8,15 +8,13 @@ executables {
 }
 // END SNIPPET executables
 
-
 // START SNIPPET all-binaries
 binaries.all {
-    objcppCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-
-    //on osx we need different linker settings than on linux or windows
-    if(targetPlatform.operatingSystem.isMacOsX()){
+    //on OS X we need different linker settings than on Linux or Windows
+    if (targetPlatform.operatingSystem.macOsX) {
         linker.args "-framework", "Foundation"
-    }else{
+    } else {
+        objcppCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
         linker.args "-lgnustep-base", "-lobjc"
     }
 }

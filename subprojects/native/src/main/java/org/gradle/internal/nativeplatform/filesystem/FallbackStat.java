@@ -17,14 +17,17 @@
 package org.gradle.internal.nativeplatform.filesystem;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
-class FallbackStat implements Stat {
+class FallbackStat implements FileModeAccessor {
     public int getUnixMode(File f) throws IOException {
         if (f.isDirectory()) {
             return FileSystem.DEFAULT_DIR_MODE;
-        } else {
+        } else if (f.exists()) {
             return FileSystem.DEFAULT_FILE_MODE;
+        } else {
+            throw new FileNotFoundException(String.format("File '%s' not found.", f));
         }
     }
 }

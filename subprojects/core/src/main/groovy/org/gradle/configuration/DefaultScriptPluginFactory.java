@@ -16,11 +16,14 @@
 
 package org.gradle.configuration;
 
+import com.google.common.collect.ListMultimap;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
@@ -29,26 +32,28 @@ import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.plugin.PluginHandler;
-import org.gradle.plugin.internal.*;
-import org.gradle.plugin.resolve.internal.PluginRequest;
-import org.gradle.plugin.resolve.internal.PluginResolver;
+import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.internal.*;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
+
+    public static final PluginId NOOP_PLUGIN_ID = PluginId.of("noop");
+
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
     private final ScriptHandlerFactory scriptHandlerFactory;
-    private final PluginResolverFactory pluginResolverFactory;
+    private final PluginRequestApplicatorFactory pluginRequestApplicatorFactory;
     private final FileLookup fileLookup;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -56,34 +61,38 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
                                       ScriptHandlerFactory scriptHandlerFactory,
-                                      PluginResolverFactory pluginResolverFactory,
+                                      PluginRequestApplicatorFactory pluginRequestApplicatorFactory,
                                       FileLookup fileLookup) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
         this.scriptHandlerFactory = scriptHandlerFactory;
-        this.pluginResolverFactory = pluginResolverFactory;
+        this.pluginRequestApplicatorFactory = pluginRequestApplicatorFactory;
         this.fileLookup = fileLookup;
     }
 
-    public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptClass) {
-        return new ScriptPluginImpl(scriptSource, scriptHandler, classLoaderScope, classpathClosureName, scriptClass);
+    public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptClass, boolean ownerScript) {
+        return new ScriptPluginImpl(scriptSource, scriptHandler, targetScope, baseScope, classpathClosureName, scriptClass, ownerScript);
     }
 
     private class ScriptPluginImpl implements ScriptPlugin {
         private final ScriptSource scriptSource;
-        private final ClassLoaderScope classLoaderScope;
+        private final ClassLoaderScope targetScope;
+        private final ClassLoaderScope baseScope;
         private final String classpathClosureName;
         private final Class<? extends BasicScript> scriptType;
         private final ScriptHandler scriptHandler;
+        private final boolean ownerScript;
 
-        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope classLoaderScope, String classpathClosureName, Class<? extends BasicScript> scriptType) {
+        public ScriptPluginImpl(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, String classpathClosureName, Class<? extends BasicScript> scriptType, boolean ownerScript) {
             this.scriptSource = scriptSource;
-            this.classLoaderScope = classLoaderScope;
+            this.targetScope = targetScope;
+            this.baseScope = baseScope;
             this.classpathClosureName = classpathClosureName;
             this.scriptHandler = scriptHandler;
             this.scriptType = scriptType;
+            this.ownerScript = ownerScript;
         }
 
 
@@ -95,7 +104,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(ScriptHandlerFactory.class, scriptHandlerFactory);
-            services.add(ClassLoaderScope.class, classLoaderScope);
+            services.add(ClassLoaderScope.class, targetScope);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandler.class, scriptHandler);
@@ -103,17 +112,16 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             ScriptSource withImports = importsReader.withImports(scriptSource);
 
-            List<PluginRequest> pluginRequests = new LinkedList<PluginRequest>();
-            if (target instanceof PluginAware) {
-                services.add(PluginHandler.class, new DefaultPluginHandler(pluginRequests));
-            } else {
-                services.add(PluginHandler.class, new NonPluggableTargetPluginHandler(target));
-            }
+            PluginDependenciesService pluginDependenciesService = new PluginDependenciesService(getSource());
+            services.add(PluginDependenciesService.class, pluginDependenciesService);
 
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
-            compiler.setClassloader(classLoaderScope.getBase().getChildClassLoader());
+            compiler.setClassloader(baseScope.getExportClassLoader());
 
-            PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName);
+            boolean supportsPluginsBlock = ProjectScript.class.isAssignableFrom(scriptType);
+            String onPluginBlockError = supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
+
+            PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName, onPluginBlockError);
 
             StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(classpathClosureName, scriptBlockTransformer);
 
@@ -124,29 +132,56 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             classPathScriptRunner.run();
 
             Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
+
             Set<File> files = classpathConfiguration.getFiles();
-            ClassPath classPath = new DefaultClassPath(files);
-
-            ClassLoader exportedClassLoader = classLoaderScope.export(classPath);
-
-            if (!pluginRequests.isEmpty()) {
-                PluginResolver pluginResolver = pluginResolverFactory.createPluginResolver(exportedClassLoader);
-                @SuppressWarnings("ConstantConditions")
-                PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator((PluginAware) target, classLoaderScope);
-                PluginRequestApplicator requestApplicator = new PluginRequestApplicator(pluginResolver, resolutionApplicator);
-                requestApplicator.applyPlugin(pluginRequests);
+            if (!files.isEmpty()) {
+                ClassPath classPath = new DefaultClassPath(files);
+                Factory<? extends ClassLoader> loader = targetScope.getParent().loader(classPath);
+                targetScope.export(loader);
             }
 
-            classLoaderScope.lock();
+            List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
+            if (!pluginRequests.isEmpty()) {
 
-            compiler.setClassloader(classLoaderScope.getScopeClassLoader());
+                ListMultimap<PluginId, PluginRequest> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequest>() {
+                    public PluginId transform(PluginRequest pluginRequest) {
+                        return pluginRequest.getId();
+                    }
+                });
+
+                // Check for duplicates
+                for (PluginId key : groupedById.keySet()) {
+                    // Ignore duplicate noops - noop plugin just used for testing
+                    if (key.equals(NOOP_PLUGIN_ID)) {
+                        continue;
+                    }
+
+                    List<PluginRequest> pluginRequestsForId = groupedById.get(key);
+                    if (pluginRequestsForId.size() > 1) {
+                        PluginRequest first = pluginRequests.get(0);
+                        PluginRequest second = pluginRequests.get(1);
+
+                        InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
+                        throw new LocationAwareException(exception, second.getScriptSource(), second.getLineNumber());
+                    }
+                }
+
+                PluginRequestApplicator requestApplicator = pluginRequestApplicatorFactory.createRequestApplicator((PluginAware) target);
+                for (PluginRequest pluginRequest : pluginRequests) {
+                    requestApplicator.applyPlugin(pluginRequest);
+                }
+            }
+
+            targetScope.lock();
+
+            compiler.setClassloader(targetScope.getLocalClassLoader());
 
             compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert()));
             ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);
 
             BasicScript script = runner.getScript();
             script.init(target, services);
-            if (target instanceof ScriptAware) {
+            if (ownerScript && target instanceof ScriptAware) {
                 ((ScriptAware) target).setScript(script);
             }
             runner.run();

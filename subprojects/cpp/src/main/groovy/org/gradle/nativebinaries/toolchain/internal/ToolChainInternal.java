@@ -23,9 +23,8 @@ public interface ToolChainInternal extends ToolChain {
     /**
      * Locates the tools that can target the given platform.
      */
-    PlatformToolChain target(Platform targetPlatform);
+    PlatformToolChain select(Platform targetPlatform);
 
-    // TODO:DAZ These are platform-specific
     String getExecutableName(String executablePath);
 
     String getSharedLibraryName(String libraryPath);

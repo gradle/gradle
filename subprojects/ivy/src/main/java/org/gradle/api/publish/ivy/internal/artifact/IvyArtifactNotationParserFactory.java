@@ -76,7 +76,6 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
                 DefaultIvyArtifact.class,
                 file, null, extension, type, classifier
         );
-        // TODO:DAZ Find a good way to handle this with lazy configuration
         new DslObject(ivyArtifact).getConventionMapping().map("name", new Callable<String>() {
             public String call() throws Exception {
                 return publicationIdentity.getModule();

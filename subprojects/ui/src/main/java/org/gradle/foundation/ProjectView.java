@@ -34,7 +34,6 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
     // It is null for the root project.
     private final List<ProjectView> subProjects = new ArrayList<ProjectView>();
     private final List<TaskView> tasks = new ArrayList<TaskView>();
-    private final List<ProjectView> dependsOnProjects = new ArrayList<ProjectView>();
 
     private final File buildFile;
     private final String description;
@@ -89,22 +88,6 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
      */
     /*package*/ void addSubProject(ProjectView subProject) {
         subProjects.add(subProject);
-    }
-
-    /**
-     * Sets the project that this project depends on. This is only meant to be called internally whenever generating a hierachy of projects and tasks.
-     */
-    /*package*/ void setDependsOnProjects(List<ProjectView> newDependsOnProjects) {
-        if (newDependsOnProjects == null) {
-            return;
-        }
-
-        this.dependsOnProjects.clear();
-        this.dependsOnProjects.addAll(newDependsOnProjects);
-    }
-
-    public List<ProjectView> getDependsOnProjects() {
-        return dependsOnProjects;
     }
 
     public List<TaskView> getTasks() {

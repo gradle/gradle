@@ -27,7 +27,7 @@ import java.io.File;
 @NoConventionMapping
 public class DefaultProject extends AbstractProject {
     public DefaultProject(String name, ProjectInternal parent, File projectDir, ScriptSource buildScriptSource,
-                          GradleInternal gradle, ServiceRegistryFactory serviceRegistryFactory, ClassLoaderScope classLoaderScope) {
-        super(name, parent, projectDir, buildScriptSource, gradle, serviceRegistryFactory, classLoaderScope);
+                          GradleInternal gradle, ServiceRegistryFactory serviceRegistryFactory, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
+        super(name, parent, projectDir, buildScriptSource, gradle, serviceRegistryFactory, selfClassLoaderScope, baseClassLoaderScope);
     }
 }

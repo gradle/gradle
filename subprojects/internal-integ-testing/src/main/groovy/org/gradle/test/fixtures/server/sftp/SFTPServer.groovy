@@ -17,51 +17,81 @@
 package org.gradle.test.fixtures.server.sftp
 
 import org.apache.commons.io.FileUtils
+import org.apache.commons.io.FilenameUtils
 import org.apache.sshd.SshServer
 import org.apache.sshd.common.NamedFactory
 import org.apache.sshd.common.Session
-import org.apache.sshd.server.*
+import org.apache.sshd.common.file.FileSystemView
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemView
+import org.apache.sshd.common.util.Buffer
+import org.apache.sshd.server.Command
+import org.apache.sshd.server.PasswordAuthenticator
+import org.apache.sshd.server.PublickeyAuthenticator
 import org.apache.sshd.server.command.ScpCommandFactory
-import org.apache.sshd.server.filesystem.NativeFileSystemFactory
-import org.apache.sshd.server.filesystem.NativeSshFile
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.apache.sshd.server.session.ServerSession
 import org.apache.sshd.server.sftp.SftpSubsystem
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.ivy.RemoteIvyRepository
+import org.gradle.test.fixtures.server.ExpectOne
+import org.gradle.test.fixtures.server.RepositoryServer
+import org.gradle.test.fixtures.server.ServerExpectation
+import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.util.AvailablePortFinder
-import org.junit.rules.ExternalResource
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.security.PublicKey
 
-class SFTPServer extends ExternalResource {
-    final String hostAddress;
+class SFTPServer extends ServerWithExpectations implements RepositoryServer {
+
+    private final static Logger logger = LoggerFactory.getLogger(SFTPServer)
+    final String hostAddress
     int port
 
     private final TestDirectoryProvider testDirectoryProvider
-    private TestFile baseDir
     private TestFile configDir
+    private SshServer sshd
 
-    private SshServer sshd;
-
-    def fileRequests = [] as Set
+    TestFile baseDir
+    Map<Integer, String> handleCreatedByRequest = [:]
+    Map<String, Integer> openingRequestIdForPath = [:]
+    List<SftpExpectation> expectations = []
 
     public SFTPServer(TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider;
-        def portFinder = AvailablePortFinder.createPrivate()
-        port = portFinder.nextAvailable
         this.hostAddress = "127.0.0.1"
+    }
+
+    protected Logger getLogger() {
+        logger
+    }
+
+    @Override
+    void resetExpectations() {
+        try {
+            super.resetExpectations()
+        } finally {
+            handleCreatedByRequest.clear()
+            openingRequestIdForPath.clear()
+            allowInit()
+        }
     }
 
     protected void before() throws Throwable {
         baseDir = testDirectoryProvider.getTestDirectory().createDir("sshd/files")
         configDir = testDirectoryProvider.getTestDirectory().createDir("sshd/config")
 
-        sshd = setupConfiguredTestSshd();
-        sshd.start();
+        def portFinder = AvailablePortFinder.createPrivate()
+        port = portFinder.nextAvailable
+        sshd = setupConfiguredTestSshd()
+        sshd.start()
+        allowInit()
     }
 
-    protected void after() {
+    public void stop() {
         sshd?.stop()
     }
 
@@ -72,12 +102,12 @@ class SFTPServer extends ExternalResource {
 
         SshServer sshServer = SshServer.setUpDefaultServer();
         sshServer.setPort(port);
-        sshServer.setFileSystemFactory(new TestNativeFileSystemFactory(baseDir.absolutePath, new FileRequestLogger() {
-            void logRequest(String message) {
-                fileRequests << message;
+        sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory());
+        sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystem.Factory() {
+            Command create() {
+                new TestSftpSubsystem()
             }
         }));
-        sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystem.Factory()));
         sshServer.setCommandFactory(new ScpCommandFactory());
         sshServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("${configDir}/test-dsa.key"));
         sshServer.setPasswordAuthenticator(new DummyPasswordAuthenticator());
@@ -97,12 +127,112 @@ class SFTPServer extends ExternalResource {
         new TestFile(new File(baseDir, expectedPath))
     }
 
-    public Set<String> getFileRequests() {
-        return fileRequests
+    URI getUri() {
+        return new URI("sftp://${hostAddress}:${port}")
     }
 
-    public void clearRequests() {
-        fileRequests.clear();
+    void allowInit() {
+        expectations << new SftpAllow(SftpSubsystem.SSH_FXP_INIT)
+    }
+
+    void expectLstat(String path) {
+        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_LSTAT, "LSTAT", path)
+    }
+
+    void expectMetadataRetrieve(String path) {
+        expectLstat(path)
+    }
+
+    void expectOpen(String path) {
+        expectations << new SftpExpectOneOpen(SftpSubsystem.SSH_FXP_OPEN, "OPEN", path)
+    }
+
+    void allowRead(String path) {
+        expectations << new SftpAllowHandle(SftpSubsystem.SSH_FXP_READ, path)
+    }
+
+    void expectClose(String path) {
+        expectations << new SftpExpectOneHandle(SftpSubsystem.SSH_FXP_CLOSE, "CLOSE", path)
+    }
+
+    void expectFileDownload(String path) {
+        expectOpen(path)
+        allowRead(path)
+        expectClose(path)
+    }
+
+    void expectFileUpload(String path) {
+        expectLstat(FilenameUtils.getFullPathNoEndSeparator(path))
+        expectOpen(path)
+        allowWrite(path)
+        expectClose(path)
+    }
+
+    void expectRealpath(String path) {
+        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_REALPATH, "REALPATH", path)
+    }
+
+    void expectStat(String path) {
+        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_STAT, "STAT", path)
+    }
+
+    void expectMkdir(String path) {
+        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_MKDIR, "MKDIR", path)
+    }
+
+    void expectOpendir(String path) {
+        expectations << new SftpExpectOneOpen(SftpSubsystem.SSH_FXP_OPENDIR, "OPENDIR", path)
+    }
+
+    void allowReaddir(String path) {
+        expectations << new SftpAllowHandle(SftpSubsystem.SSH_FXP_READDIR, path)
+    }
+
+    void allowWrite(String path) {
+        expectations << new SftpAllowHandle(SftpSubsystem.SSH_FXP_WRITE, path)
+    }
+
+    void expectDirectoryList(String path) {
+        expectOpendir(path)
+        allowReaddir(path)
+        expectClose(path)
+    }
+
+    void expectLstatBroken(String path) {
+        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_LSTAT, "LSTAT", path, true)
+    }
+
+    void expectMkdirBroken(String path) {
+        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_MKDIR, "MKDIR", path, true)
+    }
+
+    void expectMetadataRetrieveBroken(String path) {
+        expectLstatBroken(path)
+    }
+
+    void expectWriteBroken(String path) {
+        expectations << new SftpExpectOneHandle(SftpSubsystem.SSH_FXP_WRITE, "WRITE", path, true)
+    }
+
+    void expectLstatMissing(String path) {
+        expectations << new SftpExpectOnePath(SftpSubsystem.SSH_FXP_LSTAT, "LSTAT", path, false, true)
+    }
+
+    RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
+        new IvySftpRepository(this, '/repo', m2Compatible, dirPattern, ivyFilePattern, artifactFilePattern)
+    }
+
+    RemoteIvyRepository getRemoteIvyRepo(String contextPath) {
+        new IvySftpRepository(this, contextPath, false, null)
+    }
+
+    String getValidCredentials() {
+        return """
+            credentials {
+                username 'sftp'
+                password 'sftp'
+            }
+        """
     }
 
     static class DummyPasswordAuthenticator implements PasswordAuthenticator {
@@ -112,96 +242,212 @@ class SFTPServer extends ExternalResource {
         }
     }
 
-    static abstract class FileRequestLogger {
-        abstract void logRequest(String message)
-    }
-
-    static class TestNativeFileSystemFactory extends NativeFileSystemFactory {
-
-        String rootPath
-
-        List<FileRequestLogger> logger
-
-        public TestNativeFileSystemFactory(String rootPath, FileRequestLogger... logger) {
-            this.rootPath = rootPath
-            this.logger = Arrays.asList(logger)
-        }
-
+    class TestVirtualFileSystemFactory extends VirtualFileSystemFactory {
         /**
          * Create the appropriate user file system view.
          */
         public FileSystemView createFileSystemView(Session session) {
-            String userName = session.getUsername();
-            FileSystemView fsView = new TestNativeFileSystemView(rootPath, userName, logger, caseInsensitive);
-            return fsView;
+            return new VirtualFileSystemView(session.getUsername(), baseDir.absolutePath);
         }
     }
 
-    static class TestNativeFileSystemView implements FileSystemView {
-        // the first and the last character will always be '/'
-        // It is always with respect to the root directory.
-        private String currDir;
+    class TestSftpSubsystem extends SftpSubsystem {
 
-        private String userName;
+        @Override
+        protected void process(Buffer buffer) throws IOException {
+            int originalBufferPosition = buffer.rpos()
+            int length = buffer.getInt()
+            int type = buffer.getByte()
+            int id = buffer.getInt()
 
-        private boolean caseInsensitive = false;
+            int pos = buffer.rpos()
+            def command = commandMessage(buffer, type)
+            println "Received SFTP command $command"
+            buffer.rpos(pos)
 
-        List<FileRequestLogger> logger
-
-        /**
-         * Constructor - internal do not use directly, use {@link NativeFileSystemFactory} instead
-         */
-        public TestNativeFileSystemView(String rootpath, String userName, List<FileRequestLogger> requestLoggerList, boolean caseInsensitive) {
-            if (!rootpath) {
-                throw new IllegalArgumentException("rootPath must be set");
-            }
-
-            if (!userName) {
-                throw new IllegalArgumentException("user can not be null");
-            }
-
-            this.logger = requestLoggerList;
-            this.caseInsensitive = caseInsensitive;
-
-            currDir = rootpath;
-            this.userName = userName;
-        }
-
-        /**
-         * Get file object.
-         */
-        public SshFile getFile(String file) {
-            return getFile(currDir, file);
-        }
-
-        public SshFile getFile(SshFile baseDir, String file) {
-            return getFile(baseDir.getAbsolutePath(), file);
-        }
-
-        protected SshFile getFile(String dir, String file) {
-            // get actual file object
-
-            String physicalName = NativeSshFile.getPhysicalName("/", dir, file, caseInsensitive);
-            File fileObj = new File(physicalName);
-            logFileRequest(dir, fileObj.absolutePath);
-            // strip the root directory and return
-            String userFileName = physicalName.substring("/".length() - 1);
-            return new NativeSshFile(userFileName, fileObj, userName);
-        }
-
-        void logFileRequest(String dir, String file) {
-            //log xml and jar requests only
-            if (file.endsWith("xml") || file.endsWith(".jar")) {
-                String normalizedPath = (file - dir).replaceAll("\\\\", '/') - "/"
-                logger.each {
-                    it.logRequest(normalizedPath)
+            def matched = expectations.find { it.matches(buffer, type, id) }
+            if (matched) {
+                if (matched.failing) {
+                    sendStatus(id, SSH_FX_FAILURE, "Failure")
+                    buffer.rpos(originalBufferPosition + length)
+                } else if (matched.missing) {
+                    sendStatus(id, SSH_FX_NO_SUCH_FILE, "No such file")
+                    buffer.rpos(originalBufferPosition + length)
+                } else {
+                    buffer.rpos(originalBufferPosition)
+                    super.process(buffer)
                 }
+            } else {
+                onFailure(new AssertionError("Unexpected SFTP command: $command"))
+                sendStatus(id, SSH_FX_FAILURE, "Unexpected command")
+                buffer.rpos(originalBufferPosition + length)
             }
+        }
+
+        @Override
+        protected void sendHandle(int id, String handle) throws IOException {
+            super.sendHandle(id, handle)
+            handleCreatedByRequest[id] = handle
+        }
+
+        private String commandMessage(Buffer buffer, int type) {
+            switch (type) {
+                case SSH_FXP_INIT:
+                    return "INIT"
+                case SSH_FXP_LSTAT:
+                    return "LSTAT for ${buffer.getString()}"
+                case SSH_FXP_OPEN:
+                    return "OPEN for ${buffer.getString()}"
+                case SSH_FXP_READ:
+                    return "READ"
+                case SSH_FXP_CLOSE:
+                    return "CLOSE"
+                case SSH_FXP_REALPATH:
+                    return "REALPATH for ${buffer.getString()}"
+                case SSH_FXP_STAT:
+                    return "STAT for ${buffer.getString()}"
+                case SSH_FXP_OPENDIR:
+                    return "OPENDIR for ${buffer.getString()}"
+                case SSH_FXP_READDIR:
+                    return "READDIR for ${buffer.getString()}"
+                case SSH_FXP_MKDIR:
+                    return "MKDIR for ${buffer.getString()}"
+                case SSH_FXP_WRITE:
+                    return "WRITE"
+            }
+            return type;
         }
     }
 
+    static interface SftpExpectation extends ServerExpectation {
+        boolean matches(Buffer buffer, int type, int id)
 
+        boolean isFailing()
+        boolean isMissing()
+    }
 
+    static class SftpExpectOne extends ExpectOne implements SftpExpectation {
+
+        final int expectedType
+        final String notMetMessage
+        final Closure matcher
+        final boolean failing
+        final boolean missing
+
+        SftpExpectOne(int type, String notMetMessage, boolean failing = false, boolean missing = false) {
+            this.expectedType = type
+            this.notMetMessage = "Expected SFTP command not recieved: $notMetMessage"
+            this.matcher = matcher
+            this.failing = failing
+            this.missing = missing
+        }
+
+        boolean matches(Buffer buffer, int type, int id) {
+            if (!run && type == expectedType) {
+                int originalBufferPosition = buffer.rpos()
+                run = bufferMatches(buffer, id)
+                buffer.rpos(originalBufferPosition)
+                return run
+            } else {
+                return false
+            }
+        }
+
+        protected boolean bufferMatches(Buffer buffer, int id) {
+            true
+        }
+    }
+
+    static class SftpExpectOnePath extends SftpExpectOne {
+
+        final String path
+
+        SftpExpectOnePath(int type, String commandName, String path, boolean failing = false, boolean missing = false) {
+            super(type, "$commandName for $path", failing, missing)
+            this.path = path
+        }
+
+        protected boolean bufferMatches(Buffer buffer, int id) {
+            buffer.getString() == path
+        }
+    }
+
+    class SftpExpectOneOpen extends SftpExpectOnePath {
+
+        SftpExpectOneOpen(int type, String commandName, String path, boolean failing = false) {
+            super(type, commandName, path, failing)
+        }
+
+        protected boolean bufferMatches(Buffer buffer, int id) {
+            def matched = buffer.getString() == path
+            if (matched) {
+                openingRequestIdForPath[path] = id
+            }
+            return matched
+        }
+    }
+
+    class SftpExpectOneHandle extends SftpExpectOnePath {
+
+        SftpExpectOneHandle(int type, String commandName, String path, boolean failing = false) {
+            super(type, commandName, path, failing)
+        }
+
+        protected boolean bufferMatches(Buffer buffer, int id) {
+            def handle = buffer.getString()
+            def openingRequestId = openingRequestIdForPath[path]
+            return openingRequestId && handle == handleCreatedByRequest[openingRequestId]
+        }
+    }
+
+    class SftpAllow implements SftpExpectation {
+
+        final boolean failing = false
+        final boolean missing = false
+        final int expectedType
+
+        SftpAllow(int expectedType) {
+            this.expectedType = expectedType
+        }
+
+        boolean matches(Buffer buffer, int type, int id) {
+            return type == expectedType
+        }
+
+        void assertMet() {
+            //can never be not met
+        }
+    }
+
+    class SftpAllowHandle implements SftpExpectation {
+
+        final int expectedType
+        final boolean failing = false
+        final boolean missing = false
+        final String path
+
+        SftpAllowHandle(int type, String path) {
+            this.expectedType = type
+            this.path = path
+        }
+
+        void assertMet() {
+            //can never be not met
+        }
+
+        boolean matches(Buffer buffer, int type, int id) {
+            if (type == expectedType) {
+                int originalBufferPosition = buffer.rpos()
+                def handle = buffer.getString()
+                def openingRequestId = openingRequestIdForPath[path]
+                def matched = openingRequestId && handle == handleCreatedByRequest[openingRequestId]
+                buffer.rpos(originalBufferPosition)
+                return matched
+            } else {
+                return false
+            }
+        }
+    }
 }
 
 

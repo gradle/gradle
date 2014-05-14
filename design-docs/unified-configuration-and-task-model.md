@@ -319,6 +319,7 @@ provided by the build logic, and are visible to build logic with uses the tasks.
 - Integration with old DSL.
 - Enforcement of model element lifecycle (eg detect attempts to mutate a model element that has been closed).
 - Configure model elements on demand.
+- Native plugins: allow configuration of a default toolchain, without replacing the default toolchains. e.g. tweak `clang` without discarding `gcc`.
 - Error handling and reporting.
 - IDE integration.
 - Flesh out the JVM language plugins.
@@ -459,6 +460,7 @@ Reuse the domain object lifecycle mechanism to warn when:
 # Open issues
 
 - Fire events before and after configuration of domain objects.
+- Allow task outputs to be used as inputs to rules. eg a `Report` produced by a task.
 
 # Spike
 

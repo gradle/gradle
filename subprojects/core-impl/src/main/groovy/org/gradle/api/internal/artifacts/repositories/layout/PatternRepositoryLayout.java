@@ -71,6 +71,8 @@ public class PatternRepositoryLayout extends RepositoryLayout {
             return;
         }
 
+        resolver.setM2compatible(m2compatible);
+
         for (String artifactPattern : artifactPatterns) {
             resolver.addArtifactLocation(baseUri, artifactPattern);
         }
@@ -79,7 +81,5 @@ public class PatternRepositoryLayout extends RepositoryLayout {
         for (String ivyPattern : usedIvyPatterns) {
             resolver.addDescriptorLocation(baseUri, ivyPattern);
         }
-
-        resolver.setM2compatible(m2compatible);
     }
 }

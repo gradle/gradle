@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-import org.gradle.language.jvm.ClassDirectoryBinary
+
+import org.gradle.api.internal.jvm.DefaultClassDirectoryBinary
+import org.gradle.api.jvm.ClassDirectoryBinary
 import org.gradle.language.jvm.ResourceSet
-import org.gradle.language.jvm.internal.DefaultClassDirectoryBinary
-import org.gradle.language.jvm.plugins.JvmLanguagePlugin
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.util.TestUtil
 import spock.lang.Specification

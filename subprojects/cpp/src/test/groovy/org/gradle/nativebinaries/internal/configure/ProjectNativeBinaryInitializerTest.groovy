@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.internal.configure
 
 import org.gradle.api.Project
-import org.gradle.language.base.internal.BinaryNamingScheme
+import org.gradle.runtime.base.internal.BinaryNamingScheme
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
@@ -41,7 +41,7 @@ class ProjectNativeBinaryInitializerTest extends Specification {
     }
 
     def "test executable"() {
-        def binary = initBinary(ExecutableBinaryInternal)
+        def binary = initBinary(NativeExecutableBinaryInternal)
 
         when:
         toolChain.getExecutableName("base_name") >> "exe_name"
@@ -92,7 +92,7 @@ class ProjectNativeBinaryInitializerTest extends Specification {
         return binary
     }
 
-    interface ExecutableBinaryInternal extends ExecutableBinary, ProjectNativeBinaryInternal {}
+    interface NativeExecutableBinaryInternal extends NativeExecutableBinary, ProjectNativeBinaryInternal {}
     interface SharedLibraryBinaryInternal extends SharedLibraryBinary, ProjectNativeBinaryInternal {}
     interface StaticLibraryBinaryInternal extends StaticLibraryBinary, ProjectNativeBinaryInternal {}
 

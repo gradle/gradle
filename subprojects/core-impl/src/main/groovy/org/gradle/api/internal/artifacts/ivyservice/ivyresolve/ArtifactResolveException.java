@@ -27,6 +27,10 @@ public class ArtifactResolveException extends GradleException {
         super(message);
     }
 
+    public ArtifactResolveException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     public ArtifactResolveException(ComponentIdentifier component, Throwable cause) {
         super(format(component, ""), cause);
     }

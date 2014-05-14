@@ -15,18 +15,18 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
+import org.gradle.test.fixtures.encoding.Identifier
 import org.junit.Rule
+import spock.lang.Unroll
 
-class MavenHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
+class MavenHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def "can resolve and cache dependencies from HTTP Maven repository"() {
         given:
-        server.start()
-
         def projectB = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
         def projectA = mavenHttpRepo.module('group', 'projectA').dependsOn('group', 'projectB', '1.0').publish()
 
@@ -77,8 +77,56 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
+    @Unroll
+    def "can resolve with GAV containing #identifier characters"() {
+        def value = identifier.safeForFileName().decorate("name")
+
+        given:
+        def projectB = mavenHttpRepo.module(value, value, value).publish()
+        def projectA = mavenHttpRepo.module('group', 'projectA').dependsOn(value, value, value).publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+}
+dependencies {
+    compile 'group:projectA:1.0'
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+        projectB.pom.expectGet()
+        projectB.artifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.0.jar', "${value}-${value}.jar")
+
+        and:
+        progressLogging.downloadProgressLogged(projectA.pom.uri)
+        progressLogging.downloadProgressLogged(projectA.artifact.uri)
+        progressLogging.downloadProgressLogged(projectB.pom.uri)
+        progressLogging.downloadProgressLogged(projectB.artifact.uri)
+
+        where:
+        identifier << Identifier.all
+    }
+
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {
-        server.start()
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2')
         module.publish()
@@ -116,7 +164,6 @@ task listJars << {
     }
 
     def "can resolve and cache artifact-only dependencies with no pom from an HTTP Maven repository"() {
-        server.start()
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2')
         module.publish()
@@ -156,7 +203,6 @@ task listJars << {
 
     def "can resolve and cache dependencies from multiple HTTP Maven repositories"() {
         given:
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
 
@@ -206,7 +252,6 @@ task listJars << {
 
     def "uses artifactsUrl to resolve artifacts"() {
         given:
-        server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
 
@@ -244,8 +289,6 @@ task listJars << {
 
     def "can resolve and cache dependencies from HTTP Maven repository with invalid settings.xml"() {
         given:
-        server.start()
-
         def projectB = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
         def projectA = mavenHttpRepo.module('group', 'projectA').dependsOn('group', 'projectB', '1.0').publish()
 

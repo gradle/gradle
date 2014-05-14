@@ -15,26 +15,22 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.junit.Test
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-public class ClientModuleDependenciesResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    @Test
+public class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public void "uses metadata from Client Module and looks up artifact in declared repositories"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
-        def repo2 = ivyHttpRepo("repo2")
+        def repo2 = mavenHttpRepo("repo2")
         def projectAInRepo1 = repo1.module('group', 'projectA', '1.2')
         def projectAInRepo2 = repo2.module('group', 'projectA', '1.2').publish()
         def projectB = repo1.module('group', 'projectB', '1.3').publish()
-
-        server.start()
 
         and:
         buildFile << """
 repositories {
     ivy { url "${repo1.uri}" }
-    ivy { url "${repo2.uri}" }
+    maven { url "${repo2.uri}" }
 }
 configurations { compile }
 dependencies {
@@ -52,14 +48,45 @@ task listJars << {
         projectB.jar.expectGet()
         projectAInRepo1.ivy.expectGetMissing()
         projectAInRepo1.jar.expectHeadMissing()
-        projectAInRepo2.ivy.expectGet()
-        projectAInRepo2.jar.expectGet()
+        projectAInRepo2.pom.expectGet()
+        projectAInRepo2.artifact.expectGet()
 
         then:
         succeeds('listJars')
 
         when:
         server.resetExpectations()
+
+        then:
+        succeeds('listJars')
+    }
+
+    def "client module dependency ignores published artifact listing and resolves single jar file"() {
+        def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')
+                .artifact()
+                .artifact(classifier: "extra")
+                .publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${ivyHttpRepo.uri}" }
+}
+configurations {
+    regular
+    clientModule
+}
+dependencies {
+    regular "group:projectA:1.2"
+    clientModule module("group:projectA:1.2")
+}
+task listJars << {
+    assert configurations.regular.collect { it.name } == ['projectA-1.2.jar', 'projectA-1.2-extra.jar']
+    assert configurations.clientModule.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
+
+        when:
+        projectA.allowAll()
 
         then:
         succeeds('listJars')
