@@ -93,8 +93,8 @@ public class SettingsHandler {
     }
 
     private SettingsInternal loadSettings(GradleInternal gradle, SettingsLocation settingsLocation,
-                                          ClassLoaderScope classLoaderScope, StartParameter startParameter) {
-        return settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
+                                          ClassLoaderScope baseClassLoaderScope, StartParameter startParameter) {
+        return settingsProcessor.process(gradle, settingsLocation, baseClassLoaderScope, startParameter);
     }
 }
 
