@@ -443,24 +443,24 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 
 ### Test Coverage
 
-- 404 responses that indicate that the plugin or plugin version do not exist are not fatal - try next resolver
+- ~~404 responses that indicate that the plugin or plugin version do not exist are not fatal - try next resolver~~
 - generic 404 responses are considered fatal
 - If plugin portal response indicates that the plugin is known, but not by that version (also a 404), failure message to user should include this information (later stories might include information about what versions are known about)
-- Attempt to use -SNAPSHOT or a dynamic version selector produces helpful 'not supported' error message
+- ~~Attempt to use -SNAPSHOT or a dynamic version selector produces helpful 'not supported' error message~~
     - As there is only the core resolver and the portal resolver at this point, this logic could be hardcoded at the start of the resolver list potentially
-- Success response document of incompatible schema produces error
-- Success response document of compatible schema, but with extra data elements, is ok
-- Failed resolution of module implementation from specified repository fails, with error message indicating why resolve was happening
-- Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message
-- Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message
-- Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message
+- ~~Success response document of incompatible schema produces error~~
+- ~~Success response document of compatible schema, but with extra data elements, is ok~~
+- ~~Failed resolution of module implementation from specified repository fails, with error message indicating why resolve was happening~~
+- ~~Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message~~
+- ~~Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message~~
+- ~~Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message~~
 - Plugin is available in build script via `PluginContainer` - incl. `withType()` and `withId()` methods (note: plugin class is not visible to build script, but could be obtained reflectively)
 - Plugin implementation classes are not visible to build script (or to anything else)
 - Plugin cannot access classes from core Gradle plugins
 - Plugin can access classes from Gradle API
 - Plugin cannot access Gradle internal implementation classes
-- Plugin resolution fails when --offline is specified
-- Client follows redirect from server
+- ~~Plugin resolution fails when --offline is specified~~
+- ~~Client follows redirect from server~~
 - Unicode characters in the response are interpreted correctly and don't cause strange behaviour
 - Plugin id and version numbers can contain URL meta chars and unicode chars (regardless of valid plugin ids not being allowed to contain non ascii alphanum or -) - request URLs should be well formed
 - Reasonable error message on network failure talking to plugin portal or repository containing plugin implementation
