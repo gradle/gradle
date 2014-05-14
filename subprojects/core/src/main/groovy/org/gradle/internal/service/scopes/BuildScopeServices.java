@@ -26,6 +26,8 @@ import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
+import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.api.internal.component.DefaultComponentTypeRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -289,6 +291,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new DependencyMetaDataProviderImpl();
+    }
+
+    protected ComponentTypeRegistry createComponentTypeRegistry() {
+        return new DefaultComponentTypeRegistry();
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {

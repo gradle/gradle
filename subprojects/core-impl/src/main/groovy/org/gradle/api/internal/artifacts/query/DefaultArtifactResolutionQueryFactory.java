@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.dsl.dependencies.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.component.ComponentTypeRegistry;
 
 public class DefaultArtifactResolutionQueryFactory implements ArtifactResolutionQueryFactory {
     private final ConfigurationContainerInternal configurationContainer;
@@ -29,18 +30,20 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
     private final ResolveIvyFactory ivyFactory;
     private final ModuleMetadataProcessor metadataProcessor;
     private final CacheLockingManager cacheLockingManager;
+    private final ComponentTypeRegistry componentTypeRegistry;
 
     public DefaultArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
                                                  ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor,
-                                                 CacheLockingManager cacheLockingManager) {
+                                                 CacheLockingManager cacheLockingManager, ComponentTypeRegistry componentTypeRegistry) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;
         this.metadataProcessor = metadataProcessor;
         this.cacheLockingManager = cacheLockingManager;
+        this.componentTypeRegistry = componentTypeRegistry;
     }
 
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
-        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataProcessor, cacheLockingManager);
+        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataProcessor, cacheLockingManager, componentTypeRegistry);
     }
 }

@@ -20,9 +20,9 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.result.*;
-import org.gradle.api.artifacts.result.jvm.JavadocArtifact;
-import org.gradle.api.artifacts.result.jvm.SourcesArtifact;
+import org.gradle.api.artifacts.result.ArtifactResolutionResult;
+import org.gradle.api.artifacts.result.ComponentResult;
+import org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
@@ -38,6 +38,7 @@ import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.*;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
 import org.gradle.util.CollectionUtils;
@@ -52,18 +53,21 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ResolveIvyFactory ivyFactory;
     private final ModuleMetadataProcessor metadataProcessor;
     private final CacheLockingManager lockingManager;
+    private final ComponentTypeRegistry componentTypeRegistry;
 
     private Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
     private Class<? extends Component> componentType;
     private Set<Class<? extends Artifact>> artifactTypes = Sets.newLinkedHashSet();
 
     public DefaultArtifactResolutionQuery(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
-                                          ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor, CacheLockingManager lockingManager) {
+                                          ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor, CacheLockingManager lockingManager,
+                                          ComponentTypeRegistry componentTypeRegistry) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;
         this.metadataProcessor = metadataProcessor;
         this.lockingManager = lockingManager;
+        this.componentTypeRegistry = componentTypeRegistry;
     }
 
     public ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds) {
@@ -137,12 +141,6 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     private <T extends Artifact> ArtifactType convertType(Class<T> requestedType) {
-        if (requestedType == SourcesArtifact.class) {
-            return ArtifactType.SOURCES;
-        }
-        if (requestedType == JavadocArtifact.class) {
-            return ArtifactType.JAVADOC;
-        }
-        throw new IllegalArgumentException("Not a valid type for components of type " + componentType);
+        return componentTypeRegistry.getComponentRegistration(componentType).getArtifactType(requestedType);
     }
 }
