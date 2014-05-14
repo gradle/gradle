@@ -51,13 +51,12 @@ public class PluginPortalClient {
 
         HttpResponseResource response = null;
         try {
-            response = resourceAccessor.getResource(requestUri);
-            if (response == null) { // 404
+            response = resourceAccessor.getRawResource(requestUri);
+            final int statusCode = response.getStatusCode();
+            if (statusCode == 404) {
                 return null;
             }
-            if (response.getStatusCode() != 200) {
-                throw new GradleException("Plugin portal returned HTTP status code: " + response.getStatusCode());
-            }
+
             return response.withContent(new Transformer<PluginUseMetaData, InputStream>() {
                 public PluginUseMetaData transform(InputStream inputStream) {
                     Reader reader;
@@ -67,6 +66,11 @@ public class PluginPortalClient {
                         throw new AssertionError(e);
                     }
                     try {
+                        if (statusCode != 200) {
+                            ErrorResponse errorResponse = new Gson().fromJson(reader, ErrorResponse.class);
+                            throw new GradleException(String.format("Plugin portal returned HTTP %d with message '%s'.", statusCode, errorResponse.message));
+                        }
+
                         PluginUseMetaData metadata = new Gson().fromJson(reader, PluginUseMetaData.class);
                         metadata.verify();
                         return metadata;

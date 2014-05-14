@@ -21,18 +21,18 @@ import org.gradle.api.GradleException;
 import java.util.Map;
 
 /**
- * Defines the JSON protocol for the plugin portal response to a plugin metadata query.
+ * Defines the JSON protocol for plugin portal responses to plugin metadata queries.
  */
 class PluginUseMetaData {
 
-    public static final String M2_JAR = "M2_JAR";
+    static final String M2_JAR = "M2_JAR";
 
     String id;
     String version;
     Map<String, String> implementation;
     String implementationType;
 
-    public void verify() {
+    void verify() {
         if (implementationType == null) {
             throw new GradleException("Invalid plugin metadata: No implementation type specified.");
         }

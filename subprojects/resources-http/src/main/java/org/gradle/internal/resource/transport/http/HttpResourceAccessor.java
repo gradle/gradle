@@ -17,7 +17,10 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.util.EntityUtils;
+import org.gradle.api.Nullable;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
@@ -41,24 +44,40 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         this.http = http;
     }
 
+    @Nullable
     public HttpResponseResource getResource(final URI uri) throws IOException {
         abortOpenResources();
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
+
         HttpResponse response = http.performGet(location);
         if (response != null) {
-            HttpResponseResource resource = new HttpResponseResource("GET", uri, response) {
-                @Override
-                public void close() throws IOException {
-                    super.close();
-                    HttpResourceAccessor.this.openResources.remove(this);
-                }
-            };
-
+            HttpResponseResource resource = wrapResponse(uri, response);
             return recordOpenGetResource(resource);
-        } else {
-            return null;
         }
+
+        return null;
+    }
+
+    /**
+     * Same as #getResource except that it always gives access to the response body,
+     * irrespective of the returned HTTP status code. Never returns {@code null}.
+     */
+    public HttpResponseResource getRawResource(final URI uri) throws IOException {
+        abortOpenResources();
+        String location = uri.toString();
+        LOGGER.debug("Constructing external resource: {}", location);
+
+        HttpRequestBase request = new HttpGet(uri);
+        HttpResponse response;
+        try {
+            response = http.performHttpRequest(request);
+        } catch (IOException e) {
+            throw new HttpRequestException(String.format("Could not %s '%s'.", request.getMethod(), request.getURI()), e);
+        }
+
+        HttpResponseResource resource = wrapResponse(uri, response);
+        return recordOpenGetResource(resource);
     }
 
     public ExternalResourceMetaData getMetaData(URI uri) {
@@ -106,6 +125,16 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
             LOGGER.warn("Checksum missing at {} due to: {}", checksumUrl, e.getMessage());
             return null;
         }
+    }
+
+    private HttpResponseResource wrapResponse(URI uri, HttpResponse response) {
+        return new HttpResponseResource("GET", uri, response) {
+            @Override
+            public void close() throws IOException {
+                super.close();
+                HttpResourceAccessor.this.openResources.remove(this);
+            }
+        };
     }
 
 }

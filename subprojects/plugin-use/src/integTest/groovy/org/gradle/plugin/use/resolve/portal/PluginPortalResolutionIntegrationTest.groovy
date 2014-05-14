@@ -185,6 +185,17 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         succeeds("verify")
     }
 
+    def "plugin portal error message is embedded in user error message"() {
+        portal.expectQueryAndReturnError("myplugin", "1.0", 500, "INTERNAL_SERVER_ERROR", "Bintray communication failure")
+
+        buildScript applyAndVerify("myplugin", "1.0")
+
+        expect:
+        fails("verify")
+        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
+        failure.assertHasCause("Plugin portal returned HTTP 500 with message 'Bintray communication failure'.")
+    }
+
     private void publishPlugin(String pluginId, String group, String artifact, String version) {
         def module = portal.m2repo.module(group, artifact, version) // don't know why tests are failing if this module is publish()'ed
         module.allowAll()

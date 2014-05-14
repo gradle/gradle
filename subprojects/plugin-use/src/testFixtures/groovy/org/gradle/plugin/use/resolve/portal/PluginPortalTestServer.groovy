@@ -81,6 +81,16 @@ class PluginPortalTestServer extends ExternalResource {
         }
     }
 
+    static class ErrorResponse {
+        String errorCode;
+        String message;
+
+        ErrorResponse(String errorCode, String message) {
+            this.errorCode = errorCode
+            this.message = message
+        }
+    }
+
     public void expectPluginQuery(String pluginId, String pluginVersion, String group, String artifact, String version,
                                   @DelegatesTo(value = PluginUseResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer = null) {
         def useResponse = new PluginUseResponse(pluginId, pluginVersion, new PluginUseResponse.Implementation("$group:$artifact:$version", m2repo.uri.toString()), "M2_JAR")
@@ -100,6 +110,17 @@ class PluginPortalTestServer extends ExternalResource {
         http.expect("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 ConfigureUtil.configure(configurer, response)
+            }
+        })
+    }
+
+    public void expectQueryAndReturnError(String pluginId, String pluginVersion, int httpStatus, String errorCode, String message) {
+        def errorResponse = new ErrorResponse(errorCode, message);
+
+        http.expect("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.status = httpStatus
+                json(response, errorResponse)
             }
         })
     }
