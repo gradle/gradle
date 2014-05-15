@@ -82,15 +82,6 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
-        if (modifiedArgs.containsKey("urls")) {
-            DeprecationLogger.nagUserOfDeprecated(
-                    "The 'urls' property of the RepositoryHandler.mavenCentral() method",
-                    "You should use the 'artifactUrls' property to define additional artifact locations"
-            );
-            List<?> urls = flattenCollections(modifiedArgs.remove("urls"));
-            modifiedArgs.put("artifactUrls", urls);
-        }
-
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<MavenArtifactRepository>(modifiedArgs));
     }
 
