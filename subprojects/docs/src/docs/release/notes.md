@@ -388,6 +388,10 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `StartParameter.useEmptySettingsScript()` replaced with `useEmptySettings()`.
 - `StartParameter.getMergedSystemProperties()` with no replacement.
 - `Specs.filterIterable()` with no replacement.
+- `ExcludeRule.getExcludeArgs()` replaced by `getModule()` and `getGroup()`.
+- `ExtensionContainer.add(String, Class<?>, Object...)` replaced by `create()`
+- `TaskContainer.add()` replaced by `create()`.
+- `ConfigurationContainer.add()` replaced by `create()`.
 
 ### Removed deprecated properties
 
@@ -403,14 +407,23 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `CodeNarc.reportFormat` replaced with `CodeNarc.reports.<type>.enabled`.
 - `CodeNarc.reportFile` replaced with `CodeNarc.reports.<type>.destination`.
 - `ResolvedArtifact.resolvedDependency` with `ResolvedArtifact.moduleVersion` as a partial replacement.
+- `ArtifactsRepositoryContainer` constants with no replacement.
+
+### Changes to repository DSL
+
+- The `RepositoryHandler.mavenCentral()` method no longer handles the `urls` option. You should use the `artifactUrls` instead.
 
 ### Removed incubating method
 
 - `StartParameter.setProjectPath` and `StartParameter.getProjectPath` were replaced with `TaskParameter`.
 
+### Task constructor injection changes
+
+Tasks are now constructed according to JSR-330. This means that a task type must either have a single public zero-args constructor, or annotate one constructor with `@Inject`.
+
 ### Task constructor changes
 
-All task types now have a zero args constructor. The following types are affected:
+All core Gradle task types now have a zero args constructor. The following types are affected:
 
 - `org.gradle.api.tasks.testing.Test`
 - `org.gradle.api.tasks.Upload`

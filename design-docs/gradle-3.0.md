@@ -130,6 +130,7 @@ Extension objects have been available for over 2 years and are now an establishe
 
 ## Misc API tidy-ups
 
+* Remove constants from `ExcludeRule`.
 * Rename `IllegalDependencyNotation` to add `Exception` to the end of its name.
 * Remove `ConventionProperty`, replace it with documentation.
 * Remove `Settings.startParameter`. Can use `gradle.startParameter` instead.
