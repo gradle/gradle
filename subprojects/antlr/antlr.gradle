@@ -23,6 +23,7 @@ dependencies {
     compile libraries.ant
     compile libraries.ant_antlr
     compile libraries.antlr
+    compile libraries.antlr3
 }
 
 useTestFixtures()

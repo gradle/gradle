@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Builder for the properly order list of {@link GenerationPlan generation plans}.
@@ -52,6 +53,29 @@ public class GenerationPlanBuilder {
         }
 
         return new ArrayList<GenerationPlan>(generationPlans.values());
+    }
+    
+    public synchronized List<GenerationPlan> buildGenerationPlans(Set<File> sourceFiles) {
+        List<GenerationPlan> plans = new ArrayList<GenerationPlan>();
+        for (File grammar : sourceFiles) {
+
+            Antlr3GrammarFileMetadata metadata = new Antlr3GrammarFileMetadata(grammar);
+            File lexer = new File(outputDirectory, metadata.getLexerFileName());
+            File parser = new File(outputDirectory, metadata.getParserFileName());
+            File tokenFile = new File(outputDirectory, metadata.getTokenFileName());
+
+            if (!lexer.exists()
+                || !parser.exists()
+                || !tokenFile.exists()
+                || lexer.lastModified() < grammar.lastModified()
+                || parser.lastModified() < grammar.lastModified()
+                || tokenFile.lastModified() < grammar.lastModified()) {
+                GenerationPlan plan = new GenerationPlan(grammar, outputDirectory);
+                plan.markOutOfDate();
+                plans.add(plan);
+            }
+        }
+        return plans;
     }
 
     private GenerationPlan loacteOrBuildGenerationPlan(GrammarFileMetadata grammarFileMetadata) {

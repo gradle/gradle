@@ -63,4 +63,33 @@ class AntlrPluginTest extends Specification {
         custom instanceof AntlrTask
         project.tasks.compileCustomJava.taskDependencies.getDependencies(null).contains(custom)
     }
+
+    def assignsAntlr2WhenSet() {
+        when:
+        project.apply plugin: AntlrPlugin
+        project.tasks.generateGrammarSource.ext.antlrVersion = '2'
+
+        then:
+        def main = project.tasks.generateGrammarSource
+        main.getAssignedAntlrVersion() == 2
+    }
+
+    def assignsAntlr3WhenSet() {
+        when:
+        project.apply plugin: AntlrPlugin
+        project.tasks.generateGrammarSource.ext.antlrVersion = '3'
+
+        then:
+        def main = project.tasks.generateGrammarSource
+        main.getAssignedAntlrVersion() == 3
+    }
+
+    def assignsAntlr2WhenNotSet() {
+        when:
+        project.apply plugin: AntlrPlugin
+
+        then:
+        def main = project.tasks.generateGrammarSource
+        main.getAssignedAntlrVersion() == 2
+    }
 }
