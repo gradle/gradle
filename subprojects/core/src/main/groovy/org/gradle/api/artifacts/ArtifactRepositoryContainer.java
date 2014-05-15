@@ -52,19 +52,6 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
-    @Deprecated
-    String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
-    @Deprecated
-    String DEFAULT_CACHE_ARTIFACT_PATTERN
-            = "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])";
-    @Deprecated
-    String DEFAULT_CACHE_IVY_PATTERN = "[organisation]/[module](/[branch])/ivy-[revision].xml";
-    @Deprecated
-    String INTERNAL_REPOSITORY_NAME = "internal-repository";
-    @Deprecated
-    String RESOLVER_NAME = "name";
-    @Deprecated
-    String RESOLVER_URL = "url";
 
     /**
      * Adds a repository to this container, at the end of the repository sequence.
@@ -114,8 +101,8 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      *
      * <li>A String. This is treated as a URL, and used to create a Maven repository.</li>
      *
-     * <li>A map. This is used to create a Maven repository. The map must contain an {@value #RESOLVER_NAME} entry and a
-     * {@value #RESOLVER_URL} entry.</li>
+     * <li>A map. This is used to create a Maven repository. The map must contain a 'name' entry and a
+     * 'url' entry.</li>
      *
      * <li>A {@link DependencyResolver}.</li>
      *
