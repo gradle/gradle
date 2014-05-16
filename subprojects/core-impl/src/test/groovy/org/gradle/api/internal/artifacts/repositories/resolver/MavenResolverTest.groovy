@@ -17,11 +17,10 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
+import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transport.ExternalResourceRepository
-import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -33,7 +32,6 @@ class MavenResolverTest extends Specification {
     def rootUri = URI.create("thing:/localhost:8081:/testrepo/")
     def locallyAvailableResourceFinder = Mock(LocallyAvailableResourceFinder)
     def parser = Mock(MetaDataParser)
-    def resolverStrategy = Stub(ResolverStrategy)
 
     def setup() {
         repositoryTransport.getRepository() >> repository
@@ -43,7 +41,7 @@ class MavenResolverTest extends Specification {
     def "setUseMavenMetaData '#value' adapts versionLister to #classname"() {
         setup:
         MavenResolver testresolver = new MavenResolver("test maven resolver", rootUri, repositoryTransport,
-                locallyAvailableResourceFinder, resolverStrategy, artifactIdentifierFileStore)
+                locallyAvailableResourceFinder, artifactIdentifierFileStore)
         when:
         testresolver.setUseMavenMetadata(value)
         then:

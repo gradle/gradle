@@ -15,34 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
-import org.gradle.util.CollectionUtils;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DependencyResolverIdentifier {
-    public static String forIvyResolver(DependencyResolver resolver) {
-        List<String> parts = new ArrayList<String>();
-        parts.add(resolver.getClass().getName());
-        if (resolver instanceof AbstractPatternsBasedResolver) {
-            AbstractPatternsBasedResolver patternsBasedResolver = (AbstractPatternsBasedResolver) resolver;
-            parts.add(joinPatterns(patternsBasedResolver.getIvyPatterns()));
-            parts.add(joinPatterns(patternsBasedResolver.getArtifactPatterns()));
-            if (patternsBasedResolver.isM2compatible()) {
-                parts.add("m2compatible");
-            }
-        } else {
-            parts.add(resolver.getName());
-            // TODO We should not be assuming equality between resolvers here based on name...
-        }
-
-        return calculateId(parts);
-    }
-
     // TODO: Move this logic into ExternalResourceResolver, and add some transport-specific information (bumping the cache version)
     public static String forExternalResourceResolver(ExternalResourceResolver resolver) {
         List<String> parts = new ArrayList<String>();

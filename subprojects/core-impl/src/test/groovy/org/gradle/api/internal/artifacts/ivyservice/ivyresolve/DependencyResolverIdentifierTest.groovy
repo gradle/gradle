@@ -15,50 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver
-import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import spock.lang.Specification
 
 public class DependencyResolverIdentifierTest extends Specification {
-    def "dependency resolvers of unknown type are identified by their name"() {
-        given:
-        DependencyResolver resolver1 = Mock()
-        DependencyResolver resolver1a = Mock()
-        DependencyResolver resolver2 = Mock()
-
-        resolver1.name >> 'name1'
-        resolver1a.name >> 'name1'
-        resolver2.name >> 'name2'
-
-        expect:
-        id(resolver1) == id(resolver1a)
-        id(resolver1) != id(resolver2)
-    }
-
-    def "dependency resolvers of type AbstractPatternBasedResolver are differentiated by their patterns"() {
-        given:
-        AbstractPatternsBasedResolver resolver1 = Mock()
-        AbstractPatternsBasedResolver resolver1a = Mock()
-        AbstractPatternsBasedResolver resolver2 = Mock()
-        AbstractPatternsBasedResolver resolver2a = Mock()
-
-        resolver1.ivyPatterns >> ['ivy1', 'ivy2']
-        resolver1.artifactPatterns >> ['artifact1', 'artifact2']
-        resolver1a.ivyPatterns >> ['ivy1', 'ivy2']
-        resolver1a.artifactPatterns >> ['artifact1', 'artifact2']
-        resolver2.ivyPatterns >> ['ivy1', 'different']
-        resolver2.artifactPatterns >> ['artifact1', 'artifact2']
-        resolver2a.ivyPatterns >> ['ivy1', 'ivy2']
-        resolver2a.artifactPatterns >> ['artifact1', 'different']
-
-        expect:
-        id(resolver1) == id(resolver1a)
-        id(resolver1) != id(resolver2)
-        id(resolver1) != id(resolver2a)
-        id(resolver2) != id(resolver2a)
-    }
-
     def "dependency resolvers of type ExternalResourceResolver are differentiated by their patterns"() {
         given:
         ExternalResourceResolver resolver1 = Mock()
@@ -82,22 +42,6 @@ public class DependencyResolverIdentifierTest extends Specification {
         id(resolver2) != id(resolver2a)
     }
 
-    def "dependency resolvers of type AbstractPatternBasedResolver are differentiated by m2compatible flag"() {
-        given:
-        AbstractPatternsBasedResolver resolver1 = Mock()
-        AbstractPatternsBasedResolver resolver2 = Mock()
-
-        resolver1.ivyPatterns >> ['ivy1']
-        resolver1.artifactPatterns >> ['artifact1']
-        resolver1.m2compatible >> false
-        resolver2.ivyPatterns >> ['ivy1']
-        resolver2.artifactPatterns >> ['artifact1']
-        resolver2.m2compatible >> true
-
-        expect:
-        id(resolver1) != id(resolver2)
-    }
-
     def "dependency resolvers of type ExternalResourceResolver are differentiated by m2compatible flag"() {
         given:
         ExternalResourceResolver resolver1 = Mock()
@@ -111,10 +55,6 @@ public class DependencyResolverIdentifierTest extends Specification {
 
         expect:
         id(resolver1) != id(resolver2)
-    }
-
-    def id(DependencyResolver resolver) {
-        return DependencyResolverIdentifier.forIvyResolver(resolver)
     }
 
     def id(ExternalResourceResolver resolver) {

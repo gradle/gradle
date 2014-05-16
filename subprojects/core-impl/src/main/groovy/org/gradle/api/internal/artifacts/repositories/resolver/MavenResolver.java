@@ -16,9 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
@@ -26,9 +24,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
@@ -54,21 +52,16 @@ public class MavenResolver extends ExternalResourceResolver {
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                         ResolverStrategy resolverStrategy, FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
+                         FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
         super(name, transport.isLocal(),
                 transport.getRepository(),
                 transport.getResourceAccessor(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
                 locallyAvailableResourceFinder,
-                resolverStrategy,
                 artifactFileStore);
         this.metaDataParser = new GradlePomModuleDescriptorParser();
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());
         this.root = rootUri;
-
-        // SNAPSHOT revisions are changing revisions
-        setChangingMatcher(PatternMatcher.REGEXP);
-        setChangingPattern(".*-SNAPSHOT");
 
         updatePatterns();
     }
@@ -91,6 +84,14 @@ public class MavenResolver extends ExternalResourceResolver {
 
     protected boolean isMetaDataArtifact(ArtifactType artifactType) {
         return artifactType == ArtifactType.MAVEN_POM;
+    }
+
+    @Override
+    protected MutableModuleVersionMetaData processMetaData(MutableModuleVersionMetaData metaData) {
+        if (metaData.getId().getVersion().endsWith("-SNAPSHOT")) {
+            metaData.setChanging(true);
+        }
+        return metaData;
     }
 
     private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, ModuleComponentIdentifier module, BuildableModuleVersionMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {

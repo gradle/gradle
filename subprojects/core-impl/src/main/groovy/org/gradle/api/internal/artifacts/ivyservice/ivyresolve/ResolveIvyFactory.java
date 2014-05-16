@@ -15,11 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.Ivy;
-import org.apache.ivy.core.IvyContext;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -39,7 +34,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.util.WrapUtil;
 
 public class ResolveIvyFactory {
     private final ModuleVersionsCache moduleVersionsCache;
@@ -83,9 +77,6 @@ public class ResolveIvyFactory {
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
-            if (baseRepository instanceof IvyAwareModuleComponentRepository) {
-                ivyContextualize((IvyAwareModuleComponentRepository) baseRepository, userResolverChain, configuration.getName());
-            }
             if (baseRepository instanceof ExternalResourceResolver) {
                 ((ExternalResourceResolver) baseRepository).setRepositoryChain(parentLookupResolver);
             }
@@ -111,25 +102,6 @@ public class ResolveIvyFactory {
         }
 
         return userResolverChain;
-    }
-
-    private void ivyContextualize(IvyAwareModuleComponentRepository ivyAwareRepository, RepositoryChain userResolverChain, String configurationName) {
-        Ivy ivy = IvyContext.getContext().getIvy();
-        IvySettings ivySettings = ivy.getSettings();
-        LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver("main", userResolverChain, cacheLockingManager);
-        ivySettings.addResolver(loopbackDependencyResolver);
-        ivySettings.setDefaultResolver(loopbackDependencyResolver.getName());
-
-        ResolveData resolveData = createResolveData(ivy, configurationName);
-        ivyAwareRepository.setSettings(ivySettings);
-        ivyAwareRepository.setResolveData(resolveData);
-    }
-
-    private ResolveData createResolveData(Ivy ivy, String configurationName) {
-        ResolveOptions options = new ResolveOptions();
-        options.setDownload(false);
-        options.setConfs(WrapUtil.toArray(configurationName));
-        return new ResolveData(ivy.getResolveEngine(), options);
     }
 
     /**

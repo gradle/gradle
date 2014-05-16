@@ -17,14 +17,13 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
@@ -33,11 +32,10 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
-    final ResolverStrategy resolverStrategy = Stub()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-            resolver, credentials, transportFactory, locallyAvailableResourceFinder, resolverStrategy, artifactIdentifierFileStore)
+            resolver, credentials, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore)
 
     def "creates local repository"() {
         given:

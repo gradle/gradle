@@ -66,7 +66,6 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         ]
         repo.ivyPatterns == []
         repo.artifactPatterns == expectedPatterns
-        repo.allownomd
     }
 
     def "fails when no directories specified"() {
