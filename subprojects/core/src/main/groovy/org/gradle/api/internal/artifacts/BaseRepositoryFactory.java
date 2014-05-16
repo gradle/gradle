@@ -15,19 +15,14 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 
 /**
- * Factory for {@link ArtifactRepository} implementations.
+ * Factory for {@link org.gradle.api.artifacts.repositories.ArtifactRepository} implementations.
  */
 public interface BaseRepositoryFactory {
-
-    ArtifactRepository createRepository(Object userDescription);
-
     FlatDirectoryArtifactRepository createFlatDirRepository();
 
     MavenArtifactRepository createMavenLocalRepository();
@@ -39,8 +34,4 @@ public interface BaseRepositoryFactory {
     IvyArtifactRepository createIvyRepository();
 
     MavenArtifactRepository createMavenRepository();
-
-    DependencyResolver toResolver(ArtifactRepository repository);
-
-    ArtifactRepository createResolverBackedRepository(DependencyResolver resolver);
 }

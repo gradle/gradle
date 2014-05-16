@@ -21,11 +21,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Resolver
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
@@ -98,32 +98,6 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             artifactPatterns == ["${fileUri}/[organisation]/[artifact]-[revision].[ext]", "${fileUri}/[organisation]/[module]/[artifact]-[revision].[ext]"]
             ivyPatterns == ["${fileUri}/[organisation]/[module]/ivy-[revision].xml"]
         }
-    }
-
-    def "creates a DSL wrapper for resolver"() {
-        repository.name = 'name'
-        repository.artifactPattern 'repo/[organisation]/[artifact]-[revision].[ext]'
-        def file = new File("test")
-        def fileUri = file.toURI()
-
-        given:
-        fileResolver.resolveUri('repo/') >> fileUri
-        transportFactory.createTransport({ it == ['file'] as Set}, 'name', credentials) >> transport()
-
-        when:
-        def wrapper = repository.createLegacyDslObject()
-
-        then:
-        with(wrapper) {
-            it instanceof LegacyDependencyResolver
-            resolver instanceof IvyResolver
-        }
-
-        when:
-        def repo = wrapper.createResolver()
-
-        then:
-        repo.is(wrapper.resolver)
     }
 
     def "uses ivy patterns with specified url and default layout"() {

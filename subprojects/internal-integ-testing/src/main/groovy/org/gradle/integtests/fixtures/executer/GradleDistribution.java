@@ -79,11 +79,6 @@ public interface GradleDistribution {
     VersionNumber getArtifactCacheLayoutVersion();
 
     /**
-     * Returns true if the open API is supported by this distribution.
-     */
-    boolean isOpenApiSupported();
-
-    /**
      * Returns true if the wrapper from this distribution can execute a build using the specified version.
      * @param version
      */

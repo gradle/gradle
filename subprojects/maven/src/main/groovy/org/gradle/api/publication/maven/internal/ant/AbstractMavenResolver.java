@@ -90,10 +90,6 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         return this;
     }
 
-    public DependencyResolver createLegacyDslObject() {
-        return this;
-    }
-
     protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {

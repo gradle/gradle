@@ -54,7 +54,6 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkTools
         rootClassLoader.allowPackage("groovy");
         rootClassLoader.allowPackage("org.codehaus.groovy");
         rootClassLoader.allowPackage("groovyjarjarantlr");
-        rootClassLoader.allowPackage("org.apache.ivy");
         rootClassLoader.allowPackage("org.slf4j");
         rootClassLoader.allowPackage("org.apache.commons.logging");
         rootClassLoader.allowPackage("org.apache.log4j");

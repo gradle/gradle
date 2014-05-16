@@ -17,45 +17,32 @@
 package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Namer;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.internal.Actions;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.gradle.internal.Cast.cast;
 
 public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObjectList<ArtifactRepository>
         implements ArtifactRepositoryContainer {
 
-    private final BaseRepositoryFactory baseRepositoryFactory;
     private final Action<ArtifactRepository> addLastAction = new Action<ArtifactRepository>() {
         public void execute(ArtifactRepository repository) {
             DefaultArtifactRepositoryContainer.super.add(repository);
         }
     };
-    private final Action<ArtifactRepository> addFirstAction = new Action<ArtifactRepository>() {
-        public void execute(ArtifactRepository repository) {
-            DefaultArtifactRepositoryContainer.super.add(0, repository);
-        }
-    };
 
-    public DefaultArtifactRepositoryContainer(BaseRepositoryFactory baseRepositoryFactory, Instantiator instantiator) {
+    public DefaultArtifactRepositoryContainer(Instantiator instantiator) {
         super(ArtifactRepository.class, instantiator, new RepositoryNamer());
-        this.baseRepositoryFactory = baseRepositoryFactory;
     }
 
     private static class RepositoryNamer implements Namer<ArtifactRepository> {
@@ -81,100 +68,9 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         add(repository);
     }
 
-    public boolean add(DependencyResolver resolver, Closure configureClosure) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("ArtifactRepositoryContainer.add(DependencyResolver, Closure)");
-        addCustomDependencyResolver(resolver, configureClosure, addLastAction);
-        return true;
-    }
-
-    public boolean add(DependencyResolver resolver) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("ArtifactRepositoryContainer.add(DependencyResolver)");
-        addCustomDependencyResolver(resolver, null, addLastAction);
-        return true;
-    }
-
-    public DependencyResolver addFirst(Object userDescription) {
-        return addFirst(userDescription, null);
-    }
-
-    public DependencyResolver addFirst(Object userDescription, Closure configureClosure) {
-        DeprecationLogger.nagUserOfReplacedMethod("ArtifactRepositoryContainer.addFirst(Object)", "addFirst(ArtifactRepository");
-        return addCustomDependencyResolver(userDescription, configureClosure, addFirstAction);
-    }
-
-    @Deprecated
-    public DependencyResolver addLast(Object userDescription) {
-        DeprecationLogger.nagUserOfReplacedMethod("ArtifactRepositoryContainer.addLast()", "maven() or add()");
-        return addCustomDependencyResolver(userDescription, null, addLastAction);
-    }
-
-    @Deprecated
-    public DependencyResolver addLast(Object userDescription, Closure configureClosure) {
-        DeprecationLogger.nagUserOfReplacedMethod("ArtifactRepositoryContainer.addLast()", "maven() or add()");
-        return addCustomDependencyResolver(userDescription, configureClosure, addLastAction);
-    }
-
-    public DependencyResolver addBefore(Object userDescription, String afterResolverName) {
-        return addBefore(userDescription, afterResolverName, null);
-    }
-
-    public DependencyResolver addBefore(Object userDescription, final String afterResolverName, Closure configureClosure) {
-        if (!GUtil.isTrue(afterResolverName)) {
-            throw new InvalidUserDataException("You must specify afterResolverName");
-        }
-        DeprecationLogger.nagUserOfDiscontinuedMethod("ArtifactRepositoryContainer.addBefore()");
-        final ArtifactRepository after = getByName(afterResolverName);
-        return addCustomDependencyResolver(userDescription, configureClosure, new Action<ArtifactRepository>() {
-            public void execute(ArtifactRepository repository) {
-                DefaultArtifactRepositoryContainer.super.add(indexOf(after), repository);
-            }
-        });
-    }
-
-    public DependencyResolver addAfter(Object userDescription, final String beforeResolverName) {
-        return addAfter(userDescription, beforeResolverName, null);
-    }
-
-    public DependencyResolver addAfter(Object userDescription, final String beforeResolverName, Closure configureClosure) {
-        if (!GUtil.isTrue(beforeResolverName)) {
-            throw new InvalidUserDataException("You must specify beforeResolverName");
-        }
-        DeprecationLogger.nagUserOfDiscontinuedMethod("ArtifactRepositoryContainer.addAfter()");
-        final ArtifactRepository before = getByName(beforeResolverName);
-
-        return addCustomDependencyResolver(userDescription, configureClosure, new Action<ArtifactRepository>() {
-            public void execute(ArtifactRepository repository) {
-                int insertPos = indexOf(before) + 1;
-                if (insertPos == size()) {
-                    DefaultArtifactRepositoryContainer.super.add(repository);
-                } else {
-                    DefaultArtifactRepositoryContainer.this.add(insertPos, repository);
-                }
-            }
-        });
-    }
-
-    private DependencyResolver addCustomDependencyResolver(Object userDescription, Closure configureClosure, Action<ArtifactRepository> orderAction) {
-        ArtifactRepository repository = baseRepositoryFactory.createRepository(userDescription);
-        DependencyResolver resolver = baseRepositoryFactory.toResolver(repository);
-        ConfigureUtil.configure(configureClosure, resolver);
-        ArtifactRepository resolverRepository = baseRepositoryFactory.createResolverBackedRepository(resolver);
-        addWithUniqueName(resolverRepository, "repository", orderAction);
-        return resolver;
-    }
-
     @Override
     protected UnknownDomainObjectException createNotFoundException(String name) {
         return new UnknownRepositoryException(String.format("Repository with name '%s' not found.", name));
-    }
-
-    public List<DependencyResolver> getResolvers() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("ArtifactRepositoryContainer.getResolvers()");
-        List<DependencyResolver> returnedResolvers = new ArrayList<DependencyResolver>();
-        for (ArtifactRepository repository : this) {
-            returnedResolvers.add(baseRepositoryFactory.toResolver(repository));
-        }
-        return returnedResolvers;
     }
 
     public <T extends ArtifactRepository> T addRepository(T repository, String defaultName) {

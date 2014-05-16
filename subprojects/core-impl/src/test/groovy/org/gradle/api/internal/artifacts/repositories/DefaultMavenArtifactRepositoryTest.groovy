@@ -78,31 +78,6 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repo.root == uri.toString()
     }
 
-    def "creates a DSL wrapper for the repository"() {
-        given:
-        def file = new File('repo')
-        def uri = file.toURI()
-        _ * this.resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', credentials) >> transport()
-
-        and:
-        repository.name = 'repo'
-        repository.url = 'repo-dir'
-
-        when:
-        def resolver = repository.createLegacyDslObject()
-
-        then:
-        resolver instanceof LegacyMavenResolver
-        resolver.resolver instanceof MavenResolver
-
-        when:
-        def repo = resolver.createResolver()
-
-        then:
-        repo.is(resolver.resolver)
-    }
-
     def "creates repository with additional artifact URLs"() {
         given:
         def uri = new URI("http://localhost:9090/repo")
@@ -132,7 +107,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "fails when no root url specified"() {
         when:
-        repository.createLegacyDslObject()
+        repository.createRealResolver()
 
         then:
         InvalidUserDataException e = thrown()

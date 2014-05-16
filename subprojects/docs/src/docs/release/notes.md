@@ -200,9 +200,9 @@ This will allow a build author to work around any limitations in Gradle, or inco
         }
     }
 
-### Support for adding target platform specific configurations in native binary projects (Gcc based toolchains)
+### Support for adding target platform specific configurations in native binary projects (GCC based toolchains)
 
-When declaring a toolchain, the targetted platforms can be configured directly in the toolChain model. Furthermore target platform specific configurations
+When declaring a toolchain, the targeted platforms can be configured directly in the toolChain model. Furthermore target platform specific configurations
 can be declared:
 
 	model {
@@ -392,6 +392,13 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `ExtensionContainer.add(String, Class<?>, Object...)` replaced by `create()`
 - `TaskContainer.add()` replaced by `create()`.
 - `ConfigurationContainer.add()` replaced by `create()`.
+- `RepositoryHandler.mavenRepo()` replaced by `maven()`.
+- `ArtifactRepositoryContainer.add(DependencyResolver)` replaced with `add(ArtifactRepository)`.
+- `ArtifactRepositoryContainer.addLast(Object)` replaced with `add(ArtifactRepository)` or `maven()`.
+- `ArtifactRepositoryContainer.addFirst()` with no replacement.
+- `ArtifactRepositoryContainer.addBefore()` with no replacement.
+- `ArtifactRepositoryContainer.addAfter()` with no replacement.
+- `ArtifactRepositoryContainer.getResolvers()` with no replacement.
 
 ### Removed deprecated properties
 

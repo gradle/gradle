@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.Lists;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -27,9 +26,9 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -83,11 +82,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     public ModuleVersionPublisher createPublisher() {
         return createRealResolver();
-    }
-
-    public DependencyResolver createLegacyDslObject() {
-        MavenResolver resolver = createRealResolver();
-        return new LegacyMavenResolver(resolver);
     }
 
     public ConfiguredModuleComponentRepository createResolver() {
