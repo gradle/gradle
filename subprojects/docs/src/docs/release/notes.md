@@ -57,12 +57,12 @@ So far, only one component type (`JvmLibrary`) is available, but others will fol
 
 It's now possible to access Ivy extra info from component metadata rules. Roughly speaking, Ivy extra info is a set of user-defined
 key-value pairs published in the Ivy module descriptor. Rules wishing to access the extra info need to specify a parameter of type
-`IvyModuleDescriptor`. Here is an example:
+`IvyModuleMetadata`. Here is an example:
 
     dependencies {
         components {
-            eachComponent { component, IvyModuleDescriptor descriptor ->
-                println descriptor.extraInfo["expired"] // TODO: what's a real-world use case?
+            eachComponent { component, IvyModuleMetadata ivyMetadata ->
+                println ivyMetadata.extraInfo["expired"] // TODO: what's a real-world use case?
             }
         }
     }
