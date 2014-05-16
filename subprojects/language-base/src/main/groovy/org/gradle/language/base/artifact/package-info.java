@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes comprising artifacts of the JVM library model.
+ * Classes representing artifacts relevant to languages in general.
  */
-package org.gradle.runtime.jvm.artifact;
+package org.gradle.language.base.artifact;
