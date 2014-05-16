@@ -130,6 +130,15 @@ Initially the focus of the service will be to power plugin _use_; over time it w
 The `plugins.gradle.org` service will use a [Gradle plugin specific bintray repository](https://bintray.com/gradle/gradle-plugins) (implicitly) as the source of data.
 Bintray provides hosting, browsing, searching, publishing etc.
 
+# Terminology
+
+In an attempt to avoid confusion the following terms are defined:
+
+- “plugin dependency DSL” - refers to the `plugins {}` construct that can be used to declare dependencies on Gradle plugins (new)
+- “buildscript dependency DSL” - refers to the `buildscript {}` construct that is currently used to declare JAR dependencies
+- “isolated plugin” - new style plugin that is designed to be isolated from other plugins (i.e. new style plugin)
+- “non-isolated plugin” - current style plugin that was not designed to be isolated (i.e. the way plugins currently work)
+
 # Implementation plan
 
 ## Declaring plugins
