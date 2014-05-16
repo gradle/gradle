@@ -20,13 +20,12 @@ import org.gradle.api.internal.tasks.compile.incremental.DummySerializer;
 
 import java.io.File;
 
-public class ClassDependencyInfoSerializer implements ClassDependencyInfoProvider, ClassDependencyInfoWriter {
+public class LocalClassDependencyInfoCache implements ClassDependencyInfoProvider, ClassDependencyInfoWriter {
     private File storage;
 
-    //TODO use standard caching
-    //TODO LocalClassDependencyInfoCache
+    //TODO SF use standard caching
 
-    public ClassDependencyInfoSerializer(File storage) {
+    public LocalClassDependencyInfoCache(File storage) {
         this.storage = storage;
     }
 

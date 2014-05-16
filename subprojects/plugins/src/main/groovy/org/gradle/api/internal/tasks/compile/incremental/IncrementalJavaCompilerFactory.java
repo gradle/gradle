@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependencyInfoSerializer;
+import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassDependencyInfoCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotsMaker;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
@@ -45,14 +45,14 @@ public class IncrementalJavaCompilerFactory {
 
         String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. task can be renamed in place of a task that was deleted.
         LocalJarSnapshotCache jarSnapshotCache = new LocalJarSnapshotCache(new File(project.getBuildDir(), cacheFileBaseName + "-jar-snapshot-cache.bin"));
-        ClassDependencyInfoSerializer dependencyInfoSerializer = new ClassDependencyInfoSerializer(new File(project.getBuildDir(), cacheFileBaseName + "-class-info.bin"));
+        LocalClassDependencyInfoCache localClassDependencyInfo = new LocalClassDependencyInfoCache(new File(project.getBuildDir(), cacheFileBaseName + "-class-info.bin"));
 
         JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(jarSnapshotCache, jarSnapshotter, new ClasspathJarFinder((FileOperations) project));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO replace with converter that parses input source class
-        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, dependencyInfoSerializer, (FileOperations) project, jarSnapshotter, jarSnapshotCache);
-        ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(dependencyInfoSerializer, (FileOperations) project, analyzer);
-        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, dependencyInfoSerializer, (FileOperations) project,
+        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, localClassDependencyInfo, (FileOperations) project, jarSnapshotter, jarSnapshotCache);
+        ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(localClassDependencyInfo, (FileOperations) project, analyzer);
+        incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, localClassDependencyInfo, (FileOperations) project,
                 cleaningJavaCompiler, compileTaskPath, recompilationSpecProvider, classDependencyInfoUpdater, sourceDirs);
     }
 

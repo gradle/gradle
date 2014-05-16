@@ -22,12 +22,12 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class ClassDependencyInfoSerializerTest extends Specification {
+class LocalClassDependencyInfoCacheTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
     def "stores dependency info"() {
-        def s = new ClassDependencyInfoSerializer(temp.file("foo.bin"))
+        def s = new LocalClassDependencyInfoCache(temp.file("foo.bin"))
 
         when:
         s.writeInfo(new ClassDependencyInfo([
