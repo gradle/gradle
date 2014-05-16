@@ -65,7 +65,7 @@ public interface ComponentMetadataHandler {
      * <ul>
      *     <li>{@link ComponentMetadataDetails} Core metadata which is provided for
      *     every kind of component. When declaring this parameter, the type may be omitted.</li>
-     *     <li>{@link org.gradle.api.artifacts.IvyModuleDescriptor} Additional Ivy-specific
+     *     <li>{@link org.gradle.api.artifacts.IvyModuleMetadata} Additional Ivy-specific
      *     metadata. Rules declaring this parameter will only be invoked for Ivy components.</li>
      * </ul>
      *

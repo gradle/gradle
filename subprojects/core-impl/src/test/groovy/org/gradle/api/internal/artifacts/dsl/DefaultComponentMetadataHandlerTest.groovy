@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.ComponentMetadataDetails
-import org.gradle.api.artifacts.IvyModuleDescriptor
+import org.gradle.api.artifacts.IvyModuleMetadata
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.metadata.IvyModuleVersionMetaData
@@ -103,7 +103,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getExtraInfo() >> [info1: "info1 value", info2: "info2 value"]
         }
         def capturedDescriptor = null
-        handler.eachComponent { details, IvyModuleDescriptor descriptor ->
+        handler.eachComponent { details, IvyModuleMetadata descriptor ->
             capturedDescriptor = descriptor
         }
 
@@ -112,7 +112,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
         then:
         noExceptionThrown()
-        capturedDescriptor instanceof IvyModuleDescriptor
+        capturedDescriptor instanceof IvyModuleMetadata
         with(capturedDescriptor) {
             extraInfo == [info1: "info1 value", info2: "info2 value"]
         }
@@ -126,7 +126,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         def invoked = false
-        handler.eachComponent { details, IvyModuleDescriptor descriptor ->
+        handler.eachComponent { details, IvyModuleMetadata descriptor ->
             invoked = true
         }
 
@@ -171,7 +171,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def capturedDescriptor1 = null
         def capturedDescriptor2 = null
 
-        handler.eachComponent { IvyModuleDescriptor descriptor1, details1, IvyModuleDescriptor descriptor2, ComponentMetadataDetails details2  ->
+        handler.eachComponent { IvyModuleMetadata descriptor1, details1, IvyModuleMetadata descriptor2, ComponentMetadataDetails details2  ->
             capturedDetails1 = details1
             capturedDetails2 = details2
             capturedDescriptor1 = descriptor1
@@ -192,11 +192,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             statusScheme == ["integration", "release"]
         }
         capturedDetails2.is(capturedDetails1)
-        capturedDescriptor1 instanceof IvyModuleDescriptor
+        capturedDescriptor1 instanceof IvyModuleMetadata
         with(capturedDescriptor1) {
             extraInfo == [info1: "info1 value", info2: "info2 value"]
         }
-        capturedDescriptor2 instanceof IvyModuleDescriptor
+        capturedDescriptor2 instanceof IvyModuleMetadata
         with(capturedDescriptor2) {
             extraInfo == [info1: "info1 value", info2: "info2 value"]
         }

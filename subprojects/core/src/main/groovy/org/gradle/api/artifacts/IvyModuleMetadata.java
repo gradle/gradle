@@ -20,10 +20,10 @@ import org.gradle.api.Incubating;
 import java.util.Map;
 
 /**
- * An Ivy module descriptor that acts as an input to a component metadata rule.
+ * The metadata about an Ivy module that acts as an input to a component metadata rule.
  */
 @Incubating
-public interface IvyModuleDescriptor {
+public interface IvyModuleMetadata {
     /**
      * Returns a read-only map of the extra info declared in this descriptor.
      * The extra info is the set of all non-standard subelements of the <em>info</em> element.
