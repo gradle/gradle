@@ -491,7 +491,7 @@ to build a Java source set.
 
 This story changes the IDE plugins to understand that some source is generated and some is not.
 
-## Story: Publish library varants for multiple Groovy or Scala runtimes
+## Story: Publish library variants for multiple Groovy or Scala runtimes
 
 ## Story: Compile JVM languages against API of dependencies
 
