@@ -335,9 +335,117 @@ Dynamic versions are specified using the same syntax that is currently used…
 
     id("foo").version("0.5.+")
 
-## Plugin implementation backwards compatibility
+## Plugin implementation and backwards/forwards compatibility
 
-TBD.
+There are two parties involved in plugins; the author and the user. 
+Moreover, the user of a plugin may be the author of another plugin. 
+That is, plugins use other plugins.
+
+There are three roles in plugin usage:
+
+1. Build author consuming plugins
+2. Plugin author producing a plugin
+3. Plugin author consuming plugins as dependencies of their plugin
+
+With the current mechanism, all three roles consume plugins in functionally the same manner. 
+That is, declaring a dependency on the plugin implementation JAR and manually applying the depended upon plugin at runtime.
+Currently all plugins are non-isolated and depended upon via normal dependency management.
+The introduction of isolated plugins, and a new mechanism for depending on plugins, introduces a new kind of plugin production and consumption.
+Plugin users and authors will not be atomically migrating to the new mechanism as a whole, therefore a degree of compatibility between the two mechanism is needed.
+
+### Using non-isolated plugins via plugin dependency DSL
+
+The plugin portal resolution service is able to resolve isolated and non-isolated plugins, and indicates whether the plugin should be isolated or not in the data it provides.
+The buildscript dependency DSL mechanism allows plugins to be hosted anywhere (Internet or corporate intranet).
+The plugin portal will only know about plugins that are hosted at Bintray (in a manner discoverable to the plugin portal), therefore only a subset of non-isolated plugins will be able to be loaded via this mechanism. 
+
+Loading a non-isolated plugin through the plugin dependency DSL is functionally equivalent to loading it through the buildscript dependency DSL
+Technical details outlined below.
+
+### Use cases
+
+#### User uses new plugin dependency DSL to use non-isolated plugin
+
+Plugin resolvers backing the plugin dependencies DSL may resolve non-isolated plugins.
+The functional effect is that the plugin implementation jar is added to `buildscript.configurations.classpath`, and applied via `project.apply(plugin: "«id»")`.
+
+That is, the following are equivalent:
+
+    buildscript {
+      repositories { jcenter() }
+      dependencies { classpath "org.company:gradle-foo-plugin:1.0" }
+    }
+    apply plugin: "foo"
+
+And…
+
+    plugins {
+      id "org.company.foo" version "1.0"
+    }
+
+In practice, this will rely on the plugin portal resolver being able to resolve non-isolated plugins.
+When asked to resolve plugin `org.company.foo`@`1.0`, the plugin portal may respond with the location of the implementation and with metadata indicating that this plugin is non isolated.
+
+This demands that the plugin resolution algorithm be:
+
+1. Resolve the metadata about each plugin dependency
+  - Metadata indicates whether plugin is isolated or non-isolated, or indeed that the plugin can't be resolved
+1. Fail if any plugin can't be resolved
+1. For all non-isolated plugins, add their runtime implementation and dependencies (as a dependency) to `buildscript.configurations.classpath`
+  - This also implies that, in practice, `jcenter()` will be added to `buildscript.repositories` in order to obtain the dependencies (though in theory any non-isolated capable resolver could add whatever repos it needs)
+1. Resolve `buildscript.configurations.classpath` (any user `buildscript {}` blocks have been evaluated already at this point)
+1. Apply all non-isolated plugins specified by `plugins {}`
+1. Resolve the implementation classpath of each isolated plugin
+1. For each isolated plugin, detect presence (or likely presence) of plugin in the non-isolated classloader
+  - i.e. check that `META-INF/gradle-plugins/«plugin id».properties` and `META-INF/gradle-plugins/«plugin name».properties` (as older plugin ids are unqualified) are not loadable by this classloader
+  - If they are, we fail because there is likely a version of the isolated plugin in the non-isolated space
+1. Apply each of the isolated plugins
+
+We must detect the presence of the same plugin implementation in non-isolated space before trying to apply as an isolated plugin.
+This is because otherwise we would apply the plugin twice, with different class instances, because of the use of different classloaders.
+We cannot simply just apply the isolated version, because other non-isolated plugins in play may be depending on the non-isolated version.
+
+#### Caveats
+
+##### Initially only works for non-isolated plugins hosted at Bintray
+
+… and linked to the gradle-plugins repo, and that have the right metadata (because only the plugin portal resolver understands)
+
+Once we allow configurability of plugin resolvers, or explicit id-to-implementation mappings we will be able to provide ways of supporting other plugin locations.
+
+##### Unable to use plugin dependency of non-isolated plugin as an isolated plugin
+
+Consider:
+
+    plugins {
+      id "org.company.foo" version "1.0"
+      id "org.company.bar" version "2.0"
+    }
+
+And given:
+
+- Plugin 'foo' is non-isolated, and depends on the implementation of plugin 'bar' @ version 1.0 (which is non-isolated)
+- Version '2.0' of plugin 'bar' is isolated
+
+This resolution will fail as Gradle will refuse to apply `org.company.bar`, because plugin `'bar'` will be found in the non-isolated space.
+The resolution here is for the author of `foo` to release a new isolated version that depends on isolated `bar`, or for the build author to live with non-isolated `bar@1.0` (keeping in mind that initial versions will not support isolated plugin dependencies other than on Gradle core plugins).
+
+Note that this untenable position is not exclusive to loading non-isolated plugins through the plugin dependency DSL.
+The following suffers from the same problem.
+
+    buildscript {
+      repositories { jcenter() }
+      dependencies { classpath "org.company:gradle-foo-plugin:1.0" }
+    }
+    plugins {
+      id "org.company.bar" version "2.0"
+    }
+
+#### User uses buildscript dependency DSL (and apply()) to use isolated plugin
+
+#### Non-isolated plugin author depends on isolated plugin
+
+#### Isolated plugin author depends on non-isolated plugin
 
 # Milestone 1 - “usable”
 
