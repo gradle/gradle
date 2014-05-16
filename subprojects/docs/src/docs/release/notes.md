@@ -342,6 +342,11 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 
 - `code-quality` plugin replaced by `checkstyle` and `codenarc`.
 
+### Changes to Groovy and Scala plugins
+
+- The Groovy plugin no longer defines the `groovy` configuration.
+- The Groovy plugin no longer defines the `scalaTools` configuration.
+
 ### Removed deprecated command line options
 
 - `--cache` and `-C` replaced with `--refresh-dependencies`, `--recompile-scripts` or `--rerun-tasks`.

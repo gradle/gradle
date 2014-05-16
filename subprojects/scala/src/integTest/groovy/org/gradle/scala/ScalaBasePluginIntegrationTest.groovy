@@ -20,37 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import static org.hamcrest.Matchers.startsWith
 
 class ScalaBasePluginIntegrationTest extends AbstractIntegrationSpec {
-    def "defaults scalaClasspath to 'scalaTools' configuration if the latter is non-empty"() {
-        executer.withDeprecationChecksDisabled()
-        file("build.gradle") << """
-apply plugin: "scala-base"
-
-sourceSets {
-    custom
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    scalaTools "org.scala-lang:scala-compiler:2.10.1"
-}
-
-task scaladoc(type: ScalaDoc)
-
-task verify << {
-    assert compileCustomScala.scalaClasspath.is(configurations.scalaTools)
-    assert scalaCustomConsole.classpath.is(configurations.scalaTools)
-    assert scaladoc.scalaClasspath.is(configurations.scalaTools)
-}
-"""
-
-        expect:
-        succeeds("verify")
-    }
-
-    def "defaults scalaClasspath to inferred Scala compiler dependency if 'scalaTools' configuration is empty"() {
+    def "defaults scalaClasspath to inferred Scala compiler dependency"() {
         file("build.gradle") << """
 apply plugin: "scala-base"
 
