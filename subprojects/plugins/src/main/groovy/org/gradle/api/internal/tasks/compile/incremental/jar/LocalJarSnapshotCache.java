@@ -24,8 +24,7 @@ import java.util.Map;
 
 public class LocalJarSnapshotCache {
 
-    //TODO use standard caching mechanisms
-    //TODO just store File->checksum, use shared jar snapshot cache for contents
+    //TODO SF use standard caching mechanisms
 
     private File storage;
     private Map<File, JarSnapshot> snapshots;

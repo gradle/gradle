@@ -40,8 +40,8 @@ public class IncrementalJavaCompilerFactory {
 
     public IncrementalJavaCompilerFactory(Project project, String compileTaskPath, CleaningJavaCompiler cleaningJavaCompiler, List<Object> source) {
         //bunch of services that enable incremental java compilation.
-        ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer(); //TODO needs cross-project caching
-        JarSnapshotter jarSnapshotter = new JarSnapshotter(new DefaultHasher(), analyzer); //TODO needs cross-project caching
+        ClassDependenciesAnalyzer analyzer = new ClassDependenciesAnalyzer(); //TODO SF needs cross-project caching
+        JarSnapshotter jarSnapshotter = new JarSnapshotter(new DefaultHasher(), analyzer); //TODO SF needs cross-project caching
 
         String cacheFileBaseName = compileTaskPath.replaceAll(":", "_"); //TODO SF weak. task can be renamed in place of a task that was deleted.
         LocalJarSnapshotCache jarSnapshotCache = new LocalJarSnapshotCache(new File(project.getBuildDir(), cacheFileBaseName + "-jar-snapshot-cache.bin"));
@@ -49,7 +49,7 @@ public class IncrementalJavaCompilerFactory {
 
         JarSnapshotsMaker jarSnapshotsMaker = new JarSnapshotsMaker(jarSnapshotCache, jarSnapshotter, new ClasspathJarFinder((FileOperations) project));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
-        SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO replace with converter that parses input source class
+        SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO SF replace with converter that parses input source class
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, localClassDependencyInfo, (FileOperations) project, jarSnapshotter, jarSnapshotCache);
         ClassDependencyInfoUpdater classDependencyInfoUpdater = new ClassDependencyInfoUpdater(localClassDependencyInfo, (FileOperations) project, analyzer);
         incrementalSupport = new IncrementalCompilationSupport(jarSnapshotsMaker, localClassDependencyInfo, (FileOperations) project,

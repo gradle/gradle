@@ -296,10 +296,10 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
     }
 
     def "detects changes in classes that live in directories on the classpath"() {
-        //TODO
+        //TODO SF
     }
 
     def "class in source dir wins over a duplicate found in classpath directory"() {
-        //TODO
+        //TODO SF
     }
 }
