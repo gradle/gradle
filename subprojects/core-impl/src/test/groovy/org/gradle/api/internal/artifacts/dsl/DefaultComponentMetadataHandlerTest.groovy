@@ -95,7 +95,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
     }
 
-    def "supports rule with typed IvyModuleDescriptor parameter"() {
+    def "supports rule with typed IvyModuleMetadata parameter"() {
         def metadata = Stub(TestIvyMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
@@ -118,7 +118,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
     }
 
-    def "rule with IvyModuleDescriptor parameter does not get invoked for non-Ivy components"() {
+    def "rule with IvyModuleMetadata parameter does not get invoked for non-Ivy components"() {
         def metadata = Stub(MutableModuleVersionMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
