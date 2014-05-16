@@ -41,6 +41,8 @@ allows us to implement new features and remove some internal complexity.
 * Remove Ivy version from the output of `gradle -v`.
 * Remove loopback resolver, ModuleVersionRepository -> Ivy adapter.
 * Remove properties from `ExternalResourceResolver` and subclasses.
+* Remove `ModuleComponentRepository.canListModuleVersions()`.
+* Fix `ExternalResourceResolver.getMetaDataArtifactName()` so that it is not nullable.
 
 ## Remove tooling API support for Gradle 1.1 clients and earlier (DONE)
 
