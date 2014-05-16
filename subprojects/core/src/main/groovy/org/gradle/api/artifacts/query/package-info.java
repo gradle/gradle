@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
-
-public interface ArtifactResolutionQueryFactory {
-    ArtifactResolutionQuery createArtifactResolutionQuery();
-}
+/**
+ * Classes used for querying the artifacts.
+ */
+package org.gradle.api.artifacts.query;
