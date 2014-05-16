@@ -27,12 +27,6 @@ public interface ModuleComponentRepository {
 
     String getName();
 
-    /**
-     * @return True if the underlying repository can provide a full list of module versions for a selector.
-     */
-    // TODO:DAZ Remove this when we remove IvyDependencyResolverAdapater
-    boolean canListModuleVersions();
-
     ModuleComponentRepositoryAccess getLocalAccess();
 
     ModuleComponentRepositoryAccess getRemoteAccess();

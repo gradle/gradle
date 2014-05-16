@@ -27,26 +27,19 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.util.DeprecationLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.*;
 
 public class MavenResolver extends ExternalResourceResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
-    private String pattern = MavenPattern.M2_PATTERN;
-    private boolean usepoms = true;
-    private boolean useMavenMetadata = true;
     private final MavenMetadataLoader mavenMetaDataLoader;
     private final MetaDataParser metaDataParser;
 
@@ -66,8 +59,8 @@ public class MavenResolver extends ExternalResourceResolver {
         updatePatterns();
     }
 
-    public String getRoot() {
-        return root.toString();
+    public URI getRoot() {
+        return root;
     }
 
     protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleVersionMetaDataResolveResult result) {
@@ -122,31 +115,23 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private M2ResourcePattern getWholePattern() {
-        return new M2ResourcePattern(root, pattern);
+        return new M2ResourcePattern(root, MavenPattern.M2_PATTERN);
     }
 
     private void updatePatterns() {
-        if (isUsepoms()) {
-            setIvyPatterns(Collections.singletonList(getWholePattern()));
-        } else {
-            setIvyPatterns(Collections.<ResourcePattern>emptyList());
-        }
+        setIvyPatterns(Collections.singletonList(getWholePattern()));
 
         List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
         artifactPatterns.add(getWholePattern());
         for (URI artifactRoot : artifactRoots) {
-            artifactPatterns.add(new M2ResourcePattern(artifactRoot, pattern));
+            artifactPatterns.add(new M2ResourcePattern(artifactRoot, MavenPattern.M2_PATTERN));
         }
         setArtifactPatterns(artifactPatterns);
     }
 
     @Override
     protected IvyArtifactName getMetaDataArtifactName(String moduleName) {
-        if (isUsepoms()) {
-            return new DefaultIvyArtifactName(moduleName, "pom", "pom");
-        }
-
-        return null;
+        return new DefaultIvyArtifactName(moduleName, "pom", "pom");
     }
 
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module) {
@@ -162,42 +147,10 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private MavenMetadata parseMavenMetadata(String metadataLocation) {
-        if (isUseMavenMetadata()) {
-            try {
-                return mavenMetaDataLoader.load(metadataLocation);
-            } catch (ResourceNotFoundException e) {
-                return new MavenMetadata();
-            } catch (ResourceException e) {
-                LOGGER.warn("impossible to access Maven metadata file, ignored.", e);
-            }
-        }
-        return new MavenMetadata();
-    }
-
-    // A bunch of configuration properties that we don't (yet) support in our model via the DSL. Users can still tweak these on the resolver using mavenRepo().
-    public boolean isUsepoms() {
-        return usepoms;
-    }
-
-    public void setUsepoms(boolean usepoms) {
-        this.usepoms = usepoms;
-        updatePatterns();
-    }
-
-    public boolean isUseMavenMetadata() {
-        return useMavenMetadata;
-    }
-
-    @Deprecated
-    public void setUseMavenMetadata(boolean useMavenMetadata) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("MavenResolver.setUseMavenMetadata(boolean)");
-        this.useMavenMetadata = useMavenMetadata;
-        if (useMavenMetadata) {
-            this.versionLister = new ChainedVersionLister(
-                    new MavenVersionLister(getRepository()),
-                    new ResourceVersionLister(getRepository()));
-        } else {
-            this.versionLister = new ResourceVersionLister(getRepository());
+        try {
+            return mavenMetaDataLoader.load(metadataLocation);
+        } catch (ResourceNotFoundException e) {
+            return new MavenMetadata();
         }
     }
 

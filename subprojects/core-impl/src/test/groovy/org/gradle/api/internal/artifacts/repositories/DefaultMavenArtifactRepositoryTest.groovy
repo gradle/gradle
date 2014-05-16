@@ -53,7 +53,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         repo instanceof MavenResolver
-        repo.root == uri.toString()
+        repo.root == uri
     }
 
     def "creates http repository"() {
@@ -73,7 +73,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         repo instanceof MavenResolver
-        repo.root == uri.toString()
+        repo.root == uri
     }
 
     def "creates repository with additional artifact URLs"() {
@@ -96,7 +96,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         repo instanceof MavenResolver
-        repo.root == uri.toString()
+        repo.root == uri
         repo.artifactPatterns.size() == 3
         repo.artifactPatterns.any { it.startsWith uri.toString() }
         repo.artifactPatterns.any { it.startsWith uri1.toString() }

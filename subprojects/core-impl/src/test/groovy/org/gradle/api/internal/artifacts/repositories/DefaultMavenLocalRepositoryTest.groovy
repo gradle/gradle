@@ -54,7 +54,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
 
         then:
         repo instanceof MavenLocalResolver
-        repo.root == uri.toString()
+        repo.root == uri
     }
 
     private RepositoryTransport transport() {

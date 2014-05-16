@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -67,7 +66,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
     private final FileStore<ModuleVersionArtifactMetaData> artifactFileStore;
 
-    protected VersionLister versionLister;
+    private final VersionLister versionLister;
 
     public ExternalResourceResolver(String name,
                                     boolean local,
@@ -91,10 +90,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     public String getName() {
         return name;
-    }
-
-    public boolean canListModuleVersions() {
-        return true;
     }
 
     public void setName(String name) {
@@ -127,9 +122,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
         // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
         IvyArtifactName metaDataArtifact = getMetaDataArtifactName(dependency.getRequested().getName());
-        if (metaDataArtifact != null) {
-            listVersionsForAllPatterns(ivyPatterns, metaDataArtifact, versionList);
-        }
+        listVersionsForAllPatterns(ivyPatterns, metaDataArtifact, versionList);
 
         // List modules with missing metadata files
         for (IvyArtifactName otherArtifact : getDependencyArtifactNames(dependency)) {
@@ -252,14 +245,9 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     private ModuleVersionArtifactMetaData getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
         IvyArtifactName ivyArtifactName = getMetaDataArtifactName(moduleComponentIdentifier.getModule());
-        if (ivyArtifactName == null) {
-            return null;
-        }
         return new DefaultModuleVersionArtifactMetaData(moduleComponentIdentifier, ivyArtifactName);
     }
 
-    // TODO This will no longer be @Nullable in Gradle 2.0 (when we remove the ability to call setUsePoms(false) on MavenResolver)
-    @Nullable
     protected abstract IvyArtifactName getMetaDataArtifactName(String moduleName);
 
     protected void resolveArtifact(ComponentArtifactMetaData componentArtifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
