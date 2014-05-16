@@ -364,6 +364,23 @@ Technical details outlined below.
 
 ### Use cases
 
+> Below are some working notes that will eventually turn into detail in the use cases below
+> - isolation is a characteristic of how the plugin is used, not how it is authored (need to rethink terminology)
+> - old style plugins do not declare what they expose, so assume they expose everything
+> - old style plugin implementation modules are resolved as part of `buildscript.classpath` (i.e. subject to conflict resolution with all buildscript dependencies)
+> - resolved `buildscript.classpath` is “split” into two loaders; 1 with everything, 1 with only things added via the `buildscript {}` DSL (i.e. without modules present because of `plugins {}`)
+> - the everything loader is attached to the target's local scope; the `buildscript {}` only loader is attached to the target's export scope (i.e. do not propagate `plugins {}` modules)
+> - implementation of `buildscript {}` only loader will be based on a filtering loader that filters classes based on location (i.e. filter out classes in jars that are present due to `plugins {}`) - support for this kind of filtering strategy needs to be implemented
+> - Plugin POMs will continue to describe the plugin as a java runtime module (i.e. it contains module dependencies on the implementation of depended upon plugins)
+> - New style plugins will also contain queryable at runtime (e.g. annotations on Plugin impl) metadata on plugin dependencies (when plugins are published this will probably be used to generate manifest that is easier for the resolution service to query)
+> - `Project.apply()` will become aware of this metadata so that it can apply dependencies before applying a particular plugin
+> - When applying a new style plugin in isolation, detect collisions with the `buildscript` space (possibly based on identity of implementation module, or on class name) - i.e. cannot have same plugin module (at any version) in the `buildscript` and isolated space
+> new focus is on making new plugin dsl work with old style plugins then parking
+
+---
+
+Ignore the detail on these use cases as they are out of date.
+
 #### User uses new plugin dependency DSL to use non-isolated plugin
 
 Plugin resolvers backing the plugin dependencies DSL may resolve non-isolated plugins.
