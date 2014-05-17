@@ -112,8 +112,8 @@ public abstract class AbstractSpockTaskTest extends Specification {
     def testDependsOn() {
         Task dependsOnTask = createTask(project, "somename");
         Task task = createTask(project, TEST_TASK_NAME);
-        project.getTasks().add("path1");
-        project.getTasks().add("path2");
+        project.getTasks().create("path1");
+        project.getTasks().create("path2");
 
         when:
         task.dependsOn(Project.PATH_SEPARATOR + "path1");

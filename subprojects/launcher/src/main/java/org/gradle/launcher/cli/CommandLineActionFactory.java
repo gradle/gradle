@@ -16,7 +16,6 @@
 package org.gradle.launcher.cli;
 
 import groovy.lang.GroovySystem;
-import org.apache.ivy.Ivy;
 import org.apache.tools.ant.Main;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
@@ -156,8 +155,6 @@ public class CommandLineActionFactory {
             sb.append(GroovySystem.getVersion());
             sb.append("\nAnt:          ");
             sb.append(Main.getAntVersion());
-            sb.append("\nIvy:          ");
-            sb.append(Ivy.getIvyVersion());
             sb.append("\nJVM:          ");
             sb.append(Jvm.current());
             sb.append("\nOS:           ");

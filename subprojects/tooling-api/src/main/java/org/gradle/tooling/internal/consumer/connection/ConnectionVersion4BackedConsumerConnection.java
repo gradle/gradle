@@ -62,6 +62,6 @@ public class ConnectionVersion4BackedConsumerConnection implements ConsumerConne
     }
 
     private UnsupportedVersionException fail() {
-        return new UnsupportedVersionException(String.format("Connection to the specified %s is not supported in this version of tooling API. Update your tooling API provider to version newer than 1.0-milestone-8.", distribution.getDisplayName()));
+        return new UnsupportedVersionException(String.format("Support for Gradle version %s was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later.", version));
     }
 }

@@ -26,6 +26,7 @@ import java.util.Set;
  */
 @Incubating
 public interface ArtifactResolutionResult {
+    // TODO:DAZ Does an 'unresolved' component even make sense?
     Set<ComponentResult> getComponents();
-    <T extends Component> Set<T> getResolvedComponents(Class<T> type);
+    Set<ResolvedComponentArtifactsResult> getResolvedComponents();
 }

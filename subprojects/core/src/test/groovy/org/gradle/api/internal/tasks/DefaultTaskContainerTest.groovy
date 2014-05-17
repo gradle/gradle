@@ -36,53 +36,37 @@ public class DefaultTaskContainerTest extends Specification {
     private accessListener = Mock(ProjectAccessListener)
     private container = new DefaultTaskContainer(project, Mock(Instantiator), taskFactory, accessListener)
 
-    void "adds by Map"() {
+    void "creates by Map"() {
         def options = singletonMap("option", "value")
         def task = task("task")
         taskFactory.createTask(options) >> task
 
         when:
-        def added = container.add(options)
+        def added = container.create(options)
 
         then:
         added == task
         container.getByName("task") == task
     }
 
-    void "adds by name"() {
+    void "creates by name"() {
         given:
         def options = singletonMap(Task.TASK_NAME, "task")
         def task = task("task")
         taskFactory.createTask(options) >> task
 
         expect:
-        container.add("task") == task
+        container.create("task") == task
     }
 
-    void "adds by name and type"() {
+    void "creates by name and type"() {
         given:
         def options = GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, Task.class)
         def task = task("task")
         taskFactory.createTask(options) >> task
 
         expect:
-        container.add("task", Task.class) == task
-    }
-
-    void "adds by name and closure"() {
-        given:
-        final Closure action = {}
-        def options = singletonMap(Task.TASK_NAME, "task")
-        def task = task("task")
-
-        taskFactory.createTask(options) >> task
-
-        when:
-        def added = container.add("task", action)
-
-        then:
-        added == task
-        1 * task.configure(action) >> task
+        container.create("task", Task.class) == task
     }
 
     void "creates by name and closure"() {
@@ -150,7 +134,7 @@ public class DefaultTaskContainerTest extends Specification {
         taskFactory.createTask(options) >> task
 
         when:
-        container.add("task")
+        container.create("task")
 
         then:
         0 * rule._
@@ -162,7 +146,7 @@ public class DefaultTaskContainerTest extends Specification {
         taskFactory.createTask(singletonMap(Task.TASK_NAME, "task")) >> { this.task("task") }
 
         when:
-        container.add("task")
+        container.create("task")
 
         then:
         def ex = thrown(InvalidUserDataException)
@@ -296,7 +280,7 @@ public class DefaultTaskContainerTest extends Specification {
 
         bTaskDependency.getDependencies(b) >> Collections.emptySet()
 
-        aTaskDependency.getDependencies(task) >> { container.add("b"); Collections.singleton(b) }
+        aTaskDependency.getDependencies(task) >> { container.create("b"); Collections.singleton(b) }
         task.dependsOn("b")
 
         addPlaceholderTask("c")

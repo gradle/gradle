@@ -16,8 +16,6 @@
 
 package org.gradle.initialization;
 
-import org.gradle.CacheUsage;
-import org.gradle.RefreshOptions;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
@@ -51,7 +49,6 @@ public class DefaultCommandLineConverterTest {
     private Map<String, String> expectedSystemProperties = new HashMap<String, String>();
     private Map<String, String> expectedProjectProperties = new HashMap<String, String>();
     private List<File> expectedInitScripts = new ArrayList<File>();
-    private CacheUsage expectedCacheUsage = CacheUsage.ON;
     private boolean expectedSearchUpwards = true;
     private boolean expectedDryRun;
     private ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
@@ -65,7 +62,6 @@ public class DefaultCommandLineConverterTest {
     private final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
     private boolean expectedContinue;
     private boolean expectedOffline;
-    private RefreshOptions expectedRefreshOptions = RefreshOptions.NONE;
     private boolean expectedRecompileScripts;
     private int expectedParallelExecutorCount;
     private boolean expectedConfigureOnDemand;
@@ -88,7 +84,6 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedTaskNames, startParameter.getTaskNames());
         assertEquals(buildProjectDependencies, startParameter.isBuildProjectDependencies());
         assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
-        assertEquals(expectedCacheUsage, startParameter.getCacheUsage());
         assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
@@ -104,7 +99,6 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedOffline, startParameter.isOffline());
         assertEquals(expectedRecompileScripts, startParameter.isRecompileScripts());
         assertEquals(expectedRerunTasks, startParameter.isRerunTasks());
-        assertEquals(expectedRefreshOptions, startParameter.getRefreshOptions());
         assertEquals(expectedRefreshDependencies, startParameter.isRefreshDependencies());
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
         assertEquals(expectedParallelExecutorCount, startParameter.getParallelThreadCount());
@@ -211,17 +205,6 @@ public class DefaultCommandLineConverterTest {
     public void withTaskNames() {
         expectedTaskNames = toList("a", "b");
         checkConversion("a", "b");
-    }
-
-    @Test
-    public void withRebuildCacheFlagSet() {
-        expectedCacheUsage = CacheUsage.REBUILD;
-        checkConversion("-C", "rebuild");
-    }
-
-    @Test
-    public void withCacheOnFlagSet() {
-        checkConversion("-C", "on");
     }
 
     @Test(expected = CommandLineArgumentException.class)
@@ -354,7 +337,6 @@ public class DefaultCommandLineConverterTest {
     @Test
     public void withRefreshDependencies() {
         expectedRefreshDependencies = true;
-        expectedRefreshOptions = new RefreshOptions(asList(RefreshOptions.Option.DEPENDENCIES));
         checkConversion("--refresh-dependencies");
         checkConversion("-refresh-dependencies");
     }
@@ -363,18 +345,6 @@ public class DefaultCommandLineConverterTest {
     public void withRecompileScripts() {
         expectedRecompileScripts = true;
         checkConversion("--recompile-scripts");
-    }
-
-    @Test
-    public void withRefreshDependenciesSet() {
-        expectedRefreshDependencies = true;
-        expectedRefreshOptions = new RefreshOptions(Arrays.asList(RefreshOptions.Option.DEPENDENCIES));
-        checkConversion("--refresh", "dependencies");
-    }
-
-    @Test(expected = CommandLineArgumentException.class)
-    public void withUnknownRefreshOption() {
-        checkConversion("--refresh", "unknown");
     }
 
     @Test(expected = CommandLineArgumentException.class)

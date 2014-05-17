@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.Project
 import org.gradle.api.specs.AndSpec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -107,7 +106,6 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
         succeeds("verify")
     }
 
-    @NotYetImplemented
     def "plugin cannot access Gradle implementation classes"() {
         publishPlugin("""
             def implClassName = 'com.google.common.collect.Multimap'

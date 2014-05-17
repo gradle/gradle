@@ -20,8 +20,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 public interface ClassLoaderScopeRegistry {
 
-    ClassLoaderScope getGradleApiScope();
+    ClassLoaderScope getCoreAndPluginsScope();
 
-    ClassLoaderScope getCoreImplScope();
+    ClassLoaderScope getCoreScope();
 
 }

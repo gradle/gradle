@@ -34,7 +34,11 @@ class M3CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
         server.start()
         buildFile << """
 repositories {
-    mavenRepo(urls: ['${remoteRepo.uri}'])
+    if (repositories.metaClass.respondsTo(repositories, 'maven')) {
+        maven { url "${remoteRepo.uri}" }
+    } else {
+        mavenRepo urls: ["${remoteRepo.uri}"]
+    }
 }
 configurations { compile }
 dependencies {

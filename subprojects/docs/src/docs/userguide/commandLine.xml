@@ -291,45 +291,6 @@
     <para>The above information is printed to the console when you execute <userinput>gradle -h</userinput>.
     </para>
 
-    <section>
-        <title>Deprecated command-line options</title>
-        <para>The following options are deprecated and will be removed in a future version of Gradle:</para>
-        <variablelist>
-            <varlistentry>
-                <term><option>-C</option>, <option>--cache</option>
-                </term>
-                <listitem>
-                    <para>(deprecated) Specifies how compiled build scripts should be cached. Possible values are:
-                        <literal>rebuild</literal>
-                        or <literal>on</literal>. Default value is
-                        <literal>on</literal>. You should use
-                        <option>--recompile-scripts</option>
-                        instead.
-                    </para>
-                </listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><option>--no-opt</option>
-                </term>
-                <listitem>
-                    <para>(deprecated) Specifies to ignore all task optimization. You should use
-                        <option>--rerun-tasks</option>
-                        instead.
-                    </para>
-                </listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><option>--refresh</option>
-                </term>
-                <listitem>
-                    <para>(deprecated) Refresh the state of resources of the type(s) specified. Currently only <literal>dependencies</literal> is supported.
-                        You should use <option>--refresh-dependencies</option> instead.
-                    </para>
-                </listitem>
-            </varlistentry>
-        </variablelist>
-    </section>
-
     <section id='daemon_cli'>
         <title>Daemon command-line options:</title>
         <para>The

@@ -25,11 +25,14 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resource.cached.CachedArtifact;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey;
@@ -93,16 +96,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return resolveAndCacheRepositoryAccess;
     }
 
-    public boolean canListModuleVersions() {
-        return delegate.canListModuleVersions();
-    }
-
     private DefaultModuleIdentifier getCacheKey(ModuleVersionSelector requested) {
-        if (canListModuleVersions()) {
-            return new DefaultModuleIdentifier(requested.getGroup(), requested.getName());
-        } else {
-            return new DefaultModuleIdentifier(requested.getGroup(), requested.getName() + ":" + requested.getVersion());
-        }
+        return new DefaultModuleIdentifier(requested.getGroup(), requested.getName());
     }
 
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
@@ -340,7 +335,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private String cacheKey(ArtifactType artifactType) {
-        return "artifacts:" + artifactType.getType().getName();
+        return "artifacts:" + artifactType.name();
     }
 
     private String cacheKey(ComponentUsage context) {

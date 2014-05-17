@@ -16,26 +16,23 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.*;
+import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
-import org.gradle.api.internal.artifacts.repositories.legacy.FixedResolverArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.io.File;
-import java.util.Map;
 
 public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
@@ -43,7 +40,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder;
-    private final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory;
     private final ResolverStrategy resolverStrategy;
     private final FileStore<ModuleVersionArtifactMetaData> artifactFileStore;
 
@@ -52,7 +48,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleVersionArtifactMetaData> locallyAvailableResourceFinder,
-                                        LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
                                         ResolverStrategy resolverStrategy,
                                         FileStore<ModuleVersionArtifactMetaData> artifactFileStore) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
@@ -60,31 +55,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.instantiator = instantiator;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.legacyDependencyResolverRepositoryFactory = legacyDependencyResolverRepositoryFactory;
         this.resolverStrategy = resolverStrategy;
         this.artifactFileStore = artifactFileStore;
-    }
-
-    public ArtifactRepository createRepository(Object userDescription) {
-        if (userDescription instanceof ArtifactRepository) {
-            return (ArtifactRepository) userDescription;
-        }
-
-        if (userDescription instanceof String) {
-            MavenArtifactRepository repository = createMavenRepository();
-            repository.setUrl(userDescription);
-            return repository;
-        } else if (userDescription instanceof Map) {
-            Map<String, ?> userDescriptionMap = (Map<String, ?>) userDescription;
-            MavenArtifactRepository repository = createMavenRepository();
-            ConfigureUtil.configureByMap(userDescriptionMap, repository);
-            return repository;
-        }
-
-        if (userDescription instanceof DependencyResolver) {
-            return legacyDependencyResolverRepositoryFactory.createRepository((DependencyResolver) userDescription);
-        }
-        throw new InvalidUserDataException(String.format("Cannot create a DependencyResolver instance from %s", userDescription));
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
@@ -94,7 +66,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public MavenArtifactRepository createMavenLocalRepository() {
         MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, resolverStrategy, artifactFileStore);
+                locallyAvailableResourceFinder, artifactFileStore);
         final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         mavenRepository.setUrl(localMavenRepository);
         return mavenRepository;
@@ -119,16 +91,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, resolverStrategy, artifactFileStore
-        );
-    }
-
-    public DependencyResolver toResolver(ArtifactRepository repository) {
-        return ((ArtifactRepositoryInternal) repository).createLegacyDslObject();
-    }
-
-    public FixedResolverArtifactRepository createResolverBackedRepository(DependencyResolver resolver) {
-        return new FixedResolverArtifactRepository(resolver);
+                locallyAvailableResourceFinder, artifactFileStore);
     }
 
     private PasswordCredentials createPasswordCredentials() {

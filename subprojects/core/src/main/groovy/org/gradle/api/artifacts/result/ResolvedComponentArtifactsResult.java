@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.component.Artifact;
 
 import java.util.Set;
 
@@ -25,6 +26,7 @@ import java.util.Set;
  * @since 2.0
  */
 @Incubating
+// TODO:DAZ Rename to ComponentArtifactsResult
 public interface ResolvedComponentArtifactsResult extends ComponentResult {
     /**
      * <p>Returns the component artifacts of the specified type. Includes resolved and unresolved artifacts (if any).

@@ -91,7 +91,7 @@ public class DefaultGradleTest {
             will(returnValue(scriptHandlerMock));
             allowing(gradleServiceRegistryMock).get(ClassLoaderScopeRegistry.class);
             will(returnValue(classLoaderScopeRegistry));
-            allowing(classLoaderScopeRegistry).getGradleApiScope();
+            allowing(classLoaderScopeRegistry).getCoreAndPluginsScope();
             will(returnValue(classLoaderScope));
             allowing(gradleServiceRegistryMock).get(PluginRegistry.class);
             will(returnValue(pluginRegistry));

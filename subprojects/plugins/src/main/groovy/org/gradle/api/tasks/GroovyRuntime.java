@@ -17,12 +17,10 @@ package org.gradle.api.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
-import org.gradle.api.plugins.GroovyBasePlugin;
 
 import java.io.File;
 import java.util.Collections;
@@ -31,7 +29,7 @@ import java.util.Set;
 
 /**
  * Provides information related to the Groovy runtime(s) used in a project. Added by the
- * {@link GroovyBasePlugin} as a project extension named {@code groovyRuntime}.
+ * {@link org.gradle.api.plugins.GroovyBasePlugin} as a project extension named {@code groovyRuntime}.
  *
  * <p>Example usage:
  *
@@ -71,11 +69,6 @@ public class GroovyRuntime {
      * @return a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool
      */
     public FileCollection inferGroovyClasspath(final Iterable<File> classpath) {
-        final Configuration groovyConfiguration = project.getConfigurations().getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME);
-        if (!groovyConfiguration.getDependencies().isEmpty()) {
-            return groovyConfiguration;
-        }
-
         // alternatively, we could return project.files(Runnable)
         // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {

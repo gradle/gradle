@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.Artifact;
+import org.gradle.api.component.Artifact;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult;
 

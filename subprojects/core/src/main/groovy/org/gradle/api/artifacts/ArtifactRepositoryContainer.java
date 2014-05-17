@@ -16,13 +16,9 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.util.Configurable;
-
-import java.util.List;
 
 /**
  * <p>A {@code ResolverContainer} is responsible for managing a set of {@link ArtifactRepository} instances. Repositories are arranged in a sequence.</p>
@@ -52,19 +48,6 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
-    @Deprecated
-    String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
-    @Deprecated
-    String DEFAULT_CACHE_ARTIFACT_PATTERN
-            = "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])";
-    @Deprecated
-    String DEFAULT_CACHE_IVY_PATTERN = "[organisation]/[module](/[branch])/ivy-[revision].xml";
-    @Deprecated
-    String INTERNAL_REPOSITORY_NAME = "internal-repository";
-    @Deprecated
-    String RESOLVER_NAME = "name";
-    @Deprecated
-    String RESOLVER_URL = "url";
 
     /**
      * Adds a repository to this container, at the end of the repository sequence.
@@ -88,145 +71,6 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
     void addLast(ArtifactRepository repository);
 
     /**
-     * Adds a repository to this container, at the end of the repository sequence.
-     *
-     * @param resolver The repository to add, represented as an Ivy {@link DependencyResolver}.
-     * @deprecated Use one of the repository methods on {@link org.gradle.api.artifacts.dsl.RepositoryHandler} or {@link #add(ArtifactRepository)} instead.
-     */
-    @Deprecated
-    boolean add(DependencyResolver resolver);
-
-    /**
-     * Adds a repository to this container, at the end of the repository sequence.
-     *
-     * @param resolver The repository to add, represented as an Ivy {@link DependencyResolver}.
-     * @param configureClosure The closure to use to configure the repository.
-     * @deprecated Use one of the repository methods on {@link org.gradle.api.artifacts.dsl.RepositoryHandler} or {@link #add(ArtifactRepository)} instead.
-     */
-    @Deprecated
-    boolean add(DependencyResolver resolver, Closure configureClosure);
-
-    /**
-     * Adds a repository to this container, at the end of the repository sequence. The given {@code userDescription} can be
-     * one of:
-     *
-     * <ul>
-     *
-     * <li>A String. This is treated as a URL, and used to create a Maven repository.</li>
-     *
-     * <li>A map. This is used to create a Maven repository. The map must contain an {@value #RESOLVER_NAME} entry and a
-     * {@value #RESOLVER_URL} entry.</li>
-     *
-     * <li>A {@link DependencyResolver}.</li>
-     *
-     * <li>A {@link ArtifactRepository}.</li>
-     *
-     * </ul>
-     *
-     * @param userDescription The resolver definition.
-     * @return The added resolver.
-     * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @deprecated Use {@link org.gradle.api.artifacts.dsl.RepositoryHandler#maven(groovy.lang.Closure)} or {@link #add(ArtifactRepository)} instead.
-     */
-    @Deprecated
-    DependencyResolver addLast(Object userDescription) throws InvalidUserDataException;
-
-    /**
-     * Adds a resolver to this container, at the end of the resolver sequence. The resolver is configured using the
-     * given configure closure.
-     *
-     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
-     * @param configureClosure The closure to use to configure the resolver.
-     * @return The added resolver.
-     * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @deprecated Use {@link org.gradle.api.artifacts.dsl.RepositoryHandler#maven(groovy.lang.Closure)} or {@link #add(ArtifactRepository)} instead.
-     */
-    @Deprecated
-    DependencyResolver addLast(Object userDescription, Closure configureClosure) throws InvalidUserDataException;
-
-    /**
-     * Adds a resolver to this container, before the given resolver.
-     *
-     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
-     * @param nextResolver The existing resolver to add the new resolver before.
-     * @return The added resolver.
-     * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @throws UnknownRepositoryException when the given next resolver does not exist in this container.
-     * @deprecated No replacement
-     */
-    @Deprecated
-    DependencyResolver addBefore(Object userDescription, String nextResolver) throws InvalidUserDataException;
-
-    /**
-     * Adds a resolver to this container, before the given resolver. The resolver is configured using the given
-     * configure closure.
-     *
-     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
-     * @param nextResolver The existing resolver to add the new resolver before.
-     * @param configureClosure The closure to use to configure the resolver.
-     * @return The added resolver.
-     * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @throws UnknownRepositoryException when the given next resolver does not exist in this container.
-     * @deprecated No replacement
-     */
-    @Deprecated
-    DependencyResolver addBefore(Object userDescription, String nextResolver, Closure configureClosure)
-            throws InvalidUserDataException;
-
-    /**
-     * Adds a resolver to this container, after the given resolver.
-     *
-     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
-     * @param previousResolver The existing resolver to add the new resolver after.
-     * @return The added resolver.
-     * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @throws UnknownRepositoryException when the given previous resolver does not exist in this container.
-     * @deprecated No replacement
-     */
-    @Deprecated
-    DependencyResolver addAfter(Object userDescription, String previousResolver) throws InvalidUserDataException;
-
-    /**
-     * Adds a resolver to this container, after the given resolver. The resolver is configured using the given configure
-     * closure.
-     *
-     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
-     * @param previousResolver The existing resolver to add the new resolver after.
-     * @param configureClosure The closure to use to configure the resolver.
-     * @return The added resolver.
-     * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @throws UnknownRepositoryException when the given previous resolver does not exist in this container.
-     * @deprecated No replacement
-     */
-    @Deprecated
-    DependencyResolver addAfter(Object userDescription, String previousResolver, Closure configureClosure)
-            throws InvalidUserDataException;
-
-    /**
-     * Adds a resolver to this container, at the start of the resolver sequence.
-     *
-     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
-     * @return The added resolver.
-     * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @deprecated Use {@link #addFirst(ArtifactRepository)} instead.
-     */
-    @Deprecated
-    DependencyResolver addFirst(Object userDescription) throws InvalidUserDataException;
-
-    /**
-     * Adds a resolver to this container, at the start of the resolver sequence. The resolver is configured using the
-     * given configure closure.
-     *
-     * @param userDescription The resolver definition. See {@link #addLast(Object)} for details of this parameter.
-     * @param configureClosure The closure to use to configure the resolver.
-     * @return The added resolver.
-     * @throws InvalidUserDataException when a resolver with the given name already exists in this container.
-     * @deprecated Use {@link #addFirst(ArtifactRepository)} instead.
-     */
-    @Deprecated
-    DependencyResolver addFirst(Object userDescription, Closure configureClosure) throws InvalidUserDataException;
-
-    /**
      * {@inheritDoc}
      */
     ArtifactRepository getByName(String name) throws UnknownRepositoryException;
@@ -240,13 +84,4 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * {@inheritDoc}
      */
     ArtifactRepository getAt(String name) throws UnknownRepositoryException;
-
-    /**
-     * Returns the resolvers in this container, in sequence.
-     *
-     * @return The resolvers in sequence. Returns an empty list if this container is empty.
-     * @deprecated No replacement.
-     */
-    @Deprecated
-    List<DependencyResolver> getResolvers();
 }

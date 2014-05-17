@@ -146,7 +146,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     }
 
     private UnsupportedVersionException unsupportedConnectionException() {
-        return new UnsupportedVersionException("Consumers using version older than 1.2 are not supported.");
+        return new UnsupportedVersionException("Support for clients using a tooling API version older than 1.2 was removed in Gradle 2.0. You should upgrade your tooling API client to version 1.2 or later.");
     }
 
     private ProviderOperationParameters toProviderParameters(BuildParameters buildParameters) {

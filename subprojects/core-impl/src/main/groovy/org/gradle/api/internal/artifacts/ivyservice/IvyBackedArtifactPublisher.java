@@ -73,7 +73,6 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                 List<ModuleVersionPublisher> publishResolvers = new ArrayList<ModuleVersionPublisher>();
                 for (PublicationAwareRepository repository : repositories) {
                     ModuleVersionPublisher publisher = repository.createPublisher();
-                    publisher.setSettings(ivy.getSettings());
                     publishResolvers.add(publisher);
                 }
 

@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.cli
 
-import org.apache.ivy.Ivy
 import org.apache.tools.ant.Main
 import org.gradle.api.Action
 import org.gradle.cli.CommandLineArgumentException
@@ -228,7 +227,6 @@ Revision:     $version.revision
 
 Groovy:       $GroovySystem.version
 Ant:          $Main.antVersion
-Ivy:          ${Ivy.ivyVersion}
 JVM:          ${Jvm.current()}
 OS:           ${OperatingSystem.current()}
 """

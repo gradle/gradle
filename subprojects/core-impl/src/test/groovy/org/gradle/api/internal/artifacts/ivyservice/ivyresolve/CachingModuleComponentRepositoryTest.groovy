@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactType
+import org.gradle.api.internal.component.ArtifactType
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactSetResolveResult
@@ -119,7 +119,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def component = Mock(ComponentMetaData)
         def source = Mock(ModuleSource)
         def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
-        def artifactType = Mock(ArtifactType)
+        def artifactType = ArtifactType.JAVADOC
         def result = new DefaultBuildableArtifactSetResolveResult()
 
         when:

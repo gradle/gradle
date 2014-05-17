@@ -54,7 +54,7 @@ Combining native and jvm libraries in single project
             myJvmLib
         }
     }
-    nativeCode
+    nativeCode {
         libraries {
             myNativeLib
         }
@@ -76,7 +76,7 @@ Combining native and jvm libraries in single project
     - Wires the binary lifecycle task into the main `assemble` task.
 - Rename `NativeBinariesPlugin` to `NativeComponentPlugin` with id `native-component`.
 - Move `Binary` and `ClassDirectoryBinary` to live with the runtime support classes (and not the language support classes)
-- Extract a common supertype `Application` for NativeExecutable, and a common supertype `Component` for `Library` and `Application`
+- Extract a common supertype `Application` for `NativeExecutable`, and a common supertype `Component` for `Library` and `Application`
 - Introduce a 'filtered' view of the ExtensiblePolymorphicDomainObjectContainer, such that only elements of a particular type are returned
   and any element created is given that type.
     - Add a backing 'components' container that contains all Library and Application elements
@@ -102,13 +102,14 @@ Combining native and jvm libraries in single project
 
 #### Open issues
 
-- Come up with a better name for JvmLibraryBinary, or perhaps add a `JarBinary` subtype
+- Come up with a better name for `JvmLibraryBinary`, or perhaps add a `JarBinary` subtype
 - Consider splitting up `assemble` into various lifecycle tasks. There are several use cases:
     - As a developer, build me a binary I can play with or test in some way.
     - As part of some workflow, build all binaries that should be possible to build in this specific environment. Fail if a certain binary cannot be built.
       For example, if I'm on Windows build all the Windows variants and fail if the Windows SDK (with 64bit support) is not installed.
       Or, if I'm building for Android, fail if the SDK is not installed.
     - Build everything. Fail if a certain binary cannot be built.
+- Validation of library names
 
 ### Story: Build author creates JVM library jar from Java sources
 
@@ -126,7 +127,7 @@ Java library using conventional source locations
 
     jvm {
         libraries {
-            myLib(JvmLibrary)
+            myLib
         }
     }
 
@@ -153,17 +154,17 @@ Combining jvm-java and native (multi-lang) libraries in single project
 
 #### Implementation plan
 
-- Replace the current 'java-lang' plugin with a simpler one that does not know about legacy conventions
-- For each JvmLibrary:
-    - Adds a single ResourceSet for 'src/${component}/resources'
-    - Adds a single JavaSourceSet for 'src/${component}/java'
-- Each created JvmLibraryBinary has the source sets of it's JvmLibrary
-- Create a ProcessResources task for each ResourceSet for a JvmLibraryBinary
+- Replace the current `java-lang` plugin with a simpler one that does not know about legacy conventions
+- For each `JvmLibrary`:
+    - Adds a single `ResourceSet` for `src/${component}/resources`
+    - Adds a single `JavaSourceSet` for `src/${component}/java`
+- Each created `JvmLibraryBinary` has the source sets of its `JvmLibrary`
+- Create a `ProcessResources` task for each `ResourceSet for a `JvmLibraryBinary`
     - copy resources to `build/classes/${binaryName}`
-- Create a CompileJava task for each JavaSourceSet for a JvmLibraryBinary
+- Create a `CompileJava` task for each `JavaSourceSet` for a `JvmLibraryBinary`
     - compile classes to `build/classes/${binaryName}`
-- Create a Jar task for each JvmLibraryBinary
-    - produce jar file at `build/binaries/${binaryName}/${componentName}.jar
+- Create a `Jar` task for each `JvmLibraryBinary`
+    - produce jar file at `build/binaries/${binaryName}/${componentName}.jar`
 - Rejig the native language plugins so that '*-lang' + 'native-components' is sufficient to apply language support
     - Existing 'cpp', 'c', etc plugins will simply apply '*-lang' and 'native-components'
 
@@ -183,18 +184,38 @@ Combining jvm-java and native (multi-lang) libraries in single project
 #### Open issues
 
 - Need `groovy-lang` and `scala-lang` plugins
+- Possibly deprecate the existing 'cpp', 'c', etc plugins.
 - All compiled classes are removed when all java source files are removed.
 
 ### Story: Legacy JVM language plugins declare a jvm library
 
+- Rework the existing `SoftwareComponent` implementations so that they are `Component` implementations instead.
+- Expose all native and jvm components through `project.components`.
+- Don't need to support publishing yet.
+
+    apply plugin: 'java'
+
+    // The library is visible
+    assert jvm.libraries.main instanceof LegacyJvmLibrary
+    assert libraries.size() == 1
+    assert components.size() == 1
+
+    // The binary is visible
+    assert binaries.withType(ClassDirectoryBinary).size() == 1
+    assert binaries.withType(JarBinary).size() == 1
+
 #### Test cases
 
 - JVM library with name `main` is defined with any combination of `java`, `groovy` and `scala` plugins applied
+- Web application with name `war` is defined when `war` plugin is applied.
 - Can build legacy jvm library jar using standard lifecycle task
 
 #### Open issues
 
-- The legacy application plugin should also declare a jvm application.
+- Expose through the DSL, or just through the APIs?
+- The `application` plugin should also declare a jvm application.
+- The `ear` plugin should also declare a j2ee application.
+- These plugins should also declare binaries.
 
 ## Feature: Custom plugin defines a custom library type
 
@@ -209,8 +230,9 @@ Add a sample plugin that declares a custom library type:
         ...
     }
 
-    // Library is also visible in libraries container
+    // Library is also visible in libraries and components containers
     assert libraries.withType(SampleLibrary).size() == 1
+    assert components.withType(SampleLibrary).size() == 1
 
 A custom library type:
 - Extends or implements some public base `Library` type.
@@ -239,7 +261,11 @@ A custom binary:
 
 Running `gradle assemble` will build each library binary.
 
-### Story: Custom binary is build from Java sources
+#### Open issues
+
+- Validation of binary names
+
+### Story: Custom binary is built from Java sources
 
 Change the sample plugin so that it compiles Java source to produce its binaries
 
@@ -250,7 +276,7 @@ Change the sample plugin so that it compiles Java source to produce its binaries
 
 For example:
 
-    apply plugin: 'new-java'
+    apply plugin: 'jvm-component'
 
     jvm {
         libraries {
@@ -283,7 +309,7 @@ When the project attribute refers to a project without a component plugin applie
 
 For example:
 
-    apply plugin: 'java-components'
+    apply plugin: 'jvm-component'
 
     jvm {
         libraries {
@@ -433,7 +459,7 @@ This declares that the bytecode for the binary should be generated for Java 7, a
 Assume that the source also uses Java 7 language features.
 
 When a library `a` depends on another library `b`, assert that the target JVM for `b` is compatible with the target JVM for `a` - that is
-JVM for `a` is same or newer thatn the JVM for `b`.
+JVM for `a` is same or newer than the JVM for `b`.
 
 The target JVM for a legacy Java library is the lowest of `sourceCompatibility` and `targetCompatibility`.
 
@@ -618,12 +644,11 @@ Dependency resolution selects the best binary from each dependency for the targe
 
 # Open issues and Later work
 
-- Should use rules mechanism.
+- Should use rules mechanism, so that this DSL lives under `model { ... }`
 - Expose the source and javadoc artifacts for local binaries.
 - Reuse the local component and binary meta-data for publication.
     - Version the meta-data schemas.
     - Source and javadoc artifacts.
-- Legacy war and ear plugins define binaries.
 - Java component plugins support variants.
 - Gradle runtime defines Gradle plugin as a type of jvm component, and Gradle as a container that runs-on the JVM.
 - Deprecate and remove support for resolution via configurations.

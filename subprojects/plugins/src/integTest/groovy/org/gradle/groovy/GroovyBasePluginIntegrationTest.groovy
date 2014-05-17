@@ -18,36 +18,7 @@ package org.gradle.groovy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class GroovyBasePluginIntegrationTest extends AbstractIntegrationSpec {
-    def "defaults groovyClasspath to 'groovy' configuration if the latter is non-empty"() {
-        executer.withDeprecationChecksDisabled()
-        file("build.gradle") << """
-apply plugin: "groovy-base"
-
-sourceSets {
-    custom
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    groovy "org.codehaus.groovy:groovy-all:2.1.2"
-}
-
-task groovydoc(type: Groovydoc)
-
-task verify << {
-    assert compileCustomGroovy.groovyClasspath.is(configurations.groovy)
-    assert groovydoc.groovyClasspath.is(configurations.groovy)
-}
-"""
-
-        expect:
-        succeeds("verify")
-    }
-
-    def "defaults Groovy class path to inferred Groovy dependency if Groovy configuration is empty"() {
+    def "defaults Groovy class path to inferred Groovy dependency"() {
         file("build.gradle") << """
 apply plugin: "groovy-base"
 

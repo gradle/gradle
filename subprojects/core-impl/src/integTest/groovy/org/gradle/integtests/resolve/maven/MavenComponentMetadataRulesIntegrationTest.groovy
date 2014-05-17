@@ -40,7 +40,7 @@ repositories {
         "release"
     }
 
-    def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
+    def "rule that accepts IvyModuleMetadata isn't invoked for Maven component"() {
         repo.module('org.test', 'projectA', '1.0').publish().allowAll()
 
         buildFile <<
@@ -53,7 +53,7 @@ dependencies {
         eachComponent { details ->
             plainRuleInvoked = true
         }
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        eachComponent { details, IvyModuleMetadata descriptor ->
             ivyRuleInvoked = true
         }
     }

@@ -23,8 +23,6 @@ import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
-import org.gradle.internal.Factory;
-import org.gradle.util.DeprecationLogger;
 
 public class GroovyCompilerFactory {
     private final ProjectInternal project;
@@ -41,20 +39,16 @@ public class GroovyCompilerFactory {
     }
 
     Compiler<GroovyJavaJointCompileSpec> create(final GroovyCompileOptions groovyOptions, final CompileOptions javaOptions) {
-        return DeprecationLogger.whileDisabled(new Factory<Compiler<GroovyJavaJointCompileSpec>>() {
-            public Compiler<GroovyJavaJointCompileSpec> create() {
-                javaCompilerFactory.setJointCompilation(true);
-                Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.create(javaOptions);
-                Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
-                CompilerDaemonFactory daemonFactory;
-                if (groovyOptions.isFork()) {
-                    daemonFactory = compilerDaemonManager;
-                } else {
-                    daemonFactory = inProcessCompilerDaemonFactory;
-                }
-                groovyCompiler = new DaemonGroovyCompiler(project, groovyCompiler, daemonFactory);
-                return new NormalizingGroovyCompiler(groovyCompiler);
-            }
-        });
+        javaCompilerFactory.setJointCompilation(true);
+        Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.create(javaOptions);
+        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
+        CompilerDaemonFactory daemonFactory;
+        if (groovyOptions.isFork()) {
+            daemonFactory = compilerDaemonManager;
+        } else {
+            daemonFactory = inProcessCompilerDaemonFactory;
+        }
+        groovyCompiler = new DaemonGroovyCompiler(project, groovyCompiler, daemonFactory);
+        return new NormalizingGroovyCompiler(groovyCompiler);
     }
 }

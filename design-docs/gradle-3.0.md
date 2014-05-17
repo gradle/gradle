@@ -9,6 +9,12 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Drop support for Gradle versions earlier than 1.0
+
+* Cross version tests no longer test against anything earlier than 1.0
+* Local artifact reuse no longer considers candidates from the artifact caches for Gradle versions earlier than 1.0
+* Wrapper does not support downloading versions earlier than 1.0
+
 ## Remove the Gradle Open API stubs
 
 * Remove the remaining Open API interfaces and stubs.
@@ -45,8 +51,10 @@ There are several inconsistencies and confusing behaviours in the copy tasks and
   to specify the root of the destination file tree, for those tasks that produce a file tree on the file system.
 * Change the `Jar` type so that there is a single `metaInf` copy spec which is a child of the main content, rather than creating a new copy spec each time `metainf`
   is referenced. Do the same for `War.webInf`.
-* The `CopySpec.with()` method currently assumes that a root copy spec is supplied with all values specified, and no values are inherted by the attached copy spec.
+* The `CopySpec.with()` method currently assumes that a root copy spec is supplied with all values specified, and no values are inherited by the attached copy spec.
   Instead, change `CopySpec.with()` so that values are inherited from the copy spec.
+    * Change `CopySpec` so that property queries do not query the parent value, as a copy spec may have multiple parents. Or, alternatively, allow only root copy spec
+      to be attached to another using `with()`.
 * Change the default duplicatesStrategy to `fail` or perhaps `warn`.
 * Change the `Ear` type so that the generated descriptor takes precedence over a descriptor in the main content, similar to the manifest for `Jar` and the
   web XML for `War`.
@@ -130,11 +138,13 @@ Extension objects have been available for over 2 years and are now an establishe
 
 ## Misc API tidy-ups
 
+* Remove constants from `ExcludeRule`.
 * Rename `IllegalDependencyNotation` to add `Exception` to the end of its name.
 * Remove `ConventionProperty`, replace it with documentation.
 * Remove `Settings.startParameter`. Can use `gradle.startParameter` instead.
 * Remove `org.gradle.util` from default imports.
 * Remove `AbstractOptions`.
+* Remove or at least rename `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`.
 
 ## Remove `sonar` plugin
 

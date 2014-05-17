@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactType
+import org.gradle.api.internal.component.ArtifactType
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage
@@ -140,7 +140,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
 
     def "delegates request for module artifacts by type"() {
         def moduleMetaData = Stub(ModuleVersionMetaData)
-        def artifactType = Stub(ArtifactType)
+        def artifactType = ArtifactType.JAVADOC
         def result = Mock(BuildableArtifactSetResolveResult)
 
         when:

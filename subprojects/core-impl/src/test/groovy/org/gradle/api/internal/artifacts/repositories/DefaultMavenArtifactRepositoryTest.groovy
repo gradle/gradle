@@ -17,14 +17,13 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
@@ -33,11 +32,10 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
-    final ResolverStrategy resolverStrategy = Stub()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-            resolver, credentials, transportFactory, locallyAvailableResourceFinder, resolverStrategy, artifactIdentifierFileStore)
+            resolver, credentials, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore)
 
     def "creates local repository"() {
         given:
@@ -55,7 +53,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         repo instanceof MavenResolver
-        repo.root == uri.toString()
+        repo.root == uri
     }
 
     def "creates http repository"() {
@@ -75,32 +73,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         repo instanceof MavenResolver
-        repo.root == uri.toString()
-    }
-
-    def "creates a DSL wrapper for the repository"() {
-        given:
-        def file = new File('repo')
-        def uri = file.toURI()
-        _ * this.resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', credentials) >> transport()
-
-        and:
-        repository.name = 'repo'
-        repository.url = 'repo-dir'
-
-        when:
-        def resolver = repository.createLegacyDslObject()
-
-        then:
-        resolver instanceof LegacyMavenResolver
-        resolver.resolver instanceof MavenResolver
-
-        when:
-        def repo = resolver.createResolver()
-
-        then:
-        repo.is(resolver.resolver)
+        repo.root == uri
     }
 
     def "creates repository with additional artifact URLs"() {
@@ -123,7 +96,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         repo instanceof MavenResolver
-        repo.root == uri.toString()
+        repo.root == uri
         repo.artifactPatterns.size() == 3
         repo.artifactPatterns.any { it.startsWith uri.toString() }
         repo.artifactPatterns.any { it.startsWith uri1.toString() }
@@ -132,7 +105,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "fails when no root url specified"() {
         when:
-        repository.createLegacyDslObject()
+        repository.createRealResolver()
 
         then:
         InvalidUserDataException e = thrown()

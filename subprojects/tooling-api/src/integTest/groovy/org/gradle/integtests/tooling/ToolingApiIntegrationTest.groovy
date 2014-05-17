@@ -26,16 +26,12 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import spock.lang.Issue
 
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
     final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentFinalRelease
-
-    @Rule SetSystemProperties properties
 
     TestFile projectDir
 
@@ -131,7 +127,6 @@ allprojects {
     }
 
     def "can specify a gradle version to use"() {
-        System.setProperty("javax.net.debug", "ssl,handshake")
         toolingApi.isEmbedded = false
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 

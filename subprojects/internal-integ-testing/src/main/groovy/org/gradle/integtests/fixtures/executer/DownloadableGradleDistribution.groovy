@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import org.gradle.CacheUsage
 import org.gradle.api.Action
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.*
@@ -67,7 +66,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 super.binDistribution.usingNativeTools().unzipTo(versionDir)
             }
             //noinspection GrDeprecatedAPIUsage
-            cache = CACHE_FACTORY.open(versionDir, version.version, CacheUsage.ON, null, [:], mode(FileLockManager.LockMode.Shared).useCrossVersionImplementation(), downloadAction as Action)
+            cache = CACHE_FACTORY.open(versionDir, version.version, null, [:], mode(FileLockManager.LockMode.Shared).useCrossVersionImplementation(), downloadAction as Action)
         }
 
         super.binDistribution.assertIsFile()

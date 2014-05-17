@@ -147,12 +147,12 @@ simply attempt to introduce a DSL to declare such rules.
 
 ### User visible changes
 
-    interface IvyModuleDescriptor {
+    interface IvyModuleMetadata {
         Map<String, String> extraInfo
     }
 
     componentMetadata {
-        eachComponent { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
+        eachComponent { ComponentMetadataDetails details, IvyModuleMetadata ivyModule ->
             if (ivyModule.extraInfo['my-custom-attribute'] == 'value') {
                 details.status == 'release'
             }
@@ -165,8 +165,8 @@ simply attempt to introduce a DSL to declare such rules.
     * Include any name/value pairs defined as child elements of the `<info>` element. Do not include the namespace qualifier.
     * The actual values should already be available (and cached) via the underlying Ivy ModuleDescriptor
     * The API should assume that other metadata models may be present as well
-* For any rule that declares IvyModuleDescriptor as an input:
-    * Provide the IvyModuleDescriptor as input where the resolved module came from an ivy repository
+* For any rule that declares IvyModuleMetadata as an input:
+    * Provide the IvyModuleMetadata as input where the resolved module came from an ivy repository
     * Do not execute the rule where the resolved module does not have an associated ivy.xml file
 
 ### Test coverage

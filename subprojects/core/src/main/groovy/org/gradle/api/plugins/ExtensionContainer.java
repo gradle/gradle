@@ -38,17 +38,6 @@ public interface ExtensionContainer {
     void add(String name, Object extension);
 
     /**
-     * Deprecated. Use {@link #create}
-     *
-     * @param name The name for the extension
-     * @param type The type of the extension
-     * @param constructionArguments The arguments to be used to construct the extension instance
-     * @deprecated use {@link #create}
-     */
-    @Deprecated
-    void add(String name, Class<?> type, Object... constructionArguments);
-
-    /**
      * Adds a new extension to this container, that itself is dynamically made {@link ExtensionAware}.
      *
      * A new instance of the given {@code type} will be created using the given {@code constructionArguments}. The new

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import groovy.lang.Closure;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -27,7 +26,6 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerManager;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Collection;
 import java.util.Set;
@@ -64,16 +62,6 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
 
     public Set<Configuration> getAll() {
         return this;
-    }
-
-    public Configuration add(String name) {
-        DeprecationLogger.nagUserOfReplacedMethod("ConfigurationContainer.add()", "create()");
-        return create(name);
-    }
-
-    public Configuration add(String name, Closure closure) {
-        DeprecationLogger.nagUserOfReplacedMethod("ConfigurationContainer.add()", "create()");
-        return create(name, closure);
     }
 
     @Override

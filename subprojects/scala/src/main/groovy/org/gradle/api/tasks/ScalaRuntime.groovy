@@ -15,12 +15,7 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.api.GradleException
-import org.gradle.api.Incubating
-import org.gradle.api.Nullable
-import org.gradle.api.Project
-import org.gradle.api.Buildable
-import org.gradle.api.Task
+import org.gradle.api.*
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
@@ -76,11 +71,6 @@ class ScalaRuntime {
      * @return a class path containing a corresponding 'scala-compiler' Jar and its dependencies
      */
     FileCollection inferScalaClasspath(Iterable<File> classpath) {
-        def scalaTools = project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]
-        if (!scalaTools.dependencies.empty) {
-            return scalaTools
-        }
-
         // alternatively, we could return project.files(Runnable)
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
         return new LazilyInitializedFileCollection() {

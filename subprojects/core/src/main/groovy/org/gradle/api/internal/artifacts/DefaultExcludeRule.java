@@ -16,10 +16,6 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.util.DeprecationLogger;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class DefaultExcludeRule implements ExcludeRule {
     private String group;
@@ -47,14 +43,6 @@ public class DefaultExcludeRule implements ExcludeRule {
 
     public void setModule(String moduleValue) {
         this.module = moduleValue;
-    }
-
-    public Map<String, String> getExcludeArgs() {
-        DeprecationLogger.nagUserOfDeprecated("The getExcludeArgs method", "Please use the getGroup() method or the getModule() method instead");
-        Map excludeArgsAsMap = new HashMap();
-        excludeArgsAsMap.put(ExcludeRule.GROUP_KEY, group);
-        excludeArgsAsMap.put(ExcludeRule.MODULE_KEY, module);
-        return excludeArgsAsMap;
     }
 
     @Override

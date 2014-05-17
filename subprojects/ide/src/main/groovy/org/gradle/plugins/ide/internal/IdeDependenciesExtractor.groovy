@@ -15,7 +15,6 @@
  */
 
 package org.gradle.plugins.ide.internal
-
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.Multimap
 import org.gradle.api.Project
@@ -24,9 +23,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.result.jvm.JavadocArtifact
-import org.gradle.api.artifacts.result.jvm.JvmLibraryComponent
-import org.gradle.api.artifacts.result.jvm.SourcesArtifact
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.language.java.artifact.JavadocArtifact
+import org.gradle.language.base.artifact.SourcesArtifact
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyResolver
@@ -34,6 +33,7 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDepende
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency
+import org.gradle.runtime.jvm.JvmLibrary
 
 class IdeDependenciesExtractor {
     private final IdeDependencyResolver ideDependencyResolver = new DefaultIdeDependencyResolver()
@@ -88,23 +88,23 @@ class IdeDependenciesExtractor {
         def query = dependencyHandler.createArtifactResolutionQuery()
         query.forComponents(dependencies.keySet());
         if (downloadSources) {
-            query.withArtifacts(JvmLibraryComponent, SourcesArtifact)
+            query.withArtifacts(JvmLibrary, SourcesArtifact)
         }
         if (downloadJavadoc) {
-            query.withArtifacts(JvmLibraryComponent, JavadocArtifact)
+            query.withArtifacts(JvmLibrary, JavadocArtifact)
         }
 
-        def jvmLibraries = query.execute().getResolvedComponents(JvmLibraryComponent)
-        for (jvmLibrary in jvmLibraries) {
-            for (dependency in dependencies.get(jvmLibrary.id)) {
-                for (sourcesArtifact in jvmLibrary.sourcesArtifacts) {
-                    if (sourcesArtifact.failure == null) {
-                        dependency.sourceFile = sourcesArtifact.file
+        def componentResults = query.execute().getResolvedComponents()
+        for (componentResult in componentResults) {
+            for (dependency in dependencies.get(componentResult.id)) {
+                for (sourcesResult in componentResult.getArtifacts(SourcesArtifact)) {
+                    if (sourcesResult instanceof ResolvedArtifactResult) {
+                        dependency.sourceFile = sourcesResult.file
                     }
                 }
-                for (javadocArtifact in jvmLibrary.javadocArtifacts) {
-                    if (javadocArtifact.failure == null) {
-                        dependency.javadocFile = javadocArtifact.file
+                for (javadocResult in componentResult.getArtifacts(JavadocArtifact)) {
+                    if (javadocResult instanceof ResolvedArtifactResult) {
+                        dependency.javadocFile = javadocResult.file
                     }
                 }
             }

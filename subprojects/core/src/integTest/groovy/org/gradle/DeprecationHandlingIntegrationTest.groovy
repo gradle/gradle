@@ -28,10 +28,6 @@ task broken(type: DeprecatedTask) {
     otherFeature()
 }
 
-repositories {
-    mavenRepo url: 'build/repo'
-}
-
 def someFeature() {
     DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()")
 }
@@ -52,8 +48,6 @@ class DeprecatedTask extends DefaultTask {
         output.count("The someFeature() method has been deprecated") == 1
         output.contains("Build file '$buildFile': line 6")
         output.count("The otherFeature() method has been deprecated") == 1
-        output.contains("Build file '$buildFile': line 10")
-        output.count("The RepositoryHandler.mavenRepo() method has been deprecated") == 1
 
         // Run again to ensure logging is reset
         when:
@@ -65,8 +59,6 @@ class DeprecatedTask extends DefaultTask {
         output.count("The someFeature() method has been deprecated") == 1
         output.contains("Build file '$buildFile': line 6")
         output.count("The otherFeature() method has been deprecated") == 1
-        output.contains("Build file '$buildFile': line 10")
-        output.count("The RepositoryHandler.mavenRepo() method has been deprecated") == 1
 
         // Not shown at quiet level
         when:
@@ -76,7 +68,6 @@ class DeprecatedTask extends DefaultTask {
         then:
         output.count("The someFeature() method has been deprecated") == 0
         output.count("The otherFeature() method has been deprecated") == 0
-        output.count("The RepositoryHandler.mavenRepo() method has been deprecated") == 0
         errorOutput == ""
     }
 

@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.util.TestUtil
-
 import spock.lang.Specification
 
 class ScalaRuntimeTest extends Specification {
@@ -50,18 +49,6 @@ class ScalaRuntimeTest extends Specification {
                 version == "2.10.1"
             }
         }
-    }
-
-    def "inferred Scala class path falls back to 'scalaTools' configuration if the latter is non-empty"() {
-        project.dependencies {
-            scalaTools "org.scala-lang:scala-compiler:2.10.1"
-        }
-
-        when:
-        def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.1.jar")])
-
-        then:
-        classpath == project.configurations.scalaTools
     }
 
     def "inference fails if 'scalaTools' configuration is empty and no repository declared"() {

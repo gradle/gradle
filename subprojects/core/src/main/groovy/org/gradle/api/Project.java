@@ -75,7 +75,7 @@ import java.util.Set;
  *
  * <p>A project is essentially a collection of {@link Task} objects. Each task performs some basic piece of work, such
  * as compiling classes, or running unit tests, or zipping up a WAR file. You add tasks to a project using one of the
- * {@code add()} methods on {@link TaskContainer}, such as {@link TaskContainer#add(String)}.  You can locate existing
+ * {@code create()} methods on {@link TaskContainer}, such as {@link TaskContainer#create(String)}.  You can locate existing
  * tasks using one of the lookup methods on {@link TaskContainer}, such as {@link org.gradle.api.tasks.TaskCollection#getByName(String)}.</p>
  *
  * <h3>Dependencies</h3>
@@ -790,7 +790,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return the file tree. Never returns null.
      */
     FileTree zipTree(Object zipPath);
-
 
     /**
      * Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path can be:

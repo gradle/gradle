@@ -15,7 +15,6 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.CacheFactory;
@@ -30,10 +29,10 @@ import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
     public PersistentCache openStore(File storeDir, String displayName, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
-        return open(storeDir, displayName, CacheUsage.ON, null, Collections.<String, Object>emptyMap(), lockOptions, initializer);
+        return open(storeDir, displayName, null, Collections.<String, Object>emptyMap(), lockOptions, initializer);
     }
 
-    public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) {
+    public PersistentCache open(File cacheDir, String displayName, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) {
         GFileUtils.mkdirs(cacheDir);
         InMemoryCache cache = new InMemoryCache(cacheDir);
         if (initializer != null) {
@@ -42,7 +41,7 @@ public class InMemoryCacheFactory implements CacheFactory {
         return cache;
     }
 
-    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Serializer<V> serializer) {
+    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Serializer<V> serializer) {
         return new InMemoryIndexedCache<K, V>(serializer);
     }
 

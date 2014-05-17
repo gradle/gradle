@@ -72,7 +72,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.listenerManager = services.get(ListenerManager.class);
         taskGraph = services.get(TaskGraphExecuter.class);
         distributionLocator = services.get(GradleDistributionLocator.class);
-        classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getGradleApiScope();
+        classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
         pluginContainer = services.get(PluginContainer.class);
         fileResolver = services.get(FileResolver.class);
         scriptPluginFactory = services.get(ScriptPluginFactory.class);

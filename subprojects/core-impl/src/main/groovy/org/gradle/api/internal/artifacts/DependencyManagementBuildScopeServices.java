@@ -45,20 +45,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDepende
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.*;
-import org.gradle.api.internal.artifacts.repositories.legacy.CustomIvyResolverRepositoryFactory;
-import org.gradle.api.internal.artifacts.repositories.legacy.DownloadingRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
-import org.gradle.api.internal.artifacts.repositories.legacy.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
-import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
-import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
-import org.gradle.internal.resource.local.UniquePathKeyFileStore;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -67,6 +57,12 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex;
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.local.UniquePathKeyFileStore;
+import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
+import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -210,20 +206,6 @@ class DependencyManagementBuildScopeServices {
                 buildCommencedTimeProvider,
                 sftpClientFactory,
                 cacheLockingManager
-        );
-    }
-
-    LegacyDependencyResolverRepositoryFactory createCustomerResolverRepositoryFactory(ProgressLoggerFactory progressLoggerFactory, ArtifactIdentifierFileStore artifactIdentifierFileStore,
-                                                                                      TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
-        return new CustomIvyResolverRepositoryFactory(
-                progressLoggerFactory,
-                new LocalFileRepositoryCacheManager("local"),
-                new DownloadingRepositoryCacheManager(
-                        "downloading",
-                        artifactIdentifierFileStore,
-                        temporaryFileProvider,
-                        cacheLockingManager
-                )
         );
     }
 

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
@@ -30,10 +29,10 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.util.ConfigureUtil;
 
 import java.net.URI;
@@ -65,11 +64,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.layout = new GradleRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiator;
-    }
-
-    public DependencyResolver createLegacyDslObject() {
-        IvyResolver resolver = createRealResolver();
-        return new LegacyDependencyResolver(resolver);
     }
 
     public ModuleVersionPublisher createPublisher() {

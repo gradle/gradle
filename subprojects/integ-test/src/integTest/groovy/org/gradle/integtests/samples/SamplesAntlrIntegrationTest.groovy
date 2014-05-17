@@ -31,7 +31,7 @@ class SamplesAntlrIntegrationTest extends AbstractIntegrationTest {
         TestFile projectDir = sample.dir
 
         // Build and test projects
-        executer.inDirectory(projectDir).withTasks('clean', 'build').withArguments("--no-opt").run()
+        executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
         def result = new DefaultTestExecutionResult(projectDir)

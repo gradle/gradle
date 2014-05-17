@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.result.Artifact;
+import org.gradle.api.component.Artifact;
 import org.gradle.api.artifacts.result.UnresolvedArtifactResult;
 
 public class DefaultUnresolvedArtifactResult implements UnresolvedArtifactResult {

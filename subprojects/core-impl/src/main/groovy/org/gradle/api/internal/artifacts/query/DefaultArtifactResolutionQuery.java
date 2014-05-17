@@ -18,9 +18,13 @@ package org.gradle.api.internal.artifacts.query;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.dsl.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.result.*;
+import org.gradle.api.artifacts.result.ArtifactResolutionResult;
+import org.gradle.api.artifacts.result.ComponentResult;
+import org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult;
+import org.gradle.api.component.Artifact;
+import org.gradle.api.component.Component;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -33,6 +37,8 @@ import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.*;
+import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
 import org.gradle.util.CollectionUtils;
@@ -47,18 +53,21 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ResolveIvyFactory ivyFactory;
     private final ModuleMetadataProcessor metadataProcessor;
     private final CacheLockingManager lockingManager;
+    private final ComponentTypeRegistry componentTypeRegistry;
 
     private Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
     private Class<? extends Component> componentType;
     private Set<Class<? extends Artifact>> artifactTypes = Sets.newLinkedHashSet();
 
     public DefaultArtifactResolutionQuery(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
-                                          ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor, CacheLockingManager lockingManager) {
+                                          ResolveIvyFactory ivyFactory, ModuleMetadataProcessor metadataProcessor, CacheLockingManager lockingManager,
+                                          ComponentTypeRegistry componentTypeRegistry) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;
         this.metadataProcessor = metadataProcessor;
         this.lockingManager = lockingManager;
+        this.componentTypeRegistry = componentTypeRegistry;
     }
 
     public ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds) {
@@ -118,7 +127,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
     private <T extends Artifact> void addArtifacts(DefaultResolvedComponentArtifactsResult artifacts, Class<T> type, ComponentMetaData component, ArtifactResolver artifactResolver) {
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        artifactResolver.resolveModuleArtifacts(component, new DefaultArtifactType(type), artifactSetResolveResult);
+        artifactResolver.resolveModuleArtifacts(component, convertType(type), artifactSetResolveResult);
 
         for (ComponentArtifactMetaData artifactMetaData : artifactSetResolveResult.getArtifacts()) {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
@@ -129,5 +138,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                 artifacts.addArtifact(new DefaultResolvedArtifactResult(type, resolveResult.getFile()));
             }
         }
+    }
+
+    private <T extends Artifact> ArtifactType convertType(Class<T> requestedType) {
+        return componentTypeRegistry.getComponentRegistration(componentType).getArtifactType(requestedType);
     }
 }

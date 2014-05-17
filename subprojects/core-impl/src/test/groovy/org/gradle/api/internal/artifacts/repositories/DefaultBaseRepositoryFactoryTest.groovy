@@ -16,93 +16,31 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.plugins.resolver.DependencyResolver
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
-import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
 class DefaultBaseRepositoryFactoryTest extends Specification {
-    static final URI RESOLVER_URL = new URI('http://a.b.c/')
-
     final LocalMavenRepositoryLocator localMavenRepoLocator = Mock()
     final FileResolver fileResolver = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
-    final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final ResolverStrategy resolverStrategy = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
-            legacyDependencyResolverRepositoryFactory, resolverStrategy, artifactIdentifierFileStore
+            resolverStrategy, artifactIdentifierFileStore
     )
-
-    def testCreateResolverWithStringDescription() {
-        when:
-        fileResolver.resolveUri('uri') >> RESOLVER_URL
-
-        then:
-        def repository = factory.createRepository('uri')
-
-        repository instanceof DefaultMavenArtifactRepository
-        repository.name == null
-        repository.url == RESOLVER_URL
-        repository.artifactUrls.isEmpty()
-    }
-
-    def testCreateResolverWithMapDescription() {
-        when:
-        fileResolver.resolveUri('uri') >> RESOLVER_URL
-
-        then:
-        def repository = factory.createRepository([name: 'name', url: 'uri'])
-
-        repository instanceof DefaultMavenArtifactRepository
-        repository.name == 'name'
-        repository.url == RESOLVER_URL
-        repository.artifactUrls.isEmpty()
-    }
-
-    def testCreateResolverWithResolverDescription() {
-        def repository = Mock(ArtifactRepository)
-        def resolver = Mock(DependencyResolver)
-
-        when:
-        legacyDependencyResolverRepositoryFactory.createRepository(resolver) >> repository
-
-        then:
-        factory.createRepository(resolver) == repository
-    }
-
-    def testCreateResolverWithArtifactRepositoryDescription() {
-        when:
-        ArtifactRepository repo = Mock(ArtifactRepository)
-
-        then:
-        factory.createRepository(repo) == repo
-    }
-
-    def testCreateResolverForUnknownDescription() {
-        when:
-        def someIllegalDescription = new NullPointerException()
-
-        factory.createRepository(someIllegalDescription)
-
-        then:
-        thrown InvalidUserDataException
-    }
 
     def testCreateFlatDirResolver() {
         expect:

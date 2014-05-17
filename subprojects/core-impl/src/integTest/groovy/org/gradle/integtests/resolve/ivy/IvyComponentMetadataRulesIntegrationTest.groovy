@@ -42,7 +42,7 @@ repositories {
         "integration"
     }
 
-    def "can access Ivy extra info by accepting parameter of type IvyModuleDescriptor"() {
+    def "can access Ivy extra info by accepting parameter of type IvyModuleMetadata"() {
         repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish().allowAll()
 
         buildFile <<
@@ -51,7 +51,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        eachComponent { details, IvyModuleMetadata descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
         }
@@ -97,7 +97,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        eachComponent { details, IvyModuleMetadata descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
         }
@@ -122,7 +122,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        eachComponent { details, IvyModuleMetadata descriptor ->
             ruleInvoked = true
             assert descriptor.extraInfo == ["my:foo": "fooValue", "my:bar": "barValue"]
         }
@@ -150,7 +150,7 @@ def ruleInvoked = false
 
 dependencies {
     components {
-        eachComponent { details, IvyModuleDescriptor descriptor ->
+        eachComponent { details, IvyModuleMetadata descriptor ->
             ruleInvoked = true
             file("extraInfo").delete()
             descriptor.extraInfo.each { key, value ->

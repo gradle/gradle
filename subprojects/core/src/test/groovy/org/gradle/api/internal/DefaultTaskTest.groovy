@@ -85,8 +85,8 @@ class DefaultTaskTest extends AbstractTaskTest {
     public void testDependsOn() {
         Task dependsOnTask = createTask(project, "somename");
         Task task = createTask(project, TEST_TASK_NAME);
-        project.getTasks().add("path1");
-        project.getTasks().add("path2");
+        project.getTasks().create("path1");
+        project.getTasks().create("path2");
 
         task.dependsOn(Project.PATH_SEPARATOR + "path1");
         assertThat(task, dependsOn("path1"));

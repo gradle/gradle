@@ -62,7 +62,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
     private File gradleHomeDir;
-    private CacheUsage cacheUsage = CacheUsage.ON;
     private File settingsFile;
     private boolean useEmptySettings;
     private File buildFile;
@@ -147,7 +146,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     protected StartParameter prepareNewBuild(StartParameter p) {
         p.gradleUserHomeDir = gradleUserHomeDir;
-        p.cacheUsage = cacheUsage;
         p.setLogLevel(getLogLevel());
         p.setColorOutput(isColorOutput());
         p.setShowStacktrace(getShowStacktrace());
@@ -208,16 +206,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         useEmptySettings = true;
         settingsFile = null;
         return this;
-    }
-
-    /**
-     * Deprecated. Use {@link #useEmptySettings()}.
-     *
-     * @deprecated use {@link #useEmptySettings()}
-     */
-    @Deprecated
-    public StartParameter useEmptySettingsScript() {
-        return useEmptySettings();
     }
 
     /**
@@ -381,51 +369,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         return this;
     }
 
-    /**
-     *  Returns the configured CacheUsage.
-     *  @deprecated Use {@link #isRecompileScripts} and/or {@link #isRerunTasks} instead.
-      */
-    @Deprecated
-    public CacheUsage getCacheUsage() {
-        return cacheUsage;
-    }
-
-    /**
-     *  Sets the Cache usage.
-     *  @deprecated Use {@link #setRecompileScripts} and/or {@link #setRerunTasks} instead.
-      */
-    @Deprecated
-    public void setCacheUsage(CacheUsage cacheUsage) {
-        this.cacheUsage = cacheUsage;
-    }
-
     public boolean isDryRun() {
         return dryRun;
     }
 
     public void setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
-    }
-
-    /**
-     * Returns task optimization disabled flag.
-     *
-     * @deprecated Use {@link #isRerunTasks} instead.
-      */
-    @Deprecated
-    public boolean isNoOpt() {
-        return rerunTasks;
-    }
-
-   /**
-    * Get task optimization disabled.
-    *
-    * @param noOpt The boolean value for disabling task optimization.
-    * @deprecated Use {@link #setRerunTasks(boolean)} instead.
-    */
-    @Deprecated
-    public void setNoOpt(boolean noOpt) {
-        this.rerunTasks = noOpt;
     }
 
     /**
@@ -571,24 +520,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Supplies the refresh options to use for the build.
-     * @deprecated Use {@link #setRefreshDependencies(boolean)} instead.
-     */
-    @Deprecated
-    public void setRefreshOptions(RefreshOptions refreshOptions) {
-        this.refreshDependencies = refreshOptions.refreshDependencies();
-    }
-
-    /**
-     * Returns the refresh options used for the build.
-     * @deprecated Use {@link #isRefreshDependencies()} instead.
-     */
-    @Deprecated
-    public RefreshOptions getRefreshOptions() {
-        return isRefreshDependencies() ? new RefreshOptions(Arrays.asList(RefreshOptions.Option.DEPENDENCIES)) : RefreshOptions.NONE;
-    }
-
-    /**
      * Specifies whether the dependencies should be refreshed..
      */
     public boolean isRefreshDependencies() {
@@ -669,7 +600,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", systemPropertiesArgs=" + systemPropertiesArgs
                 + ", gradleUserHomeDir=" + gradleUserHomeDir
                 + ", gradleHome=" + gradleHomeDir
-                + ", cacheUsage=" + cacheUsage
                 + ", logLevel=" + getLogLevel()
                 + ", showStacktrace=" + getShowStacktrace()
                 + ", buildFile=" + buildFile

@@ -57,7 +57,7 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
 
             class SomePlugin implements Plugin<Project> {
                 void apply(Project p) { """ <<
-                subclasses.collect { "p.tasks.add('${it.key}', ${it.key.capitalize()})" }.join("\n") << """
+                subclasses.collect { "p.tasks.create('${it.key}', ${it.key.capitalize()})" }.join("\n") << """
                 }
             }
             """ <<

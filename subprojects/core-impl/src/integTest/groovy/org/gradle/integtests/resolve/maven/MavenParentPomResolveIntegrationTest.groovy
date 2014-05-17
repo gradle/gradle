@@ -189,7 +189,7 @@ task retrieve(type: Sync) {
 
         then:
         failure.assertHasCause "Could not resolve org:child:1.0."
-        failure.assertHasCause "Could not determine artifacts for component 'org:parent:1.0': Cannot locate artifacts of type MavenPomArtifact for 'org:parent:1.0' in repository 'ivy'"
+        failure.assertHasCause "Could not determine artifacts for component 'org:parent:1.0': Cannot locate 'maven pom' artifacts for 'org:parent:1.0' in repository 'ivy'"
     }
 
     def "uses cached parent pom located in a different repository"() {

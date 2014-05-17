@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.result.jvm;
 
-import org.gradle.api.artifacts.result.Artifact;
+import org.gradle.api.component.Artifact;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
