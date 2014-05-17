@@ -17,17 +17,17 @@ package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.artifacts.result.ArtifactResult;
-import org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult;
 
 import java.util.Set;
 
-public class DefaultResolvedComponentArtifactsResult implements ResolvedComponentArtifactsResult {
+public class DefaultComponentArtifactsResult implements ComponentArtifactsResult {
     private final ComponentIdentifier componentIdentifier;
     private final Set<ArtifactResult> artifactResults = Sets.newHashSet();
 
-    public DefaultResolvedComponentArtifactsResult(ComponentIdentifier componentIdentifier) {
+    public DefaultComponentArtifactsResult(ComponentIdentifier componentIdentifier) {
         this.componentIdentifier = componentIdentifier;
     }
 
