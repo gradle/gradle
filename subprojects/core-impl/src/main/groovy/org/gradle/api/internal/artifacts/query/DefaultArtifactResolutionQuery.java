@@ -81,6 +81,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     public ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes) {
+        if (this.componentType != null) {
+            throw new IllegalStateException("Cannot specify component type multiple times.");
+        }
         this.componentType = componentType;
         this.artifactTypes.addAll(Arrays.asList(artifactTypes));
         return this;
@@ -88,6 +91,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
     // TODO:DAZ This is ugly and needs a major cleanup and unit tests
     public ArtifactResolutionResult execute() {
+        if (componentType == null) {
+            throw new IllegalStateException("Must specify component type and artifacts to query.");
+        }
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
         ConfigurationInternal configuration = configurationContainer.detachedConfiguration();
         final RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataProcessor);
