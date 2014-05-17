@@ -41,6 +41,9 @@
             <tr>
                 <td>components</td>
             </tr>
+            <tr>
+                <td>createArtifactResolutionQuery</td>
+            </tr>
         </table>
     </section>
 </section>

@@ -158,6 +158,9 @@
                 <td>org.gradle.api.artifacts.ResolutionStrategy</td>
             </tr>
             <tr>
+                <td>org.gradle.api.artifacts.query.ArtifactResolutionQuery</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.dsl.ConventionProperty</td>
             </tr>
             <tr>

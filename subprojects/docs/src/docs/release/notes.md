@@ -6,52 +6,31 @@ Here are the new features introduced in this Gradle release.
 
 Gradle now uses Groovy 2.2.2 to compile and running build scripts and plugins.
 
-### New API for artifact resolution (i)
+### New API for resolving source and javadoc artifacts (i)
 
 Gradle 2.0 introduces a new, incubating API for resolving component artifacts. With this addition, Gradle now offers separate dedicated APIs for resolving
-components and artifacts. (Component resolution is mainly concerned with computing the dependency graph, whereas artifact resolution is
-mainly concerned with locating and downloading artifacts.) The entry points to the component and artifact resolution APIs are `configuration.incoming` and
-`dependencies.createArtifactResolutionQuery()`, respectively.
+components and artifacts. The entry point to the new 'artifact query' API is `dependencies.createArtifactResolutionQuery()`.
 
-TODO: This API examples are out of date. Add new tested samples to the Javadoc or Userguide and link instead
+Presently, this feature is limited to the resolution of `SourcesArtifact` and `JavadocArtifact` artifacts for a `JvmLibrary` components.
+Over time this will be expanded to permit querying of other component and artifact types.
 
-Here is an example usage of the new API:
+For example, to get the source artifacts for all 'compile' dependencies:
 
-    def query = dependencies.createArtifactResolutionQuery()
-        .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
-        .forArtifacts(JvmLibrary)
+    task resolveSources << {
+        def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
 
-    def result = query.execute() // artifacts are downloaded at this point
+        def result = dependencies.createArtifactResolutionQuery()
+                          .forComponents(componentIds)
+                          .withArtifacts(JvmLibrary, SourcesArtifact, JavadocArtifact)
+                          .execute()
 
-    for (component in result.components) {
-        assert component instanceof JvmLibrary
-        println component.id
-        component.sourceArtifacts.each { println it.file }
-        component.javadocArtifacts.each { println it.file }
+        for (component in result.resolvedComponents) {
+            component.getArtifacts(SourcesArtifact).each { println "Source artifact for ${component.id}: ${it.file}" }
+        }
     }
 
-    assert result.unresolvedComponents.isEmpty()
 
-Artifact resolution can be limited to selected artifact types:
-
-    def query = dependencies.createArtifactResolutionQuery()
-        .forComponent("org.springframework", "spring-core", "3.2.3.RELEASE")
-        .forArtifacts(JvmLibrary, JvmLibrarySourcesArtifact)
-
-    def result = query.execute()
-
-    for (component in result.components) {
-        assert !component.sourceArtifacts.isEmpty()
-        assert component.javadocArtifacts.isEmpty()
-    }
-
-Artifacts for many components can be resolved together:
-
-    def query = dependencies.createArtifactResolutionQuery()
-        .forComponents(setOfComponentIds)
-        .forArtifacts(JvmLibrary)
-
-So far, only one component type (`JvmLibrary`) is available, but others will follow, also for platforms other than the JVM.
+For an example usage of the new API, see <a href="dsl/org.gradle.api.artifacts.query.ArtifactResolutionQuery.html">the DSL Reference</a>.
 
 ### Accessing Ivy extra info from component metadata rules
 

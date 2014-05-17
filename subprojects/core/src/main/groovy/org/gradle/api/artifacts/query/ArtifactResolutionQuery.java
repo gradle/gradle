@@ -24,6 +24,23 @@ import org.gradle.api.component.Component;
 /**
  * A builder to construct a query that can resolve selected software artifacts of the specified components.
  *
+ * <pre autoTested=''>
+ *  apply plugin: 'java'
+ *
+ *  task resolveCompileSources << {
+ *      def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
+ *
+ *      def result = dependencies.createArtifactResolutionQuery()
+ *                          .forComponents(componentIds)
+ *                          .withArtifacts(JvmLibrary, SourcesArtifact, JavadocArtifact)
+ *                          .execute()
+ *
+ *      for (component in result.resolvedComponents) {
+ *          component.getArtifacts(SourcesArtifact).each { println "Source artifact for ${component.id}: ${it.file}" }
+ *      }
+ *  }
+ * </pre>
+ *
  * @since 2.0
  */
 @Incubating
