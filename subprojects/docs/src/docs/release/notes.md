@@ -374,6 +374,9 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `Project.childrenDependOnMe()` replaced with task dependencies.
 - `Project.dependsOnChildren()` replaced with task dependencies.
 - `Project.getDependsOnProjects()` with no replacement.
+- `Project.createTask()` replaced with `task()` or `getTasks().create()`.
+- `Project.fileTree(Closure)` replaced with `fileTree(Object)`.
+- `Script.fileTree(Closure)` replaced with `fileTree(Object)`.
 - `Test.isTestReport()` replaced with `getReports().getHtml().isEnabled()`.
 - `Test.disableTestReport()` replaced with `getReports().getHtml().setEnabled()`.
 - `Test.enableTestReport()` replaced with `getReports().getHtml().setEnabled()`.
