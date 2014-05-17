@@ -9,6 +9,12 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Drop support for Gradle versions earlier than 1.0
+
+* Cross version tests no longer test against anything earlier than 1.0
+* Local artifact reuse no longer considers candidates from the artifact caches for Gradle versions earlier than 1.0
+* Wrapper does not support downloading versions earlier than 1.0
+
 ## Remove the Gradle Open API stubs
 
 * Remove the remaining Open API interfaces and stubs.

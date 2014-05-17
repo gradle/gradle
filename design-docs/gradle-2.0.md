@@ -26,7 +26,7 @@ In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gr
 
 * Convert deprecated behaviours with errors.
 
-## Remove Ivy types from the Gradle repository API
+## Remove Ivy types from the Gradle repository API (DONE)
 
 These types expose the implementation details of dependency management and force a certain implementation on Gradle. Removing these types from the API
 allows us to implement new features and remove some internal complexity.
