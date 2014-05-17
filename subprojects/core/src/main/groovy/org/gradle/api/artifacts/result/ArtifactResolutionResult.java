@@ -26,7 +26,25 @@ import java.util.Set;
  */
 @Incubating
 public interface ArtifactResolutionResult {
-    // TODO:DAZ Does an 'unresolved' component even make sense?
+    /**
+     * <p>Return a set of ComponentResults representing all requested components.
+     *
+     * <p>Each element in the returned set is declared as an opaque {@link org.gradle.api.artifacts.result.ComponentResult}.
+     *    However each element in the result will also implement one of the following interfaces:</p>
+     *
+     * <ul>
+     *     <li>{@link org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult} for any component whose ID could be resolved in the set of repositories.</li>
+     *     <li>{@link org.gradle.api.artifacts.result.UnresolvedComponentResult} for any component whose ID could not be resolved from the set of repositories.</li>
+     * </ul>
+     * @return the set of results for all requested components
+     */
     Set<ComponentResult> getComponents();
+
+    /**
+     * <p>Return a set of ComponentResults representing all successfully resolved components.
+     *
+     * <p>Calling this method is the same as calling {@link #getComponents()} and filtering the resulting set for elements of type {@link ResolvedComponentArtifactsResult}.
+     * @return the set of all successfully resolved components
+     */
     Set<ResolvedComponentArtifactsResult> getResolvedComponents();
 }
