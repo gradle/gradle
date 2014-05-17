@@ -15,11 +15,35 @@
  */
 package org.gradle.internal.typeconversion;
 
+import org.gradle.api.Nullable;
+import org.gradle.util.GUtil;
+
+import java.util.Formatter;
+import java.util.List;
+
 public class UnsupportedNotationException extends RuntimeException {
     private final Object notation;
 
     public UnsupportedNotationException(Object notation) {
         this.notation = notation;
+    }
+
+    public UnsupportedNotationException(Object notation, String failure, @Nullable String resolution, List<String> candidateTypes) {
+        super(format(notation, failure, resolution, candidateTypes));
+        this.notation = notation;
+    }
+
+    private static String format(Object notation, String failure, String resolution, List<String> formats) {
+        Formatter message = new Formatter();
+        message.format("%s%n", failure);
+        message.format("The following types/formats are supported:");
+        for (String format : formats) {
+            message.format("%n  - %s", format);
+        }
+        if (GUtil.isTrue(resolution)) {
+            message.format("%n%s", resolution);
+        }
+        return message.toString();
     }
 
     public Object getNotation() {

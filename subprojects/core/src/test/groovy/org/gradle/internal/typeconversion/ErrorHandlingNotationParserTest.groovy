@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.typeconversion
 
-import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -29,7 +28,7 @@ class ErrorHandlingNotationParserTest extends Specification {
         parser.parseNotation(null)
 
         then:
-        InvalidUserDataException e = thrown()
+        UnsupportedNotationException e = thrown()
         e.message == toPlatformLineSeparators('''Cannot convert a null value to an object of type String.
 The following types/formats are supported:
   - format 1
@@ -49,7 +48,7 @@ The following types/formats are supported:
         parser.parseNotation("bad")
 
         then:
-        InvalidUserDataException e = thrown()
+        UnsupportedNotationException e = thrown()
         e.message == toPlatformLineSeparators('''Cannot convert the provided notation to an object of type String: broken-part.
 The following types/formats are supported:
   - format 1

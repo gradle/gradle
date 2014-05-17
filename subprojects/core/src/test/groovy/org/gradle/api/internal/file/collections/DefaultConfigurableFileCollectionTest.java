@@ -331,7 +331,7 @@ public class DefaultConfigurableFileCollectionTest {
 
         collection.from(fileCollectionMock);
         collection.from("f");
-        collection.builtBy('b');
+        collection.builtBy("b");
 
         final Task taskA = context.mock(Task.class, "a");
         final Task taskB = context.mock(Task.class, "b");
@@ -343,7 +343,7 @@ public class DefaultConfigurableFileCollectionTest {
             will(returnValue(dependency));
             allowing(dependency).getDependencies(null);
             will(returnValue(toSet(taskA)));
-            allowing(taskResolverStub).resolveTask('b');
+            allowing(taskResolverStub).resolveTask("b");
             will(returnValue(taskB));
         }});
 
