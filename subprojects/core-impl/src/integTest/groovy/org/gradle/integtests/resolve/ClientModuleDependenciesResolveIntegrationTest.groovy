@@ -81,14 +81,30 @@ dependencies {
 }
 task listJars << {
     assert configurations.regular.collect { it.name } == ['projectA-1.2.jar', 'projectA-1.2-extra.jar']
+}
+task listClientModuleJars << {
     assert configurations.clientModule.collect { it.name } == ['projectA-1.2.jar']
 }
 """
 
         when:
-        projectA.allowAll()
+        projectA.ivy.expectGet()
+        projectA.jar.expectGet()
+
+        then:
+        succeeds('listClientModuleJars')
+
+        when:
+        server.resetExpectations()
+        projectA.getArtifact(classifier: "extra").expectGet()
 
         then:
         succeeds('listJars')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('listClientModuleJars')
     }
 }
