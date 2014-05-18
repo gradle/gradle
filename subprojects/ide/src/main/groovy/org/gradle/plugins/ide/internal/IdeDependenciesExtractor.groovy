@@ -24,9 +24,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
-import org.gradle.language.java.artifact.JavadocArtifact
-import org.gradle.language.base.artifact.SourcesArtifact
+import org.gradle.api.component.Artifact
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.language.base.artifact.SourcesArtifact
+import org.gradle.language.java.artifact.JavadocArtifact
 import org.gradle.plugins.ide.internal.resolver.DefaultIdeDependencyResolver
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyResolver
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency
@@ -67,7 +68,14 @@ class IdeDependenciesExtractor {
             resolvedDependencies.put(toComponentIdentifier(dep.id), dep)
         }
 
-        downloadSourcesAndJavadoc(dependencyHandler, resolvedDependencies, downloadSources, downloadJavadoc)
+        def artifactTypes = []
+        if (downloadSources) {
+            artifactTypes << SourcesArtifact
+        }
+        if (downloadJavadoc) {
+            artifactTypes << JavadocArtifact
+        }
+        downloadAuxiliaryArtifacts(dependencyHandler, resolvedDependencies, artifactTypes)
 
         def unresolvedDependencies = unresolvedExternalDependencies(plusConfigurations, minusConfigurations)
         return resolvedDependencies.values() + unresolvedDependencies
@@ -77,23 +85,17 @@ class IdeDependenciesExtractor {
         new DefaultModuleComponentIdentifier(id.group, id.name, id.version)
     }
 
-    private void downloadSourcesAndJavadoc(DependencyHandler dependencyHandler,
-                                           Multimap<ComponentIdentifier, IdeExtendedRepoFileDependency> dependencies,
-                                           boolean downloadSources, boolean downloadJavadoc) {
+    private static void downloadAuxiliaryArtifacts(DependencyHandler dependencyHandler,
+                                                   Multimap<ComponentIdentifier, IdeExtendedRepoFileDependency> dependencies,
+                                                   List<Class<? extends Artifact>> artifactTypes) {
 
-        if (!downloadSources && !downloadJavadoc) {
+        if (artifactTypes.empty) {
             return
         }
 
         def query = dependencyHandler.createArtifactResolutionQuery()
         query.forComponents(dependencies.keySet());
-        if (downloadSources) {
-            query.withArtifacts(JvmLibrary, SourcesArtifact)
-        }
-        if (downloadJavadoc) {
-            query.withArtifacts(JvmLibrary, JavadocArtifact)
-        }
-
+        query.withArtifacts(JvmLibrary, artifactTypes as Class<? extends Artifact>[])
         def componentResults = query.execute().getResolvedComponents()
         for (componentResult in componentResults) {
             for (dependency in dependencies.get(componentResult.id)) {
