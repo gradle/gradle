@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.platform.internal
 
-import org.gradle.api.InvalidUserDataException
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class ArchitectureNotationParserTest extends Specification {
@@ -26,7 +26,7 @@ class ArchitectureNotationParserTest extends Specification {
         parseNotation("bad")
 
         then:
-        def e = thrown(InvalidUserDataException)
+        def e = thrown(UnsupportedNotationException)
         e.message.contains("One of the following values: 'x86', 'i386', 'ia-32', 'x86_64', 'amd64', 'x64', 'x86-64',")
     }
 

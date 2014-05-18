@@ -41,7 +41,7 @@ public class UnsupportedNotationException extends RuntimeException {
             message.format("%n  - %s", format);
         }
         if (GUtil.isTrue(resolution)) {
-            message.format("%n%s", resolution);
+            message.format("%n%n%s", resolution);
         }
         return message.toString();
     }

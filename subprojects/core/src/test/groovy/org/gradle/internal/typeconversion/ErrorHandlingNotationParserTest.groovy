@@ -33,6 +33,7 @@ class ErrorHandlingNotationParserTest extends Specification {
 The following types/formats are supported:
   - format 1
   - format 2
+
 <broken>''')
 
         1 * target.describe(!null) >> { args -> args[0].add("format 1"); args[0].add("format 2") }
@@ -53,6 +54,7 @@ The following types/formats are supported:
 The following types/formats are supported:
   - format 1
   - format 2
+
 <broken>''')
 
     }
