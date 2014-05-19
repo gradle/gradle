@@ -146,15 +146,19 @@ public class IdeDependenciesExtractor {
     public Collection<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
         LinkedHashMap<File, IdeLocalFileDependency> fileToConf = new LinkedHashMap<File, IdeLocalFileDependency>();
 
-        for (Configuration plusConfiguration : plusConfigurations) {
-            for (IdeLocalFileDependency localFileDependency : ideDependencyResolver.getIdeLocalFileDependencies(plusConfiguration)) {
-                fileToConf.put(localFileDependency.getFile(), localFileDependency);
+        if (plusConfigurations != null) {
+            for (Configuration plusConfiguration : plusConfigurations) {
+                for (IdeLocalFileDependency localFileDependency : ideDependencyResolver.getIdeLocalFileDependencies(plusConfiguration)) {
+                    fileToConf.put(localFileDependency.getFile(), localFileDependency);
+                }
             }
         }
 
-        for (Configuration minusConfiguration : minusConfigurations) {
-            for (IdeLocalFileDependency localFileDependency : ideDependencyResolver.getIdeLocalFileDependencies(minusConfiguration)) {
-                fileToConf.remove(localFileDependency.getFile());
+        if (minusConfigurations != null) {
+            for (Configuration minusConfiguration : minusConfigurations) {
+                for (IdeLocalFileDependency localFileDependency : ideDependencyResolver.getIdeLocalFileDependencies(minusConfiguration)) {
+                    fileToConf.remove(localFileDependency.getFile());
+                }
             }
         }
 
@@ -164,15 +168,19 @@ public class IdeDependenciesExtractor {
     public Collection<IdeExtendedRepoFileDependency> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
         LinkedHashMap<File, IdeExtendedRepoFileDependency> out = new LinkedHashMap<File, IdeExtendedRepoFileDependency>();
 
-        for (Configuration plusConfiguration : plusConfigurations) {
-            for (IdeExtendedRepoFileDependency artifact : ideDependencyResolver.getIdeRepoFileDependencies(plusConfiguration)) {
-                out.put(artifact.getFile(), artifact);
+        if (plusConfigurations != null) {
+            for (Configuration plusConfiguration : plusConfigurations) {
+                for (IdeExtendedRepoFileDependency artifact : ideDependencyResolver.getIdeRepoFileDependencies(plusConfiguration)) {
+                    out.put(artifact.getFile(), artifact);
+                }
             }
         }
 
-        for (Configuration minusConfiguration : minusConfigurations) {
-            for (IdeExtendedRepoFileDependency artifact : ideDependencyResolver.getIdeRepoFileDependencies(minusConfiguration)) {
-                out.remove(artifact.getFile());
+        if (minusConfigurations != null) {
+            for (Configuration minusConfiguration : minusConfigurations) {
+                for (IdeExtendedRepoFileDependency artifact : ideDependencyResolver.getIdeRepoFileDependencies(minusConfiguration)) {
+                    out.remove(artifact.getFile());
+                }
             }
         }
 
