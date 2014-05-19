@@ -80,6 +80,8 @@ Plugins under the new mechanism will be subject to isolation from each other, an
 Plugins forward declare their dependencies on other JVM libraries and separately on other Gradle plugins.
 Plugins also declare which classes from their implementation and dependencies are exported (i.e. visible to consumers of the plugin).
 
+The current generation of plugins can be said to export _everything_. They can also be said to depend on the entire “gradle api” (core + plugins).
+
 _The exact mechanism and semantics of this sharing are TBD._
 
 ## Plugin dependencies
@@ -135,6 +137,9 @@ In an attempt to avoid confusion the following terms are defined:
 
 - “plugin dependency DSL” - refers to the `plugins {}` construct that can be used to declare dependencies on Gradle plugins (new)
 - “buildscript dependency DSL” - refers to the `buildscript {}` construct that is currently used to declare JAR dependencies
+- “isolated plugin” - refers to a plugin loaded through the “plugin dependency dsl” (i.e. one of the features of this mechanism is supporting different kinds of isolation)
+- “declarative plugin” - refers to a new style plugin that declares its plugin dependencies and its public API (new)
+- “non-declarative plugin” - refers to plugins as we know them (they do not formally declare plugin dependencies or any public API)
 
 # Implementation plan
 
@@ -262,7 +267,7 @@ As new capabilities are added to plugins (particularly WRT new configuration mod
 - How are unqualified ids of plugin dependencies to be interpreted? (i.e. script plugins can be used across builds, with potentially different qualifying rules)
 - Do these 'new' script plugins need to declare that they are compatible with the new mechanism? Are there any differences WRT their implementation?
 
-## Plugin resolution
+## Plugin resolution and application
 
 Each plugin spec is independently resolvable to an implementation.
 
@@ -331,6 +336,90 @@ Selecting the actual version to use based on the version constraint is performed
 Dynamic versions are specified using the same syntax that is currently used…
 
     id("foo").version("0.5.+")
+    
+### Resolution process, class loading and scoping
+
+The current plugin mechanism has the following characteristics:
+
+- Each build script inherits the class loader scope of its parent project
+- Each build script's `buildscript {}` declares java modules that should be added to the class loader scope for that project (and the child projects)
+- The root project inherits a class loader scope containing the gradle core API and core plugins, and anything in buildSrc
+- When plugins are applied, the class loader scope is searched for the implementation
+- Script plugins inherit the same class loader scope that the root project build script inherits
+- The depended on java modules (and their dependencies) are loaded “on top of” the inherited class loader scope (with a standard parent first class loader strategy) 
+
+The new mechanism:
+
+- Each unit of logic (i.e. plugin, build script, script plugin) declares its java module dependencies and gradle plugin dependencies (which does not mean they inherit the java module dependencies of their plugin dependencies)
+- Each unit of logic (incl. build scripts) only has visibility to the public classes of its dependencies + the gradle core (no plugins) API
+- The collective public API is managed from “compatibility” (e.g. version conflict resolution)
+- (implied) the class loader scope of a script has no relationship to anything that it does not declare
+
+Moreover, there are now two types of plugins; non-declarative (what we have had to date) and declarative (new style, with improved metadata).
+
+Non-declarative plugins:
+
+- Implicitly make their entire implementation (incl. full transitive dependencies) public API (i.e. visible to the user of the plugin)
+- Implicitly declare on the Gradle Core API, core plugins, and buildSrc in the context of where they are being used
+- _Declare_ no dependencies on Gradle plugins (though, they may depend on the implementation java module of gradle plugins and opaquely apply the plugin in their implementation)
+
+Declarative plugins:
+
+- Have no implicit public API, though they can declare classes of their implementation to be public
+- Forward declare their gradle plugin dependencies (and expect Gradle to have applied them before they themselves are applied)
+- Only implicitly depend on the Gradle Core API (no core plugins)
+
+To support a gradual migration from the old to the new, the resolution process must support:
+
+1. Using non-declarative plugins via the `buildscript {}` mechanism
+2. Using non-declarative plugins via the `plugins {}` mechanism
+3. Using declarative plugins via the `buildscript {}` mechanism
+4. Using declarative plugins via the `plugins {}` mechanism
+
+How a plugin is loaded/used is a function of _the mechanism by which it is used_, as opposed to whether it is a newer declarative plugin or not.
+
+#### Changes to project.apply(«plugin»)
+
+In order to support users using declarative plugins via the old `buildscript {}` and `apply(«plugin»)` mechanism, a change needs to be made to the `apply()` method.
+
+Declarative plugins declare their plugin dependencies at runtime, via a discoverable mechanism. That is, given a plugin class, it is possible to query the runtime for the _ids_ of the plugins that this plugin depends on. The implementation of `project.apply()` will be changed to query this information, and implicitly apply the plugin dependencies. The exact mechanism for advertising dependencies is yet to be determined. For this concern, it only needs to provide a list of plugin ids (versions are not respected).
+
+When applying a plugin via `apply()` (assuming the standard resolution process, and that the plugin implementation is valid):
+
+1. The IDs of all plugins that the given plugin depends on is obtained
+1. Each depended on plugin is applied via `apply(«id»)` (transitively)
+
+Therefore, it is assumed the implementation of the plugin dependencies are visible to the target scope. 
+
+Declarative plugins:
+
+1. Make their plugin dependencies discoverable at runtime via the agreed upon mechanism
+1. Depend on the java libraries that implement each plugin dependency in their published metadata (e.g. POM)
+
+Therefore, declarative plugins can be loaded via the `buildscript {}` dependency mechanism, albeit with access to different classes than if they would have been loaded through the `plugins {}` mechanism.
+
+#### Plugin and build logic resolution process
+
+This section outlines the process for resolving/applying build logic dependencies, encompassing `buildscript {}` and `plugins {}`.
+
+> The process below does not consider “declarative” plugins exposing API, or depending on non core plugins. That fun is being deferred.
+
+1. Execute all `buildscript {}` blocks (they are syntactically not allowed to appear after `plugins {}`), but do not resolve
+1. Execute the `plugins {}` block, collecting each plugin spec, but do not resolve
+1. Identify all “non-declarative” plugins specified by `plugins {}`, add their implementation java library (and dependencies) to `buildscript.configurations.classpath`
+1. Resolve `buildscript.configurations.classpath`, loading the result into a classloader (known as “local buildscript classloader”)
+1. Resolve the implementation of each “declarative” plugin specified by `plugins {}`, but don't apply (verify that everything is resolvable)
+1. Apply each of the “non-declarative” plugins specified in `plugins {}`, from the “local buildscript classloader”
+1. Make the “local buildscript classloader” available to the target script, but not to children
+1. Create a filtered class loader from the “local buildscript classloader” that only exposes classes from JARs that were _only_ declared via `buildscript.dependencies {}` (i.e. not JARs that are present due to “non-declarative” plugins in `plugins {}`), known as the “exported buildscript classloader”, to make available for child build scripts to inherit
+1. Load each declarative plugin into a separate classloader, based on the Gradle Core API + access to the core plugins it depends on, load plugin class
+    1. If the “local buildscript classloader” contains the plugin implementation class, fail (assuming this plugin will be applied via `project.apply()`) - (cannot apply two instances of same plugin _class_)
+1. Apply each “declarative” plugin in dependency order
+1. Execute the build script
+
+##### Open Issues
+
+- What kind of compatibility checking do we do between the “local buildscript classloader” and the public API of “declarative” plugins?
 
 ## Plugin implementation and backwards/forwards compatibility
 
@@ -347,113 +436,14 @@ There are three roles in plugin usage:
 With the current mechanism, all three roles consume plugins in functionally the same manner. 
 That is, declaring a dependency on the plugin implementation JAR and manually applying the depended upon plugin at runtime.
 Currently all plugins are non-isolated and depended upon via normal dependency management.
-The introduction of isolated plugins, and a new mechanism for depending on plugins, introduces a new kind of plugin production and consumption.
+The introduction of plugin isolation, declarative plugins, and a new mechanism for depending on plugins, introduces a new kind of plugin production and consumption.
 Plugin users and authors will not be atomically migrating to the new mechanism as a whole, therefore a degree of compatibility between the two mechanism is needed.
 
-### Using non-isolated plugins via plugin dependency DSL
-
-The plugin portal resolution service is able to resolve isolated and non-isolated plugins, and indicates whether the plugin should be isolated or not in the data it provides.
-The buildscript dependency DSL mechanism allows plugins to be hosted anywhere (Internet or corporate intranet).
-The plugin portal will only know about plugins that are hosted at Bintray (in a manner discoverable to the plugin portal), therefore only a subset of non-isolated plugins will be able to be loaded via this mechanism. 
-
-Loading a non-isolated plugin through the plugin dependency DSL is functionally equivalent to loading it through the buildscript dependency DSL
-Technical details outlined below.
+We must support the use cases listed in this section, that deal with this transition and compatibility between the current mechanism and plugins and the new.
 
 ### Use cases
 
-> Below are some working notes that will eventually turn into detail in the use cases below
-> - isolation is a characteristic of how the plugin is used, not how it is authored (need to rethink terminology)
-> - old style plugins do not declare what they expose, so assume they expose everything
-> - old style plugin implementation modules are resolved as part of `buildscript.classpath` (i.e. subject to conflict resolution with all buildscript dependencies)
-> - resolved `buildscript.classpath` is “split” into two loaders; 1 with everything, 1 with only things added via the `buildscript {}` DSL (i.e. without modules present because of `plugins {}`)
-> - the everything loader is attached to the target's local scope; the `buildscript {}` only loader is attached to the target's export scope (i.e. do not propagate `plugins {}` modules)
-> - implementation of `buildscript {}` only loader will be based on a filtering loader that filters classes based on location (i.e. filter out classes in jars that are present due to `plugins {}`) - support for this kind of filtering strategy needs to be implemented
-> - Plugin POMs will continue to describe the plugin as a java runtime module (i.e. it contains module dependencies on the implementation of depended upon plugins)
-> - New style plugins will also contain queryable at runtime (e.g. annotations on Plugin impl) metadata on plugin dependencies (when plugins are published this will probably be used to generate manifest that is easier for the resolution service to query)
-> - `Project.apply()` will become aware of this metadata so that it can apply dependencies before applying a particular plugin
-> - When applying a new style plugin in isolation, detect collisions with the `buildscript` space (possibly based on identity of implementation module, or on class name) - i.e. cannot have same plugin module (at any version) in the `buildscript` and isolated space
-> new focus is on making new plugin dsl work with old style plugins then parking
-
----
-
-Ignore the detail on these use cases as they are out of date.
-
-#### User uses new plugin dependency DSL to use non-isolated plugin
-
-Plugin resolvers backing the plugin dependencies DSL may resolve non-isolated plugins.
-The functional effect is that the plugin implementation jar is added to `buildscript.configurations.classpath`, and applied via `project.apply(plugin: "«id»")`.
-
-That is, the following are equivalent:
-
-    buildscript {
-      repositories { jcenter() }
-      dependencies { classpath "org.company:gradle-foo-plugin:1.0" }
-    }
-    apply plugin: "foo"
-
-And…
-
-    plugins {
-      id "org.company.foo" version "1.0"
-    }
-
-In practice, this will rely on the plugin portal resolver being able to resolve non-isolated plugins.
-When asked to resolve plugin `org.company.foo`@`1.0`, the plugin portal may respond with the location of the implementation and with metadata indicating that this plugin is non isolated.
-
-This demands that the plugin resolution algorithm be:
-
-1. Resolve the metadata about each plugin dependency
-  - Metadata indicates whether plugin is isolated or non-isolated, or indeed that the plugin can't be resolved
-1. Fail if any plugin can't be resolved
-1. For all non-isolated plugins, add their runtime implementation and dependencies (as a dependency) to `buildscript.configurations.classpath`
-  - This also implies that, in practice, `jcenter()` will be added to `buildscript.repositories` in order to obtain the dependencies (though in theory any non-isolated capable resolver could add whatever repos it needs)
-1. Resolve `buildscript.configurations.classpath` (any user `buildscript {}` blocks have been evaluated already at this point)
-1. Apply all non-isolated plugins specified by `plugins {}`
-1. Resolve the implementation classpath of each isolated plugin
-1. For each isolated plugin, detect presence (or likely presence) of plugin in the non-isolated classloader
-  - i.e. check that `META-INF/gradle-plugins/«plugin id».properties` and `META-INF/gradle-plugins/«plugin name».properties` (as older plugin ids are unqualified) are not loadable by this classloader
-  - If they are, we fail because there is likely a version of the isolated plugin in the non-isolated space
-1. Apply each of the isolated plugins
-
-We must detect the presence of the same plugin implementation in non-isolated space before trying to apply as an isolated plugin.
-This is because otherwise we would apply the plugin twice, with different class instances, because of the use of different classloaders.
-We cannot simply just apply the isolated version, because other non-isolated plugins in play may be depending on the non-isolated version.
-
-#### Caveats
-
-##### Initially only works for non-isolated plugins hosted at Bintray
-
-… and linked to the gradle-plugins repo, and that have the right metadata (because only the plugin portal resolver understands)
-
-Once we allow configurability of plugin resolvers, or explicit id-to-implementation mappings we will be able to provide ways of supporting other plugin locations.
-
-##### Unable to use plugin dependency of non-isolated plugin as an isolated plugin
-
-Consider:
-
-    plugins {
-      id "org.company.foo" version "1.0"
-      id "org.company.bar" version "2.0"
-    }
-
-And given:
-
-- Plugin 'foo' is non-isolated, and depends on the implementation of plugin 'bar' @ version 1.0 (which is non-isolated)
-- Version '2.0' of plugin 'bar' is isolated
-
-This resolution will fail as Gradle will refuse to apply `org.company.bar`, because plugin `'bar'` will be found in the non-isolated space.
-The resolution here is for the author of `foo` to release a new isolated version that depends on isolated `bar`, or for the build author to live with non-isolated `bar@1.0` (keeping in mind that initial versions will not support isolated plugin dependencies other than on Gradle core plugins).
-
-Note that this untenable position is not exclusive to loading non-isolated plugins through the plugin dependency DSL.
-The following suffers from the same problem.
-
-    buildscript {
-      repositories { jcenter() }
-      dependencies { classpath "org.company:gradle-foo-plugin:1.0" }
-    }
-    plugins {
-      id "org.company.bar" version "2.0"
-    }
+#### User uses new plugin dependency DSL to use non-declarative plugin
 
 #### User uses buildscript dependency DSL (and apply()) to use isolated plugin
 
