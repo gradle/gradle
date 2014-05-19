@@ -120,7 +120,6 @@ For example, the `plugins.gradle.org` based plugin resolver implicitly qualifies
 
 ### Open Questions
 
-- Should we support all unicode alphanums? (it seems there is less agreement about what this set is)
 - When there is more than one implicit namespace, collisions can change over time as new plugins get added to the earlier resolved namespaces
 
 ## plugins.gradle.org
