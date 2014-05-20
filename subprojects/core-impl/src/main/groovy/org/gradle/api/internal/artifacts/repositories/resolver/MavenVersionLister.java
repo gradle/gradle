@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
 
 import java.net.URI;
 import java.util.HashSet;
@@ -43,7 +43,7 @@ public class MavenVersionLister implements VersionLister {
                 }
                 MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
                 for (String version : mavenMetaData.versions) {
-                    add(new ListedVersion(version, pattern));
+                    add(version);
                 }
             }
         };

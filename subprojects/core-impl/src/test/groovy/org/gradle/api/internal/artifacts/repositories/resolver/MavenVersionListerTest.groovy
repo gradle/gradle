@@ -15,18 +15,17 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
+
 import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
+import org.gradle.internal.UncheckedException
 import org.gradle.internal.resource.ExternalResource
-import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.internal.resource.ResourceException
 import org.gradle.internal.resource.ResourceNotFoundException
-import org.gradle.internal.UncheckedException
+import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.xml.sax.SAXParseException
 import spock.lang.Specification
 
@@ -51,7 +50,7 @@ class MavenVersionListerTest extends Specification {
         versionList.visit(pattern, artifact)
 
         then:
-        sort(versionList).collect {it.version} == ['1.2', '1.1']
+        versionList.versions == ['1.2', '1.1'] as Set
 
         and:
         1 * repository.getResource(metaDataResource) >> resource
@@ -82,8 +81,7 @@ class MavenVersionListerTest extends Specification {
         versionList.visit(pattern2, artifact)
 
         then:
-        sort(versionList).collect {it.version} == ['1.3', '1.2', '1.1']
-        sort(versionList).collect {it.pattern} == [pattern2, pattern1, pattern1]
+        versionList.versions == ['1.3', '1.2', '1.1'] as Set
 
         and:
         1 * repository.getResource(new URI('prefix1/org/acme/testproject/maven-metadata.xml')) >> resource1
@@ -119,7 +117,7 @@ class MavenVersionListerTest extends Specification {
         versionList.visit(pattern, artifact)
 
         then:
-        sort(versionList).collect {it.version} == ['1.2', '1.1']
+        versionList.versions == ['1.2', '1.1'] as Set
 
         and:
         1 * repository.getResource(metaDataResource) >> resource
@@ -136,11 +134,6 @@ class MavenVersionListerTest extends Specification {
         1 * resource.close()
         0 * repository._
         0 * resource._
-    }
-
-    private static List<VersionList.ListedVersion> sort(VersionList versionList) {
-        def latestStrategy = new LatestVersionStrategy(new ExactVersionMatcher())
-        versionList.sortLatestFirst(latestStrategy)
     }
 
     def "visit throws ResourceNotFoundException when maven-metadata not available"() {

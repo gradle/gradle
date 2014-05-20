@@ -16,22 +16,17 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class DefaultVersionList extends AbstractVersionList {
-    private final Map<String, ListedVersion> versions = new HashMap<String, ListedVersion>();
+    private final Set<String> versions = new LinkedHashSet<String>();
 
-    protected void add(ListedVersion newVersion) {
-        if (versions.containsKey(newVersion.getVersion())) {
-            return;
-        }
-        versions.put(newVersion.getVersion(), newVersion);
+    protected void add(String newVersion) {
+        versions.add(newVersion);
     }
 
-    public Set<ListedVersion> getVersions() {
-        return new HashSet<ListedVersion>(versions.values());
+    public Set<String> getVersions() {
+        return versions;
     }
 }

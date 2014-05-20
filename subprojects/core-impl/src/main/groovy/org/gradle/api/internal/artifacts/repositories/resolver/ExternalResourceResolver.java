@@ -130,8 +130,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             listVersionsForAllPatterns(artifactPatterns, otherArtifact, versionList);
         }
         DefaultModuleVersionListing moduleVersions = new DefaultModuleVersionListing();
-        for (VersionList.ListedVersion listedVersion : versionList.getVersions()) {
-            moduleVersions.add(listedVersion.getVersion());
+        for (String listedVersion : versionList.getVersions()) {
+            moduleVersions.add(listedVersion);
         }
         result.listed(moduleVersions);
     }

@@ -84,13 +84,13 @@ class ResourceVersionListerTest extends Specification {
     }
 
     @Unroll
-    def "visit resolves versions from from pattern with '#testPattern'"() {
+    def "visit resolves versions from pattern with '#testPattern'"() {
         when:
         def versionList = lister.getVersionList(module)
         versionList.visit(pattern(testPattern), artifact)
 
         then:
-        sort(versionList).collect { it.version } == ["2.1", "1", "a-version"]
+        versionList.versions == ["1", "2.1", "a-version"] as Set
 
         and:
         1 * repo.list(URI.create(repoListingPath)) >> repoResult
@@ -126,8 +126,7 @@ class ResourceVersionListerTest extends Specification {
         versionList.visit(pattern2, artifact)
 
         then:
-        sort(versionList).collect { it.version } == ["1.4", "1.3", "1.2"]
-        sort(versionList).collect { it.pattern } == [pattern2, pattern1, pattern1]
+        versionList.versions == ["1.2", "1.3", "1.4"] as Set
 
         and:
         1 * repo.list(URI.create("/")) >> ["1.2", "1.3"]
@@ -143,17 +142,11 @@ class ResourceVersionListerTest extends Specification {
         versionList.visit(pattern("/a/[revision]/[artifact]-[revision]"), artifact)
 
         then:
-        sort(versionList).collect { it.version } == ["1.3", "1.2"]
-        sort(versionList).collect { it.pattern } == [patternA, patternA]
+        versionList.versions == ["1.2", "1.3"] as Set
 
         and:
         1 * repo.list(URI.create("/a/")) >> ["1.2", "1.3"]
         0 * repo._
-    }
-
-    private static List<VersionList.ListedVersion> sort(VersionList versionList) {
-        def latestStrategy = new LatestVersionStrategy(new ExactVersionMatcher())
-        versionList.sortLatestFirst(latestStrategy)
     }
 
     def "visit substitutes non revision placeholders from pattern before hitting repository"() {

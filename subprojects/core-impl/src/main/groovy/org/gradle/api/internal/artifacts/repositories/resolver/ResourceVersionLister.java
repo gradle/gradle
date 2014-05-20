@@ -20,8 +20,8 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ public class ResourceVersionLister implements VersionLister {
                 try {
                     List<String> versionStrings = listRevisionToken(versionListPattern);
                     for (String versionString : versionStrings) {
-                        add(new ListedVersion(versionString, pattern));
+                        add(versionString);
                     }
                 } catch (ResourceException e) {
                     throw e;
