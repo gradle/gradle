@@ -33,12 +33,15 @@ public interface BuildableModuleVersionSelectionResolveResult {
      */
     State getState();
 
+    /**
+     * Returns true if this result is available, ie the state is not {@link State#Unknown}.
+     */
     boolean hasResult();
 
     /**
      * Returns the versions that match the selector.
      *
-     * @throws org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException If the resolution was not successful.
+     * @throws ModuleVersionResolveException If the resolution was not successful.
      */
     ModuleVersionListing getVersions() throws ModuleVersionResolveException;
 
