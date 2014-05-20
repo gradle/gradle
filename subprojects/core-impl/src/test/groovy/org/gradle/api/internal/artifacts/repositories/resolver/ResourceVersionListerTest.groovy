@@ -15,14 +15,14 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
+
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
-import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.internal.resource.ResourceException
+import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -33,6 +33,7 @@ class ResourceVersionListerTest extends Specification {
     def module = new DefaultModuleIdentifier("org.acme", "proj1")
     def moduleVersion = new DefaultModuleVersionIdentifier(module, "1.0")
     def artifact = new DefaultIvyArtifactName("proj1", "jar", "jar")
+    def result = new DefaultResourceAwareResolveResult()
 
     def ResourceVersionLister lister;
 
@@ -47,7 +48,7 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.list(_) >> { throw failure }
 
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(testPattern, artifact)
 
         then:
@@ -61,7 +62,7 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.list(_) >> null
 
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern(testPattern), artifact)
 
         then:
@@ -76,7 +77,7 @@ class ResourceVersionListerTest extends Specification {
         1 * repo.list(_) >> []
 
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern("/some/[revision]"), artifact)
 
         then:
@@ -86,7 +87,7 @@ class ResourceVersionListerTest extends Specification {
     @Unroll
     def "visit resolves versions from pattern with '#testPattern'"() {
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern(testPattern), artifact)
 
         then:
@@ -119,7 +120,7 @@ class ResourceVersionListerTest extends Specification {
 
     def "visit builds union of versions"() {
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         def pattern1 = pattern("/[revision]/[artifact]-[revision].[ext]")
         def pattern2 = pattern("/[organisation]/[revision]/[artifact]-[revision].[ext]")
         versionList.visit(pattern1, artifact)
@@ -136,7 +137,7 @@ class ResourceVersionListerTest extends Specification {
 
     def "visit ignores duplicate patterns"() {
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         final patternA = pattern("/a/[revision]/[artifact]-[revision].[ext]")
         versionList.visit(patternA, artifact)
         versionList.visit(pattern("/a/[revision]/[artifact]-[revision]"), artifact)
@@ -151,7 +152,7 @@ class ResourceVersionListerTest extends Specification {
 
     def "visit substitutes non revision placeholders from pattern before hitting repository"() {
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern(inputPattern), artifact)
 
         then:
@@ -173,7 +174,7 @@ class ResourceVersionListerTest extends Specification {
         repo.list(_) >> repoResult
 
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern(testPattern), artifact)
 
         then:

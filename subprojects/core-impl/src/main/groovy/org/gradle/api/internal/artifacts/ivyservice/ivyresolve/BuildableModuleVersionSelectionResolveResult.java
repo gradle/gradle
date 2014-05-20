@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 /**
  * The result of attempting to resolve a dependency descriptor to a list of candidate versions that might match that descriptor.
  */
-public interface BuildableModuleVersionSelectionResolveResult {
+public interface BuildableModuleVersionSelectionResolveResult extends ResourceAwareResolveResult {
 
     static enum State {
         Listed, ProbablyListed, Failed, Unknown

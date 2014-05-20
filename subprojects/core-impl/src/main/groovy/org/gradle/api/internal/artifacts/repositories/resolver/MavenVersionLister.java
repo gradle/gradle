@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
@@ -32,7 +33,7 @@ public class MavenVersionLister implements VersionLister {
         this.mavenMetadataLoader = new MavenMetadataLoader(repository);
     }
 
-    public VersionList getVersionList(final ModuleIdentifier module) {
+    public VersionList getVersionList(final ModuleIdentifier module, final ResourceAwareResolveResult result) {
         return new DefaultVersionList() {
             final Set<URI> searched = new HashSet<URI>();
 
@@ -41,6 +42,7 @@ public class MavenVersionLister implements VersionLister {
                 if (!searched.add(metadataLocation)) {
                     return;
                 }
+                result.attempted(metadataLocation.toString());
                 MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
                 for (String version : mavenMetaData.versions) {
                     add(version);

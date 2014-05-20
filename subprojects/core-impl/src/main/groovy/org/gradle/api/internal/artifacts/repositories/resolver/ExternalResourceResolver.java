@@ -119,7 +119,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     private void doListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionSelectionResolveResult result) {
         ModuleIdentifier module  = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
-        VersionList versionList = versionLister.getVersionList(module);
+        VersionList versionList = versionLister.getVersionList(module, result);
 
         // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
         IvyArtifactName metaDataArtifact = getMetaDataArtifactName(dependency.getRequested().getName());

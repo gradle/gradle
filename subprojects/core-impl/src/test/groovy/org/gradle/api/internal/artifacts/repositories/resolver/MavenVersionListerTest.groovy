@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
 import org.gradle.internal.UncheckedException
@@ -33,6 +34,7 @@ class MavenVersionListerTest extends Specification {
     def repo = Mock(ExternalResourceRepository)
     def moduleRevisionId = IvyUtil.createModuleRevisionId("org.acme", "testproject", "1.0")
     def module = new DefaultModuleIdentifier("org.acme", "testproject")
+    def result = new DefaultResourceAwareResolveResult()
     def moduleVersion = new DefaultModuleVersionIdentifier(module, "1.0")
     def artifact = new DefaultIvyArtifactName("testproject", "jar", "jar")
 
@@ -46,11 +48,12 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern, artifact)
 
         then:
         versionList.versions == ['1.2', '1.1'] as Set
+        result.attempted == [metaDataResource.toString()]
 
         and:
         1 * repository.getResource(metaDataResource) >> resource
@@ -72,19 +75,22 @@ class MavenVersionListerTest extends Specification {
     def "visit builds union of versions"() {
         ExternalResource resource1 = Mock()
         ExternalResource resource2 = Mock()
+        def pattern1 = pattern("prefix1/" + MavenPattern.M2_PATTERN)
+        def pattern2 = pattern("prefix2/" + MavenPattern.M2_PATTERN)
+        def location1 = new URI('prefix1/org/acme/testproject/maven-metadata.xml')
+        def location2 = new URI('prefix2/org/acme/testproject/maven-metadata.xml')
 
         when:
-        def versionList = lister.getVersionList(module)
-        final pattern1 = pattern("prefix1/" + MavenPattern.M2_PATTERN)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern1, artifact)
-        final pattern2 = pattern("prefix2/" + MavenPattern.M2_PATTERN)
         versionList.visit(pattern2, artifact)
 
         then:
         versionList.versions == ['1.3', '1.2', '1.1'] as Set
+        result.attempted == [location1.toString(), location2.toString()]
 
         and:
-        1 * repository.getResource(new URI('prefix1/org/acme/testproject/maven-metadata.xml')) >> resource1
+        1 * repository.getResource(location1) >> resource1
         1 * resource1.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -95,7 +101,7 @@ class MavenVersionListerTest extends Specification {
     </versioning>
 </metadata>""".bytes))
         }
-        1 * repository.getResource(new URI('prefix2/org/acme/testproject/maven-metadata.xml')) >> resource2
+        1 * repository.getResource(location2) >> resource2
         1 * resource2.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
@@ -112,12 +118,13 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern, artifact)
         versionList.visit(pattern, artifact)
 
         then:
         versionList.versions == ['1.2', '1.1'] as Set
+        result.attempted == [metaDataResource.toString()]
 
         and:
         1 * repository.getResource(metaDataResource) >> resource
@@ -138,12 +145,17 @@ class MavenVersionListerTest extends Specification {
 
     def "visit throws ResourceNotFoundException when maven-metadata not available"() {
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern, artifact)
 
         then:
         ResourceNotFoundException e = thrown()
         e.message == "Maven meta-data not available: $metaDataResource"
+
+        and:
+        result.attempted == [metaDataResource.toString()]
+
+        and:
         1 * repository.getResource(metaDataResource) >> null
         0 * repository._
     }
@@ -152,7 +164,7 @@ class MavenVersionListerTest extends Specification {
         ExternalResource resource = Mock()
 
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern, artifact)
 
         then:
@@ -160,6 +172,11 @@ class MavenVersionListerTest extends Specification {
         e.message == "Unable to load Maven meta-data from $metaDataResource."
         e.cause instanceof UncheckedException
         e.cause.cause instanceof SAXParseException
+
+        and:
+        result.attempted == [metaDataResource.toString()]
+
+        and:
         1 * resource.close()
         1 * repository.getResource(metaDataResource) >> resource;
         1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("yo".bytes)) }
@@ -170,13 +187,18 @@ class MavenVersionListerTest extends Specification {
         def failure = new IOException()
 
         when:
-        def versionList = lister.getVersionList(module)
+        def versionList = lister.getVersionList(module, result)
         versionList.visit(pattern, artifact)
 
         then:
         ResourceException e = thrown()
         e.message == "Unable to load Maven meta-data from $metaDataResource."
         e.cause == failure
+
+        and:
+        result.attempted == [metaDataResource.toString()]
+
+        and:
         1 * repository.getResource(metaDataResource) >> { throw failure }
         0 * repository._
     }

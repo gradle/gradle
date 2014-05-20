@@ -15,9 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
-public class DefaultBuildableModuleVersionSelectionResolveResult implements BuildableModuleVersionSelectionResolveResult {
+public class DefaultBuildableModuleVersionSelectionResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionSelectionResolveResult {
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
     private ModuleVersionListing versions;
