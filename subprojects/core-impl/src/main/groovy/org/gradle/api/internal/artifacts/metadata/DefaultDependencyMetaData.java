@@ -45,13 +45,13 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         requested = new DefaultModuleVersionSelector(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
     }
 
-    public DefaultDependencyMetaData(ModuleVersionIdentifier moduleVersionIdentifier, boolean force) {
-        dependencyDescriptor = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(moduleVersionIdentifier), force);
+    public DefaultDependencyMetaData(ModuleVersionIdentifier moduleVersionIdentifier) {
+        dependencyDescriptor = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(moduleVersionIdentifier), false);
         requested = new DefaultModuleVersionSelector(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
     }
 
-    public DefaultDependencyMetaData(ModuleComponentIdentifier componentIdentifier, boolean force) {
-        dependencyDescriptor = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(componentIdentifier), force);
+    public DefaultDependencyMetaData(ModuleComponentIdentifier componentIdentifier) {
+        dependencyDescriptor = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId(componentIdentifier), false);
         requested = new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
     }
 

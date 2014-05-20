@@ -45,7 +45,7 @@ class DefaultDependencyMetaDataTest extends Specification {
 
     def "constructs meta-data from component id"() {
         def id = new DefaultModuleComponentIdentifier("org", "module", "1.1")
-        def metaData = new DefaultDependencyMetaData(id, false)
+        def metaData = new DefaultDependencyMetaData(id)
 
         expect:
         metaData.descriptor.dependencyRevisionId == IvyUtil.createModuleRevisionId("org", "module", "1.1")
@@ -54,7 +54,7 @@ class DefaultDependencyMetaDataTest extends Specification {
 
     def "constructs meta-data from module version id"() {
         def id = new DefaultModuleVersionIdentifier("org", "module", "1.1")
-        def metaData = new DefaultDependencyMetaData(id, false)
+        def metaData = new DefaultDependencyMetaData(id)
 
         expect:
         metaData.descriptor.dependencyRevisionId == IvyUtil.createModuleRevisionId("org", "module", "1.1")
