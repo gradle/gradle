@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.portal.internal;
+package org.gradle.plugin.use.resolve.service.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -47,23 +47,23 @@ import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import java.io.File;
 import java.util.Set;
 
-public class PluginPortalResolver implements PluginResolver {
+public class PluginResolutionServiceResolver implements PluginResolver {
 
-    public static final String OVERRIDE_URL_PROPERTY = PluginPortalResolver.class.getName() + ".repo.override";
+    public static final String OVERRIDE_URL_PROPERTY = PluginResolutionServiceResolver.class.getName() + ".repo.override";
     private static final String DEFAULT_API_URL = "http://plugins.gradle.org";
 
     private static final VersionMatcher RANGE_MATCHER = new VersionRangeMatcher(null);
     private static final VersionMatcher SUB_MATCHER = new SubVersionMatcher(null);
     private static final VersionMatcher LATEST_MATCHER = new LatestVersionMatcher();
 
-    private final PluginPortalClient portalClient;
+    private final PluginResolutionServiceClient portalClient;
     private final Instantiator instantiator;
     private final StartParameter startParameter;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private final ClassLoaderScope parentScope;
 
-    public PluginPortalResolver(
-            PluginPortalClient portalClient,
+    public PluginResolutionServiceResolver(
+            PluginResolutionServiceClient portalClient,
             Instantiator instantiator,
             StartParameter startParameter,
             ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory
@@ -94,10 +94,10 @@ public class PluginPortalResolver implements PluginResolver {
 
     // validates request against current limitations
     // we blow up with a custom message here, relying
-    // on the fact that plugin portal resolver comes last
+    // on the fact that plugin resolution service resolver comes last
     private void validatePluginRequest(PluginRequest pluginRequest) {
         if (startParameter.isOffline()) {
-            throw new GradleException(String.format("Plugin cannot be resolved from plugin portal because Gradle is running in offline mode."));
+            throw new GradleException(String.format("Plugin cannot be resolved from plugin resolution service because Gradle is running in offline mode."));
         }
         if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
             throw new InvalidPluginRequestException(pluginRequest, "Snapshot plugin versions are not supported.");
@@ -135,7 +135,7 @@ public class PluginPortalResolver implements PluginResolver {
     }
 
     public String getDescriptionForNotFoundMessage() {
-        return "Plugin Portal (" + getUrl() + ")";
+        return "Plugin Resolution Service (" + getUrl() + ")";
     }
 
 }

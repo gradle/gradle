@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.portal.internal
+package org.gradle.plugin.use.resolve.service.internal
 
 import com.google.gson.Gson
 import org.gradle.api.GradleException
@@ -25,9 +25,9 @@ import org.gradle.plugin.internal.PluginId
 import org.gradle.plugin.use.internal.PluginRequest
 import spock.lang.Specification
 
-class PluginPortalClientTest extends Specification {
+class PluginResolutionServiceClientTest extends Specification {
     private resourceAccessor = Mock(HttpResourceAccessor)
-    private client = new PluginPortalClient(resourceAccessor)
+    private client = new PluginResolutionServiceClient(resourceAccessor)
     private request = Stub(PluginRequest) {
         getId() >> PluginId.of("foo")
     }
@@ -52,7 +52,7 @@ class PluginPortalClientTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Plugin portal returned HTTP 500 with message 'Not feeling well today'."
+        e.message == "Plugin resolution service returned HTTP 500 with message 'Not feeling well today'."
     }
 
     private void stubResponse(int statusCode, String jsonResponse = null) {

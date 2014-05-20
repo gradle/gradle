@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.portal.internal;
+package org.gradle.plugin.use.resolve.service.internal;
 
 /**
- * Defines the JSON protocol for plugin portal error responses.
+ * Defines the JSON protocol for plugin resolution service error responses.
  */
 class ErrorResponse {
     String errorCode;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.portal.internal;
+package org.gradle.plugin.use.resolve.service.internal;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
@@ -34,13 +34,13 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class PluginPortalClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PluginPortalClient.class);
+public class PluginResolutionServiceClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PluginResolutionServiceClient.class);
     private static final String REQUEST_URL = "/api/gradle/%s/plugin/use/%s/%s";
 
     private final HttpResourceAccessor resourceAccessor;
 
-    public PluginPortalClient(HttpResourceAccessor resourceAccessor) {
+    public PluginResolutionServiceClient(HttpResourceAccessor resourceAccessor) {
         this.resourceAccessor = resourceAccessor;
     }
 
@@ -68,16 +68,16 @@ public class PluginPortalClient {
                     try {
                         if (statusCode != 200) {
                             ErrorResponse errorResponse = new Gson().fromJson(reader, ErrorResponse.class);
-                            throw new GradleException(String.format("Plugin portal returned HTTP %d with message '%s'.", statusCode, errorResponse.message));
+                            throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.", statusCode, errorResponse.message));
                         }
 
                         PluginUseMetaData metadata = new Gson().fromJson(reader, PluginUseMetaData.class);
                         metadata.verify();
                         return metadata;
                     } catch (JsonSyntaxException e) {
-                        throw new GradleException("Failed to parse plugin portal JSON response.", e);
+                        throw new GradleException("Failed to parse plugin resolution service JSON response.", e);
                     } catch (JsonIOException e) {
-                        throw new GradleException("Failed to read plugin portal JSON response.", e);
+                        throw new GradleException("Failed to read plugin resolution service JSON response.", e);
                     }
                 }
             });

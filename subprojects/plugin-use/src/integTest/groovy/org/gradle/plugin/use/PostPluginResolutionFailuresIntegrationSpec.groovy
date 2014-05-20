@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.portal
+package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.hamcrest.Matchers
 import org.junit.Rule
 
-class PluginPortalPostResolutionIntegrationTest extends AbstractIntegrationSpec {
+class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Rule
-    PluginPortalTestServer portal = new PluginPortalTestServer(executer, mavenRepo)
+    PluginResolutionServiceTestServer portal = new PluginResolutionServiceTestServer(executer, mavenRepo)
 
     def setup() {
         portal.start()

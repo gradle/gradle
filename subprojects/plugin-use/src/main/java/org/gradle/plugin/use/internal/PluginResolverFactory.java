@@ -22,7 +22,7 @@ import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
-import org.gradle.plugin.use.resolve.portal.internal.PluginPortalResolver;
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,16 +31,16 @@ public class PluginResolverFactory {
 
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
-    private final PluginPortalResolver pluginPortalResolver;
+    private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
 
     public PluginResolverFactory(
             PluginRegistry pluginRegistry,
             DocumentationRegistry documentationRegistry,
-            PluginPortalResolver pluginPortalResolver
+            PluginResolutionServiceResolver pluginResolutionServiceResolver
     ) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
-        this.pluginPortalResolver = pluginPortalResolver;
+        this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
     }
 
     public PluginResolver createPluginResolver() {
@@ -57,7 +57,7 @@ public class PluginResolverFactory {
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver());
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
-        resolvers.add(pluginPortalResolver);
+        resolvers.add(pluginResolutionServiceResolver);
     }
 
 }

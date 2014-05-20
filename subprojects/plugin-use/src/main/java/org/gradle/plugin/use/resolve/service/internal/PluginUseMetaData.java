@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.portal.internal;
+package org.gradle.plugin.use.resolve.service.internal;
 
 import org.gradle.api.GradleException;
 
 import java.util.Map;
 
 /**
- * Defines the JSON protocol for plugin portal responses to plugin metadata queries.
+ * Defines the JSON protocol for plugin resolution service responses to plugin metadata queries.
  */
 class PluginUseMetaData {
 

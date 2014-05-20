@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.portal
+package org.gradle.plugin.use.resolve.service
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.plugin.use.resolve.portal.internal.PluginPortalResolver
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -31,13 +31,13 @@ import javax.servlet.http.HttpServletResponse
 
 import static org.gradle.test.fixtures.server.http.HttpServer.Utils.json
 
-class PluginPortalTestServer extends ExternalResource {
+class PluginResolutionServiceTestServer extends ExternalResource {
 
     private final HttpServer http
 
     final MavenHttpRepository m2repo
 
-    PluginPortalTestServer(GradleExecuter executer, MavenFileRepository repo) {
+    PluginResolutionServiceTestServer(GradleExecuter executer, MavenFileRepository repo) {
         this.http = new HttpServer()
         this.m2repo = new MavenHttpRepository(http, repo)
 
@@ -45,7 +45,7 @@ class PluginPortalTestServer extends ExternalResource {
             void execute(GradleExecuter e) {
                 if (http.running) {
                     e.withArgument(
-                            "-D$PluginPortalResolver.OVERRIDE_URL_PROPERTY=$http.address",
+                            "-D$PluginResolutionServiceResolver.OVERRIDE_URL_PROPERTY=$http.address",
                     )
                 }
             }

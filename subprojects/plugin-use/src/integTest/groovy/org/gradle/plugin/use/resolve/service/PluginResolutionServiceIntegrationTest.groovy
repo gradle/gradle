@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.portal
+package org.gradle.plugin.use.resolve.service
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -22,11 +22,11 @@ import org.gradle.util.GradleVersion
 import org.hamcrest.Matchers
 import org.junit.Rule
 
-public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSpec {
+public class PluginResolutionServiceIntegrationTest extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Rule
-    PluginPortalTestServer portal = new PluginPortalTestServer(executer, mavenRepo)
+    PluginResolutionServiceTestServer portal = new PluginResolutionServiceTestServer(executer, mavenRepo)
 
     def setup() {
         portal.start()
@@ -42,7 +42,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         succeeds("verify")
     }
 
-    def "404 response from plugin portal fails plugin resolution"() {
+    def "404 response fails plugin resolution"() {
         portal.expectMissing("myplugin", "1.0")
 
         buildScript applyAndVerify("myplugin", "1.0")
@@ -101,7 +101,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         expect:
         fails("verify")
         failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
-        failure.assertHasCause("Failed to parse plugin portal JSON response.")
+        failure.assertHasCause("Failed to parse plugin resolution service JSON response.")
     }
 
     def "extra information in portal JSON response is tolerated (and neglected)"() {
@@ -142,7 +142,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         expect:
         fails("verify")
         failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
-        failure.assertHasCause("Plugin cannot be resolved from plugin portal because Gradle is running in offline mode.")
+        failure.assertHasCause("Plugin cannot be resolved from plugin resolution service because Gradle is running in offline mode.")
     }
 
     def "cannot resolve plugin with snapshot version"() {
@@ -185,7 +185,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         succeeds("verify")
     }
 
-    def "plugin portal error message is embedded in user error message"() {
+    def "error message is embedded in user error message"() {
         portal.expectQueryAndReturnError("myplugin", "1.0", 500, "INTERNAL_SERVER_ERROR", "Bintray communication failure")
 
         buildScript applyAndVerify("myplugin", "1.0")
@@ -193,7 +193,7 @@ public class PluginPortalResolutionIntegrationTest extends AbstractIntegrationSp
         expect:
         fails("verify")
         failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
-        failure.assertHasCause("Plugin portal returned HTTP 500 with message 'Bintray communication failure'.")
+        failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'Bintray communication failure'.")
     }
 
     private void publishPlugin(String pluginId, String group, String artifact, String version) {

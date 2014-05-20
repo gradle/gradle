@@ -19,7 +19,7 @@ package org.gradle.plugin.use
 import org.gradle.api.Project
 import org.gradle.api.specs.AndSpec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.use.resolve.portal.PluginPortalTestServer
+import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.junit.Rule
 
@@ -34,11 +34,11 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file(ARTIFACT))
 
     @Rule
-    PluginPortalTestServer portal = new PluginPortalTestServer(executer, mavenRepo)
+    PluginResolutionServiceTestServer resolutionService = new PluginResolutionServiceTestServer(executer, mavenRepo)
 
     def setup() {
         executer.requireGradleHome() // need accurate classloading
-        portal.start()
+        resolutionService.start()
     }
 
     def "plugin is available via `plugins` container"() {
@@ -132,8 +132,8 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void publishPlugin(String impl) {
-        portal.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
-        def module = portal.m2repo.module(GROUP, ARTIFACT, VERSION)
+        resolutionService.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION)
+        def module = resolutionService.m2repo.module(GROUP, ARTIFACT, VERSION)
         module.allowAll()
 
         pluginBuilder.addPlugin(impl, PLUGIN_ID)

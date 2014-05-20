@@ -36,8 +36,8 @@ import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.plugin.use.resolve.portal.internal.PluginPortalClient;
-import org.gradle.plugin.use.resolve.portal.internal.PluginPortalResolver;
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
@@ -53,28 +53,28 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
     }
 
     private static class BuildScopeServices {
-        PluginPortalClient createPluginPortalClient() {
+        PluginResolutionServiceClient createPluginResolutionServiceClient() {
             HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(new PasswordCredentials()));
             HttpResourceAccessor accessor = new HttpResourceAccessor(http);
-            return new PluginPortalClient(accessor);
+            return new PluginResolutionServiceClient(accessor);
         }
 
-        PluginPortalResolver createPluginPortalResolver(PluginPortalClient pluginPortalClient, Instantiator instantiator, StartParameter startParameter, final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoaderScopeRegistry classLoaderScopeRegistry) {
+        PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, Instantiator instantiator, StartParameter startParameter, final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoaderScopeRegistry classLoaderScopeRegistry) {
             final ProjectFinder projectFinder = new ProjectFinder() {
                 public ProjectInternal getProject(String path) {
                     throw new UnknownProjectException("Cannot use project dependencies in a plugin resolution definition.");
                 }
             };
 
-            return new PluginPortalResolver(pluginPortalClient, instantiator, startParameter, classLoaderScopeRegistry.getCoreScope(), new Factory<DependencyResolutionServices>() {
+            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, instantiator, startParameter, classLoaderScopeRegistry.getCoreScope(), new Factory<DependencyResolutionServices>() {
                 public DependencyResolutionServices create() {
                     return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, new BasicDomainObjectContext());
                 }
             });
         }
 
-        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginPortalResolver pluginPortalResolver) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginPortalResolver);
+        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver) {
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver);
         }
 
         PluginRequestApplicatorFactory createPluginUseServices(PluginResolverFactory pluginResolverFactory) {
