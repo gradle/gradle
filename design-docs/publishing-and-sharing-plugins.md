@@ -451,7 +451,9 @@ We must support the use cases listed in this section, that deal with this transi
 
 #### Isolated plugin author depends on non-isolated plugin
 
-# Milestone 1 - “usable”
+# Milestone 1 - non-declarative plugins via `plugins {}`
+
+This milestone enables plugin authors to start making their plugins (relatively as is) usable via `plugins {}`, and allows users to start using `plugins {}` (with some limitations)
 
 ## Story: Introduce plugins DSL block
 
@@ -518,6 +520,9 @@ Note: plugins from buildSrc are not core plugins.
 - Should a qualified plugin id of a namespace other than 'org.gradle', with no version constraint, yield a special error message? i.e. only 'org.gradle' plugins can omit version
 
 ## Story: User uses declarative plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes 
+
+> This story doesn't strictly deal with the milestone goal, but is included in this milestone for historical reasons.
+> Moreover, it's a simpler story than adding support for non-declarative plugins and adding plugin resolution service support  in one step.
 
 This story covers adding a plugin “resolver” that uses the plugins.gradle.org service to resolve a plugin spec into an implementation.
 
@@ -590,7 +595,7 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 
 - Is it worth validating the id/version returned by the service against what we asked for?
 
-## Story: User uses non-declarative plugin “from” `plugins.gradle.org` of static version with dependency on core plugin
+## Story: User uses non-declarative plugin from `plugins.gradle.org` of static version with dependency on core plugin
 
 The plugin portal resolver returns a payload indicating that this plugin is non-declarative and should be loaded as such.
 
@@ -639,60 +644,26 @@ The detail of the error response differentiates the response from a generic 404.
 
 - What to use to unmarshall JSON responses? Jackson? Should the API couple to a marshaller at this level?
 
-## Story: Gradle is routinely tested against real plugins.gradle.org codebase
-
-This story covers setting up continuous testing of Gradle against the real plugin portal code, but not the real instance.
-
-This provides some verification that the test double that is used in the Gradle build to simulate the plugin portal is representative, and that the inverse (i.e. plugin portal's assumptions about Gradle behaviour) holds.
-
-This does not replace the double based tests in the Gradle codebase.
-
-## Story: Plugin author uses plugin development plugin to build a plugin
-
-This story adds a plugin development plugin to help plugin authors build a plugin. Later stories will add the ability to test and publish the plugin.
-
-## Story: Plugin author uses plugin development plugin to publish a plugin
-
-This story extends the plugin development plugin to generate the meta-data and publish a plugin.
-
-## Story: Plugins are able to declare exported classes
-
-This is the first story where we require changes to how plugins are published and/or implemented (i.e. exported class information is needed). 
-
-The plugin development plugin should provide some mechanism to declare the exported classes of a plugin (possibly a DSL, possibly annotations in code, or something else).
-This should end up in the generated meta-data.
-
-Plugin authors should be able to write their plugin in such a way that it works with the new mechanism and the old project.apply() mechanism (as long as it has no dependency on any other, even core, plugin).
-
-## Story: Plugins are able to declare dependency on core plugin
-
-The plugin development plugin should provide some mechanism to declare a dependency on a core plugin (possibly a DSL, possibly annotations in code, or something else).
-This should end up in the generated meta-data.
-
-Plugin authors should be able to write their plugin in such a way that it works with the new mechanism and the old project.apply() mechanism (as long as it has no dependency a non core plugin).
-
-# Milestone 2 - “announceable”
-
 ## Story: User is notified that Gradle version is no longer supported by plugin portal
 
 ## Story: User is notified of use of 'deprecated' plugin
-
-## Story: Plugin resolution is cached across the entire build
-
-Don't make the same request to plugins.gradle.org in a single build, reuse implementation classloaders.
 
 ## Story: Plugin resolution is cached between builds
 
 i.e. responses from plugins.gradle.org are cached to disk (`--offline` support)
 
+## Story: Script plugins are able to use `plugins {}`
+
+## Story: Plugin author submits plugin for inclusion in plugins.gradle.org
+
+Includes:
+
+- Includes generating all necessary metadata (e.g. exported classes, plugin dependencies)
+- Tooling support for publishing in manner suitable for inclusion in plugins.gradle.org
+- Admin processes for including plugin, including acceptance policies etc.
+- Prevention of use of 'org.gradle' and 'com.gradleware' namespaces
+
 ## Story: Build author searches for plugins using central Web UI
-
-## Story: New plugin mechanism can be used in external scripts to apply plugins to `Project`
-
-## Story: Plugins are able to depend on other non core plugins
-
-Plugin dependencies can not be dynamic.
-Plugin dependencies can not be cyclic.
 
 ## Story: Make new plugin resolution mechanism public
 
@@ -709,16 +680,61 @@ Story is predicated on plugins.gradle.org providing a searchable interface for p
 
 Note: Plugin authors cannot really contribution to plugins.gradle.org at this point. The content will be “hand curated”.
 
-## Story: Plugin author submits plugin for inclusion in plugins.gradle.org
+# Milestone 2 - declarative plugins
 
-Includes:
+## Story: Plugin author uses plugin development plugin to build a plugin
 
-- Includes generating all necessary metadata (e.g. exported classes, plugin dependencies)
-- Tooling support for publishing in manner suitable for inclusion in plugins.gradle.org
-- Admin processes for including plugin, including acceptance policies etc.
-- Prevention of use of 'org.gradle' and 'com.gradleware' namespaces
+This story adds a plugin development plugin to help plugin authors build a plugin. Later stories will add the ability to test and publish the plugin.
+
+
+## Story: User uses declarative plugin via plugin dependencies DSL that depends on core Gradle plugin
+
+## Story: User uses declarative plugin via buildscript dependencies DSL that depends on core Gradle plugin
+
+## Story: Plugin author declares dependency on core Gradle plugin
+
+This story adds a general mechanism for plugin authors to declare dependencies on other plugins.
+This story only covers supporting core plugins, but consideration should be given to ensuring the mechanism is evolvable to declaring dependencies on non core plugins.
+
+Required characteristics:
+
+1. List of plugins depended on must be obtainable at runtime, given a plugin implementation _class_ (to support updating `project.apply()` to auto apply dependencies, for loading declarative plugins through `buildscript {}`)
+1. Plugin resolution service must be able to obtain list of plugins depended on
+1. Build author should not have to specify this information in more than one place
+
+This likely requires build time functionality introduced by the plugin development plugin from the previous story.
+
+## Story: Plugin resolution is cached across the entire build
+
+Don't make the same request to plugins.gradle.org in a single build, reuse implementation classloaders.
+
+## Story: Plugin author uses plugin development plugin to publish a plugin
+
+This story extends the plugin development plugin to generate the meta-data and publish a plugin.
+
+## Story: Plugins are able to declare exported classes
+
+This is the first story where we require changes to how plugins are published and/or implemented (i.e. exported class information is needed). 
+
+The plugin development plugin should provide some mechanism to declare the exported classes of a plugin (possibly a DSL, possibly annotations in code, or something else).
+This should end up in the generated meta-data.
+
+Plugin authors should be able to write their plugin in such a way that it works with the new mechanism and the old project.apply() mechanism (as long as it has no dependency on any other, even core, plugin).
+
+## Story: Declarative plugins are able to depend on other non core plugins
+
+Plugin dependencies can not be dynamic.
+Plugin dependencies can not be cyclic.
 
 # Milestone 3 - “parkable”
+
+## Story: Gradle is routinely tested against real plugins.gradle.org codebase
+
+This story covers setting up continuous testing of Gradle against the real plugin portal code, but not the real instance.
+
+This provides some verification that the test double that is used in the Gradle build to simulate the plugin portal is representative, and that the inverse (i.e. plugin portal's assumptions about Gradle behaviour) holds.
+
+This does not replace the double based tests in the Gradle codebase.
 
 ## Story: Plugin author reasonably tests realistic use of plugin with dependencies
 
