@@ -714,8 +714,7 @@ configurations.all {
         }
     }
 
-    @Unroll
-    def "checks remote for dynamic version before failing due to #scenario"() {
+    def "reports and recovers from no matching dynamic version"() {
         given:
         useRepository ivyHttpRepo
         buildFile << """
@@ -727,11 +726,7 @@ dependencies {
 
         when: "no version > 2"
         ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        if (isMissing) {
-            ivyHttpRepo.expectDirectoryListGetMissing("group", "projectA")
-        } else {
-            ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        }
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
 
         then:
         fails "checkDeps"
@@ -746,11 +741,34 @@ dependencies {
 
         then:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
+    }
 
-        where:
-        scenario | isMissing
-        "module missing in cache listing" | true
-        "no valid version in cache listing" | false
+    def "reports and recovers from no versions available for dynamic version"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "group", name: "projectA", version: "2.+"
+}
+"""
+
+        when: "no version > 2"
+        ivyHttpRepo.expectDirectoryListGetMissing("group", "projectA")
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("Could not find any version that matches group:projectA:2.+.")
+
+        when:
+        def projectA2 = ivyHttpRepo.module("group", "projectA", "2.2").publish()
+
+        and:
+        server.resetExpectations()
+        expectGetDynamicRevision(projectA2)
+
+        then:
+        checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
     @Unroll

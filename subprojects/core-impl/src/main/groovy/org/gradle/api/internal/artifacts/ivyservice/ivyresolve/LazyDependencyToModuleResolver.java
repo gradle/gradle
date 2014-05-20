@@ -27,6 +27,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
+import java.util.List;
+
 /**
  * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionIdResolver} implementation which returns lazy resolvers that don't actually retrieve module descriptors until
  * required.
@@ -51,7 +53,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
 
     private abstract class AbstractVersionResolveResult implements ModuleVersionIdResolveResult {
         final DependencyMetaData dependency;
-        private BuildableComponentResolveResult resolveResult;
+        private DefaultBuildableComponentResolveResult resolveResult;
 
         public AbstractVersionResolveResult(DependencyMetaData dependency) {
             this.dependency = dependency;
@@ -71,7 +73,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
                         throw new ModuleVersionResolveException(dependency.getRequested(), t);
                     }
                     if (resolveResult.getFailure() instanceof ModuleVersionNotFoundException) {
-                        throw notFound();
+                        throw notFound(resolveResult.getAttempted());
                     }
                     if (resolveResult.getFailure() != null) {
                         throw resolveResult.getFailure();
@@ -100,7 +102,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             }
         }
 
-        protected abstract ModuleVersionNotFoundException notFound();
+        protected abstract ModuleVersionNotFoundException notFound(List<String> attempted);
     }
 
     private class StaticVersionResolveResult extends AbstractVersionResolveResult {
@@ -128,8 +130,8 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             super.checkDescriptor(metaData);
         }
 
-        protected ModuleVersionNotFoundException notFound() {
-            return new ModuleVersionNotFoundException(id);
+        protected ModuleVersionNotFoundException notFound(List<String> attempted) {
+            return new ModuleVersionNotFoundException(id, attempted);
         }
     }
 
@@ -148,8 +150,8 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
         }
 
         @Override
-        protected ModuleVersionNotFoundException notFound() {
-            return new ModuleVersionNotFoundException(dependency.getRequested());
+        protected ModuleVersionNotFoundException notFound(List<String> attempted) {
+            return new ModuleVersionNotFoundException(dependency.getRequested(), attempted);
         }
     }
 }
