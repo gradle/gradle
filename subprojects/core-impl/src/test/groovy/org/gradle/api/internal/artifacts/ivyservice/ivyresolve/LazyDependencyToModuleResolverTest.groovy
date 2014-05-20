@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
+
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
@@ -22,7 +23,10 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.ivyservice.*
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
@@ -149,18 +153,18 @@ class LazyDependencyToModuleResolverTest extends Specification {
         0 * target._
     }
 
-    def "collects and wraps module not found"() {
+    def "rethrows resolution failure"() {
         def dependency = dependency()
+        def failure = new ModuleVersionResolveException(newId("org", "a", "1.2"), "%s is broken")
 
         when:
         def resolveResult = resolver.resolve(dependency).resolve()
 
         then:
-        resolveResult.failure instanceof ModuleVersionNotFoundException
-        resolveResult.failure.message == "Could not find group:module:1.0."
+        resolveResult.failure == failure
 
         and:
-        1 * target.resolve(dependency, _) >> { args -> args[1].failed(new ModuleVersionNotFoundException(newId("org", "a", "1.2")))}
+        1 * target.resolve(dependency, _) >> { args -> args[1].failed(failure)}
     }
 
     def "collects and wraps unexpected module resolve failure"() {
@@ -176,41 +180,6 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         and:
         1 * target.resolve(dependency, _) >> { throw failure }
-    }
-
-    def "collects and wraps module not found for missing dynamic version"() {
-        def dependency = dependency()
-
-        given:
-        matcher.isDynamic(_) >> true
-
-        when:
-        def idResolveResult = resolver.resolve(dependency)
-
-        then:
-        idResolveResult.failure instanceof ModuleVersionNotFoundException
-        idResolveResult.failure.message == "Could not find any version that matches group:module:1.0."
-
-        and:
-        1 * target.resolve(dependency, _) >> { args -> args[1].failed(new ModuleVersionNotFoundException(newId("org", "a", "1.2")))}
-
-        when:
-        idResolveResult.id
-
-        then:
-        ModuleVersionNotFoundException e = thrown()
-        e.is(idResolveResult.failure)
-
-        and:
-        0 * target._
-
-        when:
-        def resolveResult = idResolveResult.resolve()
-        resolveResult.metaData
-
-        then:
-        e = thrown()
-        e.is(idResolveResult.failure)
     }
 
     def module() {

@@ -50,7 +50,7 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         builder.append(messageFormat);
         builder.append(String.format("%nSearched in the following locations:"));
         for (String location : locations) {
-            builder.append(String.format("%n    %s", location));
+            builder.append(String.format("%n    %s", location.replace("%", "%%")));
         }
         return builder.toString();
     }

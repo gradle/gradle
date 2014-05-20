@@ -31,7 +31,11 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     }
 
     public void notFound(ModuleVersionSelector versionSelector) {
-        failed(new ModuleVersionNotFoundException(versionSelector));
+        failed(new ModuleVersionNotFoundException(versionSelector, getAttempted()));
+    }
+
+    public void notFound(ModuleVersionIdentifier versionIdentifier) {
+        failed(new ModuleVersionNotFoundException(versionIdentifier, getAttempted()));
     }
 
     public void resolved(ComponentMetaData metaData) {

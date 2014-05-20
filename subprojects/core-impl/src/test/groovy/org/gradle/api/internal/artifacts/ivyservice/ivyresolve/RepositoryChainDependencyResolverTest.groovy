@@ -21,6 +21,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
@@ -33,7 +34,8 @@ class RepositoryChainDependencyResolverTest extends Specification {
     final metaData = metaData("1.2")
     final moduleComponentId = DefaultModuleComponentIdentifier.newId("group", "project", "1.0")
     final dependency = Stub(DependencyMetaData)
-    final selector = Stub(ModuleVersionSelector)
+    final selector = DefaultModuleVersionSelector.newSelector("group", "project", "1.0")
+    final moduleVersionId = DefaultModuleVersionIdentifier.newId("group", "project", "1.0")
     final dependencyDescriptor = Stub(DependencyDescriptor)
 
     final Transformer<ModuleVersionMetaData, RepositoryChainModuleResolution> transformer = Mock(Transformer)
@@ -53,9 +55,6 @@ class RepositoryChainDependencyResolverTest extends Specification {
     }
 
     def setup() {
-        _ * selector.group >> moduleComponentId.group
-        _ * selector.name >> moduleComponentId.module
-        _ * selector.version >> moduleComponentId.version
         _ * dependency.requested >> selector
         _ * dependency.descriptor >> dependencyDescriptor
     }
@@ -249,7 +248,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         0 * result._
     }
 
-    def "fails with not found when local dependency is marked as missing"() {
+    def "fails with not found when local static dependency is marked as missing"() {
         given:
         def repo = addRepo1()
 
@@ -258,7 +257,29 @@ class RepositoryChainDependencyResolverTest extends Specification {
 
         then:
         1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+            result.attempted("scheme:thing")
             result.missing()
+        }
+        1 * result.attempted("scheme:thing")
+        1 * result.notFound(moduleVersionId)
+
+        and:
+        0 * localAccess._
+        0 * remoteAccess._
+        0 * result._
+    }
+
+    def "fails with not found when local dynamic dependency is marked as missing"() {
+        given:
+        def repo = addRepo1()
+
+        when:
+        resolver.resolve(dependency, result)
+
+        then:
+        1 * componentSelectionStrategy.canSelectMultipleComponents(selector) >> true
+        1 * localAccess.listModuleVersions(dependency, _) >> { dep, result ->
+            result.listed(new DefaultModuleVersionListing())
         }
         1 * result.notFound(selector)
 
@@ -268,7 +289,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         0 * result._
     }
 
-    def "fails with not found when local and remote dependency marked as missing"() {
+    def "fails with not found when local and remote static dependency marked as missing"() {
         given:
         addRepo1()
 
@@ -282,7 +303,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
         1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
             result.missing()
         }
-        1 * result.notFound(selector)
+        1 * result.notFound(moduleVersionId)
 
         and:
         0 * localAccess._

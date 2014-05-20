@@ -49,7 +49,10 @@ repositories {
     }
 
     def "resolves artifacts of non-existing component"() {
-        fixture.expectComponentNotFound().prepare()
+        def location1 = file("repo/some-artifact-1.0.jar").toURL().toString()
+        def location2 = file("repo/some-artifact.jar").toURL().toString()
+
+        fixture.expectComponentNotFound([location1, location2]).prepare()
 
         expect:
         succeeds("verify")
@@ -78,8 +81,10 @@ repositories {
     def "can only resolve component if main artifact exists"() {
         file("repo/some-artifact-1.0-sources.jar").createFile()
         file("repo/some-artifact-1.0-javadoc.jar").createFile()
+        def location1 = file("repo/some-artifact-1.0.jar").toURL().toString()
+        def location2 = file("repo/some-artifact.jar").toURL().toString()
 
-        fixture.expectComponentNotFound().prepare()
+        fixture.expectComponentNotFound([location1, location2]).prepare()
 
         expect:
         succeeds("verify")

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableComponentResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
@@ -78,7 +79,11 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
             for (RepositoryResolveState resolveState : resolveStates) {
                 resolveState.resolveResult.applyTo(result);
             }
-            result.notFound(requested);
+            if (dynamicSelector) {
+                result.notFound(requested);
+            } else {
+                result.notFound(DefaultModuleVersionIdentifier.newId(requested.getGroup(), requested.getName(), requested.getVersion()));
+            }
         }
     }
 

@@ -27,8 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
-import java.util.List;
-
 /**
  * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionIdResolver} implementation which returns lazy resolvers that don't actually retrieve module descriptors until
  * required.
@@ -72,9 +70,6 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
                     } catch (Throwable t) {
                         throw new ModuleVersionResolveException(dependency.getRequested(), t);
                     }
-                    if (resolveResult.getFailure() instanceof ModuleVersionNotFoundException) {
-                        throw notFound(resolveResult.getAttempted());
-                    }
                     if (resolveResult.getFailure() != null) {
                         throw resolveResult.getFailure();
                     }
@@ -101,8 +96,6 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
                 }
             }
         }
-
-        protected abstract ModuleVersionNotFoundException notFound(List<String> attempted);
     }
 
     private class StaticVersionResolveResult extends AbstractVersionResolveResult {
@@ -129,10 +122,6 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             }
             super.checkDescriptor(metaData);
         }
-
-        protected ModuleVersionNotFoundException notFound(List<String> attempted) {
-            return new ModuleVersionNotFoundException(id, attempted);
-        }
     }
 
     private class DynamicVersionResolveResult extends AbstractVersionResolveResult {
@@ -147,11 +136,6 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
 
         public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
             return resolve().getId();
-        }
-
-        @Override
-        protected ModuleVersionNotFoundException notFound(List<String> attempted) {
-            return new ModuleVersionNotFoundException(dependency.getRequested(), attempted);
         }
     }
 }

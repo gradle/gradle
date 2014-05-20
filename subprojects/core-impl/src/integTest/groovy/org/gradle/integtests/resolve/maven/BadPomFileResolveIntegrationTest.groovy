@@ -142,7 +142,10 @@ task showBroken << { println configurations.compile.files }
         then:
         failure.assertResolutionFailure(':compile')
                 .assertHasCause("Could not parse POM ${child.pom.uri}")
-                .assertHasCause("Could not find any version that matches org:parent:1.0.")
+                .assertHasCause("""Could not find org:parent:1.0.
+Searched in the following locations:
+    ${parent.pom.uri}
+    ${parent.artifact.uri}""")
     }
 
     def "reports parent POM that cannot be parsed"() {

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
@@ -66,8 +67,8 @@ class JvmLibraryArtifactResolveTestFixture {
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectComponentNotFound() {
-        this.unresolvedComponentFailure = new ModuleVersionNotFoundException(new DefaultModuleVersionSelector(id.group, id.module, id.version))
+    JvmLibraryArtifactResolveTestFixture expectComponentNotFound(List<String> searchLocations) {
+        this.unresolvedComponentFailure = new ModuleVersionNotFoundException(new DefaultModuleVersionIdentifier(id.group, id.module, id.version), searchLocations)
         this
     }
 
@@ -168,14 +169,13 @@ task $taskName << {
 """
     }
 
-
     private static String checkException(String reference, Throwable expected) {
         if (expected == null) {
             return "throw $reference"
         }
         String check = """
     assert ${reference} instanceof ${expected.class.name}
-    assert ${reference}.message == "${expected.message}"
+    assert ${reference}.message == '''${expected.message}'''
 """
         if (expected.cause != null) {
             check += """
