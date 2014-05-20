@@ -106,7 +106,7 @@ class DependencyManagementBuildScopeServices {
                 new DependencyClassPathNotationParser(instantiator, classPathRegistry, fileLookup.getFileResolver()));
 
         return new DefaultDependencyFactory(
-                new DependencyNotationParser(notationParsers),
+                DependencyNotationParser.parser(notationParsers),
                 new ClientModuleNotationParserFactory(instantiator).create(),
                 projectDependencyFactory);
     }

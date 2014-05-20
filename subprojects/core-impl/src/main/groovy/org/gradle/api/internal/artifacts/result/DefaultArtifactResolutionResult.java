@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
+import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ComponentResult;
-import org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult;
 
 import java.util.Set;
 
@@ -34,11 +34,11 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
         return componentResults;
     }
 
-    public Set<ResolvedComponentArtifactsResult> getResolvedComponents() {
-        Set<ResolvedComponentArtifactsResult> resolvedComponentResults = Sets.newLinkedHashSet();
+    public Set<ComponentArtifactsResult> getResolvedComponents() {
+        Set<ComponentArtifactsResult> resolvedComponentResults = Sets.newLinkedHashSet();
         for (ComponentResult componentResult : componentResults) {
-            if (componentResult instanceof ResolvedComponentArtifactsResult) {
-                resolvedComponentResults.add((ResolvedComponentArtifactsResult) componentResult);
+            if (componentResult instanceof ComponentArtifactsResult) {
+                resolvedComponentResults.add((ComponentArtifactsResult) componentResult);
             }
         }
         return resolvedComponentResults;

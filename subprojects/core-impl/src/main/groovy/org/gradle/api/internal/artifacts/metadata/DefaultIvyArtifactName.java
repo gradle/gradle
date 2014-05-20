@@ -35,7 +35,16 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         this.name = name;
         this.type = type;
         this.extension = extension;
-        this.attributes = attributes.isEmpty() ? Collections.<String, String>emptyMap() : new HashMap<String, String>(attributes);
+        if (attributes.isEmpty()) {
+            this.attributes = Collections.emptyMap();
+        } else {
+            this.attributes = new HashMap<String, String>();
+            for (Map.Entry<String, String> entry : attributes.entrySet()) {
+                if (GUtil.isTrue(entry.getValue())) {
+                    this.attributes.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension) {

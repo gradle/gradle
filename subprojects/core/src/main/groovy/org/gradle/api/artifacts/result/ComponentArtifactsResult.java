@@ -26,8 +26,7 @@ import java.util.Set;
  * @since 2.0
  */
 @Incubating
-// TODO:DAZ Rename to ComponentArtifactsResult
-public interface ResolvedComponentArtifactsResult extends ComponentResult {
+public interface ComponentArtifactsResult extends ComponentResult {
     /**
      * <p>Returns the component artifacts of the specified type. Includes resolved and unresolved artifacts (if any).
      *

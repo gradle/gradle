@@ -16,9 +16,11 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
@@ -34,12 +36,28 @@ import java.util.List;
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
 abstract public class AvailableJavaHomes {
-
     private static List<JvmInstallation> jvms;
 
     /**
-     * Locates a JVM installation that is different to the current JVM.
+     * Locates a JDK installation for the given version.
+     * @return null if not found.
      */
+    @Nullable
+    public static JavaInfo getJdk(JavaVersion version) {
+        for (JvmInstallation candidate : getJvms()) {
+            if (candidate.getJavaVersion().equals(version) && candidate.isJdk()) {
+                return Jvm.forHome(candidate.getJavaHome());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Locates a JVM installation that is different to the current JVM.
+     *
+     * @return null if not found.
+     */
+    @Nullable
     public static File getBestAlternative() {
         Jvm jvm = Jvm.current();
         for (JvmInstallation candidate : getJvms()) {

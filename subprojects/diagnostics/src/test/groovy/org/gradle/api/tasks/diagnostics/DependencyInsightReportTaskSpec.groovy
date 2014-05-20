@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.specs.Spec
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -50,7 +51,7 @@ class DependencyInsightReportTaskSpec extends Specification {
         task.setDependencySpec("")
 
         then:
-        thrown(InvalidUserDataException)
+        thrown(UnsupportedNotationException)
     }
 
     def "can set spec and configuration directly"() {

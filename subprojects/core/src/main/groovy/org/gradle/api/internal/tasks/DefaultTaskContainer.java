@@ -28,7 +28,6 @@ import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -138,17 +137,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
     }
 
-    public Task resolveTask(Object path) {
+    public Task resolveTask(String path) {
         if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
-        if (!(path instanceof CharSequence)) {
-            DeprecationLogger.nagUserOfDeprecated(
-                    String.format("Converting class %s to a task dependency using toString()", path.getClass().getName()),
-                    "Please use org.gradle.api.Task, java.lang.String, org.gradle.api.Buildable, org.gradle.tasks.TaskDependency or a Closure to declare your task dependencies"
-            );
-        }
-        return getByPath(path.toString());
+        return getByPath(path);
     }
 
     public Task getByPath(String path) throws UnknownTaskException {

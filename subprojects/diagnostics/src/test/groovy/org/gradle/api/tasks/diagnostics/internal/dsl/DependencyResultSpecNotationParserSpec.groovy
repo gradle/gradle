@@ -16,11 +16,11 @@
 
 package org.gradle.api.tasks.diagnostics.internal.dsl
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder
-import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.api.specs.Spec
+import org.gradle.internal.typeconversion.NotationParser
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class DependencyResultSpecNotationParserSpec extends Specification {
@@ -75,7 +75,7 @@ class DependencyResultSpecNotationParserSpec extends Specification {
         parser.parseNotation(['not supported'])
 
         then:
-        def ex = thrown(InvalidUserDataException)
+        def ex = thrown(UnsupportedNotationException)
         ex.message.contains 'not supported'
         ex.message.contains 'DependencyInsight.dependency'
     }
@@ -84,11 +84,11 @@ class DependencyResultSpecNotationParserSpec extends Specification {
         when:
         parser.parseNotation('')
         then:
-        thrown(InvalidUserDataException)
+        thrown(UnsupportedNotationException)
 
         when:
         parser.parseNotation(' ')
         then:
-        thrown(InvalidUserDataException)
+        thrown(UnsupportedNotationException)
     }
 }

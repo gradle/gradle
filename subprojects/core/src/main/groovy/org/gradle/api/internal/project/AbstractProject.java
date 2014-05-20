@@ -496,28 +496,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         }
     }
 
-    public Task createTask(Map args, String name, Closure action) {
-        warnCreateTaskDeprecated();
-        Map<String, Object> allArgs = new HashMap<String, Object>(args);
-        allArgs.put(Task.TASK_NAME, name);
-        allArgs.put(Task.TASK_ACTION, action);
-        return taskContainer.create(allArgs);
-    }
-
-    public Task createTask(Map<String, ?> args, String name, Action<? super Task> action) {
-        warnCreateTaskDeprecated();
-        Map<String, Object> allArgs = new HashMap<String, Object>(args);
-        allArgs.put(Task.TASK_NAME, name);
-        if (action != null) {
-            allArgs.put(Task.TASK_ACTION, action);
-        }
-        return taskContainer.create(allArgs);
-    }
-
-    private void warnCreateTaskDeprecated() {
-        DeprecationLogger.nagUserOfReplacedMethod("Project.createTask()", "task()");
-    }
-
     public void addChildProject(ProjectInternal childProject) {
         childProjects.put(childProject.getName(), childProject);
     }
@@ -641,11 +619,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
         return getFileOperations().fileTree(args);
-    }
-
-    public ConfigurableFileTree fileTree(Closure closure) {
-        DeprecationLogger.nagUserOfDeprecated("fileTree(Closure)", "Use fileTree((Object){ baseDir }) to have the closure used as the file tree base directory");
-        return getFileOperations().fileTree(closure);
     }
 
     public FileTree zipTree(Object zipPath) {

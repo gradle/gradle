@@ -39,7 +39,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import org.junit.Test
 import spock.lang.Specification
 
 public class DefaultFileOperationsTest extends Specification {
@@ -120,19 +119,6 @@ public class DefaultFileOperationsTest extends Specification {
 
         when:
         def fileTree = fileOperations.fileTree(dir: 'base')
-
-        then:
-        fileTree instanceof FileTree
-        fileTree.dir == baseDir
-        fileTree.resolver.is(resolver)
-    }
-
-    @Test
-    public void createsFileTreeFromClosure() {
-        TestFile baseDir = expectPathResolved('base')
-
-        when:
-        def fileTree = fileOperations.fileTree { from 'base' }
 
         then:
         fileTree instanceof FileTree

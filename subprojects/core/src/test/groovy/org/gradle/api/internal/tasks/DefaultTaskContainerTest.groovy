@@ -263,7 +263,7 @@ public class DefaultTaskContainerTest extends Specification {
         expectTaskLookupInOtherProject(":", "task", task)
 
         then:
-        container.resolveTask(new StringBuilder(":task")) == task
+        container.resolveTask(":task") == task
     }
 
     void "actualizes task graph"() {

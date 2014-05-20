@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
+import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ComponentResult;
-import org.gradle.api.artifacts.result.ResolvedComponentArtifactsResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
@@ -81,6 +81,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     }
 
     public ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes) {
+        if (this.componentType != null) {
+            throw new IllegalStateException("Cannot specify component type multiple times.");
+        }
         this.componentType = componentType;
         this.artifactTypes.addAll(Arrays.asList(artifactTypes));
         return this;
@@ -88,6 +91,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
     // TODO:DAZ This is ugly and needs a major cleanup and unit tests
     public ArtifactResolutionResult execute() {
+        if (componentType == null) {
+            throw new IllegalStateException("Must specify component type and artifacts to query.");
+        }
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
         ConfigurationInternal configuration = configurationContainer.detachedConfiguration();
         final RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataProcessor);
@@ -114,18 +120,18 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         });
     }
 
-    private ResolvedComponentArtifactsResult buildComponentResult(ModuleComponentIdentifier moduleComponentId, RepositoryChain repositoryChain, ArtifactResolver artifactResolver) {
+    private ComponentArtifactsResult buildComponentResult(ModuleComponentIdentifier moduleComponentId, RepositoryChain repositoryChain, ArtifactResolver artifactResolver) {
         BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
         repositoryChain.getDependencyResolver().resolve(new DefaultDependencyMetaData(moduleComponentId, true), moduleResolveResult);
         ComponentMetaData component = moduleResolveResult.getMetaData();
-        DefaultResolvedComponentArtifactsResult componentResult = new DefaultResolvedComponentArtifactsResult(component.getComponentId());
+        DefaultComponentArtifactsResult componentResult = new DefaultComponentArtifactsResult(component.getComponentId());
         for (Class<? extends Artifact> artifactType : artifactTypes) {
             addArtifacts(componentResult, artifactType, component, artifactResolver);
         }
         return componentResult;
     }
 
-    private <T extends Artifact> void addArtifacts(DefaultResolvedComponentArtifactsResult artifacts, Class<T> type, ComponentMetaData component, ArtifactResolver artifactResolver) {
+    private <T extends Artifact> void addArtifacts(DefaultComponentArtifactsResult artifacts, Class<T> type, ComponentMetaData component, ArtifactResolver artifactResolver) {
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
         artifactResolver.resolveModuleArtifacts(component, convertType(type), artifactSetResolveResult);
 

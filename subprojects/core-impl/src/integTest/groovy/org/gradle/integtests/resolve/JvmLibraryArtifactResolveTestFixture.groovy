@@ -142,7 +142,7 @@ task $taskName << {
     // Check generic component result
     def componentResult = result.components.iterator().next()
     assert componentResult.id.displayName == "${id.displayName}"
-    assert componentResult instanceof ResolvedComponentArtifactsResult
+    assert componentResult instanceof ComponentArtifactsResult
 
     ${checkComponentResultArtifacts("componentResult", "sources", expectedSources, expectedSourceFailure)}
     ${checkComponentResultArtifacts("componentResult", "javadoc", expectedJavadoc, expectedJavadocFailure)}

@@ -20,9 +20,9 @@ import org.gradle.api.artifacts.result.ArtifactResult
 import org.gradle.api.component.Artifact
 import spock.lang.Specification
 
-class DefaultResolvedComponentArtifactsResultTest extends Specification {
+class DefaultComponentArtifactsResultTest extends Specification {
     def id = Mock(ComponentIdentifier)
-    def result = new DefaultResolvedComponentArtifactsResult(id)
+    def result = new DefaultComponentArtifactsResult(id)
 
     def "returns artifacts matching type"() {
         given:

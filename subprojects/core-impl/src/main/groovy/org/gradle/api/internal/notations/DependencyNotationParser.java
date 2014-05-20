@@ -16,40 +16,16 @@
 
 package org.gradle.api.internal.notations;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
-import java.util.Collection;
-
-public class DependencyNotationParser implements NotationParser<Object, Dependency> {
-
-    private final NotationParser<Object, Dependency> delegate;
-
-    public DependencyNotationParser(Iterable<NotationParser<Object, ? extends Dependency>> compositeParsers) {
-        delegate = new NotationParserBuilder<Dependency>()
+public class DependencyNotationParser {
+    public static NotationParser<Object, Dependency> parser(Iterable<NotationParser<Object, ? extends Dependency>> compositeParsers) {
+        return new NotationParserBuilder<Dependency>()
                 .resultingType(Dependency.class)
                 .parsers(compositeParsers)
                 .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
                 .toComposite();
-    }
-
-    DependencyNotationParser(NotationParser<Object, Dependency> delegate) {
-        this.delegate = delegate;
-    }
-
-    public void describe(Collection<String> candidateFormats) {
-        delegate.describe(candidateFormats);
-    }
-
-    public Dependency parseNotation(Object dependencyNotation) {
-        try {
-            return delegate.parseNotation(dependencyNotation);
-        } catch (GradleException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
-        }
     }
 }
