@@ -15,14 +15,15 @@
  */
 
 package org.gradle.integtests.resolve
+
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.test.fixtures.file.TestFile
+
 /**
  * A test fixture that injects a task into a build that uses the Artifact Query API to download some artifacts, validating the results.
  */
