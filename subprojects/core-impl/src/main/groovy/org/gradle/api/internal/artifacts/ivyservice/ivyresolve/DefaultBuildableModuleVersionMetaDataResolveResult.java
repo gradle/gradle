@@ -15,18 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-public class DefaultBuildableModuleVersionMetaDataResolveResult implements BuildableModuleVersionMetaDataResolveResult {
+public class DefaultBuildableModuleVersionMetaDataResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionMetaDataResolveResult {
     private State state = State.Unknown;
     private ModuleSource moduleSource;
     private ModuleVersionResolveException failure;
     private MutableModuleVersionMetaData metaData;
-    private final Set<String> attempted = new LinkedHashSet<String>();
 
     private void reset(State state) {
         this.state = state;
@@ -43,10 +40,6 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
         reset(State.Resolved);
         this.metaData = metaData;
         this.moduleSource = moduleSource;
-    }
-
-    public void attempted(String locationDescription) {
-        attempted.add(locationDescription);
     }
 
     public void missing() {
@@ -68,10 +61,6 @@ public class DefaultBuildableModuleVersionMetaDataResolveResult implements Build
 
     public boolean hasResult() {
         return state != State.Unknown;
-    }
-
-    public Set<String> getAttempted() {
-        return attempted;
     }
 
     public ModuleVersionResolveException getFailure() {

@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.metadata.ComponentMetaData;
 
-public class DefaultBuildableComponentResolveResult implements BuildableComponentResolveResult {
+public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentResolveResult {
     private ComponentMetaData metaData;
     private ModuleVersionResolveException failure;
 
