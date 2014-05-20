@@ -517,7 +517,7 @@ Note: plugins from buildSrc are not core plugins.
 
 - Should a qualified plugin id of a namespace other than 'org.gradle', with no version constraint, yield a special error message? i.e. only 'org.gradle' plugins can omit version
 
-## Story: User uses plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes 
+## Story: User uses declarative plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes 
 
 This story covers adding a plugin “resolver” that uses the plugins.gradle.org service to resolve a plugin spec into an implementation.
 
@@ -589,6 +589,34 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 ### Open questions
 
 - Is it worth validating the id/version returned by the service against what we asked for?
+
+## Story: User uses non-declarative plugin “from” `plugins.gradle.org` of static version with dependency on core plugin
+
+The plugin portal resolver returns a payload indicating that this plugin is non-declarative and should be loaded as such.
+
+Much of the error handling is shared with handling of declarative plugins.
+
+See “resolution process” section in “implementation plan” for details on how the plugin should be loaded.
+
+### Test Coverage
+
+- Plugin can use `project.apply()` to apply core Gradle plugin
+- Plugin is available in build script via `PluginContainer` - incl. `withType()` and `withId()` methods
+- Other classes from plugin implementation jar are visible to build script
+- Classes from plugin implementation dependencies are visible to build script
+- Plugin dependencies influence conflict resolution in `buildscript.configurations.classpath`
+    - Add a `buildscript {}` dependency on java library A @ version 1.0
+    - Add a `plugins {}` dependency on a non-declarative plugin that depends on A @ version 2.0
+    - Assert that _only_ version 2.0 was resolved
+- Plugin implementation classes are not visible to script plugins applied to target script
+- Plugin implementation classes are not visible to build scripts of child projects
+- Plugin can access classes from Gradle API
+- Plugin can access classes from Gradle core plugins
+- Plugin cannot access Gradle internal implementation classes
+- Failed resolution of module implementation from specified repository fails, with error message indicating why resolve was happening
+- Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message
+- Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message
+- Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message
 
 ## Story: Structured error response from plugin portal (when resolving plugin spec) is “forwarded to user”
 
