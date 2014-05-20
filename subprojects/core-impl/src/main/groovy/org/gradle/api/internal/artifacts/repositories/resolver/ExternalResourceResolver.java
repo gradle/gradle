@@ -146,7 +146,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected final void resolveStaticDependency(DependencyMetaData dependency, ModuleComponentIdentifier moduleVersionIdentifier, BuildableModuleVersionMetaDataResolveResult result, ExternalResourceArtifactResolver artifactResolver) {
-        MutableModuleVersionMetaData metaDataArtifactMetaData = parseMetaDataFromArtifact(moduleVersionIdentifier, artifactResolver);
+        MutableModuleVersionMetaData metaDataArtifactMetaData = parseMetaDataFromArtifact(moduleVersionIdentifier, artifactResolver, result);
         if (metaDataArtifactMetaData != null) {
             LOGGER.debug("Metadata file found for module '{}' in repository '{}'.", moduleVersionIdentifier, getName());
             result.resolved(metaDataArtifactMetaData, null);
@@ -164,12 +164,9 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         result.missing();
     }
 
-    protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleVersionIdentifier, ExternalResourceArtifactResolver artifactResolver) {
+    protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleVersionIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         ModuleVersionArtifactMetaData artifact = getMetaDataArtifactFor(moduleVersionIdentifier);
-        if (artifact == null) {
-            return null;
-        }
-        LocallyAvailableExternalResource metaDataResource = artifactResolver.resolveMetaDataArtifact(artifact);
+        LocallyAvailableExternalResource metaDataResource = artifactResolver.resolveMetaDataArtifact(artifact, result);
         if (metaDataResource == null) {
             return null;
         }
@@ -255,7 +252,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
         File localFile;
         try {
-            localFile = download(artifact, moduleSource);
+            localFile = download(artifact, moduleSource, result);
         } catch (Throwable e) {
             result.failed(new ArtifactResolveException(artifact.getId(), e));
             return;
@@ -268,8 +265,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
     }
 
-    protected File download(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource) {
-        LocallyAvailableExternalResource artifactResource = createArtifactResolver(moduleSource).resolveArtifact(artifact);
+    protected File download(ModuleVersionArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        LocallyAvailableExternalResource artifactResource = createArtifactResolver(moduleSource).resolveArtifact(artifact, result);
         if (artifactResource == null) {
             return null;
         }
@@ -387,11 +384,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
         protected final void resolveMetaDataArtifacts(ModuleVersionMetaData module, BuildableArtifactSetResolveResult result) {
             ModuleVersionArtifactMetaData artifact = getMetaDataArtifactFor(module.getComponentId());
-            if (artifact != null) {
-                result.resolved(Collections.singleton(artifact));
-            } else {
-                result.resolved(Collections.<ComponentArtifactMetaData>emptySet());
-            }
+            result.resolved(Collections.singleton(artifact));
         }
 
         public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {

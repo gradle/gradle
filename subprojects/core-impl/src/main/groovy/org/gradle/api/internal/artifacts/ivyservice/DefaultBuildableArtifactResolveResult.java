@@ -38,6 +38,10 @@ public class DefaultBuildableArtifactResolveResult implements BuildableArtifactR
         failed(new ArtifactNotFoundException(artifact));
     }
 
+    public void attempted(String locationDescription) {
+        // Don't care yet
+    }
+
     public ArtifactResolveException getFailure() {
         assertHasResult();
         return failure;

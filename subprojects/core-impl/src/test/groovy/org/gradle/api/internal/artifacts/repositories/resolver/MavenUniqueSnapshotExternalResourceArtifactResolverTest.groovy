@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult
 import org.gradle.api.internal.artifacts.metadata.DefaultIvyArtifactName
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData
 import org.gradle.api.internal.artifacts.metadata.IvyArtifactName
@@ -51,17 +52,18 @@ class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specificat
         def originalIvyName = new DefaultIvyArtifactName("name", "type", "extension")
         def originalArtifact = new DefaultModuleVersionArtifactMetaData(originalComponentId, originalIvyName)
         def artifact = resolver.timestamp(originalArtifact)
+        def result = Mock(ResourceAwareResolveResult)
         def resource1 = Mock(LocallyAvailableExternalResource)
         def resource2 = Mock(LocallyAvailableExternalResource)
 
         when:
-        1 * delegate.resolveMetaDataArtifact({ it.id == artifact.id }) >> resource1
-        1 * delegate.resolveArtifact({ it.id == artifact.id }) >> resource2
+        1 * delegate.resolveMetaDataArtifact({ it.id == artifact.id }, result) >> resource1
+        1 * delegate.resolveArtifact({ it.id == artifact.id }, result) >> resource2
         1 * delegate.artifactExists({ it.id == artifact.id }) >> true
 
         then:
-        resolver.resolveMetaDataArtifact(originalArtifact) == resource1
-        resolver.resolveArtifact(originalArtifact) == resource2
+        resolver.resolveMetaDataArtifact(originalArtifact, result) == resource1
+        resolver.resolveArtifact(originalArtifact, result) == resource2
         resolver.artifactExists(originalArtifact)
     }
 }

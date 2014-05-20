@@ -17,11 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifier;
 
 import java.io.File;
 
-public interface BuildableArtifactResolveResult extends ArtifactResolveResult {
+public interface BuildableArtifactResolveResult extends ArtifactResolveResult, ResourceAwareResolveResult {
     /**
      * Marks the module version as resolved, with the given artifact resolver.
      */

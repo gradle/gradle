@@ -16,15 +16,16 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 
 public interface ExternalResourceArtifactResolver {
     @Nullable
-    LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleVersionArtifactMetaData artifact);
+    LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result);
 
     @Nullable
-    LocallyAvailableExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact);
+    LocallyAvailableExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result);
 
     boolean artifactExists(ModuleVersionArtifactMetaData artifact);
 }
