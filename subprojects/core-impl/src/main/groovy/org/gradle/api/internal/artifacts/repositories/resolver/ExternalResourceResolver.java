@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ComponentUsage;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultResourceAwareResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
@@ -153,7 +154,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             return;
         }
 
-        MutableModuleVersionMetaData metaDataFromDefaultArtifact = createMetaDataFromDefaultArtifact(moduleVersionIdentifier, dependency, artifactResolver);
+        MutableModuleVersionMetaData metaDataFromDefaultArtifact = createMetaDataFromDefaultArtifact(moduleVersionIdentifier, dependency, artifactResolver, result);
         if (metaDataFromDefaultArtifact != null) {
             LOGGER.debug("Found artifact but no meta-data for module '{}' in repository '{}', using default meta-data.", moduleVersionIdentifier, getName());
             result.resolved(metaDataFromDefaultArtifact, null);
@@ -180,9 +181,9 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return metaData;
     }
 
-    private MutableModuleVersionMetaData createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleVersionIdentifier, DependencyMetaData dependency, ExternalResourceArtifactResolver artifactResolver) {
+    private MutableModuleVersionMetaData createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleVersionIdentifier, DependencyMetaData dependency, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         for (IvyArtifactName artifact : getDependencyArtifactNames(dependency)) {
-            if (artifactResolver.artifactExists(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier, artifact))) {
+            if (artifactResolver.artifactExists(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier, artifact), result)) {
                 MutableModuleVersionMetaData metaData = createMetaDataForDependency(dependency);
                 return processMetaData(metaData);
             }
@@ -234,7 +235,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     protected Set<ModuleVersionArtifactMetaData> findOptionalArtifacts(ModuleVersionMetaData module, String type, String classifier) {
         ModuleVersionArtifactMetaData artifact = module.artifact(type, "jar", classifier);
-        if (createArtifactResolver(module.getSource()).artifactExists(artifact)) {
+        if (createArtifactResolver(module.getSource()).artifactExists(artifact, new DefaultResourceAwareResolveResult())) {
             return ImmutableSet.of(artifact);
         }
         return Collections.emptySet();

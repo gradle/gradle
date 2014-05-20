@@ -29,8 +29,8 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
         this.timestamp = timestamp;
     }
 
-    public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
-        return delegate.artifactExists(timestamp(artifact));
+    public boolean artifactExists(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
+        return delegate.artifactExists(timestamp(artifact), result);
     }
 
     public LocallyAvailableExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {

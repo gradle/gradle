@@ -61,13 +61,14 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         return downloadStaticResource(artifactPatterns, artifact, result);
     }
 
-    public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
-        return staticResourceExists(artifactPatterns, artifact);
+    public boolean artifactExists(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
+        return staticResourceExists(artifactPatterns, artifact, result);
     }
 
-    private boolean staticResourceExists(List<ResourcePattern> patternList, ModuleVersionArtifactMetaData artifact) {
+    private boolean staticResourceExists(List<ResourcePattern> patternList, ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result) {
         for (ResourcePattern resourcePattern : patternList) {
             ExternalResourceName location = resourcePattern.getLocation(artifact);
+            result.attempted(location.toString());
             LOGGER.debug("Loading {}", location);
             try {
                 if (repository.getResourceMetaData(location.getUri()) != null) {

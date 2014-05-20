@@ -27,5 +27,5 @@ public interface ExternalResourceArtifactResolver {
     @Nullable
     LocallyAvailableExternalResource resolveArtifact(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result);
 
-    boolean artifactExists(ModuleVersionArtifactMetaData artifact);
+    boolean artifactExists(ModuleVersionArtifactMetaData artifact, ResourceAwareResolveResult result);
 }

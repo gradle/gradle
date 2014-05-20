@@ -59,11 +59,11 @@ class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specificat
         when:
         1 * delegate.resolveMetaDataArtifact({ it.id == artifact.id }, result) >> resource1
         1 * delegate.resolveArtifact({ it.id == artifact.id }, result) >> resource2
-        1 * delegate.artifactExists({ it.id == artifact.id }) >> true
+        1 * delegate.artifactExists({ it.id == artifact.id }, result) >> true
 
         then:
         resolver.resolveMetaDataArtifact(originalArtifact, result) == resource1
         resolver.resolveArtifact(originalArtifact, result) == resource2
-        resolver.artifactExists(originalArtifact)
+        resolver.artifactExists(originalArtifact, result)
     }
 }
