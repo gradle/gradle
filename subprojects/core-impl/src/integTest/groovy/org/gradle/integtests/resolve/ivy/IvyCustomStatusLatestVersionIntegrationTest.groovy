@@ -87,7 +87,7 @@ task retrieve(type: Sync) {
 """
 
         and:
-        ivyHttpRepo.allowDirectoryListGet('org.test', 'projectA')
+        ivyHttpRepo.directoryList('org.test', 'projectA').allowGet()
         ivyHttpRepo.module('org.test', 'projectA', '1.0').withStatus("release").publish().allowAll()
         ivyHttpRepo.module('org.test', 'projectA', '1.1').withStatus("integration").publish().allowAll()
 

@@ -27,9 +27,12 @@ abstract class HttpResource {
         this.server = server
     }
 
+    URI getUri() {
+        return new URI("http", "localhost:${server.port}", path, null, null)
+    }
+
     void allowGetOrHead() {
         server.allowGetOrHead(getPath(), file)
-
     }
 
     void expectGet() {
