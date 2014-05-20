@@ -176,7 +176,7 @@ task $taskName << {
         }
         String check = """
     assert ${reference} instanceof ${expected.class.name}
-    assert ${reference}.message == '''${expected.message}'''
+    assert ${reference}.message == '''${expected.message.replace("\'", "\\\'")}'''
 """
         if (expected.cause != null) {
             check += """
