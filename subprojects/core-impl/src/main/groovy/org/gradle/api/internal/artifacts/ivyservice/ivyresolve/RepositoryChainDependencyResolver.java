@@ -77,7 +77,7 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
             result.failed(new ModuleVersionResolveException(requested, errors));
         } else {
             for (RepositoryResolveState resolveState : resolveStates) {
-                resolveState.resolveResult.applyTo(result);
+                resolveState.applyTo(result);
             }
             if (dynamicSelector) {
                 result.notFound(requested);
@@ -186,6 +186,10 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
 
         protected abstract void process(DependencyMetaData dependency, ModuleComponentRepositoryAccess localModuleAccess, BuildableModuleVersionMetaDataResolveResult resolveResult);
 
+        protected void applyTo(ResourceAwareResolveResult result) {
+            resolveResult.applyTo(result);
+        }
+
         public boolean canMakeFurtherAttempts() {
             return !searchedRemotely;
         }
@@ -227,6 +231,12 @@ public class RepositoryChainDependencyResolver implements DependencyToModuleVers
                         resolveResult.missing();
                     }
             }
+        }
+
+        @Override
+        protected void applyTo(ResourceAwareResolveResult result) {
+            selectionResult.applyTo(result);
+            super.applyTo(result);
         }
 
         private boolean resolveDependency(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleVersionMetaDataResolveResult resolveResult) {
