@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.internal.resource.ResourceException;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,10 +34,10 @@ public class MavenVersionLister implements VersionLister {
 
     public VersionList getVersionList(final ModuleIdentifier module) {
         return new DefaultVersionList() {
-            final Set<String> searched = new HashSet<String>();
+            final Set<URI> searched = new HashSet<URI>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
-                String metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml").getUri().toString();
+                URI metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml").getUri();
                 if (!searched.add(metadataLocation)) {
                     return;
                 }

@@ -95,7 +95,7 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private boolean isSnapshotVersion(ModuleComponentIdentifier module) {
-        return module.getVersion().endsWith("SNAPSHOT");
+        return module.getVersion().endsWith("-SNAPSHOT");
     }
 
     @Override
@@ -135,7 +135,7 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private MavenUniqueSnapshotModuleSource findUniqueSnapshotVersion(ModuleComponentIdentifier module) {
-        String metadataLocation = getWholePattern().toModuleVersionPath(module).resolve("maven-metadata.xml").getUri().toString();
+        URI metadataLocation = getWholePattern().toModuleVersionPath(module).resolve("maven-metadata.xml").getUri();
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {
@@ -146,7 +146,7 @@ public class MavenResolver extends ExternalResourceResolver {
         return null;
     }
 
-    private MavenMetadata parseMavenMetadata(String metadataLocation) {
+    private MavenMetadata parseMavenMetadata(URI metadataLocation) {
         try {
             return mavenMetaDataLoader.load(metadataLocation);
         } catch (ResourceNotFoundException e) {
