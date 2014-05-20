@@ -580,11 +580,13 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 - ~~Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message~~
 - ~~Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message~~
 - ~~Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message~~
-- Plugin is available in build script via `PluginContainer` - incl. `withType()` and `withId()` methods (note: plugin class is not visible to build script, but could be obtained reflectively)
-- Plugin implementation classes are not visible to build script (or to anything else)
-- Plugin cannot access classes from core Gradle plugins
-- Plugin can access classes from Gradle API
-- Plugin cannot access Gradle internal implementation classes
+- Plugin is available in build script via `PluginContainer`
+    - ~~`withType()` (note: plugin class is not visible to build script, but could be obtained reflectively)~~
+    - `withId()` 
+- ~~Plugin implementation classes are not visible to build script (or to anything else)~~
+- ~~Plugin cannot access classes from core Gradle plugins~~
+- ~~Plugin can access classes from Gradle API~~
+- ~~Plugin cannot access Gradle internal implementation classes~~
 - ~~Plugin resolution fails when --offline is specified~~
 - ~~Client follows redirect from server~~
 - Unicode characters in the response are interpreted correctly and don't cause strange behaviour
