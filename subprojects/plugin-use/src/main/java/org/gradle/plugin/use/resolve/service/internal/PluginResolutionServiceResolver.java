@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -36,6 +37,7 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
@@ -122,9 +124,10 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         DependencyResolutionServices resolution = dependencyResolutionServicesFactory.create();
 
         RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
+        final String repoUrl = metadata.implementation.get("repo");
         repositories.maven(new Action<MavenArtifactRepository>() {
             public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                mavenArtifactRepository.setUrl(metadata.implementation.get("repo"));
+                mavenArtifactRepository.setUrl(repoUrl);
             }
         });
 
@@ -137,12 +140,23 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         StartParameterResolutionOverride resolutionOverride = new StartParameterResolutionOverride(startParameter);
         resolutionOverride.addResolutionRules(configuration.getResolutionStrategy().getResolutionRules());
 
-        Set<File> files = configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());
-        return new DefaultClassPath(files);
+        try {
+            Set<File> files = configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());
+            return new DefaultClassPath(files);
+        } catch (ResolveException e) {
+            throw new DependencyResolutionException("Failed to resolve all plugin dependencies from " + repoUrl, e.getCause());
+        }
     }
 
     public String getDescription() {
         return "Gradle Central Plugin Repository";
+    }
+
+    @Contextual
+    public static class DependencyResolutionException extends GradleException {
+        public DependencyResolutionException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
 }

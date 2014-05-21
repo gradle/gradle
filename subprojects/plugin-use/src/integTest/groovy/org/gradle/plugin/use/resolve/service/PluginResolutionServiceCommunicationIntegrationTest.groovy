@@ -96,7 +96,7 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertHasCause("Could not resolve all dependencies for configuration 'detachedConfiguration1'.")
+        failure.assertHasCause("Failed to resolve all plugin dependencies from " + portal.m2repo.uri)
         failure.assertHasCause("Could not find my:plugin:1.0.")
     }
 
