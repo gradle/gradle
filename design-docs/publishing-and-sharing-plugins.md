@@ -445,11 +445,30 @@ We must support the use cases listed in this section, that deal with this transi
 
 #### User uses new plugin dependency DSL to use non-declarative plugin
 
-#### User uses buildscript dependency DSL (and apply()) to use isolated plugin
+Dedicated story for this in milestone 1, and general approach outlined above in “plugin resolution and application”.
+No further questions/considerations.
 
-#### Non-isolated plugin author depends on isolated plugin
+#### User uses buildscript dependency DSL (and apply()) to use declarative plugin
 
-#### Isolated plugin author depends on non-isolated plugin
+Dedicated story for this in milestone 2, and general approach outlined above in “plugin resolution and application”.
+No further questions/considerations.
+
+#### Non-declarative plugin author depends on declarative plugin
+
+The plugin author will depend on the plugin implementation jar and apply with `project.apply()` as per normal in their build file.
+No changes needed (besides already planned changes to make `project.apply()` implicitly apply depended upon plugins)
+
+#### Declarative plugin author depends on non-declarative plugin
+
+The build/development time support for declarative plugins is unplanned at this time.
+
+However, it is assumed that:
+
+1. Declarative plugin authors declare dependencies on plugins instead of the implementation java library of a plugin (as they do now)
+2. The development tooling supports loading up the plugin in similar “class visibility managed” environment to what it would be subject to in real use
+
+The mechanism by which authors declare plugin dependencies doesn't make a distinction between declarative/non-declarative (this is determined by the resolver for the plugin).
+The development/testing tooling can support loading non-declarative plugins in the same manner that Gradle can at runtime.
 
 # Milestone 1 - non-declarative plugins via `plugins {}`
 
@@ -637,6 +656,7 @@ The detail of the error response differentiates the response from a generic 404.
 
 ### Test coverage
 
+- 4xx..5xx response that is not specifically handled (e.g. PLUGIN\_NOT_FOUND) is forwarded to user
 - 4xx..500 response that isn't a structured error response (e.g. HTML) is handled
 - Response advertised as structured error response is of incompatible schema
 - Response advertised as structured error response is malformed JSON
@@ -710,6 +730,8 @@ Required characteristics:
 
 This likely requires build time functionality introduced by the plugin development plugin from the previous story.
 
+## Story: Author of non-declarative plugin builds plugin that depends on declarative plugin
+
 ## Story: Plugin resolution is cached across the entire build
 
 Don't make the same request to plugins.gradle.org in a single build, reuse implementation classloaders.
@@ -729,8 +751,9 @@ Plugin authors should be able to write their plugin in such a way that it works 
 
 ## Story: Declarative plugins are able to depend on other non core plugins
 
-Plugin dependencies can not be dynamic.
-Plugin dependencies can not be cyclic.
+# Story: Author of declarative plugin builds plugin that depends on non-declarative plugin
+
+# Story: Author of declarative plugin builds plugin that depends on non-core declarative plugin
 
 # Milestone 3 - “parkable”
 
