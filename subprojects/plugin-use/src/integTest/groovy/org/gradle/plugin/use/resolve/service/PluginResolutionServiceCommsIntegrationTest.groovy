@@ -30,7 +30,7 @@ import static org.gradle.util.Matchers.containsText
 /**
  * Tests the communication aspects of working with the plugin resolution service.
  */
-public class PluginResolutionServiceCommunicationIntegrationTest extends AbstractIntegrationSpec {
+public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Rule
