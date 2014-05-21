@@ -113,7 +113,7 @@ public class PluginResolutionServiceClient {
         try {
             return new URI(url);
         } catch (URISyntaxException e) {
-            throw new GradleException(String.format("Invalid %s URL: %s", kind, url, e));
+            throw new GradleException(String.format("Invalid %s URL: %s", kind, url), e);
         }
     }
 
