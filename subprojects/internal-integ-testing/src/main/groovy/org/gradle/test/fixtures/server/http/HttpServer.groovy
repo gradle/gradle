@@ -648,7 +648,11 @@ class HttpServer extends ServerWithExpectations {
             if (!response.contentType) {
                 response.setContentType("application/json")
             }
-            new Gson().toJson(data, response.writer)
+            StringBuilder sb = new StringBuilder()
+            new Gson().toJson(data, sb)
+            response.outputStream.withStream {
+                it << sb.toString().getBytes("utf8")
+            }
         }
     }
 
