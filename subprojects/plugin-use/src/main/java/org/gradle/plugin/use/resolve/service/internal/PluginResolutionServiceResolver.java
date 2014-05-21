@@ -83,40 +83,34 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         if (pluginRequest.getVersion() == null) {
             result.notFound(getDescription(), "plugin dependency must include a version number for this source");
         } else {
-            validatePluginRequest(pluginRequest);
-            PluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(pluginRequest, getUrl());
-            if (response.isError()) {
-                ErrorResponse errorResponse = response.getErrorResponse();
-                if (response.getStatusCode() == 404) {
-                    String detail = null;
-                    if (errorResponse.is(ErrorResponse.Code.UNKNOWN_PLUGIN_VERSION)) {
-                        detail = String.format("version '%s' of this plugin does not exist", pluginRequest.getVersion());
-                    }
-                    result.notFound(getDescription(), detail);
-                } else {
-                    throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.", response.getStatusCode(), errorResponse.message));
-                }
-            } else {
-                PluginUseMetaData metaData = response.getResponse();
-                ClassPath classPath = resolvePluginDependencies(metaData);
-                PluginResolution resolution = new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
-                result.found(getDescription(), resolution);
+            if (startParameter.isOffline()) {
+                throw new GradleException(String.format("Plugin cannot be resolved from plugin resolution service because Gradle is running in offline mode."));
             }
-        }
-    }
 
-    // validates request against current limitations
-    // we blow up with a custom message here, relying
-    // on the fact that plugin resolution service resolver comes last
-    private void validatePluginRequest(PluginRequest pluginRequest) {
-        if (startParameter.isOffline()) {
-            throw new GradleException(String.format("Plugin cannot be resolved from plugin resolution service because Gradle is running in offline mode."));
-        }
-        if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
-            throw new InvalidPluginRequestException(pluginRequest, "Snapshot plugin versions are not supported.");
-        }
-        if (isDynamicVersion(pluginRequest.getVersion())) {
-            throw new InvalidPluginRequestException(pluginRequest, "Dynamic plugin versions are not supported.");
+            if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
+                result.notFound(getDescription(), "snapshot plugin versions are not supported");
+            } else if (isDynamicVersion(pluginRequest.getVersion())) {
+                result.notFound(getDescription(), "dynamic plugin versions are not supported");
+            } else {
+                PluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(pluginRequest, getUrl());
+                if (response.isError()) {
+                    ErrorResponse errorResponse = response.getErrorResponse();
+                    if (response.getStatusCode() == 404) {
+                        String detail = null;
+                        if (errorResponse.is(ErrorResponse.Code.UNKNOWN_PLUGIN_VERSION)) {
+                            detail = String.format("version '%s' of this plugin does not exist", pluginRequest.getVersion());
+                        }
+                        result.notFound(getDescription(), detail);
+                    } else {
+                        throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.", response.getStatusCode(), errorResponse.message));
+                    }
+                } else {
+                    PluginUseMetaData metaData = response.getResponse();
+                    ClassPath classPath = resolvePluginDependencies(metaData);
+                    PluginResolution resolution = new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
+                    result.found(getDescription(), resolution);
+                }
+            }
         }
     }
 

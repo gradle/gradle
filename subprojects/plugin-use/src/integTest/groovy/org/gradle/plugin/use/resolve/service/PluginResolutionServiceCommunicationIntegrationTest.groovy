@@ -39,16 +39,6 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
         portal.start()
     }
 
-    def "plugin declared in plugins {} block gets resolved and applied"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishPlugin("myplugin", "my", "plugin", "1.0")
-
-        buildScript applyAndVerify("myplugin", "1.0")
-
-        expect:
-        succeeds("verify")
-    }
-
     @Unroll
     def "response that is not an expected service response is fatal to plugin resolution - status = #statusCode"() {
         def responseBody = "<html><bogus/></html>"
@@ -175,46 +165,6 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
 
         expect:
         succeeds("verify")
-    }
-
-    def "resolution fails if Gradle is in offline mode"() {
-        portal.expectPluginQuery("myplugin", "1.0", "my", "plugin", "1.0")
-        publishPlugin("myplugin", "my", "plugin", "1.0")
-
-        buildScript applyAndVerify("myplugin", "1.0")
-        args("--offline")
-
-        expect:
-        fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
-        failure.assertHasCause("Plugin cannot be resolved from plugin resolution service because Gradle is running in offline mode.")
-    }
-
-    def "cannot resolve plugin with snapshot version"() {
-        portal.expectPluginQuery("myplugin", "1.0-SNAPSHOT", "my", "plugin", "1.0")
-        publishPlugin("myplugin", "my", "plugin", "1.0")
-
-        buildScript applyAndVerify("myplugin", "1.0-SNAPSHOT")
-
-        expect:
-        fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0-SNAPSHOT'].")
-        failure.assertHasCause("Snapshot plugin versions are not supported.")
-    }
-
-    def "cannot resolve plugin with dynamic version"() {
-        portal.expectPluginQuery("myplugin", pluginVersion, "my", "plugin", "1.0")
-        publishPlugin("myplugin", "my", "plugin", "1.0")
-
-        buildScript applyAndVerify("myplugin", pluginVersion)
-
-        expect:
-        fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '$pluginVersion'].")
-        failure.assertHasCause("Dynamic plugin versions are not supported.")
-
-        where:
-        pluginVersion << ["[1.0,2.0)", "1.+", "latest.release"]
     }
 
     def "portal redirects are being followed"() {
