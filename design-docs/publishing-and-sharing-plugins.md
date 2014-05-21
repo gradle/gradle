@@ -594,8 +594,8 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 - ~~Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message~~
 - ~~Successful resolution of module implementation, but exception encountered when _applying_ plugin, yields useful error message~~
 - Plugin is available in build script via `PluginContainer`
-    - ~~`withType()` (note: plugin class is not visible to build script, but could be obtained reflectively)~~
-    - `withId()` 
+    - ~~`withType()`~~
+    - `withId()` (blocked: waiting on fixed implementation of `withId()` that respects added plugins not visible in the plugin registry loader)
 - ~~Plugin implementation classes are not visible to build script (or to anything else)~~
 - ~~Plugin cannot access classes from core Gradle plugins~~
 - ~~Plugin can access classes from Gradle API~~
