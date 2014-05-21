@@ -19,13 +19,22 @@ package org.gradle.plugin.use.resolve.service.internal;
 /**
  * Defines the JSON protocol for plugin resolution service error responses.
  */
-class ErrorResponse {
-    String errorCode;
-    String message;
+public class ErrorResponse {
+    public final String errorCode;
+    public final String message;
 
-    ErrorResponse(String errorCode, String message) {
+    public ErrorResponse(String errorCode, String message) {
         this.errorCode = errorCode;
         this.message = message;
+    }
+
+    public boolean is(Code code) {
+        return code.name().equals(errorCode);
+    }
+
+    public enum Code {
+        UNKNOWN_PLUGIN,
+        UNKNOWN_PLUGIN_VERSION
     }
 
 }

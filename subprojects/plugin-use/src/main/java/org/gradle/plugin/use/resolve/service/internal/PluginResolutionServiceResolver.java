@@ -86,10 +86,15 @@ public class PluginResolutionServiceResolver implements PluginResolver {
             validatePluginRequest(pluginRequest);
             PluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(pluginRequest, getUrl());
             if (response.isError()) {
+                ErrorResponse errorResponse = response.getErrorResponse();
                 if (response.getStatusCode() == 404) {
-                    result.notFound(getDescription(), null);
+                    String detail = null;
+                    if (errorResponse.is(ErrorResponse.Code.UNKNOWN_PLUGIN_VERSION)) {
+                        detail = String.format("version '%s' of this plugin does not exist", pluginRequest.getVersion());
+                    }
+                    result.notFound(getDescription(), detail);
                 } else {
-                    throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.", response.getStatusCode(), response.getErrorResponse().message));
+                    throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.", response.getStatusCode(), errorResponse.message));
                 }
             } else {
                 PluginUseMetaData metaData = response.getResponse();

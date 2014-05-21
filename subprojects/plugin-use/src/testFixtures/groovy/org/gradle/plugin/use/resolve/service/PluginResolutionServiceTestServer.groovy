@@ -94,7 +94,7 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         }
     }
 
-    static class ErrorResponse {
+    static class MutableErrorResponse {
         String errorCode = "NONE"
         String message = "NONE"
         String detail
@@ -125,8 +125,8 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         })
     }
 
-    public void expectQueryAndReturnError(String pluginId, String pluginVersion, int httpStatus, @DelegatesTo(value = ErrorResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-        def errorResponse = new ErrorResponse()
+    public void expectQueryAndReturnError(String pluginId, String pluginVersion, int httpStatus, @DelegatesTo(value = MutableErrorResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+        def errorResponse = new MutableErrorResponse()
         ConfigureUtil.configure(configurer, errorResponse)
 
         http.expect("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {

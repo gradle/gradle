@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.resolve.service
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.plugin.use.resolve.service.internal.ErrorResponse
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.GradleVersion
 import org.hamcrest.Matchers
@@ -80,6 +81,20 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
         expect:
         fails("verify")
         failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'myplugin', version: '1.0'] was not found in any of the following sources:"))
+    }
+
+    def "404 resolution that indicates plugin is known but not by that version produces indicative message"() {
+        portal.expectQueryAndReturnError("myplugin", "1.0", 404) {
+            errorCode = ErrorResponse.Code.UNKNOWN_PLUGIN_VERSION
+            message = "anything"
+        }
+
+        buildScript applyAndVerify("myplugin", "1.0")
+
+        expect:
+        fails("verify")
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'myplugin', version: '1.0'] was not found in any of the following sources:"))
+        failure.assertThatDescription(Matchers.containsString("version '1.0' of this plugin does not exist"))
     }
 
     def "failed module resolution fails plugin resolution"() {
