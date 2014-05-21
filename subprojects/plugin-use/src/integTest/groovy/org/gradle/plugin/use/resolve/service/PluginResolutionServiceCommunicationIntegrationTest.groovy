@@ -22,7 +22,10 @@ import org.gradle.util.GradleVersion
 import org.hamcrest.Matchers
 import org.junit.Rule
 
-public class PluginResolutionServiceIntegrationTest extends AbstractIntegrationSpec {
+/**
+ * Tests the communication aspects of working with the plugin resolution service.
+ */
+public class PluginResolutionServiceCommunicationIntegrationTest extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
     @Rule
