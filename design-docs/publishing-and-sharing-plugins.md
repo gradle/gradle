@@ -690,6 +690,10 @@ Includes:
 
 ## Story: Build author searches for plugins using central Web UI
 
+### Test Coverage
+
+- Not found messages from resolution service include link to search UI (to help user find the plugin they are after) - (this URL should be provided by the resolution service response, not hardcoded into Gradle)
+
 ## Story: Make new plugin resolution mechanism public
 
 Story is predicated on plugins.gradle.org providing a searchable interface for plugins.
