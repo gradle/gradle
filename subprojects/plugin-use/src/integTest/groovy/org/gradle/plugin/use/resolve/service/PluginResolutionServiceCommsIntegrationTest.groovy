@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.plugin.use.resolve.service.internal.ErrorResponse
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.hamcrest.Matchers
 import org.junit.Rule
@@ -210,6 +211,27 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         errorResolvingPlugin()
         failure.assertThatCause(containsText("Could not GET 'http://localhost:\\d+/api/gradle/.+?/plugin/use/myplugin/1\\.0'"))
         failure.assertThatCause(containsText("Connection to http://localhost:\\d+ refused"))
+    }
+
+    def "non contactable dependency repository produces error"() {
+        given:
+        // Get an address that isn't used
+        def httpServer = new HttpServer()
+        httpServer.start()
+        def address = httpServer.address
+        httpServer.stop()
+
+        buildScript applyAndVerify("myplugin", "1.0")
+
+        portal.expectPluginQuery("myplugin", "1.0", "foo", "bar", "1.0")  {
+            implementation.repo = address
+        }
+
+        expect:
+        fails("verify")
+        errorResolvingPlugin()
+        failure.assertHasCause("Failed to resolve all plugin dependencies from $address")
+        failure.assertThatCause(containsText("Connection to $address refused"))
     }
 
     private void publishPlugin(String pluginId, String group, String artifact, String version) {
