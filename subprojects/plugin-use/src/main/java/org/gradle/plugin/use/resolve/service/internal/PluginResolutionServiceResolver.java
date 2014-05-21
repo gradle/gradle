@@ -80,22 +80,25 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-        validatePluginRequest(pluginRequest, result);
-
-        PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, getUrl());
-        if (metaData == null) {
-            result.notFound(getDescription(), null);
+        if (pluginRequest.getVersion() == null) {
+            result.notFound(getDescription(), "plugin dependency must include a version number for this source");
         } else {
-            ClassPath classPath = resolvePluginDependencies(metaData);
-            PluginResolution resolution = new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
-            result.found(getDescription(), resolution);
+            validatePluginRequest(pluginRequest);
+            PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, getUrl());
+            if (metaData == null) {
+                result.notFound(getDescription(), null);
+            } else {
+                ClassPath classPath = resolvePluginDependencies(metaData);
+                PluginResolution resolution = new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
+                result.found(getDescription(), resolution);
+            }
         }
     }
 
     // validates request against current limitations
     // we blow up with a custom message here, relying
     // on the fact that plugin resolution service resolver comes last
-    private void validatePluginRequest(PluginRequest pluginRequest, PluginResolutionResult result) {
+    private void validatePluginRequest(PluginRequest pluginRequest) {
         if (startParameter.isOffline()) {
             throw new GradleException(String.format("Plugin cannot be resolved from plugin resolution service because Gradle is running in offline mode."));
         }
