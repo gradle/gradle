@@ -44,12 +44,16 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         executer.beforeExecute(new Action<GradleExecuter>() {
             void execute(GradleExecuter e) {
                 if (http.running) {
-                    e.withArgument(
-                            "-D$PluginResolutionServiceResolver.OVERRIDE_URL_PROPERTY=$http.address",
-                    )
+                    injectUrlOverride(e)
                 }
             }
         })
+    }
+
+    void injectUrlOverride(GradleExecuter e) {
+        e.withArgument(
+                "-D$PluginResolutionServiceResolver.OVERRIDE_URL_PROPERTY=$http.address",
+        )
     }
 
     void expectNotFound(String pluginId, String version) {
@@ -141,8 +145,12 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         http.start()
     }
 
+    void stop() {
+        http.stop()
+    }
+
     @Override
     protected void after() {
-        http.stop()
+        stop()
     }
 }

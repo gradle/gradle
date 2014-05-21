@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.resolve.service
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.plugin.use.resolve.service.internal.ErrorResponse
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.GradleVersion
@@ -54,7 +55,7 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
 
         expect:
         fails("verify", "-i")
-
+        errorResolvingPlugin()
         failure.assertThatCause(containsText("Response from 'http://localhost.+? was not a valid plugin resolution service response"))
         failure.assertThatCause(containsText("returned content type 'text/html.+, not 'application/json.+"))
         output.contains("content:\n" + responseBody)
@@ -94,7 +95,7 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
+        errorResolvingPlugin()
         failure.assertHasCause("Could not resolve all dependencies for configuration 'detachedConfiguration1'.")
         failure.assertHasCause("Could not find my:plugin:1.0.")
     }
@@ -108,7 +109,7 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
+        errorResolvingPlugin()
         failure.assertHasCause("Invalid plugin metadata: Unsupported implementation type: SUPER_GREAT.")
     }
 
@@ -135,7 +136,7 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
+        errorResolvingPlugin()
         failure.assertHasCause("Failed to parse plugin resolution service JSON response.")
     }
 
@@ -190,8 +191,25 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
 
         expect:
         fails("verify")
-        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
+        errorResolvingPlugin()
         failure.assertHasCause("Plugin resolution service returned HTTP 500 with message 'Bintray communication failure'.")
+    }
+
+    def ExecutionFailure errorResolvingPlugin() {
+        failure.assertHasDescription("Error resolving plugin [id: 'myplugin', version: '1.0'].")
+    }
+
+    def "non contactable resolution service produces error"() {
+        portal.injectUrlOverride(executer) // have to do this, because only happens by default if test server is running
+        portal.stop()
+
+        buildScript applyAndVerify("myplugin", "1.0")
+
+        expect:
+        fails("verify")
+        errorResolvingPlugin()
+        failure.assertThatCause(containsText("Could not GET 'http://localhost:\\d+/api/gradle/.+?/plugin/use/myplugin/1\\.0'"))
+        failure.assertThatCause(containsText("Connection to http://localhost:\\d+ refused"))
     }
 
     private void publishPlugin(String pluginId, String group, String artifact, String version) {
