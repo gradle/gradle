@@ -19,10 +19,8 @@ package org.gradle.plugin.use.resolve.service.internal;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.*;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.resource.transport.http.HttpResponseResource;
 import org.gradle.plugin.use.internal.PluginRequest;
@@ -47,14 +45,26 @@ public class PluginResolutionServiceClient {
     @Nullable
     PluginUseMetaData queryPluginMetadata(final PluginRequest pluginRequest, String portalUrl) {
         String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
-        URI requestUri = toUri(requestUrl, "plugin request");
+        final URI requestUri = toUri(requestUrl, "plugin request");
 
         HttpResponseResource response = null;
         try {
             response = resourceAccessor.getRawResource(requestUri);
             final int statusCode = response.getStatusCode();
             if (!response.getContentType().equalsIgnoreCase("application/json")) {
-                String message = String.format("Response from '%s' was not a valid plugin resolution service response (returned content type '%s', not 'application/json')", requestUri, response.getContentType());
+                final String message = String.format("Response from '%s' was not a valid plugin resolution service response (returned content type '%s', not 'application/json')", requestUri, response.getContentType());
+                if (LOGGER.isInfoEnabled()) {
+                    response.withContent(new Action<InputStream>() {
+                        public void execute(InputStream inputStream) {
+                            try {
+                                String content = IOUtils.toString(inputStream, "utf8"); // might not be UTF8, but good enough
+                                LOGGER.info("{}, content:\n{}", message, content);
+                            } catch (IOException e) {
+                                LOGGER.info(String.format("exception raised while trying to log response from %s", requestUri), e);
+                            }
+                        }
+                    });
+                }
                 throw new GradleException(message);
             }
 

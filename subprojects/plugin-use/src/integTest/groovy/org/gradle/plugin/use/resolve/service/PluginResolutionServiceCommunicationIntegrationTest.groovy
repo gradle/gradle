@@ -50,21 +50,23 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
 
     @Unroll
     def "response that is not an expected service response is fatal to plugin resolution - status = #statusCode"() {
+        def responseBody = "<html><bogus/></html>"
         portal.expectPluginQuery("myplugin", "1.0") {
             status = statusCode
             contentType = "text/html"
             writer.withWriter {
-                it << "<html/>"
+                it << responseBody
             }
         }
 
         buildScript applyAndVerify("myplugin", "1.0")
 
         expect:
-        fails("verify")
+        fails("verify", "-i")
 
         failure.assertThatCause(containsText("Response from 'http://localhost.+? was not a valid plugin resolution service response"))
         failure.assertThatCause(containsText("returned content type 'text/html.+, not 'application/json.+"))
+        output.contains("content:\n" + responseBody)
 
         where:
         statusCode << [200, 404, 500]
