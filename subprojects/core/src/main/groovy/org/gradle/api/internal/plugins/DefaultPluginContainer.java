@@ -96,7 +96,7 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
         return type.cast(plugin);
     }
 
-    public void withId(String pluginId, Action<Plugin> action) {
+    public void withId(String pluginId, Action<? super Plugin> action) {
         Class type = getTypeForId(pluginId);
         withType(type, action);
     }
