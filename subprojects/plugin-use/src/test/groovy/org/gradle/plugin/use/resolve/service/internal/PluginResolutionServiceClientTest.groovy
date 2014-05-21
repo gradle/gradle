@@ -17,7 +17,6 @@
 package org.gradle.plugin.use.resolve.service.internal
 
 import com.google.gson.Gson
-import org.gradle.api.GradleException
 import org.gradle.api.Transformer
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor
 import org.gradle.internal.resource.transport.http.HttpResponseResource
@@ -40,7 +39,7 @@ class PluginResolutionServiceClientTest extends Specification {
         stubResponse(200, toJson(metaData))
 
         then:
-        client.queryPluginMetadata(request, "http://plugin.portal") == metaData
+        client.queryPluginMetadata(request, "http://plugin.portal").response == metaData
     }
 
     def "returns error response for unsuccessful query"() {
@@ -48,11 +47,15 @@ class PluginResolutionServiceClientTest extends Specification {
 
         when:
         stubResponse(500, toJson(errorResponse))
-        client.queryPluginMetadata(request, "http://plugin.portal")
+        def response = client.queryPluginMetadata(request, "http://plugin.portal")
 
         then:
-        def e = thrown(GradleException)
-        e.message == "Plugin resolution service returned HTTP 500 with message 'Not feeling well today'."
+        response.error
+        with(response.errorResponse) {
+            errorCode == errorResponse.errorCode
+            message == errorResponse.message
+        }
+        response.statusCode == 500
     }
 
     private void stubResponse(int statusCode, String jsonResponse = null) {

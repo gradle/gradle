@@ -43,7 +43,7 @@ public class PluginResolutionServiceClient {
     }
 
     @Nullable
-    PluginUseMetaData queryPluginMetadata(final PluginRequest pluginRequest, String portalUrl) {
+    Response<PluginUseMetaData> queryPluginMetadata(final PluginRequest pluginRequest, String portalUrl) {
         String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
         final URI requestUri = toUri(requestUrl, "plugin request");
 
@@ -68,8 +68,8 @@ public class PluginResolutionServiceClient {
                 throw new GradleException(message);
             }
 
-            return response.withContent(new Transformer<PluginUseMetaData, InputStream>() {
-                public PluginUseMetaData transform(InputStream inputStream) {
+            return response.withContent(new Transformer<Response<PluginUseMetaData>, InputStream>() {
+                public Response<PluginUseMetaData> transform(InputStream inputStream) {
                     Reader reader;
                     try {
                         reader = new InputStreamReader(inputStream, "utf-8");
@@ -77,18 +77,14 @@ public class PluginResolutionServiceClient {
                         throw new AssertionError(e);
                     }
                     try {
-                        if (statusCode != 200) {
+                        if (statusCode == 200) {
+                            PluginUseMetaData metadata = new Gson().fromJson(reader, PluginUseMetaData.class);
+                            metadata.verify();
+                            return new SuccessResponse<PluginUseMetaData>(metadata, statusCode);
+                        } else {
                             ErrorResponse errorResponse = new Gson().fromJson(reader, ErrorResponse.class);
-                            if (statusCode == 404) {
-                                return null;
-                            } else {
-                                throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.", statusCode, errorResponse.message));
-                            }
+                            return new ErrorResponseResponse<PluginUseMetaData>(errorResponse, statusCode);
                         }
-
-                        PluginUseMetaData metadata = new Gson().fromJson(reader, PluginUseMetaData.class);
-                        metadata.verify();
-                        return metadata;
                     } catch (JsonSyntaxException e) {
                         throw new GradleException("Failed to parse plugin resolution service JSON response.", e);
                     } catch (JsonIOException e) {
@@ -117,4 +113,65 @@ public class PluginResolutionServiceClient {
         }
     }
 
+    public static interface Response<T> {
+        boolean isError();
+
+        int getStatusCode();
+
+        ErrorResponse getErrorResponse();
+
+        T getResponse();
+    }
+
+    private static class ErrorResponseResponse<T> implements Response<T> {
+        private final ErrorResponse errorResponse;
+        private final int statusCode;
+
+        private ErrorResponseResponse(ErrorResponse errorResponse, int statusCode) {
+            this.errorResponse = errorResponse;
+            this.statusCode = statusCode;
+        }
+
+        public boolean isError() {
+            return true;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public ErrorResponse getErrorResponse() {
+            return errorResponse;
+        }
+
+        public T getResponse() {
+            return null;
+        }
+    }
+
+    private static class SuccessResponse<T> implements Response<T> {
+        private final T response;
+        private final int statusCode;
+
+        private SuccessResponse(T response, int statusCode) {
+            this.response = response;
+            this.statusCode = statusCode;
+        }
+
+        public boolean isError() {
+            return false;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public ErrorResponse getErrorResponse() {
+            return null;
+        }
+
+        public T getResponse() {
+            return response;
+        }
+    }
 }

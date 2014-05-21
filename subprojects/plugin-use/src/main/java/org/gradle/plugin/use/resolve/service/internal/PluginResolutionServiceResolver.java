@@ -84,10 +84,15 @@ public class PluginResolutionServiceResolver implements PluginResolver {
             result.notFound(getDescription(), "plugin dependency must include a version number for this source");
         } else {
             validatePluginRequest(pluginRequest);
-            PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, getUrl());
-            if (metaData == null) {
-                result.notFound(getDescription(), null);
+            PluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(pluginRequest, getUrl());
+            if (response.isError()) {
+                if (response.getStatusCode() == 404) {
+                    result.notFound(getDescription(), null);
+                } else {
+                    throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.", response.getStatusCode(), response.getErrorResponse().message));
+                }
             } else {
+                PluginUseMetaData metaData = response.getResponse();
                 ClassPath classPath = resolvePluginDependencies(metaData);
                 PluginResolution resolution = new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
                 result.found(getDescription(), resolution);
