@@ -534,10 +534,6 @@ Note: plugins from buildSrc are not core plugins.
 - ~~Using project.apply() to apply a plugin that was already applied using the plugins {} mechanism works (i.e. has no effect)~~
 - Plugins are applied alphabetically based on name
 
-### Open questions 
-
-- Should a qualified plugin id of a namespace other than 'org.gradle', with no version constraint, yield a special error message? i.e. only 'org.gradle' plugins can omit version
-
 ## Story: User uses declarative plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes 
 
 > This story doesn't strictly deal with the milestone goal, but is included in this milestone for historical reasons.
