@@ -21,7 +21,11 @@ import org.gradle.api.GradleException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
@@ -34,22 +38,78 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     public void applyPlugin(PluginRequest request) {
-        PluginResolution resolution;
+        DefaultPluginResolutionResult result = new DefaultPluginResolutionResult();
         try {
-            resolution = pluginResolver.resolve(request);
+            pluginResolver.resolve(request, result);
         } catch (Exception e) {
             throw new LocationAwareException(
                     new GradleException(String.format("Error resolving plugin %s.", request.getDisplayName()), e),
                     request.getScriptSource(), request.getLineNumber());
         }
-        if (resolution == null) {
-            throw new LocationAwareException(
-                    new UnknownPluginException(String.format("Plugin %s not found in %s", request.getDisplayName(), pluginResolver.getDescriptionForNotFoundMessage())),
-                    request.getScriptSource(),
-                    request.getLineNumber()
-            );
+        if (result.isFound()) {
+            pluginResolutionHandler.execute(result.found.resolution);
+        } else {
+            String message = buildNotFoundMessage(request, result);
+            Exception exception = new UnknownPluginException(message);
+            throw new LocationAwareException(exception, request.getScriptSource(), request.getLineNumber());
+        }
+    }
+
+    private String buildNotFoundMessage(PluginRequest pluginRequest, DefaultPluginResolutionResult result) {
+        if (result.notFoundList.isEmpty()) {
+            // this shouldn't happen, resolvers should call notFound()
+            return String.format("Plugin %s was not found", pluginRequest.getDisplayName());
+        } else {
+            StringBuilder sb = new StringBuilder("Plugin ")
+                    .append(pluginRequest.getDisplayName())
+                    .append(" was not found in any of the following sources:\n");
+
+            for (NotFound notFound : result.notFoundList) {
+                sb.append('\n').append("- ").append(notFound.source);
+                if (notFound.detail != null) {
+                    sb.append(" (").append(notFound.detail).append(")");
+                }
+            }
+
+            return sb.toString();
+        }
+    }
+
+    private static class NotFound {
+        private final String source;
+        private final String detail;
+
+        private NotFound(String source, String detail) {
+            this.source = source;
+            this.detail = detail;
+        }
+    }
+
+    private static class Found {
+        private final String source;
+        private final PluginResolution resolution;
+
+        private Found(String source, PluginResolution resolution) {
+            this.source = source;
+            this.resolution = resolution;
+        }
+    }
+
+    private static class DefaultPluginResolutionResult implements PluginResolutionResult {
+
+        private final List<NotFound> notFoundList = new LinkedList<NotFound>();
+        private Found found;
+
+        public void notFound(String sourceDescription, String notFoundDetail) {
+            notFoundList.add(new NotFound(sourceDescription, notFoundDetail));
         }
 
-        pluginResolutionHandler.execute(resolution);
+        public void found(String sourceDescription, PluginResolution pluginResolution) {
+            found = new Found(sourceDescription, pluginResolution);
+        }
+
+        public boolean isFound() {
+            return found != null;
+        }
     }
 }

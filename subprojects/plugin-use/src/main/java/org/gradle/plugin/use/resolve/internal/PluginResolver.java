@@ -17,7 +17,6 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
@@ -27,9 +26,6 @@ import org.gradle.plugin.use.internal.PluginRequest;
 @Incubating
 public interface PluginResolver {
 
-    @Nullable
-    PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException;
-
-    String getDescriptionForNotFoundMessage();
+    void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException;
 
 }

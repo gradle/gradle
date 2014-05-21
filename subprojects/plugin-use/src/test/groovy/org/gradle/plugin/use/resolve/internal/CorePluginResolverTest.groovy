@@ -36,6 +36,7 @@ class CorePluginResolverTest extends Specification {
 
     def docRegistry = Mock(DocumentationRegistry)
     def pluginRegistry = Mock(PluginRegistry)
+    def result = Mock(PluginResolutionResult)
 
     def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
 
@@ -44,35 +45,34 @@ class CorePluginResolverTest extends Specification {
     }
 
     def "non core plugins are ignored"() {
-        expect:
-        resolver.resolve(request("foo.bar")) == null
+        when:
+        resolver.resolve(request("foo.bar"), result)
+
+        then:
+        1 * result.notFound(resolver.getDescription(), "plugin is not in 'org.gradle' namespace")
     }
 
     def "can resolve unqualified"() {
         when:
-        def resolution = resolver.resolve(request("foo"))
+        resolver.resolve(request("foo"), result)
 
         then:
         1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
-
-        resolution instanceof SimplePluginResolution
-        resolution.resolve() == MyPlugin
+        1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.resolve() == MyPlugin })
     }
 
     def "can resolve qualified"() {
         when:
-        def resolution = resolver.resolve(request("${CorePluginResolver.CORE_PLUGIN_NAMESPACE}.foo"))
+        resolver.resolve(request("${resolver.CORE_PLUGIN_NAMESPACE}.foo"), result)
 
         then:
         1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
-
-        resolution instanceof SimplePluginResolution
-        resolution.resolve() == MyPlugin
+        1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.resolve() == MyPlugin })
     }
 
     def "cannot have version number"() {
         when:
-        resolver.resolve(request("foo", "1.0"))
+        resolver.resolve(request("foo", "1.0"), result)
 
         then:
         1 * pluginRegistry.getTypeForId("foo") >> MyPlugin
@@ -83,13 +83,11 @@ class CorePluginResolverTest extends Specification {
 
     def "ignores plugin with version that isn't found in registry"() {
         when:
-        def resolution = resolver.resolve(request("foo", "1.0"))
+        resolver.resolve(request("org.gradle.foo", "1.0"), result)
 
         then:
         1 * pluginRegistry.getTypeForId("foo") >> { throw new UnknownPluginException("foo") }
-
-        and:
-        resolution == null
+        1 * result.notFound(resolver.getDescription(), { it.contains("not a core plugin") })
     }
 
 }

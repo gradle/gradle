@@ -36,7 +36,7 @@ public class CorePluginResolver implements PluginResolver {
         this.pluginRegistry = pluginRegistry;
     }
 
-    public PluginResolution resolve(PluginRequest pluginRequest) {
+    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) {
         PluginId id = pluginRequest.getId();
 
         if (!id.isQualified() || id.inNamespace(CORE_PLUGIN_NAMESPACE)) {
@@ -48,21 +48,16 @@ public class CorePluginResolver implements PluginResolver {
                                     + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration."
                     );
                 }
-                return new SimplePluginResolution(typeForId);
+                result.found(getDescription(), new SimplePluginResolution(typeForId));
             } catch (UnknownPluginException e) {
-                return null;
+                result.notFound(getDescription(), String.format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
             }
         } else {
-            return null;
+            result.notFound(getDescription(), String.format("plugin is not in '%s' namespace", CORE_PLUGIN_NAMESPACE));
         }
     }
 
-    @Override
-    public String toString() {
-        return "Core Plugin Resolver";
-    }
-
-    public String getDescriptionForNotFoundMessage() {
-        return String.format("Gradle Distribution Plugins (listing: %s)", documentationRegistry.getDocumentationFor("standard_plugins"));
+    public static String getDescription() {
+        return "Gradle Core Plugins";
     }
 }

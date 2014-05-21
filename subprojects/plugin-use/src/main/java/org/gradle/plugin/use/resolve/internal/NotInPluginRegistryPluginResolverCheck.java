@@ -36,11 +36,11 @@ public class NotInPluginRegistryPluginResolverCheck implements PluginResolver {
         this.pluginDescriptorLocator = pluginDescriptorLocator;
     }
 
-    public PluginResolution resolve(PluginRequest pluginRequest) {
+    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) {
         PluginId pluginId = pluginRequest.getId();
         PluginDescriptor pluginDescriptor = pluginDescriptorLocator.findPluginDescriptor(pluginId.toString());
         if (pluginDescriptor == null || isCorePlugin(pluginId)) {
-            return delegate.resolve(pluginRequest);
+            delegate.resolve(pluginRequest, result);
         } else {
             throw new InvalidPluginRequestException(pluginRequest, pluginOnClasspathErrorMessage(pluginId.toString()));
         }
@@ -57,10 +57,6 @@ public class NotInPluginRegistryPluginResolverCheck implements PluginResolver {
         } catch (UnknownPluginException ignore) {
             return false;
         }
-    }
-
-    public String getDescriptionForNotFoundMessage() {
-        return delegate.getDescriptionForNotFoundMessage();
     }
 
 }

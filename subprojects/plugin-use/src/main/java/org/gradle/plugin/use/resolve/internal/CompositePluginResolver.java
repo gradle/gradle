@@ -28,26 +28,13 @@ public class CompositePluginResolver implements PluginResolver {
         this.repositories = repositories;
     }
 
-    public PluginResolution resolve(PluginRequest pluginRequest) {
-        PluginResolution resolution = null;
+    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) {
         for (PluginResolver repository : repositories) {
-            resolution = repository.resolve(pluginRequest);
-            if (resolution != null) {
+            repository.resolve(pluginRequest, result);
+            if (result.isFound()) {
                 break;
             }
         }
-
-        return resolution;
     }
 
-    public String getDescriptionForNotFoundMessage() {
-        StringBuilder sb = new StringBuilder("plugin repositories:");
-        for (PluginResolver repository : repositories) {
-            String message = repository.getDescriptionForNotFoundMessage();
-            if (message != null) {
-                sb.append("\n - ").append(message);
-            }
-        }
-        return sb.toString();
-    }
 }

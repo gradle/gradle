@@ -24,16 +24,10 @@ import org.gradle.plugin.use.internal.PluginRequest;
 // Used for testing the plugins DSL
 public class NoopPluginResolver implements PluginResolver {
 
-    public PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException {
+    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (pluginRequest.getId().equals(DefaultScriptPluginFactory.NOOP_PLUGIN_ID)) {
-            return new SimplePluginResolution(NoopPlugin.class);
-        } else {
-            return null;
+            result.found("noop resolver", new SimplePluginResolution(NoopPlugin.class));
         }
-    }
-
-    public String getDescriptionForNotFoundMessage() {
-        return null; // hidden
     }
 
     public static class NoopPlugin implements Plugin<Object> {

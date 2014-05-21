@@ -19,7 +19,6 @@ package org.gradle.plugin.use.resolve.service.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -42,6 +41,7 @@ import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.io.File;
@@ -79,23 +79,23 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         return System.getProperty(OVERRIDE_URL_PROPERTY, DEFAULT_API_URL);
     }
 
-    @Nullable
-    public PluginResolution resolve(PluginRequest pluginRequest) throws InvalidPluginRequestException {
-        validatePluginRequest(pluginRequest);
+    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+        validatePluginRequest(pluginRequest, result);
 
         PluginUseMetaData metaData = portalClient.queryPluginMetadata(pluginRequest, getUrl());
         if (metaData == null) {
-            return null;
+            result.notFound(getDescription(), null);
+        } else {
+            ClassPath classPath = resolvePluginDependencies(metaData);
+            PluginResolution resolution = new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
+            result.found(getDescription(), resolution);
         }
-
-        ClassPath classPath = resolvePluginDependencies(metaData);
-        return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
     }
 
     // validates request against current limitations
     // we blow up with a custom message here, relying
     // on the fact that plugin resolution service resolver comes last
-    private void validatePluginRequest(PluginRequest pluginRequest) {
+    private void validatePluginRequest(PluginRequest pluginRequest, PluginResolutionResult result) {
         if (startParameter.isOffline()) {
             throw new GradleException(String.format("Plugin cannot be resolved from plugin resolution service because Gradle is running in offline mode."));
         }
@@ -134,8 +134,8 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         return new DefaultClassPath(files);
     }
 
-    public String getDescriptionForNotFoundMessage() {
-        return "Plugin Resolution Service (" + getUrl() + ")";
+    public String getDescription() {
+        return "Gradle Central Plugin Repository";
     }
 
 }

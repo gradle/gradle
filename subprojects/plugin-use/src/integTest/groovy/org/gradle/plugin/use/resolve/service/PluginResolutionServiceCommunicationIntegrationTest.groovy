@@ -52,7 +52,7 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
 
         expect:
         fails("verify")
-        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'myplugin', version: '1.0'] not found in plugin repositories:"))
+        failure.assertThatDescription(Matchers.startsWith("Plugin [id: 'myplugin', version: '1.0'] was not found in any of the following sources:"))
     }
 
     def "failed module resolution fails plugin resolution"() {
