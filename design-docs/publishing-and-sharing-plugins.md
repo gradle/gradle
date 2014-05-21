@@ -532,7 +532,6 @@ Note: plugins from buildSrc are not core plugins.
 - ~~plugins already on the classpath (buildscript, buildSrc) are not considered core, and cannot be applied using `plugins {}`~~
 - ~~`plugins { id "«non core plugin»" }` produces suitable 'not found' type error message~~
 - ~~Using project.apply() to apply a plugin that was already applied using the plugins {} mechanism works (i.e. has no effect)~~
-- Plugins are applied alphabetically based on name
 
 ## Story: User uses declarative plugin “from” `plugins.gradle.org` of static version, with no plugin dependencies, with no exported classes 
 
@@ -669,6 +668,10 @@ The detail of the error response differentiates the response from a generic 404.
 ## Story: All plugins are resolved before any plugin is applied to a target
 
 Before actually applying plugins (potentially expensive), all required plugins should be resolved in the spirit of fail fast.
+
+### Test Coverage
+
+- Plugins are applied alphabetically based on name
 
 ## Story: Plugin resolution is cached between builds
 
