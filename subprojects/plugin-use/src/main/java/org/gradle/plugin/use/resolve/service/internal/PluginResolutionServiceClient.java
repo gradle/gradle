@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
+import com.google.common.escape.Escaper;
+import com.google.common.net.UrlEscapers;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
@@ -44,7 +46,12 @@ public class PluginResolutionServiceClient {
 
     @Nullable
     Response<PluginUseMetaData> queryPluginMetadata(final PluginRequest pluginRequest, String portalUrl) {
-        final String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
+        Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
+        String escapedId = escaper.escape(pluginRequest.getId().toString());
+        String escapedPluginVersion = escaper.escape(pluginRequest.getVersion());
+        String escapedGradleVersion = escaper.escape(GradleVersion.current().getVersion());
+
+        final String requestUrl = String.format(portalUrl + REQUEST_URL, escapedGradleVersion, escapedId, escapedPluginVersion);
         final URI requestUri = toUri(requestUrl, "plugin request");
 
         HttpResponseResource response = null;

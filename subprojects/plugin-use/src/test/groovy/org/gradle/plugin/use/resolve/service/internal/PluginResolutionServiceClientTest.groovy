@@ -23,6 +23,7 @@ import org.gradle.internal.resource.transport.http.HttpResourceAccessor
 import org.gradle.internal.resource.transport.http.HttpResponseResource
 import org.gradle.plugin.internal.PluginId
 import org.gradle.plugin.use.internal.PluginRequest
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class PluginResolutionServiceClientTest extends Specification {
@@ -78,6 +79,27 @@ class PluginResolutionServiceClientTest extends Specification {
         then:
         def e = thrown(GradleException)
         e.message.contains "unexpected HTTP response status 650"
+    }
+
+    def "id and version are properly encoded"() {
+        given:
+        def customRequest = Stub(PluginRequest) {
+            getId() >> new PluginId("foo/bar")
+            getVersion() >> "1/0"
+        }
+
+        when:
+        client.queryPluginMetadata(customRequest, URL)
+
+        then:
+        1 * resourceAccessor.getRawResource(new URI("http://plugin.portal/api/gradle/${GradleVersion.current().getVersion()}/plugin/use/foo%2Fbar/1%2F0")) >> Stub(HttpResponseResource) {
+            getStatusCode() >> 500
+            getContentType() >> "application/json"
+            withContent(_) >> { Transformer<PluginUseMetaData, InputStream> action ->
+                action.transform(new ByteArrayInputStream("{}".getBytes("utf8")))
+            }
+        }
+        0 * resourceAccessor.getRawResource(_)
     }
 
     private void stubResponse(int statusCode, String jsonResponse = null) {

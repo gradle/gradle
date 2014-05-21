@@ -603,7 +603,7 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 - ~~Plugin resolution fails when --offline is specified~~
 - ~~Client follows redirect from server~~
 - Unicode characters in the response are interpreted correctly and don't cause strange behaviour
-- Plugin id and version numbers can contain URL meta chars and unicode chars (regardless of valid plugin ids not being allowed to contain non ascii alphanum or -) - request URLs should be well formed
+- ~~Plugin id and version numbers can contain URL meta chars and unicode chars (regardless of valid plugin ids not being allowed to contain non ascii alphanum or -) - request URLs should be well formed~~
 - ~~Reasonable error message on network failure talking to plugin portal~~
 - ~~Reasonable error message on network failure talking to repository containing plugin implementation~~
 
