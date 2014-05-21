@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.resolve.service.internal
 
 import com.google.gson.Gson
+import org.gradle.api.GradleException
 import org.gradle.api.Transformer
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor
 import org.gradle.internal.resource.transport.http.HttpResponseResource
@@ -25,6 +26,7 @@ import org.gradle.plugin.use.internal.PluginRequest
 import spock.lang.Specification
 
 class PluginResolutionServiceClientTest extends Specification {
+    public static final String URL = "http://plugin.portal"
     private resourceAccessor = Mock(HttpResourceAccessor)
     private client = new PluginResolutionServiceClient(resourceAccessor)
     private request = Stub(PluginRequest) {
@@ -39,7 +41,7 @@ class PluginResolutionServiceClientTest extends Specification {
         stubResponse(200, toJson(metaData))
 
         then:
-        client.queryPluginMetadata(request, "http://plugin.portal").response == metaData
+        client.queryPluginMetadata(request, URL).response == metaData
     }
 
     def "returns error response for unsuccessful query"() {
@@ -47,7 +49,7 @@ class PluginResolutionServiceClientTest extends Specification {
 
         when:
         stubResponse(500, toJson(errorResponse))
-        def response = client.queryPluginMetadata(request, "http://plugin.portal")
+        def response = client.queryPluginMetadata(request, URL)
 
         then:
         response.error
@@ -56,6 +58,26 @@ class PluginResolutionServiceClientTest extends Specification {
             message == errorResponse.message
         }
         response.statusCode == 500
+    }
+
+    def "only exactly 200 means success"() {
+        when:
+        stubResponse(201, "{}")
+        client.queryPluginMetadata(request, URL)
+
+        then:
+        def e = thrown(GradleException)
+        e.message.contains "unexpected HTTP response status 201"
+    }
+
+    def "outside of 4xx - 5xx is unhanlded"() {
+        when:
+        stubResponse(650, "{}")
+        client.queryPluginMetadata(request, URL)
+
+        then:
+        def e = thrown(GradleException)
+        e.message.contains "unexpected HTTP response status 650"
     }
 
     private void stubResponse(int statusCode, String jsonResponse = null) {

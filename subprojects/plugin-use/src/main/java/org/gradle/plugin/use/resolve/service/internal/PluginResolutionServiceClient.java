@@ -44,7 +44,7 @@ public class PluginResolutionServiceClient {
 
     @Nullable
     Response<PluginUseMetaData> queryPluginMetadata(final PluginRequest pluginRequest, String portalUrl) {
-        String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
+        final String requestUrl = String.format(portalUrl + REQUEST_URL, GradleVersion.current().getVersion(), pluginRequest.getId(), pluginRequest.getVersion());
         final URI requestUri = toUri(requestUrl, "plugin request");
 
         HttpResponseResource response = null;
@@ -81,9 +81,11 @@ public class PluginResolutionServiceClient {
                             PluginUseMetaData metadata = new Gson().fromJson(reader, PluginUseMetaData.class);
                             metadata.verify();
                             return new SuccessResponse<PluginUseMetaData>(metadata, statusCode);
-                        } else {
+                        } else if (statusCode >= 400 && statusCode < 600) {
                             ErrorResponse errorResponse = new Gson().fromJson(reader, ErrorResponse.class);
                             return new ErrorResponseResponse<PluginUseMetaData>(errorResponse, statusCode);
+                        } else {
+                            throw new GradleException("Received unexpected HTTP response status " + statusCode + " from " + requestUrl);
                         }
                     } catch (JsonSyntaxException e) {
                         throw new GradleException("Failed to parse plugin resolution service JSON response.", e);
