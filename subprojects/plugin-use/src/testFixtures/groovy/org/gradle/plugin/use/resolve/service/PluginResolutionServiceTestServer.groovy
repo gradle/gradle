@@ -52,9 +52,22 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         })
     }
 
-    void expectMissing(String pluginId, String version) {
-        http.expectGetMissing("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$version")
+    void expectNotFound(String pluginId, String version) {
+        expectQueryAndReturnError(pluginId, version, 404) {
+            errorCode = "UNKNOWN_PLUGIN"
+            message = "No plugin is available with id '$pluginId'"
+        }
     }
+
+    /*
+
+    errorCode: «string», // meaningful known identifier of error type
+    message: «string», // Short description of problem
+    detail: «string», // Longer description of problem (optional)
+    source: «string», //  meaningful known identifier of component that produced error (optional)
+    data: «object», // proprietary dictionary of data, structure of which is known for 'errorCode'
+
+     */
 
     static class PluginUseResponse {
         String id
@@ -82,13 +95,11 @@ class PluginResolutionServiceTestServer extends ExternalResource {
     }
 
     static class ErrorResponse {
-        String errorCode;
-        String message;
-
-        ErrorResponse(String errorCode, String message) {
-            this.errorCode = errorCode
-            this.message = message
-        }
+        String errorCode = "NONE"
+        String message = "NONE"
+        String detail
+        String source
+        Map data
     }
 
     public void expectPluginQuery(String pluginId, String pluginVersion, String group, String artifact, String version,
@@ -114,8 +125,9 @@ class PluginResolutionServiceTestServer extends ExternalResource {
         })
     }
 
-    public void expectQueryAndReturnError(String pluginId, String pluginVersion, int httpStatus, String errorCode, String message) {
-        def errorResponse = new ErrorResponse(errorCode, message);
+    public void expectQueryAndReturnError(String pluginId, String pluginVersion, int httpStatus, @DelegatesTo(value = ErrorResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+        def errorResponse = new ErrorResponse()
+        ConfigureUtil.configure(configurer, errorResponse)
 
         http.expect("/api/gradle/${GradleVersion.current().version}/plugin/use/$pluginId/$pluginVersion", ["GET"], new HttpServer.ActionSupport("search action") {
             void handle(HttpServletRequest request, HttpServletResponse response) {

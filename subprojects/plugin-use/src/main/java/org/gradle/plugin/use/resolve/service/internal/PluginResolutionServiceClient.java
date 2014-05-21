@@ -53,8 +53,9 @@ public class PluginResolutionServiceClient {
         try {
             response = resourceAccessor.getRawResource(requestUri);
             final int statusCode = response.getStatusCode();
-            if (statusCode == 404) {
-                return null;
+            if (!response.getContentType().equalsIgnoreCase("application/json")) {
+                String message = String.format("Response from '%s' was not a valid plugin resolution service response (returned content type '%s', not 'application/json')", requestUri, response.getContentType());
+                throw new GradleException(message);
             }
 
             return response.withContent(new Transformer<PluginUseMetaData, InputStream>() {
@@ -68,7 +69,11 @@ public class PluginResolutionServiceClient {
                     try {
                         if (statusCode != 200) {
                             ErrorResponse errorResponse = new Gson().fromJson(reader, ErrorResponse.class);
-                            throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.", statusCode, errorResponse.message));
+                            if (statusCode == 404) {
+                                return null;
+                            } else {
+                                throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s'.", statusCode, errorResponse.message));
+                            }
                         }
 
                         PluginUseMetaData metadata = new Gson().fromJson(reader, PluginUseMetaData.class);
@@ -101,4 +106,5 @@ public class PluginResolutionServiceClient {
             throw new GradleException(String.format("Invalid %s URL: %s", kind, url, e));
         }
     }
+
 }

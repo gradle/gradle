@@ -21,6 +21,9 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.GradleVersion
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.Unroll
+
+import static org.gradle.util.Matchers.containsText
 
 /**
  * Tests the communication aspects of working with the plugin resolution service.
@@ -45,8 +48,30 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
         succeeds("verify")
     }
 
-    def "404 response fails plugin resolution"() {
-        portal.expectMissing("myplugin", "1.0")
+    @Unroll
+    def "response that is not an expected service response is fatal to plugin resolution - status = #statusCode"() {
+        portal.expectPluginQuery("myplugin", "1.0") {
+            status = statusCode
+            contentType = "text/html"
+            writer.withWriter {
+                it << "<html/>"
+            }
+        }
+
+        buildScript applyAndVerify("myplugin", "1.0")
+
+        expect:
+        fails("verify")
+
+        failure.assertThatCause(containsText("Response from 'http://localhost.+? was not a valid plugin resolution service response"))
+        failure.assertThatCause(containsText("returned content type 'text/html.+, not 'application/json.+"))
+
+        where:
+        statusCode << [200, 404, 500]
+    }
+
+    def "404 plugin resolution service response is not fatal to plugin resolution, but indicates plugin is not available in service"() {
+        portal.expectNotFound("myplugin", "1.0")
 
         buildScript applyAndVerify("myplugin", "1.0")
 
@@ -96,7 +121,7 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
     def "portal JSON response with invalid JSON syntax fails plugin resolution"() {
         portal.expectPluginQuery("myplugin", "1.0") {
             contentType = "application/json"
-            writer.withWriter { it << "[}" }
+            outputStream.withStream { it << "[}".getBytes("utf8") }
         }
 
         buildScript applyAndVerify("myplugin", "1.0")
@@ -112,7 +137,7 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
 
         portal.expectPluginQuery("myplugin", "1.0") {
             contentType = "application/json"
-            writer.withWriter {
+            outputStream.withStream {
                 it << """
                 {
                     "id": "myplugin",
@@ -125,7 +150,7 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
                     "implementationType": "M2_JAR",
                     "extra2": "info2"
                 }
-                """
+                """.getBytes("utf8")
             }
         }
 
@@ -189,7 +214,10 @@ public class PluginResolutionServiceCommunicationIntegrationTest extends Abstrac
     }
 
     def "error message is embedded in user error message"() {
-        portal.expectQueryAndReturnError("myplugin", "1.0", 500, "INTERNAL_SERVER_ERROR", "Bintray communication failure")
+        portal.expectQueryAndReturnError("myplugin", "1.0", 500) {
+            errorCode = "INTERNAL_SERVER_ERROR"
+            message = "Bintray communication failure"
+        }
 
         buildScript applyAndVerify("myplugin", "1.0")
 

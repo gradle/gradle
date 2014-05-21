@@ -60,6 +60,7 @@ class PluginResolutionServiceClientTest extends Specification {
             resourceAccessor.getRawResource(_) >> Stub(HttpResponseResource) {
                 getStatusCode() >> statusCode
                 if (jsonResponse != null) {
+                    getContentType() >> "application/json"
                     withContent(_) >> { Transformer<PluginUseMetaData, InputStream> action ->
                         action.transform(new ByteArrayInputStream(jsonResponse.getBytes("utf8")))
                     }

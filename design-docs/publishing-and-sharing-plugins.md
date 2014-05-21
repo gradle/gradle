@@ -584,7 +584,7 @@ As much of the HTTP infrastructure used in dependency resolution as possible sho
 ### Test Coverage
 
 - ~~404 responses that indicate that the plugin or plugin version do not exist are not fatal - try next resolver~~
-- generic 404 responses are considered fatal
+- ~~generic 404 responses are considered fatal~~
 - If plugin portal response indicates that the plugin is known, but not by that version (also a 404), failure message to user should include this information (later stories might include information about what versions are known about)
 - ~~Attempt to use -SNAPSHOT or a dynamic version selector produces helpful 'not supported' error message~~
     - As there is only the core resolver and the portal resolver at this point, this logic could be hardcoded at the start of the resolver list potentially
