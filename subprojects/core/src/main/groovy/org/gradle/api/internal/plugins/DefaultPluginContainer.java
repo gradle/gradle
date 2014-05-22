@@ -74,7 +74,7 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
                     return true;
                 }
             } catch (UnknownPluginException ignore) {
-
+                // ignore
             }
 
             PluginDescriptorLocator locator = new ClassloaderBackedPluginDescriptorLocator(pluginClass.getClassLoader());
