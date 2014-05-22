@@ -28,7 +28,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.plugin.use.internal.PluginRequestApplicatorFactory
+import org.gradle.plugin.use.internal.PluginRequestApplicator
 import spock.lang.Specification
 
 public class DefaultScriptPluginFactoryTest extends Specification {
@@ -46,7 +46,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def baseChildClassLoader = Mock(ClassLoader)
     def exportClassLoader = Mock(ClassLoader)
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
-    def pluginRequestApplicatorFactory = Mock(PluginRequestApplicatorFactory)
+    def pluginRequestApplicator = Mock(PluginRequestApplicator)
     def scriptHandler = Mock(ScriptHandler)
     def classPathScriptRunner = Mock(ScriptRunner)
     def classPathScript = Mock(BasicScript)
@@ -55,7 +55,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def loggingManager = Mock(LoggingManagerInternal)
     def fileLookup = Mock(FileLookup)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicatorFactory, fileLookup)
+    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)

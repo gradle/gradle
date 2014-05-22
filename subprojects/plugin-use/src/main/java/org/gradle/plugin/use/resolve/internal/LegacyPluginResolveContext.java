@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.artifacts.Dependency;
 
-public interface PluginRequestApplicatorFactory {
+public interface LegacyPluginResolveContext {
 
-    PluginRequestApplicator createRequestApplicator(PluginAware target);
+    Dependency add(String pluginId, String m2RepoUrl, Object dependencyNotation);
 
 }

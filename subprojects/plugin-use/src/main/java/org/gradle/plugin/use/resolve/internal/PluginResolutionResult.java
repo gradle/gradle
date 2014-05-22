@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 
 /**
@@ -44,6 +45,9 @@ public interface PluginResolutionResult {
      * @param pluginResolution the plugin resolution
      */
     void found(String sourceDescription, PluginResolution pluginResolution);
+
+
+    void foundLegacy(String sourceDescription, Action<? super LegacyPluginResolveContext> action);
 
     /**
      * Whether the plugin has been found (i.e. has {@link #found(String, PluginResolution)} has been called)

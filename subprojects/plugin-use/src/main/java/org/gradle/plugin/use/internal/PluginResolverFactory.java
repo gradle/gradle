@@ -18,6 +18,7 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.internal.Factory;
 import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
@@ -27,7 +28,7 @@ import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceRes
 import java.util.LinkedList;
 import java.util.List;
 
-public class PluginResolverFactory {
+public class PluginResolverFactory implements Factory<PluginResolver> {
 
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
@@ -43,7 +44,7 @@ public class PluginResolverFactory {
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
     }
 
-    public PluginResolver createPluginResolver() {
+    public PluginResolver create() {
         List<PluginResolver> resolvers = new LinkedList<PluginResolver>();
         addDefaultResolvers(resolvers);
         CompositePluginResolver compositePluginResolver = new CompositePluginResolver(resolvers);

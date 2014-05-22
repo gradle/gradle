@@ -37,7 +37,10 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.plugin.internal.PluginId;
-import org.gradle.plugin.use.internal.*;
+import org.gradle.plugin.use.internal.InvalidPluginRequestException;
+import org.gradle.plugin.use.internal.PluginDependenciesService;
+import org.gradle.plugin.use.internal.PluginRequest;
+import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -53,7 +56,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
     private final ScriptHandlerFactory scriptHandlerFactory;
-    private final PluginRequestApplicatorFactory pluginRequestApplicatorFactory;
+    private final PluginRequestApplicator pluginRequestApplicator;
     private final FileLookup fileLookup;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -61,14 +64,14 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
                                       ScriptHandlerFactory scriptHandlerFactory,
-                                      PluginRequestApplicatorFactory pluginRequestApplicatorFactory,
+                                      PluginRequestApplicator pluginRequestApplicator,
                                       FileLookup fileLookup) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
         this.scriptHandlerFactory = scriptHandlerFactory;
-        this.pluginRequestApplicatorFactory = pluginRequestApplicatorFactory;
+        this.pluginRequestApplicator = pluginRequestApplicator;
         this.fileLookup = fileLookup;
     }
 
@@ -131,18 +134,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             classPathScriptRunner.getScript().init(target, services);
             classPathScriptRunner.run();
 
-            Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
-
-            Set<File> files = classpathConfiguration.getFiles();
-            if (!files.isEmpty()) {
-                ClassPath classPath = new DefaultClassPath(files);
-                Factory<? extends ClassLoader> loader = targetScope.getParent().loader(classPath);
-                targetScope.export(loader);
-            }
-
             List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
-            if (!pluginRequests.isEmpty()) {
-
+            if (!pluginRequests.isEmpty()) { // implies target is PluginAware
                 ListMultimap<PluginId, PluginRequest> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequest>() {
                     public PluginId transform(PluginRequest pluginRequest) {
                         return pluginRequest.getId();
@@ -166,13 +159,19 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                     }
                 }
 
-                PluginRequestApplicator requestApplicator = pluginRequestApplicatorFactory.createRequestApplicator((PluginAware) target);
-                for (PluginRequest pluginRequest : pluginRequests) {
-                    requestApplicator.applyPlugin(pluginRequest);
+                // This is safe because earlier on we only allow plugins {} for ProjectScript
+                PluginAware pluginAware = (PluginAware) target;
+                pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginAware, targetScope);
+            } else {
+                Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
+                Set<File> files = classpathConfiguration.getFiles();
+                if (!files.isEmpty()) {
+                    ClassPath classPath = new DefaultClassPath(files);
+                    Factory<? extends ClassLoader> loader = targetScope.getParent().loader(classPath);
+                    targetScope.export(loader);
                 }
+                targetScope.lock();
             }
-
-            targetScope.lock();
 
             compiler.setClassloader(targetScope.getLocalClassLoader());
 

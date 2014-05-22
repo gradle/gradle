@@ -44,7 +44,7 @@ import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.remote.MessagingServer
-import org.gradle.plugin.use.internal.PluginRequestApplicatorFactory
+import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.process.internal.DefaultWorkerProcessFactory
 import org.gradle.process.internal.WorkerProcessBuilder
 import org.gradle.profile.ProfileEventAdapter
@@ -82,7 +82,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(CacheFactory) >> Stub(CacheFactory)
         parent.get(DocumentationRegistry) >> new DocumentationRegistry()
         parent.get(FileLookup) >> Stub(FileLookup)
-        parent.get(PluginRequestApplicatorFactory) >> Mock(PluginRequestApplicatorFactory)
+        parent.get(PluginRequestApplicator) >> Mock(PluginRequestApplicator)
     }
 
     def delegatesToParentForUnknownService() {

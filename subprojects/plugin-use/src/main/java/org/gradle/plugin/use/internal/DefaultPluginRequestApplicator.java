@@ -16,29 +16,117 @@
 
 package org.gradle.plugin.use.internal;
 
+import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.plugin.use.resolve.internal.LegacyPluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
+import static org.gradle.util.CollectionUtils.*;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private final PluginResolver pluginResolver;
-    private final Action<? super PluginResolution> pluginResolutionHandler;
 
-    public DefaultPluginRequestApplicator(PluginResolver pluginResolver, Action<? super PluginResolution> pluginResolutionHandler) {
+    public DefaultPluginRequestApplicator(PluginResolver pluginResolver) {
         this.pluginResolver = pluginResolver;
-        this.pluginResolutionHandler = pluginResolutionHandler;
     }
 
-    public void applyPlugin(PluginRequest request) {
-        DefaultPluginResolutionResult result = new DefaultPluginResolutionResult();
+    public void applyPlugins(Iterable<? extends PluginRequest> requests, final ScriptHandler scriptHandler, PluginAware target, ClassLoaderScope classLoaderScope) {
+        PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator(target);
+
+        List<Result> results = collect(requests, new Transformer<Result, PluginRequest>() {
+            public Result transform(PluginRequest request) {
+                return resolveToFoundResult(request);
+            }
+        });
+
+        ImmutableListMultimap<Boolean, Result> categorizedResults = groupBy(results, new Transformer<Boolean, Result>() {
+            public Boolean transform(Result original) {
+                return original.legacyFound != null;
+            }
+        });
+
+        List<Result> legacy = categorizedResults.get(true);
+        List<Result> nonLegacy = categorizedResults.get(false);
+
+        // Could be different to ids in the requests as they may be unqualified
+        final List<String> legacyActualPluginIds = new LinkedList<String>();
+        if (!legacy.isEmpty()) {
+            final RepositoryHandler repositories = scriptHandler.getRepositories();
+            final List<MavenArtifactRepository> mavenRepos = repositories.withType(MavenArtifactRepository.class);
+
+            LegacyPluginResolveContext legacyPluginResolveContext = new LegacyPluginResolveContext() {
+                public Dependency add(String pluginId, final String m2RepoUrl, Object dependencyNotation) {
+                    legacyActualPluginIds.add(pluginId);
+
+                    boolean repoExists = any(mavenRepos, new Spec<MavenArtifactRepository>() {
+                        public boolean isSatisfiedBy(MavenArtifactRepository element) {
+                            return element.getUrl().toString().equals(m2RepoUrl);
+                        }
+                    });
+                    if (!repoExists) {
+                        repositories.maven(new Action<MavenArtifactRepository>() {
+                            public void execute(MavenArtifactRepository mavenArtifactRepository) {
+                                mavenArtifactRepository.setUrl(m2RepoUrl);
+                            }
+                        });
+                    }
+
+                    return scriptHandler.getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION, dependencyNotation);
+                }
+            };
+
+            for (Result result : legacy) {
+                result.legacyFound.action.execute(legacyPluginResolveContext);
+            }
+        }
+
+        Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
+        Set<File> files = classpathConfiguration.getFiles();
+        if (!files.isEmpty()) {
+            ClassPath classPath = new DefaultClassPath(files);
+            Factory<? extends ClassLoader> loader = classLoaderScope.getParent().loader(classPath);
+            classLoaderScope.export(loader);
+        }
+
+        classLoaderScope.lock();
+
+        // We're making an assumption here that the target's plugin registry is backed classLoaderScope.
+        // Because we are only build.gradle files right now, this holds.
+        // It won't for arbitrary scripts though.
+        for (String pluginId : legacyActualPluginIds) {
+            target.getPlugins().apply(pluginId);
+        }
+
+        for (Result result : nonLegacy) {
+            resolutionApplicator.execute(result.found.resolution);
+        }
+    }
+
+    private Result resolveToFoundResult(PluginRequest request) {
+        Result result = new Result();
         try {
             pluginResolver.resolve(request, result);
         } catch (Exception e) {
@@ -46,16 +134,17 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                     new GradleException(String.format("Error resolving plugin %s.", request.getDisplayName()), e),
                     request.getScriptSource(), request.getLineNumber());
         }
-        if (result.isFound()) {
-            pluginResolutionHandler.execute(result.found.resolution);
-        } else {
+
+        if (!result.isFound()) {
             String message = buildNotFoundMessage(request, result);
             Exception exception = new UnknownPluginException(message);
             throw new LocationAwareException(exception, request.getScriptSource(), request.getLineNumber());
         }
+
+        return result;
     }
 
-    private String buildNotFoundMessage(PluginRequest pluginRequest, DefaultPluginResolutionResult result) {
+    private String buildNotFoundMessage(PluginRequest pluginRequest, Result result) {
         if (result.notFoundList.isEmpty()) {
             // this shouldn't happen, resolvers should call notFound()
             return String.format("Plugin %s was not found", pluginRequest.getDisplayName());
@@ -95,10 +184,21 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
     }
 
-    private static class DefaultPluginResolutionResult implements PluginResolutionResult {
+    private static class LegacyFound {
+        private final String source;
+        private final Action<? super LegacyPluginResolveContext> action;
+
+        private LegacyFound(String source, Action<? super LegacyPluginResolveContext> action) {
+            this.source = source;
+            this.action = action;
+        }
+    }
+
+    private static class Result implements PluginResolutionResult {
 
         private final List<NotFound> notFoundList = new LinkedList<NotFound>();
         private Found found;
+        private LegacyFound legacyFound;
 
         public void notFound(String sourceDescription, String notFoundDetail) {
             notFoundList.add(new NotFound(sourceDescription, notFoundDetail));
@@ -108,8 +208,12 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             found = new Found(sourceDescription, pluginResolution);
         }
 
+        public void foundLegacy(String sourceDescription, Action<? super LegacyPluginResolveContext> action) {
+            this.legacyFound = new LegacyFound(sourceDescription, action);
+        }
+
         public boolean isFound() {
-            return found != null;
+            return found != null || legacyFound != null;
         }
     }
 }

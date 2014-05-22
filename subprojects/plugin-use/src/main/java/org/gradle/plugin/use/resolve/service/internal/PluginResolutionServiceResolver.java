@@ -41,10 +41,7 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
-import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
-import org.gradle.plugin.use.resolve.internal.PluginResolution;
-import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
-import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.internal.*;
 
 import java.io.File;
 import java.util.Set;
@@ -108,12 +105,24 @@ public class PluginResolutionServiceResolver implements PluginResolver {
                     }
                 } else {
                     PluginUseMetaData metaData = response.getResponse();
-                    ClassPath classPath = resolvePluginDependencies(metaData);
-                    PluginResolution resolution = new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
-                    result.found(getDescription(), resolution);
+                    if (metaData.legacy) {
+                        handleLegacy(metaData, result);
+                    } else {
+                        ClassPath classPath = resolvePluginDependencies(metaData);
+                        PluginResolution resolution = new ClassPathPluginResolution(instantiator, pluginRequest.getId(), parentScope, Factories.constant(classPath));
+                        result.found(getDescription(), resolution);
+                    }
                 }
             }
         }
+    }
+
+    private void handleLegacy(final PluginUseMetaData metadata, PluginResolutionResult result) {
+        result.foundLegacy(getDescription(), new Action<LegacyPluginResolveContext>() {
+            public void execute(LegacyPluginResolveContext context) {
+                context.add(metadata.id, metadata.implementation.get("repo"), metadata.implementation.get("gav"));
+            }
+        });
     }
 
     private boolean isDynamicVersion(String version) {

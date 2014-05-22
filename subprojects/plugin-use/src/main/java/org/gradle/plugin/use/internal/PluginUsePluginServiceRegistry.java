@@ -77,8 +77,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver);
         }
 
-        PluginRequestApplicatorFactory createPluginUseServices(PluginResolverFactory pluginResolverFactory) {
-            return new DefaultPluginRequestApplicatorFactory(pluginResolverFactory);
+        PluginRequestApplicator createPluginRequestApplicator(PluginResolverFactory pluginResolverFactory) {
+            return new DefaultPluginRequestApplicator(pluginResolverFactory.create());
         }
     }
 }

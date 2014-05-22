@@ -16,7 +16,11 @@
 
 package org.gradle.plugin.use.internal;
 
+import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.plugins.PluginAware;
+
 // Implementation is provided by 'plugin-use' module
 public interface PluginRequestApplicator {
-    void applyPlugin(PluginRequest request);
+    void applyPlugins(Iterable<? extends PluginRequest> requests, ScriptHandler scriptHandler, PluginAware target, ClassLoaderScope classLoaderScope);
 }

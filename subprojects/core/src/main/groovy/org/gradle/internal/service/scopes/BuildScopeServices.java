@@ -67,7 +67,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.plugin.use.internal.PluginRequestApplicatorFactory;
+import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
@@ -209,7 +209,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 getFactory(LoggingManagerInternal.class),
                 get(Instantiator.class),
                 get(ScriptHandlerFactory.class),
-                get(PluginRequestApplicatorFactory.class),
+                get(PluginRequestApplicator.class),
                 get(FileLookup.class)
         );
     }

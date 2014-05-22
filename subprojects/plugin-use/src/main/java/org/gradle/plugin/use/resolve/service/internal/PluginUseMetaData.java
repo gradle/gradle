@@ -31,6 +31,7 @@ class PluginUseMetaData {
     String version;
     Map<String, String> implementation;
     String implementationType;
+    boolean legacy;
 
     void verify() {
         if (implementationType == null) {
