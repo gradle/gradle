@@ -38,21 +38,33 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         service.start()
     }
 
-    def "non declarative plugin can depend on java plugin and access its api"() {
+    def "non declarative plugin implementation can access core plugins and not core impl"() {
         given:
         publishPlugin """
             project.apply plugin: 'java'
-                println getClass().classLoader.loadClass('org.gradle.api.plugins.JavaPlugin').name
-            project.task('pluginName') << {
+
+            // Can see plugin classes
+            getClass().classLoader.loadClass('org.gradle.api.plugins.JavaPlugin')
+
+            // Can't see core impl classes
+            def implClassName = 'com.google.common.collect.Multimap'
+            project.getClass().getClassLoader().loadClass(implClassName)
+
+            try {
+                getClass().getClassLoader().loadClass(implClassName)
+                assert false : "should have failed to load gradle implementation class: \$implClassName"
+            } catch (ClassNotFoundException ignore) {
+
             }
+
+            project.task('pluginTask')
         """
 
         when:
         buildScript USE
 
         then:
-        succeeds("pluginName")
-        output.contains("org.gradle.api.plugins.JavaPlugin")
+        succeeds("pluginTask")
     }
 
 

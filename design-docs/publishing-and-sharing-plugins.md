@@ -623,6 +623,7 @@ See “resolution process” section in “implementation plan” for details on
 
 - ~Plugin implementation can use `project.apply()` to apply core Gradle plugin~
 - ~Plugin implementation can access Gradle Core Plugin API~
+- ~Plugin implementation cannot access Gradle Core implementation~
 - Plugin is available in build script via `PluginContainer` - incl. `withType()` and `withId()` methods
 - Other classes from plugin implementation jar are visible to build script
 - Classes from plugin implementation dependencies are visible to build script
