@@ -69,7 +69,7 @@ public interface GradleDistribution {
     boolean isToolingApiSupported();
 
     /**
-     * Returns true if the tooling API provider of this distribution correctly handles non-ASCII characters in logging output.
+     * Returns true if the tooling API testDirectoryProvider of this distribution correctly handles non-ASCII characters in logging output.
      */
     boolean isToolingApiNonAsciiOutputSupported();
 

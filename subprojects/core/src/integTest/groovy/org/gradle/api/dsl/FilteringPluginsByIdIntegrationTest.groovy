@@ -16,6 +16,7 @@
 package org.gradle.api.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.plugin.PluginBuilder
 
 class FilteringPluginsByIdIntegrationTest extends AbstractIntegrationSpec {
 
@@ -30,6 +31,36 @@ class FilteringPluginsByIdIntegrationTest extends AbstractIntegrationSpec {
             operations << "applied"
 
             task verify << { assert operations == ['applying', 'withId for JavaPlugin', 'applied'] }
+        """
+
+        expect:
+        run("verify")
+    }
+
+    def "filters plugins by id when descriptor not on registry classpath"() {
+        def pluginBuilder = new PluginBuilder(testDirectory)
+        pluginBuilder.addPlugin("")
+        pluginBuilder.publishTo(executer, file("plugin.jar"))
+
+        buildFile << """
+            def operations = []
+
+            def loader = new URLClassLoader([file("plugin.jar").toURL()] as URL[], getClass().classLoader)
+            def pluginClass = loader.loadClass("${pluginBuilder.packageName}.TestPlugin")
+
+            plugins.withType(pluginClass) {
+                operations << 'withType'
+            }
+
+            plugins.withId("test-plugin") {
+                operations << 'withId'
+            }
+
+            operations << "applying"
+            apply plugin: pluginClass
+            operations << "applied"
+
+            task verify << { assert operations == ['applying', 'withType', 'withId', 'applied'] }
         """
 
         expect:

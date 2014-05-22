@@ -41,7 +41,7 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
         resolutionService.start()
     }
 
-    def "plugin is available via `plugins` container"() {
+    def "plugin is available via plugins container"() {
         publishPlugin()
 
         buildScript """
@@ -50,7 +50,11 @@ class PluginUseClassVisibilityIntegrationSpec extends AbstractIntegrationSpec {
             task verify << {
                 def foundByClass = false
                 plugins.withType(pluginClass) { foundByClass = true }
+                def foundById = false
+                plugins.withId("$PLUGIN_ID") { foundById = true }
+
                 assert foundByClass
+                assert foundById
             }
         """
 

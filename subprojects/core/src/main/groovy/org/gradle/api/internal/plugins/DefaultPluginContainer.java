@@ -15,14 +15,74 @@
  */
 package org.gradle.api.internal.plugins;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.UncheckedException;
+
+import java.util.concurrent.ExecutionException;
 
 public class DefaultPluginContainer<T extends PluginAware> extends DefaultPluginCollection<Plugin> implements PluginContainer {
     private PluginRegistry pluginRegistry;
+
+    private static class IdLookupCacheKey {
+        private final Class<?> pluginClass;
+        private final String id;
+
+        private IdLookupCacheKey(Class<?> pluginClass, String id) {
+            this.pluginClass = pluginClass;
+            this.id = id;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            IdLookupCacheKey that = (IdLookupCacheKey) o;
+
+            return id.equals(that.id) && pluginClass.equals(that.pluginClass);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = pluginClass.hashCode();
+            result = 31 * result + id.hashCode();
+            return result;
+        }
+    }
+
+    private final LoadingCache<IdLookupCacheKey, Boolean> idLookupCache = CacheBuilder.newBuilder().build(new CacheLoader<IdLookupCacheKey, Boolean>() {
+        @Override
+        public Boolean load(@SuppressWarnings("NullableProblems") IdLookupCacheKey key) throws Exception {
+            Class<?> pluginClass = key.pluginClass;
+
+            // Plugin registry will have the mapping cached in memory for most plugins, try first
+            try {
+                Class<? extends Plugin<?>> typeForId = pluginRegistry.getTypeForId(key.id);
+                if (typeForId.equals(pluginClass)) {
+                    return true;
+                }
+            } catch (UnknownPluginException ignore) {
+
+            }
+
+            PluginDescriptorLocator locator = new ClassloaderBackedPluginDescriptorLocator(pluginClass.getClassLoader());
+            PluginDescriptor pluginDescriptor = locator.findPluginDescriptor(key.id);
+            return pluginDescriptor != null && pluginDescriptor.getImplementationClassName().equals(pluginClass.getName());
+        }
+    });
+
     private final T pluginAware;
 
     public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware) {
@@ -96,9 +156,16 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
         return type.cast(plugin);
     }
 
-    public void withId(String pluginId, Action<? super Plugin> action) {
-        Class type = getTypeForId(pluginId);
-        withType(type, action);
+    public void withId(final String pluginId, Action<? super Plugin> action) {
+        matching(new Spec<Plugin>() {
+            public boolean isSatisfiedBy(Plugin element) {
+                try {
+                    return idLookupCache.get(new IdLookupCacheKey(element.getClass(), pluginId));
+                } catch (ExecutionException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        }).all(action);
     }
 
     protected Class<? extends Plugin> getTypeForId(String id) {
