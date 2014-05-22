@@ -621,21 +621,21 @@ See “resolution process” section in “implementation plan” for details on
 
 ### Test Coverage
 
-- ~Plugin implementation can use `project.apply()` to apply core Gradle plugin~
-- ~Plugin implementation can access Gradle Core Plugin API~
-- ~Plugin implementation cannot access Gradle Core implementation~
-- Plugin is available in build script via `PluginContainer` - incl. `withType()` and `withId()` methods
-- Other classes from plugin implementation jar are visible to build script
-- Classes from plugin implementation dependencies are visible to build script
+- ~~Plugin implementation can use `project.apply()` to apply core Gradle plugin~~
+- ~~Plugin implementation can access Gradle Core Plugin API~~
+- ~~Plugin implementation cannot access Gradle Core implementation~~
+- ~~Plugin is available in build script via `PluginContainer` - incl. `withType()` and `withId()` methods~~
+- ~~Other classes from plugin implementation jar are visible to build script~~
+- ~~Classes from plugin implementation dependencies are visible to build script~~
 - Plugin dependencies influence conflict resolution in `buildscript.configurations.classpath`
     - Add a `buildscript {}` dependency on java library A @ version 1.0
     - Add a `plugins {}` dependency on a non-declarative plugin that depends on A @ version 2.0
     - Assert that _only_ version 2.0 was resolved
 - Plugin implementation classes are not visible to script plugins applied to target script
 - Plugin implementation classes are not visible to build scripts of child projects
-- Plugin can access classes from Gradle API
-- Plugin can access classes from Gradle core plugins
-- Plugin cannot access Gradle internal implementation classes
+- ~~Plugin can access classes from Gradle API~~
+- ~~Plugin can access classes from Gradle core plugins~~
+- ~~Plugin cannot access Gradle internal implementation classes~~
 - Failed resolution of module implementation from specified repository fails, with error message indicating why resolve was happening
 - Successful resolution of module implementation, but no plugin with id found in resultant classpath, yields useful error message
 - Successful resolution of module implementation, but unexpected error encountered when loading `Plugin` implementation class, yields useful error message

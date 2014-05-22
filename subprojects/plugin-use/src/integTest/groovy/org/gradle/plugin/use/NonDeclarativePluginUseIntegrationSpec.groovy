@@ -19,6 +19,7 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.junit.Rule
 
 class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
@@ -67,15 +68,78 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         succeeds("pluginTask")
     }
 
+    def "plugin implementation and dependencies are visible to plugin and build script"() {
+        given:
+        def pluginBuilder2 = new PluginBuilder(file("plugin2"))
+        pluginBuilder2.addPlugin("project.task('plugin2Task')", "test-plugin-2", "TestPlugin2")
 
-    void publishPlugin(String impl) {
+        def module2 = service.m2repo.module(GROUP, ARTIFACT + "2", VERSION)
+        pluginBuilder2.publishTo(executer, module2.artifactFile)
+        module2.allowAll()
+
+        def module = publishPlugin """
+            // can load plugin dependended on
+            project.apply plugin: 'test-plugin-2'
+
+            // Can see dependency classes
+            getClass().classLoader.loadClass('${pluginBuilder2.packageName}.TestPlugin2')
+
+            project.task('pluginTask')
+        """
+
+        module.dependsOn(GROUP, ARTIFACT + "2", VERSION)
+        module.publishPom()
+
+        when:
+        buildScript """
+            $USE
+
+            def ops = []
+
+            plugins.withId('$PLUGIN_ID') {
+              ops << "withId 1"
+            }
+
+            plugins.withId("test-plugin-2") {
+              ops << "withId 2"
+            }
+
+            def class1 = ${pluginBuilder.packageName}.TestPlugin
+            def class2 = ${pluginBuilder2.packageName}.TestPlugin2
+
+            plugins.withType(class1) {
+              ops << "withType 1"
+            }
+
+            plugins.withType(class2) {
+              ops << "withType 2"
+            }
+
+            apply plugin: '$PLUGIN_ID'
+            apply plugin: 'test-plugin-2'
+
+            println "ops = \$ops"
+        """
+
+        then:
+        succeeds("pluginTask", "plugin2Task")
+
+        and:
+        output.contains 'ops = [withId 1, withId 2, withType 1, withType 2]'
+    }
+
+
+    MavenHttpModule publishPlugin(String impl) {
         service.expectPluginQuery(PLUGIN_ID, VERSION, GROUP, ARTIFACT, VERSION) {
             legacy = true
         }
+
         def module = service.m2repo.module(GROUP, ARTIFACT, VERSION)
         module.allowAll()
 
         pluginBuilder.addPlugin(impl, PLUGIN_ID)
         pluginBuilder.publishTo(executer, module.artifactFile)
+
+        module
     }
 }
