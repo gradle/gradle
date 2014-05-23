@@ -55,7 +55,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
         then:
         hasArtifact(moduleA)
-
     }
 
     def "can resolve artifacts from local m2 with custom local repository defined in user settings.xml"() {
@@ -139,6 +138,25 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
         then:
         failure.assertHasCause('Could not find group:projectA:1.2')
+    }
+
+    def "mavenLocal reports and recovers from missing module"() {
+        def module = m2Installation.mavenRepo().module('group', 'projectA', '1.2')
+
+        when:
+        runAndFail 'retrieve'
+
+        then:
+        failure.assertHasCause("""Could not find group:projectA:1.2.
+Searched in the following locations:
+    ${module.pomFile.toURL()}
+    ${module.artifactFile.toURL()}""")
+
+        when:
+        module.publish()
+
+        then:
+        succeeds 'retrieve'
     }
 
     @Issue('GRADLE-2034')

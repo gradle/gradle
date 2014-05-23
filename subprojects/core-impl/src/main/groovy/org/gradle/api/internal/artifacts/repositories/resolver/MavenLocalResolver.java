@@ -41,6 +41,9 @@ public class MavenLocalResolver extends MavenResolver {
     @Override
     protected MutableModuleVersionMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         MutableModuleVersionMetaData metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
+        if (metaData == null) {
+            return null;
+        }
 
         if (isOrphanedPom(mavenMetaData(metaData), artifactResolver)) {
             return null;
