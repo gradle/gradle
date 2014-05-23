@@ -64,6 +64,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.hasMessage;
+import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -399,7 +400,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         public ExecutionFailure assertThatCause(final Matcher<String> matcher) {
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
-            assertThat(causes, Matchers.<Throwable>hasItem(hasMessage(matcher)));
+            assertThat(causes, Matchers.<Throwable>hasItem(hasMessage(normalizedLineSeparators(matcher))));
             outputFailure.assertThatCause(matcher);
             return this;
         }
@@ -434,7 +435,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
-            assertThat(description, matcher);
+            assertThat(description, normalizedLineSeparators(matcher));
             outputFailure.assertThatDescription(matcher);
             return this;
         }
