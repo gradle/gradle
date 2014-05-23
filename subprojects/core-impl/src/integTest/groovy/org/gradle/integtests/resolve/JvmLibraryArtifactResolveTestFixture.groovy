@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundExcepti
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 
 /**
  * A test fixture that injects a task into a build that uses the Artifact Query API to download some artifacts, validating the results.
@@ -176,7 +177,7 @@ task $taskName << {
         }
         String check = """
     assert ${reference} instanceof ${expected.class.name}
-    assert ${reference}.message == '''${expected.message.replace("\'", "\\\'")}'''
+    assert ${reference}.message == '''${TextUtil.toPlatformLineSeparators(expected.message.replace("\'", "\\\'"))}'''
 """
         if (expected.cause != null) {
             check += """

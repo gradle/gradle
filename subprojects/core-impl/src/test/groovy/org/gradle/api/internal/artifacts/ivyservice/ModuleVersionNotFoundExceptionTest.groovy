@@ -33,10 +33,10 @@ class ModuleVersionNotFoundExceptionTest extends Specification {
         def exception = new ModuleVersionNotFoundException(newId("org", "a", "1.2"), ["http://somewhere", "file:/somewhere"])
 
         expect:
-        exception.message == """Could not find org:a:1.2.
+        exception.message == toPlatformLineSeparators("""Could not find org:a:1.2.
 Searched in the following locations:
     http://somewhere
-    file:/somewhere"""
+    file:/somewhere""")
     }
 
     def "formats message to include selector"() {
@@ -50,10 +50,10 @@ Searched in the following locations:
         def exception = new ModuleVersionNotFoundException(newSelector("org", "a", "1.2"), ["http://somewhere", "file:/somewhere"])
 
         expect:
-        exception.message == """Could not find any version that matches org:a:1.2.
+        exception.message == toPlatformLineSeparators("""Could not find any version that matches org:a:1.2.
 Searched in the following locations:
     http://somewhere
-    file:/somewhere"""
+    file:/somewhere""")
     }
 
     def "can add incoming paths to exception"() {
