@@ -101,10 +101,6 @@ public class HttpResponseResource extends AbstractExternalResource {
         return header == null ? null : header.getValue();
     }
 
-    public boolean exists() {
-        return true;
-    }
-
     public boolean isLocal() {
         return false;
     }
