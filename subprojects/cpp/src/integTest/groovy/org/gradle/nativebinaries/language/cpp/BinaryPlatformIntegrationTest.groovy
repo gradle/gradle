@@ -28,7 +28,6 @@ import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryI
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
@@ -238,8 +237,8 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause(TextUtil.toPlatformLineSeparators("""No tool chain is available to build for platform 'unavailable':
-  - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'unavailable'."""))
+        failure.assertHasCause("""No tool chain is available to build for platform 'unavailable':
+  - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'unavailable'.""")
 
         where:
         type               | config

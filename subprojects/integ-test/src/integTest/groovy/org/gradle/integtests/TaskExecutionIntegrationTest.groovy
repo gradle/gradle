@@ -17,7 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 import org.junit.Test
 import spock.lang.Issue
 
@@ -225,12 +224,12 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails 'b'
 
         then:
-        failure.assertHasDescription TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
+        failure.assertHasDescription """Circular dependency between the following tasks:
 :a
 \\--- :b
      \\--- :a (*)
 
-(*) - details omitted (listed previously)""")
+(*) - details omitted (listed previously)"""
     }
 
     def "placeolder actions not triggered when not requested"() {
@@ -348,12 +347,12 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails 'b'
 
         then:
-        failure.assertHasDescription TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
+        failure.assertHasDescription """Circular dependency between the following tasks:
 :a
 \\--- :b
      \\--- :a (*)
 
-(*) - details omitted (listed previously)""")
+(*) - details omitted (listed previously)"""
     }
 
     def "checked exceptions thrown by tasks are reported correctly"() {

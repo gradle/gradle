@@ -177,7 +177,7 @@ task $taskName << {
         }
         String check = """
     assert ${reference} instanceof ${expected.class.name}
-    assert ${reference}.message == '''${TextUtil.toPlatformLineSeparators(expected.message.replace("\'", "\\\'"))}'''
+    assert ${reference}.message == '${TextUtil.toPlatformLineSeparators(expected.message.replace("\'", "\\\'").replace("\r", "\\r").replace("\n", "\\n"))}'
 """
         if (expected.cause != null) {
             check += """
