@@ -16,15 +16,17 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class FileOrUriNotationParserTest extends Specification {
 
     @Rule public TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider();
 
-    final FileOrUriNotationParser<Serializable> parser = new FileOrUriNotationParser<Serializable>(TestFiles.fileSystem())
+    final FileOrUriNotationParser parser = new FileOrUriNotationParser(TestFiles.fileSystem())
 
     def "with File returns this File"() {
         setup:
@@ -94,14 +96,18 @@ class FileOrUriNotationParserTest extends Specification {
         parsed instanceof URI
     }
 
-//    @Issue("GRADLE-2072")
-//    def "parsing unknown types causes UnsupportedNotationException"() {
-//        setup:
-//        def taskInternalMock = Mock(TaskInternal)
-//        def fileResolverMock = Mock(FileResolver)
-//        when:
-//        parser.parseNotation(new DefaultTaskOutputs(fileResolverMock, taskInternalMock))
-//        then:
-//        thrown(UnsupportedNotationException)
-//    }
+    @Issue("GRADLE-2072")
+    def "parsing unknown types causes UnsupportedNotationException"() {
+        when:
+        parser.parseNotation(12)
+
+        then:
+        UnsupportedNotationException e = thrown()
+        e.message == """Cannot convert the provided value 12 to a File or URI.
+The following types/formats are supported:
+  - A String or CharSequence path, e.g 'src/main/java' or '/usr/include'
+  - A String or CharSequence URI, e.g 'file:/usr/include'
+  - A File instance.
+  - A URI or URL instance."""
+    }
 }

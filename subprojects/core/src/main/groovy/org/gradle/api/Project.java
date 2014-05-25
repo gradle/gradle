@@ -594,8 +594,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
      *
-     * <li>An Object. Its {@code toString()} value is treated the same way as a String.
-     * This is deprecated and will be removed in the next version of Gradle.</li>
      * </ul>
      *
      * @param path The object to resolve as a File.

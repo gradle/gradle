@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file
 
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -173,6 +174,20 @@ class BaseDirFileResolverSpec extends Specification {
         normalize("../../..", root) == root
     }
 
+    def "cannot resolve file using unsupported notation"() {
+        when:
+        resolver().resolve(12)
+
+        then:
+        UnsupportedNotationException e = thrown()
+        e.message == """Cannot convert the provided value 12 to a File or URI.
+The following types/formats are supported:
+  - A String or CharSequence path, e.g 'src/main/java' or '/usr/include'
+  - A String or CharSequence URI, e.g 'file:/usr/include'
+  - A File instance.
+  - A URI or URL instance."""
+    }
+
     def createLink(File link, File target) {
         createLink(link, target.absolutePath)
     }
@@ -188,7 +203,11 @@ class BaseDirFileResolverSpec extends Specification {
     }
 
     def normalize(Object path, File baseDir = tmpDir.testDirectory) {
-        new BaseDirFileResolver(TestFiles.fileSystem(), baseDir).resolve(path)
+        resolver(baseDir).resolve(path)
+    }
+
+    private BaseDirFileResolver resolver(File baseDir = tmpDir.testDirectory) {
+        new BaseDirFileResolver(TestFiles.fileSystem(), baseDir)
     }
 
     private File[] getFsRoots() {

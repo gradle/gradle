@@ -29,11 +29,11 @@ public class UnsupportedNotationException extends RuntimeException {
     }
 
     public UnsupportedNotationException(Object notation, String failure, @Nullable String resolution, List<String> candidateTypes) {
-        super(format(notation, failure, resolution, candidateTypes));
+        super(format(failure, resolution, candidateTypes));
         this.notation = notation;
     }
 
-    private static String format(Object notation, String failure, String resolution, List<String> formats) {
+    private static String format(String failure, String resolution, List<String> formats) {
         Formatter message = new Formatter();
         message.format("%s%n", failure);
         message.format("The following types/formats are supported:");
