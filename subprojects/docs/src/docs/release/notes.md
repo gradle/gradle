@@ -265,7 +265,7 @@ and even if they do healthy listeners will work correctly regardless of the list
 
 ### Support for reading or changing file permissions on certain platforms with Java 5 or 6
 
-Gradle previously supported file permissions on Solaris and Linux ia-64 using Java 5 and Java 6. This support has
+Gradle previously supported file permissions on Solaris and on Linux ia-64 using Java 5 and Java 6. This support has
 been removed. You will receive a warning when attempting to use file permissions on these platforms.
 
 Note that file permissions are supported on these platforms when you use Java 7 and later, and is supported for all Java
@@ -406,6 +406,7 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 ### Changes to repository DSL
 
 - The `RepositoryHandler.mavenCentral()` method no longer handles the `urls` option. You should use the `artifactUrls` instead.
+- It is now an error to change the name of an `ArtifactRepository` after it has been added to a repository container.
 
 ### Removed incubating method
 
