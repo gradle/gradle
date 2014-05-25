@@ -16,9 +16,9 @@
 
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeInfo;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.TypedNotationParser;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
@@ -30,8 +30,8 @@ import java.util.Set;
 
 public class SourceSetNotationParser {
     public static NotationParser<Object, Set<LanguageSourceSet>> parser() {
-        return new NotationParserBuilder<Set<LanguageSourceSet>>()
-                .resultingType(new TypeInfo<Set<LanguageSourceSet>>(Set.class))
+        return NotationParserBuilder
+                .toType(new TypeInfo<Set<LanguageSourceSet>>(Set.class))
                 .parser(new FunctionalSourceSetConverter())
                 .parser(new SingleLanguageSourceSetConverter())
                 .parser(new LanguageSourceSetCollectionConverter())

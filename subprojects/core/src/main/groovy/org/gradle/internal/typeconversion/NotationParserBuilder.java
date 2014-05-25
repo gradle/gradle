@@ -27,13 +27,16 @@ public class NotationParserBuilder<T> {
     private final Collection<NotationConverter<Object, ? extends T>> notationParsers = new LinkedList<NotationConverter<Object, ? extends T>>();
     private boolean withJustReturningParser = true;
 
-    public NotationParserBuilder<T> resultingType(Class<T> resultingType) {
-        return resultingType(new TypeInfo<T>(resultingType));
+    public static <T> NotationParserBuilder<T> toType(Class<T> resultingType) {
+        return new NotationParserBuilder<T>(new TypeInfo<T>(resultingType));
     }
 
-    public NotationParserBuilder<T> resultingType(TypeInfo<T> resultingType) {
+    public static <T> NotationParserBuilder<T> toType(TypeInfo<T> resultingType) {
+        return new NotationParserBuilder<T>(resultingType);
+    }
+
+    public NotationParserBuilder(TypeInfo<T> resultingType) {
         this.resultingType = resultingType;
-        return this;
     }
 
     public NotationParserBuilder<T> withDefaultJustReturnParser(boolean withJustReturningParser) {

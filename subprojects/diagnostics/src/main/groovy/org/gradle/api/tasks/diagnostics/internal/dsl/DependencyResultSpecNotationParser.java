@@ -39,8 +39,8 @@ public class DependencyResultSpecNotationParser implements NotationParser<Object
     }
 
     public static NotationParser<Object, Spec<DependencyResult>> create() {
-        return new NotationParserBuilder<Spec<DependencyResult>>()
-                .resultingType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
+        return NotationParserBuilder
+                .toType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
                 .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")
                 .parser(new ClosureToSpecNotationParser<DependencyResult>(DependencyResult.class))
                 .parser(new DependencyResultSpecNotationParser())

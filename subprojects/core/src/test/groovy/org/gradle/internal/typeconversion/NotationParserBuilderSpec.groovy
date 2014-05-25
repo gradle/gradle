@@ -24,19 +24,19 @@ class NotationParserBuilderSpec extends Specification {
 
     def "adds just return parser as default"() {
         when:
-        def parser = new NotationParserBuilder<String>()
-                .resultingType(String.class).toComposite()
+        def parser = NotationParserBuilder.toType(String.class).toComposite()
+
         then:
         "Some String" == parser.parseNotation("Some String")
     }
 
     def "can build with no just return parser"() {
         setup:
-        def parser = new NotationParserBuilder<String>()
-                .resultingType(String.class)
-                .withDefaultJustReturnParser(false).toComposite()
+        def parser = NotationParserBuilder.toType(String.class).withDefaultJustReturnParser(false).toComposite()
+
         when:
         parser.parseNotation("Some String")
+
         then:
         def e = thrown(UnsupportedNotationException)
         e.message == toPlatformLineSeparators("""Cannot convert the provided notation to an object of type String: Some String.
@@ -49,7 +49,7 @@ The following types/formats are supported:""")
         converter.convert(_, _) >> { Object n, NotationConvertResult result -> result.converted("[${n}]") }
 
         and:
-        def parser = new NotationParserBuilder().resultingType(String.class).converter(converter).toComposite()
+        def parser = NotationParserBuilder.toType(String.class).converter(converter).toComposite()
 
         expect:
         parser.parseNotation(12) == "[12]"
@@ -61,7 +61,7 @@ The following types/formats are supported:""")
         target.parseNotation(_) >> { Number n -> return "[${n}]" }
 
         and:
-        def parser = new NotationParserBuilder().resultingType(String.class).parser(target).toComposite()
+        def parser = NotationParserBuilder.toType(String.class).parser(target).toComposite()
 
         expect:
         parser.parseNotation(12) == "[12]"

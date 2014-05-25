@@ -19,18 +19,13 @@ package org.gradle.api.publish.ivy.internal.artifact;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.internal.typeconversion.MapKey;
-import org.gradle.internal.typeconversion.MapNotationParser;
-import org.gradle.internal.typeconversion.TypedNotationParser;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.*;
 
 import java.io.File;
 import java.util.Collection;
@@ -52,8 +47,8 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         ArchiveTaskNotationParser archiveTaskNotationParser = new ArchiveTaskNotationParser();
         PublishArtifactNotationParser publishArtifactNotationParser = new PublishArtifactNotationParser();
 
-        NotationParser<Object, IvyArtifact> sourceNotationParser = new NotationParserBuilder<IvyArtifact>()
-                .resultingType(IvyArtifact.class)
+        NotationParser<Object, IvyArtifact> sourceNotationParser = NotationParserBuilder
+                .toType(IvyArtifact.class)
                 .parser(archiveTaskNotationParser)
                 .parser(publishArtifactNotationParser)
                 .parser(fileNotationParser)
@@ -61,8 +56,8 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         IvyArtifactMapNotationParser ivyArtifactMapNotationParser = new IvyArtifactMapNotationParser(sourceNotationParser);
 
-        NotationParserBuilder<IvyArtifact> parserBuilder = new NotationParserBuilder<IvyArtifact>()
-                .resultingType(IvyArtifact.class)
+        NotationParserBuilder<IvyArtifact> parserBuilder = NotationParserBuilder
+                .toType(IvyArtifact.class)
                 .parser(archiveTaskNotationParser)
                 .parser(publishArtifactNotationParser)
                 .parser(ivyArtifactMapNotationParser)

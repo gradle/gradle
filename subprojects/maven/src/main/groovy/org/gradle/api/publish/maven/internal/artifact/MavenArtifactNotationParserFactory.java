@@ -19,16 +19,11 @@ package org.gradle.api.publish.maven.internal.artifact;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.internal.typeconversion.MapKey;
-import org.gradle.internal.typeconversion.MapNotationParser;
-import org.gradle.internal.typeconversion.TypedNotationParser;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.*;
 
 import java.io.File;
 import java.util.Collection;
@@ -47,8 +42,8 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         ArchiveTaskNotationParser archiveTaskNotationParser = new ArchiveTaskNotationParser();
         PublishArtifactNotationParser publishArtifactNotationParser = new PublishArtifactNotationParser();
 
-        NotationParser<Object, MavenArtifact> sourceNotationParser = new NotationParserBuilder<MavenArtifact>()
-                .resultingType(MavenArtifact.class)
+        NotationParser<Object, MavenArtifact> sourceNotationParser = NotationParserBuilder
+                .toType(MavenArtifact.class)
                 .parser(archiveTaskNotationParser)
                 .parser(publishArtifactNotationParser)
                 .parser(fileNotationParser)
@@ -56,8 +51,8 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
 
         MavenArtifactMapNotationParser mavenArtifactMapNotationParser = new MavenArtifactMapNotationParser(sourceNotationParser);
 
-        NotationParserBuilder<MavenArtifact> parserBuilder = new NotationParserBuilder<MavenArtifact>()
-                .resultingType(MavenArtifact.class)
+        NotationParserBuilder<MavenArtifact> parserBuilder = NotationParserBuilder
+                .toType(MavenArtifact.class)
                 .parser(archiveTaskNotationParser)
                 .parser(publishArtifactNotationParser)
                 .parser(mavenArtifactMapNotationParser)

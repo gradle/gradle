@@ -45,8 +45,8 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
     public NotationParser<Object, PublishArtifact> create() {
         FileNotationParser fileParser = new FileNotationParser();
-        return new NotationParserBuilder<PublishArtifact>()
-                .resultingType(PublishArtifact.class)
+        return NotationParserBuilder
+                .toType(PublishArtifact.class)
                 .parser(new ArchiveTaskNotationParser())
                 .parser(new FileMapNotationParser(fileParser))
                 .parser(fileParser)

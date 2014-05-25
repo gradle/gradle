@@ -22,8 +22,7 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 public class DependencyNotationParser {
     public static NotationParser<Object, Dependency> parser(Iterable<NotationParser<Object, ? extends Dependency>> compositeParsers) {
-        return new NotationParserBuilder<Dependency>()
-                .resultingType(Dependency.class)
+        return NotationParserBuilder.toType(Dependency.class)
                 .parsers(compositeParsers)
                 .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
                 .toComposite();

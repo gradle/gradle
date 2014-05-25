@@ -39,8 +39,8 @@ public class ArchitectureNotationParser {
     private static final List<String> ARM_ALIASES = Arrays.asList("arm");
 
     public static NotationParser<Object, Architecture> parser() {
-        return new NotationParserBuilder<Architecture>()
-                .resultingType(Architecture.class)
+        return NotationParserBuilder
+                .toType(Architecture.class)
                 .parser(new Parser())
                 .toComposite();
     }

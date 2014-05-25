@@ -19,11 +19,7 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.MapKey;
-import org.gradle.internal.typeconversion.MapNotationParser;
-import org.gradle.internal.typeconversion.TypedNotationParser;
+import org.gradle.internal.typeconversion.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -41,8 +37,8 @@ public class ModuleVersionSelectorParsers {
     }
 
     private static NotationParserBuilder<ModuleVersionSelector> builder() {
-        return new NotationParserBuilder<ModuleVersionSelector>()
-                .resultingType(ModuleVersionSelector.class)
+        return NotationParserBuilder
+                .toType(ModuleVersionSelector.class)
                 .parser(new StringParser())
                 .parser(new MapParser());
     }

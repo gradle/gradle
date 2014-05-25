@@ -36,8 +36,8 @@ public class OperatingSystemNotationParser {
     private static final List<String> FREEBSD_ALIASES = Arrays.asList("freebsd");
 
     public static NotationParser<Object, OperatingSystem> parser() {
-        return new NotationParserBuilder<OperatingSystem>()
-                .resultingType(OperatingSystem.class)
+        return NotationParserBuilder
+                .toType(OperatingSystem.class)
                 .parser(new Parser())
                 .toComposite();
     }
