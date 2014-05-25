@@ -343,11 +343,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     public class DefaultCopySpecResolver implements CopySpecResolver {
 
         private CopySpecResolver parentResolver;
-        private PathNotationParser<String> pathNotationParser;
+        private PathNotationParser pathNotationParser;
 
         private DefaultCopySpecResolver(CopySpecResolver parent) {
             this.parentResolver = parent;
-            this.pathNotationParser = new PathNotationParser<String>();
+            this.pathNotationParser = new PathNotationParser();
         }
 
 

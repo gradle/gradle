@@ -17,28 +17,28 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-public class PathNotationParser<T extends String> implements NotationParser<Object, T> {
+public class PathNotationParser implements NotationParser<Object, String> {
 
     public void describe(Collection<String> candidateFormats) {
         candidateFormats.add("Strings, Boolean, Number like: 'path/to', true, Boolean.TRUE, 42, 3.14");
         candidateFormats.add("Closures, Callables");
     }
 
-    public T parseNotation(Object notation) {
+    public String parseNotation(Object notation) {
         if (notation == null) {
             return null;
         }
         if (notation instanceof CharSequence
                 || notation instanceof Number
                 || notation instanceof Boolean) {
-            return (T) notation.toString();
+            return notation.toString();
         }
         if (notation instanceof Closure) {
             final Closure closure = (Closure) notation;
@@ -58,6 +58,6 @@ public class PathNotationParser<T extends String> implements NotationParser<Obje
                 String.format("Converting class %s to path using toString() method", notation.getClass().getName()),
                 "Please use java.io.File, java.lang.CharSequence, java.lang.Number, java.util.concurrent.Callable or groovy.lang.Closure"
         );
-        return (T) notation.toString();
+        return notation.toString();
     }
 }
