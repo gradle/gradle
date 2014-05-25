@@ -41,7 +41,7 @@ public class DependencyStringNotationParser<T extends ExternalDependency> extend
 
     @Override
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Strings/CharSequences, e.g. 'org.gradle:gradle-core:1.0'.");
+        candidateFormats.add("String or CharSequence values, e.g. 'org.gradle:gradle-core:1.0'.");
     }
 
     protected T parseType(CharSequence notation) {

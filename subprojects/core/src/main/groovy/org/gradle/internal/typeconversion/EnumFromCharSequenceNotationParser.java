@@ -18,7 +18,9 @@ package org.gradle.internal.typeconversion;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -51,7 +53,9 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Value
     }
 
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add(String.format("A String representing an Enum instance of type %s", type.getName()));
+        List<String> values = new ArrayList<String>();
+        describeValues(values);
+        candidateFormats.add(String.format("One of the following values: %s", GUtil.toString(values)));
     }
 
     public void describeValues(Collection<String> collector) {

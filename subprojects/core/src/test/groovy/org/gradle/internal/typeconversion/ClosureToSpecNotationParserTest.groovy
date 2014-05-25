@@ -20,13 +20,15 @@ import spock.lang.Specification
 
 class ClosureToSpecNotationParserTest extends Specification {
 
-    private ClosureToSpecNotationParser parser = new ClosureToSpecNotationParser()
+    private ClosureToSpecNotationParser parser = new ClosureToSpecNotationParser(String)
 
     def "converts closures"() {
         expect:
         parser.parseNotation({ it == 'foo' }).isSatisfiedBy("foo")
         !parser.parseNotation({ it == 'foo' }).isSatisfiedBy("bar")
+    }
 
+    def "fails when notation is not a closure"() {
         when:
         parser.parseNotation("oups")
 

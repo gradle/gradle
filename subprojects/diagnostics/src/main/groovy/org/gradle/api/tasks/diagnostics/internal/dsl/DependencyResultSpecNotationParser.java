@@ -17,12 +17,8 @@
 package org.gradle.api.tasks.diagnostics.internal.dsl;
 
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.TypeInfo;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.internal.typeconversion.ClosureToSpecNotationParser;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.typeconversion.*;
 
 import java.util.Collection;
 
@@ -39,15 +35,14 @@ public class DependencyResultSpecNotationParser implements NotationParser<Object
     }
 
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Non-empty String value, e.g. 'some-lib' or 'org.libs:some-lib'.");
-        candidateFormats.add("Closure that returns boolean and takes a single DependencyResult as parameter.");
+        candidateFormats.add("Non-empty String or CharSequence value, e.g. 'some-lib' or 'org.libs:some-lib'.");
     }
 
     public static NotationParser<Object, Spec<DependencyResult>> create() {
         return new NotationParserBuilder<Spec<DependencyResult>>()
                 .resultingType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
                 .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")
-                .parser(new ClosureToSpecNotationParser<DependencyResult>())
+                .parser(new ClosureToSpecNotationParser<DependencyResult>(DependencyResult.class))
                 .parser(new DependencyResultSpecNotationParser())
                 .toComposite();
     }

@@ -76,8 +76,13 @@ class DependencyResultSpecNotationParserSpec extends Specification {
 
         then:
         def ex = thrown(UnsupportedNotationException)
-        ex.message.contains 'not supported'
-        ex.message.contains 'DependencyInsight.dependency'
+        ex.message == """Cannot convert the provided notation to an object of type Spec: [not supported].
+The following types/formats are supported:
+  - Instances of Spec.
+  - Closure that returns boolean and takes a single DependencyResult as a parameter.
+  - Non-empty String or CharSequence value, e.g. 'some-lib' or 'org.libs:some-lib'.
+
+Please check the input for the DependencyInsight.dependency element."""
     }
 
     def "does not accept empty Strings"() {

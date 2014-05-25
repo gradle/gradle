@@ -66,7 +66,7 @@ public class ModuleVersionSelectorParsers {
 
         @Override
         public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Strings/CharSequences, e.g. 'org.gradle:gradle-core:1.0'.");
+            candidateFormats.add("String or CharSequence values, e.g. 'org.gradle:gradle-core:1.0'.");
         }
 
         public ModuleVersionSelector parseType(CharSequence notation) {
