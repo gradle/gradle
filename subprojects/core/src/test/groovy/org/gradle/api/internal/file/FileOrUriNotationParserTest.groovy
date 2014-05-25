@@ -22,6 +22,8 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 class FileOrUriNotationParserTest extends Specification {
 
     @Rule public TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider();
@@ -103,11 +105,11 @@ class FileOrUriNotationParserTest extends Specification {
 
         then:
         UnsupportedNotationException e = thrown()
-        e.message == """Cannot convert the provided value 12 to a File or URI.
+        e.message == toPlatformLineSeparators("""Cannot convert the provided value 12 to a File or URI.
 The following types/formats are supported:
   - A String or CharSequence path, e.g 'src/main/java' or '/usr/include'
   - A String or CharSequence URI, e.g 'file:/usr/include'
   - A File instance.
-  - A URI or URL instance."""
+  - A URI or URL instance.""")
     }
 }
