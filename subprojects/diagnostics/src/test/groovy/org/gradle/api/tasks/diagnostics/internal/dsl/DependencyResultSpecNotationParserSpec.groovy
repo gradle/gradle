@@ -23,6 +23,8 @@ import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 class DependencyResultSpecNotationParserSpec extends Specification {
 
     NotationParser<Object, Spec<DependencyResult>> parser = DependencyResultSpecNotationParser.create()
@@ -76,13 +78,13 @@ class DependencyResultSpecNotationParserSpec extends Specification {
 
         then:
         def ex = thrown(UnsupportedNotationException)
-        ex.message == """Cannot convert the provided notation to an object of type Spec: [not supported].
+        ex.message == toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Spec: [not supported].
 The following types/formats are supported:
   - Instances of Spec.
   - Closure that returns boolean and takes a single DependencyResult as a parameter.
   - Non-empty String or CharSequence value, e.g. 'some-lib' or 'org.libs:some-lib'.
 
-Please check the input for the DependencyInsight.dependency element."""
+Please check the input for the DependencyInsight.dependency element.""")
     }
 
     def "does not accept empty Strings"() {
