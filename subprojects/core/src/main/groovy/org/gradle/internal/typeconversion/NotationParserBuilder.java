@@ -16,8 +16,6 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.util.GUtil;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,7 +24,7 @@ import java.util.Set;
 public class NotationParserBuilder<T> {
     private TypeInfo<T> resultingType;
     private String invalidNotationMessage;
-    private Collection<NotationParser<Object, ? extends T>> notationParsers = new LinkedList<NotationParser<Object, ? extends T>>();
+    private final Collection<NotationConverter<Object, ? extends T>> notationParsers = new LinkedList<NotationConverter<Object, ? extends T>>();
     private boolean withJustReturningParser = true;
 
     public NotationParserBuilder<T> resultingType(Class<T> resultingType) {
@@ -44,7 +42,12 @@ public class NotationParserBuilder<T> {
     }
 
     public NotationParserBuilder<T> parser(NotationParser<Object, ? extends T> parser) {
-        this.notationParsers.add(parser);
+        this.notationParsers.add(new NotationParserToNotationConverterAdapter<Object, T>(parser));
+        return this;
+    }
+
+    public NotationParserBuilder<T> converter(NotationConverter<Object, ? extends T> converter) {
+        this.notationParsers.add(converter);
         return this;
     }
 
@@ -54,7 +57,9 @@ public class NotationParserBuilder<T> {
     }
 
     public NotationParserBuilder<T> parsers(Iterable<? extends NotationParser<Object, ? extends T>> notationParsers) {
-        GUtil.addToCollection(this.notationParsers, notationParsers);
+        for (NotationParser<Object, ? extends T> parser : notationParsers) {
+            parser(parser);
+        }
         return this;
     }
 
@@ -70,15 +75,37 @@ public class NotationParserBuilder<T> {
         return new ErrorHandlingNotationParser<Object, S>(resultingType.getTargetType().getSimpleName(), invalidNotationMessage, parser);
     }
 
-    private CompositeNotationParser<Object, T> create() {
+    private NotationParser<Object, T> create() {
         assert resultingType != null : "resultingType cannot be null";
 
-        List<NotationParser<Object, ? extends T>> composites = new LinkedList<NotationParser<Object, ? extends T>>();
-        if(withJustReturningParser){
-            composites.add(new JustReturningParser<Object, T>(resultingType.getTargetType()));
+        List<NotationConverter<Object, ? extends T>> composites = new LinkedList<NotationConverter<Object, ? extends T>>();
+        if (withJustReturningParser) {
+            composites.add(new NotationParserToNotationConverterAdapter<Object, T>(new JustReturningParser<Object, T>(resultingType.getTargetType())));
         }
         composites.addAll(this.notationParsers);
 
-        return new CompositeNotationParser<Object, T>(composites);
+        return new NotationConverterToNotationParserAdapter<Object, T>(new CompositeNotationConverter<Object, T>(composites));
+    }
+
+    private static class NotationParserToNotationConverterAdapter<N, T> implements NotationConverter<N, T> {
+        private final NotationParser<N, ? extends T> parser;
+
+        private NotationParserToNotationConverterAdapter(NotationParser<N, ? extends T> parser) {
+            this.parser = parser;
+        }
+
+        public void convert(N notation, NotationConvertResult<? super T> result) throws TypeConversionException {
+            T t;
+            try {
+                t = parser.parseNotation(notation);
+            } catch (UnsupportedNotationException e) {
+                return;
+            }
+            result.converted(t);
+        }
+
+        public void describe(Collection<String> candidateFormats) {
+            parser.describe(candidateFormats);
+        }
     }
 }

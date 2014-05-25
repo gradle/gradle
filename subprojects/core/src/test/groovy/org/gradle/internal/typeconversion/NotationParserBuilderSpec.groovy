@@ -22,7 +22,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class NotationParserBuilderSpec extends Specification {
 
-    def "adds just return parser as default"(){
+    def "adds just return parser as default"() {
         when:
         def parser = new NotationParserBuilder<String>()
                 .resultingType(String.class).toComposite()
@@ -30,7 +30,7 @@ class NotationParserBuilderSpec extends Specification {
         "Some String" == parser.parseNotation("Some String")
     }
 
-    def "can build with no just return parser"(){
+    def "can build with no just return parser"() {
         setup:
         def parser = new NotationParserBuilder<String>()
                 .resultingType(String.class)
@@ -41,6 +41,30 @@ class NotationParserBuilderSpec extends Specification {
         def e = thrown(UnsupportedNotationException)
         e.message == toPlatformLineSeparators("""Cannot convert the provided notation to an object of type String: Some String.
 The following types/formats are supported:""")
+    }
+
+    def "can add a converter"() {
+        def converter = Mock(NotationConverter)
+        given:
+        converter.convert(_, _) >> { Object n, NotationConvertResult result -> result.converted("[${n}]") }
+
+        and:
+        def parser = new NotationParserBuilder().resultingType(String.class).converter(converter).toComposite()
+
+        expect:
+        parser.parseNotation(12) == "[12]"
+    }
+
+    def "can add a parser"() {
+        def target = Mock(NotationParser)
+        given:
+        target.parseNotation(_) >> { Number n -> return "[${n}]" }
+
+        and:
+        def parser = new NotationParserBuilder().resultingType(String.class).parser(target).toComposite()
+
+        expect:
+        parser.parseNotation(12) == "[12]"
     }
 
 }
