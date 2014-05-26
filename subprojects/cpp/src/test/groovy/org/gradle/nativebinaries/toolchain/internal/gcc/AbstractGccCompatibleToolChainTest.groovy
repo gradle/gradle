@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.gcc
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativebinaries.toolchain.ConfigurableToolChain
@@ -49,18 +50,9 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         isAvailable() >> true
     }
 
-    def instantiator = Mock(Instantiator)
+    def instantiator = new DirectInstantiator()
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolSearchPath, instantiator)
     def platform = Stub(Platform)
-
-    def setup() {
-        instantiator.newInstance(DefaultGccConfigurableToolChain.class, _) >> { args ->
-            new DefaultGccConfigurableToolChain(args[1][0], args[1][1], args[1][2], args[1][3], args[1][4])
-        }
-        instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, _) >> { args ->
-            new DefaultGccCommandLineToolConfiguration(args[1][0], args[1][1], args[1][2])
-        }
-    }
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
