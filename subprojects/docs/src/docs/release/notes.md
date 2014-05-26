@@ -304,6 +304,8 @@ For certain common usages, a backward-compatible api has been maintained.
 - `NativeBinaryTasks.getBuilder()` renamed to `getCreateOrLink()`
 - `NativeBinaryTasks.getLifecycle()` renamed to `getBuild()`
 - `BuildBinaryTask` renamed to `ObjectFilesToBinary`
+- `PlatformConfigurableToolChain.addPlatformConfiguration(TargetPlatformConfiguration)` has been replaced by
+   `PlatformConfigurableToolChain.target(...)`.
 
 ### New Java component model changes
 
