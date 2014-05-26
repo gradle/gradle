@@ -22,18 +22,16 @@ import org.gradle.api.specs.Specs;
 
 import java.util.Collection;
 
-public class ClosureToSpecNotationParser<T> implements NotationParser<Object, Spec<T>> {
+public class ClosureToSpecNotationParser<T> implements NotationConverter<Closure, Spec<T>> {
     private final Class<T> type;
 
     public ClosureToSpecNotationParser(Class<T> type) {
         this.type = type;
     }
 
-    public Spec<T> parseNotation(Object notation) throws UnsupportedNotationException {
-        if (notation instanceof Closure) {
-            return Specs.convertClosureToSpec((Closure) notation);
-        }
-        throw new UnsupportedNotationException(notation);
+    public void convert(Closure notation, NotationConvertResult<? super Spec<T>> result) throws TypeConversionException {
+        Spec<T> spec = Specs.convertClosureToSpec(notation);
+        result.converted(spec);
     }
 
     public void describe(Collection<String> candidateFormats) {

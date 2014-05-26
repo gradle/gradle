@@ -16,14 +16,27 @@
 
 package org.gradle.api.internal.notations;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.file.FileLookup;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 public class DependencyNotationParser {
-    public static NotationParser<Object, Dependency> parser(Iterable<NotationParser<Object, ? extends Dependency>> compositeParsers) {
-        return NotationParserBuilder.toType(Dependency.class)
-                .parsers(compositeParsers)
+    public static NotationParser<Object, Dependency> parser(Instantiator instantiator, DefaultProjectDependencyFactory dependencyFactory, ClassPathRegistry classPathRegistry, FileLookup fileLookup) {
+        return NotationParserBuilder
+                .toType(Dependency.class)
+                .fromCharSequence(new DependencyStringNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class))
+                .parser(new DependencyMapNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class))
+                .fromType(FileCollection.class, new DependencyFilesNotationParser(instantiator))
+                .fromType(Project.class, new DependencyProjectNotationParser(dependencyFactory))
+                .fromType(DependencyFactory.ClassPathNotation.class, new DependencyClassPathNotationParser(instantiator, classPathRegistry, fileLookup.getFileResolver()))
                 .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
                 .toComposite();
     }

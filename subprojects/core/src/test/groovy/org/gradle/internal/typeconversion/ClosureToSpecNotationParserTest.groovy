@@ -16,23 +16,23 @@
 
 package org.gradle.internal.typeconversion
 
+import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 class ClosureToSpecNotationParserTest extends Specification {
-
     private ClosureToSpecNotationParser parser = new ClosureToSpecNotationParser(String)
 
     def "converts closures"() {
+        given:
+        def spec = parse({ it == 'foo' })
+
         expect:
-        parser.parseNotation({ it == 'foo' }).isSatisfiedBy("foo")
-        !parser.parseNotation({ it == 'foo' }).isSatisfiedBy("bar")
+        spec.isSatisfiedBy("foo")
+        !spec.isSatisfiedBy("FOO")
+        !spec.isSatisfiedBy("bar")
     }
 
-    def "fails when notation is not a closure"() {
-        when:
-        parser.parseNotation("oups")
-
-        then:
-        thrown(UnsupportedNotationException)
+    def parse(def value) {
+        return NotationParserBuilder.toType(Spec).fromType(Closure, parser).toComposite().parseNotation(value)
     }
 }

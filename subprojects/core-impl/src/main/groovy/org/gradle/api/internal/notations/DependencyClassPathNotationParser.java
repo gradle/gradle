@@ -22,13 +22,14 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.typeconversion.TypedNotationParser;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.io.File;
 import java.util.Collection;
 
-public class DependencyClassPathNotationParser
-        extends TypedNotationParser<DependencyFactory.ClassPathNotation, SelfResolvingDependency> {
+public class DependencyClassPathNotationParser implements NotationConverter<DependencyFactory.ClassPathNotation, SelfResolvingDependency> {
 
     private final ClassPathRegistry classPathRegistry;
     private final Instantiator instantiator;
@@ -36,21 +37,18 @@ public class DependencyClassPathNotationParser
 
     public DependencyClassPathNotationParser(Instantiator instantiator, ClassPathRegistry classPathRegistry,
                                              FileResolver fileResolver) {
-        super(DependencyFactory.ClassPathNotation.class);
-
         this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
         this.fileResolver = fileResolver;
     }
 
-    @Override
     public void describe(Collection<String> candidateFormats) {
         candidateFormats.add("ClassPathNotation, e.g. gradleApi().");
     }
 
-    public SelfResolvingDependency parseType(DependencyFactory.ClassPathNotation notation) {
+    public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {
         Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
         FileCollection files = fileResolver.resolveFiles(classpath);
-        return instantiator.newInstance(DefaultSelfResolvingDependency.class, files);
+        result.converted(instantiator.newInstance(DefaultSelfResolvingDependency.class, files));
     }
 }

@@ -39,7 +39,7 @@ public class ModuleVersionSelectorParsers {
     private static NotationParserBuilder<ModuleVersionSelector> builder() {
         return NotationParserBuilder
                 .toType(ModuleVersionSelector.class)
-                .parser(new StringParser())
+                .fromCharSequence(new StringParser())
                 .parser(new MapParser());
     }
 
@@ -54,24 +54,18 @@ public class ModuleVersionSelectorParsers {
         }
     }
 
-    static class StringParser extends TypedNotationParser<CharSequence, ModuleVersionSelector> {
-
-        public StringParser() {
-            super(CharSequence.class);
-        }
-
-        @Override
+    static class StringParser implements NotationConverter<String, ModuleVersionSelector> {
         public void describe(Collection<String> candidateFormats) {
             candidateFormats.add("String or CharSequence values, e.g. 'org.gradle:gradle-core:1.0'.");
         }
 
-        public ModuleVersionSelector parseType(CharSequence notation) {
+        public void convert(String notation, NotationConvertResult<? super ModuleVersionSelector> result) throws TypeConversionException {
             ParsedModuleStringNotation parsed;
             try {
-                parsed = new ParsedModuleStringNotation(notation.toString(), null);
+                parsed = new ParsedModuleStringNotation(notation, null);
             } catch (IllegalDependencyNotation e) {
                 throw new InvalidUserDataException(
-                        "Invalid format: '" + notation + "'. The Correct notation is a 3-part group:name:version notation, "
+                        "Invalid format: '" + notation + "'. The correct notation is a 3-part group:name:version notation, "
                                 + "e.g: 'org.gradle:gradle-core:1.0'");
             }
 
@@ -80,7 +74,7 @@ public class ModuleVersionSelectorParsers {
                         "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
                                 + "'org.gradle:gradle-core:1.0'");
             }
-            return newSelector(parsed.getGroup(), parsed.getName(), parsed.getVersion());
+            result.converted(newSelector(parsed.getGroup(), parsed.getName(), parsed.getVersion()));
         }
     }
 }
