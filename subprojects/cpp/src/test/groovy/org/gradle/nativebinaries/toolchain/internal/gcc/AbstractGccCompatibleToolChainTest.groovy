@@ -57,6 +57,9 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         instantiator.newInstance(DefaultGccConfigurableToolChain.class, _) >> { args ->
             new DefaultGccConfigurableToolChain(args[1][0], args[1][1], args[1][2], args[1][3], args[1][4])
         }
+        instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, _) >> { args ->
+            new DefaultGccCommandLineToolConfiguration(args[1][0], args[1][1], args[1][2])
+        }
     }
 
     def "is unavailable when platform is not known and is not the default platform"() {

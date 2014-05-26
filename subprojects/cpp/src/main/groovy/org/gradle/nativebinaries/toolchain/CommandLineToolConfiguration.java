@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.toolchain;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
@@ -31,12 +30,6 @@ public interface CommandLineToolConfiguration extends Named {
 
     /**
      * Adds an action that will be applied to the command-line arguments prior to execution.
-     * Remove method with Closure parameter and use Action instead
      */
-    void withArguments(Closure arguments);
-
-    /**
-     * Adds an action that will be applied to the command-line arguments prior to execution.
-     */
-    void withArguments(Action<List<String>> arguments);
+    void withArguments(Action<? super List<String>> arguments);
 }

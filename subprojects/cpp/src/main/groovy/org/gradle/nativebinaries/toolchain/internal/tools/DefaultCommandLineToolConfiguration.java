@@ -16,9 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.tools;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Actions;
 
 import java.util.ArrayList;
@@ -32,13 +30,7 @@ public class DefaultCommandLineToolConfiguration implements CommandLineToolConfi
         this.name = name;
     }
 
-    public void withArguments(Closure arguments) {
-        Action<List<String>> action = new ClosureBackedAction<List<String>>(arguments);
-        argActions.add(action);
-    }
-
-    // TODO:Rene Decorate class instead of method overloading
-    public void withArguments(Action<List<String>> action) {
+    public void withArguments(Action<? super List<String>>  action) {
         argActions.add(action);
     }
 
