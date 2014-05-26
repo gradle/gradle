@@ -26,8 +26,6 @@ public class ObjectiveCCompiler extends NativeCompiler<ObjectiveCCompileSpec> {
         super(commandLineTool, baseInvocation, new ObjectiveCCompileArgsTransformer(), objectFileSuffix, useCommandFile);
     }
 
-
-
     private static class ObjectiveCCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCCompileSpec> {
         protected String getLanguage() {
             return "objective-c";

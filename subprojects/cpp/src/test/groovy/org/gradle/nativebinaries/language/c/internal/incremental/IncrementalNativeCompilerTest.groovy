@@ -19,17 +19,22 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.SimpleWorkResult
+import org.gradle.nativebinaries.toolchain.Clang
+import org.gradle.nativebinaries.toolchain.Gcc
+import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class IncrementalNativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def delegateCompiler = Mock(org.gradle.api.internal.tasks.compile.Compiler)
+    def toolChain = Mock(ToolChain)
     def task = Mock(TaskInternal)
-    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler)
+    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain)
 
     def outputs = Mock(TaskOutputsInternal)
 
@@ -81,6 +86,19 @@ class IncrementalNativeCompilerTest extends Specification {
         and:
         result.didWork
         outputFile.assertDoesNotExist()
+    }
+
+    @Unroll
+    def "imports are includes for toolchain #tcName"() {
+       when:
+       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain)
+       then:
+       compiler.importsAreIncludes
+       where:
+       tcName   | toolChain
+       "clang"  | Mock(Clang)
+       "gcc"    | Mock(Gcc)
+
     }
 
 }
