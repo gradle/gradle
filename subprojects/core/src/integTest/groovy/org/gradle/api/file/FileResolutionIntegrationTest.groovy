@@ -28,7 +28,7 @@ def f = file(12)
         fails()
 
         then:
-        failure.assertHasCause("""Cannot convert the provided value 12 to a File or URI.
+        failure.assertHasCause("""Cannot convert the provided notation to a File or URI: 12.
 The following types/formats are supported:
   - A String or CharSequence path, e.g 'src/main/java' or '/usr/include'
   - A String or CharSequence URI, e.g 'file:/usr/include'
@@ -46,7 +46,7 @@ f.files.each { println it }
         fails()
 
         then:
-        failure.assertHasCause("""Cannot convert the provided value 12 to a File or URI.
+        failure.assertHasCause("""Cannot convert the provided notation to a File or URI: 12.
 The following types/formats are supported:
   - A String or CharSequence path, e.g 'src/main/java' or '/usr/include'
   - A String or CharSequence URI, e.g 'file:/usr/include'

@@ -45,7 +45,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     protected AbstractFileResolver(FileSystem fileSystem) {
         this.fileSystem = fileSystem;
-        this.fileNotationParser = new FileOrUriNotationParser(fileSystem);
+        this.fileNotationParser = FileOrUriNotationParser.create(fileSystem);
     }
 
     public FileSystem getFileSystem() {
@@ -186,7 +186,6 @@ public abstract class AbstractFileResolver implements FileResolver {
             return (File) converted;
         }
         throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.", converted));
-
     }
 
     private Object unpack(Object path) {

@@ -24,8 +24,8 @@ import java.util.Set;
 public class NotationParserBuilder<T> {
     private TypeInfo<T> resultingType;
     private String invalidNotationMessage;
+    private String typeDisplayName;
     private final Collection<NotationConverter<Object, ? extends T>> notationParsers = new LinkedList<NotationConverter<Object, ? extends T>>();
-    private boolean withJustReturningParser = true;
 
     public static <T> NotationParserBuilder<T> toType(Class<T> resultingType) {
         return new NotationParserBuilder<T>(new TypeInfo<T>(resultingType));
@@ -35,17 +35,21 @@ public class NotationParserBuilder<T> {
         return new NotationParserBuilder<T>(resultingType);
     }
 
-    public NotationParserBuilder(TypeInfo<T> resultingType) {
+    private NotationParserBuilder(TypeInfo<T> resultingType) {
         this.resultingType = resultingType;
-    }
-
-    public NotationParserBuilder<T> withDefaultJustReturnParser(boolean withJustReturningParser) {
-        this.withJustReturningParser = withJustReturningParser;
-        return this;
+        typeDisplayName = String.format("an object of type %s", resultingType.getTargetType().getSimpleName());
     }
 
     public NotationParserBuilder<T> parser(NotationParser<Object, ? extends T> parser) {
         this.notationParsers.add(new NotationParserToNotationConverterAdapter<Object, T>(parser));
+        return this;
+    }
+
+    /**
+     * Specifies the display name for the target type, to use in error messages. By default the target type's simple name is used.
+     */
+    public NotationParserBuilder<T> typeDisplayName(String name) {
+        this.typeDisplayName = name;
         return this;
     }
 
@@ -106,14 +110,12 @@ public class NotationParserBuilder<T> {
     }
 
     private <S> NotationParser<Object, S> wrapInErrorHandling(NotationParser<Object, S> parser) {
-        return new ErrorHandlingNotationParser<Object, S>(resultingType.getTargetType().getSimpleName(), invalidNotationMessage, parser);
+        return new ErrorHandlingNotationParser<Object, S>(typeDisplayName, invalidNotationMessage, parser);
     }
 
     private NotationParser<Object, T> create() {
-        assert resultingType != null : "resultingType cannot be null";
-
         List<NotationConverter<Object, ? extends T>> composites = new LinkedList<NotationConverter<Object, ? extends T>>();
-        if (withJustReturningParser) {
+        if (!resultingType.getTargetType().equals(Object.class)) {
             composites.add(new NotationParserToNotationConverterAdapter<Object, T>(new JustReturningParser<Object, T>(resultingType.getTargetType())));
         }
         composites.addAll(this.notationParsers);

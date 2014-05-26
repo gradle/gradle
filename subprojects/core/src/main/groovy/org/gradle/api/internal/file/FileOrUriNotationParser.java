@@ -18,20 +18,17 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.internal.typeconversion.*;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FileOrUriNotationParser implements NotationParser<Object, Object> {
+public class FileOrUriNotationParser implements NotationConverter<Object, Object> {
 
     private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
     private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
@@ -41,6 +38,14 @@ public class FileOrUriNotationParser implements NotationParser<Object, Object> {
         this.fileSystem = fileSystem;
     }
 
+    public static NotationParser<Object, Object> create(FileSystem fileSystem) {
+        return NotationParserBuilder
+                .toType(Object.class)
+                .typeDisplayName("a File or URI")
+                .converter(new FileOrUriNotationParser(fileSystem))
+                .toComposite();
+    }
+
     public void describe(Collection<String> candidateFormats) {
         candidateFormats.add("A String or CharSequence path, e.g 'src/main/java' or '/usr/include'");
         candidateFormats.add("A String or CharSequence URI, e.g 'file:/usr/include'");
@@ -48,9 +53,10 @@ public class FileOrUriNotationParser implements NotationParser<Object, Object> {
         candidateFormats.add("A URI or URL instance.");
     }
 
-    public Object parseNotation(Object notation) {
+    public void convert(Object notation, NotationConvertResult<? super Object> result) throws TypeConversionException {
         if (notation instanceof File) {
-            return notation;
+            result.converted(notation);
+            return;
         }
         if (notation instanceof URL) {
             try {
@@ -62,14 +68,17 @@ public class FileOrUriNotationParser implements NotationParser<Object, Object> {
         if (notation instanceof URI) {
             URI uri = (URI) notation;
             if (uri.getScheme().equals("file")) {
-                return new File(uri.getPath());
+                result.converted(new File(uri.getPath()));
             } else {
-                return uri;
+                result.converted(uri);
             }
-        } else if (notation instanceof CharSequence) {
+            return;
+        }
+        if (notation instanceof CharSequence) {
             String notationString = notation.toString();
             if (notationString.startsWith("file:")) {
-                return new File(uriDecode(notationString.substring(5)));
+                result.converted(new File(uriDecode(notationString.substring(5))));
+                return;
             }
             for (File file : File.listRoots()) {
                 String rootPath = file.getAbsolutePath();
@@ -79,22 +88,21 @@ public class FileOrUriNotationParser implements NotationParser<Object, Object> {
                     normalisedStr = normalisedStr.toLowerCase();
                 }
                 if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar, '/'))) {
-                    return new File(notationString);
+                    result.converted(new File(notationString));
+                    return;
                 }
             }
             // Check if string starts with a URI scheme
             if (URI_SCHEME.matcher(notationString).matches()) {
                 try {
-                    return new URI(notationString);
+                    result.converted(new URI(notationString));
+                    return;
                 } catch (URISyntaxException e) {
                     throw new UncheckedIOException(e);
                 }
             }
-            return new File(notationString);
+            result.converted(new File(notationString));
         }
-        List<String> candidates = new ArrayList<String>();
-        describe(candidates);
-        throw new UnsupportedNotationException(notation, String.format("Cannot convert the provided value %s to a File or URI.", notation), null, candidates);
     }
 
     private String uriDecode(String path) {

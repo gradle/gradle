@@ -18,8 +18,6 @@ package org.gradle.internal.typeconversion
 
 import spock.lang.Specification
 
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
-
 class NotationParserBuilderSpec extends Specification {
 
     def "adds just return parser as default"() {
@@ -28,19 +26,6 @@ class NotationParserBuilderSpec extends Specification {
 
         then:
         "Some String" == parser.parseNotation("Some String")
-    }
-
-    def "can build with no just return parser"() {
-        setup:
-        def parser = NotationParserBuilder.toType(String.class).withDefaultJustReturnParser(false).toComposite()
-
-        when:
-        parser.parseNotation("Some String")
-
-        then:
-        def e = thrown(UnsupportedNotationException)
-        e.message == toPlatformLineSeparators("""Cannot convert the provided notation to an object of type String: Some String.
-The following types/formats are supported:""")
     }
 
     def "can add a converter"() {
@@ -101,4 +86,17 @@ The following types/formats are supported:""")
         parser.parseNotation(12) == "[12]"
     }
 
+    def "can tweak the conversion error messages"() {
+        given:
+        def parser = NotationParserBuilder.toType(String.class).typeDisplayName("a thing").toComposite()
+
+        when:
+        parser.parseNotation(12)
+
+        then:
+        UnsupportedNotationException e = thrown()
+        e.message == """Cannot convert the provided notation to a thing: 12.
+The following types/formats are supported:
+  - Instances of String."""
+    }
 }
