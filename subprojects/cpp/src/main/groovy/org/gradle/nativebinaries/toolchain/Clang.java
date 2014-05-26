@@ -25,7 +25,7 @@ import java.util.List;
  * The <a href="http://clang.llvm.org">Clang</a> tool chain.
  */
 @Incubating
-public interface Clang extends ConfigurableToolChain {
+public interface Clang extends PlatformConfigurableToolChain, ConfigurableToolChain {
     /**
      * The paths setting required for executing the tool chain.
      * These are used to locate tools for this tool chain, and are prepended to the system PATH when executing these tools.

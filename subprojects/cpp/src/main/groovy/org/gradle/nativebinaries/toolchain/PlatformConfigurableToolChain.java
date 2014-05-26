@@ -31,7 +31,7 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add configuration for a target platform with additional configuration action.
      */
-    public void target(Platform platform, Action<ConfigurableToolChain> action);
+    public void target(Platform platform, Action<? super ConfigurableToolChain> action);
 
     /**
      * Add support for target platform.
@@ -56,16 +56,16 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add configuration for a set of target platforms with additional configuration action.
      */
-    public void target(DomainObjectSet<Platform> platform, Action<ConfigurableToolChain> action);
+    public void target(DomainObjectSet<Platform> platform, Action<? super ConfigurableToolChain> action);
 
     /**
      * Add configuration for a target platform specified by name with additional configuration action.
      */
-    public void target(String platformName, Action<ConfigurableToolChain> action);
+    public void target(String platformName, Action<? super ConfigurableToolChain> action);
 
     /**
      * Add configuration for multiple target platforms specified by name with additional configuration action.
      */
-    public void target(List<String> platformNames, Action<ConfigurableToolChain> action);
+    public void target(List<String> platformNames, Action<? super ConfigurableToolChain> action);
 
 }
