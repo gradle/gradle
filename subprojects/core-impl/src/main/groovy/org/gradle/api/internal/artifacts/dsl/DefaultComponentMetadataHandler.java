@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.IvyModuleMetadata;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadata
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ActionBroadcast;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ModuleMetadataProcessor {
@@ -66,18 +67,29 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private void executeRuleClosure(ModuleVersionMetaData metadata, ComponentMetadataDetails details, Closure<?> closure) {
+        Class<?>[] parameterTypes = closure.getParameterTypes();
+        if (parameterTypes.length == 0) {
+            throw new InvalidUserCodeException("A component metadata rule needs to have at least one parameter.");
+        }
+
         List<Object> args = Lists.newArrayList();
-        // TODO: make sure that same argType doesn't occur multiple times?
-        for (Class<?> argType : closure.getParameterTypes()) {
-            if (argType == ComponentMetadataDetails.class || argType == Object.class) {
-                args.add(details);
-            } else if (argType == IvyModuleMetadata.class) {
+
+        if (parameterTypes[0].isAssignableFrom(ComponentMetadataDetails.class)) {
+            args.add(details);
+        } else {
+            throw new InvalidUserCodeException(
+                    String.format("First parameter of a component metadata rule needs to be of type '%s'.",
+                            ComponentMetadataDetails.class.getSimpleName()));
+        }
+
+        for (Class<?> parameterType : Arrays.asList(parameterTypes).subList(1, parameterTypes.length)) {
+            if (parameterType == IvyModuleMetadata.class) {
                 if (!(metadata instanceof IvyModuleVersionMetaData)) {
                     return;
                 }
                 args.add(new DefaultIvyModuleMetadata(((IvyModuleVersionMetaData) metadata).getExtraInfo()));
             } else {
-                throw new GradleException(String.format("Unsupported parameter type for component metadata rule: %s", argType.getName()));
+                throw new InvalidUserCodeException(String.format("Unsupported parameter type for component metadata rule: %s", parameterType.getName()));
             }
         }
         closure.call(args.toArray());

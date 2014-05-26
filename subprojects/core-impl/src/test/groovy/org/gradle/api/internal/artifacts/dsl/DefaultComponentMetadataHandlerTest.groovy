@@ -15,7 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.dsl
-import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.IvyModuleMetadata
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -137,6 +137,28 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         !invoked
     }
 
+    def "complains if rule has no parameters"() {
+        handler.eachComponent { -> }
+
+        when:
+        handler.process(Stub(MutableModuleVersionMetaData))
+
+        then:
+        InvalidUserCodeException e = thrown()
+        e.message == "A component metadata rule needs to have at least one parameter."
+    }
+
+    def "complains if first parameter type isn't assignment compatible with ComponentMetadataDetails"() {
+        handler.eachComponent { String s -> }
+
+        when:
+        handler.process(Stub(MutableModuleVersionMetaData))
+
+        then:
+        InvalidUserCodeException e = thrown()
+        e.message == "First parameter of a component metadata rule needs to be of type 'ComponentMetadataDetails'."
+    }
+
     def "complains if rule has unsupported parameter type"() {
         def metadata = Stub(MutableModuleVersionMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
@@ -153,12 +175,12 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.process(metadata)
 
         then:
-        def e = thrown(GradleException)
+        def e = thrown(InvalidUserCodeException)
         e.message == "Unsupported parameter type for component metadata rule: java.lang.String"
         !invoked
     }
 
-    def "supports rule with multiple parameters in arbitrary order"() {
+    def "supports rule with multiple inputs in arbitrary order"() {
         def metadata = Stub(TestIvyMetaData) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
             getStatus() >> "integration"
@@ -167,13 +189,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         def capturedDetails1 = null
-        def capturedDetails2 = null
         def capturedDescriptor1 = null
         def capturedDescriptor2 = null
 
-        handler.eachComponent { IvyModuleMetadata descriptor1, details1, IvyModuleMetadata descriptor2, ComponentMetadataDetails details2  ->
+        handler.eachComponent { ComponentMetadataDetails details1, IvyModuleMetadata descriptor1, IvyModuleMetadata descriptor2  ->
             capturedDetails1 = details1
-            capturedDetails2 = details2
             capturedDescriptor1 = descriptor1
             capturedDescriptor2 = descriptor2
         }
@@ -191,7 +211,6 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             status == "integration"
             statusScheme == ["integration", "release"]
         }
-        capturedDetails2.is(capturedDetails1)
         capturedDescriptor1 instanceof IvyModuleMetadata
         with(capturedDescriptor1) {
             extraInfo == [info1: "info1 value", info2: "info2 value"]
