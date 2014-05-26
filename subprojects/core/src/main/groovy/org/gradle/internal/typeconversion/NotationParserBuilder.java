@@ -49,8 +49,39 @@ public class NotationParserBuilder<T> {
         return this;
     }
 
+    /**
+     * Adds a converter to use to parse notations. Converters are used in the order added.
+     */
     public NotationParserBuilder<T> converter(NotationConverter<Object, ? extends T> converter) {
         this.notationParsers.add(converter);
+        return this;
+    }
+
+    /**
+     * Adds a converter that accepts only notations of the given type.
+     */
+    public <S> NotationParserBuilder<T> fromType(Class<S> notationType, NotationConverter<? super S, ? extends T> converter) {
+        this.notationParsers.add(new TypeFilteringNotationConverter<Object, S, T>(notationType, converter));
+        return this;
+    }
+
+    /**
+     * Adds a converter that accepts any CharSequence notation.
+     */
+    public NotationParserBuilder<T> fromCharSequence(NotationConverter<String, ? extends T> converter) {
+        this.notationParsers.add(new CharSequenceNotationConverter<Object, T>(converter));
+        return this;
+    }
+
+    /**
+     * Adds a converter that accepts any CharSequence notation. Can only be used when the target type is String.
+     */
+    public NotationParserBuilder<T> fromCharSequence() {
+        if (!resultingType.getTargetType().equals(String.class)) {
+            throw new UnsupportedOperationException("Can only convert from CharSequence when the target type is String.");
+        }
+        NotationConverter notationParser = new CharSequenceNotationParser();
+        fromCharSequence(notationParser);
         return this;
     }
 

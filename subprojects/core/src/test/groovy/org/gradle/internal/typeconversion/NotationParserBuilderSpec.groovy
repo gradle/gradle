@@ -55,6 +55,40 @@ The following types/formats are supported:""")
         parser.parseNotation(12) == "[12]"
     }
 
+    def "can add a converter that converts notations of a given type"() {
+        def converter = Mock(NotationConverter)
+
+        given:
+        converter.convert(_, _) >> { Number n, NotationConvertResult result -> result.converted("[${n}]") }
+
+        and:
+        def parser = NotationParserBuilder.toType(String.class).fromType(Number, converter).toComposite()
+
+        expect:
+        parser.parseNotation(12) == "[12]"
+    }
+
+    def "can add a converter that converts CharSequence notations"() {
+        def converter = Mock(NotationConverter)
+
+        given:
+        converter.convert(_, _) >> { String n, NotationConvertResult result -> result.converted("[${n}]") }
+
+        and:
+        def parser = NotationParserBuilder.toType(String.class).fromCharSequence(converter).toComposite()
+
+        expect:
+        parser.parseNotation(new StringBuilder("12")) == "[12]"
+    }
+
+    def "can add a converter that converts CharSequence notations when the target type is String"() {
+        def parser = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite()
+
+        expect:
+        parser.parseNotation(new StringBuilder("12")) == "12"
+        parser.parseNotation("12") == "12"
+    }
+
     def "can add a parser"() {
         def target = Mock(NotationParser)
         given:

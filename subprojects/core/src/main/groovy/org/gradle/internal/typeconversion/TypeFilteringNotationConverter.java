@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,22 @@ package org.gradle.internal.typeconversion;
 
 import java.util.Collection;
 
-class CharSequenceNotationParser implements NotationConverter<String, String> {
-    public void convert(String notation, NotationConvertResult<? super String> result) throws TypeConversionException {
-        result.converted(notation);
+class TypeFilteringNotationConverter<N, S, T> implements NotationConverter<N, T> {
+    private final Class<S> type;
+    private final NotationConverter<? super S, ? extends T> delegate;
+
+    public TypeFilteringNotationConverter(Class<S> type, NotationConverter<? super S, ? extends T> delegate) {
+        this.type = type;
+        this.delegate = delegate;
+    }
+
+    public void convert(N notation, NotationConvertResult<? super T> result) throws TypeConversionException {
+        if (type.isInstance(notation)) {
+            delegate.convert(type.cast(notation), result);
+        }
     }
 
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("String or CharSequence instances.");
+        delegate.describe(candidateFormats);
     }
 }

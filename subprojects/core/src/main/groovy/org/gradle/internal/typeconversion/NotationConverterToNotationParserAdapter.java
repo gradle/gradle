@@ -18,7 +18,7 @@ package org.gradle.internal.typeconversion;
 
 import java.util.Collection;
 
-public class NotationConverterToNotationParserAdapter<N, T> implements NotationParser<N, T> {
+class NotationConverterToNotationParserAdapter<N, T> implements NotationParser<N, T> {
     private final NotationConverter<N, ? extends T> converter;
 
     public NotationConverterToNotationParserAdapter(NotationConverter<N, ? extends T> converter) {

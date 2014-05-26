@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,30 +18,24 @@ package org.gradle.internal.typeconversion
 
 import spock.lang.Specification
 
-class CharSequenceNotationParserTest extends Specification {
-    def parser = new CharSequenceNotationParser()
+class TypeFilteringNotationConverterTest extends Specification {
+    def target = Mock(NotationConverter)
+    def result = Mock(NotationConvertResult)
+    def converter = new TypeFilteringNotationConverter<Number, BigDecimal, String>(BigDecimal, target)
 
-    def "handles Strings"() {
-        expect:
-        converts("abc", "abc")
+    def "ignores notation when it is not an instance of the target type"() {
+        when:
+        converter.convert(12L, result)
+
+        then:
+        0 * _._
     }
 
-    def "handles GStrings"() {
-        expect:
-        def foo = "abc"
-        converts("$foo", "abc")
-    }
+    def "delegates to target when notation is an instance of the target type"() {
+        when:
+        converter.convert(12.0, result)
 
-    def "handles StringBuilders"() {
-        def builder = new StringBuilder()
-        builder.append("abc")
-
-        expect:
-        converts(builder, "abc")
-    }
-
-    void converts(from, to) {
-        assert parser.parseNotation(from).getClass() == String
-        assert parser.parseNotation(from) == to
+        then:
+        1 * target.convert(12.0, result)
     }
 }
