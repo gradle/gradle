@@ -112,6 +112,10 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         target(platformNames, Actions.<ConfigurableToolChain>doNothing());
     }
 
+    public void target(String... platformNames) {
+        target(Arrays.asList(platformNames), Actions.<ConfigurableToolChain>doNothing());
+    }
+
     public void target(Platform platform, Action<? super ConfigurableToolChain> action) {
         target(platform.getName(), action);
     }
