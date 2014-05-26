@@ -21,7 +21,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ErrorHandlingNotationParserTest extends Specification {
     def NotationParser<String, String> target = Mock()
-    def parser = new ErrorHandlingNotationParser<String, String>("a thing", "<broken>", target)
+    def parser = new ErrorHandlingNotationParser<String, String>("a thing", "<broken>", false, target)
 
     def "reports unable to parse null"() {
         when:

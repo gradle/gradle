@@ -86,6 +86,22 @@ class NotationParserBuilderSpec extends Specification {
         parser.parseNotation(12) == "[12]"
     }
 
+    def "can opt in to allow null as input"() {
+        def converter = Mock(NotationConverter)
+        def parser = NotationParserBuilder
+                .toType(String.class)
+                .allowNullInput()
+                .converter(converter)
+                .toComposite()
+
+
+        given:
+        converter.convert(null, _) >> { Object n, NotationConvertResult result -> result.converted("[null]") }
+
+        expect:
+        parser.parseNotation(null) == "[null]"
+    }
+
     def "can tweak the conversion error messages"() {
         given:
         def parser = NotationParserBuilder.toType(String.class).typeDisplayName("a thing").toComposite()
@@ -96,6 +112,20 @@ class NotationParserBuilderSpec extends Specification {
         then:
         UnsupportedNotationException e = thrown()
         e.message == """Cannot convert the provided notation to a thing: 12.
+The following types/formats are supported:
+  - Instances of String."""
+    }
+
+    def "uses nice display name for String target type"() {
+        given:
+        def parser = NotationParserBuilder.toType(String.class).toComposite()
+
+        when:
+        parser.parseNotation(12)
+
+        then:
+        UnsupportedNotationException e = thrown()
+        e.message == """Cannot convert the provided notation to a String: 12.
 The following types/formats are supported:
   - Instances of String."""
     }

@@ -25,6 +25,8 @@ public class NotationParserBuilder<T> {
     private TypeInfo<T> resultingType;
     private String invalidNotationMessage;
     private String typeDisplayName;
+    private boolean implicitConverters = true;
+    private boolean allowNullInput;
     private final Collection<NotationConverter<Object, ? extends T>> notationParsers = new LinkedList<NotationConverter<Object, ? extends T>>();
 
     public static <T> NotationParserBuilder<T> toType(Class<T> resultingType) {
@@ -37,7 +39,7 @@ public class NotationParserBuilder<T> {
 
     private NotationParserBuilder(TypeInfo<T> resultingType) {
         this.resultingType = resultingType;
-        typeDisplayName = String.format("an object of type %s", resultingType.getTargetType().getSimpleName());
+        typeDisplayName = resultingType.getTargetType().equals(String.class) ? "a String" : String.format("an object of type %s", resultingType.getTargetType().getSimpleName());
     }
 
     public NotationParserBuilder<T> parser(NotationParser<Object, ? extends T> parser) {
@@ -50,6 +52,26 @@ public class NotationParserBuilder<T> {
      */
     public NotationParserBuilder<T> typeDisplayName(String name) {
         this.typeDisplayName = name;
+        return this;
+    }
+
+    /**
+     * Use only those converters that are explicitly registered, and disable any implicit conversion that may normally be done.
+     */
+    public NotationParserBuilder<T> noImplicitConverters() {
+        implicitConverters = false;
+        return this;
+    }
+
+    /**
+     * Allow null as a valid input. The default is to disallow null.
+     *
+     * <p>When this is enabled, all converters must be null safe.
+     *
+     * TODO - attach the null safety to each converter and infer whether null is a valid input or not.
+     */
+    public NotationParserBuilder<T> allowNullInput() {
+        allowNullInput = true;
         return this;
     }
 
@@ -110,12 +132,12 @@ public class NotationParserBuilder<T> {
     }
 
     private <S> NotationParser<Object, S> wrapInErrorHandling(NotationParser<Object, S> parser) {
-        return new ErrorHandlingNotationParser<Object, S>(typeDisplayName, invalidNotationMessage, parser);
+        return new ErrorHandlingNotationParser<Object, S>(typeDisplayName, invalidNotationMessage, allowNullInput, parser);
     }
 
     private NotationParser<Object, T> create() {
         List<NotationConverter<Object, ? extends T>> composites = new LinkedList<NotationConverter<Object, ? extends T>>();
-        if (!resultingType.getTargetType().equals(Object.class)) {
+        if (!resultingType.getTargetType().equals(Object.class) && implicitConverters) {
             composites.add(new NotationParserToNotationConverterAdapter<Object, T>(new JustReturningParser<Object, T>(resultingType.getTargetType())));
         }
         composites.addAll(this.notationParsers);

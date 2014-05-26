@@ -23,11 +23,13 @@ import java.util.List;
 class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
     private final String targetTypeDisplayName;
     private final String invalidNotationMessage;
+    private final boolean allowNullInput;
     private final NotationParser<N, T> delegate;
 
-    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, NotationParser<N, T> delegate) {
+    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, boolean allowNullInput, NotationParser<N, T> delegate) {
         this.targetTypeDisplayName = targetTypeDisplayName;
         this.invalidNotationMessage = invalidNotationMessage;
+        this.allowNullInput = allowNullInput;
         this.delegate = delegate;
     }
 
@@ -37,8 +39,7 @@ class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
 
     public T parseNotation(N notation) {
         String failure;
-        if (notation == null) {
-            //we don't support null input at the moment. If you need this please implement it.
+        if (notation == null && !allowNullInput) {
             failure = String.format("Cannot convert a null value to %s.", targetTypeDisplayName);
         } else {
             try {

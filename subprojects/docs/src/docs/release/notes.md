@@ -405,12 +405,15 @@ A bunch of changes and renames have been made to the new, incubating 'java compo
 - `ResolvedArtifact.resolvedDependency` with `ResolvedArtifact.moduleVersion` as a partial replacement.
 - `ArtifactsRepositoryContainer` constants with no replacement.
 
-### Changes to project DSL
+### Changes to file DSL
 
 The `Project.file()` method no longer accepts arbitrary inputs. Previously, this method would attempt to convert the result of calling `toString()`
 on its parameter, if the parameter type was not recognized. This is now a failure.
 
 This method is used indirectly in many places in the Gradle DSL.
+
+The `CopySpec.into()` method also no longer accepts arbitrary inputs. Previously, this method would attempt to conver the result of calling `toString()` on
+its parameter, if the parameter type was not recognized. This is now a failure.
 
 ### Changes to repository DSL
 

@@ -28,6 +28,7 @@ import org.gradle.api.specs.NotSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -37,6 +38,7 @@ import java.util.regex.Pattern;
 
 @NonExtensible
 public class DefaultCopySpec implements CopySpecInternal {
+    private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationParser.create();
     protected final FileResolver fileResolver;
     private final Set<Object> sourcePaths;
     private Object destDir;
@@ -343,13 +345,10 @@ public class DefaultCopySpec implements CopySpecInternal {
     public class DefaultCopySpecResolver implements CopySpecResolver {
 
         private CopySpecResolver parentResolver;
-        private PathNotationParser pathNotationParser;
 
         private DefaultCopySpecResolver(CopySpecResolver parent) {
             this.parentResolver = parent;
-            this.pathNotationParser = new PathNotationParser();
         }
-
 
         public RelativePath getDestPath() {
 
@@ -364,7 +363,7 @@ public class DefaultCopySpec implements CopySpecInternal {
                 return parentPath;
             }
 
-            String path = pathNotationParser.parseNotation(destDir);
+            String path = PATH_NOTATION_PARSER.parseNotation(destDir);
             if (path.startsWith("/") || path.startsWith(File.separator)) {
                 return RelativePath.parse(false, path);
             }
