@@ -27,7 +27,9 @@ import org.gradle.plugins.ide.eclipse.model.WtpFacet
  * At this moment nearly all configuration is done via {@link EclipseWtpFacet}.
  */
 class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
-
+    /**
+     * The Eclipse WTP facet model containing the details required to generate the settings file.
+     */
     EclipseWtpFacet facet
 
     GenerateEclipseWtpFacet() {

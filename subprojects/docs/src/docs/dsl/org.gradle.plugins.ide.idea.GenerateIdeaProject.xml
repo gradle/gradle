@@ -10,6 +10,11 @@
                 </tr>
             </thead>
             <tr>
+                <td>ideaProject</td>
+                <td><literal>project.idea.project</literal></td>
+                <td/>
+            </tr>
+            <tr>
                 <td>outputFile</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.ipr</literal></td>
                 <td/>

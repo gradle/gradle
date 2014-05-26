@@ -28,7 +28,7 @@ import org.gradle.plugins.ide.eclipse.model.Jdt
 class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 
     /**
-     * Eclipse project model that contains information needed for this task
+     * Eclipse JDT model that contains information needed to generate the JDT file.
      */
     EclipseJdt jdt
 

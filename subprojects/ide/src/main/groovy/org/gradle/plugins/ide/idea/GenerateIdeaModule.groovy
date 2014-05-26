@@ -29,7 +29,7 @@ import org.gradle.plugins.ide.idea.model.Module
 public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     /**
-     * Idea module model
+     * The Idea module model containing the details required to generate the module file.
      */
     IdeaModule module
 
