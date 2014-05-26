@@ -41,7 +41,9 @@ repositories {
     }
 
     def "rule that accepts IvyModuleMetadata isn't invoked for Maven component"() {
-        repo.module('org.test', 'projectA', '1.0').publish().allowAll()
+        def module = repo.module('org.test', 'projectA', '1.0').publish()
+        module.pom.expectGet()
+        module.artifact.expectGet()
 
         buildFile <<
 """
