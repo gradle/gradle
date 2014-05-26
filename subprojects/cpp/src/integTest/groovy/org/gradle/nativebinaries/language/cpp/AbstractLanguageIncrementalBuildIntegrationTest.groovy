@@ -429,6 +429,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "recompiles binary when imported header file changes"() {
         sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
         if(buildingCorCppWithGcc()){
+            println "c/cpp with gcc"
             buildFile << """
                 //support for #import on c/cpp is deprecated in gcc
                 binaries.all { ${compilerTool}.args '-Wno-deprecated'; }
@@ -533,7 +534,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
 
     def buildingCorCppWithGcc() {
-        return toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "c" || sourceType == "cpp")
+        println "meets " + toolChain.meets(ToolChainRequirement.Gcc)
+        println "sourceType = $sourceType"
+        return toolChain.meets(ToolChainRequirement.Gcc) && (sourceType == "C" || sourceType == "Cpp")
     }
 
     private void maybeWait() {
