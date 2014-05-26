@@ -18,7 +18,6 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativebinaries.platform.Platform

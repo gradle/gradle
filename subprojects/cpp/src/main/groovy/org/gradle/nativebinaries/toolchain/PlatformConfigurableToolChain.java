@@ -60,7 +60,7 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add configuration for a set of target platforms with additional configuration action.
      */
-    public void target(Iterable<? extends Platform> platform, Action<ConfigurableToolChain> action);
+    public void target(Iterable<? extends Platform> platform, Action<? super ConfigurableToolChain> action);
 
     /**
      * Add configuration for a target platform specified by name with additional configuration action.
