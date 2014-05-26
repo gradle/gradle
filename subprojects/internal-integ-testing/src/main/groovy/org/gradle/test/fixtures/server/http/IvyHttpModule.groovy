@@ -129,7 +129,7 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
         server.allowGetOrHead(prefix, backingModule.moduleDir)
     }
 
-    IvyModuleHttpArtifact getArtifact(Map<String, ?> options) {
+    IvyModuleHttpArtifact getArtifact(Map<String, ?> options = [:]) {
         def backingFile = backingModule.file(options)
         return new IvyModuleHttpArtifact(server, prefix, backingModule.getArtifactFilePath(options), backingFile)
     }

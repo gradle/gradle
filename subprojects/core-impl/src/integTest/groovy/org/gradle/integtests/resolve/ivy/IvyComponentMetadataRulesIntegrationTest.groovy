@@ -43,7 +43,9 @@ repositories {
     }
 
     def "can access Ivy extra info by accepting parameter of type IvyModuleMetadata"() {
-        repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish().allowAll()
+        def module = repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish()
+        module.ivy.expectDownload()
+        module.artifact.expectDownload()
 
         buildFile <<
 """
@@ -68,7 +70,10 @@ resolve.doLast { assert ruleInvoked }
     }
 
     def "rule that doesn't initially access Ivy extra info can be changed to get access at any time"() {
-        repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish().allowAll()
+        def module = repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish()
+        module.ivy.expectDownload()
+        module.artifact.expectDownload()
+
         def baseScript = buildFile.text
 
         when:
@@ -115,7 +120,16 @@ resolve.doLast { assert ruleInvoked }
         def baseScript = buildFile.text
 
         when:
-        repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish().allowAll()
+        def module = repo.module('org.test', 'projectA', '1.0').withExtraInfo(foo: "fooValue", bar: "barValue").publish()
+        module.ivy.expectMetadataRetrieve()
+        module.ivy.expectDownload()
+        module.ivy.expectDownload()
+        module.ivy.sha1.expectGet()
+        module.artifact.expectMetadataRetrieve()
+        module.artifact.expectDownload()
+        module.artifact.expectDownload()
+        module.artifact.sha1.expectGet()
+
         buildFile.text = baseScript +
                 """
 def ruleInvoked = false
