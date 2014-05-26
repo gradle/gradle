@@ -44,63 +44,61 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
 
         NotationParser<Object, MavenArtifact> sourceNotationParser = NotationParserBuilder
                 .toType(MavenArtifact.class)
-                .parser(archiveTaskNotationParser)
-                .parser(publishArtifactNotationParser)
-                .parser(fileNotationParser)
+                .fromType(AbstractArchiveTask.class, archiveTaskNotationParser)
+                .fromType(PublishArtifact.class, publishArtifactNotationParser)
+                .converter(fileNotationParser)
                 .toComposite();
 
         MavenArtifactMapNotationParser mavenArtifactMapNotationParser = new MavenArtifactMapNotationParser(sourceNotationParser);
 
         NotationParserBuilder<MavenArtifact> parserBuilder = NotationParserBuilder
                 .toType(MavenArtifact.class)
-                .parser(archiveTaskNotationParser)
-                .parser(publishArtifactNotationParser)
+                .fromType(AbstractArchiveTask.class, archiveTaskNotationParser)
+                .fromType(PublishArtifact.class, publishArtifactNotationParser)
                 .parser(mavenArtifactMapNotationParser)
-                .parser(fileNotationParser);
+                .converter(fileNotationParser);
 
         return parserBuilder.toComposite();
     }
 
-    private class ArchiveTaskNotationParser extends TypedNotationParser<AbstractArchiveTask, MavenArtifact> {
-        private ArchiveTaskNotationParser() {
-            super(AbstractArchiveTask.class);
-        }
-
-        @Override
-        protected MavenArtifact parseType(AbstractArchiveTask archiveTask) {
+    private class ArchiveTaskNotationParser implements NotationConverter<AbstractArchiveTask, MavenArtifact> {
+        public void convert(AbstractArchiveTask archiveTask, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             DefaultMavenArtifact artifact = instantiator.newInstance(
                     DefaultMavenArtifact.class,
                     archiveTask.getArchivePath(), archiveTask.getExtension(), archiveTask.getClassifier());
             artifact.builtBy(archiveTask);
-            return artifact;
+            result.converted(artifact);
+        }
+
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Instances of AbstractArchiveTask e.g. jar");
         }
     }
 
-    private class PublishArtifactNotationParser extends TypedNotationParser<PublishArtifact, MavenArtifact> {
-        private PublishArtifactNotationParser() {
-            super(PublishArtifact.class);
-        }
-
-        @Override
-        protected MavenArtifact parseType(PublishArtifact publishArtifact) {
+    private class PublishArtifactNotationParser implements NotationConverter<PublishArtifact, MavenArtifact> {
+        public void convert(PublishArtifact publishArtifact, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             DefaultMavenArtifact artifact = instantiator.newInstance(
                     DefaultMavenArtifact.class,
                     publishArtifact.getFile(), publishArtifact.getExtension(), publishArtifact.getClassifier());
             artifact.builtBy(publishArtifact.getBuildDependencies());
-            return artifact;
+            result.converted(artifact);
+        }
+
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Instances of PublishArtifact");
         }
     }
 
-    private class FileNotationParser implements NotationParser<Object, MavenArtifact> {
+    private class FileNotationParser implements NotationConverter<Object, MavenArtifact> {
         private final NotationParser<Object, File> fileResolverNotationParser;
 
         private FileNotationParser(FileResolver fileResolver) {
             this.fileResolverNotationParser = fileResolver.asNotationParser();
         }
 
-        public MavenArtifact parseNotation(Object notation) throws UnsupportedNotationException {
+        public void convert(Object notation, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
-            return parseFile(file);
+            result.converted(parseFile(file));
         }
 
         protected MavenArtifact parseFile(File file) {
