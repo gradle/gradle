@@ -18,6 +18,8 @@ package org.gradle.internal.typeconversion
 
 import spock.lang.Specification
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 class NotationParserBuilderSpec extends Specification {
 
     def "adds just return parser as default"() {
@@ -111,9 +113,9 @@ class NotationParserBuilderSpec extends Specification {
 
         then:
         UnsupportedNotationException e = thrown()
-        e.message == """Cannot convert the provided notation to a thing: 12.
+        e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a thing: 12.
 The following types/formats are supported:
-  - Instances of String."""
+  - Instances of String.""")
     }
 
     def "uses nice display name for String target type"() {
@@ -125,8 +127,8 @@ The following types/formats are supported:
 
         then:
         UnsupportedNotationException e = thrown()
-        e.message == """Cannot convert the provided notation to a String: 12.
+        e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a String: 12.
 The following types/formats are supported:
-  - Instances of String."""
+  - Instances of String.""")
     }
 }
